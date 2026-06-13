@@ -114,6 +114,53 @@
 .tip-table th:first-child,.tip-table td:first-child{min-width:42px}.tip-table th:nth-child(2),.tip-table td:nth-child(2){min-width:72px;color:#ffd35a;font-weight:900}.tip-table td{white-space:nowrap}
 </style>
 
+
+<style id="finalMobileCenterAndAuraSpeedPatch">
+/* 최종 보정: 도감/뽑기 결과/전설·신화 등장창 장비 아이콘이 모바일에서 왼쪽 위로 쏠리지 않게 강제 중앙 배치 */
+.collection-card .gear-icon.gear-icon.gear-icon,
+.draw-card .gear-icon.gear-icon.gear-icon,
+#rarityRevealGear .gear-icon.gear-icon.gear-icon{
+  display:grid!important;
+  place-items:center!important;
+  position:relative!important;
+  overflow:hidden!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  float:none!important;
+}
+.collection-card .gear-icon.gear-icon.gear-icon::before,
+.collection-card .gear-icon.gear-icon.gear-icon::after,
+.draw-card .gear-icon.gear-icon.gear-icon::before,
+.draw-card .gear-icon.gear-icon.gear-icon::after,
+#rarityRevealGear .gear-icon.gear-icon.gear-icon::before,
+#rarityRevealGear .gear-icon.gear-icon.gear-icon::after{
+  left:50%!important;
+  top:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  translate:-50% -50%!important;
+  transform-origin:center!important;
+  margin:0!important;
+}
+.collection-card .gear-icon.gear-icon.gear-icon.r5::before,
+.collection-card .gear-icon.gear-icon.gear-icon.r5::after,
+.draw-card .gear-icon.gear-icon.gear-icon.r5::before,
+.draw-card .gear-icon.gear-icon.gear-icon.r5::after{
+  scale:1!important;
+}
+#rarityRevealGear .gear-icon.gear-icon.gear-icon.r5::before,
+#rarityRevealGear .gear-icon.gear-icon.gear-icon.r5::after{
+  scale:1.55!important;
+}
+/* 모바일에서도 같은 중앙값 유지 */
+@media(max-width:520px){
+  #rarityRevealGear .gear-icon.gear-icon.gear-icon.r5::before,
+  #rarityRevealGear .gear-icon.gear-icon.gear-icon.r5::after{scale:1.35!important;}
+}
+/* 원형 오라는 별 회전 속도의 절반 속도: 별 11초 기준 원형 22초 */
+.player-shop-aura{animation-duration:22s!important;}
+.rank-preview .player-shop-aura{animation-duration:22s!important;}
+</style>
 </head>
 <body>
 <main class="app">
@@ -390,10 +437,10 @@ function selectBoss(i){state.bossIndex=i;resetCombat();renderBosses();renderBatt
 function resetCombat(){normalizeCharacter();const b=currentBoss();combat.hp=b.hp;combat.elapsed=0}
 function openTower(){if(activeDungeon)return toast('특수 던전 전투를 먼저 종료하세요.');normalizeCharacter();$('towerModal').classList.add('show');renderTower()}
 function closeTower(){activeTower=null;$('towerModal').classList.remove('show')}
-function renderTower(){const list=$('towerFloorList'),battle=$('towerBattle');if(activeTower){list.style.display='none';battle.classList.add('show');const f=activeTower.data;$('towerBossName').textContent=f.floor+'층 · '+f.name;$('towerArt').className='tower-art f'+f.floor;$('towerHpFill').style.width=Math.max(0,activeTower.hp/f.hp*100)+'%';$('towerHpText').textContent=fmt(activeTower.hp)+' / '+fmt(f.hp);$('towerTimer').textContent=activeTower.elapsed+' / 15초 · 치명타 미적용';return}list.style.display='grid';battle.classList.remove('show');list.innerHTML=towerFloors.map(f=>{const cleared=f.floor<=state.towerCleared,locked=f.floor>state.towerCleared+1;return '<div class="tower-floor '+(cleared?'cleared ':'')+(locked?'locked':'')+'"><span class="utility-icon" style="--ic:'+(f.floor>=20?'#ff304c':f.floor>=11?'#8cffea':'#bd65ff')+'">'+f.floor+'</span><span><strong>'+f.floor+'층 · '+f.name+'</strong><small>권장 공격력 '+fmt(f.required)+' · HP '+fmt(f.hp)+'<br>보상 '+fmt(f.gold)+' G · 정수 '+f.essence+' · 초월석 '+f.stone+' · 하락방지권 '+f.protect+'</small></span><button '+(cleared||locked?'disabled':'onclick="startTower('+f.floor+')"')+'>'+(cleared?'클리어 완료':locked?'잠김':'도전')+'</button></div>'}).join('')}
+function renderTower(){const list=$('towerFloorList'),battle=$('towerBattle');if(activeTower){list.style.display='none';battle.classList.add('show');const f=activeTower.data;$('towerBossName').textContent=f.floor+'층 · '+f.name;$('towerArt').className='tower-art f'+f.floor;$('towerHpFill').style.width=Math.max(0,activeTower.hp/f.hp*100)+'%';$('towerHpText').textContent=fmt(activeTower.hp)+' / '+fmt(f.hp);$('towerTimer').textContent=activeTower.elapsed+' / 15초';return}list.style.display='grid';battle.classList.remove('show');list.innerHTML=towerFloors.map(f=>{const cleared=f.floor<=state.towerCleared,locked=f.floor>state.towerCleared+1;return '<div class="tower-floor '+(cleared?'cleared ':'')+(locked?'locked':'')+'"><span class="utility-icon" style="--ic:'+(f.floor>=20?'#ff304c':f.floor>=11?'#8cffea':'#bd65ff')+'">'+f.floor+'</span><span><strong>'+f.floor+'층 · '+f.name+'</strong><small>권장 공격력 '+fmt(f.required)+' · HP '+fmt(f.hp)+'<br>보상 '+fmt(f.gold)+' G · 정수 '+f.essence+' · 초월석 '+f.stone+' · 하락방지권 '+f.protect+'</small></span><button '+(cleared||locked?'disabled':'onclick="startTower('+f.floor+')"')+'>'+(cleared?'클리어 완료':locked?'잠김':'도전')+'</button></div>'}).join('')}
 function startTower(floor){const data=towerFloors[floor-1];if(!data)return;if(floor<=state.towerCleared)return toast('이미 클리어한 층입니다.');if(floor!==state.towerCleared+1)return toast('이전 층을 먼저 클리어하세요.');if(activeDungeon)return toast('특수 던전 전투를 먼저 종료하세요.');activeTower={data,hp:data.hp,elapsed:0};renderTower();toast(data.floor+'층 도전 시작')}
 function showTowerDamage(damage,crit){const el=document.createElement('div');el.className='tower-pop'+(crit?' crit':'');el.textContent=(crit?'CRITICAL! ':'-')+fmt(damage);$('towerBattle').appendChild(el);setTimeout(()=>el.remove(),800)}
-function towerAttackTick(){if(!activeTower)return;const t=activeTower,stats=getPlayerStats(),crit=false,damage=Math.max(1,Math.floor(stats.attack));t.hp=Math.max(0,t.hp-damage);t.elapsed++;showTowerDamage(damage,crit);playHitSound(false);if(t.hp<=0){const f=t.data;if(f.floor===state.towerCleared+1){state.towerCleared=f.floor;state.gold+=f.gold;state.essence+=f.essence;state.transcendStone+=f.stone;state.downgradeProtect+=f.protect;toast(f.floor+'층 클리어! 모든 보상 획득');syncRanking()}activeTower=null;renderAll();renderTower();queueSave();return}if(t.elapsed>=15){toast(t.data.floor+'층 공략 실패 · 다시 도전할 수 있습니다.');activeTower=null;renderTower();return}renderTower()}
+function towerAttackTick(){if(!activeTower)return;const t=activeTower,stats=getPlayerStats(),crit=Math.random()*100<stats.critChance,damage=Math.max(1,Math.floor(stats.attack*(crit?1+stats.critDamage/100:1)));t.hp=Math.max(0,t.hp-damage);t.elapsed++;showTowerDamage(damage,crit);playHitSound(crit);if(t.hp<=0){const f=t.data;if(f.floor===state.towerCleared+1){state.towerCleared=f.floor;state.gold+=f.gold;state.essence+=f.essence;state.transcendStone+=f.stone;state.downgradeProtect+=f.protect;toast(f.floor+'층 클리어! 모든 보상 획득');syncRanking()}activeTower=null;renderAll();renderTower();queueSave();return}if(t.elapsed>=15){toast(t.data.floor+'층 공략 실패 · 다시 도전할 수 있습니다.');activeTower=null;renderTower();return}renderTower()}
 function attack(){dailyAttackTick();if(activeTower){towerAttackTick();return}if(activeDungeon){dungeonAttackTick();return}if(!state.autoBattle)return;const b=currentBoss(),stats=getPlayerStats(),crit=Math.random()*100<stats.critChance,damage=Math.floor(stats.attack*(crit?1+stats.critDamage/100:1));combat.hp=Math.max(0,combat.hp-damage);combat.elapsed++;showDamage(damage,crit);playHitSound(crit);$('bossArt').classList.add('hit');setTimeout(()=>$('bossArt').classList.remove('hit'),180);if(combat.hp<=0){const reward=Math.floor(b.reward*(1+stats.goldBonus/100));state.gold+=reward;playDefeatSound();addLog('<b>'+b.name+'</b> 처치! +'+fmt(reward)+' 골드');$('battleState').textContent='처치 성공 · 자동 재도전';setTimeout(resetCombat,300);queueSave()}else if(combat.elapsed>=15){addLog('<span style="color:#ff7182">전투 실패</span> · 즉시 재도전');$('battleState').textContent='시간 초과 · 즉시 재도전';resetCombat()}renderTop();renderBattle()}
 function showDamage(dmg,crit){const el=document.createElement('div');el.className='damage-pop'+(crit?' crit':'');el.textContent=(crit?'CRITICAL! ':'-')+fmt(dmg);$('arena').appendChild(el);setTimeout(()=>el.remove(),750)}
 function addLog(html){combat.logs.unshift(html);combat.logs=combat.logs.slice(0,5);$('battleLog').innerHTML=combat.logs.map(x=>'<div>'+x+'</div>').join('')}
