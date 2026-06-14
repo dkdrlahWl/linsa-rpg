@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#080b12">
-<meta name="ringu-build" content="2026-06-14-v16-daily-boss-close-fix">
+<meta name="ringu-build" content="2026-06-14-v17-cloud-stale-overwrite-fix">
 <title>링구 RPG</title>
 <style>
 :root{--bg:#080b12;--panel:#111622;--panel2:#171e2d;--line:#273146;--text:#eef3ff;--muted:#8d99ae;--gold:#ffd35a;--red:#ff4f64;--green:#50e39a;--blue:#4e9cff;--purple:#bd65ff;--orange:#ff9d3b;--shadow:0 12px 30px #0008}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,#23304c 0,#0b0f19 35%,#06080e 80%);overflow-x:hidden}button,select{font:inherit;color:inherit}button{border:0;cursor:pointer}.app{width:min(1500px,100%);margin:auto;padding:env(safe-area-inset-top) 10px calc(78px + env(safe-area-inset-bottom))}.topbar{position:sticky;top:0;z-index:20;margin:0 -10px 10px;padding:8px 10px;background:#080b12e8;backdrop-filter:blur(16px);border-bottom:1px solid #273146}.brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.brand{font-size:18px;font-weight:1000;letter-spacing:-1px}.brand b{color:var(--orange);text-shadow:0 0 15px #ff8a3d88}.save-dot{font-size:11px;color:var(--muted)}.save-dot::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:5px;box-shadow:0 0 8px var(--green)}.stats{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:6px}.stat{min-width:0;border:1px solid var(--line);background:linear-gradient(145deg,#171d2a,#101520);border-radius:10px;padding:8px}.stat-label{display:block;color:var(--muted);font-size:10px}.stat-value{display:block;margin-top:2px;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat.gold .stat-value{color:var(--gold)}.stat.power .stat-value{color:#77c7ff}.summon-mini{height:3px;background:#252c3a;border-radius:9px;margin-top:5px;overflow:hidden}.summon-mini i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),#ff75c8);transition:.3s}.layout{display:grid;gap:10px}.panel{background:linear-gradient(150deg,#151b28ee,#0d111bee);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);overflow:hidden}.panel-title{display:flex;align-items:center;justify-content:space-between;padding:12px 13px 9px;font-size:13px;font-weight:900}.panel-title small{font-weight:500;color:var(--muted)}.boss-list{display:flex;gap:7px;overflow-x:auto;padding:0 10px 11px;scrollbar-width:none}.boss-btn{flex:0 0 130px;text-align:left;padding:9px;background:#141a27;border:1px solid #29344a;border-radius:11px;transition:.2s}.boss-btn.active{border-color:var(--red);background:linear-gradient(135deg,#351824,#171725);box-shadow:0 0 16px #ff4f6435}.boss-btn strong{display:block;font-size:12px}.boss-btn span{display:block;color:var(--muted);font-size:10px;margin-top:4px}.arena{position:relative;min-height:300px;background:radial-gradient(ellipse at 50% 65%,#2a3146 0,#151a27 32%,#090c14 70%);overflow:hidden}.arena::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#ffffff05 1px,transparent 1px),linear-gradient(#ffffff05 1px,transparent 1px);background-size:30px 30px;transform:perspective(300px) rotateX(58deg) scale(1.5);transform-origin:center bottom;opacity:.45}.battle-head{position:relative;z-index:2;text-align:center;padding:14px 16px 4px}.battle-head h2{font-size:18px;margin:0}.battle-head p{font-size:11px;color:var(--muted);margin:5px 0}.boss-art{position:relative;z-index:2;width:112px;height:112px;margin:10px auto 14px;display:grid;place-items:center;filter:drop-shadow(0 15px 10px #0009);animation:float 2.5s ease-in-out infinite}.boss-core{width:80px;height:80px;border-radius:45% 55% 48% 52%;background:linear-gradient(145deg,#ff6c7c,#a61535);box-shadow:inset 12px 10px 20px #ffffff25,inset -12px -10px 15px #470719,0 0 30px #ff3f5d50;position:relative}.boss-core::before,.boss-core::after{content:"";position:absolute;top:27px;width:10px;height:13px;background:#12060b;border-radius:50%;box-shadow:0 0 0 3px #fff2}.boss-core::before{left:20px}.boss-core::after{right:20px}.boss-core i{position:absolute;width:30px;height:8px;border-bottom:4px solid #310812;border-radius:50%;left:25px;top:48px}.boss-art.hit{animation:hit .18s}.hp-wrap{position:relative;z-index:2;padding:0 15px}.hp-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}.hp-bar{height:17px;padding:3px;background:#090b11;border:1px solid #3a2430;border-radius:999px;overflow:hidden}.hp-fill{height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#a81535,#ff4f64,#ff7a88);box-shadow:0 0 12px #ff4f64;transition:width .35s ease}.timer{height:3px;background:#2d3442;margin-top:7px;border-radius:9px;overflow:hidden}.timer i{display:block;height:100%;background:#75b8ff;transition:width 1s linear}.damage-pop{position:absolute;z-index:5;left:50%;top:115px;transform:translateX(-50%);font-size:26px;font-weight:1000;color:white;text-shadow:0 2px 0 #000,0 0 10px #fff;pointer-events:none;animation:damage .75s forwards}.damage-pop.crit{font-size:34px;color:var(--gold);text-shadow:0 2px #a43c00,0 0 18px #ff9d3b}.battle-log{height:88px;margin-top:13px;padding:8px 12px;background:#080b12aa;border-top:1px solid var(--line);overflow:hidden;font-size:10px;color:#aab5c9}.battle-log div{height:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.battle-log b{color:var(--gold)}.equip-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:0 10px 11px}.equip-slot{min-height:64px;text-align:left;background:#121824;border:1px solid #273146;border-radius:10px;padding:8px;position:relative}.equip-slot .slot-name{font-size:9px;color:var(--muted)}.equip-slot strong{display:block;font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equip-slot em{font-style:normal;font-size:10px;color:#b5c2d7}.empty{color:#59657a!important}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.quick button,.action-btn{background:linear-gradient(#252e42,#182033);border:1px solid #34425d;border-radius:11px;padding:11px 4px;font-size:11px;font-weight:800;box-shadow:0 4px 10px #0005}.quick button:active,.action-btn:active{transform:translateY(1px);filter:brightness(.8)}.quick .best{background:linear-gradient(#324d5e,#183344);border-color:#3c8291;color:#8eeeff}.summon-panel{margin-top:10px}.summon-level{padding:0 12px 11px}.level-line{display:flex;justify-content:space-between;font-size:11px}.expbar{height:7px;background:#090c13;border-radius:8px;margin-top:7px;overflow:hidden}.expbar i{display:block;height:100%;background:linear-gradient(90deg,#904aff,#ff62b1);transition:.3s}.summon-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 10px 8px}.summon-tab{padding:9px 3px;background:#171e2c;border:1px solid #2a354b;border-radius:9px;color:var(--muted);font-size:11px}.summon-tab.active{color:white;border-color:#7d66ff;background:#28214b}.draw-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 10px 11px}.draw{padding:9px 3px;border-radius:10px;background:linear-gradient(145deg,#7540d8,#41258b);font-size:11px;font-weight:900;box-shadow:0 5px 15px #663bd044}.draw span{display:block;color:#e4d6ff;font-size:9px;margin-top:3px}.inventory{margin-top:10px}.inventory-tools{display:flex;gap:6px;padding:0 10px 8px;overflow-x:auto}.inventory-tools select,.sell-bulk{flex:none;background:#171e2c;border:1px solid #2d3950;border-radius:8px;padding:7px;font-size:10px}.sell-bulk{color:#ff9eaa}.inventory-list{max-height:570px;overflow-y:auto;padding:0 10px 12px}.item{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:7px;padding:10px;background:#111722;border:1px solid #263147;border-left:4px solid var(--rarity);border-radius:10px}.item.equipped{background:linear-gradient(100deg,#16243a,#111722);box-shadow:inset 0 0 0 1px #4c8ed044}.item-info{min-width:0}.item-title{display:flex;align-items:center;gap:5px}.rarity{font-size:9px;padding:2px 5px;border-radius:5px;color:var(--rarity);background:color-mix(in srgb,var(--rarity) 14%,transparent);font-weight:900}.item-title strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-sub{font-size:10px;color:var(--muted);margin-top:5px}.item-sub b{color:#d9e5ff}.up{color:var(--green);font-weight:1000}.item-actions{display:grid;grid-template-columns:repeat(3,42px);gap:4px;align-content:center}.item-actions button{padding:7px 2px;border-radius:7px;background:#202a3d;font-size:9px}.item-actions .enh{color:var(--gold)}.item-actions .sell{color:#ff8695}.item-actions button:disabled{opacity:.3}.empty-list{text-align:center;color:var(--muted);padding:45px 0;font-size:12px}.toast-wrap{position:fixed;z-index:80;top:100px;left:50%;transform:translateX(-50%);width:min(90%,360px);pointer-events:none}.toast{margin:6px;padding:10px 13px;border-radius:9px;background:#20283aee;border:1px solid #3b4965;box-shadow:var(--shadow);font-size:11px;text-align:center;animation:toast 2.3s forwards}.modal-bg{display:none;position:fixed;z-index:100;inset:0;background:#000b;backdrop-filter:blur(4px);padding:20px;align-items:center;justify-content:center}.modal-bg.show{display:flex}.modal{width:min(390px,100%);background:#151b28;border:1px solid #34415b;border-radius:18px;padding:18px;box-shadow:0 20px 60px #000}.modal h3{margin:0 0 8px;font-size:17px}.modal p{font-size:11px;color:var(--muted);line-height:1.7}.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:13px 0}.modal-stats div{background:#0d111a;padding:9px 4px;text-align:center;border-radius:8px;font-size:10px}.modal-stats b{display:block;margin-top:3px;color:var(--gold)}.modal-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:7px}.modal-actions button{padding:12px;border-radius:9px;background:#293247;font-weight:900;font-size:11px}.modal-actions .primary{background:linear-gradient(#e28d2d,#9a5018)}.legend-overlay{display:none;position:fixed;z-index:200;inset:0;background:radial-gradient(circle,#ffbd4c66,#d35c0018 35%,#000c 70%);align-items:center;justify-content:center;text-align:center}.legend-overlay.show{display:flex;animation:legendBg 2.2s}.legend-card{padding:35px 24px;border:2px solid #ffc55c;background:#2a1609ee;border-radius:20px;box-shadow:0 0 30px #ff9d3b,0 0 100px #ff6a00;animation:legendCard 2.2s}.legend-card small{color:#ffd693;letter-spacing:5px}.legend-card h2{font-size:29px;margin:10px;color:#fff1c9;text-shadow:0 0 20px #ff9d3b}.legend-card p{color:#ffb84f}.offline-gold{font-size:25px!important;color:var(--gold)!important;font-weight:1000}.rarity-0{--rarity:#a5adba}.rarity-1{--rarity:#4fd27b}.rarity-2{--rarity:#459cff}.rarity-3{--rarity:#bc64ff}.rarity-4{--rarity:#ff9d3b}.legendary{animation:legendGlow 1.4s infinite alternate}@keyframes float{50%{transform:translateY(-8px)}}@keyframes hit{50%{transform:translateX(7px) scale(.92);filter:brightness(2)}}@keyframes damage{0%{opacity:0;transform:translate(-50%,15px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-55px) scale(.9)}}@keyframes toast{0%{opacity:0;transform:translateY(-8px)}12%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-10px)}}@keyframes legendBg{0%,100%{opacity:0}10%,85%{opacity:1}}@keyframes legendCard{0%{transform:scale(.2) rotate(-8deg);opacity:0}20%{transform:scale(1.08) rotate(1deg);opacity:1}30%,100%{transform:scale(1)}}@keyframes legendGlow{to{box-shadow:0 0 17px #ff9d3b55,inset 0 0 10px #ff9d3b22}}body.shake{animation:shake .45s}@keyframes shake{20%{transform:translate(5px,-3px)}40%{transform:translate(-5px,2px)}60%{transform:translate(4px,3px)}80%{transform:translate(-3px,-2px)}}@media(min-width:850px){.app{padding-left:16px;padding-right:16px}.topbar{margin:0 -16px 12px;padding-left:16px;padding-right:16px}.brand-row{margin-bottom:0}.topbar{display:flex;align-items:center;justify-content:space-between}.stats{width:580px}.layout{grid-template-columns:230px minmax(400px,1fr) 290px;align-items:start}.boss-panel{grid-column:1;grid-row:1}.battle-panel{grid-column:2;grid-row:1 / span 2}.equip-panel{grid-column:3;grid-row:1}.boss-list{display:grid;overflow:visible}.boss-btn{width:100%;flex:auto}.quick{grid-column:1/4}.summon-panel{grid-column:1/4}.inventory{grid-column:1/4}.arena{min-height:415px}.equip-grid{grid-template-columns:1fr}.battle-log{height:118px}.inventory-list{display:grid;grid-template-columns:repeat(2,1fr);gap:0 8px;max-height:500px}}@media(min-width:1200px){.inventory-list{grid-template-columns:repeat(3,1fr)}}
@@ -3070,6 +3070,140 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
   };
   document.addEventListener('DOMContentLoaded',ensureDailyTopClose);
   setTimeout(ensureDailyTopClose,500);
+})();
+</script>
+
+
+<script id="ringuV17CloudStaleOverwriteFix">
+(function(){
+  'use strict';
+  const PATCH='V17 클라우드 되돌림 방지';
+  function later(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }
+  function n(v){ return Number(v)||0; }
+  function rawPowerOf(data){
+    try{
+      const inv=Array.isArray(data.inventory)?data.inventory:[];
+      const equipped=data.equipped||{};
+      let sum=0;
+      const fixed=typeof fixedBaseAtk==='function'?fixedBaseAtk:null;
+      const slots=['무기','투구','갑옷','바지','신발','반지','귀걸이'];
+      slots.forEach(slot=>{
+        const id=equipped[slot];
+        const it=inv.find(x=>x&&x.id===id);
+        if(!it)return;
+        let base=n(it.baseAtk);
+        if(!base&&fixed)base=fixed(it.slot||slot,n(it.rarity),0);
+        const enh=n(it.enhance), tr=n(it.transcend);
+        let value=base*(1+enh*0.11);
+        if(tr>0)value*=1+tr*((it.slot==='무기')?0.45:0.30);
+        sum+=value;
+      });
+      return Math.floor(sum||0);
+    }catch(e){return 0;}
+  }
+  function progressScore(data){
+    try{
+      const inv=Array.isArray(data.inventory)?data.inventory:[];
+      return rawPowerOf(data)*1000000 + inv.length*10000 + n(data.gold)/1000 + n(data.essence)*100 + n(data.transcendStone)*500;
+    }catch(e){return 0;}
+  }
+  function sameUid(a,b){return String((a&&a.playerUid)||'') && String((a&&a.playerUid)||'')===String((b&&b.playerUid)||'');}
+  async function forceUploadCloudStateV17(session,notify){
+    if(!session)throw Error('먼저 클라우드 계정을 입력하세요.');
+    state.activeCloudClientId=typeof getCloudClientId==='function'?getCloudClientId():('CLIENT:'+Date.now());
+    const cipher=await encryptCloudState(session);
+    const row={uid:session.id,nickname:'CLOUD_SAVE',power:-999999,region:'CLOUD_SAVE',boss:cipher,updated_at:new Date().toISOString()};
+    const response=await fetch(SUPABASE_URL+'/rest/v1/rankings?on_conflict=uid',{method:'POST',headers:rankingHeaders({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(row)});
+    if(!response.ok)throw Error('강제 저장 오류 '+response.status+' · '+(await response.text()).slice(0,90));
+    try{cloudDirty=false;cloudRevision=0;lastCloudUpload=Date.now();clearTimeout(cloudSaveTimer);}catch(e){}
+    setCloudSession(Object.assign({},session,{cloudUpdatedAt:row.updated_at}));
+    try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+    renderCloudStatus('현재 데이터로 클라우드 덮어쓰기 완료 · '+session.accountId,true);
+    if(notify&&typeof toast==='function')toast('현재 데이터로 클라우드를 덮어썼습니다.');
+    return true;
+  }
+  async function overwriteCloudAccountV17(){
+    try{
+      const accountId=normalizeCloudId($('cloudAccountInput').value), password=$('cloudPasswordInput').value;
+      if(!validCloudId(accountId))return toast('아이디는 영문 소문자·숫자·밑줄 4~16자로 입력해 주세요.');
+      if(password.length<6)return toast('비밀번호를 6자 이상 입력해 주세요.');
+      renderCloudStatus('현재 데이터로 클라우드를 덮어쓰는 중...');
+      const session=await deriveCloudAccount(accountId,password);
+      cloudPullReady=true;
+      await forceUploadCloudStateV17(session,true);
+      $('cloudAccountInput').value='';
+      $('cloudPasswordInput').value='';
+    }catch(e){
+      renderCloudStatus(e.message||'클라우드 덮어쓰기 실패');
+      if(typeof toast==='function')toast(e.message||'클라우드 덮어쓰기 실패');
+    }
+  }
+  window.overwriteCloudAccountV17=overwriteCloudAccountV17;
+  window.forceUploadCloudStateV17=forceUploadCloudStateV17;
+
+  const oldApply=typeof applyCloudData==='function'?applyCloudData:null;
+  if(oldApply){
+    const wrapped=function(data){
+      try{
+        const local=state;
+        if(local&&data&&sameUid(local,data)){
+          const localScore=progressScore(local), remoteScore=progressScore(data);
+          const localName=String(local.playerName||''), remoteName=String(data.playerName||'');
+          const protect=(localScore>remoteScore*1.08 && localName && remoteName && localName===remoteName);
+          if(protect){
+            try{cloudDirty=true;cloudRevision=(Number(cloudRevision)||0)+1;}catch(e){}
+            try{const s=getCloudSession&&getCloudSession(); if(s) setTimeout(()=>forceUploadCloudStateV17(s,false).catch(()=>{}),500);}catch(e){}
+            try{renderCloudStatus('낮은 진행도의 클라우드 저장을 차단하고 현재 데이터를 유지했습니다.',true);}catch(e){}
+            try{toast('예전 클라우드 백업으로 되돌아가는 것을 막았습니다.');}catch(e){}
+            return false;
+          }
+        }
+      }catch(e){}
+      return oldApply.apply(this,arguments);
+    };
+    try{applyCloudData=wrapped;}catch(e){}
+    window.applyCloudData=wrapped;
+  }
+
+  const oldLoad=typeof loadCloudAccount==='function'?loadCloudAccount:null;
+  if(oldLoad){
+    window.loadCloudAccount=async function(){
+      try{
+        const before=JSON.parse(JSON.stringify(state||{}));
+        await oldLoad.apply(this,arguments);
+        try{
+          if(before&&state&&sameUid(before,state)&&progressScore(before)>progressScore(state)*1.08){
+            state=Object.assign({},defaults,before);
+            normalizeCharacter();
+            try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+            renderAll();
+            renderCloudStatus('낮은 진행도의 불러오기를 차단했습니다. 현재 데이터 유지 중.',true);
+            toast('예전 백업으로 되돌아가려 해서 막았습니다.');
+          }
+        }catch(e){}
+      }catch(e){try{toast('계정을 불러오지 못했습니다.')}catch(_e){}}
+    };
+    try{loadCloudAccount=window.loadCloudAccount;}catch(e){}
+  }
+
+  later(function(){
+    try{
+      const box=document.querySelector('.cloud-actions');
+      if(box&&!document.getElementById('cloudOverwriteV17Btn')){
+        const btn=document.createElement('button');
+        btn.id='cloudOverwriteV17Btn';
+        btn.type='button';
+        btn.className='cloud-primary';
+        btn.textContent='현재 데이터로 덮어쓰기';
+        btn.onclick=overwriteCloudAccountV17;
+        box.appendChild(btn);
+      }
+      const style=document.createElement('style');
+      style.textContent='.cloud-actions{grid-template-columns:1fr 1fr!important}.cloud-actions #cloudOverwriteV17Btn{grid-column:1/3;background:linear-gradient(#2e8a61,#175038)!important;color:#aaffd8!important}';
+      document.head.appendChild(style);
+    }catch(e){}
+    try{console.log('[RINGU]',PATCH,'loaded');}catch(e){}
+  });
 })();
 </script>
 
