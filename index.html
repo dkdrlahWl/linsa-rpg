@@ -1340,5 +1340,174 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
 })();
 </script>
 
+
+<style id="mailCampaignRewardV2FixStyle">
+#mailboxModal{z-index:32000!important}
+#mailboxModal.show,body.mailbox-open #mailboxModal{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#mailboxModal .modal{width:min(450px,94vw)!important;max-height:min(82vh,640px)!important;display:flex!important;flex-direction:column!important}
+#mailboxModal .mail-list{display:block!important;min-height:110px!important;max-height:50vh!important;overflow:auto!important;margin:14px 0!important;padding-right:2px!important}
+#mailboxModal .mail-item{display:block!important;opacity:1!important}
+#mailboxModal .mail-item.claimed{opacity:.55!important}
+#mailboxModal .empty-list{display:block!important;padding:34px 0!important;color:#8d99ae!important;text-align:center!important}
+</style>
+<script id="mailCampaignRewardV2FixScript">
+(function(){
+  'use strict';
+  var MAINT_V2_FLAG='maintenanceRankBundle20260614V2';
+  var MAINT_V2_IDS=['maintenance-gold-200m-20260614-v2','maintenance-essence-100-20260614-v2','maintenance-stone-5-20260614-v2'];
+  var OLD_CAMPAIGN_IDS=['maintenance-stone-20260614-v1','maintenance-essence-20260614-v1','maintenance-gold-20260614-v1','rank-gold-box-v1','maintenance-gold-30m-v1'];
+  function byId(id){return document.getElementById(id)}
+  function esc(v){try{return typeof escapeHtml==='function'?escapeHtml(String(v??'')):String(v??'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}catch(e){return String(v??'')}}
+  function fmtSafe(n){try{return typeof fmt==='function'?fmt(Number(n)||0):(Number(n)||0).toLocaleString('ko-KR')}catch(e){return String(n||0)}}
+  function isRankedPlayer(){try{return typeof state!=='undefined' && !['모험가','장애인계정'].includes(String(state.playerName||''))}catch(e){return false}}
+  function removeOldMaintenanceMails(){
+    if(typeof state==='undefined')return false;
+    state.mailbox=Array.isArray(state.mailbox)?state.mailbox:[];
+    state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
+    var before=state.mailbox.length;
+    state.mailbox=state.mailbox.filter(function(m){
+      if(!m)return false;
+      var id=String(m.id||'');
+      if(MAINT_V2_IDS.indexOf(id)>=0)return true;
+      if(OLD_CAMPAIGN_IDS.indexOf(id)>=0)return false;
+      if(id==='maintenance-rank-bundle-20260614-v1')return false;
+      if(m.rewardType==='maintenanceRankBundle20260614')return false;
+      return true;
+    });
+    delete state.mailFlags.maintenanceRankBundle20260614V1;
+    delete state.mailFlags.rankGoldBoxV1;
+    delete state.mailFlags.maintenanceGold30mV1;
+    return before!==state.mailbox.length;
+  }
+  function addMaintenanceV2Mail(){
+    if(typeof state==='undefined')return false;
+    state.mailbox=Array.isArray(state.mailbox)?state.mailbox:[];
+    state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
+    var changed=removeOldMaintenanceMails();
+    if(!isRankedPlayer())return changed;
+    var alreadyFlag=!!state.mailFlags[MAINT_V2_FLAG];
+    var alreadyMail=MAINT_V2_IDS.some(function(id){return state.mailbox.some(function(m){return m&&m.id===id})});
+    if(!alreadyFlag&&!alreadyMail){
+      state.mailFlags[MAINT_V2_FLAG]=true;
+      state.mailbox.unshift(
+        {id:'maintenance-stone-5-20260614-v2',title:'1회성 점검 보상 · 초월석',message:'랭킹창에 등록된 모든 플레이어에게 지급되는 1회성 점검 보상입니다.',rewardType:'stone',amount:5,claimed:false},
+        {id:'maintenance-essence-100-20260614-v2',title:'1회성 점검 보상 · 정수',message:'랭킹창에 등록된 모든 플레이어에게 지급되는 1회성 점검 보상입니다.',rewardType:'essence',amount:100,claimed:false},
+        {id:'maintenance-gold-200m-20260614-v2',title:'1회성 점검 보상 · 골드',message:'랭킹창에 등록된 모든 플레이어에게 지급되는 1회성 점검 보상입니다.',rewardType:'gold',amount:200000000,claimed:false}
+      );
+      changed=true;
+    }
+    return changed;
+  }
+  var originalCheckCampaignMails=typeof checkCampaignMails==='function'?checkCampaignMails:null;
+  window.checkCampaignMails=function(){
+    try{ if(originalCheckCampaignMails) originalCheckCampaignMails(); }catch(e){}
+    return addMaintenanceV2Mail();
+  };
+  if(typeof checkCampaignMails==='function'){
+    try{ checkCampaignMails=window.checkCampaignMails; }catch(e){}
+  }
+  function rewardTextSafe(mail){
+    mail=mail||{};
+    if(mail.rewardType==='essence')return '정수 '+fmtSafe(mail.amount)+'개';
+    if(mail.rewardType==='stone')return '초월석 '+fmtSafe(mail.amount)+'개';
+    if(mail.rewardType==='gold')return fmtSafe(mail.amount)+' 골드';
+    if(mail.rewardType==='goldBox')return fmtSafe(mail.min)+'~'+fmtSafe(mail.max)+' 골드 랜덤박스';
+    if(mail.rewardType==='legendShoesBox')return '전설 신발 랜덤박스 1개';
+    if(mail.rewardType==='hunterLegendShoes11')return '+11 전설 신발 · 치명타 피해 55%';
+    if(mail.rewardType==='kimMangoLegendBundle11')return '+11 전설 갑옷·무기 랜덤 뽑기권';
+    if(mail.rewardType==='kimMangoLegendHelmet10')return '+10 전설 투구 랜덤 뽑기권';
+    if(mail.rewardType==='uidLegendFourSlot')return '무기·투구·신발·갑옷 전설 랜덤 소환권';
+    if(mail.rewardType==='uidGoldProtect')return '1억 골드 + 하락방지권 3장';
+    if(mail.item&&mail.item.name)return esc(mail.item.name)+' 장비';
+    return '보상 수령';
+  }
+  function renderBadgeFixed(){
+    var badge=byId('mailBadge');
+    if(!badge||typeof state==='undefined')return;
+    var count=((Array.isArray(state.mailbox)?state.mailbox:[]).filter(function(x){return x&&!x.claimed})).length;
+    badge.textContent=count;
+    badge.classList.toggle('show',count>0);
+  }
+  function renderMailboxFixed(){
+    var listEl=byId('mailList');
+    if(!listEl)return;
+    try{ if(typeof checkTargetMail==='function') checkTargetMail(); }catch(e){}
+    addMaintenanceV2Mail();
+    var list=(typeof state!=='undefined'&&Array.isArray(state.mailbox))?state.mailbox:[];
+    if(!list.length){
+      listEl.innerHTML='<div class="empty-list">도착한 우편이 없습니다.</div>';
+      renderBadgeFixed();
+      return;
+    }
+    listEl.innerHTML=list.map(function(mail,i){
+      mail=mail||{};
+      var id=esc(mail.id||('mail-'+i));
+      var title=esc(mail.title||'우편 보상');
+      var message=esc(mail.message||'받을 수 있는 보상이 있습니다.');
+      var disabled=mail.claimed?' disabled':'';
+      var label=mail.claimed?'받음':'받기';
+      return '<div class="mail-item '+(mail.claimed?'claimed':'')+'">'
+        +'<div class="mail-head"><b>'+title+'</b><small>'+(mail.claimed?'수령 완료':'미수령')+'</small></div>'
+        +'<p>'+message+'</p>'
+        +'<div class="mail-reward"><strong>'+rewardTextSafe(mail)+'</strong><button type="button" '+disabled+' data-mail-claim="'+id+'">'+label+'</button></div>'
+        +'</div>';
+    }).join('');
+    renderBadgeFixed();
+  }
+  function openMailboxFixed(e){
+    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+    renderMailboxFixed();
+    var m=byId('mailboxModal'); if(!m)return false;
+    document.body.classList.add('mailbox-open');
+    m.classList.add('show');
+    m.style.setProperty('display','flex','important');
+    m.style.setProperty('z-index','32000','important');
+    return false;
+  }
+  function closeMailboxFixed(){
+    var m=byId('mailboxModal'); if(!m)return false;
+    m.classList.remove('show');
+    m.style.setProperty('display','none','important');
+    document.body.classList.remove('mailbox-open');
+    return false;
+  }
+  window.renderMailbox=renderMailboxFixed;
+  try{ renderMailbox=renderMailboxFixed; }catch(e){}
+  window.openMailbox=openMailboxFixed;
+  try{ openMailbox=openMailboxFixed; }catch(e){}
+  window.forceOpenMailboxFromButton=openMailboxFixed;
+  window.closeMailbox=closeMailboxFixed;
+  try{ closeMailbox=closeMailboxFixed; }catch(e){}
+  window.renderMailboxBadge=renderBadgeFixed;
+  try{ renderMailboxBadge=renderBadgeFixed; }catch(e){}
+  document.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest&&e.target.closest('#mailOpenBtn,.mail-button');
+    if(btn)return openMailboxFixed(e);
+    var claim=e.target&&e.target.closest&&e.target.closest('[data-mail-claim]');
+    if(claim){
+      e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      if(typeof claimMail==='function') claimMail(claim.getAttribute('data-mail-claim'));
+      setTimeout(renderMailboxFixed,80);
+    }
+  },true);
+  document.addEventListener('touchstart',function(e){
+    var btn=e.target&&e.target.closest&&e.target.closest('#mailOpenBtn,.mail-button');
+    if(btn)openMailboxFixed(e);
+  },{capture:true,passive:false});
+  function bootPatch(){
+    var changed=addMaintenanceV2Mail();
+    var btn=byId('mailOpenBtn')||document.querySelector('.mail-button');
+    if(btn)btn.onclick=openMailboxFixed;
+    renderBadgeFixed();
+    if(changed){
+      try{ if(typeof queueSave==='function') queueSave(); else if(typeof save==='function') save(false); }catch(e){}
+      try{ if(typeof renderTop==='function') renderTop(); }catch(e){}
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootPatch);else bootPatch();
+  setTimeout(bootPatch,600);
+})();
+</script>
+
 </body>
 </html>
