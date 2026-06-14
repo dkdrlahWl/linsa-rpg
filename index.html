@@ -2514,5 +2514,83 @@ load();
 })();
 </script>
 
+
+
+<!-- FINAL FIX: loud 3s thunder + suppress battle hit sound during reveal + compact inventory buttons -->
+<style id="ringuThunderUiCompactFixStyle">
+#inventoryList .item{grid-template-columns:minmax(0,1fr) 66px!important;gap:6px!important;padding:8px!important;align-items:center!important}
+#inventoryList .item .item-actions{width:66px!important;min-width:66px!important;grid-template-columns:repeat(2,31px)!important;gap:3px!important;align-content:center!important;justify-content:end!important}
+#inventoryList .item .item-actions button{min-width:0!important;min-height:31px!important;padding:4px 1px!important;border-radius:6px!important;font-size:8px!important;line-height:1.12!important;font-weight:900!important}
+#inventoryList .item .item-actions .sell{font-size:7px!important;letter-spacing:-.4px!important}
+#inventoryList .item .gear-row{gap:7px!important}
+#inventoryList .item .gear-icon{width:54px!important;height:54px!important;flex:0 0 54px!important}
+#inventoryList .item .item-title strong{font-size:11px!important;line-height:1.2!important}
+#inventoryList .item .item-sub{font-size:9px!important;line-height:1.45!important}
+@media(max-width:520px){
+ #inventoryList .item{grid-template-columns:minmax(0,1fr) 60px!important;gap:5px!important;padding:7px!important}
+ #inventoryList .item .item-actions{width:60px!important;min-width:60px!important;grid-template-columns:repeat(2,28px)!important;gap:3px!important}
+ #inventoryList .item .item-actions button{min-height:29px!important;font-size:7.5px!important;padding:3px 1px!important}
+ #inventoryList .item .gear-icon{width:50px!important;height:50px!important;flex-basis:50px!important}
+}
+#rarityOverlay.ringu-hard-reveal .ringu-hard-card{top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;margin:0!important}
+</style>
+<script id="ringuLoudThunderBattleMuteCompactFixScript">
+(function(){
+  'use strict';
+  function id(x){return document.getElementById(x)}
+  function esc(v){try{return typeof escapeHtml==='function'?escapeHtml(v):String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}catch(e){return String(v==null?'':v)}}
+  function sfxOn(){try{return !window.state || state.sfxOn!==false}catch(e){return true}}
+  function ac(){try{if(typeof initAudio==='function')initAudio()}catch(e){}try{var c=window.audioCtx||audioCtx;if(c&&c.state==='suspended')c.resume();return c||null}catch(e){return null}}
+  function master(ac,vol){
+    var g=ac.createGain(), comp=ac.createDynamicsCompressor();
+    try{comp.threshold.value=-18;comp.knee.value=18;comp.ratio.value=6;comp.attack.value=.003;comp.release.value=.28}catch(e){}
+    g.gain.value=vol; g.connect(comp); comp.connect(ac.destination); return g;
+  }
+  function noiseBuf(ac,dur){var len=Math.max(1,Math.floor(ac.sampleRate*dur)),buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);for(var i=0;i<len;i++){var env=Math.pow(1-i/len,.72);d[i]=(Math.random()*2-1)*env}return buf}
+  function boom(c,out,t,dur,vol,low,high){
+    try{var src=c.createBufferSource(),lp=c.createBiquadFilter(),hp=c.createBiquadFilter(),g=c.createGain();src.buffer=noiseBuf(c,dur);hp.type='highpass';hp.frequency.setValueAtTime(low,t);lp.type='lowpass';lp.frequency.setValueAtTime(high,t);lp.frequency.exponentialRampToValueAtTime(90,t+dur*.9);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+dur);src.connect(hp);hp.connect(lp);lp.connect(g);g.connect(out);src.start(t);src.stop(t+dur+.04)}catch(e){}
+  }
+  function crack(c,out,t,vol){
+    try{var src=c.createBufferSource(),bp=c.createBiquadFilter(),g=c.createGain();src.buffer=noiseBuf(c,.16);bp.type='bandpass';bp.frequency.setValueAtTime(2200,t);bp.Q.value=.9;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+.17);src.connect(bp);bp.connect(g);g.connect(out);src.start(t);src.stop(t+.19)}catch(e){}
+  }
+  function bolt(c,out,t,f,vol,dur){
+    try{var o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(Math.max(24,f*.28),t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(out);o.start(t);o.stop(t+dur+.03)}catch(e){}
+  }
+  function loudThunder3(){
+    if(!sfxOn())return; var c=ac(); if(!c)return;
+    window.__ringuRevealSuppressSound=true; window.__ringuThunderCalling=true;
+    setTimeout(function(){window.__ringuThunderCalling=false},3050);
+    setTimeout(function(){window.__ringuRevealSuppressSound=false},3350);
+    var now=c.currentTime+.015, out=master(c,2.25);
+    boom(c,out,now,1.25,.72,28,900); crack(c,out,now+.02,.88); bolt(c,out,now+.03,84,.42,.9);
+    crack(c,out,now+.36,.42); boom(c,out,now+.58,1.35,.48,24,520);
+    crack(c,out,now+1.10,.62); bolt(c,out,now+1.12,62,.34,.82); boom(c,out,now+1.40,1.25,.52,22,660);
+    crack(c,out,now+1.86,.52); crack(c,out,now+2.20,.36); boom(c,out,now+2.15,.9,.32,20,360); bolt(c,out,now+2.45,44,.20,.5);
+  }
+  window.ringuThunder3Sec=loudThunder3; window.playMythicThunderSound=loudThunder3; window.playMythicRiseSound=loudThunder3; window.playMythicBoom=loudThunder3; try{playMythicBoom=loudThunder3}catch(e){}
+
+  if(!window.__ringuToneMuteWrapped){
+    window.__ringuToneMuteWrapped=true;
+    try{var oldTone=window.tone||tone; window.tone=function(){if(window.__ringuRevealSuppressSound&&!window.__ringuThunderCalling)return; return oldTone.apply(this,arguments)}; tone=window.tone}catch(e){}
+    ['playHitSound','playDefeatSound','playDrawSound','playBoxOpenSound'].forEach(function(n){try{var old=window[n]||eval(n); if(typeof old==='function'){window[n]=function(){if(window.__ringuRevealSuppressSound&&!window.__ringuThunderCalling)return;return old.apply(this,arguments)}; try{eval(n+'=window[n]')}catch(e){}}}catch(e){}});
+  }
+
+  function showResult(items){try{if(typeof ringuShowDrawResultNow==='function')return ringuShowDrawResultNow(items)}catch(e){}try{if(typeof showDrawResults==='function')return showDrawResults(items)}catch(e){}}
+  function hardReveal(it,type,items){
+    var o=id('rarityOverlay'); if(!o)return showResult(items); var delay=(type==='mythic'||type==='fallen')?3000:0, canClose=!delay, closed=false;
+    var grade=type==='fallen'?'FALLEN':(type==='mythic'?'MYTHIC':'LEGENDARY'), title=type==='fallen'?'타락 장비 강림!':(type==='mythic'?'신화 장비 강림!':'전설 장비 획득!');
+    o.className='rarity-overlay ringu-hard-reveal show '+type+(delay?' charging':''); o.style.setProperty('display','flex','important'); o.dataset.waitTouch='1';
+    o.innerHTML='<div class="ringu-hard-card"><div class="ringu-hard-gear">'+gearIcon(it)+'</div><div class="ringu-hard-grade">'+grade+'</div><div class="ringu-hard-title">'+title+'</div><div class="ringu-hard-name">'+esc((it&&it.name)||'장비')+'</div><div class="ringu-hard-help">'+(delay?'3초 후 화면을 터치하면 결과창으로 넘어갑니다':'화면을 터치하면 결과창으로 넘어갑니다')+'</div></div>';
+    if(delay){loudThunder3();setTimeout(function(){canClose=true;o.classList.remove('charging');try{document.body.classList.add('shake');setTimeout(function(){document.body.classList.remove('shake')},650)}catch(e){}},delay)}else{try{playDrawSound(4)}catch(e){}}
+    function close(ev){if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation()} if(closed||!canClose)return false; closed=true; o.className='rarity-overlay'; o.style.removeProperty('display'); o.onclick=o.onpointerup=o.ontouchend=null; delete o.dataset.waitTouch; showResult(items); return false}
+    o.onclick=close; o.onpointerup=close; o.ontouchend=close;
+  }
+  window.ringuRevealThenResult=hardReveal; try{ringuRevealThenResult=hardReveal}catch(e){}
+  window.showRarityReveal=function(it,type,done){hardReveal(it,type,[it]); if(done){var o=id('rarityOverlay'), old=o.onclick; var wrap=function(ev){if(old)old(ev);done()}; setTimeout(function(){o.onclick=wrap;o.onpointerup=wrap;o.ontouchend=wrap},(type==='mythic'||type==='fallen')?3120:120)}}; try{showRarityReveal=window.showRarityReveal}catch(e){}
+  window.ringuShowDrawResults=function(items){items=Array.isArray(items)?items:[];var fallen=items.find(function(x){return x&&x.rarity>=6}),mythic=items.find(function(x){return x&&x.rarity===5}),legend=items.find(function(x){return x&&x.rarity===4});setTimeout(function(){if(fallen)hardReveal(fallen,'fallen',items);else if(mythic)hardReveal(mythic,'mythic',items);else if(legend)hardReveal(legend,'legend',items);else showResult(items)},80)}; try{ringuShowDrawResults=window.ringuShowDrawResults}catch(e){}
+  setTimeout(function(){try{if(typeof renderInventory==='function')renderInventory()}catch(e){}},100);
+})();
+</script>
+
 </body>
 </html>
