@@ -895,33 +895,7 @@ window.ringuGrantHunterReportDirectFinal=function(){
   try{toast('한터 제보 보상 · 1억 골드와 하락방지권 3개 지급 완료');}catch(e){}
   return true;
 };
-window.ringuGrantLoginCompensationDirectFinal=function(){
-  var excludedUid={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},excludedName={'도현':1,'링구':1};
-  var uid=String(state.playerUid||''),name=String(state.playerName||'').trim();
-  state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
-  /* 아직 랭킹 닉네임이 아니면 판정하지 않음 */
-  if(!uid||name==='모험가'||name==='장애인계정')return false;
-  /* 한번 판정된 계정은 닉네임을 바꿔도 재판정하지 않음 */
-  if(state.mailFlags.loginCompensationDecision20260614V2==='excluded')return false;
-  if(state.mailFlags.loginCompensationDecision20260614V2==='granted'||state.mailFlags.loginCompensationApplied20260614V2)return true;
-  /* 현재 시점에 도현/링구/관리자/숨김이면 영구 제외 처리 */
-  if(excludedUid[uid]||excludedName[name]||state.rankingHidden){
-    state.mailFlags.loginCompensationDecision20260614V2='excluded';
-    state.mailFlags.loginCompensationExcludedAt20260614V2=Date.now();
-    try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
-    return false;
-  }
-  state.gold=(Number(state.gold)||0)+200000000;
-  state.essence=(Number(state.essence)||0)+100;
-  state.transcendStone=(Number(state.transcendStone)||0)+5;
-  state.mailFlags.loginCompensationDecision20260614V2='granted';
-  state.mailFlags.loginCompensationApplied20260614V2=Date.now();
-  state.mailFlags.loginCompensation20260614V1=Date.now();
-  try{renderAll();}catch(e){}
-  try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
-  try{toast('접속 보상 · 2억 골드, 정수 100개, 초월석 5개 지급 완료');}catch(e){}
-  return true;
-};
+window.ringuGrantLoginCompensationDirectFinal=function(){return false;};
 
 load();
 })();
@@ -2202,31 +2176,8 @@ load();
       return inserted;
     }catch(e){return false}
   }
-  async function grantLoginCompensation(){
-    var info=null;try{info=window.ringuGetMailIdentityFinal()}catch(e){}
-    var excludedUid={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},excludedName={'도현':1,'링구':1};
-    var uid=String(info&&info.uid||''),name=String(info&&info.name||'').trim();
-    if(!uid||name==='모험가'||name==='장애인계정')return false;
-    var flags=mailFlags();
-    if(flags.loginCompensationDecision20260614V2==='excluded')return false;
-    if(flags.loginCompensationDecision20260614V2==='granted'||flags.loginCompensationApplied20260614V2)return true;
-    if(excludedUid[uid]||excludedName[name]){
-      flags.loginCompensationDecision20260614V2='excluded';
-      flags.loginCompensationExcludedAt20260614V2=Date.now();
-      saveNow();
-      return false;
-    }
-    var reward={id:'login-compensation-v2-'+uid,type:'loginCompensationV2_'+uid,amount:1};
-    try{
-      if(await receiptExists(reward)){
-        try{return !!window.ringuGrantLoginCompensationDirectFinal()}catch(e){return false}
-      }
-      var inserted=await reserveReceipt(reward,false);
-      if(inserted)try{return !!window.ringuGrantLoginCompensationDirectFinal()}catch(e){return false}
-      return false;
-    }catch(e){return false}
-  }
-  window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
+  async function grantLoginCompensation(){return false;}
+window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
   async function boot(){await grantHunterDirect();await grantLoginCompensation();var old=byId('mailOpenBtn')||byId('simpleMailOpenBtn');if(old)old.style.setProperty('display','none','important');}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1500);setTimeout(boot,3500);
@@ -2907,5 +2858,91 @@ load();
   setTimeout(renderDetailInventory,120);
 })();
 </script>
+
+<script id="ringuAfterLoginOnceDirectGrant20260614V2">
+(function(){
+  'use strict';
+  /*
+    새 접속 1회성 보상 V2
+    - 이전 우편/이전 접속보상/로컬 플래그 전부 무시
+    - 현재 링구/도현 닉네임으로 확인된 UID는 고정 제외
+    - 나머지는 계정 UID별 서버 영수증으로 1회만 지급
+  */
+  var CAMPAIGN='AFTER_LOGIN_DIRECT_ONCE_20260614_V2';
+  var LOCAL_FLAG='afterLoginDirectOnce20260614V2';
+  var RECEIPT_PREFIX='REWARD:'+CAMPAIGN+':PLAYER:';
+  var EXCLUDED_UID={
+    'JWXTLA8Q2L':1, /* 도현 */
+    'NAUYC8CEX7':1  /* 링구 */
+  };
+  var RUNNING=false;
+  function gameState(){try{return typeof state!=='undefined'&&state?state:null}catch(e){return null}}
+  function flags(){var s=gameState();if(!s)return {};s.mailFlags=s.mailFlags&&typeof s.mailFlags==='object'?s.mailFlags:{};return s.mailFlags}
+  function uid(){var s=gameState();return s&&s.playerUid?String(s.playerUid):''}
+  function receiptUid(){return RECEIPT_PREFIX+uid()}
+  function canUseServer(){try{return typeof SUPABASE_URL==='string'&&SUPABASE_URL&&typeof rankingHeaders==='function'&&typeof fetch==='function'}catch(e){return false}}
+  async function reserve(){
+    if(!canUseServer())throw Error('보상 서버 준비 중');
+    var id=uid();
+    if(!id)throw Error('계정 UID 준비 중');
+    if(EXCLUDED_UID[id])return false;
+    var row={
+      uid:receiptUid(),
+      nickname:'REWARD_RECEIPT',
+      power:-999999,
+      region:'REWARD_RECEIPT',
+      boss:JSON.stringify({campaign:CAMPAIGN,reward:'gold200m_essence100_stone5',account:'PLAYER:'+id}),
+      updated_at:new Date().toISOString()
+    };
+    var response=await fetch(SUPABASE_URL+'/rest/v1/rankings?on_conflict=uid',{
+      method:'POST',
+      headers:rankingHeaders({Prefer:'resolution=ignore-duplicates,return=representation'}),
+      body:JSON.stringify(row)
+    });
+    if(!response.ok)throw Error('보상 서버 확인 실패 '+response.status);
+    var inserted=await response.json();
+    return Array.isArray(inserted)&&inserted.length>0;
+  }
+  function saveNow(){
+    try{if(typeof renderAll==='function')renderAll();else if(typeof renderTop==='function')renderTop()}catch(e){}
+    try{if(typeof saveChanceAction==='function')saveChanceAction();else if(typeof save==='function')save(true)}catch(e){}
+    try{if(typeof scheduleCloudSave==='function')scheduleCloudSave()}catch(e){}
+    try{if(typeof syncRanking==='function')syncRanking()}catch(e){}
+  }
+  function applyReward(){
+    var s=gameState();if(!s)return false;
+    s.gold=(Number(s.gold)||0)+200000000;
+    s.essence=(Number(s.essence)||0)+100;
+    s.transcendStone=(Number(s.transcendStone)||0)+5;
+    flags()[LOCAL_FLAG]={at:Date.now(),campaign:CAMPAIGN,gold:200000000,essence:100,stone:5};
+    saveNow();
+    try{if(typeof toast==='function')toast('접속 1회 보상 지급 · 2억 골드, 정수 100개, 초월석 5개')}catch(e){}
+    return true;
+  }
+  async function grant(){
+    if(RUNNING)return false;
+    var id=uid();
+    if(!gameState()||!id)return false;
+    if(EXCLUDED_UID[id]){flags()[LOCAL_FLAG]={at:Date.now(),campaign:CAMPAIGN,excluded:true,uid:id};saveNow();return false;}
+    if(flags()[LOCAL_FLAG])return true;
+    RUNNING=true;
+    try{
+      var inserted=await reserve();
+      if(!inserted){flags()[LOCAL_FLAG]={at:Date.now(),campaign:CAMPAIGN,alreadyReceived:true};saveNow();return true;}
+      return applyReward();
+    }catch(e){
+      try{console.warn('[RINGU] after login reward V2 skipped:',e&&e.message?e.message:e)}catch(_e){}
+      return false;
+    }finally{RUNNING=false;}
+  }
+  window.ringuGrantAfterLoginOnceDirect20260614V2=grant;
+  window.ringuGrantLoginCompensationNoMailBoot=grant;
+  function boot(){grant()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+  setTimeout(boot,100);setTimeout(boot,700);setTimeout(boot,1800);setTimeout(boot,4000);setTimeout(boot,8000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(boot,500)},true);
+})();
+</script>
+
 </body>
 </html>
