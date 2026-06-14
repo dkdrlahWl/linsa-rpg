@@ -3073,5 +3073,78 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
 })();
 </script>
 
+
+
+<script id="ringuDbPendingGrantClaim20260614V1">
+(function(){
+  'use strict';
+  var CAMPAIGN='AFTER_LOGIN_DB_GRANT_20260614_V1';
+  var LOCAL_FLAG='dbPendingGrantClaimed20260614V1';
+  var EXCLUDED_UIDS={'JWXTLA8Q2L':1,'NAUYC8CEX7':1};
+  var EXCLUDED_NAMES={'도현':1,'링구':1};
+  var running=false;
+  function s(){try{return typeof state!=='undefined'&&state?state:null}catch(e){return null}}
+  function uid(){var st=s();return st&&st.playerUid?String(st.playerUid):''}
+  function name(){var st=s();return st&&st.playerName?String(st.playerName).trim():''}
+  function flags(){var st=s();if(!st)return {};st.mailFlags=st.mailFlags&&typeof st.mailFlags==='object'?st.mailFlags:{};return st.mailFlags}
+  function ready(){try{return !!(SUPABASE_URL&&typeof rankingHeaders==='function'&&typeof fetch==='function')}catch(e){return false}}
+  function saveAll(){
+    try{if(typeof renderAll==='function')renderAll();else if(typeof renderTop==='function')renderTop()}catch(e){}
+    try{if(typeof save==='function')save(true);else if(typeof ringuLocalSave==='function')ringuLocalSave()}catch(e){}
+    try{if(typeof saveChanceAction==='function')saveChanceAction()}catch(e){}
+    try{var session=typeof getCloudSession==='function'?getCloudSession():null;if(session&&typeof uploadCloudState==='function')setTimeout(function(){try{uploadCloudState(session,true)}catch(e){}},300)}catch(e){}
+    try{if(typeof syncRanking==='function')setTimeout(syncRanking,900)}catch(e){}
+  }
+  async function claimRows(id){
+    var url=SUPABASE_URL+'/rest/v1/ringu_pending_grants?campaign=eq.'+encodeURIComponent(CAMPAIGN)+'&player_uid=eq.'+encodeURIComponent(id)+'&claimed_at=is.null';
+    var body={claimed_at:new Date().toISOString()};
+    var res=await fetch(url,{method:'PATCH',headers:rankingHeaders({Prefer:'return=representation'}),body:JSON.stringify(body)});
+    if(!res.ok)throw Error('DB 보상 확인 실패 '+res.status+' · '+(await res.text()).slice(0,100));
+    var rows=await res.json();
+    return Array.isArray(rows)?rows:[];
+  }
+  function apply(rows,id){
+    var st=s();if(!st||!rows||!rows.length)return false;
+    var gold=0,essence=0,stone=0;
+    rows.forEach(function(r){gold+=Number(r.gold)||0;essence+=Number(r.essence)||0;stone+=Number(r.transcend_stone)||0});
+    if(!gold&&!essence&&!stone)return false;
+    st.gold=(Number(st.gold)||0)+gold;
+    st.essence=(Number(st.essence)||0)+essence;
+    st.transcendStone=(Number(st.transcendStone)||0)+stone;
+    flags()[LOCAL_FLAG]={uid:id,at:Date.now(),campaign:CAMPAIGN,gold:gold,essence:essence,stone:stone};
+    saveAll();
+    try{if(typeof toast==='function')toast('DB 접속 보상 지급 · '+gold.toLocaleString('ko-KR')+'골드, 정수 '+essence+'개, 초월석 '+stone+'개')}catch(e){}
+    return true;
+  }
+  async function run(){
+    if(running)return false;
+    var st=s(),id=uid(),nm=name();
+    if(!st||!id||!ready())return false;
+    if(EXCLUDED_UIDS[id]||EXCLUDED_NAMES[nm])return false;
+    if(flags()[LOCAL_FLAG]&&flags()[LOCAL_FLAG].uid===id)return true;
+    running=true;
+    try{
+      var rows=await claimRows(id);
+      if(!rows.length)return false;
+      return apply(rows,id);
+    }catch(e){try{console.warn('[RINGU] DB pending grant:',e&&e.message?e.message:e);if(typeof toast==='function')toast('DB 보상 확인 실패 · 관리자에게 UID 전달')}catch(_e){}return false}
+    finally{running=false}
+  }
+  window.ringuClaimDbPendingGrant20260614V1=run;
+  window.ringuGrantAfterLoginOnceDirect20260614V1=function(){return false};
+  window.ringuGrantAfterLoginOnceDirect20260614V2=function(){return false};
+  window.ringuGrantAfterLoginOnceDirect20260614V3=function(){return false};
+  window.ringuGrantLoginCompensationNoMailBoot=function(){return run()};
+  function boot(){setTimeout(run,250);setTimeout(run,1200);setTimeout(run,3500);setTimeout(run,8000)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+  ['loadCloudAccount','createCloudAccount','saveCloudNow','pullCloudState','applyCloudData','setNickname'].forEach(function(fn){
+    setTimeout(function(){try{var old=window[fn];if(typeof old==='function'&&!old.__dbGrantWrap){var wrapped=function(){var ret=old.apply(this,arguments);Promise.resolve(ret).finally(function(){setTimeout(run,600);setTimeout(run,2200)});return ret};wrapped.__dbGrantWrap=true;window[fn]=wrapped}}catch(e){}},500);
+    setTimeout(function(){try{var old=window[fn];if(typeof old==='function'&&!old.__dbGrantWrap){var wrapped=function(){var ret=old.apply(this,arguments);Promise.resolve(ret).finally(function(){setTimeout(run,600);setTimeout(run,2200)});return ret};wrapped.__dbGrantWrap=true;window[fn]=wrapped}}catch(e){}},3000);
+  });
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)boot()},true);
+  setInterval(run,20000);
+})();
+</script>
+
 </body>
 </html>
