@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#080b12">
-<meta name="ringu-build" content="2026-06-14-fallen-sword-position-size-fix">
+<meta name="ringu-build" content="2026-06-14-single-fallen-css-sword">
 <title>링구 RPG</title>
 <style>
 :root{--bg:#080b12;--panel:#111622;--panel2:#171e2d;--line:#273146;--text:#eef3ff;--muted:#8d99ae;--gold:#ffd35a;--red:#ff4f64;--green:#50e39a;--blue:#4e9cff;--purple:#bd65ff;--orange:#ff9d3b;--shadow:0 12px 30px #0008}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,#23304c 0,#0b0f19 35%,#06080e 80%);overflow-x:hidden}button,select{font:inherit;color:inherit}button{border:0;cursor:pointer}.app{width:min(1500px,100%);margin:auto;padding:env(safe-area-inset-top) 10px calc(78px + env(safe-area-inset-bottom))}.topbar{position:sticky;top:0;z-index:20;margin:0 -10px 10px;padding:8px 10px;background:#080b12e8;backdrop-filter:blur(16px);border-bottom:1px solid #273146}.brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.brand{font-size:18px;font-weight:1000;letter-spacing:-1px}.brand b{color:var(--orange);text-shadow:0 0 15px #ff8a3d88}.save-dot{font-size:11px;color:var(--muted)}.save-dot::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:5px;box-shadow:0 0 8px var(--green)}.stats{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:6px}.stat{min-width:0;border:1px solid var(--line);background:linear-gradient(145deg,#171d2a,#101520);border-radius:10px;padding:8px}.stat-label{display:block;color:var(--muted);font-size:10px}.stat-value{display:block;margin-top:2px;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat.gold .stat-value{color:var(--gold)}.stat.power .stat-value{color:#77c7ff}.summon-mini{height:3px;background:#252c3a;border-radius:9px;margin-top:5px;overflow:hidden}.summon-mini i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),#ff75c8);transition:.3s}.layout{display:grid;gap:10px}.panel{background:linear-gradient(150deg,#151b28ee,#0d111bee);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);overflow:hidden}.panel-title{display:flex;align-items:center;justify-content:space-between;padding:12px 13px 9px;font-size:13px;font-weight:900}.panel-title small{font-weight:500;color:var(--muted)}.boss-list{display:flex;gap:7px;overflow-x:auto;padding:0 10px 11px;scrollbar-width:none}.boss-btn{flex:0 0 130px;text-align:left;padding:9px;background:#141a27;border:1px solid #29344a;border-radius:11px;transition:.2s}.boss-btn.active{border-color:var(--red);background:linear-gradient(135deg,#351824,#171725);box-shadow:0 0 16px #ff4f6435}.boss-btn strong{display:block;font-size:12px}.boss-btn span{display:block;color:var(--muted);font-size:10px;margin-top:4px}.arena{position:relative;min-height:300px;background:radial-gradient(ellipse at 50% 65%,#2a3146 0,#151a27 32%,#090c14 70%);overflow:hidden}.arena::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#ffffff05 1px,transparent 1px),linear-gradient(#ffffff05 1px,transparent 1px);background-size:30px 30px;transform:perspective(300px) rotateX(58deg) scale(1.5);transform-origin:center bottom;opacity:.45}.battle-head{position:relative;z-index:2;text-align:center;padding:14px 16px 4px}.battle-head h2{font-size:18px;margin:0}.battle-head p{font-size:11px;color:var(--muted);margin:5px 0}.boss-art{position:relative;z-index:2;width:112px;height:112px;margin:10px auto 14px;display:grid;place-items:center;filter:drop-shadow(0 15px 10px #0009);animation:float 2.5s ease-in-out infinite}.boss-core{width:80px;height:80px;border-radius:45% 55% 48% 52%;background:linear-gradient(145deg,#ff6c7c,#a61535);box-shadow:inset 12px 10px 20px #ffffff25,inset -12px -10px 15px #470719,0 0 30px #ff3f5d50;position:relative}.boss-core::before,.boss-core::after{content:"";position:absolute;top:27px;width:10px;height:13px;background:#12060b;border-radius:50%;box-shadow:0 0 0 3px #fff2}.boss-core::before{left:20px}.boss-core::after{right:20px}.boss-core i{position:absolute;width:30px;height:8px;border-bottom:4px solid #310812;border-radius:50%;left:25px;top:48px}.boss-art.hit{animation:hit .18s}.hp-wrap{position:relative;z-index:2;padding:0 15px}.hp-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}.hp-bar{height:17px;padding:3px;background:#090b11;border:1px solid #3a2430;border-radius:999px;overflow:hidden}.hp-fill{height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#a81535,#ff4f64,#ff7a88);box-shadow:0 0 12px #ff4f64;transition:width .35s ease}.timer{height:3px;background:#2d3442;margin-top:7px;border-radius:9px;overflow:hidden}.timer i{display:block;height:100%;background:#75b8ff;transition:width 1s linear}.damage-pop{position:absolute;z-index:5;left:50%;top:115px;transform:translateX(-50%);font-size:26px;font-weight:1000;color:white;text-shadow:0 2px 0 #000,0 0 10px #fff;pointer-events:none;animation:damage .75s forwards}.damage-pop.crit{font-size:34px;color:var(--gold);text-shadow:0 2px #a43c00,0 0 18px #ff9d3b}.battle-log{height:88px;margin-top:13px;padding:8px 12px;background:#080b12aa;border-top:1px solid var(--line);overflow:hidden;font-size:10px;color:#aab5c9}.battle-log div{height:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.battle-log b{color:var(--gold)}.equip-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:0 10px 11px}.equip-slot{min-height:64px;text-align:left;background:#121824;border:1px solid #273146;border-radius:10px;padding:8px;position:relative}.equip-slot .slot-name{font-size:9px;color:var(--muted)}.equip-slot strong{display:block;font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equip-slot em{font-style:normal;font-size:10px;color:#b5c2d7}.empty{color:#59657a!important}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.quick button,.action-btn{background:linear-gradient(#252e42,#182033);border:1px solid #34425d;border-radius:11px;padding:11px 4px;font-size:11px;font-weight:800;box-shadow:0 4px 10px #0005}.quick button:active,.action-btn:active{transform:translateY(1px);filter:brightness(.8)}.quick .best{background:linear-gradient(#324d5e,#183344);border-color:#3c8291;color:#8eeeff}.summon-panel{margin-top:10px}.summon-level{padding:0 12px 11px}.level-line{display:flex;justify-content:space-between;font-size:11px}.expbar{height:7px;background:#090c13;border-radius:8px;margin-top:7px;overflow:hidden}.expbar i{display:block;height:100%;background:linear-gradient(90deg,#904aff,#ff62b1);transition:.3s}.summon-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 10px 8px}.summon-tab{padding:9px 3px;background:#171e2c;border:1px solid #2a354b;border-radius:9px;color:var(--muted);font-size:11px}.summon-tab.active{color:white;border-color:#7d66ff;background:#28214b}.draw-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 10px 11px}.draw{padding:9px 3px;border-radius:10px;background:linear-gradient(145deg,#7540d8,#41258b);font-size:11px;font-weight:900;box-shadow:0 5px 15px #663bd044}.draw span{display:block;color:#e4d6ff;font-size:9px;margin-top:3px}.inventory{margin-top:10px}.inventory-tools{display:flex;gap:6px;padding:0 10px 8px;overflow-x:auto}.inventory-tools select,.sell-bulk{flex:none;background:#171e2c;border:1px solid #2d3950;border-radius:8px;padding:7px;font-size:10px}.sell-bulk{color:#ff9eaa}.inventory-list{max-height:570px;overflow-y:auto;padding:0 10px 12px}.item{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:7px;padding:10px;background:#111722;border:1px solid #263147;border-left:4px solid var(--rarity);border-radius:10px}.item.equipped{background:linear-gradient(100deg,#16243a,#111722);box-shadow:inset 0 0 0 1px #4c8ed044}.item-info{min-width:0}.item-title{display:flex;align-items:center;gap:5px}.rarity{font-size:9px;padding:2px 5px;border-radius:5px;color:var(--rarity);background:color-mix(in srgb,var(--rarity) 14%,transparent);font-weight:900}.item-title strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-sub{font-size:10px;color:var(--muted);margin-top:5px}.item-sub b{color:#d9e5ff}.up{color:var(--green);font-weight:1000}.item-actions{display:grid;grid-template-columns:repeat(3,42px);gap:4px;align-content:center}.item-actions button{padding:7px 2px;border-radius:7px;background:#202a3d;font-size:9px}.item-actions .enh{color:var(--gold)}.item-actions .sell{color:#ff8695}.item-actions button:disabled{opacity:.3}.empty-list{text-align:center;color:var(--muted);padding:45px 0;font-size:12px}.toast-wrap{position:fixed;z-index:80;top:100px;left:50%;transform:translateX(-50%);width:min(90%,360px);pointer-events:none}.toast{margin:6px;padding:10px 13px;border-radius:9px;background:#20283aee;border:1px solid #3b4965;box-shadow:var(--shadow);font-size:11px;text-align:center;animation:toast 2.3s forwards}.modal-bg{display:none;position:fixed;z-index:100;inset:0;background:#000b;backdrop-filter:blur(4px);padding:20px;align-items:center;justify-content:center}.modal-bg.show{display:flex}.modal{width:min(390px,100%);background:#151b28;border:1px solid #34415b;border-radius:18px;padding:18px;box-shadow:0 20px 60px #000}.modal h3{margin:0 0 8px;font-size:17px}.modal p{font-size:11px;color:var(--muted);line-height:1.7}.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:13px 0}.modal-stats div{background:#0d111a;padding:9px 4px;text-align:center;border-radius:8px;font-size:10px}.modal-stats b{display:block;margin-top:3px;color:var(--gold)}.modal-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:7px}.modal-actions button{padding:12px;border-radius:9px;background:#293247;font-weight:900;font-size:11px}.modal-actions .primary{background:linear-gradient(#e28d2d,#9a5018)}.legend-overlay{display:none;position:fixed;z-index:200;inset:0;background:radial-gradient(circle,#ffbd4c66,#d35c0018 35%,#000c 70%);align-items:center;justify-content:center;text-align:center}.legend-overlay.show{display:flex;animation:legendBg 2.2s}.legend-card{padding:35px 24px;border:2px solid #ffc55c;background:#2a1609ee;border-radius:20px;box-shadow:0 0 30px #ff9d3b,0 0 100px #ff6a00;animation:legendCard 2.2s}.legend-card small{color:#ffd693;letter-spacing:5px}.legend-card h2{font-size:29px;margin:10px;color:#fff1c9;text-shadow:0 0 20px #ff9d3b}.legend-card p{color:#ffb84f}.offline-gold{font-size:25px!important;color:var(--gold)!important;font-weight:1000}.rarity-0{--rarity:#a5adba}.rarity-1{--rarity:#4fd27b}.rarity-2{--rarity:#459cff}.rarity-3{--rarity:#bc64ff}.rarity-4{--rarity:#ff9d3b}.legendary{animation:legendGlow 1.4s infinite alternate}@keyframes float{50%{transform:translateY(-8px)}}@keyframes hit{50%{transform:translateX(7px) scale(.92);filter:brightness(2)}}@keyframes damage{0%{opacity:0;transform:translate(-50%,15px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-55px) scale(.9)}}@keyframes toast{0%{opacity:0;transform:translateY(-8px)}12%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-10px)}}@keyframes legendBg{0%,100%{opacity:0}10%,85%{opacity:1}}@keyframes legendCard{0%{transform:scale(.2) rotate(-8deg);opacity:0}20%{transform:scale(1.08) rotate(1deg);opacity:1}30%,100%{transform:scale(1)}}@keyframes legendGlow{to{box-shadow:0 0 17px #ff9d3b55,inset 0 0 10px #ff9d3b22}}body.shake{animation:shake .45s}@keyframes shake{20%{transform:translate(5px,-3px)}40%{transform:translate(-5px,2px)}60%{transform:translate(4px,3px)}80%{transform:translate(-3px,-2px)}}@media(min-width:850px){.app{padding-left:16px;padding-right:16px}.topbar{margin:0 -16px 12px;padding-left:16px;padding-right:16px}.brand-row{margin-bottom:0}.topbar{display:flex;align-items:center;justify-content:space-between}.stats{width:580px}.layout{grid-template-columns:230px minmax(400px,1fr) 290px;align-items:start}.boss-panel{grid-column:1;grid-row:1}.battle-panel{grid-column:2;grid-row:1 / span 2}.equip-panel{grid-column:3;grid-row:1}.boss-list{display:grid;overflow:visible}.boss-btn{width:100%;flex:auto}.quick{grid-column:1/4}.summon-panel{grid-column:1/4}.inventory{grid-column:1/4}.arena{min-height:415px}.equip-grid{grid-template-columns:1fr}.battle-log{height:118px}.inventory-list{display:grid;grid-template-columns:repeat(2,1fr);gap:0 8px;max-height:500px}}@media(min-width:1200px){.inventory-list{grid-template-columns:repeat(3,1fr)}}
@@ -212,7 +212,7 @@
 .rarity-6{--rarity:#9A4560}.fallen{animation:fallenItemSoft 3.2s ease-in-out infinite alternate}.gear-icon.r6{--gc:#9A4560!important;--glow:30px;background:radial-gradient(circle at 50% 38%,#D66A8E66 0 10%,transparent 34%),radial-gradient(circle,#35131F 0,#12060B 66%,#050204 100%)!important;border-color:#f7e8ee!important;box-shadow:0 0 10px #ffffffcc,0 0 22px #D66A8E99,0 0 38px #9A456088,inset 0 0 14px #9A456066!important;animation:fallenGlow 2.6s ease-in-out infinite alternate!important}.gear-icon.r6.weapon::before{content:""!important;position:absolute!important;z-index:2!important;left:17px!important;top:2px!important;width:16px!important;height:43px!important;transform:rotate(34deg)!important;background:linear-gradient(90deg,#11070c 0 13%,#e7dce2 16% 22%,#35131F 25% 38%,#D66A8E 43% 57%,#35131F 62% 75%,#f8eef3 78% 85%,#100509 88%)!important;clip-path:polygon(50% 0,92% 15%,77% 83%,50% 100%,23% 83%,8% 15%)!important;filter:drop-shadow(0 0 5px #ff7fa6)!important;box-shadow:0 0 11px #D66A8E!important}.gear-icon.r6.weapon::after{content:""!important;position:absolute!important;z-index:4!important;inset:-4px!important;pointer-events:none!important;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M6 8 L18 5 L30 7 L44 4 L58 8 L72 5 L94 8 L96 22 L93 34 L96 48 L92 61 L96 76 L92 94 L74 92 L61 96 L46 92 L31 96 L18 92 L7 94 L5 77 L8 62 L4 48 L8 34 L5 20 Z' fill='none' stroke='%23ffffff' stroke-width='3.2' stroke-linejoin='round'/%3E%3Cpath d='M8 10 L19 8 L26 10 L36 7 L48 10 L56 7 L69 10 L82 8 L92 10 M92 10 L94 24 L91 32 L95 44 L92 55 L95 66 L91 91 M91 91 L79 89 L69 94 L58 91 L47 95 L34 91 L23 94 L9 91 M9 91 L7 78 L10 67 L6 57 L9 44 L6 33 L9 20' fill='none' stroke='%23ff8fb0' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat!important;filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px #D66A8E)!important}.gear-icon.r6.fallen-frame{border-width:1px!important;border-style:solid!important}.collection-card.rarity-6,.item.rarity-6,.equip-slot.rarity-6{box-shadow:0 0 14px #9A456055,inset 0 0 0 1px #D66A8E33}.rarity-overlay.fallen{background:radial-gradient(circle,#9A456055,#12040a 62%,#000 100%);animation:mythicDark 2.8s}.rarity-overlay.fallen .rarity-reveal{border:2px solid #D66A8E;background:#16050bee;box-shadow:0 0 40px #D66A8E,0 0 130px #9A4560}.rarity-overlay.fallen h2,.rarity-overlay.fallen small{color:#ff8fb0;text-shadow:0 0 20px #D66A8E}@keyframes fallenGlow{from{filter:brightness(.95);box-shadow:0 0 10px #fff,0 0 22px #9A456088,inset 0 0 12px #9A456066}to{filter:brightness(1.18);box-shadow:0 0 15px #fff,0 0 32px #D66A8Ecc,0 0 52px #9A456099,inset 0 0 18px #D66A8E66}}@keyframes fallenItemSoft{from{box-shadow:0 0 10px #9A456055,inset 0 0 8px #9A456033}to{box-shadow:0 0 22px #D66A8E88,inset 0 0 14px #D66A8E44}}
 </style>
 
-<style id="fallenSwordArtPatch">
+<style id="fallenSwordArtPatch" media="not all">
 /* 타락의 멸망검 전용: 단순 CSS 도형 대신 SVG 아이콘을 장비칸에 직접 올린다. */
 .gear-icon.r6.weapon{
   --gc:#9A4560!important;
@@ -277,7 +277,7 @@
 </style>
 
 
-<style id="fallenNaturalSwordPatch">
+<style id="fallenNaturalSwordPatch" media="not all">
 .gear-icon.r6.weapon{--gc:#9A4560!important;--glow:34px!important;background:radial-gradient(circle at 50% 44%,#D66A8E55 0 18%,transparent 42%),radial-gradient(circle,#24101a 0,#0b0207 70%,#030103 100%)!important;border-color:#f8edf2!important;overflow:visible!important;box-shadow:0 0 11px #ffffffcc,0 0 24px #D66A8Eaa,0 0 46px #9A456088,inset 0 0 17px #9A456055!important}
 .gear-icon.r6.weapon::before{content:""!important;position:absolute!important;z-index:3!important;left:50%!important;top:50%!important;width:92%!important;height:92%!important;inset:auto!important;transform:translate(-50%,-50%)!important;rotate:none!important;clip-path:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22b%22%20x1%3D%2254%22%20y1%3D%225%22%20x2%3D%2266%22%20y2%3D%22102%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%23f8eef4%22%2F%3E%3Cstop%20offset%3D%22.16%22%20stop-color%3D%22%233a1225%22%2F%3E%3Cstop%20offset%3D%22.42%22%20stop-color%3D%22%23070205%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%23ff5f98%22%2F%3E%3Cstop%20offset%3D%22.72%22%20stop-color%3D%22%2319060d%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e8dce4%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22g%22%20x%3D%22-80%25%22%20y%3D%22-80%25%22%20width%3D%22260%25%22%20height%3D%22260%25%22%3E%3CfeGaussianBlur%20stdDeviation%3D%222.2%22%20result%3D%22x%22%2F%3E%3CfeMerge%3E%3CfeMergeNode%20in%3D%22x%22%2F%3E%3CfeMergeNode%20in%3D%22SourceGraphic%22%2F%3E%3C%2FfeMerge%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate%2834%2060%2060%29%22%3E%3Cpath%20d%3D%22M60%202%20C67%2018%2072%2037%2070%2057%20L65%2088%20L60%20100%20L55%2088%20L50%2057%20C48%2037%2053%2018%2060%202Z%22%20fill%3D%22%23050206%22%20stroke%3D%22%23f4e7ee%22%20stroke-width%3D%222%22%20filter%3D%22url%28%23g%29%22%2F%3E%3Cpath%20d%3D%22M60%208%20C64%2027%2064%2054%2061%2084%20L60%2094%20L57%2084%20C55%2054%2056%2027%2060%208Z%22%20fill%3D%22url%28%23b%29%22%2F%3E%3Cpath%20d%3D%22M60%2013%20C59%2033%2060%2055%2062%2075%22%20fill%3D%22none%22%20stroke%3D%22%23ff6fa2%22%20stroke-width%3D%223.5%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.95%22%20filter%3D%22url%28%23g%29%22%2F%3E%3Cpath%20d%3D%22M48%2061%20L28%2050%20L17%2064%20L39%2070%20L19%2083%20L44%2081%20L35%20102%20L56%2090%20L60%20111%20L64%2090%20L85%20102%20L76%2081%20L101%2083%20L81%2070%20L103%2064%20L92%2050%20L72%2061%20L65%2045%20L60%2063%20L55%2045Z%22%20fill%3D%22%2313050b%22%20stroke%3D%22%23f4e6ed%22%20stroke-width%3D%221.8%22%20filter%3D%22url%28%23g%29%22%2F%3E%3Cpath%20d%3D%22M42%2068%20L53%2071%20L60%2065%20L67%2071%20L78%2068%20L70%2076%20L80%2083%20L66%2082%20L62%2095%20L60%2082%20L58%2095%20L54%2082%20L40%2083%20L50%2076Z%22%20fill%3D%22%239A4560%22%20stroke%3D%22%23ff75a5%22%20stroke-width%3D%221.4%22%2F%3E%3Cpath%20d%3D%22M53%2088%20L67%2088%20L70%20112%20L60%20119%20L50%20112Z%22%20fill%3D%22%23080306%22%20stroke%3D%22%239A4560%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M53%2097%20L67%2097%20M55%20104%20L65%20104%20M56%20111%20L64%20111%22%20stroke%3D%22%23D66A8E%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M25%2096%20L45%2077%20M72%2035%20L91%2015%20M39%2028%20L34%2037%20L46%2034%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.8%22%20filter%3D%22url%28%23g%29%22%2F%3E%3Cpath%20d%3D%22M30%2088%20L78%2039%22%20stroke%3D%22%23ff6fa2%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%20filter%3D%22url%28%23g%29%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat!important;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 8px #ff6fa2) drop-shadow(0 0 14px #9A4560)!important}
 .gear-icon.r6.weapon::after{content:""!important;position:absolute!important;z-index:5!important;inset:-4px!important;width:auto!important;height:auto!important;left:auto!important;top:auto!important;transform:none!important;rotate:none!important;clip-path:none!important;border-radius:0!important;pointer-events:none!important;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M6%208%20L18%205%20L30%207%20L44%204%20L58%208%20L72%205%20L94%208%20L96%2022%20L93%2034%20L96%2048%20L92%2061%20L96%2076%20L92%2094%20L74%2092%20L61%2096%20L46%2092%20L31%2096%20L18%2092%20L7%2094%20L5%2077%20L8%2062%20L4%2048%20L8%2034%20L5%2020%20Z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%223.2%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M8%2010%20L19%208%20L26%2010%20L36%207%20L48%2010%20L56%207%20L69%2010%20L82%208%20L92%2010%20M92%2010%20L94%2024%20L91%2032%20L95%2044%20L92%2055%20L95%2066%20L91%2091%20M91%2091%20L79%2089%20L69%2094%20L58%2091%20L47%2095%20L34%2091%20L23%2094%20L9%2091%20M9%2091%20L7%2078%20L10%2067%20L6%2057%20L9%2044%20L6%2033%20L9%2020%22%20fill%3D%22none%22%20stroke%3D%22%23ff8fb0%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/100% 100% no-repeat!important;filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 11px #D66A8E)!important}
@@ -289,7 +289,7 @@
 </style>
 
 
-<style id="fallenExactReferencePatch">
+<style id="fallenExactReferencePatch" media="not all">
 /* 타락의 멸망검: 사용자가 준 오른쪽 레퍼런스 이미지를 그대로 사용하도록 최종 오버라이드 */
 .gear-icon.r6.weapon{
   --gc:#9A4560!important;
@@ -358,7 +358,7 @@
 </style>
 
 
-<style id="fallenSizeBorderFix">
+<style id="fallenSizeBorderFix" media="not all">
 /* 최종 수정: 타락검 장비 아이콘 테두리 이탈 방지 + 흰 테두리를 타락색으로 변경 + 플레이어 착용 검 확대 */
 .gear-icon.r6.weapon{
   border-color:#D66A8E!important;
@@ -589,19 +589,19 @@ function currentBoss(){return currentBosses()[state.bossIndex]||currentBosses()[
 function offlineFarmBoss(){const power=Math.max(1,getPower()),available=[];bossRegions.forEach(region=>{if(region.locked)return;(region.bosses||[]).forEach(b=>{if(power*15>=b.hp)available.push(b)})});return available.sort((a,b)=>b.reward-a.reward)[0]||null}
 function migrateLegacyDailyRankRewards(){let reclaimed=0;const removedDates=[];state.mailbox=(state.mailbox||[]).filter(mail=>{const legacy=String(mail.id||'').startsWith('daily-rank-')&&!String(mail.title||'').includes('추가 보상');if(!legacy)return true;if(mail.claimed&&mail.rewardType==='essence')reclaimed+=Math.max(0,Number(mail.amount)||0);removedDates.push(String(mail.id).slice('daily-rank-'.length));return false});if(reclaimed)state.essence=Math.max(0,(Number(state.essence)||0)-reclaimed);removedDates.forEach(date=>delete state.dailyClaims[date])}
 function load(){try{state=Object.assign({},defaults,JSON.parse(localStorage.getItem(KEY)||'{}'));state.inventory=Array.isArray(state.inventory)?state.inventory:[];state.equipped=state.equipped||{};state.uid=state.uid||Date.now()}catch(e){state=structuredClone(defaults)}state.playerName=String(state.playerName||'모험가').slice(0,12);state.playerUid=state.playerUid||makePlayerUid();state.essence=Math.max(0,Number(state.essence)||0);state.mailbox=Array.isArray(state.mailbox)?state.mailbox:[];state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};state.dailyClaims=state.dailyClaims&&typeof state.dailyClaims==='object'?state.dailyClaims:{};state.dailyClearClaims=state.dailyClearClaims&&typeof state.dailyClearClaims==='object'?state.dailyClearClaims:{};state.collectionClaims=state.collectionClaims&&typeof state.collectionClaims==='object'?state.collectionClaims:{};migrateLegacyDailyRankRewards();state.ownedAuras=Array.isArray(state.ownedAuras)?state.ownedAuras.map(Number).filter(i=>i>=0&&i<auraShopItems.length):[];state.equippedAura=state.ownedAuras.includes(Number(state.equippedAura))?Number(state.equippedAura):-1;delete state.friends;const oldExp=state.summonExp||0;if(!state.summons)state.summons={weapon:{exp:oldExp},armor:{exp:oldExp},accessory:{exp:oldExp}};['weapon','armor','accessory'].forEach(k=>{state.summons[k]=state.summons[k]||{exp:0};state.summons[k].exp=state.summons[k].exp||0;state.summons[k].level=getSummonLevel(state.summons[k].exp)});const hadDiscovery=state.discovered&&typeof state.discovered==='object';state.discovered=hadDiscovery?state.discovered:{};state.inventory.forEach(it=>{it.enhance=Math.min(15,Math.max(0,it.enhance||0));it.transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));it.locked=!!it.locked;it.baseAtk=fixedBaseAtk(it.slot,it.rarity,itemIndex(it));delete it['enhance'+'Spent'];if(!it.optionRolls)it.optionRolls=makeOptionRolls(it.id||itemKey(it));if(!hadDiscovery)state.discovered[itemKey(it)]=true});const targetMailCount=state.mailbox.length;checkTargetMail();targetMailNeedsCloud=state.mailbox.length!==targetMailCount;initDailyBoss();state.regionIndex=Math.min(state.regionIndex||0,bossRegions.length-1);if(bossRegions[state.regionIndex].locked)state.regionIndex=0;state.bossIndex=Math.min(state.bossIndex||0,currentBosses().length-1);const away=Math.min(43200,Math.max(0,(Date.now()-(state.lastSeen||Date.now()))/1000));if(state.autoBattle&&away>=60){const b=offlineFarmBoss();if(b){const cycle=Math.max(1,Math.min(15,Math.ceil(b.hp/Math.max(1,getPower())))),reward=Math.floor(Math.floor(away/cycle)*b.reward*(1+getPlayerStats().goldBonus/100)*.5);state.gold+=reward;cloudDirty=true;cloudRevision++;setTimeout(()=>{$('offlineGold').textContent='+'+fmt(reward)+' 골드';$('offlineModal').classList.add('show')},350)}}resetCombat();renderAll();save(false);setTimeout(()=>{initCloudSync();syncRanking();syncDailyBoss();claimPendingDailyReward()},300)}
-function normalizeCharacter(){state.playerGender=state.playerGender==='female'?'female':'male';state.transcendStone=Math.max(0,Number(state.transcendStone)||0);state.downgradeProtect=Math.max(0,Number(state.downgradeProtect)||0);state.useProtect=!!state.useProtect;state.towerCleared=Math.min(20,Math.max(0,Number(state.towerCleared)||0));state.dungeonTickets=Math.max(0,Number(state.dungeonTickets)||0);state.ownedAuras=Array.isArray(state.ownedAuras)?[...new Set(state.ownedAuras.map(Number).filter(i=>i>=0&&i<auraShopItems.length))]:[];state.equippedAura=state.ownedAuras.includes(Number(state.equippedAura))?Number(state.equippedAura):-1;const today=kstInfo().date;if(!state.dungeons)state.dungeons={date:today,goldEntries:2,goldUnlocked:1,partyFree:2};if(state.dungeons.date!==today){state.dungeons.date=today;state.dungeons.goldEntries=2;state.dungeons.partyFree=2}state.dungeons.partyFree=Math.max(0,Number(state.dungeons.partyFree)||0);state.dungeons.goldUnlocked=Math.min(10,Math.max(1,state.dungeons.goldUnlocked||1));state.inventory.forEach(it=>{it.transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(it.rarity===5){const idx=itemIndex(it),oldKey=itemKey(it);it.name=itemName(it.slot,5,idx);state.discovered[itemKey(it)]=state.discovered[oldKey]!==false}})}
+function normalizeCharacter(){state.playerGender=state.playerGender==='female'?'female':'male';state.transcendStone=Math.max(0,Number(state.transcendStone)||0);state.downgradeProtect=Math.max(0,Number(state.downgradeProtect)||0);state.useProtect=!!state.useProtect;state.towerCleared=Math.min(20,Math.max(0,Number(state.towerCleared)||0));state.dungeonTickets=Math.max(0,Number(state.dungeonTickets)||0);state.ownedAuras=Array.isArray(state.ownedAuras)?[...new Set(state.ownedAuras.map(Number).filter(i=>i>=0&&i<auraShopItems.length))]:[];state.equippedAura=state.ownedAuras.includes(Number(state.equippedAura))?Number(state.equippedAura):-1;const today=kstInfo().date;if(!state.dungeons)state.dungeons={date:today,goldEntries:2,goldUnlocked:1,partyFree:2};if(state.dungeons.date!==today){state.dungeons.date=today;state.dungeons.goldEntries=2;state.dungeons.partyFree=2}state.dungeons.partyFree=Math.max(0,Number(state.dungeons.partyFree)||0);state.dungeons.goldUnlocked=Math.min(10,Math.max(1,state.dungeons.goldUnlocked||1));state.inventory.forEach(it=>{it.transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(it.rarity===5){const idx=itemIndex(it),oldKey=itemKey(it);it.name=itemName(it.slot,5,idx);state.discovered[itemKey(it)]=state.discovered[oldKey]!==false}if(it.rarity===6){it.slot='무기';it.name='타락의 멸망검';it.baseAtk=fixedBaseAtk('무기',6,0);state.discovered[itemKey(it)]=true}})}
 function save(markCloudDirty=true){state.lastSeen=Date.now();state.savedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(state));if(markCloudDirty){cloudDirty=true;cloudRevision++;scheduleCloudSave()}}
 function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(true),250)}
 function getSummonLevel(exp){let lv=1;for(let i=1;i<levelReq.length;i++)if(exp>=levelReq[i])lv=i+1;return lv}
 function activeSummon(){return state.summons[drawGroup]}
 function itemIndex(it){const arr=prefixes[it.rarity]||prefixes[0],idx=arr.findIndex(p=>it.name&&it.name.startsWith(p+' '));return idx<0?0:idx}
-function gearVariantCount(rarity){return rarity>=6?5:10}
-function itemName(slot,rarity,idx){if(rarity===6&&slot==='무기')return prefixes[6][idx%5]+' '+fallenWeaponBases[idx%5];const base=rarity===5&&slot==='무기'?mythicWeaponBases[idx]:bases[slot][idx];return prefixes[rarity][idx]+' '+base}
+function gearVariantCount(rarity){return rarity>=6?1:10}
+function itemName(slot,rarity,idx){if(rarity===6&&slot==='무기')return '타락의 멸망검';const base=rarity===5&&slot==='무기'?mythicWeaponBases[idx]:bases[slot][idx];return prefixes[rarity][idx]+' '+base}
 function fixedBaseAtk(slot,rarity,idx){const range=atkRanges[rarity]||atkRanges[0],span=range[1]-range[0]+1,slotIndex=Math.max(0,slots.indexOf(slot)),value=range[0]+((idx*7+slotIndex*3+rarity*5)%span);return slot==='무기'?value*2:value}
 function isTopGearFrame(it){if(!it||it.rarity>=6)return false;const idx=itemIndex(it),limit=gearVariantCount(it.rarity),scores=Array.from({length:limit},(_,i)=>({idx:i,atk:fixedBaseAtk(it.slot,it.rarity,i)})).sort((a,b)=>b.atk-a.atk||a.idx-b.idx).slice(0,3).map(x=>x.idx);return scores.includes(idx)}
 function seededValue(seed,n){let h=2166136261;const s=String(seed)+'|'+n;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return.8+((h>>>0)%401)/1000}
 function makeOptionRolls(seed){return[seededValue(seed,0),seededValue(seed,1)]}
-function fallenSwordTemplate(idSeed){const idx=Math.max(0,Number(idSeed)||0)%5;return{id:idSeed||0,slot:'무기',rarity:6,name:itemName('무기',6,idx),baseAtk:fixedBaseAtk('무기',6,idx),optionRolls:idx===0?[1.12,1.08]:makeOptionRolls('fallen-'+idx),enhance:0,transcend:0,locked:true}}
+function fallenSwordTemplate(idSeed){return{id:idSeed||0,slot:'무기',rarity:6,name:'타락의 멸망검',baseAtk:fixedBaseAtk('무기',6,0),optionRolls:[1.12,1.08],enhance:0,transcend:0,locked:true}}
 function itemAtk(it){const steps=[3,6.85,14.25,27.5,45,100,180],step=steps[it.rarity]||3,level=Math.max(0,it.enhance||0),bonus=level<=10?step*level:step*10+step*2*(level-10),enhanced=it.baseAtk+bonus,transcend=Math.min(3,Math.max(0,Number(it.transcend)||0)),transcendRate=it.slot==='무기'?(it.rarity>=6?.25:.45):.3;return Math.floor(enhanced*(1+transcend*transcendRate))}
 function itemAttackText(it){const base=Number(it.baseAtk)||0;return fmt(base)+' > '+fmt(itemAtk(it))}
 function subOptions(it){const ratio=[.1,.25,.5,.75,1,1.35,1.75][it.rarity]||.1,rolls=it.optionRolls||[1,1],defs={무기:[['critChance',20]],투구:[['atkPercent',20]],갑옷:[['critDamage',50]],바지:[['atkPercent',20]],신발:[['critDamage',50]],반지:[['goldBonus',10]],귀걸이:[['goldBonus',12]]}[it.slot]||[],options=defs.map(([key,value],i)=>[key,Number((value*ratio*(rolls[i]||1)).toFixed(1))]),transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(transcend)options.push(['atkPercent',transcend*(it.slot==='무기'?(it.rarity>=6?25:(it.rarity>=5?20:15)):10)]);return options}
@@ -826,24 +826,48 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
 })();
 </script>
 <style id="fallenSwordPositionSizeFinal">
-/* Keep the detailed fallen sword centered and use only fallen-grade frame colors. */
+/* Single fallen weapon, drawn only with CSS to match the regular gear-icon style. */
 .gear-icon.r6.weapon{
   border-color:#9a4560!important;
   outline:1px solid #d66a8e88!important;
   overflow:hidden!important;
+  background:radial-gradient(circle at 50% 48%,#d66a8e55 0 18%,transparent 48%),linear-gradient(145deg,#2a0b18,#090308 72%)!important;
   box-shadow:0 0 10px #d66a8ecc,0 0 25px #9a456099,inset 0 0 17px #6b263f88!important;
 }
 .gear-icon.r6.weapon::before{
+  content:""!important;
+  position:absolute!important;
+  z-index:2!important;
   left:50%!important;
-  top:50%!important;
-  width:104%!important;
-  height:104%!important;
-  transform:translate(-50%,-50%)!important;
+  top:9%!important;
+  width:25%!important;
+  height:67%!important;
+  inset:auto!important;
+  transform:translateX(-50%) rotate(4deg)!important;
   transform-origin:center!important;
+  border:1px solid #d66a8e!important;
+  border-radius:0!important;
+  clip-path:polygon(50% 0,100% 16%,78% 88%,50% 100%,22% 88%,0 16%)!important;
+  background:linear-gradient(90deg,#12060c 0 14%,#d66a8e 17% 25%,#3b1225 29% 43%,#ff739f 47% 55%,#3b1225 59% 73%,#b34c6d 77% 86%,#0b0408 90%)!important;
+  box-shadow:0 0 8px #d66a8e,0 0 15px #9a4560!important;
+  filter:drop-shadow(0 0 4px #d66a8e)!important;
 }
 .gear-icon.r6.weapon::after{
-  inset:2px!important;
-  filter:drop-shadow(0 0 5px #d66a8e) drop-shadow(0 0 11px #9a4560)!important;
+  content:""!important;
+  position:absolute!important;
+  z-index:3!important;
+  left:50%!important;
+  top:61%!important;
+  width:61%!important;
+  height:33%!important;
+  inset:auto!important;
+  transform:translateX(-50%)!important;
+  border:0!important;
+  border-radius:0!important;
+  clip-path:polygon(0 9%,31% 25%,40% 4%,50% 29%,60% 4%,69% 25%,100% 9%,77% 48%,62% 47%,60% 100%,40% 100%,38% 47%,23% 48%)!important;
+  background:linear-gradient(90deg,#16070e,#9a4560 24%,#ff739f 49%,#9a4560 74%,#16070e)!important;
+  box-shadow:0 0 8px #d66a8e!important;
+  filter:drop-shadow(0 0 4px #9a4560)!important;
 }
 .item.rarity-6,
 .equip-slot.rarity-6,
@@ -854,41 +878,53 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
   box-shadow:0 0 0 1px #d66a8e55,0 0 16px #9a456077,inset 0 0 16px #5d203855!important;
 }
 .avatar-sword.fallen-sword{
-  width:72px!important;
-  height:148px!important;
-  right:-30px!important;
-  top:-7px!important;
-  background-size:contain!important;
-  background-position:center!important;
-  background-repeat:no-repeat!important;
-  clip-path:none!important;
-  transform:rotate(14deg)!important;
-  transform-origin:50% 70%!important;
+  width:22px!important;
+  height:112px!important;
+  right:-5px!important;
+  top:18px!important;
+  background:linear-gradient(90deg,#10060b 0 12%,#d66a8e 16% 24%,#3b1225 29% 42%,#ff739f 47% 55%,#3b1225 60% 73%,#b34c6d 77% 86%,#090307 90%)!important;
+  clip-path:polygon(50% 0,100% 12%,77% 82%,62% 87%,62% 100%,38% 100%,38% 87%,23% 82%,0 12%)!important;
+  transform:rotate(13deg)!important;
+  transform-origin:50% 76%!important;
   border-radius:0!important;
-  box-shadow:none!important;
+  box-shadow:0 0 8px #d66a8e,0 0 16px #9a4560!important;
   filter:drop-shadow(0 0 6px #d66a8e) drop-shadow(0 0 15px #9a4560)!important;
   z-index:8!important;
 }
+.avatar-sword.fallen-sword::after{
+  display:block!important;
+  content:""!important;
+  position:absolute!important;
+  left:50%!important;
+  bottom:13px!important;
+  width:52px!important;
+  height:18px!important;
+  transform:translateX(-50%)!important;
+  border-radius:0!important;
+  clip-path:polygon(0 15%,35% 32%,44% 0,50% 43%,56% 0,65% 32%,100% 15%,75% 74%,58% 65%,55% 100%,45% 100%,42% 65%,25% 74%)!important;
+  background:linear-gradient(90deg,#17070f,#9a4560 28%,#ff739f 50%,#9a4560 72%,#17070f)!important;
+  box-shadow:0 0 8px #d66a8e!important;
+}
 .avatar-body.female .avatar-sword.fallen-sword{
-  right:-31px!important;
-  top:-6px!important;
+  right:-6px!important;
+  top:18px!important;
 }
 .avatar-body.dual-wield .avatar-sword.fallen-sword{
-  right:-30px!important;
-  top:-7px!important;
-  transform:rotate(14deg)!important;
+  right:-5px!important;
+  top:18px!important;
+  transform:rotate(13deg)!important;
 }
 .avatar-body.dual-wield .avatar-sword.offhand.fallen-sword{
-  left:-30px!important;
+  left:-5px!important;
   right:auto!important;
-  top:-7px!important;
-  transform:scaleX(-1) rotate(14deg)!important;
+  top:18px!important;
+  transform:scaleX(-1) rotate(13deg)!important;
 }
 .rank-preview .avatar-sword.fallen-sword{
-  width:78px!important;
-  height:158px!important;
-  right:-33px!important;
-  top:-10px!important;
+  width:24px!important;
+  height:120px!important;
+  right:-7px!important;
+  top:15px!important;
 }
 </style>
 </body>
