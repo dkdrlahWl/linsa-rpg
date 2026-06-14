@@ -2444,5 +2444,75 @@ load();
 })();
 </script>
 
+
+<!-- FINAL PATCH: 3 second mythic thunder sound -->
+<script id="ringuMythicThunder3SecPatch">
+(function(){
+  'use strict';
+  function getState(){try{return window.state||state||{sfxOn:true}}catch(e){return {sfxOn:true}}}
+  function ctx(){
+    try{ if(typeof initAudio==='function') initAudio(); }catch(e){}
+    try{ return window.audioCtx || audioCtx || null; }catch(e){ return null; }
+  }
+  function makeNoiseBuffer(ac,dur){
+    var len=Math.max(1,Math.floor(ac.sampleRate*dur));
+    var buf=ac.createBuffer(1,len,ac.sampleRate);
+    var data=buf.getChannelData(0);
+    for(var i=0;i<len;i++){ data[i]=(Math.random()*2-1)*(1-i/len); }
+    return buf;
+  }
+  function noiseBoom(ac,when,dur,gain,filterFreq){
+    var src=ac.createBufferSource(); src.buffer=makeNoiseBuffer(ac,dur);
+    var filter=ac.createBiquadFilter(); filter.type='lowpass'; filter.frequency.setValueAtTime(filterFreq,when);
+    filter.frequency.exponentialRampToValueAtTime(70,when+dur);
+    var g=ac.createGain(); g.gain.setValueAtTime(0.0001,when);
+    g.gain.exponentialRampToValueAtTime(gain,when+0.025);
+    g.gain.exponentialRampToValueAtTime(0.0001,when+dur);
+    src.connect(filter); filter.connect(g); g.connect(ac.destination);
+    src.start(when); src.stop(when+dur+0.05);
+  }
+  function toneCrack(ac,when,freq,dur,gain){
+    var osc=ac.createOscillator(); var g=ac.createGain();
+    osc.type='sawtooth'; osc.frequency.setValueAtTime(freq,when);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(30,freq*0.35),when+dur);
+    g.gain.setValueAtTime(0.0001,when);
+    g.gain.exponentialRampToValueAtTime(gain,when+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,when+dur);
+    osc.connect(g); g.connect(ac.destination);
+    osc.start(when); osc.stop(when+dur+0.04);
+  }
+  function thunder3(){
+    var st=getState(); if(st && st.sfxOn===false) return;
+    var ac=ctx(); if(!ac) return;
+    var now=ac.currentTime;
+    var oldVol=1;
+    try{oldVol=Number(st.sfxVolume||1)||1}catch(e){}
+    var v=Math.min(1.5,Math.max(0.55,oldVol*1.25));
+    // 3 seconds: first crack, rolling rumble, second crack, final rumble.
+    noiseBoom(ac,now+0.00,0.95,0.32*v,850);
+    toneCrack(ac,now+0.02,92,0.75,0.13*v);
+    noiseBoom(ac,now+0.42,1.25,0.20*v,420);
+    noiseBoom(ac,now+1.15,0.85,0.26*v,760);
+    toneCrack(ac,now+1.17,68,0.70,0.11*v);
+    noiseBoom(ac,now+1.88,1.10,0.22*v,360);
+    toneCrack(ac,now+2.38,42,0.55,0.08*v);
+  }
+  window.ringuThunder3Sec=thunder3;
+  window.playMythicThunderSound=thunder3;
+  window.playMythicRiseSound=thunder3;
+  window.playMythicBoom=thunder3;
+  try{playMythicBoom=thunder3}catch(e){}
+
+  var oldShow=window.showRarityReveal;
+  window.showRarityReveal=function(it,type,done){
+    if(type==='mythic'||type==='fallen'){
+      try{thunder3()}catch(e){}
+    }
+    if(typeof oldShow==='function') return oldShow.apply(this,arguments);
+  };
+  try{showRarityReveal=window.showRarityReveal}catch(e){}
+})();
+</script>
+
 </body>
 </html>
