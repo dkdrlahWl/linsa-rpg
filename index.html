@@ -2201,5 +2201,178 @@ load();
 })();
 </script>
 
+
+
+<!-- FINAL PATCH: centered rarity reveal + thunder mythic sound + inventory item detail modal -->
+<style id="ringuRevealCenterDetailThunderFixStyle">
+#rarityOverlay.show{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+#rarityOverlay .rarity-reveal{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  margin:0!important;
+  translate:-50% -50%!important;
+  transform:none!important;
+  width:min(430px,88vw)!important;
+  max-width:88vw!important;
+  text-align:center!important;
+  animation:rarityRevealCenterPulse 1.15s ease-in-out infinite alternate!important;
+}
+#rarityOverlay.mythic.charging .rarity-reveal{
+  animation:mythicCenterChargeOnly 3s ease-in-out both!important;
+}
+#rarityOverlay.legend .rarity-reveal{
+  border:3px solid #ffdc74!important;
+  box-shadow:0 0 38px #ffd35a,0 0 120px #ffb32f88,inset 0 0 24px #ffd35a24!important;
+}
+#rarityOverlay.mythic.show{
+  background:
+    radial-gradient(circle at 50% 45%,#ff4a3552 0,#330006d9 36%,#060001f7 78%),
+    linear-gradient(180deg,#1a0004,#050000)!important;
+}
+#rarityOverlay.mythic.show::before{
+  content:"";position:absolute;inset:-18%;pointer-events:none;
+  background:
+    repeating-linear-gradient(120deg,transparent 0 28px,#ff2c1f26 29px 35px,transparent 36px 70px),
+    radial-gradient(circle at 50% 112%,#ffb13eaa 0 8%,#ef321978 9% 25%,transparent 48%);
+  animation:mythicLavaMoveCenter 1.6s linear infinite;opacity:.95;filter:blur(.3px)
+}
+#rarityOverlay.mythic.show::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(115deg,transparent 0 47%,#ffffffc7 48%,#9ed8ff 50%,transparent 52%),
+    linear-gradient(70deg,transparent 0 58%,#fff7 59%,#87cfff 60%,transparent 62%);
+  opacity:0;animation:mythicLightningFlash 3s steps(1,end) both;mix-blend-mode:screen
+}
+#rarityOverlay.mythic .rarity-reveal{
+  z-index:3!important;background:linear-gradient(160deg,#3a0308f2,#130003f7)!important;
+  border:3px solid #ff5a45!important;
+  box-shadow:0 0 44px #ff263a,0 0 150px #ff671d99,inset 0 0 28px #ff321f24!important;
+}
+@keyframes rarityRevealCenterPulse{from{filter:brightness(.98)}to{filter:brightness(1.18)}}
+@keyframes mythicCenterChargeOnly{0%{opacity:.55;filter:brightness(.58) blur(1.5px)}36%{opacity:.88;filter:brightness(1.08) blur(.5px)}75%{opacity:1;filter:brightness(1.85)}100%{opacity:1;filter:brightness(1)}}
+@keyframes mythicLavaMoveCenter{to{transform:translate3d(36px,-58px,0)}}
+@keyframes mythicLightningFlash{0%,9%,18%,31%,43%,58%,71%,100%{opacity:0}10%,19%,44%,72%{opacity:.9}32%,59%{opacity:.55}}
+#ringuItemDetailModal{z-index:91000!important}
+#ringuItemDetailModal.show{display:flex!important}
+#ringuItemDetailModal .modal{width:min(430px,94vw)!important;max-height:86vh;overflow:auto}
+.ringu-detail-head{display:flex;gap:13px;align-items:center;margin:8px 0 12px}
+.ringu-detail-head .gear-icon{width:76px!important;height:76px!important;flex:0 0 76px}
+.ringu-detail-title{min-width:0;flex:1}.ringu-detail-title b{display:block;font-size:17px;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}.ringu-detail-title small{display:block;margin-top:5px;color:#9facbf;font-size:11px}
+.ringu-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px 0}
+.ringu-detail-stat{background:#0d111a;border:1px solid #2f3a50;border-radius:10px;padding:10px;text-align:center;font-size:10px;color:#92a0b6}.ringu-detail-stat b{display:block;margin-top:4px;font-size:14px;color:#eef3ff}
+.ringu-detail-options{margin-top:10px;padding:11px;border:1px solid #33415a;border-radius:11px;background:#0c111a;color:#9fdcff;font-size:11px;line-height:1.75}
+#inventoryList .item{grid-template-columns:minmax(0,1fr) auto!important;cursor:pointer}
+#inventoryList .item .gear-row{min-width:0!important;overflow:hidden!important}
+#inventoryList .item .item-info{min-width:0!important;overflow:hidden!important}
+#inventoryList .item .item-title{min-width:0!important;max-width:100%!important;overflow:hidden!important}
+#inventoryList .item .ringu-item-title,#inventoryList .item .item-title strong{display:block!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#inventoryList .item .item-actions{width:92px!important;min-width:92px!important;grid-template-columns:repeat(2,42px)!important;justify-content:end!important}
+</style>
+<script id="ringuRevealCenterDetailThunderFixScript">
+(function(){
+  'use strict';
+  function id(x){return document.getElementById(x)}
+  function esc(v){try{return typeof escapeHtml==='function'?escapeHtml(v):String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}catch(e){return String(v==null?'':v)}}
+  function rColor(it){try{return rarityColors[(it&&it.rarity)||0]||'#dce8ff'}catch(e){return '#dce8ff'}}
+  function rName(it){try{return rarityNames[(it&&it.rarity)||0]||'일반'}catch(e){return '일반'}}
+  function sortedInventory(){
+    var list=[].concat((window.state&&state.inventory)||[]), sortEl=id('sortSelect'), sort=sortEl?sortEl.value:'attack';
+    try{list.sort(function(a,b){return sort==='rarity'?(b.rarity-a.rarity||itemAtk(b)-itemAtk(a)):itemAtk(b)-itemAtk(a)})}catch(e){}
+    return list;
+  }
+  function thunderSound(){
+    try{
+      if(!state.sfxOn)return; initAudio();
+      var ctx=audioCtx; if(!ctx)return;
+      var now=ctx.currentTime;
+      function boom(t,vol){
+        try{
+          var o=ctx.createOscillator(),g=ctx.createGain();
+          o.type='sawtooth'; o.frequency.setValueAtTime(62,t); o.frequency.exponentialRampToValueAtTime(24,t+.7);
+          g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.025); g.gain.exponentialRampToValueAtTime(0.0001,t+1.05);
+          o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+1.1);
+        }catch(e){}
+      }
+      function crack(t,vol){
+        try{
+          var len=Math.floor(ctx.sampleRate*.18),buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+          for(var i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,1.7);
+          var src=ctx.createBufferSource(),hp=ctx.createBiquadFilter(),g=ctx.createGain();
+          hp.type='highpass'; hp.frequency.value=900; g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+.2);
+          src.buffer=buf; src.connect(hp); hp.connect(g); g.connect(ctx.destination); src.start(t); src.stop(t+.22);
+        }catch(e){}
+      }
+      boom(now,.34); boom(now+.85,.25); boom(now+1.75,.30);
+      [0,.12,.33,.78,1.05,1.42,1.86,2.18,2.54].forEach(function(x,i){crack(now+x,i%3===0?.24:.16)});
+      [46,58,72].forEach(function(n,i){try{tone(n,2.8-i*.35,i?'triangle':'sawtooth',.14-i*.025,i*.08)}catch(e){}});
+    }catch(e){}
+  }
+  window.playMythicThunderSound=thunderSound;
+  window.playMythicRiseSound=thunderSound;
+  window.playMythicBoom=thunderSound; try{playMythicBoom=window.playMythicBoom}catch(e){}
+
+  function showReveal(it,type,done){
+    var overlay=id('rarityOverlay'); if(!overlay){if(done)done();return}
+    var closed=false, delay=(type==='mythic'||type==='fallen')?3000:0;
+    overlay.className='rarity-overlay show '+type+(type==='mythic'?' charging':'');
+    overlay.style.setProperty('display','flex','important'); overlay.dataset.waitTouch='1';
+    try{id('rarityRevealGear').innerHTML=gearIcon(it)}catch(e){}
+    try{id('rarityRevealGrade').textContent=type==='fallen'?'FALLEN':(type==='mythic'?'MYTHIC':'LEGENDARY')}catch(e){}
+    try{id('rarityRevealTitle').textContent=type==='fallen'?'타락 장비 강림!':(type==='mythic'?'신화 장비 강림!':'전설 장비 획득!')}catch(e){}
+    try{id('rarityRevealName').innerHTML=esc(it&&it.name)+'<br><small style="letter-spacing:0;color:#dce8ff">'+(delay?'3초 후 화면을 터치하면 결과창으로 이동합니다':'화면을 터치하면 결과창으로 이동합니다')+'</small>'}catch(e){}
+    function impact(){try{overlay.classList.remove('charging')}catch(e){};try{document.body.classList.add('shake');setTimeout(function(){document.body.classList.remove('shake')},650)}catch(e){};try{if(type==='legend')playDrawSound(4)}catch(e){}}
+    if(delay){thunderSound();setTimeout(impact,delay)}else impact();
+    function close(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation()}
+      if(closed)return false; closed=true;
+      overlay.className='rarity-overlay'; overlay.style.removeProperty('display'); delete overlay.dataset.waitTouch; overlay.onclick=null; overlay.ontouchend=null; overlay.onpointerup=null;
+      if(done)done(); return false;
+    }
+    setTimeout(function(){overlay.onclick=close;overlay.ontouchend=close;overlay.onpointerup=close},delay+120);
+  }
+  window.showRarityReveal=showReveal; try{showRarityReveal=showReveal}catch(e){}
+
+  function ensureDetailModal(){
+    var m=id('ringuItemDetailModal'); if(m)return m;
+    m=document.createElement('div'); m.id='ringuItemDetailModal'; m.className='modal-bg';
+    m.innerHTML='<div class="modal"><h3>장비 상세</h3><div id="ringuItemDetailBody"></div><div class="modal-actions" style="grid-template-columns:1fr;margin-top:12px"><button onclick="closeItemDetail()">닫기</button></div></div>';
+    document.body.appendChild(m); return m;
+  }
+  window.closeItemDetail=function(){var m=id('ringuItemDetailModal');if(m)m.classList.remove('show')};
+  window.openItemDetail=function(itemId){
+    try{
+      var it=(state.inventory||[]).find(function(x){return String(x.id)===String(itemId)}); if(!it)return;
+      var m=ensureDetailModal(), body=id('ringuItemDetailBody'), color=rColor(it), eq=isEquipped(it.id);
+      var trans=Number(it.transcend)||0, enh=Number(it.enhance)||0;
+      var title=(window.ringuItemTitleHtml?window.ringuItemTitleHtml(it):esc(it.name)+' +'+enh);
+      body.innerHTML='<div class="ringu-detail-head">'+gearIcon(it)+'<div class="ringu-detail-title"><b style="color:'+color+'">'+title+'</b><small>'+rName(it)+' · '+esc(it.slot)+(eq?' · 장착 중':'')+'</small></div></div>'+
+        '<div class="ringu-detail-grid">'+
+        '<div class="ringu-detail-stat">강화 수치<b>+'+enh+'</b></div>'+
+        '<div class="ringu-detail-stat">초월 수치<b>'+trans+'초월</b></div>'+
+        '<div class="ringu-detail-stat">공격력<b>'+itemAttackText(it)+'</b></div>'+
+        '<div class="ringu-detail-stat">판매가<b>'+fmt(sellPrice(it))+'</b></div>'+
+        '</div><div class="ringu-detail-options"><b style="color:#eef3ff">능력치</b><br>'+optionText(it)+'</div>';
+      m.classList.add('show');
+    }catch(e){console.error(e)}
+  };
+  document.addEventListener('click',function(ev){
+    var list=id('inventoryList'); if(!list)return;
+    var item=ev.target&&ev.target.closest?ev.target.closest('#inventoryList .item'):null; if(!item)return;
+    if(ev.target.closest('.item-actions,button,select,input'))return;
+    var items=[].slice.call(list.querySelectorAll('.item')), idx=items.indexOf(item), arr=sortedInventory(), it=arr[idx];
+    if(it){ev.preventDefault();ev.stopPropagation();openItemDetail(it.id)}
+  },true);
+})();
+</script>
+
 </body>
 </html>
