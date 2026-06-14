@@ -2782,5 +2782,99 @@ load();
 })();
 </script>
 
+
+
+<!-- FINAL SIDE DETAIL PATCH: inventory detail drawer + transcend star labels -->
+<style id="ringuSideDetailPatchStyle">
+#inventoryList .item{grid-template-columns:1fr 72px!important;align-items:center!important;cursor:default!important;touch-action:manipulation!important}
+#inventoryList .item .item-actions{display:grid!important;visibility:visible!important;pointer-events:auto!important;width:72px!important;min-width:72px!important;max-width:72px!important;grid-template-columns:1fr!important;gap:4px!important;overflow:visible!important}
+#inventoryList .item .item-actions button.ringu-detail-btn{width:72px!important;min-height:42px!important;padding:6px 3px!important;border-radius:10px!important;background:linear-gradient(145deg,#26344d,#172238)!important;border:1px solid #445875!important;color:#dce9ff!important;font-size:10px!important;font-weight:1000!important;line-height:1.15!important;box-shadow:0 4px 10px #0005!important}
+#inventoryList .item .item-actions button.ringu-detail-btn:active{transform:translateY(1px);filter:brightness(1.25)}
+#inventoryList .item-info{min-width:0!important;padding-right:2px!important}
+#inventoryList .item-title strong{display:block!important;max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#inventoryList .ringu-list-stars{font-weight:1000;text-shadow:0 0 8px currentColor;margin-left:3px;letter-spacing:-1px}
+#ringuSideDetailShade{display:none;position:fixed;z-index:96000;inset:0;background:#0008;backdrop-filter:blur(2px)}
+#ringuSideDetailShade.show{display:block}
+#ringuSideDetailPanel{position:fixed;z-index:96001;right:0;top:0;height:100dvh;width:min(410px,88vw);background:linear-gradient(160deg,#171e2d,#0d111b 72%);border-left:1px solid #3a4864;box-shadow:-18px 0 55px #000b;transform:translateX(105%);transition:transform .22s ease;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));color:#eef3ff;overflow:auto}
+#ringuSideDetailPanel.show{transform:translateX(0)}
+.ringu-side-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.ringu-side-head b{font-size:17px}.ringu-side-close{width:38px;height:38px;border-radius:12px;background:#283249;color:#dfe9ff;font-size:18px;font-weight:1000}
+.ringu-side-top{display:grid;grid-template-columns:auto 1fr;gap:13px;align-items:center;padding:13px;border-radius:16px;background:#0b1019;border:1px solid #2c3850;margin-bottom:10px}.ringu-side-top .gear-icon{width:82px!important;height:82px!important;margin:0!important}.ringu-side-title{min-width:0}.ringu-side-title h3{margin:5px 0 5px;font-size:18px;line-height:1.22;word-break:keep-all}.ringu-side-title p{margin:0;color:#9ba8bf;font-size:12px;line-height:1.5}.ringu-side-rarity{display:inline-block;padding:4px 8px;border-radius:8px;background:color-mix(in srgb,var(--side-color) 18%,transparent);color:var(--side-color);font-size:11px;font-weight:1000}.ringu-side-stars{font-size:15px;font-weight:1000;color:var(--side-color);text-shadow:0 0 10px var(--side-color);letter-spacing:1px}.ringu-side-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:10px 0}.ringu-side-grid div{background:#0a0f18;border:1px solid #253049;border-radius:12px;text-align:center;padding:10px 4px;color:#91a0b8;font-size:10px}.ringu-side-grid b{display:block;margin-top:4px;color:#eef3ff;font-size:14px}.ringu-side-options{padding:12px;border-radius:13px;background:#0a0f18;border:1px solid #253049;color:#9edcff;font-size:12px;line-height:1.65;margin-bottom:10px}.ringu-side-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:auto;padding-top:8px}.ringu-side-actions button{min-height:44px;border-radius:12px;background:#253048;color:#e6efff;font-size:12px;font-weight:1000}.ringu-side-actions .equip{background:#244b40;color:#9dffd4}.ringu-side-actions .enh{background:linear-gradient(#db8a2b,#9b5119);color:#fff}.ringu-side-actions .lock{background:#45361c;color:#ffe082}.ringu-side-actions .sell{background:#4a1e28;color:#ff9dab}.ringu-side-actions .close{grid-column:1/-1;background:#2a344a;color:#fff}.ringu-side-actions button:disabled{opacity:.35;filter:saturate(.2)}
+@media(max-width:520px){#inventoryList .item{grid-template-columns:1fr 62px!important;gap:6px!important;padding:9px 7px!important}#inventoryList .item .item-actions{width:62px!important;min-width:62px!important;max-width:62px!important}#inventoryList .item .item-actions button.ringu-detail-btn{width:62px!important;min-height:38px!important;font-size:9px!important}.ringu-side-top{grid-template-columns:70px 1fr;gap:10px}.ringu-side-top .gear-icon{width:68px!important;height:68px!important}.ringu-side-title h3{font-size:15px}.ringu-side-grid b{font-size:12px}}
+</style>
+<script id="ringuSideDetailPatchScript">
+(function(){
+  'use strict';
+  function el(id){return document.getElementById(id)}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+  function safe(fn,fb){try{return fn()}catch(e){return fb}}
+  function getState(){try{return state}catch(e){return window.state}}
+  function listInv(){var st=getState();return st&&Array.isArray(st.inventory)?st.inventory:[]}
+  function itemById(id){id=String(id);return listInv().find(function(x){return String(x.id)===id})}
+  function colorOf(it){return safe(function(){return rarityColors[it.rarity]}, null)||safe(function(){return rColor(it)}, null)||safe(function(){return itemColor(it)}, null)||'#a5adba'}
+  function rarityOf(it){return safe(function(){return rarityNames[it.rarity]}, null)||safe(function(){return rName(it)}, null)||safe(function(){return itemRarityName(it)}, null)||['일반','고급','레어','에픽','전설','신화','타락'][Number(it.rarity)||0]||'장비'}
+  function slotOf(it){return esc(it.slot||it.type||'장비')}
+  function baseName(it){var n=String(it.name||it.baseName||it.title||'이름 없는 장비');n=n.replace(/\s*\+\d+\s*$/,'').replace(/\s*[·ㆍ]\s*\d+초월\s*$/,'');return n}
+  function enhanceOf(it){return Number(it.enhance)||0}
+  function transOf(it){return Number(it.transcend)||0}
+  function starsOf(it){var n=transOf(it);return n>0?'★'.repeat(Math.min(n,10)):''}
+  function nameWithStars(it){var nm=baseName(it);var e=enhanceOf(it);var st=starsOf(it);return esc(nm)+(e?(' +'+e):'')+(st?(' <span class="ringu-list-stars" style="color:'+colorOf(it)+'">'+st+'</span>'):'')}
+  function atkVal(it){return safe(function(){return itemAtk(it)}, null) ?? Number(it.attack||it.atk||0)}
+  function atkText(it){return safe(function(){return itemAttackText(it)}, null)||String(atkVal(it))}
+  function sellVal(it){return safe(function(){return sellPrice(it)}, null) ?? Math.max(1,Math.floor(atkVal(it)*50))}
+  function fmtVal(n){return safe(function(){return fmt(n)}, null)||String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+  function optText(it){return safe(function(){return optionText(it)}, null)||safe(function(){return optionsOf(it)}, null)||safe(function(){return options(it)}, null)||'추가 능력치 없음'}
+  function equipped(it){return safe(function(){return isEquipped(it.id)}, false)||safe(function(){var st=getState();return st&&st.equipped&&String(st.equipped[it.slot])===String(it.id)}, false)}
+  function ensurePanel(){
+    if(!el('ringuSideDetailPanel')){
+      var shade=document.createElement('div');shade.id='ringuSideDetailShade';shade.onclick=function(){closeSideDetail()};
+      var panel=document.createElement('aside');panel.id='ringuSideDetailPanel';panel.setAttribute('aria-label','장비 상세정보');
+      document.body.appendChild(shade);document.body.appendChild(panel);
+    }
+  }
+  function closeSideDetail(){var p=el('ringuSideDetailPanel'),s=el('ringuSideDetailShade');if(p)p.classList.remove('show');if(s)s.classList.remove('show')}
+  function openSideDetail(id){
+    ensurePanel(); var it=itemById(id); if(!it){try{toast('장비 정보를 찾을 수 없습니다.')}catch(e){} return false}
+    var c=colorOf(it), eq=equipped(it), st=starsOf(it), tr=transOf(it), en=enhanceOf(it);
+    var up=''; try{var stateObj=getState(),eqId=stateObj.equipped[it.slot],cur=listInv().find(function(x){return String(x.id)===String(eqId)}); if(!eq&&atkVal(it)>(cur?atkVal(cur):0))up=' · 추천'}catch(e){}
+    var p=el('ringuSideDetailPanel'), shade=el('ringuSideDetailShade'); p.style.setProperty('--side-color',c);
+    p.innerHTML='<div class="ringu-side-head"><b>장비 상세정보</b><button class="ringu-side-close" onclick="closeSideDetail()">×</button></div>'+
+      '<div class="ringu-side-top">'+safe(function(){return gearIcon(it)},'')+'<div class="ringu-side-title"><span class="ringu-side-rarity">'+esc(rarityOf(it))+'</span><h3 style="color:'+c+'">'+nameWithStars(it)+'</h3><p>'+slotOf(it)+(eq?' · 장착 중':'')+esc(up)+'</p>'+(st?'<div class="ringu-side-stars">'+st+' <small style="color:#91a0b8">('+tr+'초월)</small></div>':'<div class="ringu-side-stars" style="color:#7f8ca3;text-shadow:none">초월 없음</div>')+'</div></div>'+
+      '<div class="ringu-side-grid"><div>강화 수치<b>+'+en+'</b></div><div>초월 수치<b style="color:'+c+'">'+(st||'-')+'</b></div><div>공격력<b>'+esc(atkText(it))+'</b></div><div>판매가<b>'+fmtVal(sellVal(it))+' G</b></div></div>'+
+      '<div class="ringu-side-options"><b style="color:#eef3ff">능력치</b><br>'+optText(it)+'</div>'+
+      '<div class="ringu-side-actions">'+
+      '<button class="equip" onclick="event.stopPropagation();equip('+Number(it.id)+');openSideDetail('+Number(it.id)+');try{renderInventory()}catch(e){}">장착</button>'+
+      '<button class="enh" onclick="event.stopPropagation();closeSideDetail();openEnhance('+Number(it.id)+')">강화</button>'+
+      '<button class="lock" onclick="event.stopPropagation();toggleLock('+Number(it.id)+');openSideDetail('+Number(it.id)+');try{renderInventory()}catch(e){}">'+(it.locked?'잠금 해제':'잠금')+'</button>'+
+      '<button class="sell" '+(eq||it.locked?'disabled':'')+' onclick="event.stopPropagation();sellItem('+Number(it.id)+');closeSideDetail();try{renderInventory()}catch(e){}">판매<br>'+fmtVal(sellVal(it))+' G</button>'+
+      '<button class="close" onclick="event.stopPropagation();closeSideDetail()">닫기</button></div>';
+    shade.classList.add('show'); p.classList.add('show'); return false;
+  }
+  function renderInventorySide(){
+    try{
+      var holder=el('inventoryList'); if(!holder)return;
+      var arr=listInv().slice(); var sort=(el('sortSelect')||{}).value||'attack';
+      arr.sort(function(a,b){return sort==='rarity'?(Number(b.rarity)-Number(a.rarity)||atkVal(b)-atkVal(a)):atkVal(b)-atkVal(a)});
+      var cnt=el('invCount'); if(cnt)cnt.textContent=arr.length+'개';
+      if(!arr.length){holder.innerHTML='<div class="empty-list">장비가 없습니다.<br>소환으로 첫 장비를 획득하세요.</div>';return}
+      holder.innerHTML=arr.map(function(it){
+        var eq=equipped(it), c=colorOf(it); var rec='';
+        try{var stateObj=getState(),eqId=stateObj.equipped[it.slot],cur=listInv().find(function(x){return String(x.id)===String(eqId)});if(!eq&&atkVal(it)>(cur?atkVal(cur):0))rec='<span class="up">↑ 추천</span>'}catch(e){}
+        var cls='item rarity-'+(Number(it.rarity)||0)+(eq?' equipped':'')+(it.locked?' locked-item':'')+(Number(it.rarity)===4?' legendary':'')+(Number(it.rarity)===5?' mythic':'')+(Number(it.rarity)>=6?' fallen':'');
+        return '<div class="'+cls+'" data-item-id="'+esc(it.id)+'">'+
+          '<div class="gear-row">'+safe(function(){return gearIcon(it)},'')+'<div class="item-info"><div class="item-title"><span class="rarity">'+esc(rarityOf(it))+'</span><strong style="color:'+c+'">'+nameWithStars(it)+'</strong></div><div class="item-sub">'+slotOf(it)+' · 공격력 <b>'+esc(atkText(it))+'</b> '+rec+(eq?'<span style="color:#6eb8ff"> · 장착 중</span>':'')+'<div class="sub-options">'+optText(it)+'</div></div></div></div>'+
+          '<div class="item-actions"><button class="ringu-detail-btn" onclick="event.stopPropagation();return openSideDetail('+Number(it.id)+')">상세<br>정보</button></div></div>'
+      }).join('');
+    }catch(e){console.error('renderInventorySide',e)}
+  }
+  window.openSideDetail=openSideDetail; window.closeSideDetail=closeSideDetail; window.openItemDetail=openSideDetail; window.closeItemDetail=closeSideDetail;
+  window.renderInventory=renderInventorySide; try{renderInventory=renderInventorySide}catch(e){}
+  document.addEventListener('click',function(e){var btn=e.target&&e.target.closest&&e.target.closest('.ringu-detail-btn');if(btn)return;},true);
+  var ss=el('sortSelect'); if(ss)ss.onchange=renderInventorySide;
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeSideDetail()});
+  setTimeout(renderInventorySide,50); setTimeout(renderInventorySide,350); setTimeout(renderInventorySide,1200);
+  try{new MutationObserver(function(){var box=el('inventoryList'); if(!box)return; if(!box.querySelector('.ringu-detail-btn')&&box.querySelector('.item'))setTimeout(renderInventorySide,0)}).observe(el('inventoryList')||document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>
+
 </body>
 </html>
