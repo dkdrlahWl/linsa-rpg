@@ -2592,5 +2592,78 @@ load();
 })();
 </script>
 
+
+<!-- FINAL REQUEST PATCH: mute boss-hit SFX while summon screens are open + inventory detail modal -->
+<style id="ringuRequestPatchStyle">
+#inventoryList .item.ringu-detail-item{grid-template-columns:minmax(0,1fr)!important;cursor:pointer!important;padding:10px!important;align-items:center!important}
+#inventoryList .item.ringu-detail-item:active{filter:brightness(1.18)}
+#inventoryList .item.ringu-detail-item .gear-row{width:100%!important;min-width:0!important}
+#inventoryList .item.ringu-detail-item .item-sub{padding-right:0!important}
+#inventoryList .item.ringu-detail-item .ringu-detail-hint{display:inline-block;margin-left:6px;color:#8fcaff;font-weight:900;font-size:9px}
+#ringuItemDetailModal{display:none;position:fixed;z-index:250000;inset:0;background:#000b;backdrop-filter:blur(4px);padding:18px;align-items:center;justify-content:center}
+#ringuItemDetailModal.show{display:flex!important}
+#ringuItemDetailModal .ringu-item-detail-box{width:min(430px,94vw);max-height:88vh;overflow:auto;background:#151b28;border:1px solid #34415b;border-radius:18px;padding:16px;box-shadow:0 20px 60px #000}
+.ringu-detail-top{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.ringu-detail-top .gear-icon{width:74px!important;height:74px!important;flex:0 0 74px!important;transform:none!important}
+.ringu-detail-title{min-width:0;flex:1}.ringu-detail-title .rarity{display:inline-block;margin-bottom:5px}.ringu-detail-title h3{margin:0;font-size:16px;line-height:1.25;word-break:keep-all}.ringu-detail-title p{margin:5px 0 0;color:#aebbd0;font-size:11px}
+.ringu-detail-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}.ringu-detail-stats div{padding:9px;border-radius:9px;background:#0d131e;border:1px solid #273146;font-size:10px;color:#91a0b8}.ringu-detail-stats b{display:block;margin-top:3px;color:#fff;font-size:12px}
+.ringu-detail-options{padding:10px;border:1px solid #273146;border-radius:10px;background:#0d131e;color:#aee7ff;font-size:11px;line-height:1.7;margin:10px 0;word-break:keep-all}
+.ringu-detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.ringu-detail-actions button{padding:12px 8px;border-radius:10px;background:#26324a;color:#e5efff;font-size:11px;font-weight:1000}.ringu-detail-actions .equip{background:#1e4d3b;color:#93ffd0}.ringu-detail-actions .enh{background:#5c4218;color:#ffda7a}.ringu-detail-actions .lock.on{background:#5a4518;color:#ffdb76}.ringu-detail-actions .sell{background:#54202b;color:#ff9baa}.ringu-detail-actions .close{grid-column:1/-1;background:#202838;color:#aebbd0}.ringu-detail-actions button:disabled{opacity:.45;filter:saturate(.4)}
+@media(max-width:520px){#inventoryList .item.ringu-detail-item .gear-icon{width:54px!important;height:54px!important;flex-basis:54px!important}.ringu-detail-top .gear-icon{width:68px!important;height:68px!important;flex-basis:68px!important}.ringu-detail-stats{grid-template-columns:1fr}.ringu-detail-actions button{padding:11px 6px}}
+</style>
+<script id="ringuRequestPatchScript">
+(function(){
+  'use strict';
+  function byId(id){return document.getElementById(id)}
+  function esc(v){try{return typeof escapeHtml==='function'?escapeHtml(v):String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}catch(e){return String(v==null?'':v)}}
+  function isOpen(el){return !!(el&&(el.classList.contains('show')||el.style.display==='flex'||getComputedStyle(el).display==='flex'))}
+  function summonScreenOpen(){return !!(window.__ringuSummonSoundMute||isOpen(byId('drawResultModal'))||isOpen(byId('rarityOverlay')))}
+  window.ringuSummonScreenOpen=summonScreenOpen;
+  function armSummonMute(){
+    window.__ringuSummonSoundMute=true; window.__ringuSummonMuteStart=Date.now();
+    if(window.__ringuSummonMuteTimer)clearInterval(window.__ringuSummonMuteTimer);
+    window.__ringuSummonMuteTimer=setInterval(function(){
+      var open=isOpen(byId('drawResultModal'))||isOpen(byId('rarityOverlay'));
+      var busy=false; try{busy=!!ringuDrawBusy}catch(e){}
+      if(!open&&!busy&&Date.now()-(window.__ringuSummonMuteStart||0)>1200){
+        window.__ringuSummonSoundMute=false; clearInterval(window.__ringuSummonMuteTimer); window.__ringuSummonMuteTimer=null;
+      }
+    },250);
+  }
+  window.ringuArmSummonMute=armSummonMute;
+  if(!window.__ringuDrawMuteWrapped){
+    window.__ringuDrawMuteWrapped=true;
+    try{var oldDraw=window.ringuDrawItems||ringuDrawItems; if(typeof oldDraw==='function'){window.ringuDrawItems=function(){armSummonMute();return oldDraw.apply(this,arguments)}; try{ringuDrawItems=window.ringuDrawItems}catch(e){}}}catch(e){}
+    document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('.draw,[onclick*="ringuDrawItems"],[onclick*="drawItems"]'):null;if(t)armSummonMute();},true);
+  }
+  if(!window.__ringuBossHitMuteWrapped){
+    window.__ringuBossHitMuteWrapped=true;
+    try{var oldHit=window.playHitSound||playHitSound; if(typeof oldHit==='function'){window.playHitSound=function(){if(summonScreenOpen())return;return oldHit.apply(this,arguments)}; try{playHitSound=window.playHitSound}catch(e){}}}catch(e){}
+  }
+  function ensureModal(){
+    var m=byId('ringuItemDetailModal'); if(m)return m;
+    m=document.createElement('div'); m.id='ringuItemDetailModal'; m.innerHTML='<div class="ringu-item-detail-box"></div>'; document.body.appendChild(m);
+    m.addEventListener('click',function(e){if(e.target===m)closeItemDetail()}); return m;
+  }
+  function getItem(id){try{return state.inventory.find(function(x){return Number(x.id)===Number(id)})||null}catch(e){return null}}
+  window.closeItemDetail=function(){var m=byId('ringuItemDetailModal'); if(m){m.classList.remove('show');m.style.removeProperty('display')}};
+  window.openItemDetail=function(itemId){
+    var it=getItem(itemId); if(!it)return; var eq=typeof isEquipped==='function'&&isEquipped(it.id), atk=typeof itemAttackText==='function'?itemAttackText(it):fmt(itemAtk(it));
+    var up=''; try{var eqId=state.equipped[it.slot],cur=state.inventory.find(function(x){return x.id===eqId}); if(!eq&&itemAtk(it)>(cur?itemAtk(cur):0))up='<span style="color:#50e39a;font-weight:1000"> · 추천</span>'}catch(e){}
+    var opts=''; try{opts=optionText(it)||''}catch(e){} if(!opts)opts='<span style="color:#69778d">추가 옵션 없음</span>';
+    var m=ensureModal(), box=m.querySelector('.ringu-item-detail-box');
+    box.innerHTML='<div class="ringu-detail-top">'+gearIcon(it)+'<div class="ringu-detail-title"><span class="rarity" style="color:'+rarityColors[it.rarity]+'">'+rarityNames[it.rarity]+'</span><h3 style="color:'+rarityColors[it.rarity]+'">'+(it.locked?'[잠금] ':'')+esc(it.name)+' +'+it.enhance+((it.transcend||0)?' · '+it.transcend+'초월':'')+'</h3><p>'+esc(it.slot)+(eq?' · 장착 중':'')+up+'</p></div></div><div class="ringu-detail-stats"><div>공격력<b>'+atk+'</b></div><div>판매가<b>'+fmt(sellPrice(it))+' G</b></div></div><div class="ringu-detail-options">'+opts+'</div><div class="ringu-detail-actions"><button class="equip" onclick="event.stopPropagation();equip('+it.id+');openItemDetail('+it.id+')">장착</button><button class="enh" onclick="event.stopPropagation();closeItemDetail();openEnhance('+it.id+')">강화</button><button class="lock '+(it.locked?'on':'')+'" onclick="event.stopPropagation();toggleLock('+it.id+');openItemDetail('+it.id+')">'+(it.locked?'잠금 해제':'잠금')+'</button><button class="sell" '+(eq||it.locked?'disabled':'')+' onclick="event.stopPropagation();sellItem('+it.id+');closeItemDetail()">판매<br>'+fmt(sellPrice(it))+' G</button><button class="close" onclick="event.stopPropagation();closeItemDetail()">닫기</button></div>';
+    m.classList.add('show'); m.style.setProperty('display','flex','important');
+  };
+  function renderInventoryDetailOnly(){
+    var list=[].concat(state.inventory||[]), sort=(byId('sortSelect')||{}).value; list.sort(function(a,b){return sort==='rarity'?(b.rarity-a.rarity||itemAtk(b)-itemAtk(a)):itemAtk(b)-itemAtk(a)});
+    var count=byId('invCount'); if(count)count.textContent=list.length+'개'; var holder=byId('inventoryList'); if(!holder)return;
+    holder.innerHTML=list.length?list.map(function(it){var atk=itemAtk(it),eqId=state.equipped[it.slot],eq=state.inventory.find(function(x){return x.id===eqId}),up=!(isEquipped(it.id))&&atk>(eq?itemAtk(eq):0);return '<div class="item ringu-detail-item rarity-'+it.rarity+(isEquipped(it.id)?' equipped':'')+(it.locked?' locked-item':'')+(it.rarity===4?' legendary':'')+(it.rarity===5?' mythic':'')+(it.rarity===6?' fallen':'')+'" onclick="openItemDetail('+it.id+')"><div class="gear-row">'+gearIcon(it)+'<div class="item-info"><div class="item-title"><span class="rarity">'+rarityNames[it.rarity]+'</span><strong style="color:'+rarityColors[it.rarity]+'">'+(it.locked?'[잠금] ':'')+esc(it.name)+' +'+it.enhance+((it.transcend||0)?' · '+it.transcend+'초월':'')+'</strong></div><div class="item-sub">'+it.slot+' · 공격력 <b>'+itemAttackText(it)+'</b> '+(up?'<span class="up">↑ 추천</span>':'')+(isEquipped(it.id)?'<span style="color:#6eb8ff"> · 장착 중</span>':'')+'<span class="ringu-detail-hint">상세보기</span></div></div></div></div>'}).join(''):'<div class="empty-list">장비가 없습니다.<br>소환으로 첫 장비를 획득하세요.</div>';
+  }
+  window.renderInventory=renderInventoryDetailOnly; try{renderInventory=renderInventoryDetailOnly}catch(e){}
+  setTimeout(function(){try{renderInventoryDetailOnly()}catch(e){}},120);
+})();
+</script>
+
 </body>
 </html>
