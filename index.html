@@ -898,13 +898,24 @@ window.ringuGrantHunterReportDirectFinal=function(){
 window.ringuGrantLoginCompensationDirectFinal=function(){
   var excludedUid={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},excludedName={'도현':1,'링구':1};
   var uid=String(state.playerUid||''),name=String(state.playerName||'').trim();
-  /* 랭킹창 등록 대상만: 기본/관리자/숨김 계정과 도현·링구 닉네임은 제외 */
-  if(!uid||excludedUid[uid]||excludedName[name]||name==='모험가'||name==='장애인계정'||state.rankingHidden)return false;
   state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
-  if(state.mailFlags.loginCompensation20260614V1)return true;
+  /* 아직 랭킹 닉네임이 아니면 판정하지 않음 */
+  if(!uid||name==='모험가'||name==='장애인계정')return false;
+  /* 한번 판정된 계정은 닉네임을 바꿔도 재판정하지 않음 */
+  if(state.mailFlags.loginCompensationDecision20260614V2==='excluded')return false;
+  if(state.mailFlags.loginCompensationDecision20260614V2==='granted'||state.mailFlags.loginCompensationApplied20260614V2)return true;
+  /* 현재 시점에 도현/링구/관리자/숨김이면 영구 제외 처리 */
+  if(excludedUid[uid]||excludedName[name]||state.rankingHidden){
+    state.mailFlags.loginCompensationDecision20260614V2='excluded';
+    state.mailFlags.loginCompensationExcludedAt20260614V2=Date.now();
+    try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
+    return false;
+  }
   state.gold=(Number(state.gold)||0)+200000000;
   state.essence=(Number(state.essence)||0)+100;
   state.transcendStone=(Number(state.transcendStone)||0)+5;
+  state.mailFlags.loginCompensationDecision20260614V2='granted';
+  state.mailFlags.loginCompensationApplied20260614V2=Date.now();
   state.mailFlags.loginCompensation20260614V1=Date.now();
   try{renderAll();}catch(e){}
   try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
@@ -2195,13 +2206,24 @@ load();
     var info=null;try{info=window.ringuGetMailIdentityFinal()}catch(e){}
     var excludedUid={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},excludedName={'도현':1,'링구':1};
     var uid=String(info&&info.uid||''),name=String(info&&info.name||'').trim();
-    if(!uid||excludedUid[uid]||excludedName[name]||name==='모험가'||name==='장애인계정')return false;
-    var reward={id:'login-compensation-v1',type:'loginCompensation',amount:1};
+    if(!uid||name==='모험가'||name==='장애인계정')return false;
+    var flags=mailFlags();
+    if(flags.loginCompensationDecision20260614V2==='excluded')return false;
+    if(flags.loginCompensationDecision20260614V2==='granted'||flags.loginCompensationApplied20260614V2)return true;
+    if(excludedUid[uid]||excludedName[name]){
+      flags.loginCompensationDecision20260614V2='excluded';
+      flags.loginCompensationExcludedAt20260614V2=Date.now();
+      saveNow();
+      return false;
+    }
+    var reward={id:'login-compensation-v2-'+uid,type:'loginCompensationV2_'+uid,amount:1};
     try{
-      if(await receiptExists(reward)){mailFlags().loginCompensation20260614V1=Date.now();saveNow();return true}
+      if(await receiptExists(reward)){
+        try{return !!window.ringuGrantLoginCompensationDirectFinal()}catch(e){return false}
+      }
       var inserted=await reserveReceipt(reward,false);
-      if(inserted)try{window.ringuGrantLoginCompensationDirectFinal()}catch(e){}
-      return inserted;
+      if(inserted)try{return !!window.ringuGrantLoginCompensationDirectFinal()}catch(e){return false}
+      return false;
     }catch(e){return false}
   }
   window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
