@@ -2517,5 +2517,259 @@ load();
 })();
 </script>
 
+
+
+<!-- FINAL FIX: transcend hammer animation + safe close recovery -->
+<style id="finalTranscendHammerCloseFixStyle">
+#enhanceModal{z-index:122000!important}
+#enhanceModal.show{display:flex!important;pointer-events:auto!important}
+#enhanceModal .modal{pointer-events:auto!important}
+#transcendBtn.transcending{background:linear-gradient(#7a2638,#42121d)!important;color:#ffd6df!important;box-shadow:0 0 18px #ff315566!important}
+#enhanceStage.transcend-forging .enhance-hammer{opacity:1!important;animation:hammerDouble .52s ease-in both!important}
+#enhanceStage.transcend-forging .gear-icon{animation:forgeHit .26s .13s 2!important}
+#enhanceStage.transcend-forging .enhance-sparks{animation:sparkBurst .24s .13s 2!important}
+#enhanceStage.transcend-success{animation:forgeSuccess .7s!important;box-shadow:inset 0 0 55px #ff456c66,0 0 28px #ff345c55!important}
+#enhanceStage.transcend-fail{animation:forgeFail .55s!important;box-shadow:inset 0 0 45px #6d748066,0 0 20px #ff345522!important}
+#enhanceStage.transcend-success .enhance-result{color:#ff8fa4!important;animation:forgeResult .95s!important;opacity:1;text-shadow:0 0 18px #ff345c,0 0 30px #ff345c}
+#enhanceStage.transcend-fail .enhance-result{color:#aab5c9!important;animation:forgeResult .95s!important;opacity:1;text-shadow:0 0 14px #aab5c9}
+</style>
+<script id="finalTranscendHammerCloseFixScript">
+(function(){
+  'use strict';
+  function q(id){return document.getElementById(id)}
+  function say(msg){try{toast(msg)}catch(e){}}
+  function n(v){return Number(v)||0}
+  function item(){try{return state.inventory.find(function(x){return x.id===enhanceId})}catch(e){return null}}
+  function refreshSafe(){try{renderTop()}catch(e){} try{renderInventory()}catch(e){} try{renderEquipment()}catch(e){} try{renderEnhance()}catch(e){} try{decorateTranscendStars()}catch(e){}}
+  function saveSafe(){try{saveChanceAction()}catch(e){try{queueSave()}catch(_){} try{save(false)}catch(_){}}}
+  function resetStageSoon(){setTimeout(function(){var s=q('enhanceStage'); if(s)s.className='enhance-stage'},900)}
+
+  window.tryTranscend=async function(){
+    var it=item();
+    if(!it || enhanceBusy) return false;
+    try{ if(typeof ensureCloudFreshForAction==='function' && !(await ensureCloudFreshForAction('초월'))) return false; }catch(e){}
+    if(it.rarity<4){say('전설 이상 장비만 초월할 수 있습니다.');return false;}
+    if(it.enhance<15){say('+15 강화 장비만 초월할 수 있습니다.');return false;}
+    var current=Math.min(3,Math.max(0,n(it.transcend)));
+    if(current>=3){say('이미 최대 3초월 장비입니다.');return false;}
+    var target=current+1;
+    var cost=0;
+    try{cost=transcendCost(it,target)}catch(e){cost=target*5}
+    state.transcendStone=Math.max(0,n(state.transcendStone));
+    if(state.transcendStone<cost){say('초월석이 부족합니다. 필요 '+cost+'개');return false;}
+
+    var stage=q('enhanceStage'), result=q('enhanceResult'), tbtn=q('transcendBtn'), ebtn=q('enhanceBtn');
+    enhanceBusy=true;
+    state.transcendStone-=cost;
+    if(tbtn){tbtn.disabled=true;tbtn.classList.add('transcending');tbtn.textContent='초월 진행 중...'}
+    if(ebtn){ebtn.disabled=true;ebtn.textContent='진행 중...'}
+    try{renderTop()}catch(e){}
+    if(stage){stage.className='enhance-stage transcend-forging forging'}
+    if(result){result.textContent=''}
+    try{playForgeSound()}catch(e){}
+
+    var finished=false;
+    function finish(){
+      if(finished) return;
+      finished=true;
+      try{
+        var rate=50;
+        try{rate=transcendRate(target)}catch(e){}
+        var success=Math.random()*100<rate;
+        if(stage)stage.className='enhance-stage '+(success?'transcend-success success':'transcend-fail fail');
+        if(success){
+          it.transcend=target;
+          if(result)result.textContent=target+'초월 성공';
+          var transAtk=it.slot==='무기'?45:30;
+          var transPercent=it.slot==='무기'?(it.rarity>=6?25:(it.rarity>=5?20:15)):10;
+          say(target+'초월 성공! 장비 공격력 +'+transAtk+'% · 공격력% +'+transPercent+'%');
+          try{playMythicBoom()}catch(e){}
+        }else{
+          if(result)result.textContent='초월 실패';
+          say('초월 실패 · 초월 단계 하락 없음');
+        }
+        enhanceBusy=false;
+        if(tbtn)tbtn.classList.remove('transcending');
+        refreshSafe();
+        saveSafe();
+        try{syncRanking()}catch(e){}
+        resetStageSoon();
+      }catch(err){
+        enhanceBusy=false;
+        if(tbtn)tbtn.classList.remove('transcending');
+        refreshSafe();
+        saveSafe();
+        say('초월 처리 오류가 복구되었습니다.');
+        resetStageSoon();
+      }
+    }
+    setTimeout(finish,720);
+    setTimeout(function(){if(!finished){enhanceBusy=false;finish()}},2200);
+    return false;
+  };
+  try{tryTranscend=window.tryTranscend}catch(e){}
+
+  window.closeEnhance=function(){
+    var modal=q('enhanceModal'), stage=q('enhanceStage');
+    if(enhanceBusy){
+      enhanceBusy=false;
+      say('진행 상태를 정리했습니다.');
+      refreshSafe();
+    }
+    if(modal)modal.classList.remove('show');
+    if(stage)stage.className='enhance-stage';
+    try{enhanceId=null}catch(e){}
+    return false;
+  };
+  try{closeEnhance=window.closeEnhance}catch(e){}
+
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('#transcendBtn')){
+      setTimeout(function(){
+        var b=q('transcendBtn');
+        if(enhanceBusy && b && (b.textContent||'').indexOf('진행')>=0){
+          enhanceBusy=false;
+          if(b)b.classList.remove('transcending');
+          refreshSafe();
+        }
+      },2600);
+    }
+  },true);
+})();
+</script>
+
+
+
+<!-- FINAL FIX: draw result real item names / rarity colors / slot icon shapes -->
+<style id="finalDrawRealResultStyle">
+#drawResultModal{z-index:150000!important;display:none!important}
+#drawResultModal.show{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#drawResultModal .modal{max-height:calc(100dvh - 28px)!important;overflow:auto!important}
+#drawResultGrid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important;max-height:62vh!important;overflow:auto!important;padding:6px!important}
+#drawResultGrid .draw-card{min-height:150px!important;padding:9px 5px 8px!important;border-color:var(--gc)!important;box-shadow:0 0 12px color-mix(in srgb,var(--gc) 34%,transparent)!important;background:radial-gradient(circle at 50% 22%,color-mix(in srgb,var(--gc) 22%,transparent),#0b111b 58%)!important}
+#drawResultGrid .draw-card strong{display:block!important;margin-top:6px!important;font-size:10px!important;line-height:13px!important;color:var(--gc)!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;min-height:26px!important;word-break:keep-all!important}
+#drawResultGrid .draw-card small{display:block!important;margin-top:4px!important;font-size:8px!important;line-height:12px!important;color:#aebbd0!important;white-space:normal!important}
+.draw-real-icon{--c:#a5adba;position:relative;width:58px;height:58px;margin:0 auto 6px;border:1.5px solid var(--c);border-radius:14px;background:radial-gradient(circle at 45% 38%,color-mix(in srgb,var(--c) 42%,transparent) 0 10%,transparent 24%),radial-gradient(circle,#151d2b 0,#0b1019 74%);box-shadow:0 0 14px color-mix(in srgb,var(--c) 70%,transparent),inset 0 0 13px #0009;overflow:hidden;display:block!important}
+.draw-real-icon::before,.draw-real-icon::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block!important}
+.draw-real-icon.weapon::before{width:9px;height:39px;background:linear-gradient(90deg,#fff,var(--c),#242936);clip-path:polygon(48% 0,100% 12%,72% 82%,50% 100%,28% 82%,0 12%);transform:translate(-50%,-54%) rotate(35deg);box-shadow:0 0 7px var(--c)}
+.draw-real-icon.weapon::after{width:32px;height:6px;border-radius:6px;background:linear-gradient(90deg,#8b6331,#ffd17a,#8b6331);transform:translate(-50%,18%) rotate(35deg)}
+.draw-real-icon.helmet::before{width:39px;height:36px;background:linear-gradient(135deg,#fff8,var(--c),#202637);clip-path:polygon(50% 0,90% 15%,100% 68%,76% 100%,58% 72%,42% 72%,24% 100%,0 68%,10% 15%);box-shadow:0 0 7px var(--c)}
+.draw-real-icon.armor::before{width:40px;height:42px;background:linear-gradient(135deg,#fff7,var(--c),#202637);clip-path:polygon(18% 0,38% 10%,62% 10%,82% 0,100% 23%,84% 39%,80% 100%,20% 100%,16% 39%,0 23%);box-shadow:0 0 7px var(--c)}
+.draw-real-icon.pants::before{width:37px;height:43px;background:linear-gradient(135deg,#fff7,var(--c),#202637);clip-path:polygon(0 0,100% 0,88% 100%,58% 100%,50% 43%,42% 100%,12% 100%);box-shadow:0 0 7px var(--c)}
+.draw-real-icon.shoes::before{width:43px;height:31px;background:linear-gradient(135deg,#fff7,var(--c),#202637);clip-path:polygon(5% 0,50% 0,60% 54%,100% 67%,94% 100%,23% 100%,0 75%);box-shadow:0 0 7px var(--c)}
+.draw-real-icon.ring::before{width:31px;height:31px;border:8px solid var(--c);border-radius:50%;box-shadow:inset 0 0 7px #fff7,0 0 10px var(--c);background:transparent}
+.draw-real-icon.ring::after{width:12px;height:12px;background:radial-gradient(circle,#fff,var(--c));border:2px solid var(--c);transform:translate(-50%,-148%) rotate(45deg);box-shadow:0 0 8px var(--c)}
+.draw-real-icon.earring::before{width:24px;height:35px;border:6px solid var(--c);border-top-color:transparent;border-radius:50%;box-shadow:0 0 9px var(--c);background:transparent}
+.draw-real-icon.earring::after{width:17px;height:17px;background:linear-gradient(135deg,#fff,var(--c));clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);transform:translate(-50%,78%);box-shadow:0 0 8px var(--c)}
+.draw-real-icon.r4{border-width:2px;box-shadow:0 0 22px color-mix(in srgb,var(--c) 80%,transparent),inset 0 0 12px color-mix(in srgb,var(--c) 25%,transparent)}
+.draw-real-icon.r5{border-width:2px;background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--c) 55%,transparent) 0 4deg,transparent 5deg 28deg),radial-gradient(circle,#39000b 0,#080107 76%);box-shadow:0 0 24px #c9002c,inset 0 0 18px #c9002c66}
+.draw-real-icon.r5.weapon::before{background:linear-gradient(90deg,#111,#cfd0d6 14% 23%,#390009 26% 38%,#ff2448 44% 56%,#390009 62% 74%,#cfd0d6 77% 86%,#111);height:43px;width:13px}.draw-real-icon.r5.weapon::after{background:radial-gradient(circle,#fff 0 6%,#ff2448 9% 22%,#6b0015 25% 35%,transparent 37%),linear-gradient(90deg,#bfc0c7,#2b0008 30%,#dc1738 50%,#2b0008 70%,#bfc0c7);width:35px;height:22px;clip-path:polygon(0 18%,34% 30%,42% 0,50% 35%,58% 0,66% 30%,100% 18%,80% 52%,100% 86%,62% 68%,50% 100%,38% 68%,0 86%,20% 52%)}
+.draw-real-icon.r6{border-color:#9A4560;background:radial-gradient(circle at 45% 45%,#ff89a855,transparent 24%),linear-gradient(145deg,#2b0712,#060106 70%);box-shadow:0 0 25px #ff4f86,inset 0 0 16px #9A456066}
+@media(max-width:520px){#drawResultGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.draw-real-icon{width:54px;height:54px}#drawResultGrid .draw-card{min-height:145px!important}}
+</style>
+<script id="finalDrawRealResultFix">
+(function(){
+  'use strict';
+  function byId(id){return document.getElementById(id)}
+  function htmlEscape(s){try{return escapeHtml(String(s))}catch(e){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}}
+  function safeFmt(n){try{return fmt(n)}catch(e){return Math.floor(Number(n)||0).toLocaleString('ko-KR')}}
+  function groupNow(){try{return drawGroup||'weapon'}catch(e){return 'weapon'}}
+  function slotIconClass(slot){return ({'무기':'weapon','투구':'helmet','갑옷':'armor','바지':'pants','신발':'shoes','반지':'ring','귀걸이':'earring'}[slot]||'weapon')}
+  function rName(r){try{return rarityNames[r]||''}catch(e){return ['일반','희귀','레어','에픽','전설','신화','타락'][r]||''}}
+  function rColor(r){try{return rarityColors[r]||'#a5adba'}catch(e){return ['#a5adba','#4fd27b','#459cff','#bc64ff','#ff9d3b','#c9002c','#9A4560'][r]||'#a5adba'}}
+  function atkLine(it){try{return itemAttackText(it)}catch(e){try{return safeFmt(it.baseAtk)+' > '+safeFmt(itemAtk(it))}catch(_){return safeFmt(it.baseAtk||it.currentAtk||0)}}}
+  function realIcon(it){var r=Number(it&&it.rarity)||0,slot=it&&it.slot||'무기';return '<span class="draw-real-icon '+slotIconClass(slot)+' r'+r+'" style="--c:'+rColor(r)+'"></span>'}
+  function drawCard(it,i){
+    var r=Number(it&&it.rarity)||0;
+    return '<div class="draw-card rarity-'+r+(it&&it.isNew?' first-new':'')+'" style="--gc:'+rColor(r)+';animation-delay:'+(Math.min(i,40)*0.05)+'s">'
+      +(it&&it.isNew?'<span class="new-badge">NEW</span>':'')
+      +realIcon(it)
+      +'<strong>'+htmlEscape(it&&it.name?it.name:((it&&it.slot)||'장비'))+'</strong>'
+      +'<small><span style="color:'+rColor(r)+';font-weight:900">'+htmlEscape(rName(r))+'</span> · '+htmlEscape(it&&it.slot?it.slot:'장비')+'<br>공격력 '+htmlEscape(atkLine(it))+'</small></div>';
+  }
+  function showResults(items){
+    items=Array.isArray(items)?items:[];
+    var overlay=byId('rarityOverlay'); if(overlay){overlay.className='rarity-overlay';overlay.style.setProperty('display','none','important');overlay.onclick=null}
+    var grid=byId('drawResultGrid'), modal=byId('drawResultModal');
+    if(!grid||!modal){try{alert('장비 소환 결과\n'+items.map(function(x){return x.name}).join('\n'))}catch(e){} return false}
+    grid.classList.remove('opening');
+    grid.innerHTML=items.length?items.map(drawCard).join(''):'<div class="empty-list">소환 결과가 없습니다.</div>';
+    void grid.offsetWidth;
+    grid.classList.add('opening');
+    modal.classList.add('show');
+    modal.style.setProperty('display','flex','important');
+    modal.style.setProperty('z-index','150000','important');
+    try{var first=items.find(function(x){return x&&x.isNew}); if(first&&typeof showCollectionFlash==='function')setTimeout(function(){showCollectionFlash(first)},250)}catch(e){}
+    return false;
+  }
+  function reveal(item,type,items){
+    var o=byId('rarityOverlay');
+    if(!o)return showResults(items);
+    var myth=type==='mythic', fall=type==='fallen';
+    o.className='rarity-overlay show '+type+(myth?' charging':'');
+    o.style.setProperty('display','flex','important');
+    o.style.setProperty('z-index','151000','important');
+    var gear=byId('rarityRevealGear'), grade=byId('rarityRevealGrade'), title=byId('rarityRevealTitle'), name=byId('rarityRevealName');
+    if(gear)gear.innerHTML=realIcon(item);
+    if(grade)grade.textContent=fall?'FALLEN':(myth?'MYTHIC':'LEGENDARY');
+    if(title)title.textContent=fall?'타락 장비 강림!':(myth?'신화 장비 강림!':'전설 장비 획득!');
+    if(name)name.innerHTML=htmlEscape(item&&item.name)+'<br><small style="letter-spacing:0;color:#c9d4e8">'+(myth?'3초 후 화면을 누르면 결과가 표시됩니다':'화면을 누르면 소환 결과가 표시됩니다')+'</small>';
+    var ready=!myth, done=false;
+    function becomeReady(){ready=true;o.classList.remove('charging');o.classList.add('ready');if(name)name.innerHTML=htmlEscape(item&&item.name)+'<br><small style="letter-spacing:0;color:#c9d4e8">화면을 누르면 소환 결과가 표시됩니다</small>';try{if(myth||fall)playMythicBoom();else playDrawSound(4)}catch(e){}document.body.classList.add('shake');setTimeout(function(){document.body.classList.remove('shake')},650)}
+    if(myth)setTimeout(becomeReady,3000);else setTimeout(becomeReady,80);
+    function next(ev){if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation()} if(!ready||done)return false; done=true; o.className='rarity-overlay'; o.style.setProperty('display','none','important'); setTimeout(function(){showResults(items)},40); return false}
+    o.onclick=next; o.addEventListener('touchend',next,{passive:false});
+    return false;
+  }
+  function showFinal(items){
+    items=Array.isArray(items)?items:[];
+    try{playBoxOpenSound()}catch(e){}
+    var fallen=items.find(function(x){return x&&x.rarity>=6});
+    var mythic=items.find(function(x){return x&&x.rarity===5});
+    var legend=items.find(function(x){return x&&x.rarity===4});
+    if(fallen)return reveal(fallen,'fallen',items);
+    if(mythic)return reveal(mythic,'mythic',items);
+    if(legend)return reveal(legend,'legend',items);
+    try{playDrawSound(Math.max.apply(null,items.map(function(x){return x.rarity||0}).concat([0])))}catch(e){}
+    return showResults(items);
+  }
+  async function drawFinal(count){
+    count=Number(count)||1;
+    var modal=byId('drawResultModal'), grid=byId('drawResultGrid'), overlay=byId('rarityOverlay');
+    if(modal){modal.classList.remove('show');modal.style.setProperty('display','none','important')}
+    if(grid)grid.innerHTML='';
+    if(overlay){overlay.className='rarity-overlay';overlay.style.setProperty('display','none','important');overlay.onclick=null}
+    try{if(typeof ensureCloudFreshForAction==='function'&&!(await ensureCloudFreshForAction('소환')))return false}catch(e){}
+    var cost=0;try{cost=count*summonUnitCost()}catch(e){}
+    try{if(typeof spendGold==='function'){if(!spendGold(cost)){toast('골드가 부족합니다. 필요 골드 '+safeFmt(cost));return false}}else if(state&&state.gold>=cost){state.gold-=cost}else{return false}}catch(e){}
+    var gained=[];
+    for(var i=0;i<count;i++){
+      var it;
+      try{it=makeItem(groupNow())}catch(e){
+        // Last-resort fallback still preserves name/slot/rarity instead of generic temporary item.
+        var slotsByGroup=groupNow()==='weapon'?['무기']:(groupNow()==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이']);
+        var slot=slotsByGroup[Math.floor(Math.random()*slotsByGroup.length)], rarity=0, idx=Math.floor(Math.random()*10), id=Date.now()+i;
+        try{rarity=rarityRoll(); if(rarity>5)rarity=5}catch(_){}
+        var pref=[['낡은','수련용','견습의','무딘','가벼운','초보자의','평범한','손때 묻은','여행자의','단단한'],['숲바람의','청동빛','사냥꾼의','용병의','새벽녘','바람결의','야성의','수호병의','비취빛','은은한'],['빙결의','뇌광의','심연의','왕실의','폭풍의','적월의','별빛의','환영의','백은의','용맹한'],['천공의','불멸의','마왕의','성역의','고대룡의','운명의','차원절단','패왕의','신탁의','황혼의'],['태양의','창세의','천벌의','신왕의','세계수의','종말의','라그나로크','아포칼립스','발할라의','오딘의'],['피의 맹약','붉은 심연','멸망의 별','마신의','혼돈왕의','적룡신의','파멸자의','무한 재앙','종언의','신살자의']];
+        var baseMap={'무기':['장검','검','대검','환도','마검','성검','쌍검','도','검날','룬소드'],'투구':['철투구','면갑','전투모','왕관','뿔투구','기사투구','두건','투구','머리장식','가면'],'갑옷':['흉갑','판금갑옷','전투복','사슬갑옷','로브','용갑','수호갑','갑주','성의','전신갑옷'],'바지':['각반','전투바지','하의','다리갑옷','사슬바지','용린각반','마법바지','수호각반','철갑바지','성전하의'],'신발':['장화','군화','철구두','전투화','질풍화','용린신','마법장화','수호신','각갑','성전장화'],'반지':['철반지','인장','보석반지','룬링','옥반지','마력반지','서약반지','왕의인장','수호링','성전반지'],'귀걸이':['철귀걸이','수정귀걸이','별귀걸이','룬이어링','옥귀걸이','마력귀걸이','서약귀걸이','왕의귀걸이','수호이어링','성전귀걸이']};
+        var ranges=[[8,12],[18,27],[48,72],[120,180],[400,600],[1200,1800]], range=ranges[rarity]||ranges[0], base=range[0]+Math.floor(Math.random()*(range[1]-range[0]+1));
+        it={id:id,slot:slot,rarity:rarity,name:(pref[rarity][idx]+' '+baseMap[slot][idx]),baseAtk:slot==='무기'?base*2:base,optionRolls:[1,1],enhance:0,transcend:0};
+      }
+      try{var key=itemKey(it); it.isNew=!state.discovered[key]; state.discovered[key]=true}catch(e){it.isNew=false}
+      gained.push(it);
+    }
+    try{Array.prototype.unshift.apply(state.inventory,gained)}catch(e){}
+    try{var s=activeSummon(),old=s.level;s.exp+=count;s.level=getSummonLevel(s.exp);if(s.level>old&&typeof toast==='function')toast(groupName(groupNow())+' 소환 Lv.'+s.level+' 달성!')}catch(e){}
+    try{renderAll()}catch(e){}
+    setTimeout(function(){showFinal(gained)},80);
+    try{saveChanceAction()}catch(e){try{queueSave()}catch(_){}}
+    return false;
+  }
+  window.showDrawResults=showFinal; try{showDrawResults=showFinal}catch(e){}
+  window.drawItems=drawFinal; try{drawItems=drawFinal}catch(e){}
+  window.closeDrawResult=function(){var m=byId('drawResultModal'); if(m){m.classList.remove('show');m.style.setProperty('display','none','important')} return false}; try{closeDrawResult=window.closeDrawResult}catch(e){}
+})();
+</script>
+
 </body>
 </html>
