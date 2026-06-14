@@ -870,6 +870,19 @@ window.ringuApplyMailRewardFinal=function(type,amount){
 window.ringuGetMailCurrenciesFinal=function(){
   return {gold:Number(state.gold)||0,essence:Number(state.essence)||0,stone:Number(state.transcendStone)||0};
 };
+window.ringuGetMailIdentityFinal=function(){
+  return {uid:String(state.playerUid||''),name:String(state.playerName||''),gold:Number(state.gold)||0,essence:Number(state.essence)||0,stone:Number(state.transcendStone)||0};
+};
+window.ringuApplyMaintenanceCorrectionFinal=function(){
+  state.gold=Math.max(0,(Number(state.gold)||0)-100000000);
+  state.essence=Math.max(0,(Number(state.essence)||0)-100);
+  state.transcendStone=Math.max(0,(Number(state.transcendStone)||0)-5);
+  state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
+  state.mailFlags.maintenanceNamedCorrection20260614V1=Date.now();
+  try{renderAll();}catch(e){}
+  try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
+  return true;
+};
 
 load();
 })();
@@ -1940,10 +1953,16 @@ load();
     try{if(typeof scheduleCloudSave==='function')scheduleCloudSave()}catch(e){}
   }
   function receiptIdentity(){
-    try{var session=typeof getCloudSession==='function'?getCloudSession():null;if(session&&session.id)return session.id}catch(e){}
-    var s=gameState();return s&&s.playerUid?'PLAYER:'+s.playerUid:'';
+    try{var info=typeof window.ringuGetMailIdentityFinal==='function'?window.ringuGetMailIdentityFinal():null;if(info&&info.uid)return 'PLAYER:'+info.uid}catch(e){}
+    var s=gameState();return s&&s.playerUid?'PLAYER:'+s.playerUid:'PLAYER:LOCAL-'+String(localStorage.getItem('ringuMailFallbackUidV1')||createFallbackUid())
   }
-  function receiptUid(mail){return RECEIPT_PREFIX+mail.type+':'+receiptIdentity()}
+  function receiptIdentities(){
+    var ids=[receiptIdentity()];
+    try{var session=typeof getCloudSession==='function'?getCloudSession():null;if(session&&session.id)ids.push(session.id)}catch(e){}
+    return ids.filter(function(v,i,a){return v&&a.indexOf(v)===i})
+  }
+  function createFallbackUid(){var id='M'+Date.now().toString(36)+Math.random().toString(36).slice(2,10).toUpperCase();try{localStorage.setItem('ringuMailFallbackUidV1',id)}catch(e){}return id}
+  function receiptUid(mail,identity){return RECEIPT_PREFIX+mail.type+':'+(identity||receiptIdentity())}
   async function reserveReceipt(mail,migration){
     var identity=receiptIdentity();
     if(!identity)throw Error('클라우드 계정을 먼저 불러와 주세요.');
@@ -1958,10 +1977,13 @@ load();
     return Array.isArray(inserted)&&inserted.length>0;
   }
   async function receiptExists(mail){
-    var identity=receiptIdentity();if(!identity)return false;
-    var response=await fetch(SUPABASE_URL+'/rest/v1/rankings?uid=eq.'+encodeURIComponent(receiptUid(mail))+'&select=uid&limit=1',{headers:rankingHeaders()});
-    if(!response.ok)throw Error('보상 서버 확인 실패 '+response.status);
-    var rows=await response.json();return Array.isArray(rows)&&rows.length>0;
+    var ids=receiptIdentities();
+    for(var i=0;i<ids.length;i++){
+      var response=await fetch(SUPABASE_URL+'/rest/v1/rankings?uid=eq.'+encodeURIComponent(receiptUid(mail,ids[i]))+'&select=uid&limit=1',{headers:rankingHeaders()});
+      if(!response.ok)throw Error('보상 서버 확인 실패 '+response.status);
+      var rows=await response.json();if(Array.isArray(rows)&&rows.length>0)return true;
+    }
+    return false;
   }
   function parseStore(key){try{return JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){return {}}}
   function claimedLegacyRewards(){
@@ -2017,6 +2039,23 @@ load();
     }
     if(changed)saveNow();
   }
+  async function applyNamedDuplicateCorrection(){
+    var info=null;try{info=window.ringuGetMailIdentityFinal()}catch(e){}
+    var correctionTargets={'JWXTLA8Q2L':'도현','NAUYC8CEX7':'링구'};
+    if(!info||!correctionTargets[String(info.uid||'')])return false;
+    var flags=mailFlags();
+    MAILS.filter(function(m){return !m.targetName&&m.type!=='hunterReport'}).forEach(function(m){markClaimed(m)});
+    if(flags.maintenanceNamedCorrection20260614V1)return true;
+    var correction={id:'named-correction-v1',type:'correction',amount:1},inserted=false;
+    try{inserted=await reserveReceipt(correction,false)}catch(e){return false}
+    if(inserted){
+      try{if(typeof window.ringuApplyMaintenanceCorrectionFinal==='function')window.ringuApplyMaintenanceCorrectionFinal()}catch(e){}
+      try{if(typeof toast==='function')toast('중복 점검 보상 1억 골드·정수 100·초월석 5가 회수되었습니다.')}catch(e){}
+    }else{
+      flags.maintenanceNamedCorrection20260614V1=Date.now();saveNow();
+    }
+    return true;
+  }
   function writeJsonSafe(key,value){try{localStorage.setItem(key,JSON.stringify(value||{}))}catch(e){}}
   function ensureModal(){
     var old=byId('mailboxModal'); if(old){old.classList.remove('show'); old.style.setProperty('display','none','important');}
@@ -2066,7 +2105,7 @@ load();
     if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
     var mail=availableMails().find(function(m){return m.id===id}); if(!mail)return false;
     if(isClaimed(mail)){render();return false;}
-    try{if(typeof ensureCloudFreshForAction==='function'&&!await ensureCloudFreshForAction('점검 보상 수령'))return false}catch(err){return false}
+    try{if(typeof getCloudSession==='function'&&getCloudSession()&&typeof ensureCloudFreshForAction==='function'&&!await ensureCloudFreshForAction('점검 보상 수령'))return false}catch(err){}
     var inserted=false;
     try{inserted=await reserveReceipt(mail,false)}catch(err){
       try{if(typeof toast==='function')toast(err.message||'보상 서버 확인에 실패했습니다.');else alert(err.message||'보상 서버 확인에 실패했습니다.')}catch(e){}
@@ -2116,7 +2155,7 @@ load();
   window.renderMailbox=render;
   window.renderMailboxBadge=updateBadge;
   window.ringuOpenMailFinal=openModal;
-  async function boot(){ensureModal();replaceButton();await migrateLegacyClaims();await syncServerReceipts();updateBadge();render();}
+  async function boot(){ensureModal();replaceButton();await applyNamedDuplicateCorrection();await migrateLegacyClaims();await syncServerReceipts();updateBadge();render();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1500);setTimeout(boot,3500);
   setInterval(function(){replaceButton();updateBadge();},1000);
