@@ -2372,5 +2372,150 @@ load();
 })();
 </script>
 
+
+
+<!-- FINAL TRUE SUMMON FIX: real item names + legendary/mythic reveal flow -->
+<style id="finalTrueSummonFixStyle">
+#drawResultModal{z-index:120000!important;display:none!important}
+#drawResultModal.show{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#drawResultModal .modal{pointer-events:auto!important;max-height:calc(100dvh - 32px)!important;overflow:auto!important}
+#drawResultGrid{min-height:100px!important}
+#rarityOverlay{z-index:121000!important}
+#rarityOverlay.show{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#rarityOverlay.mythic.charging{background:radial-gradient(circle,#ff203955 0,#070001 54%,#000 100%)!important;animation:mythicChargeBg 3s ease-in-out both!important}
+#rarityOverlay.mythic.charging .rarity-reveal{transform:scale(.72);opacity:.55;filter:blur(.4px);animation:mythicChargeCard 3s ease-in-out both!important}
+#rarityOverlay.mythic.charging #rarityRevealGear{animation:mythicGearCharge 3s ease-in-out both!important}
+#rarityOverlay.ready #rarityRevealName small{color:#c9d4e8!important}
+@keyframes mythicChargeBg{0%{filter:brightness(.55)}65%{filter:brightness(.85)}100%{filter:brightness(1.35)}}
+@keyframes mythicChargeCard{0%{transform:scale(.45) rotate(-5deg);opacity:.2}60%{transform:scale(.9) rotate(1deg);opacity:.85}100%{transform:scale(1.08);opacity:1}}
+@keyframes mythicGearCharge{0%{transform:scale(.35);filter:brightness(.3) drop-shadow(0 0 0 #f00)}70%{transform:scale(1.05);filter:brightness(1.1) drop-shadow(0 0 22px #ff173c)}100%{transform:scale(1.22);filter:brightness(1.6) drop-shadow(0 0 45px #ff173c)}}
+</style>
+<script id="finalTrueSummonFixScript">
+(function(){
+  'use strict';
+  function el(id){return document.getElementById(id)}
+  function esc(v){try{if(typeof escapeHtml==='function')return escapeHtml(v)}catch(e){}return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
+  function safeFmt(v){try{return fmt(v)}catch(e){return String(v)}}
+  function getGroup(){try{return drawGroup||'weapon'}catch(e){return 'weapon'}}
+  function getCandidates(group){return group==='weapon'?['무기']:(group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이'])}
+  function rollRaritySafe(){
+    try{return rarityRoll()}catch(e){}
+    var rr=[55,25,13,5,1.75,.25];
+    try{var s=activeSummon(); if(typeof rates!=='undefined'&&rates[(s.level||1)-1]) rr=rates[(s.level||1)-1]}catch(e){}
+    var total=0, roll=Math.random()*100;
+    for(var i=0;i<rr.length;i++){total+=Number(rr[i])||0;if(roll<total)return i}
+    return Math.max(0,rr.length-1);
+  }
+  function variantCount(r){try{return gearVariantCount(r)}catch(e){return r>=6?1:10}}
+  function makeRealItem(group){
+    var candidates=getCandidates(group), slot=candidates[Math.floor(Math.random()*candidates.length)];
+    var rarity=rollRaritySafe();
+    if(rarity>5) rarity=5; // normal summon excludes fallen
+    var idx=Math.floor(Math.random()*variantCount(rarity));
+    var id;
+    try{id=state.uid++}catch(e){id=Date.now()+Math.floor(Math.random()*100000)}
+    var name, baseAtk, opts;
+    try{name=itemName(slot,rarity,idx)}catch(e){
+      try{name=(prefixes[rarity]&&prefixes[rarity][idx]||'장비')+' '+(bases[slot]&&bases[slot][idx]||slot)}catch(_){name=slot+' 장비'}
+    }
+    try{baseAtk=fixedBaseAtk(slot,rarity,idx)}catch(e){baseAtk=(rarity+1)*100+(idx+1)*7+(slot==='무기'?200:0)}
+    try{opts=makeOptionRolls(id+Math.random())}catch(e){opts=[1,1]}
+    return {id:id,slot:slot,rarity:rarity,name:name,baseAtk:baseAtk,optionRolls:opts,enhance:0,transcend:0};
+  }
+  function rarityName(r){try{return rarityNames[r]||''}catch(e){return ['일반','고급','레어','에픽','전설','신화','타락'][r]||''}}
+  function rarityColor(r){try{return rarityColors[r]||'#a5adba'}catch(e){return ['#a5adba','#4fd27b','#459cff','#bc64ff','#ff9d3b','#ff344d','#ff2d59'][r]||'#a5adba'}}
+  function atkText(it){try{return itemAttackText(it)}catch(e){return String(it.baseAtk||it.currentAtk||0)}}
+  function iconHtml(it){try{return gearIcon(it)}catch(e){return '<span class="gear-icon r'+(it.rarity||0)+' '+(it.slot==='무기'?'weapon':'')+'"></span>'}}
+  function clearOldResult(){var g=el('drawResultGrid'); if(g)g.innerHTML=''}
+  function closeRarity(){var o=el('rarityOverlay'); if(o){o.className='rarity-overlay';o.style.setProperty('display','none','important');o.onclick=null;delete o.dataset.waitTouch}}
+  function resultCard(it,i){
+    return '<div class="draw-card rarity-'+(it.rarity||0)+(it.isNew?' first-new':'')+'" style="--gc:'+rarityColor(it.rarity)+';animation-delay:'+(Math.min(i,30)*0.055)+'s">'
+      +(it.isNew?'<span class="new-badge">NEW</span>':'')+iconHtml(it)
+      +'<strong>'+esc(it.name)+'</strong><small>'+rarityName(it.rarity)+' · '+esc(it.slot)+'<br>공격력 '+esc(atkText(it))+'</small></div>'
+  }
+  function showResult(items){
+    items=Array.isArray(items)?items:[];
+    closeRarity();
+    var grid=el('drawResultGrid'), modal=el('drawResultModal');
+    if(!grid||!modal){try{alert('장비 소환 결과\n'+items.map(function(x){return x.name}).join('\n'))}catch(e){}return false}
+    grid.classList.remove('opening');
+    grid.innerHTML=items.length?items.map(resultCard).join(''):'<div class="empty-list">소환 결과가 없습니다.</div>';
+    void grid.offsetWidth;
+    grid.classList.add('opening');
+    modal.classList.add('show');
+    modal.style.setProperty('display','flex','important');
+    modal.style.setProperty('z-index','120000','important');
+    try{if(items[0]&&items[0].isNew&&typeof showCollectionFlash==='function')setTimeout(function(){showCollectionFlash(items[0])},250)}catch(e){}
+    return false;
+  }
+  function showReveal(item,type,items){
+    var o=el('rarityOverlay');
+    if(!o)return showResult(items);
+    var isMythic=type==='mythic', isFallen=type==='fallen';
+    o.className='rarity-overlay show '+type+(isMythic?' charging':'');
+    o.style.setProperty('display','flex','important');
+    o.style.setProperty('z-index','121000','important');
+    o.dataset.waitTouch='1';
+    var gear=el('rarityRevealGear'), grade=el('rarityRevealGrade'), title=el('rarityRevealTitle'), name=el('rarityRevealName');
+    if(gear)gear.innerHTML=iconHtml(item);
+    if(grade)grade.textContent=isFallen?'FALLEN':(isMythic?'MYTHIC':'LEGENDARY');
+    if(title)title.textContent=isFallen?'타락 장비 강림!':(isMythic?'신화 장비 강림!':'전설 장비 획득!');
+    if(name)name.innerHTML=esc(item&&item.name)+'<br><small style="letter-spacing:0;color:#c9d4e8">'+(isMythic?'3초 후 화면을 누르면 결과가 표시됩니다':'화면을 누르면 소환 결과가 표시됩니다')+'</small>';
+    var ready=!isMythic, closed=false;
+    function impact(){
+      ready=true; o.classList.remove('charging'); o.classList.add('ready');
+      if(name)name.innerHTML=esc(item&&item.name)+'<br><small style="letter-spacing:0;color:#c9d4e8">화면을 누르면 소환 결과가 표시됩니다</small>';
+      try{if(isMythic||isFallen)playMythicBoom();else playDrawSound(4)}catch(e){}
+      document.body.classList.add('shake'); setTimeout(function(){document.body.classList.remove('shake')},650);
+    }
+    if(isMythic)setTimeout(impact,3000);else setTimeout(impact,80);
+    function next(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation()}
+      if(!ready)return false;
+      if(closed)return false; closed=true;
+      closeRarity(); setTimeout(function(){showResult(items)},50); return false;
+    }
+    o.onclick=next;
+    o.addEventListener('touchend',next,{once:false,passive:false});
+    return false;
+  }
+  function showDrawResultsFinal(items){
+    items=Array.isArray(items)?items:[];
+    clearOldResult();
+    try{playBoxOpenSound()}catch(e){}
+    var fallen=items.find(function(x){return x&&x.rarity>=6});
+    var mythic=items.find(function(x){return x&&x.rarity===5});
+    var legend=items.find(function(x){return x&&x.rarity===4});
+    if(fallen)return showReveal(fallen,'fallen',items);
+    if(mythic)return showReveal(mythic,'mythic',items);
+    if(legend)return showReveal(legend,'legend',items);
+    try{playDrawSound(Math.max.apply(null,items.map(function(x){return x.rarity||0}).concat([0])))}catch(e){}
+    return showResult(items);
+  }
+  async function drawItemsFinal(count){
+    count=Number(count)||1;
+    clearOldResult(); closeRarity();
+    try{if(typeof ensureCloudFreshForAction==='function'&&!(await ensureCloudFreshForAction('소환')))return false}catch(e){}
+    var cost=0; try{cost=count*summonUnitCost()}catch(e){}
+    try{if(typeof spendGold==='function'){if(!spendGold(cost)){toast('골드가 부족합니다. 필요 골드 '+safeFmt(cost));return false}}else if(state&&state.gold>=cost){state.gold-=cost}else{return false}}catch(e){}
+    var gained=[];
+    for(var i=0;i<count;i++){
+      var it=makeRealItem(getGroup());
+      try{var key=itemKey(it); it.isNew=!state.discovered[key]; state.discovered[key]=true}catch(e){it.isNew=false}
+      gained.push(it);
+    }
+    try{Array.prototype.unshift.apply(state.inventory,gained)}catch(e){}
+    try{var summon=activeSummon(),old=summon.level;summon.exp+=count;summon.level=getSummonLevel(summon.exp);if(summon.level>old&&typeof toast==='function')toast(groupName(getGroup())+' 소환 Lv.'+summon.level+' 달성!')}catch(e){}
+    try{renderAll()}catch(e){}
+    setTimeout(function(){showDrawResultsFinal(gained)},80);
+    try{saveChanceAction()}catch(e){try{queueSave()}catch(_) {}}
+    return false;
+  }
+  window.showDrawResults=showDrawResultsFinal; try{showDrawResults=showDrawResultsFinal}catch(e){}
+  window.drawItems=drawItemsFinal; try{drawItems=drawItemsFinal}catch(e){}
+  window.closeDrawResult=function(){var m=el('drawResultModal'); if(m){m.classList.remove('show');m.style.setProperty('display','none','important')} return false}; try{closeDrawResult=window.closeDrawResult}catch(e){}
+})();
+</script>
+
 </body>
 </html>
