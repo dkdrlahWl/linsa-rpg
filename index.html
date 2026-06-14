@@ -883,6 +883,32 @@ window.ringuApplyMaintenanceCorrectionFinal=function(){
   try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
   return true;
 };
+window.ringuGrantHunterReportDirectFinal=function(){
+  if(String(state.playerUid||'')!=='DTHPWWZN8K')return false;
+  state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
+  if(state.mailFlags.hunterReportDirect20260614V1)return true;
+  state.gold=(Number(state.gold)||0)+100000000;
+  state.downgradeProtect=(Number(state.downgradeProtect)||0)+3;
+  state.mailFlags.hunterReportDirect20260614V1=Date.now();
+  try{renderAll();}catch(e){}
+  try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
+  try{toast('한터 제보 보상 · 1억 골드와 하락방지권 3개 지급 완료');}catch(e){}
+  return true;
+};
+window.ringuGrantLoginCompensationDirectFinal=function(){
+  var excluded={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},uid=String(state.playerUid||'');
+  if(!uid||excluded[uid])return false;
+  state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
+  if(state.mailFlags.loginCompensation20260614V1)return true;
+  state.gold=(Number(state.gold)||0)+200000000;
+  state.essence=(Number(state.essence)||0)+100;
+  state.transcendStone=(Number(state.transcendStone)||0)+5;
+  state.mailFlags.loginCompensation20260614V1=Date.now();
+  try{renderAll();}catch(e){}
+  try{saveChanceAction();}catch(e){try{save(true);}catch(_e){}}
+  try{toast('접속 보상 · 2억 골드, 정수 100개, 초월석 5개 지급 완료');}catch(e){}
+  return true;
+};
 
 load();
 })();
@@ -1899,7 +1925,7 @@ load();
 
 
 <style id="ringuMailFinalStyle">
-#mailboxModal{display:none!important}
+#mailboxModal,#ringuMailFinalModal,#mailOpenBtn,#simpleMailOpenBtn,.mail-button,.simple-mail-button-final{display:none!important}
 .simple-mail-button-final{position:relative;width:38px;height:38px;border-radius:9px;background:#1b2639;border:1px solid #354966;color:#dce8ff;font-size:17px;display:grid;place-items:center}
 .simple-mail-button-final:active{filter:brightness(.8);transform:translateY(1px)}
 .simple-mail-badge-final{display:none;position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#ff4f64;color:#fff;font-size:9px;font-style:normal;font-weight:1000;line-height:17px;box-shadow:0 0 10px #ff4f6488}
@@ -1931,10 +1957,7 @@ load();
   var RECEIPT_PREFIX='REWARD:MAINT20260614V6:';
   var MIGRATION_KEY='ringuMaintenanceReceiptMigratedV6';
   var MAILS=[
-    {id:'final-v6-gold-100m',title:'1회성 점검 보상 · 골드',message:'점검 보상으로 1억 골드가 지급됩니다.',type:'gold',amount:100000000,reward:'100,000,000 골드'},
-    {id:'final-v5-essence-100',title:'1회성 점검 보상 · 정수',message:'점검 보상으로 정수 100개가 지급됩니다.',type:'essence',amount:100,reward:'정수 100개'},
-    {id:'final-v5-stone-5',title:'1회성 점검 보상 · 초월석',message:'점검 보상으로 초월석 5개가 지급됩니다.',type:'stone',amount:5,reward:'초월석 5개'},
-    {id:'hunter-report-v1',title:'한터 제보 보상',message:'중복 수령 문제를 제보해 주신 보상입니다.',type:'hunterReport',amount:1,reward:'100,000,000 골드 · 하락방지권 3장',targetName:'한터'}
+  
   ];
   function byId(id){return document.getElementById(id)}
   function readClaims(){try{return JSON.parse(localStorage.getItem(CLAIM_KEY)||'{}')||{}}catch(e){return {}}}
@@ -2155,7 +2178,30 @@ load();
   window.renderMailbox=render;
   window.renderMailboxBadge=updateBadge;
   window.ringuOpenMailFinal=openModal;
-  async function boot(){ensureModal();replaceButton();await applyNamedDuplicateCorrection();await migrateLegacyClaims();await syncServerReceipts();updateBadge();render();}
+  async function grantHunterDirect(){
+    var info=null;try{info=window.ringuGetMailIdentityFinal()}catch(e){}
+    if(!info||String(info.uid||'')!=='DTHPWWZN8K')return false;
+    var receipt={id:'hunter-direct-v1',type:'hunterDirect',amount:1};
+    try{
+      if(await receiptExists(receipt))return true;
+      var inserted=await reserveReceipt(receipt,false);
+      if(inserted)try{window.ringuGrantHunterReportDirectFinal()}catch(e){}
+      return inserted;
+    }catch(e){return false}
+  }
+  async function grantLoginCompensation(){
+    var info=null;try{info=window.ringuGetMailIdentityFinal()}catch(e){}
+    var excluded={'JWXTLA8Q2L':1,'NAUYC8CEX7':1};
+    if(!info||!info.uid||excluded[String(info.uid)])return false;
+    var reward={id:'login-compensation-v1',type:'loginCompensation',amount:1};
+    try{
+      if(await receiptExists(reward)){mailFlags().loginCompensation20260614V1=Date.now();saveNow();return true}
+      var inserted=await reserveReceipt(reward,false);
+      if(inserted)try{window.ringuGrantLoginCompensationDirectFinal()}catch(e){}
+      return inserted;
+    }catch(e){return false}
+  }
+  async function boot(){await grantHunterDirect();await grantLoginCompensation();var old=byId('mailOpenBtn')||byId('simpleMailOpenBtn');if(old)old.style.setProperty('display','none','important');}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1500);setTimeout(boot,3500);
   setInterval(function(){replaceButton();updateBadge();},1000);
