@@ -1690,41 +1690,65 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
 <script id="simpleMailSystemRebuildScript">
 (function(){
   'use strict';
-  var CLAIM_KEY='ringuSimpleMailClaimsV1';
+  var CLAIM_KEY='ringuSimpleMailClaimsV2';
+  var GRANT_KEY='ringuSimpleMailGrantsV2';
+  var OLD_KEYS=['ringuSimpleMailClaimsV1','ringuSimpleMailGrantsV1'];
   var SIMPLE_MAILS=[
-    {id:'simple-maint-gold-200m',title:'1회성 점검 보상 · 골드',message:'점검 보상으로 2억 골드가 지급됩니다.',type:'gold',amount:200000000,rewardText:'200,000,000 골드'},
-    {id:'simple-maint-essence-100',title:'1회성 점검 보상 · 정수',message:'점검 보상으로 정수 100개가 지급됩니다.',type:'essence',amount:100,rewardText:'정수 100개'},
-    {id:'simple-maint-stone-5',title:'1회성 점검 보상 · 초월석',message:'점검 보상으로 초월석 5개가 지급됩니다.',type:'stone',amount:5,rewardText:'초월석 5개'}
+    {id:'simple-v2-maint-gold-200m',title:'1회성 점검 보상 · 골드',message:'점검 보상으로 2억 골드가 지급됩니다.',type:'gold',amount:200000000,rewardText:'200,000,000 골드'},
+    {id:'simple-v2-maint-essence-100',title:'1회성 점검 보상 · 정수',message:'점검 보상으로 정수 100개가 지급됩니다.',type:'essence',amount:100,rewardText:'정수 100개'},
+    {id:'simple-v2-maint-stone-5',title:'1회성 점검 보상 · 초월석',message:'점검 보상으로 초월석 5개가 지급됩니다.',type:'stone',amount:5,rewardText:'초월석 5개'}
   ];
   var rendering=false;
   function byId(id){return document.getElementById(id)}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function readClaims(){try{return JSON.parse(localStorage.getItem(CLAIM_KEY)||'{}')||{}}catch(e){return {}}}
-  function writeClaims(claims){try{localStorage.setItem(CLAIM_KEY,JSON.stringify(claims||{}))}catch(e){}}
-  function saveGame(){
-    try{ if(typeof queueSave==='function'){ queueSave(); return; } }catch(e){}
-    try{ if(typeof save==='function'){ save(false); return; } }catch(e){}
-    try{ if(typeof KEY!=='undefined'&&typeof state!=='undefined') localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){}
+  function readJson(k){try{return JSON.parse(localStorage.getItem(k)||'{}')||{}}catch(e){return {}}}
+  function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v||{}))}catch(e){}}
+  function getState(){try{return (typeof state!=='undefined'&&state)?state:null}catch(e){return null}}
+  function directPersist(){
+    var s=getState();
+    try{ if(s&&typeof KEY!=='undefined') localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){}
+    try{ if(typeof cloudDirty!=='undefined') cloudDirty=true; if(typeof cloudRevision!=='undefined') cloudRevision++; }catch(e){}
+    try{ if(typeof queueSave==='function') queueSave(); }catch(e){}
+    try{ if(typeof save==='function') save(false); }catch(e){}
+    try{ if(typeof scheduleCloudSave==='function') scheduleCloudSave(); }catch(e){}
   }
   function refreshGameUi(){
     try{ if(typeof renderTop==='function') renderTop(); }catch(e){}
     try{ if(typeof renderPlayerStats==='function') renderPlayerStats(); }catch(e){}
     try{ if(typeof renderBattle==='function') renderBattle(); }catch(e){}
+    try{ if(typeof renderItemInventory==='function') renderItemInventory(); }catch(e){}
   }
   function wipeLegacyMailbox(){
-    try{
-      if(typeof state!=='undefined'&&state){
-        state.mailbox=[];
-        state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
-      }
-    }catch(e){}
+    var s=getState();
+    try{ if(s){ s.mailbox=[]; s.mailFlags=s.mailFlags&&typeof s.mailFlags==='object'?s.mailFlags:{}; } }catch(e){}
   }
-  function unclaimedCount(){var c=readClaims();return SIMPLE_MAILS.filter(function(m){return !c[m.id]}).length}
+  function claims(){return readJson(CLAIM_KEY)}
+  function grants(){return readJson(GRANT_KEY)}
+  function setClaims(v){writeJson(CLAIM_KEY,v)}
+  function setGrants(v){writeJson(GRANT_KEY,v)}
+  function unclaimedCount(){var c=claims();return SIMPLE_MAILS.filter(function(m){return !c[m.id]}).length}
   function renderSimpleBadge(){
     var badge=byId('mailBadge'); if(!badge)return;
     var n=unclaimedCount();
     badge.textContent=n;
     badge.classList.toggle('show',n>0);
+  }
+  function grantRewardOnce(mail){
+    var s=getState(); if(!s)return false;
+    var g=grants();
+    if(g[mail.id])return true;
+    s.gold=Number(s.gold)||0;
+    s.essence=Number(s.essence)||0;
+    s.transcendStone=Number(s.transcendStone)||0;
+    if(mail.type==='gold')s.gold+=Number(mail.amount)||0;
+    else if(mail.type==='essence')s.essence+=Number(mail.amount)||0;
+    else if(mail.type==='stone')s.transcendStone+=Number(mail.amount)||0;
+    else return false;
+    g[mail.id]=Date.now();
+    setGrants(g);
+    directPersist();
+    refreshGameUi();
+    return true;
   }
   function renderSimpleMailbox(){
     if(rendering)return;
@@ -1732,9 +1756,9 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
     try{
       wipeLegacyMailbox();
       var list=byId('mailList'); if(!list){renderSimpleBadge();return;}
-      var claims=readClaims();
+      var c=claims();
       list.innerHTML=SIMPLE_MAILS.map(function(mail){
-        var done=!!claims[mail.id];
+        var done=!!c[mail.id];
         return '<div class="mail-item '+(done?'claimed':'')+'">'
           +'<div class="mail-head"><b>'+esc(mail.title)+'</b><small>'+(done?'수령 완료':'미수령')+'</small></div>'
           +'<p>'+esc(mail.message)+'</p>'
@@ -1766,36 +1790,35 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
   function claimSimpleMail(id,e){
     if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
     var mail=SIMPLE_MAILS.find(function(m){return m.id===id}); if(!mail)return false;
-    var claims=readClaims();
-    if(claims[mail.id]){renderSimpleMailbox();return false;}
-    try{
-      if(typeof state==='undefined'||!state) window.state=window.state||{};
-      var s=(typeof state!=='undefined')?state:window.state;
-      if(mail.type==='gold')s.gold=(Number(s.gold)||0)+mail.amount;
-      if(mail.type==='essence')s.essence=(Number(s.essence)||0)+mail.amount;
-      if(mail.type==='stone')s.transcendStone=(Number(s.transcendStone)||0)+mail.amount;
-      claims[mail.id]=Date.now();
-      writeClaims(claims);
-      wipeLegacyMailbox();
-      saveGame();
-      refreshGameUi();
-      try{ if(typeof toast==='function') toast('수령완료: '+mail.rewardText); }catch(e){}
-    }catch(err){
-      try{ if(typeof toast==='function') toast('수령 처리 중 오류가 발생했습니다.'); }catch(e){}
+    var c=claims();
+    if(!c[mail.id]){
+      if(!grantRewardOnce(mail)){
+        try{ if(typeof toast==='function') toast('수령 처리 중 오류가 발생했습니다. 다시 눌러주세요.'); }catch(err){}
+        return false;
+      }
+      c[mail.id]=Date.now();
+      setClaims(c);
+      directPersist();
+      try{ if(typeof toast==='function') toast('수령완료: '+mail.rewardText); }catch(err){}
     }
     renderSimpleMailbox();
+    refreshGameUi();
     return false;
   }
-  window.renderMailbox=renderSimpleMailbox;
-  try{renderMailbox=renderSimpleMailbox;}catch(e){}
-  window.renderMailboxBadge=renderSimpleBadge;
-  try{renderMailboxBadge=renderSimpleBadge;}catch(e){}
-  window.openMailbox=openSimpleMailbox;
-  try{openMailbox=openSimpleMailbox;}catch(e){}
-  window.forceOpenMailboxFromButton=openSimpleMailbox;
-  window.closeMailbox=closeSimpleMailbox;
-  try{closeMailbox=closeSimpleMailbox;}catch(e){}
-  window.claimSimpleMail=claimSimpleMail;
+  function boot(){
+    OLD_KEYS.forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
+    wipeLegacyMailbox();
+    window.renderMailbox=renderSimpleMailbox; try{renderMailbox=renderSimpleMailbox;}catch(e){}
+    window.renderMailboxBadge=renderSimpleBadge; try{renderMailboxBadge=renderSimpleBadge;}catch(e){}
+    window.openMailbox=openSimpleMailbox; try{openMailbox=openSimpleMailbox;}catch(e){}
+    window.forceOpenMailboxFromButton=openSimpleMailbox;
+    window.closeMailbox=closeSimpleMailbox; try{closeMailbox=closeSimpleMailbox;}catch(e){}
+    window.claimSimpleMail=claimSimpleMail;
+    var btn=byId('mailOpenBtn')||document.querySelector('.mail-button');
+    if(btn){btn.onclick=openSimpleMailbox;btn.setAttribute('onclick','return window.forceOpenMailboxFromButton ? window.forceOpenMailboxFromButton(event) : false');}
+    renderSimpleBadge();
+    directPersist();
+  }
   document.addEventListener('click',function(e){
     var claim=e.target&&e.target.closest&&e.target.closest('[data-simple-mail-claim]');
     if(claim)return claimSimpleMail(claim.getAttribute('data-simple-mail-claim'),e);
@@ -1808,22 +1831,6 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
     var btn=e.target&&e.target.closest&&e.target.closest('#mailOpenBtn,.mail-button');
     if(btn)return openSimpleMailbox(e);
   },{capture:true,passive:false});
-  function boot(){
-    wipeLegacyMailbox();
-    var btn=byId('mailOpenBtn')||document.querySelector('.mail-button');
-    if(btn){btn.onclick=openSimpleMailbox;btn.setAttribute('onclick','return window.forceOpenMailboxFromButton ? window.forceOpenMailboxFromButton(event) : false');}
-    renderSimpleBadge();
-    var modal=byId('mailboxModal');
-    if(modal&&!modal.__simpleMailObserver){
-      modal.__simpleMailObserver=true;
-      new MutationObserver(function(){
-        if(modal.classList.contains('show')||document.body.classList.contains('mailbox-open')||modal.style.display==='flex'){
-          setTimeout(renderSimpleMailbox,0);
-        }
-      }).observe(modal,{attributes:true,attributeFilter:['class','style']});
-    }
-    try{saveGame();}catch(e){}
-  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,400);setTimeout(boot,1200);setTimeout(boot,3000);
   setInterval(function(){renderSimpleBadge();},1000);
