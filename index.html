@@ -824,7 +824,30 @@ $('sortSelect').onchange=renderInventory;$('enhanceBtn').onclick=tryEnhance;$('e
 document.addEventListener('pointerup',e=>{const mail=e.target.closest('.mail-button');if(mail){e.preventDefault();e.stopImmediatePropagation();openMailbox()}},true);
 document.addEventListener('click',e=>{const aura=e.target.closest('[data-open-aura-shop]');if(aura){e.preventDefault();return openAuraShop()}});document.addEventListener('pointerup',e=>{const reward=e.target.closest('[data-collection-reward]');if(reward&&!reward.disabled){e.preventDefault();return claimCollectionReward(reward.dataset.collectionReward)}const aura=e.target.closest('[data-open-aura-shop]');if(aura){e.preventDefault();return openAuraShop()}const rank=e.target.closest('[data-rank-index]');if(rank){e.preventDefault();return openRankingCharacter(Number(rank.dataset.rankIndex))}},true);
 Object.assign(window,{drawItems,equip,equipBest,sellItem,bulkSell,toggleLock,openEnhance,openBestEnhance,tryEnhance,tryTranscend,toggleProtectUse,closeEnhance,closeOffline,closeDrawResult,openProfile,closeProfile,switchRanking,openRankingCharacter,openPlayerEquip,closePlayerEquip,setNickname,setGender,openMailbox,closeMailbox,claimMail,openDailyBoss,closeDailyBoss,openDungeon,closeDungeon,switchDungeon,startGoldDungeon,quickPartyEntry,joinPartyQueue,createPartyRoom,loadPartyRooms,joinPartyRoom,startPartyRoom,leavePartyRoom,openTower,closeTower,startTower,openSettings,closeSettings,createCloudAccount,loadCloudAccount,saveCloudNow,disconnectCloudAccount,hideAdminRanking,restoreAdminRanking,toggleSfx,toggleBgm,openRates,closeRates,openCollection,closeCollection,openCollectionRewards,closeCollectionRewards,renderCollection,claimCollectionReward,openAuraShop,closeAuraShop,switchShop,buyAura,buyConsumable,equipAura,unequipAura,openItemInventory,closeItemInventory,toggleAutoBattle,selectRegion,selectBoss,scrollToId,openTips,closeTips,playBoxOpenSound,ensureCloudFreshForAction,saveChanceAction});
-window.addEventListener('pointerdown',initAudio,{once:true});window.addEventListener('keydown',initAudio,{once:true});window.addEventListener('beforeunload',()=>save(true));window.addEventListener('pagehide',()=>save(true));document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(saveTimer);save(true);const session=getCloudSession();if(session&&cloudPullReady){clearTimeout(cloudSaveTimer);uploadCloudState(session,false)}syncDailyBoss();stopBgm()}else{if(cloudDirty)scheduleCloudSave();else pullCloudState(true,false);syncRanking();syncDailyBoss();claimPendingDailyReward();if(state.bgmOn)initAudio()}});setInterval(attack,1000);setInterval(()=>save(false),30000);setInterval(syncRanking,60000);setInterval(()=>{if(!cloudDirty)pullCloudState(true,false)},60000);load();
+window.addEventListener('pointerdown',initAudio,{once:true});window.addEventListener('keydown',initAudio,{once:true});window.addEventListener('beforeunload',()=>save(true));window.addEventListener('pagehide',()=>save(true));document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(saveTimer);save(true);const session=getCloudSession();if(session&&cloudPullReady){clearTimeout(cloudSaveTimer);uploadCloudState(session,false)}syncDailyBoss();stopBgm()}else{if(cloudDirty)scheduleCloudSave();else pullCloudState(true,false);syncRanking();syncDailyBoss();claimPendingDailyReward();if(state.bgmOn)initAudio()}});setInterval(attack,1000);setInterval(()=>save(false),30000);setInterval(syncRanking,60000);setInterval(()=>{if(!cloudDirty)pullCloudState(true,false)},60000);
+/* FINAL MAIL REWARD BRIDGE: exposes safe currency grants from inside the main game closure */
+window.ringuApplyMailRewardFinal=function(type,amount){
+  amount=Number(amount)||0;
+  if(!amount)return false;
+  state.gold=Number(state.gold)||0;
+  state.essence=Number(state.essence)||0;
+  state.transcendStone=Number(state.transcendStone)||0;
+  if(type==='gold')state.gold+=amount;
+  else if(type==='essence')state.essence+=amount;
+  else if(type==='stone'||type==='transcendStone')state.transcendStone+=amount;
+  else return false;
+  try{renderTop();}catch(e){}
+  try{cloudDirty=true;cloudRevision++;}catch(e){}
+  try{queueSave();}catch(e){try{save(false);}catch(_e){}}
+  try{scheduleCloudSave();}catch(e){}
+  try{syncRanking();}catch(e){}
+  return true;
+};
+window.ringuGetMailCurrenciesFinal=function(){
+  return {gold:Number(state.gold)||0,essence:Number(state.essence)||0,stone:Number(state.transcendStone)||0};
+};
+
+load();
 })();
 </script>
 <style id="fallenSwordPositionSizeFinal">
@@ -1834,6 +1857,141 @@ window.addEventListener('pointerdown',initAudio,{once:true});window.addEventList
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,400);setTimeout(boot,1200);setTimeout(boot,3000);
   setInterval(function(){renderSimpleBadge();},1000);
+})();
+</script>
+
+
+<style id="ringuMailFinalStyle">
+#mailboxModal{display:none!important}
+.simple-mail-button-final{position:relative;width:38px;height:38px;border-radius:9px;background:#1b2639;border:1px solid #354966;color:#dce8ff;font-size:17px;display:grid;place-items:center}
+.simple-mail-button-final:active{filter:brightness(.8);transform:translateY(1px)}
+.simple-mail-badge-final{display:none;position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#ff4f64;color:#fff;font-size:9px;font-style:normal;font-weight:1000;line-height:17px;box-shadow:0 0 10px #ff4f6488}
+.simple-mail-badge-final.show{display:block}
+#ringuMailFinalModal{display:none;position:fixed;z-index:90000;inset:0;background:#000b;backdrop-filter:blur(4px);padding:20px;align-items:center;justify-content:center}
+#ringuMailFinalModal.show{display:flex!important}
+#ringuMailFinalModal .mail-final-box{width:min(430px,100%);max-height:calc(100dvh - 40px);overflow:auto;background:#151b28;border:1px solid #34415b;border-radius:18px;padding:18px;box-shadow:0 20px 60px #000}
+#ringuMailFinalModal h3{margin:0 0 8px;font-size:21px;font-weight:1000}
+#ringuMailFinalModal p{font-size:12px;color:#9aa7bc;line-height:1.65;margin:0 0 12px}
+.mail-final-list{display:grid;gap:8px;margin:12px 0}
+.mail-final-item{padding:12px;border:1px solid #33415a;border-radius:12px;background:#111824}
+.mail-final-item.claimed{opacity:.62}
+.mail-final-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.mail-final-head b{font-size:13px;color:#ffd35a}
+.mail-final-head small{font-size:10px;color:#92a0b6}
+.mail-final-reward{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px;border-radius:9px;background:#0b1019;font-size:11px}
+.mail-final-reward strong{color:#ff9d3b}
+.mail-final-reward button{padding:9px 12px;border-radius:8px;background:linear-gradient(#e28d2d,#9a5018);font-size:11px;font-weight:900}
+.mail-final-reward button:disabled{background:#293247;color:#98a5ba}
+.mail-final-close{width:100%;margin-top:8px;padding:13px;border-radius:10px;background:linear-gradient(#e28d2d,#9a5018);font-weight:1000}
+.mail-final-done{margin-top:7px;color:#70efbd;font-size:11px;font-weight:900;text-align:right}
+</style>
+<script id="ringuMailFinalSystem">
+(function(){
+  'use strict';
+  var CLAIM_KEY='ringuMailFinalClaimsV5';
+  var MAILS=[
+    {id:'final-v5-gold-200m',title:'1회성 점검 보상 · 골드',message:'점검 보상으로 2억 골드가 지급됩니다.',type:'gold',amount:200000000,reward:'200,000,000 골드'},
+    {id:'final-v5-essence-100',title:'1회성 점검 보상 · 정수',message:'점검 보상으로 정수 100개가 지급됩니다.',type:'essence',amount:100,reward:'정수 100개'},
+    {id:'final-v5-stone-5',title:'1회성 점검 보상 · 초월석',message:'점검 보상으로 초월석 5개가 지급됩니다.',type:'stone',amount:5,reward:'초월석 5개'}
+  ];
+  function byId(id){return document.getElementById(id)}
+  function readClaims(){try{return JSON.parse(localStorage.getItem(CLAIM_KEY)||'{}')||{}}catch(e){return {}}}
+  function writeClaims(v){try{localStorage.setItem(CLAIM_KEY,JSON.stringify(v||{}))}catch(e){}}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function count(){var c=readClaims();return MAILS.filter(function(m){return !c[m.id]}).length}
+  function ensureModal(){
+    var old=byId('mailboxModal'); if(old){old.classList.remove('show'); old.style.setProperty('display','none','important');}
+    var modal=byId('ringuMailFinalModal');
+    if(modal)return modal;
+    modal=document.createElement('div');
+    modal.id='ringuMailFinalModal';
+    modal.innerHTML='<div class="mail-final-box"><h3>우편함</h3><p>계정 대상 지급 우편은 한 번만 수령할 수 있습니다.</p><div id="ringuMailFinalList" class="mail-final-list"></div><button type="button" class="mail-final-close" id="ringuMailFinalClose">닫기</button></div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click',function(e){if(e.target===modal)closeModal(e);},true);
+    modal.querySelector('#ringuMailFinalClose').addEventListener('click',closeModal,true);
+    return modal;
+  }
+  function updateBadge(){
+    var b=byId('ringuMailFinalBadge'); if(!b)return;
+    var n=count(); b.textContent=n; b.classList.toggle('show',n>0);
+  }
+  function render(){
+    ensureModal();
+    var list=byId('ringuMailFinalList'); if(!list)return;
+    var c=readClaims();
+    list.innerHTML=MAILS.map(function(m){
+      var done=!!c[m.id];
+      return '<div class="mail-final-item '+(done?'claimed':'')+'">'
+        +'<div class="mail-final-head"><b>'+esc(m.title)+'</b><small>'+(done?'수령 완료':'미수령')+'</small></div>'
+        +'<p>'+esc(m.message)+'</p>'
+        +'<div class="mail-final-reward"><strong>'+esc(m.reward)+'</strong><button type="button" data-ringu-final-claim="'+esc(m.id)+'" '+(done?'disabled':'')+'>'+(done?'수령 완료':'받기')+'</button></div>'
+        +(done?'<div class="mail-final-done">수령완료</div>':'')
+        +'</div>';
+    }).join('');
+    updateBadge();
+  }
+  function openModal(e){
+    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+    var old=byId('mailboxModal'); if(old){old.classList.remove('show'); old.style.setProperty('display','none','important');}
+    var modal=ensureModal();
+    render();
+    modal.classList.add('show');
+    modal.style.setProperty('display','flex','important');
+    return false;
+  }
+  function closeModal(e){
+    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+    var modal=byId('ringuMailFinalModal'); if(modal){modal.classList.remove('show');modal.style.setProperty('display','none','important');}
+    return false;
+  }
+  function claim(id,e){
+    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+    var mail=MAILS.find(function(m){return m.id===id}); if(!mail)return false;
+    var c=readClaims();
+    if(c[mail.id]){render();return false;}
+    var ok=false;
+    try{ if(typeof window.ringuApplyMailRewardFinal==='function') ok=!!window.ringuApplyMailRewardFinal(mail.type,mail.amount); }catch(err){ok=false;}
+    if(!ok){
+      try{ if(typeof toast==='function') toast('게임 저장 준비 중입니다. 잠시 후 다시 눌러주세요.'); else alert('게임 저장 준비 중입니다. 잠시 후 다시 눌러주세요.'); }catch(e){}
+      return false;
+    }
+    c[mail.id]=Date.now();
+    writeClaims(c);
+    try{ if(typeof renderTop==='function')renderTop(); }catch(e){}
+    try{ if(typeof toast==='function')toast('수령완료: '+mail.reward); }catch(e){}
+    render();
+    return false;
+  }
+  function replaceButton(){
+    var old=byId('simpleMailOpenBtn')||byId('mailOpenBtn')||document.querySelector('.mail-button')||document.querySelector('.simple-mail-button-final');
+    if(!old)return;
+    if(old.id==='simpleMailOpenBtn') { updateBadge(); return; }
+    var btn=document.createElement('button');
+    btn.type='button';
+    btn.id='simpleMailOpenBtn';
+    btn.className='simple-mail-button-final';
+    btn.innerHTML='✉<i id="ringuMailFinalBadge" class="simple-mail-badge-final"></i>';
+    old.parentNode.replaceChild(btn,old);
+    ['click','pointerdown','touchstart','touchend'].forEach(function(ev){
+      btn.addEventListener(ev,openModal,{capture:true,passive:false});
+    });
+    updateBadge();
+  }
+  document.addEventListener('click',function(e){
+    var claimBtn=e.target&&e.target.closest&&e.target.closest('[data-ringu-final-claim]');
+    if(claimBtn)return claim(claimBtn.getAttribute('data-ringu-final-claim'),e);
+    var b=e.target&&e.target.closest&&e.target.closest('#simpleMailOpenBtn');
+    if(b)return openModal(e);
+  },true);
+  window.openMailbox=openModal;
+  window.closeMailbox=closeModal;
+  window.renderMailbox=render;
+  window.renderMailboxBadge=updateBadge;
+  window.ringuOpenMailFinal=openModal;
+  function boot(){ensureModal();replaceButton();updateBadge();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+  setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1500);setTimeout(boot,3500);
+  setInterval(function(){replaceButton();updateBadge();},1000);
 })();
 </script>
 
