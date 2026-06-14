@@ -2107,5 +2107,114 @@ load();
 })();
 </script>
 
+
+
+<!-- FINAL FIX: protect-enhance button recovery + draw result visibility recovery -->
+<style id="enhanceDrawFinalFixStyle">
+#drawResultModal{z-index:86000!important}
+#drawResultModal.show{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#drawResultModal .modal{pointer-events:auto!important}
+#rarityOverlay{z-index:88000!important}
+#rarityOverlay.show{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#enhanceBtn:not(:disabled){opacity:1!important;filter:none!important}
+</style>
+<script id="enhanceDrawFinalFixScript">
+(function(){
+  'use strict';
+  function id(x){return document.getElementById(x)}
+  function visible(el){return !!el && (el.classList.contains('show') || getComputedStyle(el).display!=='none')}
+  function forceEnhanceRefresh(){
+    var modal=id('enhanceModal'), btn=id('enhanceBtn');
+    if(!visible(modal) || !btn) return;
+    var stuck=(btn.textContent||'').indexOf('진행 중')>=0 || btn.disabled;
+    if(!stuck) return;
+    try{
+      if(typeof window.toggleProtectUse==='function'){
+        window.toggleProtectUse();
+        setTimeout(function(){try{window.toggleProtectUse()}catch(e){}},25);
+      }
+    }catch(e){}
+    setTimeout(function(){
+      var b=id('enhanceBtn'), m=id('enhanceModal');
+      if(!visible(m)||!b) return;
+      if((b.textContent||'').indexOf('진행 중')>=0){
+        b.disabled=false;
+        b.textContent='강화 시도';
+      }
+    },90);
+  }
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('#enhanceBtn')){
+      setTimeout(forceEnhanceRefresh,750);
+      setTimeout(forceEnhanceRefresh,1200);
+      setTimeout(forceEnhanceRefresh,1800);
+    }
+  },false);
+
+  function ensureDrawModalVisible(){
+    var grid=id('drawResultGrid'), modal=id('drawResultModal'), overlay=id('rarityOverlay');
+    if(!grid||!modal) return;
+    var hasResult=(grid.children&&grid.children.length>0) || (grid.innerHTML||'').trim().length>30;
+    if(!hasResult) return;
+    if(overlay && overlay.classList.contains('show')){
+      var old=overlay.onclick;
+      overlay.onclick=function(ev){
+        if(ev){ev.preventDefault();ev.stopPropagation();}
+        try{ if(typeof old==='function') old.call(overlay,ev); }catch(e){}
+        setTimeout(function(){
+          modal.classList.add('show');
+          modal.style.setProperty('display','flex','important');
+        },30);
+        return false;
+      };
+      return;
+    }
+    modal.classList.add('show');
+    modal.style.setProperty('display','flex','important');
+  }
+
+  var oldDraw=window.drawItems;
+  if(typeof oldDraw==='function' && !oldDraw.__ringuFinalWrapped){
+    var wrapped=function(count){
+      var ret;
+      try{ ret=oldDraw.apply(this,arguments); }
+      finally{
+        setTimeout(ensureDrawModalVisible,250);
+        setTimeout(ensureDrawModalVisible,850);
+        setTimeout(ensureDrawModalVisible,1600);
+        setTimeout(ensureDrawModalVisible,3000);
+      }
+      if(ret && typeof ret.then==='function'){
+        return ret.finally(function(){
+          setTimeout(ensureDrawModalVisible,120);
+          setTimeout(ensureDrawModalVisible,700);
+        });
+      }
+      return ret;
+    };
+    wrapped.__ringuFinalWrapped=true;
+    window.drawItems=wrapped;
+    try{drawItems=wrapped}catch(e){}
+  }
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('.draw')){
+      setTimeout(ensureDrawModalVisible,400);
+      setTimeout(ensureDrawModalVisible,1000);
+      setTimeout(ensureDrawModalVisible,2200);
+      setTimeout(ensureDrawModalVisible,3600);
+    }
+  },false);
+
+  var oldClose=window.closeDrawResult;
+  window.closeDrawResult=function(){
+    var modal=id('drawResultModal');
+    if(modal){modal.classList.remove('show');modal.style.removeProperty('display')}
+    try{ if(typeof oldClose==='function') oldClose(); }catch(e){}
+    return false;
+  };
+  try{closeDrawResult=window.closeDrawResult}catch(e){}
+})();
+</script>
+
 </body>
 </html>
