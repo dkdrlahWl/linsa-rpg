@@ -3075,38 +3075,41 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
 
 
 
-<script id="ringuDbPendingGrantClaim20260614V4ForceButton">
+<script id="ringuDbPendingGrantClaim20260614V5WholePanelTap">
 (function(){
   'use strict';
   var CAMPAIGN='AFTER_LOGIN_DB_GRANT_20260614_V1';
   var EXCLUDED_UIDS={'JWXTLA8Q2L':1,'NAUYC8CEX7':1};
   var EXCLUDED_NAMES={'도현':1,'링구':1};
-  var running=false;
-  var runStarted=0;
+  var running=false, runStarted=0, booted=false;
   function st(){try{return typeof state!=='undefined'&&state?state:null}catch(e){return null}}
   function uid(){var x=st();return x&&x.playerUid?String(x.playerUid):''}
   function name(){var x=st();return x&&x.playerName?String(x.playerName).trim():''}
   function ready(){try{return !!(typeof SUPABASE_URL==='string'&&SUPABASE_URL&&typeof rankingHeaders==='function'&&typeof fetch==='function')}catch(e){return false}}
   function fmt(n){try{return Number(n||0).toLocaleString('ko-KR')}catch(e){return String(n)}}
   function panel(){
-    var box=document.getElementById('ringuDbGrantPanelV4');
+    try{var old=document.getElementById('ringuDbGrantPanelV4'); if(old)old.remove()}catch(e){}
+    var box=document.getElementById('ringuDbGrantPanelV5');
     if(box)return box;
     box=document.createElement('div');
-    box.id='ringuDbGrantPanelV4';
-    box.style.cssText='position:fixed;left:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:2147483647;width:min(360px,calc(100vw - 16px));background:#101722f7;border:2px solid #ffd35a;border-radius:14px;padding:12px;color:#eef3ff;font:13px system-ui,-apple-system,Noto Sans KR,sans-serif;box-shadow:0 8px 30px #000c;pointer-events:auto;touch-action:manipulation;user-select:none';
-    box.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="color:#ffd35a;font-size:14px">DB 접속보상 V4</b><button type="button" id="ringuDbGrantPanelCloseV4" style="padding:5px 8px;border-radius:7px;border:0;background:#293247;color:#dbe7ff;font-weight:900;pointer-events:auto">숨김</button></div><div id="ringuDbGrantPanelInfoV4" style="margin-top:6px;color:#b8c5da;word-break:break-all">UID 확인 중</div><div id="ringuDbGrantPanelStatusV4" style="margin-top:7px;color:#9cffd1;line-height:1.4">자동 지급 확인 중</div><button type="button" id="ringuDbGrantPanelBtnV4" style="margin-top:10px;width:100%;padding:14px 10px;border-radius:10px;border:0;background:linear-gradient(#2f8d64,#1f6146);color:#fff;font-size:14px;font-weight:1000;pointer-events:auto;touch-action:manipulation">눌러서 보상 받기</button><button type="button" id="ringuDbGrantPanelReloadV4" style="margin-top:7px;width:100%;padding:10px;border-radius:9px;border:0;background:#31415e;color:#dbe7ff;font-weight:900;pointer-events:auto">클라우드 불러온 뒤 다시 확인</button>';
+    box.id='ringuDbGrantPanelV5';
+    box.setAttribute('role','button');
+    box.setAttribute('tabindex','0');
+    box.style.cssText='position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:2147483647;max-width:420px;background:#101722fa;border:3px solid #ffd35a;border-radius:16px;padding:14px;color:#eef3ff;font:14px system-ui,-apple-system,Noto Sans KR,sans-serif;box-shadow:0 8px 35px #000d;pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;cursor:pointer!important';
+    box.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;pointer-events:none"><b style="color:#ffd35a;font-size:15px">DB 접속보상 V5</b><button type="button" id="ringuDbGrantPanelCloseV5" style="padding:6px 10px;border-radius:8px;border:0;background:#293247;color:#dbe7ff;font-weight:900;pointer-events:auto!important;touch-action:manipulation!important">숨김</button></div><div id="ringuDbGrantPanelInfoV5" style="margin-top:7px;color:#b8c5da;word-break:break-all;pointer-events:none">UID 확인 중</div><div id="ringuDbGrantPanelStatusV5" style="margin-top:8px;color:#9cffd1;line-height:1.45;pointer-events:none">상태창 아무 곳이나 누르면 지급 확인 · 자동 확인도 실행 중</div><div style="margin-top:10px;padding:13px;border-radius:12px;background:linear-gradient(#2f8d64,#1f6146);color:#fff;text-align:center;font-size:15px;font-weight:1000;pointer-events:none">상태창을 터치해서 보상 받기</div><div style="margin-top:7px;color:#91a0b8;font-size:11px;line-height:1.35;pointer-events:none">버튼이 안 눌려도 이 박스 아무 곳이나 누르면 됩니다. 자동 지급도 5초마다 재시도합니다.</div>';
     document.body.appendChild(box);
-    function fire(ev){try{ev.preventDefault();ev.stopPropagation()}catch(e){} claim('button',true);return false}
-    var b=document.getElementById('ringuDbGrantPanelBtnV4');
-    ['click','touchstart','pointerdown'].forEach(function(ev){b.addEventListener(ev,fire,{passive:false,capture:true})});
-    var r=document.getElementById('ringuDbGrantPanelReloadV4');
-    ['click','touchstart','pointerdown'].forEach(function(ev){r.addEventListener(ev,function(e){try{e.preventDefault();e.stopPropagation()}catch(_e){} claim('reload button',true);return false},{passive:false,capture:true})});
-    document.getElementById('ringuDbGrantPanelCloseV4').addEventListener('click',function(e){try{e.preventDefault();e.stopPropagation()}catch(_e){} box.style.display='none'},true);
+    function fire(ev){
+      try{if(ev.target&&ev.target.id==='ringuDbGrantPanelCloseV5')return true;ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation&&ev.stopImmediatePropagation()}catch(e){}
+      claim('panel tap',true);return false;
+    }
+    ['pointerdown','touchstart','mousedown','click'].forEach(function(ev){box.addEventListener(ev,fire,{passive:false,capture:true})});
+    var close=document.getElementById('ringuDbGrantPanelCloseV5');
+    ['pointerdown','touchstart','mousedown','click'].forEach(function(ev){close.addEventListener(ev,function(e){try{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation&&e.stopImmediatePropagation()}catch(_e){} box.style.display='none'; return false},{passive:false,capture:true})});
     setInterval(updateInfo,800); updateInfo();
     return box;
   }
-  function updateInfo(){try{var el=document.getElementById('ringuDbGrantPanelInfoV4');if(el)el.textContent='닉네임: '+(name()||'-')+' / UID: '+(uid()||'-')}catch(e){}}
-  function status(msg,bad){try{console.log('[RINGU DB GRANT V4]',msg)}catch(e){};try{var el=document.getElementById('ringuDbGrantPanelStatusV4');if(el){el.textContent=msg;el.style.color=bad?'#ff9aa8':'#9cffd1'}}catch(e){};try{if(typeof toast==='function')toast(msg)}catch(e){}}
+  function updateInfo(){try{var el=document.getElementById('ringuDbGrantPanelInfoV5');if(el)el.textContent='닉네임: '+(name()||'-')+' / UID: '+(uid()||'-')}catch(e){}}
+  function status(msg,bad){try{console.log('[RINGU DB GRANT V5]',msg)}catch(e){};try{var el=document.getElementById('ringuDbGrantPanelStatusV5');if(el){el.textContent=msg;el.style.color=bad?'#ff9aa8':'#9cffd1'}}catch(e){};try{if(typeof toast==='function')toast(msg)}catch(e){}}
   async function api(method,path,body,prefer){
     var opt={method:method,headers:rankingHeaders({Prefer:prefer||'return=representation'})};
     if(body!==undefined&&body!==null)opt.body=JSON.stringify(body);
@@ -3132,7 +3135,7 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
     try{if(typeof localStorage!=='undefined'&&typeof KEY!=='undefined'&&st())localStorage.setItem(KEY,JSON.stringify(st()))}catch(e){}
     try{cloudDirty=true;cloudRevision=(Number(cloudRevision)||0)+1}catch(e){}
     try{var sess=typeof getCloudSession==='function'?getCloudSession():null;if(sess&&typeof uploadCloudState==='function'){
-      [0,800,2500,6000].forEach(function(ms){setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){try{scheduleCloudSave()}catch(_e){}}},ms)});
+      [0,700,2000,5000,9000].forEach(function(ms){setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){try{scheduleCloudSave()}catch(_e){}}},ms)});
     }else{try{if(typeof scheduleCloudSave==='function')scheduleCloudSave()}catch(e){}}}catch(e){}
     try{if(typeof syncRanking==='function')syncRanking()}catch(e){}
   }
@@ -3145,15 +3148,15 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
     x.essence=(Number(x.essence)||0)+e;
     x.transcendStone=(Number(x.transcendStone)||0)+t;
     x.mailFlags=x.mailFlags&&typeof x.mailFlags==='object'?x.mailFlags:{};
-    x.mailFlags.dbPendingGrantV4={campaign:CAMPAIGN,uid:uid(),at:Date.now(),gold:g,essence:e,stone:t};
+    x.mailFlags.dbPendingGrantV5={campaign:CAMPAIGN,uid:uid(),at:Date.now(),gold:g,essence:e,stone:t};
     saveHard();
     status('자원 추가 완료: 골드 '+fmt(g)+' / 정수 '+e+' / 초월석 '+t,false);
     return true;
   }
   async function claim(reason,force){
     panel(); updateInfo();
-    if(running && !force && Date.now()-runStarted<15000){status('이미 확인 중입니다. 잠시만 기다려주세요');return false}
-    if(running && force && Date.now()-runStarted<2500){status('버튼 입력 확인됨 · 처리 중');return false}
+    if(running && !force && Date.now()-runStarted<14000)return false;
+    if(running && force && Date.now()-runStarted<2200){status('터치 확인됨 · 처리 중');return false}
     running=true; runStarted=Date.now();
     try{
       var x=st(), id=uid(), n=name();
@@ -3168,7 +3171,7 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
       if(!open.length){status('이미 받은 처리된 UID입니다: '+id,false);return true}
       status('보상 발견 '+open.length+'건 · 자원 추가 중',false);
       if(!add(open))return false;
-      await new Promise(function(resolve){setTimeout(resolve,1500)});
+      await new Promise(function(resolve){setTimeout(resolve,1300)});
       var marked=await mark(open.map(function(r){return r.id}));
       saveHard();
       status('지급 완료 · DB 수령처리 '+((marked&&marked.length)||0)+'건',false);
@@ -3176,6 +3179,7 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
     }catch(err){status('DB 보상 오류: '+(err&&err.message?err.message:err),true);return false}
     finally{running=false;runStarted=0;updateInfo()}
   }
+  window.ringuClaimDbPendingGrant20260614V5=claim;
   window.ringuClaimDbPendingGrant20260614V4=claim;
   window.ringuClaimDbPendingGrant20260614V3=claim;
   window.ringuClaimDbPendingGrant20260614V2=claim;
@@ -3184,12 +3188,12 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
   window.ringuGrantAfterLoginOnceDirect20260614V1=function(){return false};
   window.ringuGrantAfterLoginOnceDirect20260614V2=function(){return false};
   window.ringuGrantAfterLoginOnceDirect20260614V3=function(){return false};
-  function boot(){panel();[500,1500,3500,7000,12000,20000,35000,60000].forEach(function(ms){setTimeout(function(){claim('auto '+ms,false)},ms)})}
-  function wrap(fn){setTimeout(function(){try{var old=window[fn];if(typeof old==='function'&&!old.__dbGrantV4Wrap){var w=function(){var ret=old.apply(this,arguments);Promise.resolve(ret).finally(function(){setTimeout(function(){claim(fn,false)},1000);setTimeout(function(){claim(fn+' late',false)},4000)});return ret};w.__dbGrantV4Wrap=true;window[fn]=w}}catch(e){}},1200)}
+  function boot(){panel(); if(booted)return; booted=true; [400,1000,2000,3500,5500,8000,12000,18000,26000,40000,60000].forEach(function(ms){setTimeout(function(){claim('auto '+ms,false)},ms)})}
+  function wrap(fn){setTimeout(function(){try{var old=window[fn];if(typeof old==='function'&&!old.__dbGrantV5Wrap){var w=function(){var ret=old.apply(this,arguments);Promise.resolve(ret).finally(function(){setTimeout(function(){claim(fn,false)},900);setTimeout(function(){claim(fn+' late',false)},3500)});return ret};w.__dbGrantV5Wrap=true;window[fn]=w}}catch(e){}},1200)}
   ['loadCloudAccount','createCloudAccount','saveCloudNow','pullCloudState','applyCloudData','setNickname','initCloudSync','syncRanking'].forEach(wrap);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)boot()},true);
-  setInterval(function(){claim('interval',false)},20000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){booted=false;boot()}},true);
+  setInterval(function(){claim('interval',false)},5000);
 })();
 </script>
 
