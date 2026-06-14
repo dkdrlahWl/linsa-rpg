@@ -2944,5 +2944,134 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
 })();
 </script>
 
+
+
+<script id="ringuAfterLoginOnceDirectGrant20260614V3HardFix">
+(function(){
+  'use strict';
+  /*
+    접속 후 직접 지급 보상 V3 하드픽스
+    - V1/V2/우편/기존 플래그 전부 무시하는 새 캠페인
+    - 현재 도현/링구로 쓰는 UID는 제외 UID로 고정
+    - 클라우드 계정 로드 전 임시 UID에 지급되어 사라지는 문제 방지: UID 변경/클라우드 로드 후 재검사
+    - 서버 영수증 기준으로 같은 UID는 다른 브라우저에서도 1회만 지급
+  */
+  var CAMPAIGN='AFTER_LOGIN_DIRECT_ONCE_20260614_V3_HARD_FIX';
+  var LOCAL_FLAG='afterLoginDirectOnce20260614V3HardFix';
+  var RECEIPT_PREFIX='REWARD:'+CAMPAIGN+':PLAYER:';
+  var EXCLUDED_UID={
+    'JWXTLA8Q2L':1, /* 현재 도현 UID */
+    'NAUYC8CEX7':1  /* 현재 링구 UID */
+  };
+  var RUNNING_UID={};
+  var LAST_UID='';
+  function gs(){try{return typeof state!=='undefined'&&state?state:null}catch(e){return null}}
+  function uid(){var s=gs();return s&&s.playerUid?String(s.playerUid):''}
+  function name(){var s=gs();return s?String(s.playerName||'').trim():''}
+  function flags(){var s=gs();if(!s)return {};s.mailFlags=s.mailFlags&&typeof s.mailFlags==='object'?s.mailFlags:{};return s.mailFlags}
+  function canServer(){try{return typeof SUPABASE_URL==='string'&&!!SUPABASE_URL&&typeof SUPABASE_KEY==='string'&&!!SUPABASE_KEY&&typeof rankingHeaders==='function'&&typeof fetch==='function'}catch(e){return false}}
+  function receiptKey(id){return RECEIPT_PREFIX+String(id||uid())}
+  function saveHard(){
+    try{if(typeof renderAll==='function')renderAll();else if(typeof renderTop==='function')renderTop()}catch(e){}
+    try{cloudDirty=true;cloudRevision=(Number(cloudRevision)||0)+1}catch(e){}
+    try{if(typeof save==='function')save(true)}catch(e){}
+    try{if(typeof queueSave==='function')queueSave()}catch(e){}
+    try{if(typeof saveChanceAction==='function')saveChanceAction()}catch(e){}
+    try{
+      var session=typeof getCloudSession==='function'?getCloudSession():null;
+      if(session&&typeof uploadCloudState==='function')setTimeout(function(){try{uploadCloudState(session,false)}catch(e){}},250);
+      if(typeof scheduleCloudSave==='function')setTimeout(function(){try{scheduleCloudSave()}catch(e){}},700);
+    }catch(e){}
+    try{if(typeof syncRanking==='function')setTimeout(syncRanking,500)}catch(e){}
+  }
+  async function refreshExcludedFromCurrentRanking(){
+    if(!canServer())return;
+    try{
+      var url=SUPABASE_URL+'/rest/v1/rankings?select=uid,nickname&nickname=in.(%EB%8F%84%ED%98%84,%EB%A7%81%EA%B5%AC)&limit=20';
+      var r=await fetch(url,{headers:rankingHeaders()});
+      if(!r.ok)return;
+      var rows=await r.json();
+      if(Array.isArray(rows))rows.forEach(function(x){if(x&&x.uid&&(x.nickname==='도현'||x.nickname==='링구'))EXCLUDED_UID[String(x.uid)]=1});
+    }catch(e){}
+  }
+  async function receiptExists(id){
+    if(!canServer())throw Error('server not ready');
+    var r=await fetch(SUPABASE_URL+'/rest/v1/rankings?uid=eq.'+encodeURIComponent(receiptKey(id))+'&select=uid&limit=1',{headers:rankingHeaders()});
+    if(!r.ok)throw Error('receipt check '+r.status);
+    var rows=await r.json();
+    return Array.isArray(rows)&&rows.length>0;
+  }
+  async function reserveReceipt(id){
+    if(await receiptExists(id))return false;
+    var row={
+      uid:receiptKey(id),
+      nickname:'REWARD_RECEIPT',
+      power:-999999,
+      region:'REWARD_RECEIPT',
+      boss:JSON.stringify({campaign:CAMPAIGN,reward:'gold200m_essence100_stone5',playerUid:id,playerName:name()}),
+      updated_at:new Date().toISOString()
+    };
+    var r=await fetch(SUPABASE_URL+'/rest/v1/rankings?on_conflict=uid',{
+      method:'POST',
+      headers:rankingHeaders({Prefer:'resolution=ignore-duplicates,return=representation'}),
+      body:JSON.stringify(row)
+    });
+    if(!r.ok)throw Error('receipt reserve '+r.status+' '+(await r.text()).slice(0,80));
+    var rows=await r.json().catch(function(){return []});
+    return Array.isArray(rows)&&rows.length>0;
+  }
+  function alreadyAppliedFor(id){
+    var f=flags()[LOCAL_FLAG];
+    return !!(f&&f.uid===id&&f.applied);
+  }
+  function applyReward(id){
+    var s=gs();if(!s)return false;
+    s.gold=(Number(s.gold)||0)+200000000;
+    s.essence=(Number(s.essence)||0)+100;
+    s.transcendStone=(Number(s.transcendStone)||0)+5;
+    flags()[LOCAL_FLAG]={uid:id,applied:true,at:Date.now(),campaign:CAMPAIGN,gold:200000000,essence:100,stone:5};
+    saveHard();
+    setTimeout(saveHard,600);
+    setTimeout(saveHard,1800);
+    try{if(typeof toast==='function')toast('접속 1회 보상 지급 완료 · 2억 골드, 정수 100개, 초월석 5개')}catch(e){}
+    return true;
+  }
+  async function grant(reason){
+    var id=uid();
+    if(!gs()||!id)return false;
+    if(RUNNING_UID[id])return false;
+    RUNNING_UID[id]=true;
+    try{
+      await refreshExcludedFromCurrentRanking();
+      if(EXCLUDED_UID[id]){flags()[LOCAL_FLAG]={uid:id,excluded:true,at:Date.now(),campaign:CAMPAIGN};saveHard();return false}
+      /* 현재 닉네임이 도현/링구인 경우도 안전하게 제외 처리 */
+      if(name()==='도현'||name()==='링구'){EXCLUDED_UID[id]=1;flags()[LOCAL_FLAG]={uid:id,excluded:true,at:Date.now(),campaign:CAMPAIGN,nickname:name()};saveHard();return false}
+      if(alreadyAppliedFor(id))return true;
+      var inserted=await reserveReceipt(id);
+      if(!inserted){flags()[LOCAL_FLAG]={uid:id,alreadyReceived:true,at:Date.now(),campaign:CAMPAIGN};saveHard();return true}
+      return applyReward(id);
+    }catch(e){
+      try{console.warn('[RINGU] V3 direct reward failed:',reason,e&&e.message?e.message:e)}catch(_e){}
+      return false;
+    }finally{delete RUNNING_UID[id]}
+  }
+  window.ringuGrantAfterLoginOnceDirect20260614V3HardFix=grant;
+  function boot(){grant('boot')}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+  [200,800,1600,3000,6000,10000,15000,22000,30000].forEach(function(ms){setTimeout(boot,ms)});
+  setInterval(function(){var id=uid();if(id&&id!==LAST_UID){LAST_UID=id;setTimeout(function(){grant('uid-change')},300);setTimeout(function(){grant('uid-change-late')},1800)}},1000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(function(){grant('visible')},500)},true);
+  function wrap(name){
+    try{
+      var fn=window[name];if(typeof fn!=='function'||fn.__ringuV3RewardWrapped)return;
+      var wrapped=function(){var ret=fn.apply(this,arguments);Promise.resolve(ret).finally(function(){setTimeout(function(){grant(name)},600);setTimeout(function(){grant(name+' late')},2200)});return ret};
+      wrapped.__ringuV3RewardWrapped=true;window[name]=wrapped;
+    }catch(e){}
+  }
+  setTimeout(function(){['loadCloudAccount','createCloudAccount','setNickname','syncRanking','pullCloudState'].forEach(wrap)},500);
+  setTimeout(function(){['loadCloudAccount','createCloudAccount','setNickname','syncRanking','pullCloudState'].forEach(wrap)},2500);
+})();
+</script>
+
 </body>
 </html>
