@@ -1995,5 +1995,117 @@ load();
 })();
 </script>
 
+
+<style id="drawRevealRecoveryStyle">
+#drawResultModal{z-index:76000!important}
+#drawResultModal.show{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#drawResultModal .modal{pointer-events:auto!important}
+#rarityOverlay{z-index:78000!important}
+#rarityOverlay.show{display:flex!important;opacity:1!important;pointer-events:auto!important}
+#rarityOverlay .rarity-reveal{pointer-events:auto!important}
+#rarityOverlay.legend{background:radial-gradient(circle,#fff6ca 0,#ffc64c66 28%,#3b2205ee 72%)!important}
+#rarityOverlay.mythic{background:radial-gradient(circle,#b20c2a55,#070001 64%,#000 100%)!important}
+#rarityOverlay.legend .rarity-reveal{border:2px solid #ffd76e!important;background:#2c1a08ee!important;box-shadow:0 0 35px #ffd35a,0 0 120px #ff9d3b!important}
+#rarityOverlay.mythic .rarity-reveal{border:2px solid #ff304c!important;background:#200309ee!important;box-shadow:0 0 38px #ff183b,0 0 130px #a00020!important}
+#rarityOverlay.legend #rarityRevealGrade,#rarityOverlay.legend #rarityRevealTitle{color:#ffe39b!important;text-shadow:0 0 17px #ffc038!important}
+#rarityOverlay.mythic #rarityRevealGrade,#rarityOverlay.mythic #rarityRevealTitle{color:#ff7890!important;text-shadow:0 0 20px #f00!important}
+#rarityOverlay #rarityRevealName small{color:#c9d4e8!important}
+</style>
+<script id="drawRevealRecoveryScript">
+(function(){
+  'use strict';
+  function byId(id){return document.getElementById(id)}
+  function safeCall(fn){try{ if(typeof fn==='function') fn(); }catch(e){}}
+  function esc(v){
+    try{ if(typeof escapeHtml==='function') return escapeHtml(v); }catch(e){}
+    return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})
+  }
+  function rarityName(n){try{return rarityNames[n]||''}catch(e){return ''}}
+  function rarityColor(n){try{return rarityColors[n]||'#a5adba'}catch(e){return '#a5adba'}}
+  function atkText(it){try{return itemAttackText(it)}catch(e){return it&&it.baseAtk?String(it.baseAtk):''}}
+  function icon(it){try{return gearIcon(it)}catch(e){return '<div class="gear-icon r'+(it&&it.rarity||0)+' weapon"></div>'}}
+  function closeAllDrawOverlays(){
+    var result=byId('drawResultModal');
+    if(result){result.classList.remove('show');result.style.removeProperty('display')}
+    var overlay=byId('rarityOverlay');
+    if(overlay){overlay.className='rarity-overlay';overlay.style.removeProperty('display');overlay.onclick=null;delete overlay.dataset.waitTouch}
+  }
+  function recoveredShowRarityReveal(item,type,done){
+    var overlay=byId('rarityOverlay');
+    if(!overlay){safeCall(done);return false}
+    var grade= type==='fallen' ? 'FALLEN' : (type==='mythic' ? 'MYTHIC' : 'LEGENDARY');
+    var title= type==='fallen' ? '타락 장비 강림!' : (type==='mythic' ? '신화 장비 강림!' : '전설 장비 획득!');
+    overlay.className='rarity-overlay show '+type;
+    overlay.style.setProperty('display','flex','important');
+    overlay.dataset.waitTouch='1';
+    var gear=byId('rarityRevealGear'), g=byId('rarityRevealGrade'), h=byId('rarityRevealTitle'), name=byId('rarityRevealName');
+    if(gear)gear.innerHTML=icon(item);
+    if(g)g.textContent=grade;
+    if(h)h.textContent=title;
+    if(name)name.innerHTML=esc(item&&item.name)+'<br><small style="letter-spacing:0;color:#c9d4e8">화면을 클릭하면 결과창으로 이동합니다</small>';
+    try{ if(type==='mythic'||type==='fallen')playMythicBoom(); else playDrawSound(4); }catch(e){}
+    try{document.body.classList.add('shake');setTimeout(function(){document.body.classList.remove('shake')},650)}catch(e){}
+    var closed=false;
+    function close(e){
+      if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation()}
+      if(closed)return false;
+      closed=true;
+      overlay.className='rarity-overlay';
+      overlay.style.removeProperty('display');
+      overlay.onclick=null;
+      delete overlay.dataset.waitTouch;
+      safeCall(done);
+      return false;
+    }
+    setTimeout(function(){overlay.onclick=close},250);
+    return false;
+  }
+  function recoveredShowDrawResults(items){
+    items=Array.isArray(items)?items:[];
+    var grid=byId('drawResultGrid');
+    var modal=byId('drawResultModal');
+    if(!grid||!modal)return false;
+    closeAllDrawOverlays();
+    grid.classList.remove('opening');
+    void grid.offsetWidth;
+    grid.classList.add('opening');
+    grid.innerHTML=items.map(function(it,i){
+      return '<div class="draw-card rarity-'+(it.rarity||0)+(it.isNew?' first-new':'')+'" style="--gc:'+rarityColor(it.rarity)+';animation-delay:'+(Math.min(i,20)*0.07)+'s">'
+        +(it.isNew?'<span class="new-badge">NEW</span>':'')
+        +icon(it)
+        +'<strong>'+esc(it.name)+'</strong><small>'+rarityName(it.rarity)+' · '+esc(it.slot||'')+'<br>공격력 '+atkText(it)+'</small></div>';
+    }).join('');
+    var mythic=items.find(function(x){return x&&x.rarity===5});
+    var legend=items.find(function(x){return x&&x.rarity===4});
+    var first=items.find(function(x){return x&&x.isNew});
+    var best=mythic?5:(legend?4:Math.max.apply(null,items.map(function(x){return x&&x.rarity||0}).concat([0])));
+    function finish(){
+      modal.classList.add('show');
+      modal.style.setProperty('display','flex','important');
+      try{ if(first&&typeof showCollectionFlash==='function') setTimeout(function(){showCollectionFlash(first)},180); }catch(e){}
+    }
+    setTimeout(function(){
+      try{playBoxOpenSound()}catch(e){}
+      setTimeout(function(){try{playDrawSound(best)}catch(e){}},200);
+      if(mythic)return recoveredShowRarityReveal(mythic,'mythic',finish);
+      if(legend)return recoveredShowRarityReveal(legend,'legend',finish);
+      finish();
+    },120);
+    return false;
+  }
+  function recoveredCloseDrawResult(){
+    var modal=byId('drawResultModal');
+    if(modal){modal.classList.remove('show');modal.style.removeProperty('display')}
+    return false;
+  }
+  window.showDrawResults=recoveredShowDrawResults;
+  window.showRarityReveal=recoveredShowRarityReveal;
+  window.closeDrawResult=recoveredCloseDrawResult;
+  try{showDrawResults=recoveredShowDrawResults}catch(e){}
+  try{showRarityReveal=recoveredShowRarityReveal}catch(e){}
+  try{closeDrawResult=recoveredCloseDrawResult}catch(e){}
+})();
+</script>
+
 </body>
 </html>
