@@ -2057,5 +2057,149 @@ load();
 @media(max-width:520px){#drawResultGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.ringu-result-icon{width:54px;height:54px}#drawResultGrid .draw-card{min-height:145px!important}}
 </style>
 
+
+
+<!-- FINAL USER FIX: transcend stars, inventory layout, mythic lava reveal and louder chime -->
+<style id="ringuTranscendStarsLavaFinalStyle">
+/* 인벤토리 제목이 길어져도 버튼 영역이 오른쪽으로 밀리지 않게 고정 */
+.inventory-list .item{grid-template-columns:minmax(0,1fr) 150px!important;align-items:center;overflow:hidden!important}
+.inventory-list .item .gear-row{min-width:0!important;overflow:hidden!important}
+.inventory-list .item .item-info{min-width:0!important;overflow:hidden!important}
+.inventory-list .item .item-title{min-width:0!important;display:flex!important;align-items:center!important;gap:6px!important;overflow:hidden!important}
+.inventory-list .item .item-title .rarity{flex:0 0 auto!important}
+.inventory-list .item .ringu-item-title{display:flex!important;align-items:center!important;gap:4px!important;min-width:0!important;max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;font-size:clamp(12px,3.1vw,16px)!important;line-height:1.25!important}
+.inventory-list .item .ringu-item-name{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;display:inline-block!important}
+.inventory-list .item .ringu-trans-stars{flex:0 0 auto!important;font-weight:1000!important;letter-spacing:-1px!important;text-shadow:0 0 8px currentColor!important}
+.inventory-list .item .ringu-plus{flex:0 0 auto!important;color:#f0f5ff!important;font-weight:1000!important}
+.inventory-list .item .item-sub{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.inventory-list .item .item-actions{width:150px!important;grid-template-columns:repeat(2,70px)!important;gap:6px!important;justify-content:end!important;align-content:center!important}
+.inventory-list .item .item-actions button{width:70px!important;min-height:46px!important;padding:7px 3px!important;border-radius:13px!important;font-size:13px!important;line-height:1.15!important;white-space:normal!important}
+@media(max-width:520px){
+  .inventory-list .item{grid-template-columns:minmax(0,1fr) 142px!important;gap:8px!important;padding:10px 8px!important}
+  .inventory-list .item .gear-icon{width:72px!important;height:72px!important;flex:0 0 72px!important}
+  .inventory-list .item .gear-row{gap:9px!important}
+  .inventory-list .item .item-actions{width:142px!important;grid-template-columns:repeat(2,66px)!important;gap:6px!important}
+  .inventory-list .item .item-actions button{width:66px!important;min-height:44px!important;font-size:12px!important}
+  .inventory-list .item .ringu-item-title{font-size:clamp(13px,4.1vw,17px)!important}
+}
+@media(max-width:380px){
+  .inventory-list .item{grid-template-columns:minmax(0,1fr) 126px!important}
+  .inventory-list .item .item-actions{width:126px!important;grid-template-columns:repeat(2,60px)!important;gap:6px!important}
+  .inventory-list .item .item-actions button{width:60px!important;font-size:11px!important}
+  .inventory-list .item .gear-icon{width:62px!important;height:62px!important;flex-basis:62px!important}
+}
+/* 신화 등장 화면: 검은 화면이 아니라 용암처럼 붉은 배경 */
+#rarityOverlay.mythic.show{
+  display:flex!important;
+  background:
+    radial-gradient(circle at 50% 42%,#ff775033 0 10%,transparent 26%),
+    radial-gradient(circle at 20% 78%,#ff7a1c88 0 4%,transparent 23%),
+    radial-gradient(circle at 84% 22%,#ff174faa 0 3%,transparent 24%),
+    linear-gradient(180deg,#1a0205 0%,#380509 44%,#090001 100%)!important;
+  animation:mythicLavaBgFinal 3s ease-in-out both!important;
+}
+#rarityOverlay.mythic.show::before{content:"";position:absolute;inset:-20%;pointer-events:none;background:
+  repeating-linear-gradient(115deg,transparent 0 32px,#ff3a181f 33px 38px,transparent 40px 76px),
+  radial-gradient(circle at 50% 110%,#ff7b1a99 0 9%,#a60d0875 10% 24%,transparent 45%);
+  filter:blur(.4px);animation:lavaFlowFinal 2.4s linear infinite;opacity:.95}
+#rarityOverlay.mythic.show::after{content:"";position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(circle at 18% 64%,#ffdb7a 0 2px,transparent 5px),
+  radial-gradient(circle at 64% 74%,#ff4d2d 0 2px,transparent 6px),
+  radial-gradient(circle at 78% 36%,#ff9d3b 0 1px,transparent 5px),
+  radial-gradient(circle at 36% 24%,#ff2448 0 2px,transparent 6px);
+  background-size:190px 260px,230px 300px,170px 210px,260px 330px;animation:lavaSparksFinal 1.9s linear infinite;opacity:.9}
+#rarityOverlay.mythic .rarity-reveal{background:linear-gradient(160deg,#340308ee,#120003f2)!important;border-color:#ff5a3d!important;box-shadow:0 0 42px #ff2a33,0 0 130px #ff601a88,inset 0 0 30px #ff2a251f!important;z-index:3!important}
+#rarityOverlay.mythic .rarity-reveal h2,#rarityOverlay.mythic .rarity-reveal small{color:#ffb09a!important;text-shadow:0 0 18px #ff2a33,0 0 30px #ff7b1a!important}
+#rarityOverlay.mythic.charging .rarity-reveal{animation:mythicChargeFinal 3s ease-in-out both!important}
+@keyframes mythicLavaBgFinal{0%{filter:brightness(.58) saturate(1);opacity:1}35%{filter:brightness(1.18) saturate(1.35)}70%{filter:brightness(1.42) saturate(1.6)}100%{filter:brightness(1.22) saturate(1.35)}}
+@keyframes lavaFlowFinal{to{transform:translate3d(45px,-70px,0) rotate(.001deg)}}
+@keyframes lavaSparksFinal{to{background-position:30px -160px,-50px -180px,20px -130px,-40px -200px}}
+@keyframes mythicChargeFinal{0%{transform:scale(.72);opacity:.55;filter:brightness(.8) blur(1.5px)}45%{transform:scale(.93);opacity:.9;filter:brightness(1.25) blur(.4px)}82%{transform:scale(1.08);opacity:1;filter:brightness(1.8)}100%{transform:scale(1);opacity:1;filter:brightness(1)}}
+</style>
+<script id="ringuTranscendStarsLavaFinalScript">
+(function(){
+  'use strict';
+  function id(x){return document.getElementById(x)}
+  function safe(v){try{return typeof escapeHtml==='function'?escapeHtml(v):String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}catch(e){return String(v==null?'':v)}}
+  function rarityColor(it){try{return (window.rarityColors||rarityColors)[Number(it&&it.rarity)||0]||'#dce8ff'}catch(e){return '#dce8ff'}}
+  function rarityName(it){try{return (window.rarityNames||rarityNames)[Number(it&&it.rarity)||0]||'일반'}catch(e){return '일반'}}
+  function transStars(it){var n=Math.max(0,Math.min(5,Number(it&&it.transcend)||0));return n?'★'.repeat(n):''}
+  function titleHtml(it){var color=rarityColor(it),stars=transStars(it),enh=Number(it&&it.enhance)||0,lock=it&&it.locked?'[잠금] ':'';return '<span class="ringu-item-name">'+safe(lock+(it&&it.name||'장비'))+'</span>'+(stars?'<span class="ringu-trans-stars" style="color:'+color+'">'+stars+'</span>':'')+'<span class="ringu-plus">+'+enh+'</span>'}
+  window.ringuItemTitleHtml=titleHtml;
+
+  function renderInventoryFixed(){
+    try{
+      var list=[].concat((state&&state.inventory)||[]), sortEl=id('sortSelect'), sort=sortEl?sortEl.value:'attack';
+      list.sort(function(a,b){return sort==='rarity'?(b.rarity-a.rarity||itemAtk(b)-itemAtk(a)):itemAtk(b)-itemAtk(a)});
+      var cnt=id('invCount'); if(cnt)cnt.textContent=list.length+'개';
+      var box=id('inventoryList'); if(!box)return;
+      if(!list.length){box.innerHTML='<div class="empty-list">장비가 없습니다.<br>소환으로 첫 장비를 획득하세요.</div>';return}
+      box.innerHTML=list.map(function(it){
+        var atk=itemAtk(it),eqId=state.equipped[it.slot],eq=state.inventory.find(function(x){return x.id===eqId}),up=!isEquipped(it.id)&&atk>(eq?itemAtk(eq):0),color=rarityColor(it);
+        return '<div class="item rarity-'+it.rarity+(isEquipped(it.id)?' equipped':'')+(it.locked?' locked-item':'')+(it.rarity===4?' legendary':'')+(it.rarity===5?' mythic':'')+(it.rarity===6?' fallen':'')+'">'
+          +'<div class="gear-row">'+gearIcon(it)+'<div class="item-info"><div class="item-title"><span class="rarity">'+rarityName(it)+'</span><strong class="ringu-item-title" style="color:'+color+'">'+titleHtml(it)+'</strong></div>'
+          +'<div class="item-sub">'+safe(it.slot)+' · 공격력 <b>'+itemAttackText(it)+'</b> '+(up?'<span class="up">↑ 추천</span>':'')+(isEquipped(it.id)?'<span style="color:#6eb8ff"> · 장착 중</span>':'')+'<div class="sub-options">'+optionText(it)+'</div></div></div></div>'
+          +'<div class="item-actions"><button onclick="equip('+it.id+')">장착</button><button class="enh" onclick="openEnhance('+it.id+')">강화</button><button class="lock '+(it.locked?'on':'')+'" onclick="toggleLock('+it.id+')">'+(it.locked?'해제':'잠금')+'</button><button class="sell" '+(isEquipped(it.id)||it.locked?'disabled':'')+' onclick="sellItem('+it.id+')">판매<br>'+fmt(sellPrice(it))+'</button></div></div>';
+      }).join('');
+    }catch(e){console.error('renderInventoryFixed error',e);}
+  }
+  window.renderInventory=renderInventoryFixed; try{renderInventory=renderInventoryFixed}catch(e){}
+
+  var oldRenderEnhance=window.renderEnhance;
+  if(typeof oldRenderEnhance==='function'){
+    var wrappedRenderEnhance=function(){
+      var r=oldRenderEnhance.apply(this,arguments);
+      try{var it=state.inventory.find(function(x){return x.id===enhanceId});var t=id('enhanceTitle');if(it&&t)t.innerHTML=titleHtml(it)+(it.transcend?'<small style="color:#9fb0ca;font-size:12px;margin-left:6px">'+it.transcend+'초월</small>':'');}catch(e){}
+      return r;
+    };
+    window.renderEnhance=wrappedRenderEnhance; try{renderEnhance=wrappedRenderEnhance}catch(e){}
+  }
+
+  function playMythicRiseSound(){
+    try{
+      if(!state.sfxOn)return; initAudio();
+      // 2초 정도 이어지는 크고 찰진 띠리링 + 저음 충전음
+      tone(42,1.9,'sawtooth',.18,0); tone(66,1.75,'square',.13,.05); tone(96,1.4,'triangle',.11,.16);
+      var notes=[523,659,784,988,1175,1568,1976,1568,1175,988,784,659,523];
+      notes.forEach(function(n,i){tone(n,.22,i%3===0?'triangle':'sine',.18,.14+i*.12);tone(n*2,.16,'sine',.085,.16+i*.12)});
+      [220,330,440,660,880,1320].forEach(function(n,i){tone(n,.35,'triangle',.11,.62+i*.16)});
+      tone(2400,.55,'sine',.09,1.55); tone(3100,.42,'triangle',.07,1.72);
+    }catch(e){}
+  }
+  window.playMythicRiseSound=playMythicRiseSound;
+  var oldBoom=window.playMythicBoom;
+  window.playMythicBoom=function(){playMythicRiseSound();try{if(typeof oldBoom==='function')oldBoom()}catch(e){}};
+  try{playMythicBoom=window.playMythicBoom}catch(e){}
+
+  function showRarityRevealFixed(it,type,done){
+    var overlay=id('rarityOverlay'); if(!overlay){if(done)done();return}
+    var closed=false, delay=(type==='mythic'||type==='fallen')?3000:0;
+    overlay.className='rarity-overlay show '+type+(type==='mythic'?' charging':'');
+    overlay.style.setProperty('display','flex','important');
+    overlay.dataset.waitTouch='1';
+    try{id('rarityRevealGear').innerHTML=gearIcon(it)}catch(e){}
+    try{id('rarityRevealGrade').textContent=type==='fallen'?'FALLEN':(type==='mythic'?'MYTHIC':'LEGENDARY')}catch(e){}
+    try{id('rarityRevealTitle').textContent=type==='fallen'?'타락 장비 강림!':(type==='mythic'?'신화 장비 강림!':'전설 장비 획득!')}catch(e){}
+    try{id('rarityRevealName').innerHTML=safe(it&&it.name)+'<br><small style="letter-spacing:0;color:#ffd2c4">'+(type==='mythic'?'3초 후 터치하면 결과창으로 이동합니다':'화면을 터치하면 결과창으로 이동합니다')+'</small>'}catch(e){}
+    function impact(){
+      overlay.classList.remove('charging');
+      try{document.body.classList.add('shake');setTimeout(function(){document.body.classList.remove('shake')},650)}catch(e){}
+      try{if(type==='legend')playDrawSound(4);else playMythicBoom()}catch(e){}
+    }
+    if(type==='mythic'||type==='fallen'){playMythicRiseSound();setTimeout(impact,delay)}else impact();
+    function close(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation()}
+      if(closed)return false; closed=true;
+      overlay.className='rarity-overlay'; overlay.style.removeProperty('display'); delete overlay.dataset.waitTouch; overlay.onclick=null;
+      if(done)done(); return false;
+    }
+    setTimeout(function(){overlay.onclick=close},delay+180);
+  }
+  window.showRarityReveal=showRarityRevealFixed; try{showRarityReveal=showRarityRevealFixed}catch(e){}
+
+  setTimeout(function(){try{renderInventoryFixed()}catch(e){}},250);
+})();
+</script>
+
 </body>
 </html>
