@@ -2592,5 +2592,85 @@ load();
 })();
 </script>
 
+<style id="ringuInventoryDetailActionsFinalStyle">
+#inventoryList .item{
+  grid-template-columns:minmax(0,1fr) 82px!important;
+  align-items:center!important;
+}
+#inventoryList .item .item-actions{
+  width:82px!important;
+  min-width:82px!important;
+  display:block!important;
+}
+#inventoryList .item .item-actions .detail-button{
+  width:100%!important;
+  min-height:48px!important;
+  padding:8px 4px!important;
+  border-radius:11px!important;
+  background:linear-gradient(145deg,#31415e,#1c2940)!important;
+  border:1px solid #496181!important;
+  color:#dceaff!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+  line-height:1.15!important;
+  box-shadow:0 5px 13px #0005!important;
+}
+.ringu-detail-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}
+.ringu-detail-actions button{min-height:48px;padding:10px 5px;border-radius:10px;background:#263149;border:1px solid #394963;color:#e8f0ff;font-size:11px;font-weight:1000}
+.ringu-detail-actions .equip{color:#9ed7ff;border-color:#3d6686}
+.ringu-detail-actions .enhance{color:#ffd86d;border-color:#77602c;background:#3a321d}
+.ringu-detail-actions .lock.on{color:#ffd35a;background:#3c3218;border-color:#806928}
+.ringu-detail-actions .sell{color:#ff94a3;border-color:#713745;background:#371b24}
+.ringu-detail-actions button:disabled{opacity:.3;filter:grayscale(.5)}
+@media(max-width:430px){
+  #inventoryList .item{grid-template-columns:minmax(0,1fr) 72px!important}
+  #inventoryList .item .item-actions{width:72px!important;min-width:72px!important}
+  #inventoryList .item .item-actions .detail-button{font-size:10px!important;min-height:44px!important}
+}
+</style>
+<script id="ringuInventoryDetailActionsFinalScript">
+(function(){
+  'use strict';
+  function id(x){return document.getElementById(x)}
+  function esc(v){try{return typeof escapeHtml==='function'?escapeHtml(v):String(v==null?'':v)}catch(e){return String(v==null?'':v)}}
+  function rarityColor(it){try{return rarityColors[it.rarity]||'#dce8ff'}catch(e){return '#dce8ff'}}
+  function rarityName(it){try{return rarityNames[it.rarity]||'일반'}catch(e){return '일반'}}
+  function titleHtml(it){try{if(window.ringuItemTitleHtml)return window.ringuItemTitleHtml(it)}catch(e){}var stars='★'.repeat(Math.min(3,Number(it.transcend)||0));return esc(it.name)+(stars?' <span class="ringu-trans-stars" style="color:'+rarityColor(it)+'">'+stars+'</span>':'')+' +'+(Number(it.enhance)||0)}
+  function findItem(itemId){return(state.inventory||[]).find(function(x){return String(x.id)===String(itemId)})}
+  function ensureDetail(){
+    var m=id('ringuItemDetailModal');
+    if(m)return m;
+    m=document.createElement('div');m.id='ringuItemDetailModal';m.className='modal-bg';
+    m.innerHTML='<div class="modal"><h3>장비 상세정보</h3><div id="ringuItemDetailBody"></div><div class="modal-actions" style="grid-template-columns:1fr;margin-top:12px"><button onclick="closeItemDetail()">닫기</button></div></div>';
+    document.body.appendChild(m);m.addEventListener('click',function(e){if(e.target===m)closeItemDetail()});return m
+  }
+  window.closeItemDetail=function(){var m=id('ringuItemDetailModal');if(m)m.classList.remove('show')};
+  window.openItemDetail=function(itemId){
+    var it=findItem(itemId);if(!it)return;
+    var m=ensureDetail(),body=id('ringuItemDetailBody'),eq=isEquipped(it.id),locked=!!it.locked,enh=Number(it.enhance)||0,tr=Number(it.transcend)||0,color=rarityColor(it);
+    body.innerHTML='<div class="ringu-detail-head">'+gearIcon(it)+'<div class="ringu-detail-title"><b style="color:'+color+'">'+titleHtml(it)+'</b><small>'+rarityName(it)+' · '+esc(it.slot)+(eq?' · 장착 중':'')+(locked?' · 잠금':'')+'</small></div></div>'+
+      '<div class="ringu-detail-grid"><div class="ringu-detail-stat">강화 수치<b>+'+enh+'</b></div><div class="ringu-detail-stat">초월 수치<b>'+(tr?'★'.repeat(Math.min(3,tr)):'없음')+'</b></div><div class="ringu-detail-stat">공격력<b>'+itemAttackText(it)+'</b></div><div class="ringu-detail-stat">판매가<b>'+fmt(sellPrice(it))+'</b></div></div>'+
+      '<div class="ringu-detail-options"><b style="color:#eef3ff">능력치</b><br>'+optionText(it)+'</div>'+
+      '<div class="ringu-detail-actions"><button class="equip" onclick="detailEquip('+it.id+')">'+(eq?'장착 해제':'장착')+'</button><button class="enhance" onclick="detailEnhance('+it.id+')">강화</button><button class="lock '+(locked?'on':'')+'" onclick="detailLock('+it.id+')">'+(locked?'잠금 해제':'잠금')+'</button><button class="sell" '+(eq||locked?'disabled':'')+' onclick="detailSell('+it.id+')">판매<br>'+fmt(sellPrice(it))+'</button></div>';
+    m.classList.add('show');
+  };
+  window.detailEquip=function(itemId){var it=findItem(itemId);if(!it)return;if(isEquipped(it.id)){delete state.equipped[it.slot];toast(it.name+' 장착 해제');renderAll();queueSave();openItemDetail(itemId)}else{equip(it.id);openItemDetail(itemId)}};
+  window.detailEnhance=function(itemId){closeItemDetail();setTimeout(function(){openEnhance(itemId)},40)};
+  window.detailLock=function(itemId){toggleLock(itemId);openItemDetail(itemId)};
+  window.detailSell=function(itemId){var it=findItem(itemId);if(!it||isEquipped(it.id)||it.locked)return;sellItem(itemId);closeItemDetail()};
+  function renderDetailInventory(){
+    try{
+      var list=[].concat(state.inventory||[]),sortEl=id('sortSelect'),sort=sortEl?sortEl.value:'attack';
+      list.sort(function(a,b){return sort==='rarity'?(b.rarity-a.rarity||itemAtk(b)-itemAtk(a)):itemAtk(b)-itemAtk(a)});
+      var count=id('invCount'),box=id('inventoryList');if(count)count.textContent=list.length+'개';if(!box)return;
+      if(!list.length){box.innerHTML='<div class="empty-list">장비가 없습니다.<br>소환으로 첫 장비를 획득하세요.</div>';return}
+      box.innerHTML=list.map(function(it){var atk=itemAtk(it),eqId=state.equipped[it.slot],eq=state.inventory.find(function(x){return x.id===eqId}),up=!isEquipped(it.id)&&atk>(eq?itemAtk(eq):0),color=rarityColor(it);return '<div class="item rarity-'+it.rarity+(isEquipped(it.id)?' equipped':'')+(it.locked?' locked-item':'')+(it.rarity===4?' legendary':'')+(it.rarity===5?' mythic':'')+(it.rarity===6?' fallen':'')+'" data-item-id="'+it.id+'" onclick="openItemDetail('+it.id+')"><div class="gear-row">'+gearIcon(it)+'<div class="item-info"><div class="item-title"><span class="rarity">'+rarityName(it)+'</span><strong class="ringu-item-title" style="color:'+color+'">'+titleHtml(it)+'</strong></div><div class="item-sub">'+esc(it.slot)+' · 공격력 <b>'+itemAttackText(it)+'</b> '+(up?'<span class="up">↑ 추천</span>':'')+(isEquipped(it.id)?'<span style="color:#6eb8ff"> · 장착 중</span>':'')+'<div class="sub-options">'+optionText(it)+'</div></div></div></div><div class="item-actions"><button class="detail-button" onclick="event.stopPropagation();openItemDetail('+it.id+')">상세<br>정보</button></div></div>'}).join('');
+    }catch(e){console.error(e)}
+  }
+  window.renderInventory=renderDetailInventory;try{renderInventory=renderDetailInventory}catch(e){}
+  var sort=id('sortSelect');if(sort)sort.onchange=renderDetailInventory;
+  setTimeout(renderDetailInventory,120);
+})();
+</script>
 </body>
 </html>
