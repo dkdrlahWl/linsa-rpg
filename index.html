@@ -899,7 +899,7 @@ window.ringuGrantLoginCompensationDirectFinal=function(){return false;};
 
 
 
-/* DB PENDING GRANT CLAIM V12: V11 plus resource snapshot reporting. */
+/* DB PENDING GRANT CLAIM V13: V12 snapshot boot fix. */
 (function(){
   'use strict';
   const EXCLUDED_UIDS={};
@@ -909,25 +909,25 @@ window.ringuGrantLoginCompensationDirectFinal=function(){return false;};
   function curUid(){try{return String(state&&state.playerUid||'').trim()}catch(e){return ''}}
   function curName(){try{return String(state&&state.playerName||'').trim()}catch(e){return ''}}
   function fmt2(n){try{return Number(n||0).toLocaleString('ko-KR')}catch(e){return String(n)}}
-  function safeToast(msg){try{toast(msg)}catch(e){} try{console.log('[RINGU DB GRANT V12]',msg)}catch(e){}}
+  function safeToast(msg){try{toast(msg)}catch(e){} try{console.log('[RINGU DB GRANT V13]',msg)}catch(e){}}
   function removeOld(){try{['ringuDbGrantPanelV10','ringuDbGrantPanelV9','ringuDbGrantPanelV8','ringuDbGrantPanelV7','ringuDbGrantPanelV6','ringuDbGrantPanelV5','ringuDbGrantPanelV4','ringuDbGrantPanelV3'].forEach(id=>{const old=document.getElementById(id);if(old)old.remove()})}catch(e){}}
-  function hidePanel(){try{const box=document.getElementById('ringuDbGrantPanelV12'); if(box)box.style.display='none'}catch(e){}}
+  function hidePanel(){try{const box=document.getElementById('ringuDbGrantPanelV13'); if(box)box.style.display='none'}catch(e){}}
   function panel(){
     removeOld();
-    let box=document.getElementById('ringuDbGrantPanelV12');
+    let box=document.getElementById('ringuDbGrantPanelV13');
     if(box){box.style.display='block';return box}
     box=document.createElement('div');
-    box.id='ringuDbGrantPanelV12';
+    box.id='ringuDbGrantPanelV13';
     box.style.cssText='position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:2147483647;max-width:430px;background:#101722fa;border:3px solid #75efb6;border-radius:16px;padding:14px;color:#eef3ff;font:14px system-ui,-apple-system,Noto Sans KR,sans-serif;box-shadow:0 8px 35px #000d;pointer-events:auto!important;touch-action:manipulation!important;user-select:none!important;cursor:pointer!important';
-    box.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="color:#75efb6;font-size:15px">DB 보상 V12</b><button type="button" id="ringuDbGrantCloseV12" style="padding:6px 10px;border-radius:8px;border:0;background:#293247;color:#dbe7ff;font-weight:900">숨김</button></div><div id="ringuDbGrantInfoV12" style="margin-top:7px;color:#b8c5da;word-break:break-all">UID 확인 중</div><div id="ringuDbGrantStatusV12" style="margin-top:8px;color:#9cffd1;line-height:1.45">받을 보상 확인 중</div><div style="margin-top:10px;padding:13px;border-radius:12px;background:linear-gradient(#228552,#145036);color:#fff;text-align:center;font-size:15px;font-weight:1000">박스 터치해서 보상 확인</div>';
+    box.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="color:#75efb6;font-size:15px">DB 보상 V13</b><button type="button" id="ringuDbGrantCloseV13" style="padding:6px 10px;border-radius:8px;border:0;background:#293247;color:#dbe7ff;font-weight:900">숨김</button></div><div id="ringuDbGrantInfoV13" style="margin-top:7px;color:#b8c5da;word-break:break-all">UID 확인 중</div><div id="ringuDbGrantStatusV13" style="margin-top:8px;color:#9cffd1;line-height:1.45">받을 보상 확인 중</div><div style="margin-top:10px;padding:13px;border-radius:12px;background:linear-gradient(#228552,#145036);color:#fff;text-align:center;font-size:15px;font-weight:1000">박스 터치해서 보상 확인</div>';
     document.body.appendChild(box);
-    box.addEventListener('click',e=>{if(e.target&&e.target.id==='ringuDbGrantCloseV12')return; e.preventDefault(); e.stopPropagation(); claim('tap')},true);
-    box.addEventListener('touchstart',e=>{if(e.target&&e.target.id==='ringuDbGrantCloseV12')return; claim('touch')}, {passive:true,capture:true});
-    document.getElementById('ringuDbGrantCloseV12').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();box.style.display='none'},true);
+    box.addEventListener('click',e=>{if(e.target&&e.target.id==='ringuDbGrantCloseV13')return; e.preventDefault(); e.stopPropagation(); claim('tap')},true);
+    box.addEventListener('touchstart',e=>{if(e.target&&e.target.id==='ringuDbGrantCloseV13')return; claim('touch')}, {passive:true,capture:true});
+    document.getElementById('ringuDbGrantCloseV13').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();box.style.display='none'},true);
     return box;
   }
-  function updateInfo(){try{const el=document.getElementById('ringuDbGrantInfoV12'); if(el)el.textContent='닉네임: '+(curName()||'-')+' / UID: '+(curUid()||'-')}catch(e){}}
-  function setStatus(msg,bad=false,show=false){if(show)panel(); updateInfo(); try{const el=document.getElementById('ringuDbGrantStatusV12'); if(el){el.textContent=msg; el.style.color=bad?'#ff9aa8':'#9cffd1'}}catch(e){} safeToast(msg)}
+  function updateInfo(){try{const el=document.getElementById('ringuDbGrantInfoV13'); if(el)el.textContent='닉네임: '+(curName()||'-')+' / UID: '+(curUid()||'-')}catch(e){}}
+  function setStatus(msg,bad=false,show=false){if(show)panel(); updateInfo(); try{const el=document.getElementById('ringuDbGrantStatusV13'); if(el){el.textContent=msg; el.style.color=bad?'#ff9aa8':'#9cffd1'}}catch(e){} safeToast(msg)}
   function api(method,path,body,prefer='return=representation'){
     const opt={method,headers:rankingHeaders({Prefer:prefer})};
     if(body!==undefined&&body!==null)opt.body=JSON.stringify(body);
@@ -979,10 +979,10 @@ window.ringuGrantLoginCompensationDirectFinal=function(){return false;};
     snapshotRunning=true; lastSnapshot=Date.now();
     try{
       await api('POST','/rest/v1/ringu_player_snapshot?on_conflict=player_uid',row,'resolution=merge-duplicates,return=minimal');
-      try{console.log('[RINGU SNAPSHOT V12]',reason||'',row)}catch(e){}
+      try{console.log('[RINGU SNAPSHOT V13]',reason||'',row)}catch(e){}
       return true;
     }catch(err){
-      try{console.warn('[RINGU SNAPSHOT V12] failed:',err&&err.message?err.message:err)}catch(e){}
+      try{console.warn('[RINGU SNAPSHOT V13] failed:',err&&err.message?err.message:err)}catch(e){}
       return false;
     }finally{snapshotRunning=false}
   }
@@ -1032,7 +1032,7 @@ window.ringuGrantLoginCompensationDirectFinal=function(){return false;};
     if(items.length)state.inventory.unshift(...items);
     if(!g&&!e&&!t&&!items.length)return false;
     state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
-    state.mailFlags.dbPendingGrantV12={uid:curUid(),row:row.id,campaign:row.campaign,at:Date.now(),gold:g,essence:e,stone:t,itemCount:items.length,serverClaimed:true};
+    state.mailFlags.dbPendingGrantV13={uid:curUid(),row:row.id,campaign:row.campaign,at:Date.now(),gold:g,essence:e,stone:t,itemCount:items.length,serverClaimed:true};
     saveHard();
     const parts=[]; if(g)parts.push('골드 '+fmt2(g)); if(e)parts.push('정수 '+e); if(t)parts.push('초월석 '+t); if(items.length)parts.push('장비 '+items.length+'개');
     const msg=(g<0||e<0||t<0?'회수 완료':'지급 완료')+' · '+parts.join(' / ');
@@ -1063,7 +1063,7 @@ window.ringuGrantLoginCompensationDirectFinal=function(){return false;};
     }catch(err){setStatus('DB 보상 오류: '+(err&&err.message?err.message:err),true,true);return false}
     finally{running=false; updateInfo()}
   }
-  window.ringuClaimDbPendingGrant20260614V12=claim;
+  window.ringuClaimDbPendingGrant20260614V13=claim;
   window.ringuGrantLoginCompensationNoMailBoot=function(){return claim('legacy')};
   window.ringuGrantLoginCompensationDirectFinal=function(){return false};
   function boot(){removeOld(); if(started)return; started=true; [500,1200,2500,4500,7000,11000,16000,23000,35000,55000,80000].forEach(ms=>setTimeout(()=>{claim('auto '+ms); scheduleSnapshot('auto '+ms)},ms)); setInterval(()=>{claim('auto interval'); scheduleSnapshot('interval')},9000)}
@@ -1071,11 +1071,12 @@ window.ringuGrantLoginCompensationDirectFinal=function(){return false;};
   ['loadCloudAccount','createCloudAccount','setNickname','syncRanking','pullCloudState','initCloudSync'].forEach(fn=>{
     try{const old=window[fn]; if(typeof old==='function'&&!old.__ringuDbV12Wrap){const wrapped=function(){const ret=old.apply(this,arguments); Promise.resolve(ret).finally(()=>{setTimeout(()=>{claim(fn); scheduleSnapshot(fn)},900);setTimeout(()=>{claim(fn+' late'); scheduleSnapshot(fn+' late')},3500)}); return ret}; wrapped.__ringuDbV12Wrap=true; window[fn]=wrapped}}catch(e){}
   });
-  window.ringuDbGrantV12Boot=boot;
+  window.ringuDbGrantV13Boot=boot;
 })();
 
 load();
-try{window.ringuDbGrantV11Boot&&window.ringuDbGrantV11Boot()}catch(e){}
+try{window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot()}catch(e){}
+try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot()},1200)}catch(e){}
 })();
 </script>
 <style id="fallenSwordPositionSizeFinal">
