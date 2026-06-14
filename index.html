@@ -896,8 +896,10 @@ window.ringuGrantHunterReportDirectFinal=function(){
   return true;
 };
 window.ringuGrantLoginCompensationDirectFinal=function(){
-  var excluded={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},uid=String(state.playerUid||'');
-  if(!uid||excluded[uid])return false;
+  var excludedUid={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},excludedName={'도현':1,'링구':1};
+  var uid=String(state.playerUid||''),name=String(state.playerName||'').trim();
+  /* 랭킹창 등록 대상만: 기본/관리자/숨김 계정과 도현·링구 닉네임은 제외 */
+  if(!uid||excludedUid[uid]||excludedName[name]||name==='모험가'||name==='장애인계정'||state.rankingHidden)return false;
   state.mailFlags=state.mailFlags&&typeof state.mailFlags==='object'?state.mailFlags:{};
   if(state.mailFlags.loginCompensation20260614V1)return true;
   state.gold=(Number(state.gold)||0)+200000000;
@@ -2191,8 +2193,9 @@ load();
   }
   async function grantLoginCompensation(){
     var info=null;try{info=window.ringuGetMailIdentityFinal()}catch(e){}
-    var excluded={'JWXTLA8Q2L':1,'NAUYC8CEX7':1};
-    if(!info||!info.uid||excluded[String(info.uid)])return false;
+    var excludedUid={'JWXTLA8Q2L':1,'NAUYC8CEX7':1},excludedName={'도현':1,'링구':1};
+    var uid=String(info&&info.uid||''),name=String(info&&info.name||'').trim();
+    if(!uid||excludedUid[uid]||excludedName[name]||name==='모험가'||name==='장애인계정')return false;
     var reward={id:'login-compensation-v1',type:'loginCompensation',amount:1};
     try{
       if(await receiptExists(reward)){mailFlags().loginCompensation20260614V1=Date.now();saveNow();return true}
@@ -2201,10 +2204,30 @@ load();
       return inserted;
     }catch(e){return false}
   }
+  window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
   async function boot(){await grantHunterDirect();await grantLoginCompensation();var old=byId('mailOpenBtn')||byId('simpleMailOpenBtn');if(old)old.style.setProperty('display','none','important');}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   setTimeout(boot,50);setTimeout(boot,500);setTimeout(boot,1500);setTimeout(boot,3500);
   setInterval(function(){replaceButton();updateBadge();},1000);
+})();
+</script>
+<script id="rankingLoginRewardNoMailHook20260614">
+(function(){
+  function install(){
+    if(window.__rankingLoginRewardNoMailHook20260614)return;
+    if(typeof window.setNickname!=='function')return;
+    var originalSetNickname=window.setNickname;
+    window.setNickname=function(){
+      var result=originalSetNickname.apply(this,arguments);
+      setTimeout(function(){
+        try{ if(typeof window.ringuGrantLoginCompensationNoMailBoot==='function') window.ringuGrantLoginCompensationNoMailBoot(); }catch(e){}
+      },500);
+      return result;
+    };
+    window.__rankingLoginRewardNoMailHook20260614=true;
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+  setTimeout(install,300);setTimeout(install,1200);
 })();
 </script>
 
