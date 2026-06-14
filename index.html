@@ -3075,97 +3075,119 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
 
 
 
-<script id="ringuDbPendingGrantClaim20260614V2Debug">
+<script id="ringuDbPendingGrantClaim20260614V3Visible">
 (function(){
   'use strict';
   var CAMPAIGN='AFTER_LOGIN_DB_GRANT_20260614_V1';
-  var LOCAL_FLAG='dbPendingGrantClaimed20260614V2';
   var EXCLUDED_UIDS={'JWXTLA8Q2L':1,'NAUYC8CEX7':1};
   var EXCLUDED_NAMES={'도현':1,'링구':1};
-  var running=false,lastMsg='';
-  function log(msg){lastMsg=msg;try{console.log('[RINGU DB GRANT V2]',msg)}catch(e){}}
-  function toastMsg(msg){log(msg);try{if(typeof toast==='function')toast(msg)}catch(e){}}
-  function st(){try{return typeof state!=='undefined'&&state?state:null}catch(e){return null}}
-  function uid(){var s=st();return s&&s.playerUid?String(s.playerUid):''}
-  function name(){var s=st();return s&&s.playerName?String(s.playerName).trim():''}
-  function flags(){var s=st();if(!s)return {};s.mailFlags=s.mailFlags&&typeof s.mailFlags==='object'?s.mailFlags:{};return s.mailFlags}
+  var running=false;
+  var lastStatus='DB 보상 V3 준비 중';
+  function s(){try{return typeof state!=='undefined'&&state?state:null}catch(e){return null}}
+  function id(){var x=s();return x&&x.playerUid?String(x.playerUid):''}
+  function nm(){var x=s();return x&&x.playerName?String(x.playerName).trim():''}
   function ready(){try{return !!(typeof SUPABASE_URL==='string'&&SUPABASE_URL&&typeof rankingHeaders==='function'&&typeof fetch==='function')}catch(e){return false}}
-  function hasCloudLoaded(){
-    var s=st(); if(!s)return false;
-    var nm=name(); if(!uid()||!nm||nm==='모험가'||nm==='장애인계정')return false;
-    try{var sess=typeof getCloudSession==='function'?getCloudSession():null;if(sess&&sess.id)return true}catch(e){}
-    return true;
+  function money(n){try{return Number(n||0).toLocaleString('ko-KR')}catch(e){return String(n)}}
+  function setStatus(msg,bad){lastStatus=msg;try{console.log('[RINGU DB GRANT V3]',msg)}catch(e){}
+    try{var el=document.getElementById('ringuDbGrantPanelStatus');if(el){el.textContent=msg;el.style.color=bad?'#ff9aa8':'#9cffd1'}}catch(e){}
   }
+  function toastStatus(msg,bad){setStatus(msg,bad);try{if(typeof toast==='function')toast(msg)}catch(e){}}
+  function panel(){
+    if(document.getElementById('ringuDbGrantPanel'))return;
+    var box=document.createElement('div');
+    box.id='ringuDbGrantPanel';
+    box.style.cssText='position:fixed;left:8px;bottom:8px;z-index:99999;max-width:330px;background:#101722f2;border:1px solid #4d6b92;border-radius:12px;padding:10px;color:#eef3ff;font:12px system-ui,-apple-system,Noto Sans KR,sans-serif;box-shadow:0 8px 24px #0008';
+    box.innerHTML='<b style="color:#ffd35a">DB 접속보상 V3</b><div id="ringuDbGrantPanelInfo" style="margin-top:4px;color:#b8c5da"></div><div id="ringuDbGrantPanelStatus" style="margin-top:5px;color:#9cffd1">준비 중</div><button id="ringuDbGrantPanelBtn" style="margin-top:7px;width:100%;padding:8px;border-radius:8px;border:0;background:#315f4f;color:#9cffd1;font-weight:900">보상 다시 확인/받기</button><button id="ringuDbGrantPanelClose" style="margin-top:5px;width:100%;padding:6px;border-radius:8px;border:0;background:#293247;color:#b8c5da;font-weight:800">상태창 숨기기</button>';
+    document.body.appendChild(box);
+    document.getElementById('ringuDbGrantPanelBtn').onclick=function(){claim('manual')};
+    document.getElementById('ringuDbGrantPanelClose').onclick=function(){box.style.display='none'};
+    setInterval(updatePanel,1000);updatePanel();
+  }
+  function updatePanel(){try{var el=document.getElementById('ringuDbGrantPanelInfo');if(!el)return;el.textContent='닉네임: '+(nm()||'-')+' / UID: '+(id()||'-')}catch(e){}}
   async function api(method,path,body,prefer){
-    var res=await fetch(SUPABASE_URL+path,{method:method,headers:rankingHeaders({Prefer:prefer||'return=representation'}),body:body?JSON.stringify(body):undefined});
+    var opt={method:method,headers:rankingHeaders({Prefer:prefer||'return=representation'})};
+    if(body!==undefined&&body!==null)opt.body=JSON.stringify(body);
+    var res=await fetch(SUPABASE_URL+path,opt);
     var text=await res.text();
-    if(!res.ok)throw Error(method+' '+path+' 실패 '+res.status+' '+text.slice(0,160));
+    if(!res.ok)throw Error(method+' 실패 '+res.status+' '+text.slice(0,180));
     try{return text?JSON.parse(text):null}catch(e){return text}
   }
-  async function getRows(id){
-    var path='/rest/v1/ringu_pending_grants?select=id,campaign,player_uid,gold,essence,transcend_stone,claimed_at&campaign=eq.'+encodeURIComponent(CAMPAIGN)+'&player_uid=eq.'+encodeURIComponent(id)+'&claimed_at=is.null';
+  async function fetchGrantRows(uid){
+    var path='/rest/v1/ringu_pending_grants?select=id,campaign,player_uid,gold,essence,transcend_stone,claimed_at&campaign=eq.'+encodeURIComponent(CAMPAIGN)+'&player_uid=eq.'+encodeURIComponent(uid)+'&limit=5';
     var rows=await api('GET',path,null,'return=representation');
     return Array.isArray(rows)?rows:[];
   }
-  async function markClaimed(ids){
+  async function markRows(ids){
     if(!ids.length)return [];
-    var path='/rest/v1/ringu_pending_grants?id=in.('+ids.map(encodeURIComponent).join(',')+')&claimed_at=is.null';
+    var path='/rest/v1/ringu_pending_grants?id=in.('+ids.map(function(x){return encodeURIComponent(x)}).join(',')+')&claimed_at=is.null';
     return await api('PATCH',path,{claimed_at:new Date().toISOString()},'return=representation');
   }
-  function saveAll(){
+  function forceSave(){
     try{if(typeof renderAll==='function')renderAll();else if(typeof renderTop==='function')renderTop()}catch(e){}
-    try{if(typeof save==='function')save(true);else if(typeof ringuLocalSave==='function')ringuLocalSave()}catch(e){}
+    try{if(typeof save==='function')save(true)}catch(e){}
     try{if(typeof saveChanceAction==='function')saveChanceAction()}catch(e){}
-    try{var sess=typeof getCloudSession==='function'?getCloudSession():null;if(sess&&typeof uploadCloudState==='function'){setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){}},250);setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){}},1500);setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){}},4000)}}catch(e){}
-    try{if(typeof syncRanking==='function')setTimeout(syncRanking,900)}catch(e){}
+    try{if(typeof localStorage!=='undefined'&&typeof KEY!=='undefined'&&s())localStorage.setItem(KEY,JSON.stringify(s()))}catch(e){}
+    try{cloudDirty=true;cloudRevision=(Number(cloudRevision)||0)+1}catch(e){}
+    try{var sess=typeof getCloudSession==='function'?getCloudSession():null;if(sess&&typeof uploadCloudState==='function'){
+      clearTimeout(typeof cloudSaveTimer==='undefined'?0:cloudSaveTimer);
+      setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){}},200);
+      setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){}},1800);
+      setTimeout(function(){try{uploadCloudState(sess,true)}catch(e){}},5000);
+    }}catch(e){}
   }
-  function applyRows(rows,id){
-    var s=st(); if(!s||!rows.length)return false;
-    var gold=0,essence=0,stone=0;
-    rows.forEach(function(r){gold+=Number(r.gold)||0;essence+=Number(r.essence)||0;stone+=Number(r.transcend_stone)||0});
-    if(!gold&&!essence&&!stone)return false;
-    s.gold=(Number(s.gold)||0)+gold;
-    s.essence=(Number(s.essence)||0)+essence;
-    s.transcendStone=(Number(s.transcendStone)||0)+stone;
-    flags()[LOCAL_FLAG]={uid:id,at:Date.now(),campaign:CAMPAIGN,gold:gold,essence:essence,stone:stone};
-    saveAll();
-    toastMsg('접속 보상 지급 완료 · 골드 '+gold.toLocaleString('ko-KR')+' / 정수 '+essence+' / 초월석 '+stone);
+  function addReward(rows){
+    var st=s(); if(!st)return false;
+    var g=0,e=0,t=0;
+    rows.forEach(function(r){g+=Number(r.gold)||0;e+=Number(r.essence)||0;t+=Number(r.transcend_stone)||0});
+    if(!g&&!e&&!t)return false;
+    st.gold=(Number(st.gold)||0)+g;
+    st.essence=(Number(st.essence)||0)+e;
+    st.transcendStone=(Number(st.transcendStone)||0)+t;
+    st.mailFlags=st.mailFlags&&typeof st.mailFlags==='object'?st.mailFlags:{};
+    st.mailFlags.dbPendingGrantV3={campaign:CAMPAIGN,uid:id(),at:Date.now(),gold:g,essence:e,stone:t};
+    forceSave();
+    toastStatus('지급 완료: 골드 '+money(g)+' / 정수 '+e+' / 초월석 '+t,false);
     return true;
   }
-  async function run(reason){
-    if(running)return false;
-    var s=st(),id=uid(),nm=name();
-    if(!s||!id){log('대기: UID 없음');return false}
-    if(!ready()){log('대기: Supabase 준비 전');return false}
-    if(!hasCloudLoaded()){log('대기: 캐릭터/클라우드 로드 전');return false}
-    if(EXCLUDED_UIDS[id]||EXCLUDED_NAMES[nm]){log('제외 UID/닉네임: '+id+' '+nm);return false}
-    if(flags()[LOCAL_FLAG]&&flags()[LOCAL_FLAG].uid===id){log('이미 로컬 지급 플래그 있음');return true}
+  async function claim(reason){
+    panel(); updatePanel();
+    if(running){setStatus('이미 확인 중입니다');return false}
+    var uid=id(), name=nm();
+    if(!s()){setStatus('게임 state 준비 전',true);return false}
+    if(!uid){setStatus('UID 없음: 닉네임/저장 로드 대기',true);return false}
+    if(!ready()){setStatus('Supabase 연결 함수 준비 전',true);return false}
+    if(EXCLUDED_UIDS[uid]||EXCLUDED_NAMES[name]){setStatus('제외 계정입니다: '+uid+' '+name,true);return false}
     running=true;
     try{
-      log('조회 시작 '+id+' '+(reason||''));
-      var rows=await getRows(id);
-      if(!rows.length){log('DB에 미수령 보상 없음: '+id);return false}
-      var ok=applyRows(rows,id);
-      if(!ok)return false;
-      await new Promise(function(r){setTimeout(r,800)});
-      var marked=await markClaimed(rows.map(function(r){return r.id}));
-      log('claimed_at 처리 완료 '+(marked&&marked.length||0)+'건');
+      setStatus('DB 조회 중: '+uid);
+      var rows=await fetchGrantRows(uid);
+      if(!rows.length){setStatus('이 UID는 보상 대상 목록에 없음: '+uid,true);return false}
+      var open=rows.filter(function(r){return !r.claimed_at});
+      if(!open.length){setStatus('이미 DB에서 수령 처리된 UID: '+uid,false);return true}
+      setStatus('보상 발견 '+open.length+'건 · 지급 중');
+      if(!addReward(open))return false;
+      await new Promise(function(r){setTimeout(r,1200)});
+      var marked=await markRows(open.map(function(r){return r.id}));
+      setStatus('수령 처리 완료 '+(marked&&marked.length||0)+'건 · 자원창 확인',false);
+      forceSave();
       return true;
-    }catch(e){toastMsg('DB 보상 오류: '+(e&&e.message?e.message:e));return false}
+    }catch(err){toastStatus('DB 보상 오류: '+(err&&err.message?err.message:err),true);return false}
     finally{running=false}
   }
-  window.ringuClaimDbPendingGrant20260614V2=run;
+  window.ringuDbGrantV3Status=function(){panel();claim('console')};
+  window.ringuClaimDbPendingGrant20260614V3=claim;
+  window.ringuClaimDbPendingGrant20260614V2=claim;
   window.ringuGrantAfterLoginOnceDirect20260614V1=function(){return false};
   window.ringuGrantAfterLoginOnceDirect20260614V2=function(){return false};
   window.ringuGrantAfterLoginOnceDirect20260614V3=function(){return false};
   window.ringuGrantLoginCompensationDirectFinal=function(){return false};
-  window.ringuGrantLoginCompensationNoMailBoot=function(){return run('legacy-hook')};
-  function boot(){[500,1800,4500,9000,15000,25000,40000].forEach(function(ms){setTimeout(function(){run('boot '+ms)},ms)})}
+  window.ringuGrantLoginCompensationNoMailBoot=function(){return claim('legacy')};
+  function boot(){panel();[700,2000,5000,10000,18000,30000,50000].forEach(function(ms){setTimeout(function(){claim('boot '+ms)},ms)})}
+  function wrap(fn){setTimeout(function(){try{var old=window[fn];if(typeof old==='function'&&!old.__dbGrantV3Wrap){var w=function(){var ret=old.apply(this,arguments);Promise.resolve(ret).finally(function(){setTimeout(function(){claim(fn)},1200);setTimeout(function(){claim(fn+' late')},4500)});return ret};w.__dbGrantV3Wrap=true;window[fn]=w}}catch(e){}},1500)}
+  ['loadCloudAccount','createCloudAccount','saveCloudNow','pullCloudState','applyCloudData','setNickname','initCloudSync','syncRanking'].forEach(wrap);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   document.addEventListener('visibilitychange',function(){if(!document.hidden)boot()},true);
-  setInterval(function(){run('interval')},30000);
-  function wrap(fn){setTimeout(function(){try{var old=window[fn];if(typeof old==='function'&&!old.__dbGrantV2Wrap){var w=function(){var ret=old.apply(this,arguments);Promise.resolve(ret).finally(function(){setTimeout(function(){run(fn)},1000);setTimeout(function(){run(fn+' late')},3500)});return ret};w.__dbGrantV2Wrap=true;window[fn]=w}}catch(e){}},1200)}
-  ['loadCloudAccount','createCloudAccount','saveCloudNow','pullCloudState','applyCloudData','setNickname','initCloudSync'].forEach(wrap);
+  setInterval(function(){claim('interval')},30000);
 })();
 </script>
 
