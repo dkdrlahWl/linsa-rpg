@@ -1389,27 +1389,92 @@ try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot
 .avatar-body:not(.has-weapon) .avatar-sword{display:none!important}
 .avatar-body.has-weapon .avatar-sword:not(.offhand){display:block}
 .avatar-body.has-weapon:not(.dual-wield) .avatar-sword.offhand{display:none!important}
+.avatar-torso{
+  left:10px!important;
+  top:36px!important;
+  width:46px!important;
+  height:63px!important;
+  border-radius:16px 16px 12px 12px!important;
+  clip-path:none!important;
+  background:linear-gradient(145deg,#ff5271 0%,var(--chest) 48%,#182d52 100%)!important;
+  box-shadow:inset -7px -6px 13px #10203a88,0 0 10px color-mix(in srgb,var(--chest) 45%,transparent)!important;
+}
+.avatar-torso::before,
+.avatar-torso::after{
+  content:""!important;
+  position:absolute!important;
+  top:2px!important;
+  width:18px!important;
+  height:28px!important;
+  border-radius:13px 13px 10px 10px!important;
+  background:linear-gradient(155deg,#789fd7,var(--chest) 70%,#1b3156)!important;
+  box-shadow:inset -4px -3px 8px #10203a80!important;
+}
+.avatar-torso::before{left:-12px!important;transform:rotate(13deg)!important}
+.avatar-torso::after{right:-12px!important;transform:rotate(-13deg)!important}
+.avatar-arm{
+  top:43px!important;
+  width:14px!important;
+  height:57px!important;
+  border-radius:12px!important;
+  background:linear-gradient(180deg,#6f93ca 0 48%,#d89b7d 49% 100%)!important;
+}
+.avatar-arm.left{left:4px!important;transform:rotate(12deg)!important;transform-origin:50% 8%!important}
+.avatar-arm.right{right:4px!important;transform:rotate(-11deg)!important;transform-origin:50% 8%!important}
+.avatar-body.has-weapon .avatar-arm.left{
+  left:2px!important;
+  top:43px!important;
+  height:60px!important;
+  transform:rotate(18deg)!important;
+  z-index:10!important;
+}
+.avatar-body.has-weapon .avatar-arm.right{
+  right:4px!important;
+  top:43px!important;
+  height:58px!important;
+  transform:rotate(-13deg)!important;
+}
+.avatar-leg{
+  top:91px!important;
+  width:20px!important;
+  height:47px!important;
+  border-radius:5px 5px 11px 11px!important;
+  background:linear-gradient(180deg,#ff4963 0%,var(--legs) 72%,#ffb347 100%)!important;
+  box-shadow:inset -5px -5px 10px #151a3480,0 8px 12px #ff9d3b33!important;
+}
+.avatar-leg.left{left:12px!important;transform:rotate(2deg)!important}
+.avatar-leg.right{right:12px!important;transform:rotate(-2deg)!important}
+.avatar-boot{
+  top:124px!important;
+  width:24px!important;
+  height:15px!important;
+  border-radius:4px 4px 10px 10px!important;
+  background:linear-gradient(180deg,#ffbf61,#1a2132)!important;
+  box-shadow:0 0 10px #ffb34799!important;
+}
+.avatar-boot.left{left:8px!important}
+.avatar-boot.right{right:8px!important}
 .avatar-sword.fallen-sword,
 .avatar-body.female .avatar-sword.fallen-sword,
 .avatar-body.dual-wield .avatar-sword.fallen-sword{
-  left:11px!important;
+  left:7px!important;
   right:auto!important;
-  top:57px!important;
-  width:72px!important;
-  height:128px!important;
-  transform:scaleX(-1) rotate(-18deg)!important;
-  transform-origin:18% 78%!important;
+  top:64px!important;
+  width:82px!important;
+  height:146px!important;
+  transform:scaleX(-1) rotate(-34deg)!important;
+  transform-origin:17% 23%!important;
   z-index:7!important;
 }
 .avatar-body.dual-wield .avatar-sword.offhand.fallen-sword{display:none!important}
-.rank-preview .avatar-sword.fallen-sword{left:11px!important;top:57px!important;width:76px!important;height:134px!important}
+.rank-preview .avatar-sword.fallen-sword{left:7px!important;top:64px!important;width:82px!important;height:146px!important}
 .avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left{z-index:10!important}
 .avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left::after{
   content:""!important;
   position:absolute!important;
   z-index:11!important;
-  left:-1px!important;
-  bottom:-2px!important;
+  left:-2px!important;
+  bottom:-3px!important;
   width:14px!important;
   height:15px!important;
   border-radius:48% 48% 55% 55%!important;
