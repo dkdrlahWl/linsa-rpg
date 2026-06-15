@@ -3315,5 +3315,358 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
   /* Legacy duplicate shop override disabled. Core buyAura, buyConsumable and renderAuraShop now own shop state, UI refresh and save. */
 })();
 </script>
+<style id="ringuWeaponPoseEditorStyle">
+:root{
+  --fallen-sword-left:-20px;
+  --fallen-sword-top:-5px;
+  --fallen-sword-width:68px;
+  --fallen-sword-height:120px;
+  --fallen-sword-rotate:-510deg;
+  --fallen-sword-origin:18% 78%;
+  --gear-helmet-x:0px;
+  --gear-helmet-y:0px;
+  --gear-helmet-scale:1;
+  --gear-helmet-rotate:0deg;
+  --gear-armor-x:0px;
+  --gear-armor-y:0px;
+  --gear-armor-scale:1;
+  --gear-armor-rotate:0deg;
+  --gear-arm-left-x:0px;
+  --gear-arm-left-y:0px;
+  --gear-arm-left-scale:1;
+  --gear-arm-left-rotate:8deg;
+  --gear-arm-right-x:0px;
+  --gear-arm-right-y:0px;
+  --gear-arm-right-scale:1;
+  --gear-arm-right-rotate:-8deg;
+  --gear-leg-left-x:0px;
+  --gear-leg-left-y:0px;
+  --gear-leg-left-scale:1;
+  --gear-leg-left-rotate:3deg;
+  --gear-leg-right-x:0px;
+  --gear-leg-right-y:0px;
+  --gear-leg-right-scale:1;
+  --gear-leg-right-rotate:-3deg;
+  --gear-boot-left-x:0px;
+  --gear-boot-left-y:0px;
+  --gear-boot-left-scale:1;
+  --gear-boot-left-rotate:0deg;
+  --gear-boot-right-x:0px;
+  --gear-boot-right-y:0px;
+  --gear-boot-right-scale:1;
+  --gear-boot-right-rotate:0deg;
+  --gear-accessory-x:0px;
+  --gear-accessory-y:0px;
+  --gear-accessory-scale:1;
+  --gear-accessory-rotate:0deg;
+}
+.avatar-sword.fallen-sword:not(.fallen-axe){
+  left:var(--fallen-sword-left)!important;
+  right:auto!important;
+  top:var(--fallen-sword-top)!important;
+  width:var(--fallen-sword-width)!important;
+  height:var(--fallen-sword-height)!important;
+  transform:rotate(var(--fallen-sword-rotate))!important;
+  transform-origin:var(--fallen-sword-origin)!important;
+}
+.avatar-body.dual-wield .avatar-sword.offhand.fallen-sword:not(.fallen-axe){
+  left:var(--fallen-sword-left)!important;
+  right:auto!important;
+  transform:scaleX(-1) rotate(var(--fallen-sword-rotate))!important;
+}
+.avatar-helmet{transform:translate(var(--gear-helmet-x),var(--gear-helmet-y)) rotate(var(--gear-helmet-rotate)) scale(var(--gear-helmet-scale))!important}
+.avatar-torso{transform:translate(var(--gear-armor-x),var(--gear-armor-y)) rotate(var(--gear-armor-rotate)) scale(var(--gear-armor-scale))!important}
+.avatar-arm.left{transform:translate(var(--gear-arm-left-x),var(--gear-arm-left-y)) rotate(var(--gear-arm-left-rotate)) scale(var(--gear-arm-left-scale))!important}
+.avatar-arm.right{transform:translate(var(--gear-arm-right-x),var(--gear-arm-right-y)) rotate(var(--gear-arm-right-rotate)) scale(var(--gear-arm-right-scale))!important}
+.avatar-leg.left{transform:translate(var(--gear-leg-left-x),var(--gear-leg-left-y)) rotate(var(--gear-leg-left-rotate)) scale(var(--gear-leg-left-scale))!important}
+.avatar-leg.right{transform:translate(var(--gear-leg-right-x),var(--gear-leg-right-y)) rotate(var(--gear-leg-right-rotate)) scale(var(--gear-leg-right-scale))!important}
+.avatar-boot.left{transform:translate(var(--gear-boot-left-x),var(--gear-boot-left-y)) rotate(var(--gear-boot-left-rotate)) scale(var(--gear-boot-left-scale))!important}
+.avatar-boot.right{transform:translate(var(--gear-boot-right-x),var(--gear-boot-right-y)) rotate(var(--gear-boot-right-rotate)) scale(var(--gear-boot-right-scale))!important}
+.avatar-relics{transform:translate(var(--gear-accessory-x),var(--gear-accessory-y)) rotate(var(--gear-accessory-rotate)) scale(var(--gear-accessory-scale))!important}
+.weapon-pose-editor{
+  position:fixed;
+  z-index:9999;
+  right:10px;
+  bottom:10px;
+  width:min(320px,calc(100vw - 20px));
+  padding:10px;
+  border:1px solid #49607f;
+  border-radius:10px;
+  background:#101827ee;
+  color:#eef3ff;
+  box-shadow:0 12px 35px #000b;
+  font:12px/1.35 system-ui,-apple-system,"Noto Sans KR",sans-serif;
+}
+.weapon-pose-editor strong{display:block;margin-bottom:7px;font-size:13px}
+.weapon-pose-editor label{display:grid;grid-template-columns:52px 1fr 44px;gap:6px;align-items:center;margin:5px 0;color:#aeb9cc}
+.weapon-pose-editor input[type=range]{width:100%}
+.weapon-pose-editor output{color:#ffd35a;text-align:right;font-weight:900}
+.weapon-pose-editor .pose-row{display:flex;gap:6px;margin-top:8px}
+.weapon-pose-editor button,
+.weapon-pose-editor select{
+  flex:1;
+  min-height:30px;
+  border:1px solid #34425d;
+  border-radius:7px;
+  background:#202a3d;
+  color:#fff;
+  font:inherit;
+  font-weight:800;
+}
+.weapon-pose-editor .save{background:#8f6a18;color:#fff1b0}
+.weapon-pose-editor .reset{background:#3a2630;color:#ffb4c0}
+.weapon-pose-editor .hint{margin-top:7px;color:#8d99ae;font-size:11px}
+body.weapon-pose-debug .avatar-sword.fallen-sword,
+body.weapon-pose-debug .avatar-helmet.on,
+body.weapon-pose-debug .avatar-torso,
+body.weapon-pose-debug .avatar-arm,
+body.weapon-pose-debug .avatar-leg,
+body.weapon-pose-debug .avatar-boot,
+body.weapon-pose-debug .avatar-relics{
+  outline:1px dashed #ffe66d;
+  cursor:grab;
+  pointer-events:auto!important;
+}
+body.weapon-pose-debug .avatar-sword.fallen-sword:active,
+body.weapon-pose-debug .avatar-helmet.on:active,
+body.weapon-pose-debug .avatar-torso:active,
+body.weapon-pose-debug .avatar-arm:active,
+body.weapon-pose-debug .avatar-leg:active,
+body.weapon-pose-debug .avatar-boot:active,
+body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
+</style>
+<script id="ringuWeaponPoseEditor">
+(function(){
+  'use strict';
+  var KEY='ringuWeaponPoseV1';
+  var defaults={
+    sword:{left:-20,top:-5,width:68,height:120,rotate:-510,originX:18,originY:78},
+    axe:{left:52,top:36,width:68,height:120,rotate:-30,originX:18,originY:78},
+    helmet:{x:0,y:0,scale:1,rotate:0},
+    armor:{x:0,y:0,scale:1,rotate:0},
+    armLeft:{x:0,y:0,scale:1,rotate:8},
+    armRight:{x:0,y:0,scale:1,rotate:-8},
+    legLeft:{x:0,y:0,scale:1,rotate:3},
+    legRight:{x:0,y:0,scale:1,rotate:-3},
+    bootLeft:{x:0,y:0,scale:1,rotate:0},
+    bootRight:{x:0,y:0,scale:1,rotate:0},
+    accessory:{x:0,y:0,scale:1,rotate:0}
+  };
+  var partNames={
+    sword:'fallen sword',
+    axe:'fallen axe',
+    helmet:'helmet',
+    armor:'armor body',
+    armLeft:'left armor arm',
+    armRight:'right armor arm',
+    legLeft:'left pants leg',
+    legRight:'right pants leg',
+    bootLeft:'left boot',
+    bootRight:'right boot',
+    accessory:'ring/earring aura'
+  };
+  var partCss={
+    helmet:'helmet',
+    armor:'armor',
+    armLeft:'arm-left',
+    armRight:'arm-right',
+    legLeft:'leg-left',
+    legRight:'leg-right',
+    bootLeft:'boot-left',
+    bootRight:'boot-right',
+    accessory:'accessory'
+  };
+  function clone(o){return JSON.parse(JSON.stringify(o))}
+  function load(){
+    try{
+      var saved=JSON.parse(localStorage.getItem(KEY)||'{}');
+      var out=clone(defaults);
+      Object.keys(defaults).forEach(function(k){out[k]=Object.assign({},defaults[k],saved[k]||{})});
+      return out;
+    }catch(e){return clone(defaults)}
+  }
+  var poses=load();
+  function setVar(name,value){document.documentElement.style.setProperty(name,value)}
+  function isWeapon(type){return type==='sword'||type==='axe'}
+  function applyPose(type){
+    var p=poses[type]||defaults[type];
+    if(isWeapon(type)){
+      var prefix='--fallen-'+type+'-';
+      setVar(prefix+'left',p.left+'px');
+      setVar(prefix+'top',p.top+'px');
+      setVar(prefix+'width',p.width+'px');
+      setVar(prefix+'height',p.height+'px');
+      setVar(prefix+'rotate',p.rotate+'deg');
+      setVar(prefix+'origin',p.originX+'% '+p.originY+'%');
+      return;
+    }
+    var css=partCss[type];
+    if(!css)return;
+    setVar('--gear-'+css+'-x',p.x+'px');
+    setVar('--gear-'+css+'-y',p.y+'px');
+    setVar('--gear-'+css+'-scale',p.scale);
+    setVar('--gear-'+css+'-rotate',p.rotate+'deg');
+  }
+  function applyAll(){Object.keys(defaults).forEach(applyPose)}
+  function save(){localStorage.setItem(KEY,JSON.stringify(poses))}
+  applyAll();
+
+  if(!/[?&]debugWeapon=1(?:&|$)/.test(location.search))return;
+  document.body.classList.add('weapon-pose-debug');
+
+  var current='axe';
+  var panel=document.createElement('div');
+  panel.className='weapon-pose-editor';
+  panel.innerHTML=[
+    '<strong>Gear pose editor</strong>',
+    '<select data-k="type">'+Object.keys(defaults).map(function(k){return '<option value="'+k+'">'+partNames[k]+'</option>'}).join('')+'</select>',
+    '<div data-fields></div>',
+    '<div class="pose-row"><button data-act="copy">copy</button><button class="save" data-act="save">save</button><button class="reset" data-act="reset">reset</button></div>',
+    '<div class="hint">Drag equipped parts. Q/E rotate, +/- size. Values save to this browser.</div>'
+  ].join('');
+  document.body.appendChild(panel);
+
+  function slider(k,label,min,max,step){
+    return '<label>'+label+'<input data-k="'+k+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'"><output data-o="'+k+'"></output></label>';
+  }
+  function renderFields(){
+    var box=panel.querySelector('[data-fields]');
+    box.innerHTML=isWeapon(current)?[
+      slider('left','X',-80,140,1),
+      slider('top','Y',-60,170,1),
+      slider('width','W',10,160,1),
+      slider('height','H',20,210,1),
+      slider('rotate','Deg',-120,120,1),
+      slider('originX','OX',0,100,1),
+      slider('originY','OY',0,100,1)
+    ].join(''):[
+      slider('x','X',-80,80,1),
+      slider('y','Y',-80,80,1),
+      slider('scale','Size',.4,2,.01),
+      slider('rotate','Deg',-120,120,1)
+    ].join('');
+  }
+  function syncPanel(){
+    var p=poses[current];
+    panel.querySelector('[data-k=type]').value=current;
+    (isWeapon(current)?['left','top','width','height','rotate','originX','originY']:['x','y','scale','rotate']).forEach(function(k){
+      var input=panel.querySelector('[data-k='+k+']'), out=panel.querySelector('[data-o='+k+']');
+      if(input)input.value=p[k];
+      if(out)out.textContent=p[k];
+    });
+  }
+  function setCurrentValue(k,v){
+    poses[current][k]=Number(v);
+    applyPose(current);
+    syncPanel();
+  }
+  panel.addEventListener('input',function(e){
+    var k=e.target&&e.target.dataset&&e.target.dataset.k;
+    if(!k)return;
+    if(k==='type'){current=e.target.value;renderFields();syncPanel();return}
+    setCurrentValue(k,e.target.value);
+  });
+  panel.addEventListener('click',function(e){
+    var act=e.target&&e.target.dataset&&e.target.dataset.act;
+    if(!act)return;
+    if(act==='save'){
+      save();
+      if(typeof toast==='function')toast('무기 위치 저장 완료');
+    }
+    if(act==='reset'){
+      poses[current]=Object.assign({},defaults[current]);
+      applyPose(current);
+      save();
+      syncPanel();
+    }
+    if(act==='copy'){
+      var p=poses[current];
+      var text=isWeapon(current)?[
+        '--fallen-'+current+'-left:'+p.left+'px;',
+        '--fallen-'+current+'-top:'+p.top+'px;',
+        '--fallen-'+current+'-width:'+p.width+'px;',
+        '--fallen-'+current+'-height:'+p.height+'px;',
+        '--fallen-'+current+'-rotate:'+p.rotate+'deg;',
+        '--fallen-'+current+'-origin:'+p.originX+'% '+p.originY+'%;'
+      ].join('\\n'):[
+        '--gear-'+partCss[current]+'-x:'+p.x+'px;',
+        '--gear-'+partCss[current]+'-y:'+p.y+'px;',
+        '--gear-'+partCss[current]+'-scale:'+p.scale+';',
+        '--gear-'+partCss[current]+'-rotate:'+p.rotate+'deg;'
+      ].join('\\n');
+      try{navigator.clipboard.writeText(text)}catch(_e){}
+      if(typeof toast==='function')toast('현재 CSS 값 복사 완료');
+      console.log(text);
+    }
+  });
+
+  var drag=null;
+  function pickType(el){
+    if(!el||!el.classList)return current;
+    if(el.classList.contains('fallen-axe'))return 'axe';
+    if(el.classList.contains('fallen-sword'))return 'sword';
+    if(el.classList.contains('avatar-helmet'))return 'helmet';
+    if(el.classList.contains('avatar-torso'))return 'armor';
+    if(el.classList.contains('avatar-arm')&&el.classList.contains('left'))return 'armLeft';
+    if(el.classList.contains('avatar-arm')&&el.classList.contains('right'))return 'armRight';
+    if(el.classList.contains('avatar-leg')&&el.classList.contains('left'))return 'legLeft';
+    if(el.classList.contains('avatar-leg')&&el.classList.contains('right'))return 'legRight';
+    if(el.classList.contains('avatar-boot')&&el.classList.contains('left'))return 'bootLeft';
+    if(el.classList.contains('avatar-boot')&&el.classList.contains('right'))return 'bootRight';
+    if(el.classList.contains('avatar-relics'))return 'accessory';
+    return current;
+  }
+  document.addEventListener('pointerdown',function(e){
+    var el=e.target&&e.target.closest&&e.target.closest('.avatar-sword.fallen-sword,.avatar-helmet.on,.avatar-torso,.avatar-arm,.avatar-leg,.avatar-boot,.avatar-relics');
+    if(!el || el.classList.contains('offhand'))return;
+    current=pickType(el);
+    renderFields();
+    syncPanel();
+    drag={x:e.clientX,y:e.clientY,id:e.pointerId,el:el,type:current,start:Object.assign({},poses[current])};
+    try{el.setPointerCapture(e.pointerId)}catch(_e){}
+    e.preventDefault();
+    e.stopPropagation();
+  },true);
+  document.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    if(isWeapon(current)){
+      poses[current].left=Math.round(drag.start.left+e.clientX-drag.x);
+      poses[current].top=Math.round(drag.start.top+e.clientY-drag.y);
+    }else{
+      poses[current].x=Math.round(drag.start.x+e.clientX-drag.x);
+      poses[current].y=Math.round(drag.start.y+e.clientY-drag.y);
+    }
+    applyPose(current);
+    syncPanel();
+    e.preventDefault();
+  },true);
+  document.addEventListener('pointerup',function(e){
+    if(!drag)return;
+    try{drag.el.releasePointerCapture(drag.id)}catch(_e){}
+    drag=null;
+    save();
+    e.preventDefault();
+  },true);
+  document.addEventListener('keydown',function(e){
+    if(e.target&&/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
+    if(e.key==='q'||e.key==='Q')setCurrentValue('rotate',poses[current].rotate-1);
+    if(e.key==='e'||e.key==='E')setCurrentValue('rotate',poses[current].rotate+1);
+    if(e.key==='+'||e.key==='='){
+      if(isWeapon(current)){
+        setCurrentValue('width',poses[current].width+1);
+        setCurrentValue('height',poses[current].height+1);
+      }else setCurrentValue('scale',Number((poses[current].scale+.01).toFixed(2)));
+    }
+    if(e.key==='-'||e.key==='_'){
+      if(isWeapon(current)){
+        setCurrentValue('width',Math.max(10,poses[current].width-1));
+        setCurrentValue('height',Math.max(20,poses[current].height-1));
+      }else setCurrentValue('scale',Number(Math.max(.4,poses[current].scale-.01).toFixed(2)));
+    }
+  });
+  renderFields();
+  syncPanel();
+})();
+</script>
 </body>
 </html>
