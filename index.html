@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#080b12">
-<meta name="ringu-build" content="2026-06-14-v23-remove-cloud-overwrite-restore-buttons">
+<meta name="ringu-build" content="2026-06-14-v28-avatar-proportion-sword-fix">
 <title>링구 RPG</title>
 <style>
 :root{--bg:#080b12;--panel:#111622;--panel2:#171e2d;--line:#273146;--text:#eef3ff;--muted:#8d99ae;--gold:#ffd35a;--red:#ff4f64;--green:#50e39a;--blue:#4e9cff;--purple:#bd65ff;--orange:#ff9d3b;--shadow:0 12px 30px #0008}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -10%,#23304c 0,#0b0f19 35%,#06080e 80%);overflow-x:hidden}button,select{font:inherit;color:inherit}button{border:0;cursor:pointer}.app{width:min(1500px,100%);margin:auto;padding:env(safe-area-inset-top) 10px calc(78px + env(safe-area-inset-bottom))}.topbar{position:sticky;top:0;z-index:20;margin:0 -10px 10px;padding:8px 10px;background:#080b12e8;backdrop-filter:blur(16px);border-bottom:1px solid #273146}.brand-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.brand{font-size:18px;font-weight:1000;letter-spacing:-1px}.brand b{color:var(--orange);text-shadow:0 0 15px #ff8a3d88}.save-dot{font-size:11px;color:var(--muted)}.save-dot::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:5px;box-shadow:0 0 8px var(--green)}.stats{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:6px}.stat{min-width:0;border:1px solid var(--line);background:linear-gradient(145deg,#171d2a,#101520);border-radius:10px;padding:8px}.stat-label{display:block;color:var(--muted);font-size:10px}.stat-value{display:block;margin-top:2px;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat.gold .stat-value{color:var(--gold)}.stat.power .stat-value{color:#77c7ff}.summon-mini{height:3px;background:#252c3a;border-radius:9px;margin-top:5px;overflow:hidden}.summon-mini i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),#ff75c8);transition:.3s}.layout{display:grid;gap:10px}.panel{background:linear-gradient(150deg,#151b28ee,#0d111bee);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);overflow:hidden}.panel-title{display:flex;align-items:center;justify-content:space-between;padding:12px 13px 9px;font-size:13px;font-weight:900}.panel-title small{font-weight:500;color:var(--muted)}.boss-list{display:flex;gap:7px;overflow-x:auto;padding:0 10px 11px;scrollbar-width:none}.boss-btn{flex:0 0 130px;text-align:left;padding:9px;background:#141a27;border:1px solid #29344a;border-radius:11px;transition:.2s}.boss-btn.active{border-color:var(--red);background:linear-gradient(135deg,#351824,#171725);box-shadow:0 0 16px #ff4f6435}.boss-btn strong{display:block;font-size:12px}.boss-btn span{display:block;color:var(--muted);font-size:10px;margin-top:4px}.arena{position:relative;min-height:300px;background:radial-gradient(ellipse at 50% 65%,#2a3146 0,#151a27 32%,#090c14 70%);overflow:hidden}.arena::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#ffffff05 1px,transparent 1px),linear-gradient(#ffffff05 1px,transparent 1px);background-size:30px 30px;transform:perspective(300px) rotateX(58deg) scale(1.5);transform-origin:center bottom;opacity:.45}.battle-head{position:relative;z-index:2;text-align:center;padding:14px 16px 4px}.battle-head h2{font-size:18px;margin:0}.battle-head p{font-size:11px;color:var(--muted);margin:5px 0}.boss-art{position:relative;z-index:2;width:112px;height:112px;margin:10px auto 14px;display:grid;place-items:center;filter:drop-shadow(0 15px 10px #0009);animation:float 2.5s ease-in-out infinite}.boss-core{width:80px;height:80px;border-radius:45% 55% 48% 52%;background:linear-gradient(145deg,#ff6c7c,#a61535);box-shadow:inset 12px 10px 20px #ffffff25,inset -12px -10px 15px #470719,0 0 30px #ff3f5d50;position:relative}.boss-core::before,.boss-core::after{content:"";position:absolute;top:27px;width:10px;height:13px;background:#12060b;border-radius:50%;box-shadow:0 0 0 3px #fff2}.boss-core::before{left:20px}.boss-core::after{right:20px}.boss-core i{position:absolute;width:30px;height:8px;border-bottom:4px solid #310812;border-radius:50%;left:25px;top:48px}.boss-art.hit{animation:hit .18s}.hp-wrap{position:relative;z-index:2;padding:0 15px}.hp-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}.hp-bar{height:17px;padding:3px;background:#090b11;border:1px solid #3a2430;border-radius:999px;overflow:hidden}.hp-fill{height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,#a81535,#ff4f64,#ff7a88);box-shadow:0 0 12px #ff4f64;transition:width .35s ease}.timer{height:3px;background:#2d3442;margin-top:7px;border-radius:9px;overflow:hidden}.timer i{display:block;height:100%;background:#75b8ff;transition:width 1s linear}.damage-pop{position:absolute;z-index:5;left:50%;top:115px;transform:translateX(-50%);font-size:26px;font-weight:1000;color:white;text-shadow:0 2px 0 #000,0 0 10px #fff;pointer-events:none;animation:damage .75s forwards}.damage-pop.crit{font-size:34px;color:var(--gold);text-shadow:0 2px #a43c00,0 0 18px #ff9d3b}.battle-log{height:88px;margin-top:13px;padding:8px 12px;background:#080b12aa;border-top:1px solid var(--line);overflow:hidden;font-size:10px;color:#aab5c9}.battle-log div{height:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.battle-log b{color:var(--gold)}.equip-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:0 10px 11px}.equip-slot{min-height:64px;text-align:left;background:#121824;border:1px solid #273146;border-radius:10px;padding:8px;position:relative}.equip-slot .slot-name{font-size:9px;color:var(--muted)}.equip-slot strong{display:block;font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equip-slot em{font-style:normal;font-size:10px;color:#b5c2d7}.empty{color:#59657a!important}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.quick button,.action-btn{background:linear-gradient(#252e42,#182033);border:1px solid #34425d;border-radius:11px;padding:11px 4px;font-size:11px;font-weight:800;box-shadow:0 4px 10px #0005}.quick button:active,.action-btn:active{transform:translateY(1px);filter:brightness(.8)}.quick .best{background:linear-gradient(#324d5e,#183344);border-color:#3c8291;color:#8eeeff}.summon-panel{margin-top:10px}.summon-level{padding:0 12px 11px}.level-line{display:flex;justify-content:space-between;font-size:11px}.expbar{height:7px;background:#090c13;border-radius:8px;margin-top:7px;overflow:hidden}.expbar i{display:block;height:100%;background:linear-gradient(90deg,#904aff,#ff62b1);transition:.3s}.summon-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 10px 8px}.summon-tab{padding:9px 3px;background:#171e2c;border:1px solid #2a354b;border-radius:9px;color:var(--muted);font-size:11px}.summon-tab.active{color:white;border-color:#7d66ff;background:#28214b}.draw-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 10px 11px}.draw{padding:9px 3px;border-radius:10px;background:linear-gradient(145deg,#7540d8,#41258b);font-size:11px;font-weight:900;box-shadow:0 5px 15px #663bd044}.draw span{display:block;color:#e4d6ff;font-size:9px;margin-top:3px}.inventory{margin-top:10px}.inventory-tools{display:flex;gap:6px;padding:0 10px 8px;overflow-x:auto}.inventory-tools select,.sell-bulk{flex:none;background:#171e2c;border:1px solid #2d3950;border-radius:8px;padding:7px;font-size:10px}.sell-bulk{color:#ff9eaa}.inventory-list{max-height:570px;overflow-y:auto;padding:0 10px 12px}.item{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:7px;padding:10px;background:#111722;border:1px solid #263147;border-left:4px solid var(--rarity);border-radius:10px}.item.equipped{background:linear-gradient(100deg,#16243a,#111722);box-shadow:inset 0 0 0 1px #4c8ed044}.item-info{min-width:0}.item-title{display:flex;align-items:center;gap:5px}.rarity{font-size:9px;padding:2px 5px;border-radius:5px;color:var(--rarity);background:color-mix(in srgb,var(--rarity) 14%,transparent);font-weight:900}.item-title strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-sub{font-size:10px;color:var(--muted);margin-top:5px}.item-sub b{color:#d9e5ff}.up{color:var(--green);font-weight:1000}.item-actions{display:grid;grid-template-columns:repeat(3,42px);gap:4px;align-content:center}.item-actions button{padding:7px 2px;border-radius:7px;background:#202a3d;font-size:9px}.item-actions .enh{color:var(--gold)}.item-actions .sell{color:#ff8695}.item-actions button:disabled{opacity:.3}.empty-list{text-align:center;color:var(--muted);padding:45px 0;font-size:12px}.toast-wrap{position:fixed;z-index:80;top:100px;left:50%;transform:translateX(-50%);width:min(90%,360px);pointer-events:none}.toast{margin:6px;padding:10px 13px;border-radius:9px;background:#20283aee;border:1px solid #3b4965;box-shadow:var(--shadow);font-size:11px;text-align:center;animation:toast 2.3s forwards}.modal-bg{display:none;position:fixed;z-index:100;inset:0;background:#000b;backdrop-filter:blur(4px);padding:20px;align-items:center;justify-content:center}.modal-bg.show{display:flex}.modal{width:min(390px,100%);background:#151b28;border:1px solid #34415b;border-radius:18px;padding:18px;box-shadow:0 20px 60px #000}.modal h3{margin:0 0 8px;font-size:17px}.modal p{font-size:11px;color:var(--muted);line-height:1.7}.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:13px 0}.modal-stats div{background:#0d111a;padding:9px 4px;text-align:center;border-radius:8px;font-size:10px}.modal-stats b{display:block;margin-top:3px;color:var(--gold)}.modal-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:7px}.modal-actions button{padding:12px;border-radius:9px;background:#293247;font-weight:900;font-size:11px}.modal-actions .primary{background:linear-gradient(#e28d2d,#9a5018)}.legend-overlay{display:none;position:fixed;z-index:200;inset:0;background:radial-gradient(circle,#ffbd4c66,#d35c0018 35%,#000c 70%);align-items:center;justify-content:center;text-align:center}.legend-overlay.show{display:flex;animation:legendBg 2.2s}.legend-card{padding:35px 24px;border:2px solid #ffc55c;background:#2a1609ee;border-radius:20px;box-shadow:0 0 30px #ff9d3b,0 0 100px #ff6a00;animation:legendCard 2.2s}.legend-card small{color:#ffd693;letter-spacing:5px}.legend-card h2{font-size:29px;margin:10px;color:#fff1c9;text-shadow:0 0 20px #ff9d3b}.legend-card p{color:#ffb84f}.offline-gold{font-size:25px!important;color:var(--gold)!important;font-weight:1000}.rarity-0{--rarity:#a5adba}.rarity-1{--rarity:#4fd27b}.rarity-2{--rarity:#459cff}.rarity-3{--rarity:#bc64ff}.rarity-4{--rarity:#ff9d3b}.legendary{animation:legendGlow 1.4s infinite alternate}@keyframes float{50%{transform:translateY(-8px)}}@keyframes hit{50%{transform:translateX(7px) scale(.92);filter:brightness(2)}}@keyframes damage{0%{opacity:0;transform:translate(-50%,15px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-55px) scale(.9)}}@keyframes toast{0%{opacity:0;transform:translateY(-8px)}12%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-10px)}}@keyframes legendBg{0%,100%{opacity:0}10%,85%{opacity:1}}@keyframes legendCard{0%{transform:scale(.2) rotate(-8deg);opacity:0}20%{transform:scale(1.08) rotate(1deg);opacity:1}30%,100%{transform:scale(1)}}@keyframes legendGlow{to{box-shadow:0 0 17px #ff9d3b55,inset 0 0 10px #ff9d3b22}}body.shake{animation:shake .45s}@keyframes shake{20%{transform:translate(5px,-3px)}40%{transform:translate(-5px,2px)}60%{transform:translate(4px,3px)}80%{transform:translate(-3px,-2px)}}@media(min-width:850px){.app{padding-left:16px;padding-right:16px}.topbar{margin:0 -16px 12px;padding-left:16px;padding-right:16px}.brand-row{margin-bottom:0}.topbar{display:flex;align-items:center;justify-content:space-between}.stats{width:580px}.layout{grid-template-columns:230px minmax(400px,1fr) 290px;align-items:start}.boss-panel{grid-column:1;grid-row:1}.battle-panel{grid-column:2;grid-row:1 / span 2}.equip-panel{grid-column:3;grid-row:1}.boss-list{display:grid;overflow:visible}.boss-btn{width:100%;flex:auto}.quick{grid-column:1/4}.summon-panel{grid-column:1/4}.inventory{grid-column:1/4}.arena{min-height:415px}.equip-grid{grid-template-columns:1fr}.battle-log{height:118px}.inventory-list{display:grid;grid-template-columns:repeat(2,1fr);gap:0 8px;max-height:500px}}@media(min-width:1200px){.inventory-list{grid-template-columns:repeat(3,1fr)}}
@@ -499,6 +499,201 @@
 .avatar-sword.fallen-sword::after{display:none!important}
 .rank-preview .avatar-sword.fallen-sword{right:-15px!important;top:38px!important;width:45px!important;height:82px!important}
 .avatar-body.dual-wield .avatar-sword.offhand.fallen-sword{left:-19px!important;right:auto!important;transform:scaleX(-1) rotate(16deg)!important}
+</style>
+
+<style id="avatarSwordHandV27">
+/* V27: fallen sword visual only. Purchase/cloud functions untouched. */
+.avatar-body:has(.avatar-sword.fallen-sword){
+  overflow:visible!important;
+}
+.avatar-sword.fallen-sword,
+.avatar-body.female .avatar-sword.fallen-sword,
+.avatar-body.dual-wield .avatar-sword.fallen-sword{
+  left:-7px!important;
+  right:auto!important;
+  top:47px!important;
+  width:78px!important;
+  height:138px!important;
+  transform:scaleX(-1) rotate(-13deg)!important;
+  transform-origin:24% 18%!important;
+  z-index:6!important;
+  pointer-events:none!important;
+}
+.rank-preview .avatar-sword.fallen-sword{
+  left:-9px!important;
+  top:46px!important;
+  width:84px!important;
+  height:148px!important;
+}
+.avatar-body.dual-wield .avatar-sword.offhand.fallen-sword{
+  display:none!important;
+}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left,
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.right{
+  z-index:10!important;
+}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left::after,
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.right::after{
+  content:""!important;
+  position:absolute!important;
+  z-index:12!important;
+  width:15px!important;
+  height:16px!important;
+  border-radius:48% 48% 55% 55%!important;
+  background:linear-gradient(145deg,#f3c49f,#b96f59)!important;
+  box-shadow:inset -3px -2px 4px #713a37,0 0 3px #0008!important;
+  display:block!important;
+}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left::after{
+  left:-3px!important;
+  bottom:-4px!important;
+  transform:rotate(-12deg)!important;
+}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.right::after{
+  right:-3px!important;
+  bottom:-4px!important;
+  transform:rotate(10deg)!important;
+}
+.avatar-body.female:has(.avatar-sword.fallen-sword) .avatar-arm.left::after{
+  left:-4px!important;
+}
+.avatar-body.female:has(.avatar-sword.fallen-sword) .avatar-arm.right::after{
+  right:-4px!important;
+}
+</style>
+
+<style id="ringuV28AvatarProportionFix">
+/* V28: adjust avatar proportions toward the reference image. Visual-only patch. */
+.player-avatar{overflow:hidden!important}
+.player-avatar .avatar-body,
+.rank-preview .player-avatar .avatar-body{
+  width:78px!important;
+  height:172px!important;
+  transform:scale(1.05)!important;
+  transform-origin:center bottom!important;
+}
+.player-avatar .avatar-head,
+.rank-preview .player-avatar .avatar-head{
+  left:20px!important;
+  top:0!important;
+  width:38px!important;
+  height:43px!important;
+  border-radius:50% 50% 44% 44%!important;
+}
+.player-avatar .avatar-hair,
+.rank-preview .player-avatar .avatar-hair{
+  left:11px!important;
+  top:-5px!important;
+  width:58px!important;
+  height:34px!important;
+  clip-path:polygon(2% 18%,34% 0,99% 16%,92% 70%,75% 50%,59% 86%,45% 58%,24% 88%,10% 62%)!important;
+}
+.player-avatar .avatar-torso,
+.rank-preview .player-avatar .avatar-torso{
+  left:18px!important;
+  top:43px!important;
+  width:43px!important;
+  height:75px!important;
+  border-radius:12px 12px 10px 10px!important;
+  clip-path:polygon(18% 0,82% 0,96% 26%,82% 100%,18% 100%,4% 26%)!important;
+}
+.player-avatar .avatar-arm,
+.rank-preview .player-avatar .avatar-arm{
+  top:49px!important;
+  width:16px!important;
+  height:82px!important;
+  border-radius:10px!important;
+}
+.player-avatar .avatar-arm.left,
+.rank-preview .player-avatar .avatar-arm.left{
+  left:4px!important;
+  transform:rotate(14deg)!important;
+}
+.player-avatar .avatar-arm.right,
+.rank-preview .player-avatar .avatar-arm.right{
+  right:4px!important;
+  transform:rotate(-14deg)!important;
+}
+.player-avatar .avatar-leg,
+.rank-preview .player-avatar .avatar-leg{
+  top:112px!important;
+  width:21px!important;
+  height:58px!important;
+  border-radius:5px 5px 11px 11px!important;
+}
+.player-avatar .avatar-leg.left,
+.rank-preview .player-avatar .avatar-leg.left{
+  left:17px!important;
+  transform:rotate(2deg)!important;
+}
+.player-avatar .avatar-leg.right,
+.rank-preview .player-avatar .avatar-leg.right{
+  right:17px!important;
+  transform:rotate(-2deg)!important;
+}
+.player-avatar .avatar-boot,
+.rank-preview .player-avatar .avatar-boot{
+  top:156px!important;
+  width:24px!important;
+  height:18px!important;
+}
+.player-avatar .avatar-boot.left,
+.rank-preview .player-avatar .avatar-boot.left{left:14px!important}
+.player-avatar .avatar-boot.right,
+.rank-preview .player-avatar .avatar-boot.right{right:14px!important}
+.player-avatar .avatar-name{bottom:10px!important}
+/* female keeps same taller ratio without widening oddly */
+.player-avatar .avatar-body.female .avatar-head{left:21px!important;width:36px!important}
+.player-avatar .avatar-body.female .avatar-hair{left:9px!important;width:60px!important;height:46px!important}
+.player-avatar .avatar-body.female::before{left:9px!important;top:-2px!important;width:60px!important;height:65px!important}
+.player-avatar .avatar-body.female .avatar-torso{left:20px!important;width:39px!important;height:75px!important}
+.player-avatar .avatar-body.female .avatar-arm.left{left:6px!important}
+.player-avatar .avatar-body.female .avatar-arm.right{right:6px!important}
+.player-avatar .avatar-body.female .avatar-leg{width:19px!important}
+.player-avatar .avatar-body.female .avatar-leg.left{left:19px!important}
+.player-avatar .avatar-body.female .avatar-leg.right{right:19px!important}
+/* Fallen sword: bigger and held low like the reference, but inside the avatar panel. */
+.avatar-sword.fallen-sword,
+.avatar-body.female .avatar-sword.fallen-sword,
+.avatar-body.dual-wield .avatar-sword.fallen-sword{
+  left:-4px!important;
+  top:72px!important;
+  right:auto!important;
+  width:68px!important;
+  height:122px!important;
+  transform:rotate(-48deg)!important;
+  transform-origin:22% 18%!important;
+  z-index:9!important;
+}
+.rank-preview .avatar-sword.fallen-sword{
+  left:-3px!important;
+  top:72px!important;
+  width:70px!important;
+  height:126px!important;
+  transform:rotate(-48deg)!important;
+}
+.avatar-body.dual-wield .avatar-sword.offhand.fallen-sword{display:none!important}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left{z-index:10!important}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left::after,
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.right::after{
+  content:""!important;
+  position:absolute!important;
+  width:18px!important;
+  height:18px!important;
+  border-radius:50%!important;
+  background:linear-gradient(145deg,#f5c9a5,#bd795f)!important;
+  box-shadow:inset -3px -2px 4px #7b403b!important;
+  display:block!important;
+}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left::after{left:-3px!important;top:74px!important}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.right::after{right:-3px!important;top:74px!important}
+@media(min-width:850px){
+  .equip-panel .player-avatar .avatar-body{transform:scale(1.08)!important}
+}
+@media(max-width:479px){
+  .player-avatar{min-height:274px!important}
+  .player-avatar .avatar-body{transform:scale(1.02)!important}
+}
 </style>
 
 </head>
@@ -3089,158 +3284,85 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
 
 
 
-<style id="ringuShopButtonFeedbackV24">
-/* V24: 상점/소모품/오라 버튼 터치 피드백 강화 */
-.shop-card button,
-.aura-card button,
-.utility-card button,
-.shop-tabs button,
-.collection-reward button,
-#shopAuraTab,
-#shopItemTab{
-  position:relative!important;
-  overflow:hidden!important;
-  touch-action:manipulation!important;
-  transition:transform .08s ease, filter .08s ease, box-shadow .08s ease, opacity .08s ease!important;
-  box-shadow:0 4px 0 #0006,0 8px 14px #0005!important;
-}
-.shop-card button:active,
-.aura-card button:active,
-.utility-card button:active,
-.shop-tabs button:active,
-.collection-reward button:active,
-.shop-card button.ringu-pressing,
-.aura-card button.ringu-pressing,
-.utility-card button.ringu-pressing,
-.shop-tabs button.ringu-pressing,
-.collection-reward button.ringu-pressing{
-  transform:translateY(3px) scale(.97)!important;
-  filter:brightness(1.35) saturate(1.2)!important;
-  box-shadow:0 1px 0 #0008,0 2px 8px #0007,inset 0 0 14px #fff2!important;
-}
-.shop-card button.ringu-bought,
-.aura-card button.ringu-bought,
-.utility-card button.ringu-bought{
-  animation:ringuShopBoughtV24 .36s ease-out!important;
-}
-@keyframes ringuShopBoughtV24{
-  0%{transform:scale(.96);filter:brightness(1.6)}
-  45%{transform:scale(1.06);box-shadow:0 0 18px #ffd35a99,inset 0 0 16px #fff3}
-  100%{transform:none}
-}
+<style id="ringuShopSafeFeedbackV26">
+/* V26: original purchase logic restored; visual feedback only */
+.shop-card button,.aura-card button,.utility-card button,.shop-tabs button{transition:transform .08s ease,filter .12s ease,box-shadow .12s ease!important;touch-action:manipulation!important;position:relative!important}
+.shop-card button:active,.aura-card button:active,.utility-card button:active,.shop-tabs button:active,.shop-card button.ringu-pressing,.aura-card button.ringu-pressing,.utility-card button.ringu-pressing,.shop-tabs button.ringu-pressing{transform:translateY(2px) scale(.96)!important;filter:brightness(1.35)!important;box-shadow:inset 0 2px 8px #0009,0 0 13px #ffd35a55!important}
+.shop-card.ringu-just-bought,.aura-card.ringu-just-bought{animation:ringuShopFlashV26 .42s ease-out!important}
+.aura-card button.ringu-owned-done{background:#245a43!important;color:#9effd0!important;opacity:1!important}
+.shop-card .ringu-count-now{display:inline-block;margin-left:4px;padding:1px 5px;border-radius:999px;background:#17263a;color:#9ed8ff;font-weight:900}
+@keyframes ringuShopFlashV26{0%{filter:brightness(1.55);box-shadow:0 0 0 #ffd35a00}45%{filter:brightness(1.25);box-shadow:0 0 20px #ffd35a77}100%{filter:none;box-shadow:none}}
 </style>
-<script id="ringuShopButtonFeedbackV24">
+<script id="ringuShopSafeFeedbackV26">
 (function(){
-  if(window.__ringuShopButtonFeedbackV24)return;
-  window.__ringuShopButtonFeedbackV24=true;
-  function isShopButton(el){
-    if(!el || !el.closest)return null;
-    return el.closest('.shop-card button,.aura-card button,.utility-card button,.shop-tabs button,.collection-reward button');
+  if(window.__ringuShopSafeFeedbackV26)return;
+  window.__ringuShopSafeFeedbackV26=true;
+  function q(s){return document.querySelector(s)}
+  function qa(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+  function fmtSafe(n){try{return fmt(n)}catch(e){return String(Number(n)||0)}}
+  function flash(el){try{if(!el)return;el.classList.remove('ringu-just-bought');void el.offsetWidth;el.classList.add('ringu-just-bought');setTimeout(function(){el.classList.remove('ringu-just-bought')},520)}catch(e){}}
+  function decorateShop(){
+    try{
+      qa('.aura-card').forEach(function(card){
+        var btn=card.querySelector('button');
+        if(!btn)return;
+        if(btn.disabled || /보유|구매 완료/.test(btn.textContent||'')){
+          btn.textContent='구매 완료';
+          btn.classList.add('ringu-owned-done');
+        }
+      });
+      qa('.shop-card').forEach(function(card){
+        var txt=card.textContent||'';
+        var small=card.querySelector('small');
+        if(!small)return;
+        if(/초월석/.test(txt)) small.innerHTML='장비 초월 재료 · 현재 <b class="ringu-count-now">'+fmtSafe(state.transcendStone)+'개</b>';
+        if(/하락방지권/.test(txt)) small.innerHTML='강화 실패 시 하락 방지 · 현재 <b class="ringu-count-now">'+fmtSafe(state.downgradeProtect)+'장</b>';
+      });
+    }catch(e){}
   }
-  function clearPressed(btn){ if(btn) btn.classList.remove('ringu-pressing'); }
-  document.addEventListener('pointerdown',function(e){
-    var btn=isShopButton(e.target);
-    if(!btn || btn.disabled)return;
-    btn.classList.add('ringu-pressing');
-  },true);
-  document.addEventListener('pointerup',function(e){
-    var btn=isShopButton(e.target);
-    if(btn){
-      clearPressed(btn);
-      btn.classList.remove('ringu-bought');
-      void btn.offsetWidth;
-      btn.classList.add('ringu-bought');
-      setTimeout(function(){btn.classList.remove('ringu-bought')},420);
-    }
-  },true);
-  document.addEventListener('pointercancel',function(e){ clearPressed(isShopButton(e.target)); },true);
-  document.addEventListener('pointerleave',function(e){ clearPressed(isShopButton(e.target)); },true);
-  document.addEventListener('touchstart',function(e){
-    var btn=isShopButton(e.target);
-    if(!btn || btn.disabled)return;
-    btn.classList.add('ringu-pressing');
-  },{capture:true,passive:true});
-  document.addEventListener('touchend',function(e){
-    var btn=isShopButton(e.target);
-    if(btn) setTimeout(function(){clearPressed(btn)},80);
-  },{capture:true,passive:true});
+  var oldRender=window.renderAuraShop;
+  if(typeof oldRender==='function'){
+    window.renderAuraShop=function(){
+      var r=oldRender.apply(this,arguments);
+      decorateShop();
+      return r;
+    };
+  }
+  var oldAura=window.buyAura;
+  if(typeof oldAura==='function'){
+    window.buyAura=function(index){
+      var before=JSON.stringify([(state.ownedAuras||[]).slice(),Number(state.essence)||0]);
+      var r=oldAura.apply(this,arguments);
+      try{renderAuraShop&&renderAuraShop();renderAll&&renderAll()}catch(e){}
+      setTimeout(function(){
+        decorateShop();
+        var after=JSON.stringify([(state.ownedAuras||[]).slice(),Number(state.essence)||0]);
+        if(before!==after)flash(q('.aura-card:nth-child('+(Number(index)+1)+')'));
+      },0);
+      return r;
+    };
+  }
+  var oldConsumable=window.buyConsumable;
+  if(typeof oldConsumable==='function'){
+    window.buyConsumable=function(type){
+      var before=JSON.stringify([Number(state.transcendStone)||0,Number(state.downgradeProtect)||0,Number(state.essence)||0]);
+      var r=oldConsumable.apply(this,arguments);
+      try{renderAuraShop&&renderAuraShop();renderAll&&renderAll()}catch(e){}
+      setTimeout(function(){
+        decorateShop();
+        var after=JSON.stringify([Number(state.transcendStone)||0,Number(state.downgradeProtect)||0,Number(state.essence)||0]);
+        if(before!==after)flash(q(type==='protect'?'.shop-card:nth-child(2)':'.shop-card:nth-child(1)'));
+      },0);
+      return r;
+    };
+  }
+  function isShopButton(el){return el&&el.closest&&el.closest('.shop-card button,.aura-card button,.utility-card button,.shop-tabs button')}
+  document.addEventListener('pointerdown',function(e){var b=isShopButton(e.target);if(b&&!b.disabled)b.classList.add('ringu-pressing')},{capture:true,passive:true});
+  document.addEventListener('pointerup',function(e){var b=isShopButton(e.target);if(b)setTimeout(function(){b.classList.remove('ringu-pressing')},90)},{capture:true,passive:true});
+  document.addEventListener('pointercancel',function(e){var b=isShopButton(e.target);if(b)b.classList.remove('ringu-pressing')},{capture:true,passive:true});
+  setTimeout(decorateShop,300);
 })();
 </script>
 
-<style id="ringuShopImmediateUpdateV25">
-/* V25: shop purchase state/count updates immediately */
-.aura-card button.ringu-owned-done{background:#245a43!important;color:#9effd0!important;opacity:1!important}
-.shop-card .ringu-count-now{display:inline-block;margin-left:4px;padding:1px 5px;border-radius:999px;background:#17263a;color:#9ed8ff;font-weight:900}
-.shop-card.ringu-just-bought,.aura-card.ringu-just-bought{animation:ringuShopCardFlashV25 .42s ease-out!important}
-@keyframes ringuShopCardFlashV25{0%{filter:brightness(1.5);box-shadow:0 0 0 #ffd35a00}45%{filter:brightness(1.25);box-shadow:0 0 20px #ffd35a77}100%{filter:none;box-shadow:none}}
-</style>
-<script id="ringuShopImmediateUpdateV25">
-(function(){
-  if(window.__ringuShopImmediateUpdateV25)return;
-  window.__ringuShopImmediateUpdateV25=true;
-  function safeFmt(n){try{return fmt(n)}catch(e){return String(n||0)}}
-  function safeToast(t){try{toast(t)}catch(e){console.log(t)}}
-  function refreshShopAll(){
-    try{renderTop&&renderTop()}catch(e){}
-    try{renderEquipment&&renderEquipment()}catch(e){}
-    try{renderItemInventory&&renderItemInventory()}catch(e){}
-    try{renderAuraShop&&renderAuraShop()}catch(e){}
-  }
-  function markFlash(selector){
-    try{
-      setTimeout(function(){
-        var el=document.querySelector(selector);
-        if(!el)return;
-        el.classList.remove('ringu-just-bought');
-        void el.offsetWidth;
-        el.classList.add('ringu-just-bought');
-        setTimeout(function(){el.classList.remove('ringu-just-bought')},520);
-      },0);
-    }catch(e){}
-  }
-  window.buyAura=function(index){
-    index=Number(index);
-    try{normalizeCharacter&&normalizeCharacter()}catch(e){}
-    if(!auraShopItems[index])return safeToast('오라 정보를 찾지 못했습니다.');
-    if(state.ownedAuras.includes(index)){refreshShopAll();return safeToast('이미 구매 완료된 오라입니다.')}
-    if((Number(state.essence)||0)<50)return safeToast('정수가 부족합니다. 필요 정수 50개');
-    state.essence=(Number(state.essence)||0)-50;
-    state.ownedAuras.push(index);
-    state.ownedAuras=[...new Set(state.ownedAuras.map(Number))];
-    try{queueSave&&queueSave()}catch(e){}
-    refreshShopAll();
-    markFlash('.aura-card[data-aura-index="'+index+'"]');
-    safeToast(auraShopItems[index][0]+' 구매 완료');
-  };
-  window.buyConsumable=function(type){
-    type=type==='protect'?'protect':'stone';
-    var price=type==='protect'?10:25;
-    try{normalizeCharacter&&normalizeCharacter()}catch(e){}
-    if((Number(state.essence)||0)<price)return safeToast('정수가 부족합니다. 필요 정수 '+price+'개');
-    state.essence=(Number(state.essence)||0)-price;
-    if(type==='protect')state.downgradeProtect=(Number(state.downgradeProtect)||0)+1;
-    else state.transcendStone=(Number(state.transcendStone)||0)+1;
-    try{queueSave&&queueSave()}catch(e){}
-    refreshShopAll();
-    markFlash('.shop-card[data-consumable="'+type+'"]');
-    safeToast((type==='protect'?'하락방지권':'초월석')+' 구매 완료 · 현재 '+(type==='protect'?safeFmt(state.downgradeProtect)+'장':safeFmt(state.transcendStone)+'개'));
-  };
-  window.renderAuraShop=function(){
-    try{normalizeCharacter&&normalizeCharacter()}catch(e){}
-    var auraTab=$('shopAuraTab'),itemTab=$('shopItemTab'),grid=$('auraShopGrid');
-    if(!grid)return;
-    if(auraTab)auraTab.classList.toggle('on',shopCategory==='aura');
-    if(itemTab)itemTab.classList.toggle('on',shopCategory==='item');
-    if(shopCategory==='aura'){
-      grid.innerHTML=auraShopItems.map(function(it,i){
-        var name=it[0],color=it[1],owned=state.ownedAuras.includes(i);
-        return '<div class="aura-card '+(owned?'equipped':'')+'" data-aura-index="'+i+'" style="--aura-color:'+color+'"><span class="aura-sample"></span><span><strong>'+name+'</strong><small>원형 회전 오라 · 보유 효과 공격력% +3% 누적 · '+(owned?'구매 완료':'가격 정수 50개')+'</small></span><button class="'+(owned?'ringu-owned-done':'buy')+'" '+(owned?'disabled':'onclick="buyAura('+i+')"')+'>'+(owned?'구매 완료':'정수 50개')+'</button></div>';
-      }).join('');
-    }else{
-      grid.innerHTML='<div class="shop-card" data-consumable="stone"><span class="utility-icon" style="--ic:#7defff">◆</span><span><strong>초월석</strong><small>장비 초월 재료 · 현재 <b class="ringu-count-now">'+safeFmt(state.transcendStone)+'개</b></small></span><button onclick="buyConsumable(\'stone\')">정수 25개</button></div><div class="shop-card" data-consumable="protect"><span class="utility-icon" style="--ic:#ffd35a">◇</span><span><strong>하락방지권</strong><small>강화 실패 시 하락 방지 · 현재 <b class="ringu-count-now">'+safeFmt(state.downgradeProtect)+'장</b></small></span><button onclick="buyConsumable(\'protect\')">정수 10개</button></div>';
-    }
-  };
-})();
-</script>
 </body>
 </html>
