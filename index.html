@@ -558,7 +558,7 @@ left:var(--fallen-axe-left)!important;
  <section class="layout">
   <div class="panel boss-panel"><div class="panel-title">보스 선택 <small>지역별 보스</small></div><div class="region-tabs" id="regionTabs"></div><div class="boss-list" id="bossList"></div></div>
   <div class="panel battle-panel"><div class="arena" id="arena"><div class="battle-head"><h2 id="bossName"></h2><p id="battleState">자동 전투 중 · 1초마다 공격</p><button class="battle-toggle on" id="battleToggle" onclick="toggleAutoBattle()">자동사냥 ON</button></div><div class="boss-art" id="bossArt"><div class="boss-core"><span class="boss-eye left"></span><span class="boss-eye right"></span><span class="boss-mouth"></span></div><div class="boss-extra"></div></div><div class="hp-wrap"><div class="hp-row"><b>보스 HP</b><span id="hpText"></span></div><div class="hp-bar"><div class="hp-fill" id="hpFill"></div></div><div class="timer"><i id="timerFill"></i></div></div><div class="battle-log" id="battleLog"></div></div></div>
-  <div class="panel equip-panel"><div class="panel-title">장착 장비 <small id="equipAtk">공격력 +0</small></div><div class="equip-grid" id="equipGrid"></div></div>
+  <div class="panel equip-panel"><div class="panel-title">장착 장비 <span class="equip-title-actions"><button class="pose-open-btn" onclick="openGearPoseEditor()">외형 편집</button><small id="equipAtk">공격력 +0</small></span></div><div class="equip-grid" id="equipGrid"></div></div>
   <div class="panel stats-panel"><div class="panel-title">플레이어 능력치 <small>장착 장비 적용</small></div><div class="player-stats" id="playerStats"></div><div class="stat-formula">최종 공격력 = (기본 공격력 + 장비 공격력) × (1 + 공격력%)</div></div>
   <nav class="quick main-quick"><button class="daily-button" onclick="openDailyBoss()">일일 보스</button><button onclick="openDungeon('gold')">특수 던전</button><button onclick="openTower()">시련의 탑</button><button id="auraShopQuick" data-open-aura-shop="1" onclick="openAuraShop()" onpointerup="openAuraShop()">상점</button><button onclick="openItemInventory()">가방</button><button onclick="openCollection()">장비 도감</button><button class="tip-button" onclick="openTips()">팁</button></nav>
   <div class="panel summon-panel" id="summonPanel"><div class="panel-title">장비 소환 <button class="rate-btn" onclick="openRates()">레벨별 확률</button></div><div class="summon-level"><div class="level-line"><b id="summonLevel"></b><span id="summonExp"></span></div><div class="expbar"><i id="expFill"></i></div></div><div class="summon-tabs"><button class="summon-tab active" data-group="weapon">무기</button><button class="summon-tab" data-group="armor">방어구</button><button class="summon-tab" data-group="accessory">장신구</button></div><div class="draw-buttons"><button class="draw" onclick="drawItems(1)">1회 소환<span id="drawCost1"></span></button><button class="draw" onclick="drawItems(5)">5회 소환<span id="drawCost5"></span></button><button class="draw" onclick="drawItems(10)">10회 소환<span id="drawCost10"></span></button><button class="draw" onclick="drawItems(100)">100회 소환<span id="drawCost100"></span></button></div></div>
@@ -3480,6 +3480,9 @@ window.ringuGrantLoginCompensationNoMailBoot=grantLoginCompensation;
 .avatar-boot.left{transform:translate(var(--gear-boot-left-x),var(--gear-boot-left-y)) rotate(var(--gear-boot-left-rotate)) scale(var(--gear-boot-left-scale))!important}
 .avatar-boot.right{transform:translate(var(--gear-boot-right-x),var(--gear-boot-right-y)) rotate(var(--gear-boot-right-rotate)) scale(var(--gear-boot-right-scale))!important}
 .avatar-relics{transform:translate(var(--gear-accessory-x),var(--gear-accessory-y)) rotate(var(--gear-accessory-rotate)) scale(var(--gear-accessory-scale))!important}
+.equip-title-actions{display:flex;align-items:center;gap:8px}
+.pose-open-btn{border:1px solid #5a6f95;border-radius:8px;background:#202a3d;color:#ffe58a;font-weight:900;padding:6px 9px;font-size:12px}
+.pose-open-btn:active{transform:translateY(1px)}
 .weapon-pose-editor{
   position:fixed;
   z-index:9999;
@@ -3613,7 +3616,21 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
   function save(){localStorage.setItem(KEY,JSON.stringify(poses))}
   applyAll();
 
-  if(!/[?&]debugWeapon=1(?:&|$)/.test(location.search))return;
+  function gearPoseDebugEnabled(){return /[?&]debugWeapon=1(?:&|$)/.test(location.search)}
+  window.openGearPoseEditor=function(){
+    if(gearPoseDebugEnabled()){
+      var existing=document.querySelector('.weapon-pose-editor');
+      if(existing){existing.scrollIntoView({block:'nearest'});return}
+    }
+    try{
+      var url=new URL(location.href);
+      url.searchParams.set('debugWeapon','1');
+      location.href=url.href;
+    }catch(_e){
+      location.href=location.href+(location.href.indexOf('?')>=0?'&':'?')+'debugWeapon=1';
+    }
+  };
+  if(!gearPoseDebugEnabled())return;
   document.body.classList.add('weapon-pose-debug');
 
   var current='axe';
