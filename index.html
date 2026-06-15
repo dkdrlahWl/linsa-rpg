@@ -1390,6 +1390,7 @@ try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot
 .avatar-body.has-weapon .avatar-sword:not(.offhand){display:block}
 .avatar-body.has-weapon:not(.dual-wield) .avatar-sword.offhand{display:none!important}
 .avatar-torso{
+  z-index:10!important;
   left:10px!important;
   top:36px!important;
   width:46px!important;
@@ -1403,6 +1404,7 @@ try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot
 .avatar-torso::after{
   content:""!important;
   position:absolute!important;
+  z-index:11!important;
   top:2px!important;
   width:18px!important;
   height:28px!important;
@@ -1413,6 +1415,7 @@ try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot
 .avatar-torso::before{left:-12px!important;transform:rotate(13deg)!important}
 .avatar-torso::after{right:-12px!important;transform:rotate(-13deg)!important}
 .avatar-arm{
+  z-index:4!important;
   top:43px!important;
   width:14px!important;
   height:57px!important;
@@ -1422,11 +1425,11 @@ try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot
 .avatar-arm.left{left:4px!important;transform:rotate(12deg)!important;transform-origin:50% 8%!important}
 .avatar-arm.right{right:4px!important;transform:rotate(-11deg)!important;transform-origin:50% 8%!important}
 .avatar-body.has-weapon .avatar-arm.left{
-  left:2px!important;
+  left:3px!important;
   top:43px!important;
-  height:60px!important;
-  transform:rotate(18deg)!important;
-  z-index:10!important;
+  height:49px!important;
+  transform:rotate(15deg)!important;
+  z-index:5!important;
 }
 .avatar-body.has-weapon .avatar-arm.right{
   right:4px!important;
@@ -1457,18 +1460,18 @@ try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot
 .avatar-sword.fallen-sword,
 .avatar-body.female .avatar-sword.fallen-sword,
 .avatar-body.dual-wield .avatar-sword.fallen-sword{
-  left:7px!important;
+  left:9px!important;
   right:auto!important;
-  top:64px!important;
-  width:82px!important;
-  height:146px!important;
-  transform:scaleX(-1) rotate(-34deg)!important;
-  transform-origin:17% 23%!important;
+  top:66px!important;
+  width:76px!important;
+  height:132px!important;
+  transform:scaleX(-1) rotate(-24deg)!important;
+  transform-origin:18% 18%!important;
   z-index:7!important;
 }
 .avatar-body.dual-wield .avatar-sword.offhand.fallen-sword{display:none!important}
-.rank-preview .avatar-sword.fallen-sword{left:7px!important;top:64px!important;width:82px!important;height:146px!important}
-.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left{z-index:10!important}
+.rank-preview .avatar-sword.fallen-sword{left:9px!important;top:66px!important;width:76px!important;height:132px!important}
+.avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left{z-index:9!important}
 .avatar-body:has(.avatar-sword.fallen-sword) .avatar-arm.left::after{
   content:""!important;
   position:absolute!important;
