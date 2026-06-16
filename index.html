@@ -2973,5 +2973,53 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
   .player-avatar>.pet-layer .pet-badge-name{max-width:92px!important;font-size:8px!important}
 }
 </style>
+<style id="ringuMobileTopbarOverlapFixV1">
+/* RINGU_MOBILE_TOPBAR_OVERLAP_FIX_V1: prevent sticky header/stat cards from covering boss panels on phones. */
+@media(max-width:640px){
+  .topbar{
+    position:relative!important;
+    top:auto!important;
+    z-index:5!important;
+    margin:0 0 12px!important;
+    padding:10px 0 0!important;
+    background:transparent!important;
+    border-bottom:0!important;
+    backdrop-filter:none!important;
+  }
+  .brand-row{
+    margin:0 0 10px!important;
+    padding:0 0 2px!important;
+  }
+  .stats{
+    position:relative!important;
+    z-index:1!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    width:100%!important;
+    margin:0 0 12px!important;
+    overflow:visible!important;
+  }
+  .stats .stat{
+    min-height:64px!important;
+    padding:9px 10px!important;
+    border-radius:14px!important;
+  }
+  .stats .stat:last-child{
+    grid-column:1 / -1!important;
+  }
+  .stat-label{font-size:11px!important;line-height:1.2!important}
+  .stat-value{font-size:15px!important;line-height:1.25!important;max-width:100%!important}
+  .layout{position:relative!important;z-index:1!important;gap:12px!important;clear:both!important}
+  .boss-panel,.battle-panel,.equip-panel{position:relative!important;z-index:1!important;clear:both!important}
+  .boss-panel{margin-top:0!important}
+}
+@media(max-width:390px){
+  .stats{gap:7px!important}
+  .stats .stat{min-height:58px!important;padding:8px!important}
+  .stat-label{font-size:10px!important}
+  .stat-value{font-size:13px!important}
+}
+</style>
 </body>
 </html>
