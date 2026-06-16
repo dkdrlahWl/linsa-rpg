@@ -2921,5 +2921,65 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
   .equip-panel .player-avatar{min-height:238px!important}
 }
 </style>
+<script id="ringuEnhanceModalRestoreV6">
+(function(){
+  function safeTransAtk(it){try{return typeof ringuFallenTransAtkTextV1==='function'?ringuFallenTransAtkTextV1(it):(it&&it.slot==='무기'?45:30)}catch(e){return it&&it.slot==='무기'?45:30}}
+  function safeTransPercent(it){try{return typeof ringuFallenTransPercentTextV1==='function'?ringuFallenTransPercentTextV1(it):(it&&it.slot==='무기'?(it.rarity>=5?20:15):10)}catch(e){return it&&it.slot==='무기'?(it.rarity>=5?20:15):10}}
+  function setText(id,value){var el=document.getElementById(id);if(el)el.textContent=value}
+  function setHtml(id,value){var el=document.getElementById(id);if(el)el.innerHTML=value}
+  function fixedRenderEnhanceV6(){
+    var it=state&&Array.isArray(state.inventory)?state.inventory.find(function(x){return String(x.id)===String(enhanceId)}):null;
+    if(!it){try{closeEnhance()}catch(e){} return false}
+    var transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));
+    var target=transcend+1;
+    var eligible=typeof canTranscend==='function'&&canTranscend(it);
+    var transAtk=safeTransAtk(it), transPercent=safeTransPercent(it);
+    var title=(it.name||'장비')+(transcend?' · '+transcend+'초월':'');
+    setText('enhanceTitle',title);
+    setHtml('enhanceGear',typeof gearIcon==='function'?gearIcon(it):'');
+    setHtml('enhanceDesc',(rarityNames[it.rarity]||'장비')+' '+it.slot+' · 공격력 <b>'+itemAttackText(it)+'</b><br><span style="color:#86d8ff">'+optionText(it)+'</span><br>강화 실패 시 강화 수치가 1 감소합니다.'+(Number(it.enhance)>=10?'<br><b style="color:#ffca62">+11부터 공격력 증가량 2배</b>':'')+(Number(it.enhance)>=15?'<br>최대 강화에 도달했습니다.':''));
+    setText('enhNow','+'+(Number(it.enhance)||0)+(transcend?' · '+transcend+'초월':''));
+    setText('enhRate',Number(it.enhance)>=15?'-':successRate((Number(it.enhance)||0)+1)+'%');
+    setText('enhCost',Number(it.enhance)>=15?'-':fmt(enhanceCost(it))+' G');
+    var enhanceBtn=document.getElementById('enhanceBtn');
+    if(enhanceBtn){enhanceBtn.disabled=!!enhanceBusy||Number(it.enhance)>=15;enhanceBtn.textContent=enhanceBusy?'진행 중...':'강화 시도'}
+    var protect=document.getElementById('protectToggle');
+    if(protect){protect.textContent='하락방지권 '+(state.useProtect?'ON':'OFF')+' · 실패 시에만 사용 · 보유 '+fmt(state.downgradeProtect||0)+'장';protect.style.color=state.useProtect?'#8fffc8':'#aab5c9'}
+    var tbtn=document.getElementById('transcendBtn');
+    if(tbtn){tbtn.disabled=!!enhanceBusy||!eligible;tbtn.textContent=transcend>=3?'3초월 완료':eligible?target+'초월 시도':'초월 조건 미달';tbtn.style.color=eligible?'#ff9aa9':'#69758a'}
+    var info=transcend>=3?'<b style="color:#ff6578">최대 3초월 완료</b>':Number(it.rarity)<4?'전설 이상 장비만 초월할 수 있습니다.':Number(it.enhance)<15?'+15 강화 달성 시 초월이 활성화됩니다.':target+'초월 · 성공률 <b>'+transcendRate(target)+'%</b> · 초월석 <b>'+transcendCost(it,target)+'개</b><br>성공 시 장비 공격력 +'+transAtk+'% · 공격력% +'+transPercent+'%';
+    setHtml('transcendInfo',info);
+    return false;
+  }
+  window.renderEnhance=fixedRenderEnhanceV6;
+  try{renderEnhance=fixedRenderEnhanceV6}catch(e){}
+  try{var btn=document.getElementById('enhanceBtn');if(btn&&typeof window.tryEnhance==='function')btn.onclick=window.tryEnhance}catch(e){}
+  try{var tbtn=document.getElementById('transcendBtn');if(tbtn&&typeof window.tryTranscend==='function')tbtn.onclick=window.tryTranscend}catch(e){}
+})();
+</script>
+<style id="ringuSmallPetByNameV6">
+/* RINGU_SMALL_PET_BY_NAME_V6: keep equipped pet as a small badge beside the character name. */
+.equip-panel .player-avatar>.pet-layer,.player-avatar>.pet-layer.pet-layer,.rank-preview .player-avatar>.pet-layer,.rank-preview .pet-layer{
+  left:calc(50% + 26px)!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:8px!important;
+  width:24px!important;
+  height:24px!important;
+  min-height:0!important;
+  font-size:20px!important;
+  line-height:1!important;
+  z-index:30!important;
+  display:grid!important;
+  place-items:center!important;
+  transform:none!important;
+  pointer-events:none!important;
+  filter:drop-shadow(0 0 5px #fff8) drop-shadow(0 2px 3px #000b)!important;
+}
+.equip-panel .player-avatar>.pet-layer img,.rank-preview .pet-layer img{width:100%!important;height:100%!important;object-fit:contain!important}
+.equip-panel .player-avatar>.pet-layer.g5,.rank-preview .pet-layer.g5{filter:drop-shadow(0 0 7px #ff304c) drop-shadow(0 2px 3px #000b)!important}
+.rank-preview .pet-layer{left:calc(50% + 48px)!important;bottom:14px!important;width:28px!important;height:28px!important;font-size:23px!important}
+@media(max-width:380px){.equip-panel .player-avatar>.pet-layer{left:calc(50% + 24px)!important;bottom:8px!important;width:22px!important;height:22px!important;font-size:18px!important}}
+</style>
 </body>
 </html>
