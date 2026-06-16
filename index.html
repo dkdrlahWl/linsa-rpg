@@ -849,7 +849,7 @@ const fmtPct=v=>Number(v.toFixed(1)).toString()+'%';
 const optRows=defs.map(([slot,opt,base])=>'<tr><td>'+slot+'</td><td>'+opt+'</td>'+ratios.map(r=>'<td>'+fmtPct(base*r*rollMin)+'~'+fmtPct(base*r*rollMax)+'</td>').join('')+'</tr>').join('');
 const costs=[5000,10000,20000,40000,80000,160000,320000,320000,320000,480000,480000,480000,720000,720000,720000];
 const costRows=costs.map((c,i)=>'<tr><td>Lv.'+(i+1)+'</td><td>'+fmt(c)+' G</td></tr>').join('');
-$('tipGrid').innerHTML='<div class="tip-card"><h4>장비 등급별 · 부위별 부옵션 범위</h4><table class="tip-table"><thead><tr><th>부위</th><th>부옵션</th>'+rar.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+optRows+'</tbody></table><p class="rank-note">실제 장비 생성 로직 기준입니다. 장비마다 0.8~1.201배 난수로 결정됩니다.<br>초월 옵션은 별도 추가됩니다: 무기 1초월당 공격력% +15%, 신화 무기는 +20%, 타락 무기는 +25%, 그 외 부위 1초월당 공격력% +10%.<br>타락 등급은 소환 Lv.15에서만 1% 확률로 등장합니다. Lv.1~14 확률은 기존 규칙을 유지합니다.<br>오라는 장착 여부와 관계없이 보유 개수마다 공격력% +3%가 누적됩니다.</p></div><div class="tip-card summon-cost-card"><h4>소환 레벨별 1회 소환가격</h4><table class="tip-table"><thead><tr><th>소환 레벨</th><th>1회 가격</th></tr></thead><tbody>'+costRows+'</tbody></table></div>';
+$('tipGrid').innerHTML='<div class="tip-card"><h4>장비 등급별 · 부위별 부옵션 범위</h4><table class="tip-table"><thead><tr><th>부위</th><th>부옵션</th>'+rar.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+optRows+'</tbody></table><p class="rank-note">실제 장비 생성 로직 기준입니다. 장비마다 0.8~1.201배 난수로 결정됩니다.<br>초월 옵션은 별도 추가됩니다: 무기 1초월당 공격력% +15%, 신화 무기는 +20%, 타락 무기는 +40%, 타락 비무기 부위는 +25%, 그 외 부위 1초월당 공격력% +10%.<br>타락 등급은 소환 Lv.15에서만 1% 확률로 등장합니다. 무기/방어구/장신구 소환 카테고리별 부위가 분리됩니다.<br>오라는 장착 여부와 관계없이 보유 개수마다 공격력% +3%가 누적됩니다.</p></div><div class="tip-card summon-cost-card"><h4>소환 레벨별 1회 소환가격</h4><table class="tip-table"><thead><tr><th>소환 레벨</th><th>1회 가격</th></tr></thead><tbody>'+costRows+'</tbody></table></div>';
 $('tipModal').classList.add('show')}
 function closeTips(){$('tipModal').classList.remove('show')}
 function renderPlayerStats(){const s=getPlayerStats();$('playerStats').innerHTML='<div class="player-stat primary"><span>공격력</span><b>'+fmt(s.attack)+'</b></div><div class="player-stat"><span>공격력%</span><b>'+Number(s.atkPercent.toFixed(1))+'%</b></div><div class="player-stat"><span>치명타 확률</span><b>'+Number(s.critChance.toFixed(1))+'%</b></div><div class="player-stat"><span>치명타 피해</span><b>'+Number(s.critDamage.toFixed(1))+'%</b></div><div class="player-stat"><span>골드 획득량</span><b>+'+Number(s.goldBonus.toFixed(1))+'%</b></div>'}
@@ -1334,6 +1334,89 @@ normalizeCharacter=function(){baseNormalizeDailyRewardBoxV1();migrateDailyReward
 const baseRenderAllDailyRewardBoxV1=renderAll;
 renderAll=function(){baseRenderAllDailyRewardBoxV1();renderDailyRewardBoxV1()};
 Object.assign(window,{openDailyReward,closeDailyReward,claimDailyReward,openDailyBoss,closeDailyBoss});
+
+/* RINGU_FALLEN_RULES_MAIL_PETDUNGEON_V1: final fallen gear rules, H8 account mail, pet dungeon clear-only entry */
+const RINGU_FALLEN_ARMOR_NAMES_V1={
+  '투구':['타락의 공허 투구','타락의 심연 투구','타락의 혈월 투구','타락의 망각 투구','타락의 종말 투구'],
+  '갑옷':['타락의 공허 갑옷','타락의 심연 갑옷','타락의 혈월 갑옷','타락의 망각 갑옷','타락의 종말 갑옷'],
+  '바지':['타락의 공허 각반','타락의 심연 각반','타락의 혈월 각반','타락의 망각 각반','타락의 종말 각반'],
+  '신발':['타락의 공허 장화','타락의 심연 장화','타락의 혈월 장화','타락의 망각 장화','타락의 종말 장화']
+};
+const RINGU_FALLEN_WEAPON_NAMES_V1=['타락의 멸망검','타락의 멸망도끼'];
+function ringuFallenArmorSlotV1(slot){return Object.prototype.hasOwnProperty.call(RINGU_FALLEN_ARMOR_NAMES_V1,slot)}
+function ringuFallenNamesV1(slot){return slot==='무기'?RINGU_FALLEN_WEAPON_NAMES_V1:(RINGU_FALLEN_ARMOR_NAMES_V1[slot]||[])}
+function ringuFallenSlotForGroupV1(group){const list=group==='weapon'?['무기']:(group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이']);return list[Math.floor(Math.random()*list.length)]}
+function ringuFallenNormalizeSlotV1(slot){return slot==='무기'||ringuFallenArmorSlotV1(slot)?slot:'무기'}
+function ringuFallenIndexV1(it){const names=ringuFallenNamesV1(it&&it.slot),name=String((it&&it.name)||'');const idx=names.findIndex(n=>name===n||name.includes(n));return idx<0?0:idx}
+const ringuBaseGearVariantCountV1=gearVariantCount;
+gearVariantCount=function(rarity,slot){if(Number(rarity)===6){const names=ringuFallenNamesV1(slot);return names.length||(slot==='무기'?RINGU_FALLEN_WEAPON_NAMES_V1.length:0)}return ringuBaseGearVariantCountV1(rarity,slot)};
+const ringuBaseItemIndexV1=itemIndex;
+itemIndex=function(it){if(it&&Number(it.rarity)===6)return ringuFallenIndexV1(it);return ringuBaseItemIndexV1(it)};
+const ringuBaseItemNameV1=itemName;
+itemName=function(slot,rarity,idx){if(Number(rarity)===6){const names=ringuFallenNamesV1(slot);return names[Math.max(0,Math.min(names.length-1,Number(idx)||0))]||RINGU_FALLEN_WEAPON_NAMES_V1[0]}return ringuBaseItemNameV1(slot,rarity,idx)};
+const ringuBaseFixedBaseAtkV1=fixedBaseAtk;
+fixedBaseAtk=function(slot,rarity,idx){if(Number(rarity)===6){const i=Math.max(0,Number(idx)||0),mythicCount=Math.max(1,ringuBaseGearVariantCountV1(5,slot)||10),mythicIdx=i%mythicCount,mythicBase=ringuBaseFixedBaseAtkV1(slot,5,mythicIdx);return Math.floor(mythicBase*(slot==='무기'?3:2))}return ringuBaseFixedBaseAtkV1(slot,rarity,idx)};
+function ringuNormalizeFallenItemV1(it){if(!it||Number(it.rarity)!==6)return it;it.slot=ringuFallenNormalizeSlotV1(it.slot);const max=Math.max(1,gearVariantCount(6,it.slot));const idx=Math.max(0,Math.min(max-1,itemIndex(it)));it.name=itemName(it.slot,6,idx);it.baseAtk=fixedBaseAtk(it.slot,6,idx);return it}
+const ringuBaseNormalizeCharacterV1=normalizeCharacter;
+normalizeCharacter=function(){ringuBaseNormalizeCharacterV1();state.inventory=Array.isArray(state.inventory)?state.inventory:[];state.discovered=state.discovered&&typeof state.discovered==='object'?state.discovered:{};state.inventory.forEach(it=>{if(Number(it.rarity)===6){ringuNormalizeFallenItemV1(it);state.discovered[itemKey(it)]=true}});if(state.dungeons){state.dungeons.petEntries=Math.max(0,Number(state.dungeons.petEntries)||0)}};
+const ringuBaseMakeItemV1=makeItem;
+makeItem=function(group){let it=ringuBaseMakeItemV1(group);if(it&&Number(it.rarity)===6){if(group==='accessory'){it.rarity=5;it.slot=ringuFallenSlotForGroupV1('accessory');const idx=Math.floor(Math.random()*gearVariantCount(5,it.slot));it.name=itemName(it.slot,5,idx);it.baseAtk=fixedBaseAtk(it.slot,5,idx);return it}it.slot=ringuFallenSlotForGroupV1(group);const idx=Math.floor(Math.random()*gearVariantCount(6,it.slot));it.name=itemName(it.slot,6,idx);it.baseAtk=fixedBaseAtk(it.slot,6,idx);it.optionRolls=it.optionRolls||makeOptionRolls((it.id||Date.now())+Math.random())}return it};
+if(typeof makeRewardItem==='function'){
+  const ringuBaseMakeRewardItemV1=makeRewardItem;
+  makeRewardItem=function(slot,rarity){slot=slots.includes(slot)?slot:'무기';if(Number(rarity)===6&&!ringuFallenArmorSlotV1(slot)&&slot!=='무기')rarity=5;const it=ringuBaseMakeRewardItemV1(slot,rarity);return Number(it&&it.rarity)===6?ringuNormalizeFallenItemV1(it):it};
+}
+collectionItems=function(){const all=[];slots.forEach(slot=>{for(let rarity=0;rarity<6;rarity++)for(let idx=0;idx<gearVariantCount(rarity,slot);idx++)all.push({slot,rarity,name:itemName(slot,rarity,idx),baseAtk:fixedBaseAtk(slot,rarity,idx),optionRolls:[1,1],enhance:0,transcend:0})});['무기','투구','갑옷','바지','신발'].forEach(slot=>{for(let idx=0;idx<gearVariantCount(6,slot);idx++)all.push({slot,rarity:6,name:itemName(slot,6,idx),baseAtk:fixedBaseAtk(slot,6,idx),optionRolls:[1.12,1.08],enhance:0,transcend:0})});return all.sort((a,b)=>a.rarity-b.rarity||a.baseAtk-b.baseAtk||a.slot.localeCompare(b.slot,'ko'))};
+const ringuBaseItemAtkV1=itemAtk;
+itemAtk=function(it){if(!(it&&Number(it.rarity)===6))return ringuBaseItemAtkV1(it);const step=180,level=Math.max(0,Number(it.enhance)||0),bonus=level<=10?step*level:step*10+step*2*(level-10),enhanced=(Number(it.baseAtk)||0)+bonus,transcend=Math.min(3,Math.max(0,Number(it.transcend)||0)),rate=it.slot==='무기'?.40:.25;return Math.floor(enhanced*(1+transcend*rate))};
+const ringuBaseSubOptionsV1=subOptions;
+subOptions=function(it){const options=ringuBaseSubOptionsV1(it);if(it&&Number(it.rarity)===6){const transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(transcend){const value=transcend*(it.slot==='무기'?40:25);if(options.length&&options[options.length-1][0]==='atkPercent')options[options.length-1]=['atkPercent',value];else options.push(['atkPercent',value])}}return options};
+const ringuBaseEnhanceCostV1=enhanceCost;
+enhanceCost=function(it){if(it&&Number(it.rarity)===6){const mythic=Object.assign({},it,{rarity:5});return Math.floor(ringuBaseEnhanceCostV1(mythic)*5/100)*100}return ringuBaseEnhanceCostV1(it)};
+const ringuBaseTranscendCostV1=transcendCost;
+transcendCost=function(it,target){if(it&&Number(it.rarity)===6){const mythicCosts=[10,20,40];return (mythicCosts[target-1]||0)*2}return ringuBaseTranscendCostV1(it,target)};
+function ringuFallenTransAtkTextV1(it){return it&&Number(it.rarity)===6?(it.slot==='무기'?40:25):(it&&it.slot==='무기'?45:30)}
+function ringuFallenTransPercentTextV1(it){return it&&Number(it.rarity)===6?(it.slot==='무기'?40:25):(it&&it.slot==='무기'?(it.rarity>=5?20:15):10)}
+renderEnhance=function(){const it=state.inventory.find(x=>x.id===enhanceItemId);if(!it){closeEnhance();return}const can=it.enhance<15,cost=enhanceCost(it),rate=enhanceRate(it.enhance),target=(it.transcend||0)+1,transOk=canTranscend(it),transCost=transcendCost(it,target),transAtk=ringuFallenTransAtkTextV1(it),transPercent=ringuFallenTransPercentTextV1(it);$('enhanceBody').innerHTML='<div class="enhance-card"><div>'+gearIcon(it)+'</div><h3 style="color:'+rarityColors[it.rarity]+'">'+itemTitleHtml(it)+'</h3><p>공격력 '+itemAttackText(it)+'</p><p class="sub-options">'+optionText(it)+'</p><p>강화 성공률 '+Math.round(rate*100)+'% · 실패 시 '+(state.useProtect&&state.downgradeProtect>0?'하락 방지권 사용':'1단계 하락 가능')+'</p><p>강화 비용 '+fmt(cost)+' 골드</p><div class="protect-row"><button class="protect-toggle '+(state.useProtect?'on':'')+'" onclick="toggleProtect()">하락 방지권 '+(state.useProtect?'ON':'OFF')+'</button><span>보유 '+state.downgradeProtect+'개</span></div><button '+(!can||state.gold<cost||enhanceBusy?'disabled':'')+' onclick="tryEnhance()">강화하기</button><button onclick="toggleEquipItem('+it.id+')">'+(isItemEquipped(it)?'장착 해제':'장착')+'</button><button onclick="toggleLock('+it.id+')">'+(it.locked?'잠금 해제':'잠금')+'</button><hr><p>초월 '+(it.transcend||0)+' / 3 · 장비 공격력 +'+transAtk+'%, 옵션 공격력 +'+transPercent+'%</p><p>필요 초월석 '+transCost+'개</p><button '+(!transOk||state.transcendStone<transCost?'disabled':'')+' onclick="tryTranscend()">초월하기</button></div>'};
+const ringuBaseCheckTargetMailV1=checkTargetMail;
+checkTargetMail=function(){ringuBaseCheckTargetMailV1();if(state.playerUid==='H8RT3PVL8H')addMailboxMail('h8rt3pvl8h-essence-petstone-100m-v1','전용 대량 자원 지급','요청 계정에 지급되는 계정당 1회성 보상입니다.',{essence:100000000,petStone:100000000});return false};
+startPetDungeon=function(){if(activeDungeon)return;normalizeCharacter();if(state.dungeons.petEntries<=0)return toast('오늘 펫 던전 입장 횟수를 모두 사용했습니다.');startDungeonBattle('pet',PET_DUNGEON_STAGE_V1,0,'혼자 도전')};
+const ringuBaseFinishDungeonClearV1=finishDungeonClearV15;
+finishDungeonClearV15=function(d){if(d&&d.type==='pet'){try{normalizeCharacter();if(state.dungeons.petEntries<=0){toast('오늘 펫 던전 입장 횟수를 모두 사용했습니다.');return}state.dungeons.petEntries--;if(typeof addReward==='function')addReward({petStone:d.reward});else state.petStone=(Number(state.petStone)||0)+d.reward;toast('펫 던전 클리어 · 입장권 1회 소모 · 펫 스톤 +'+d.reward+'개')}catch(e){console.warn('pet dungeon finish error',e);toast('펫 던전 클리어 처리 완료')}finally{activeDungeon=null;partyRoom=null;try{renderAll()}catch(e){}try{renderDungeon()}catch(e){}try{queueSave()}catch(e){}}return}return ringuBaseFinishDungeonClearV1(d)};
+Object.assign(window,{gearVariantCount,itemIndex,itemName,fixedBaseAtk,makeItem,collectionItems,itemAtk,subOptions,enhanceCost,transcendCost,renderEnhance,checkTargetMail,startPetDungeon,finishDungeonClearV15});
+/* RINGU_FALLEN_ACCESSORY_RULES_V2: fallen summon category split for weapon/armor/accessory */
+const RINGU_FALLEN_ACCESSORY_NAMES_V2={
+  '반지':['타락의 공허 반지','타락의 심연 반지','타락의 혈월 반지','타락의 망각 반지','타락의 종말 반지'],
+  '귀걸이':['타락의 공허 귀걸이','타락의 심연 귀걸이','타락의 혈월 귀걸이','타락의 망각 귀걸이','타락의 종말 귀걸이']
+};
+function ringuFallenNamesAllV2(slot){return slot==='무기'?RINGU_FALLEN_WEAPON_NAMES_V1:(RINGU_FALLEN_ARMOR_NAMES_V1[slot]||RINGU_FALLEN_ACCESSORY_NAMES_V2[slot]||[])}
+function ringuFallenAllowedSlotV2(slot){return slot==='무기'||!!RINGU_FALLEN_ARMOR_NAMES_V1[slot]||!!RINGU_FALLEN_ACCESSORY_NAMES_V2[slot]}
+function ringuFallenSlotForGroupV2(group){const list=group==='weapon'?['무기']:(group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이']);return list[Math.floor(Math.random()*list.length)]}
+gearVariantCount=function(rarity,slot){if(Number(rarity)===6){const names=ringuFallenNamesAllV2(slot);return names.length||(slot==='무기'?RINGU_FALLEN_WEAPON_NAMES_V1.length:0)}return ringuBaseGearVariantCountV1(rarity,slot)};
+itemIndex=function(it){if(it&&Number(it.rarity)===6){const names=ringuFallenNamesAllV2(it.slot),name=String(it.name||'');const idx=names.findIndex(n=>name===n||name.includes(n));return idx<0?0:idx}return ringuBaseItemIndexV1(it)};
+itemName=function(slot,rarity,idx){if(Number(rarity)===6){const names=ringuFallenNamesAllV2(slot);return names[Math.max(0,Math.min(names.length-1,Number(idx)||0))]||RINGU_FALLEN_WEAPON_NAMES_V1[0]}return ringuBaseItemNameV1(slot,rarity,idx)};
+fixedBaseAtk=function(slot,rarity,idx){if(Number(rarity)===6){const i=Math.max(0,Number(idx)||0),mythicCount=Math.max(1,ringuBaseGearVariantCountV1(5,slot)||10),mythicIdx=i%mythicCount,mythicBase=ringuBaseFixedBaseAtkV1(slot,5,mythicIdx);return Math.floor(mythicBase*(slot==='무기'?3:2))}return ringuBaseFixedBaseAtkV1(slot,rarity,idx)};
+function ringuNormalizeFallenItemAllV2(it){if(!it||Number(it.rarity)!==6)return it;if(!ringuFallenAllowedSlotV2(it.slot))it.slot='무기';const max=Math.max(1,gearVariantCount(6,it.slot)),idx=Math.max(0,Math.min(max-1,itemIndex(it)));it.name=itemName(it.slot,6,idx);it.baseAtk=fixedBaseAtk(it.slot,6,idx);return it}
+const ringuNormalizeCharacterBeforeAccessoryV2=normalizeCharacter;
+normalizeCharacter=function(){ringuNormalizeCharacterBeforeAccessoryV2();state.inventory=Array.isArray(state.inventory)?state.inventory:[];state.discovered=state.discovered&&typeof state.discovered==='object'?state.discovered:{};state.inventory.forEach(it=>{if(Number(it.rarity)===6){ringuNormalizeFallenItemAllV2(it);state.discovered[itemKey(it)]=true}})};
+makeItem=function(group){let it=ringuBaseMakeItemV1(group);if(it&&Number(it.rarity)===6){it.slot=ringuFallenSlotForGroupV2(group);const idx=Math.floor(Math.random()*gearVariantCount(6,it.slot));it.name=itemName(it.slot,6,idx);it.baseAtk=fixedBaseAtk(it.slot,6,idx);it.optionRolls=it.optionRolls||makeOptionRolls((it.id||Date.now())+Math.random())}return it};
+if(typeof makeRewardItem==='function')makeRewardItem=function(slot,rarity){slot=slots.includes(slot)?slot:'무기';if(Number(rarity)===6&&!ringuFallenAllowedSlotV2(slot))slot='무기';const idx=Math.floor(Math.random()*gearVariantCount(rarity,slot)),id=state.uid++,it={id,slot,rarity,name:itemName(slot,rarity,idx),baseAtk:fixedBaseAtk(slot,rarity,idx),optionRolls:makeOptionRolls(id+Math.random()),enhance:0,transcend:0,locked:false};state.discovered=state.discovered&&typeof state.discovered==='object'?state.discovered:{};it.isNew=!state.discovered[itemKey(it)];state.discovered[itemKey(it)]=true;return it};
+collectionItems=function(){const all=[];slots.forEach(slot=>{for(let rarity=0;rarity<6;rarity++)for(let idx=0;idx<gearVariantCount(rarity,slot);idx++)all.push({slot,rarity,name:itemName(slot,rarity,idx),baseAtk:fixedBaseAtk(slot,rarity,idx),optionRolls:[1,1],enhance:0,transcend:0})});slots.forEach(slot=>{for(let idx=0;idx<gearVariantCount(6,slot);idx++)all.push({slot,rarity:6,name:itemName(slot,6,idx),baseAtk:fixedBaseAtk(slot,6,idx),optionRolls:[1.12,1.08],enhance:0,transcend:0})});return all.sort((a,b)=>a.rarity-b.rarity||a.baseAtk-b.baseAtk||a.slot.localeCompare(b.slot,'ko'))};
+Object.assign(window,{gearVariantCount,itemIndex,itemName,fixedBaseAtk,makeItem,makeRewardItem,collectionItems,normalizeCharacter});
+/* RINGU_FALLEN_RATE_TEXT_V3: show fallen rates for all summon categories */
+openRates=function(){const fallenActive=['weapon','armor','accessory'].includes(drawGroup),rateText=fallenActive?'Lv.15에서 타락 1%':'타락 등급 없음';let rows=rates.map((r,i)=>{const hasFallen=fallenActive&&i===14,shown=hasFallen?r.map(v=>Number((v*.99).toFixed(4))):r,cols=[...shown,hasFallen?1:0];return'<tr class="'+(i+1===activeSummon().level?'current':'')+'"><td>Lv.'+(i+1)+'</td>'+cols.map((v,j)=>'<td style="color:'+rarityColors[j]+'">'+v+'%</td>').join('')+'</tr>'}).join('');$('rateTable').innerHTML='<p class="summon-kind">'+groupName(drawGroup)+' 소환 확률 · '+rateText+'</p><table class="rate-table"><thead><tr><th>레벨</th>'+rarityNames.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table><p class="rank-note">타락 장비는 소환 Lv.15에서만 1% 확률로 등장하며, 무기는 무기 소환, 투구/갑옷/바지/신발은 방어구 소환, 반지/귀걸이는 장신구 소환에서 등장합니다.</p>';$('rateModal').classList.add('show')};
+Object.assign(window,{openRates});
+/* RINGU_PET_LAYER_NAME_BADGE_V5: larger pet badge with name under icon on character/ranking previews */
+function ringuPetLayerBadgeHtmlV5(petId,level,grade,name,icon,image){
+  const safeName=escapeHtml(name||'펫'), safeIcon=icon||'🐾', g=Number(grade)||0, lv=Number(level)||1;
+  const img=image?'<img src="'+image+'" alt="'+safeName+'" onerror="this.replaceWith(document.createTextNode(\''+safeIcon+'\'))">':safeIcon;
+  return '<span class="pet-layer pet-badge-layer g'+g+'"><span class="pet-badge-icon">'+img+'</span><span class="pet-badge-name">'+safeName+' Lv.'+lv+'</span></span>';
+}
+renderPetLayer=function(){const pet=getEquippedPet&&getEquippedPet();if(!pet)return'';const d=PET_DATA[pet.petId];if(!d)return'';const v=PET_VISUALS&&PET_VISUALS[pet.petId];return ringuPetLayerBadgeHtmlV5(pet.petId,pet.level,d.grade,d.name,d.icon,v&&v.image)};
+if(typeof rankingAvatarHtml==='function'){
+  const ringuBaseRankingAvatarHtmlV5=rankingAvatarHtml;
+  rankingAvatarHtml=function(p){const html=ringuBaseRankingAvatarHtmlV5(p);try{const pet=rankPetInfoV2&&rankPetInfoV2(p);if(!pet)return html;const d=PET_DATA[pet.id]||{},badge=ringuPetLayerBadgeHtmlV5(pet.id,pet.l,pet.g||d.grade,pet.n||d.name,d.icon,null);return html.replace(/<span class="pet-layer[^>]*>[\s\S]*?<\/span>/,badge)}catch(e){return html}};
+}
+Object.assign(window,{renderPetLayer,rankingAvatarHtml});
 load();
 try{window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot()}catch(e){}
 try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot()},1200)}catch(e){}
@@ -2825,6 +2908,70 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 #dungeonModal .dungeon-stage small,#dungeonModal .dungeon-stage strong{overflow-wrap:anywhere!important;word-break:keep-all!important}
 #dungeonModal .dungeon-stage-actions button{min-width:48px!important;padding-left:8px!important;padding-right:8px!important;white-space:nowrap!important}
 @media(max-width:420px){#dungeonModal{padding:16px!important}#dungeonModal .modal{width:calc(100vw - 32px)!important;max-width:calc(100vw - 32px)!important;padding:14px!important}#dungeonModal .dungeon-tabs{gap:5px!important}#dungeonModal .dungeon-tabs button{font-size:9px!important;padding-left:2px!important;padding-right:2px!important}#dungeonModal .dungeon-stage{grid-template-columns:1fr!important}#dungeonModal .dungeon-stage-actions{display:grid!important;grid-template-columns:1fr!important}#dungeonModal .dungeon-stage-actions button{width:100%!important}}
+</style>
+<style id="ringuHandLayerTopV1">
+.player-avatar .avatar-sword,.rank-preview .avatar-sword{z-index:18!important}
+.player-avatar .avatar-sword.fallen-sword,.rank-preview .avatar-sword.fallen-sword{z-index:18!important}
+.player-avatar .avatar-arm,.rank-preview .avatar-arm{z-index:32!important;pointer-events:none}
+.player-avatar .avatar-arm::after,.rank-preview .avatar-arm::after{z-index:33!important}
+.player-avatar .avatar-helmet,.rank-preview .avatar-helmet{z-index:34!important}
+</style>
+<style id="ringuPetLayerNameBadgeV5Style">
+.equip-panel .player-avatar>.pet-layer,.rank-preview .player-avatar>.pet-layer,.player-avatar>.pet-layer.pet-badge-layer,.rank-preview .pet-layer.pet-badge-layer{
+  left:auto!important;
+  top:auto!important;
+  right:-8px!important;
+  bottom:30px!important;
+  width:104px!important;
+  height:auto!important;
+  min-height:104px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:3px!important;
+  z-index:29!important;
+  pointer-events:none!important;
+  transform:none!important;
+  filter:drop-shadow(0 0 14px #fff8) drop-shadow(0 8px 10px #000b)!important;
+}
+.player-avatar>.pet-layer .pet-badge-icon,.rank-preview .pet-layer .pet-badge-icon{
+  width:88px!important;
+  height:88px!important;
+  display:grid!important;
+  place-items:center!important;
+  font-size:78px!important;
+  line-height:1!important;
+}
+.player-avatar>.pet-layer .pet-badge-icon img,.rank-preview .pet-layer .pet-badge-icon img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+}
+.player-avatar>.pet-layer .pet-badge-name,.rank-preview .pet-layer .pet-badge-name{
+  max-width:104px!important;
+  padding:2px 5px!important;
+  border-radius:7px!important;
+  border:1px solid #ffffff33!important;
+  background:#07101dcc!important;
+  color:#f5f8ff!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+  text-align:center!important;
+  white-space:normal!important;
+  word-break:keep-all!important;
+  overflow:hidden!important;
+  text-shadow:0 1px 2px #000!important;
+}
+.player-avatar>.pet-layer.g5,.rank-preview .pet-layer.g5{filter:drop-shadow(0 0 20px #ff304c) drop-shadow(0 8px 12px #000c)!important}
+.rank-preview .pet-layer.pet-badge-layer{right:-4px!important;bottom:24px!important;width:112px!important;min-height:112px!important}
+.rank-preview .pet-layer .pet-badge-icon{width:96px!important;height:96px!important;font-size:84px!important}
+@media(max-width:380px){
+  .equip-panel .player-avatar>.pet-layer,.player-avatar>.pet-layer.pet-badge-layer{right:-10px!important;bottom:26px!important;width:92px!important;min-height:96px!important}
+  .player-avatar>.pet-layer .pet-badge-icon{width:78px!important;height:78px!important;font-size:68px!important}
+  .player-avatar>.pet-layer .pet-badge-name{max-width:92px!important;font-size:8px!important}
+}
 </style>
 </body>
 </html>
