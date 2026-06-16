@@ -1406,6 +1406,132 @@ Object.assign(window,{gearVariantCount,itemIndex,itemName,fixedBaseAtk,makeItem,
 openRates=function(){const fallenActive=['weapon','armor','accessory'].includes(drawGroup),rateText=fallenActive?'Lv.15에서 타락 1%':'타락 등급 없음';let rows=rates.map((r,i)=>{const hasFallen=fallenActive&&i===14,shown=hasFallen?r.map(v=>Number((v*.99).toFixed(4))):r,cols=[...shown,hasFallen?1:0];return'<tr class="'+(i+1===activeSummon().level?'current':'')+'"><td>Lv.'+(i+1)+'</td>'+cols.map((v,j)=>'<td style="color:'+rarityColors[j]+'">'+v+'%</td>').join('')+'</tr>'}).join('');$('rateTable').innerHTML='<p class="summon-kind">'+groupName(drawGroup)+' 소환 확률 · '+rateText+'</p><table class="rate-table"><thead><tr><th>레벨</th>'+rarityNames.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table><p class="rank-note">타락 장비는 소환 Lv.15에서만 1% 확률로 등장하며, 무기는 무기 소환, 투구/갑옷/바지/신발은 방어구 소환, 반지/귀걸이는 장신구 소환에서 등장합니다.</p>';$('rateModal').classList.add('show')};
 Object.assign(window,{openRates});
 /* RINGU_PET_LAYER_NAME_BADGE_V5_DISABLED: removed because it could break equipment rendering on mobile */
+
+/* MOVED_INTO_MAIN_SCOPE: ringuEnhanceModalRestoreV6 */
+(function(){
+  function safeTransAtk(it){try{return typeof ringuFallenTransAtkTextV1==='function'?ringuFallenTransAtkTextV1(it):(it&&it.slot==='무기'?45:30)}catch(e){return it&&it.slot==='무기'?45:30}}
+  function safeTransPercent(it){try{return typeof ringuFallenTransPercentTextV1==='function'?ringuFallenTransPercentTextV1(it):(it&&it.slot==='무기'?(it.rarity>=5?20:15):10)}catch(e){return it&&it.slot==='무기'?(it.rarity>=5?20:15):10}}
+  function setText(id,value){var el=document.getElementById(id);if(el)el.textContent=value}
+  function setHtml(id,value){var el=document.getElementById(id);if(el)el.innerHTML=value}
+  function fixedRenderEnhanceV6(){
+    var it=state&&Array.isArray(state.inventory)?state.inventory.find(function(x){return String(x.id)===String(enhanceId)}):null;
+    if(!it){try{closeEnhance()}catch(e){} return false}
+    var transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));
+    var target=transcend+1;
+    var eligible=typeof canTranscend==='function'&&canTranscend(it);
+    var transAtk=safeTransAtk(it), transPercent=safeTransPercent(it);
+    var title=(it.name||'장비')+(transcend?' · '+transcend+'초월':'');
+    setText('enhanceTitle',title);
+    setHtml('enhanceGear',typeof gearIcon==='function'?gearIcon(it):'');
+    setHtml('enhanceDesc',(rarityNames[it.rarity]||'장비')+' '+it.slot+' · 공격력 <b>'+itemAttackText(it)+'</b><br><span style="color:#86d8ff">'+optionText(it)+'</span><br>강화 실패 시 강화 수치가 1 감소합니다.'+(Number(it.enhance)>=10?'<br><b style="color:#ffca62">+11부터 공격력 증가량 2배</b>':'')+(Number(it.enhance)>=15?'<br>최대 강화에 도달했습니다.':''));
+    setText('enhNow','+'+(Number(it.enhance)||0)+(transcend?' · '+transcend+'초월':''));
+    setText('enhRate',Number(it.enhance)>=15?'-':successRate((Number(it.enhance)||0)+1)+'%');
+    setText('enhCost',Number(it.enhance)>=15?'-':fmt(enhanceCost(it))+' G');
+    var enhanceBtn=document.getElementById('enhanceBtn');
+    if(enhanceBtn){enhanceBtn.disabled=!!enhanceBusy||Number(it.enhance)>=15;enhanceBtn.textContent=enhanceBusy?'진행 중...':'강화 시도'}
+    var protect=document.getElementById('protectToggle');
+    if(protect){protect.textContent='하락방지권 '+(state.useProtect?'ON':'OFF')+' · 실패 시에만 사용 · 보유 '+fmt(state.downgradeProtect||0)+'장';protect.style.color=state.useProtect?'#8fffc8':'#aab5c9'}
+    var tbtn=document.getElementById('transcendBtn');
+    if(tbtn){tbtn.disabled=!!enhanceBusy||!eligible;tbtn.textContent=transcend>=3?'3초월 완료':eligible?target+'초월 시도':'초월 조건 미달';tbtn.style.color=eligible?'#ff9aa9':'#69758a'}
+    var info=transcend>=3?'<b style="color:#ff6578">최대 3초월 완료</b>':Number(it.rarity)<4?'전설 이상 장비만 초월할 수 있습니다.':Number(it.enhance)<15?'+15 강화 달성 시 초월이 활성화됩니다.':target+'초월 · 성공률 <b>'+transcendRate(target)+'%</b> · 초월석 <b>'+transcendCost(it,target)+'개</b><br>성공 시 장비 공격력 +'+transAtk+'% · 공격력% +'+transPercent+'%';
+    setHtml('transcendInfo',info);
+    return false;
+  }
+  window.renderEnhance=fixedRenderEnhanceV6;
+  try{renderEnhance=fixedRenderEnhanceV6}catch(e){}
+  try{var btn=document.getElementById('enhanceBtn');if(btn&&typeof window.tryEnhance==='function')btn.onclick=window.tryEnhance}catch(e){}
+  try{var tbtn=document.getElementById('transcendBtn');if(tbtn&&typeof window.tryTranscend==='function')tbtn.onclick=window.tryTranscend}catch(e){}
+})();
+
+
+/* MOVED_INTO_MAIN_SCOPE: ringuFallenPetPolishV7 */
+(function(){
+  var baseGearIconV7=typeof gearIcon==='function'?gearIcon:null;
+  function fallenSlotClassV7(slot){return {"무기":"weapon","투구":"helmet","갑옷":"armor","바지":"pants","신발":"shoes","반지":"ring","귀걸이":"earring"}[slot]||"weapon"}
+  function fallenVariantV7(it){try{return typeof nameVariant==='function'?nameVariant(String(it&&it.name||'')):'v0'}catch(e){return 'v0'}}
+  function fallenIndexV7(it){try{return typeof itemIndex==='function'?itemIndex(it):0}catch(e){return 0}}
+  function fallenFrameV7(it){try{return typeof isTopGearFrame==='function'&&isTopGearFrame(it)?' top-frame':''}catch(e){return ''}}
+  window.gearIcon=function(it){
+    if(it&&Number(it.rarity)===6){
+      var slot=fallenSlotClassV7(it.slot),idx=fallenIndexV7(it),variant=fallenVariantV7(it);
+      return '<span class="gear-icon '+slot+' r6 fallen-frame fallen-hell '+variant+' t'+idx+fallenFrameV7(it)+'" aria-hidden="true"><i class="fallen-aura"></i><i class="fallen-shape"></i><i class="fallen-core"></i><i class="fallen-spark s1"></i><i class="fallen-spark s2"></i></span>';
+    }
+    return baseGearIconV7?baseGearIconV7(it):'<span class="gear-icon"></span>';
+  };
+  try{gearIcon=window.gearIcon}catch(e){}
+
+  function petSaveV7(){try{saveChanceAction()}catch(e){try{queueSave()}catch(x){try{save(true)}catch(y){}}}}
+  window.canUsePetAsMaterial=function(targetPetUid,materialPetUid){
+    migratePetState();
+    var target=state.ownedPets.find(function(p){return String(p.uid)===String(targetPetUid)});
+    var mat=state.ownedPets.find(function(p){return String(p.uid)===String(materialPetUid)});
+    if(!target||!mat||target.uid===mat.uid)return false;
+    if(mat.petId!==target.petId)return false;
+    if(String(state.equippedPet||'')===String(mat.uid))return false;
+    if(mat.locked)return false;
+    return true;
+  };
+  try{canUsePetAsMaterial=window.canUsePetAsMaterial}catch(e){}
+  window.getSamePetMaterials=function(targetPetUid){
+    migratePetState();
+    var target=state.ownedPets.find(function(p){return String(p.uid)===String(targetPetUid)});
+    if(!target)return [];
+    return state.ownedPets.filter(function(p){return window.canUsePetAsMaterial(target.uid,p.uid)});
+  };
+  try{getSamePetMaterials=window.getSamePetMaterials}catch(e){}
+  window.levelUpPet=function(targetPetUid,materialPetUid){
+    migratePetState();
+    var target=state.ownedPets.find(function(p){return String(p.uid)===String(targetPetUid)});
+    if(!target)return false;
+    target.level=Math.max(1,Math.min(5,Number(target.level)||1));
+    if(target.level>=5){toast('이미 최대 레벨입니다');return false;}
+    var same=state.ownedPets.filter(function(p){return p.uid!==target.uid&&p.petId===target.petId});
+    var mat=materialPetUid?state.ownedPets.find(function(p){return String(p.uid)===String(materialPetUid)}):window.getSamePetMaterials(target.uid)[0];
+    if(!mat){
+      if(same.some(function(p){return String(state.equippedPet||'')===String(p.uid)}))toast('장착 중인 펫은 재료로 사용할 수 없습니다');
+      else if(same.some(function(p){return p.locked}))toast('잠금된 펫은 재료로 사용할 수 없습니다');
+      else toast('같은 펫이 필요합니다');
+      return false;
+    }
+    if(mat.petId!==target.petId){toast('같은 펫이 필요합니다');return false;}
+    if(String(state.equippedPet||'')===String(mat.uid)){toast('장착 중인 펫은 재료로 사용할 수 없습니다');return false;}
+    if(mat.locked){toast('잠금된 펫은 재료로 사용할 수 없습니다');return false;}
+    var before=target.level;
+    var nextLevel=Math.min(5,before+1);
+    var targetUid=String(target.uid), materialUid=String(mat.uid);
+    state.ownedPets=state.ownedPets.filter(function(p){return String(p.uid)!==materialUid}).map(function(p){if(String(p.uid)===targetUid){p=Object.assign({},p,{level:nextLevel});target=p}return p});
+    var d=PET_DATA[target.petId], stats=getPetLevelStats(target);
+    toast((d?d.name:'펫')+' Lv.'+target.level+' 달성 · 공격력 '+fmt(stats.attack));
+    try{refreshPetUI()}catch(e){}
+    petSaveV7();
+    return true;
+  };
+  try{levelUpPet=window.levelUpPet}catch(e){}
+  window.sellPet=function(petUid){
+    migratePetState();
+    var pet=state.ownedPets.find(function(p){return String(p.uid)===String(petUid)});
+    if(!pet)return false;
+    var d=PET_DATA[pet.petId];
+    if(!d)return false;
+    if(String(state.equippedPet||'')===String(pet.uid)){toast('장착 중인 펫은 판매할 수 없습니다');return false;}
+    if(pet.locked){toast('잠금된 펫은 판매할 수 없습니다');return false;}
+    var gain=Math.max(1,Math.min(5,Number(d.grade)||1));
+    state.ownedPets=state.ownedPets.filter(function(p){return String(p.uid)!==String(pet.uid)});
+    state.petStone=(Number(state.petStone)||0)+gain;
+    toast(d.name+' 판매 · 펫 스톤 +'+gain+'개');
+    try{refreshPetUI()}catch(e){}
+    petSaveV7();
+    return true;
+  };
+  window.renderPetCard=function(p){
+    var d=PET_DATA[p.petId],eq=String(state.equippedPet||'')===String(p.uid),stats=getPetLevelStats(p),mats=window.getSamePetMaterials(p.uid).length,sell=d?Math.max(1,Math.min(5,Number(d.grade)||1)):1;
+    return '<div class="pet-card g'+d.grade+'" style="--pc:'+petColor(d.grade)+'"><div class="pet-head"><span class="pet-icon">'+d.icon+'</span><span><strong>'+escapeHtml(d.name)+'</strong><small>'+petGradeName(d.grade)+' · 내부 '+d.tierInGrade+'번 · Lv.'+p.level+'/'+d.maxLevel+(eq?' · 장착 중':'')+(p.locked?' · 잠금':'')+'</small></span></div><small>'+petStatText(stats)+'</small><div class="pet-actions"><button class="primary" onclick="'+(eq?'unequipPet()':'equipPet(\''+p.uid+'\')')+'">'+(eq?'해제':'장착')+'</button><button '+(Number(p.level)>=5||!mats?'disabled':'')+' onclick="levelUpPet(\''+p.uid+'\')">레벨업</button><button onclick="'+(p.locked?'unlockPet':'lockPet')+'(\''+p.uid+'\')">'+(p.locked?'잠금해제':'잠금')+'</button><button class="pet-sell" '+(eq||p.locked?'disabled':'')+' onclick="sellPet(\''+p.uid+'\')">판매 +'+sell+'</button></div><small>레벨업 재료: 같은 펫 '+mats+'마리 · 판매가: 펫 스톤 '+sell+'개</small></div>';
+  };
+  try{renderPetCard=window.renderPetCard}catch(e){}
+  try{Object.assign(window,{sellPet:window.sellPet,levelUpPet:window.levelUpPet,renderPetCard:window.renderPetCard,getSamePetMaterials:window.getSamePetMaterials,canUsePetAsMaterial:window.canUsePetAsMaterial})}catch(e){}
+  try{renderInventory();renderEquipment();refreshPetUI()}catch(e){}
+})();
+
 load();
 try{window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot()}catch(e){}
 try{setTimeout(function(){window.ringuDbGrantV13Boot&&window.ringuDbGrantV13Boot()},1200)}catch(e){}
@@ -2921,42 +3047,6 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
   .equip-panel .player-avatar{min-height:238px!important}
 }
 </style>
-<script id="ringuEnhanceModalRestoreV6">
-(function(){
-  function safeTransAtk(it){try{return typeof ringuFallenTransAtkTextV1==='function'?ringuFallenTransAtkTextV1(it):(it&&it.slot==='무기'?45:30)}catch(e){return it&&it.slot==='무기'?45:30}}
-  function safeTransPercent(it){try{return typeof ringuFallenTransPercentTextV1==='function'?ringuFallenTransPercentTextV1(it):(it&&it.slot==='무기'?(it.rarity>=5?20:15):10)}catch(e){return it&&it.slot==='무기'?(it.rarity>=5?20:15):10}}
-  function setText(id,value){var el=document.getElementById(id);if(el)el.textContent=value}
-  function setHtml(id,value){var el=document.getElementById(id);if(el)el.innerHTML=value}
-  function fixedRenderEnhanceV6(){
-    var it=state&&Array.isArray(state.inventory)?state.inventory.find(function(x){return String(x.id)===String(enhanceId)}):null;
-    if(!it){try{closeEnhance()}catch(e){} return false}
-    var transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));
-    var target=transcend+1;
-    var eligible=typeof canTranscend==='function'&&canTranscend(it);
-    var transAtk=safeTransAtk(it), transPercent=safeTransPercent(it);
-    var title=(it.name||'장비')+(transcend?' · '+transcend+'초월':'');
-    setText('enhanceTitle',title);
-    setHtml('enhanceGear',typeof gearIcon==='function'?gearIcon(it):'');
-    setHtml('enhanceDesc',(rarityNames[it.rarity]||'장비')+' '+it.slot+' · 공격력 <b>'+itemAttackText(it)+'</b><br><span style="color:#86d8ff">'+optionText(it)+'</span><br>강화 실패 시 강화 수치가 1 감소합니다.'+(Number(it.enhance)>=10?'<br><b style="color:#ffca62">+11부터 공격력 증가량 2배</b>':'')+(Number(it.enhance)>=15?'<br>최대 강화에 도달했습니다.':''));
-    setText('enhNow','+'+(Number(it.enhance)||0)+(transcend?' · '+transcend+'초월':''));
-    setText('enhRate',Number(it.enhance)>=15?'-':successRate((Number(it.enhance)||0)+1)+'%');
-    setText('enhCost',Number(it.enhance)>=15?'-':fmt(enhanceCost(it))+' G');
-    var enhanceBtn=document.getElementById('enhanceBtn');
-    if(enhanceBtn){enhanceBtn.disabled=!!enhanceBusy||Number(it.enhance)>=15;enhanceBtn.textContent=enhanceBusy?'진행 중...':'강화 시도'}
-    var protect=document.getElementById('protectToggle');
-    if(protect){protect.textContent='하락방지권 '+(state.useProtect?'ON':'OFF')+' · 실패 시에만 사용 · 보유 '+fmt(state.downgradeProtect||0)+'장';protect.style.color=state.useProtect?'#8fffc8':'#aab5c9'}
-    var tbtn=document.getElementById('transcendBtn');
-    if(tbtn){tbtn.disabled=!!enhanceBusy||!eligible;tbtn.textContent=transcend>=3?'3초월 완료':eligible?target+'초월 시도':'초월 조건 미달';tbtn.style.color=eligible?'#ff9aa9':'#69758a'}
-    var info=transcend>=3?'<b style="color:#ff6578">최대 3초월 완료</b>':Number(it.rarity)<4?'전설 이상 장비만 초월할 수 있습니다.':Number(it.enhance)<15?'+15 강화 달성 시 초월이 활성화됩니다.':target+'초월 · 성공률 <b>'+transcendRate(target)+'%</b> · 초월석 <b>'+transcendCost(it,target)+'개</b><br>성공 시 장비 공격력 +'+transAtk+'% · 공격력% +'+transPercent+'%';
-    setHtml('transcendInfo',info);
-    return false;
-  }
-  window.renderEnhance=fixedRenderEnhanceV6;
-  try{renderEnhance=fixedRenderEnhanceV6}catch(e){}
-  try{var btn=document.getElementById('enhanceBtn');if(btn&&typeof window.tryEnhance==='function')btn.onclick=window.tryEnhance}catch(e){}
-  try{var tbtn=document.getElementById('transcendBtn');if(tbtn&&typeof window.tryTranscend==='function')tbtn.onclick=window.tryTranscend}catch(e){}
-})();
-</script>
 <style id="ringuSmallPetByNameV6">
 /* RINGU_SMALL_PET_BY_NAME_V6: keep equipped pet as a small badge beside the character name. */
 .equip-panel .player-avatar>.pet-layer,.player-avatar>.pet-layer.pet-layer,.rank-preview .player-avatar>.pet-layer,.rank-preview .pet-layer{
@@ -2981,5 +3071,32 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 .rank-preview .pet-layer{left:calc(50% + 48px)!important;bottom:14px!important;width:28px!important;height:28px!important;font-size:23px!important}
 @media(max-width:380px){.equip-panel .player-avatar>.pet-layer{left:calc(50% + 24px)!important;bottom:8px!important;width:22px!important;height:22px!important;font-size:18px!important}}
 </style>
-</body>
+<style id="ringuFallenPetPolishV7Style">
+:root{--fallen-dark:#050006;--fallen-red:#ff2f5f;--fallen-pink:#ff7fa6;--fallen-purple:#7a1638;--fallen-edge:#c81745}
+.gear-icon.r6,.gear-icon.r6.fallen-frame,.gear-icon.r6.fallen-hell{--gc:#ff2f5f!important;--glow:34px!important;position:relative!important;overflow:hidden!important;border:1px solid #c81745!important;background:radial-gradient(circle at 50% 42%,#ff2f5f44 0 17%,#23020c 47%,#060006 100%)!important;box-shadow:0 0 0 1px #5c0920 inset,0 0 12px #ff2f5faa,0 0 28px #7a1638cc,inset 0 0 18px #ff2f5f44!important;animation:fallenHellPulseV7 2.4s ease-in-out infinite alternate!important}
+.item.rarity-6,.equip-slot.rarity-6,.collection-card.rarity-6,.draw-card.rarity-6{border-color:#c81745!important;box-shadow:0 0 0 1px #5c0920 inset,0 0 18px #ff2f5f55,0 0 34px #7a163833!important;background:radial-gradient(circle at 50% 0,#3d0617 0,#141824 54%,#0b0f18 100%)!important}
+.item.rarity-6 .rarity,.item.rarity-6 strong,.equip-slot.rarity-6 strong{color:#ff5f87!important;text-shadow:0 0 8px #ff2f5f,0 0 16px #7a1638!important}
+.gear-icon.r6 img.fallen-gear-art{display:none!important}.gear-icon.r6::before,.gear-icon.r6::after{display:none!important}
+.gear-icon.r6 .fallen-aura{position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,transparent,#ff2f5f88,transparent,#7a1638aa,transparent);animation:spin 3.8s linear infinite;filter:blur(.2px)}
+.gear-icon.r6 .fallen-aura::after{content:"";position:absolute;inset:8px;border:1px solid #ff7fa688;border-left-color:transparent;border-right-color:transparent;border-radius:50%;box-shadow:0 0 9px #ff2f5f}
+.gear-icon.r6 .fallen-shape,.gear-icon.r6 .fallen-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;filter:drop-shadow(0 0 4px #ff7fa6) drop-shadow(0 0 9px #ff2f5f)}
+.gear-icon.r6 .fallen-core{z-index:3;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#ff7fa6 24%,#9c092b 70%,#180008 100%);box-shadow:0 0 9px #fff,0 0 16px #ff2f5f}
+.gear-icon.r6.weapon .fallen-shape{width:15px;height:42px;background:linear-gradient(90deg,#110006,#ffe4ef 15%,#ff2f5f 45%,#37000f 70%,#ffe4ef 85%,#120006);clip-path:polygon(50% 0,88% 15%,72% 76%,58% 100%,42% 100%,28% 76%,12% 15%);transform:translate(-50%,-53%) rotate(32deg)}
+.gear-icon.r6.weapon .fallen-core{width:30px;height:13px;border-radius:2px;background:linear-gradient(90deg,transparent 0,#120006 13%,#ff7fa6 50%,#120006 87%,transparent 100%);clip-path:polygon(0 45%,30% 18%,50% 0,70% 18%,100% 45%,70% 72%,50% 100%,30% 72%);top:62%}
+.gear-icon.r6.helmet .fallen-shape{width:34px;height:29px;background:linear-gradient(145deg,#ff7fa6,#7a1638 44%,#050006 100%);clip-path:polygon(50% 0,82% 13%,100% 48%,82% 92%,60% 72%,50% 100%,40% 72%,18% 92%,0 48%,18% 13%)}
+.gear-icon.r6.helmet .fallen-core{top:49%;width:22px;height:9px;border-radius:50%;clip-path:polygon(0 50%,28% 0,50% 55%,72% 0,100% 50%,74% 100%,50% 45%,26% 100%)}
+.gear-icon.r6.armor .fallen-shape{width:34px;height:40px;background:linear-gradient(160deg,#ff9ab6,#b3123c 38%,#200008 72%,#050006);clip-path:polygon(24% 0,76% 0,100% 25%,86% 100%,50% 88%,14% 100%,0 25%)}
+.gear-icon.r6.armor .fallen-core{width:24px;height:22px;clip-path:polygon(50% 0,64% 32%,100% 30%,72% 55%,84% 100%,50% 74%,16% 100%,28% 55%,0 30%,36% 32%)}
+.gear-icon.r6.pants .fallen-shape{width:34px;height:40px;background:linear-gradient(160deg,#ff7fa6,#69112f 45%,#050006);clip-path:polygon(18% 0,82% 0,73% 100%,54% 100%,50% 42%,46% 100%,27% 100%)}
+.gear-icon.r6.pants .fallen-core{width:26px;height:7px;top:35%;border-radius:8px;background:#ff5f87}
+.gear-icon.r6.shoes .fallen-shape{width:39px;height:25px;background:linear-gradient(145deg,#ff7fa6,#7a1638 45%,#050006);clip-path:polygon(15% 26%,46% 0,70% 18%,100% 68%,84% 100%,35% 88%,0 78%)}
+.gear-icon.r6.shoes .fallen-core{width:18px;height:8px;left:55%;top:62%;border-radius:8px;background:#ff5f87}
+.gear-icon.r6.ring .fallen-shape{width:35px;height:35px;border:6px solid #ff5f87;border-radius:50%;background:radial-gradient(circle,transparent 36%,#35000f 40%,#080006 70%);box-shadow:0 0 10px #ff2f5f,inset 0 0 8px #ff2f5f;clip-path:polygon(50% 0,62% 24%,90% 12%,76% 40%,100% 50%,76% 60%,90% 88%,62% 76%,50% 100%,38% 76%,10% 88%,24% 60%,0 50%,24% 40%,10% 12%,38% 24%)}
+.gear-icon.r6.ring .fallen-core{width:10px;height:10px}
+.gear-icon.r6.earring .fallen-shape{width:30px;height:41px;background:linear-gradient(180deg,#ffb0c4,#ff2f5f 36%,#31000e 78%,#050006);clip-path:polygon(50% 0,75% 18%,65% 46%,90% 62%,54% 100%,10% 62%,35% 46%,25% 18%)}
+.gear-icon.r6.earring .fallen-core{top:67%;width:12px;height:18px;border-radius:50% 50% 44% 44%}
+.gear-icon.r6 .fallen-spark{position:absolute;z-index:4;width:4px;height:4px;background:#fff;border-radius:50%;box-shadow:0 0 7px #fff,0 0 12px #ff2f5f;animation:fallenSparkV7 1.6s ease-in-out infinite alternate}.gear-icon.r6 .fallen-spark.s1{left:9px;top:12px}.gear-icon.r6 .fallen-spark.s2{right:9px;bottom:10px;animation-delay:.55s}
+.pet-actions{grid-template-columns:repeat(4,minmax(0,1fr))!important}.pet-actions .pet-sell{background:linear-gradient(#35202b,#19121c)!important;color:#ffb3c4!important;border-color:#7a2c45!important}
+@keyframes fallenHellPulseV7{from{filter:brightness(.95) saturate(1.05)}to{filter:brightness(1.22) saturate(1.35)}}@keyframes fallenSparkV7{from{opacity:.35;transform:scale(.75)}to{opacity:1;transform:scale(1.25)}}
+</style></body>
 </html>
