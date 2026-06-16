@@ -593,6 +593,20 @@ left:var(--fallen-axe-left)!important;
 (()=>{'use strict';
 const KEY='swordEnhanceRPG_reset_20260617_v1';
 const CLOUD_SESSION_KEY='ringuRPG_cloudSession_reset_20260617_v1';
+const RESET_STORAGE_CLEANUP_KEY='ringuRPG_storageCleanup_20260617_v1';
+function clearLegacyBrowserStorage(){
+  try{
+    const keep=new Set([KEY,CLOUD_SESSION_KEY,'ringu_cloud_client_id_reset_20260617_v1',RESET_STORAGE_CLEANUP_KEY]);
+    ['swordEnhanceRPG_v1','ringuRPG_cloudSession_v1','ringu_cloud_client_id'].forEach(k=>localStorage.removeItem(k));
+    for(let i=localStorage.length-1;i>=0;i--){
+      const k=localStorage.key(i);
+      if(!k||keep.has(k)) continue;
+      if(k.startsWith('swordEnhanceRPG')||k.startsWith('ringuRPG_cloudSession')||k.startsWith('ringu_cloud_client_id')) localStorage.removeItem(k);
+    }
+    localStorage.setItem(RESET_STORAGE_CLEANUP_KEY,String(Date.now()));
+  }catch(_){}
+}
+clearLegacyBrowserStorage();
 const SUPABASE_URL='https://jvvjscnqcnqepfwgbhzc.supabase.co';
 const SUPABASE_KEY='sb_publishable_SXfDFiR2soeBkkrw-IS8UA_o5epdwNz';
 const KIM_MANGO_REWARD_UID='NS6L76MVTE';
