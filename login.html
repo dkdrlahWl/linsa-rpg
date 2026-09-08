@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<script src="/linsa-rpg/cloud-config.js"></script>
+<script src="/linsa-rpg/cloud-adapter.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#090c12">
+  <title>링구 RPG — 깨어나는 어둠</title>
+  <link rel="stylesheet" href="/linsa-rpg/auth.css">
+  <script type="module" src="/linsa-rpg/auth-client.mjs"></script>
+</head>
+<body>
+  <div class="world" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="masthead"><a class="wordmark" href="/linsa-rpg/login.html" aria-label="링구 RPG 로그인">링구 <span>RPG</span></a><span class="edition">THE AWAKENING</span></header>
+  <main class="layout">
+    <section class="story" aria-labelledby="world-title">
+      <p class="eyebrow"><span></span> 어둠의 너머, 당신의 서사</p>
+      <h1 id="world-title">잊혀진 세계가<br>당신을 <em>기다립니다.</em></h1>
+      <p class="story-copy">낡은 검 하나에서 시작되는 전설.<br>깊어지는 어둠 속에서, 다시 한 번 빛을 벼리세요.</p>
+      <div class="world-note"><span class="sigil" aria-hidden="true">✦</span><div><strong>당신만의 여정, 이어지는 기록</strong><p>계정에 저장된 모험을 이곳에서 이어갑니다.</p></div></div>
+    </section>
+    <section class="auth-card" aria-labelledby="form-title">
+      <div class="card-ornament" aria-hidden="true">◇</div>
+      <p class="eyebrow card-kicker">ENTER THE REALM</p>
+      <h2 id="form-title">모험의 문을 열다</h2>
+      <p id="form-description" class="muted">돌아오신 것을 환영합니다, 모험가님.</p>
+      <div class="tabs" role="group" aria-label="계정 작업"><button type="button" id="login-tab" aria-pressed="true">로그인</button><button type="button" id="register-tab" aria-pressed="false">회원가입</button></div>
+      <form id="auth-form" method="post" action="/api/login">
+        <label for="username">계정 이름</label>
+        <input id="username" name="username" type="text" autocomplete="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]{3,32}" title="영문, 숫자, 밑줄(_)을 사용해 3~32자로 입력해 주세요." aria-describedby="credential-hint" spellcheck="false" autocapitalize="none" placeholder="계정 이름을 입력하세요">
+        <p id="credential-hint" class="muted">계정 이름: 영문·숫자·밑줄 3~32자 / 비밀번호: 8~256자</p>
+        <label for="password">비밀번호</label>
+        <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="256" placeholder="비밀번호를 입력하세요"><button type="button" class="visibility" data-for="password" aria-label="비밀번호 표시" aria-pressed="false">보기</button></div>
+        <div id="confirm-field" hidden><label for="password-confirm">비밀번호 확인</label><div class="password-field"><input id="password-confirm" type="password" autocomplete="new-password" placeholder="비밀번호를 한 번 더 입력하세요" disabled><button type="button" class="visibility" data-for="password-confirm" aria-label="비밀번호 확인 표시" aria-pressed="false">보기</button></div></div>
+        <p class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+        <button type="submit" class="submit" id="submit-button"><span id="submit-label">모험 이어가기</span><span aria-hidden="true">→</span></button>
+      </form>
+      <p class="privacy"><span aria-hidden="true">◇</span> 계정별로 안전하게 이어지는 모험 기록</p>
+      <noscript><p class="feedback">로그인하려면 브라우저의 JavaScript를 켜 주세요.</p></noscript>
+    </section>
+  </main>
+  <footer><span>RINGU RPG</span><span>작은 검에서 시작되는, 끝없는 이야기.</span><span class="footer-mark" aria-hidden="true">✧</span></footer>
+</body>
+</html>

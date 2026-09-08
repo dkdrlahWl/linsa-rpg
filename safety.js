@@ -1,0 +1,360 @@
+/* Load as a blocking, classic HEAD script before every game script.
+ * Core handshake: await RinguSession.ready; then initialize game and timers.
+ * Call RinguSession.save(state) after mutations; onEnded(stopGame) must cancel
+ * core timers/RAF and input. Legacy KEY writes are also captured as a fallback.
+ * All revisions come from the server. A conflict never retries over remote data.
+ */
+(() => {
+  'use strict';
+  const KEY = 'swordEnhanceRPG_balance_20260617_v5';
+  const PREFIX = 'ringu.session.v1.';
+  const OWNER = PREFIX + 'owner';
+  const nativeFetch = window.fetch.bind(window);
+  const storage = window.localStorage;
+  const nativeGet = Storage.prototype.getItem;
+  const nativeSet = Storage.prototype.setItem;
+  const nativeRemove = Storage.prototype.removeItem;
+  const nativeClear = Storage.prototype.clear;
+  const read = key => nativeGet.call(storage, key);
+  const write = (key, value) => nativeSet.call(storage, key, value);
+  const remove = key => nativeRemove.call(storage, key);
+  const protectedKey = key => /^(swordEnhanceRPG|ringuRPG_|ringu_cloud_client_id|ringu\.session\.)/.test(key);
+  let account = null, revision = null, active = false, phase = 'loading';
+  let message = '계정의 모험 기록을 확인하는 중입니다.';
+  let pending = null, latest = null, inFlight = null, saveTimer = null;
+  let events = null, pollTimer = null, pollBusy = false, ended = false;
+  let overlay = null, bootComplete = false, sequence = 0, lastAcknowledged = null;
+  const listeners = new Set(), endHooks = new Set();
+  const scoped = suffix => PREFIX + 'account.' + encodeURIComponent(String(account.id)) + '.' + suffix;
+  const snapshot = () => Object.freeze({ phase, message, active, account, revision, pending: !!pending });
+  function report(next, text) {
+    phase = next; message = text;
+    for (const fn of listeners) { try { fn(snapshot()); } catch (error) { console.error(error); } }
+    window.dispatchEvent(new CustomEvent('ringu:session-status', { detail: snapshot() }));
+  }
+  function validState(state) { return state !== null && typeof state === 'object' && !Array.isArray(state); }
+  function validateSession(data) {
+    if (!data || !data.account || !['string', 'number'].includes(typeof data.account.id) || typeof data.account.username !== 'string' || !Number.isSafeInteger(data.revision) || data.revision < 0 || !(data.state === null || validState(data.state))) {
+      throw new Error('서버의 계정 응답을 확인할 수 없습니다.');
+    }
+    return data;
+  }
+  // Reject legacy Supabase and every other external fetch before core can run.
+  window.fetch = function (input, init) {
+    try {
+      const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url, location.href);
+      if (url.origin !== location.origin) return Promise.reject(new TypeError('외부 클라우드 요청이 차단되었습니다. 이 버전은 로컬 계정 API만 사용합니다.'));
+      return nativeFetch(input, { ...init, redirect: 'error' });
+    } catch (error) { return Promise.reject(error); }
+  };
+  async function api(path, options = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    try {
+      return await window.fetch(path, { ...options, credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+        headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });
+    } finally { clearTimeout(timer); }
+  }
+  // Keep old saves intact even if legacy startup attempts removeItem/clear.
+  Storage.prototype.removeItem = function (key) {
+    if (this === storage && protectedKey(String(key))) return;
+    return nativeRemove.call(this, key);
+  };
+  Storage.prototype.clear = function () {
+    if (this !== storage) return nativeClear.call(this);
+    for (let i = this.length - 1; i >= 0; i--) { const key = this.key(i); if (!protectedKey(key)) nativeRemove.call(this, key); }
+  };
+  Storage.prototype.setItem = function (key, value) {
+    if (this === storage && String(key) === KEY) {
+      if (!active) return;
+      let state;
+      try { state = JSON.parse(String(value)); } catch (_) { throw new TypeError('게임 저장 데이터가 올바르지 않습니다.'); }
+      save(state);
+      return;
+    }
+    // Do not create legacy cloud credentials or a cloud client identity.
+    if (this === storage && /^(ringuRPG_cloudSession|ringu_cloud_client_id)/.test(String(key))) return;
+    return nativeSet.call(this, key, value);
+  };
+  Storage.prototype.getItem = function (key) {
+    if (this === storage && /^(ringuRPG_cloudSession|ringu_cloud_client_id)/.test(String(key))) return null;
+    if (this === storage && String(key) === KEY && bootComplete) return JSON.stringify(latest === null ? {} : latest);
+    return nativeGet.call(this, key);
+  };
+  function domReady() {
+    return document.body ? Promise.resolve() : new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
+  }
+  async function showOverlay(title, description, actions) {
+    await domReady();
+    if (!overlay) {
+      const style = document.createElement('style');
+      style.textContent = '#ringu-session-overlay{position:fixed;inset:0;z-index:2147483647;background:#060911ed;display:grid;place-items:center;padding:24px;color:#ede8df;font:14px/1.8 "Malgun Gothic",system-ui,sans-serif;backdrop-filter:blur(12px)}#ringu-session-overlay section{width:min(100%,480px);padding:32px;border:1px solid #907750;background:linear-gradient(135deg,#20232d,#10141c);box-shadow:0 30px 90px #0009;border-radius:8px}#ringu-session-overlay h2{font-size:24px;margin:0 0 15px;color:#e3c591}#ringu-session-overlay p{white-space:pre-line;overflow-wrap:anywhere;color:#bcc2cc}#ringu-session-overlay button{font:inherit;min-height:44px;padding:9px 16px;margin:8px 8px 0 0;border:1px solid #8d7959;border-radius:4px;background:#d9bd87;color:#17130e;cursor:pointer}#ringu-session-overlay button:focus-visible{outline:3px solid #fff;outline-offset:3px}#ringu-session-overlay button:disabled{opacity:.5;cursor:wait}#ringu-session-overlay .error{color:#ffb9ab}#ringu-session-status{position:fixed;bottom:12px;left:12px;z-index:2147483645;max-width:calc(100vw - 24px);padding:8px 12px;background:#0b101aec;border:1px solid #8d7959;border-radius:5px;color:#e6d1aa;font:12px/1.6 "Malgun Gothic",system-ui,sans-serif}';
+      document.head.append(style);
+      overlay = document.createElement('div'); overlay.id = 'ringu-session-overlay';
+      overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-labelledby', 'ringu-session-title');
+      overlay.addEventListener('keydown', event => {
+        if (event.key !== 'Tab') return;
+        const buttons = [...overlay.querySelectorAll('button:not(:disabled)')];
+        if (!buttons.length) { event.preventDefault(); return; }
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      });
+      document.body.append(overlay);
+    }
+    overlay.replaceChildren();
+    const panel = document.createElement('section');
+    const heading = document.createElement('h2'); heading.id = 'ringu-session-title'; heading.textContent = title;
+    const copy = document.createElement('p'); copy.textContent = description;
+    const errorText = document.createElement('p'); errorText.className = 'error'; errorText.setAttribute('role', 'alert');
+    panel.append(heading, copy);
+    for (const [label, action] of actions) {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try { await action(); } catch (error) { errorText.textContent = error.message || '요청을 완료하지 못했습니다. 다시 시도해 주세요.'; }
+        finally { button.disabled = false; }
+      });
+      panel.append(button);
+    }
+    panel.append(errorText); overlay.append(panel);
+    overlay.querySelector('button')?.focus();
+  }
+  function hideOverlay() { overlay?.remove(); overlay = null; }
+  // Block input outside our dialog as soon as session validity is lost.
+  for (const type of ['click', 'pointerdown', 'pointerup', 'keydown', 'keyup', 'touchstart', 'submit']) {
+    window.addEventListener(type, event => {
+      if (!active && !overlay?.contains(event.target)) { event.preventDefault(); event.stopImmediatePropagation(); }
+    }, { capture: true, passive: false });
+  }
+  function archive(raw, owner, reason) {
+    if (raw === null) return;
+    const id = owner === null ? 'legacy-unassigned' : 'account.' + encodeURIComponent(owner);
+    write(PREFIX + id + '.archive.' + Date.now() + '.' + (++sequence), JSON.stringify({ reason, savedAt: new Date().toISOString(), raw }));
+  }
+  function writeBackup(item) {
+    write(scoped('pending'), JSON.stringify({ accountId: account.id, revision, state: item.state, savedAt: new Date().toISOString() }));
+  }
+  function exportSave(value) {
+    const state = value === undefined ? (pending?.state ?? latest) : value;
+    const blob = new Blob([JSON.stringify({ format: 'ringu-account-backup-v1', account, revision, exportedAt: new Date().toISOString(), state }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = `ringu-save-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    (overlay || document.body).append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  async function leaveAccount() {
+    const response = await api('/api/logout', { method: 'POST' });
+    if (!response.ok && response.status !== 401) throw new Error('로그아웃하지 못했습니다. 연결을 확인한 후 다시 시도해 주세요.');
+    location.assign('/linsa-rpg/login.html');
+  }
+  function end(reason, kind = 'ended') {
+    if (ended) return;
+    ended = true; active = false;
+    clearTimeout(saveTimer); clearInterval(pollTimer); events?.close();
+    let backupFailed = kind === 'storage-error';
+    if (pending && account) { try { writeBackup(pending); } catch (_) { backupFailed = true; } }
+    report(kind, reason);
+    for (const fn of endHooks) { try { fn(snapshot()); } catch (error) { console.error(error); } }
+    window.dispatchEvent(new CustomEvent('ringu:session-ended', { detail: snapshot() }));
+    void showOverlay(kind === 'conflict' ? '다른 모험 기록이 감지되었습니다' : '모험이 일시 중단되었습니다', reason + (backupFailed
+      ? '\n브라우저 백업을 보장할 수 없습니다. 새로고침하거나 로그아웃하기 전에 반드시 현재 기록을 파일로 내보내 주세요.'
+      : '\n미전송 기록은 계정별 백업으로 보관됩니다. 내보내기로 파일도 보관할 수 있습니다.'), [
+      ['내 기록 내보내기', () => exportSave()], ['서버 기록 다시 확인', () => location.reload()], ['로그아웃', leaveAccount]
+    ]);
+  }
+  function save(state) {
+    if (!active) return false;
+    if (!validState(state)) throw new TypeError('저장할 게임 상태는 객체여야 합니다.');
+    const raw = JSON.stringify(state);
+    if (raw === pending?.raw || (!pending && raw === lastAcknowledged)) return true;
+    const item = { state: JSON.parse(raw), raw };
+    latest = item.state; pending = item;
+    try {
+      if (read(OWNER) !== String(account.id)) { end('다른 계정이 이 브라우저에서 열렸습니다. 현재 계정을 다시 확인해 주세요.'); return false; }
+      writeBackup(item); write(KEY, raw);
+    } catch (_) { end('브라우저에 백업을 보관할 공간이 없습니다. 내 기록을 파일로 내보낸 후 저장 공간을 확보해 주세요.', 'storage-error'); return false; }
+    report('pending', '모험 기록을 저장할 준비가 되었습니다.');
+    if (saveTimer === null) saveTimer = setTimeout(() => { void flush().catch(() => {}); }, 350);
+    return true;
+  }
+  async function drain() {
+    while (pending && active) {
+      const item = pending;
+      report('saving', '모험 기록을 계정에 저장하는 중입니다.');
+      let response;
+      try { response = await api('/api/state', { method: 'PUT', body: JSON.stringify({ state: item.state, revision }) }); }
+      catch (error) {
+        if (!active) throw error;
+        try { writeBackup(pending || item); } catch (_) { end('백업 공간이 부족합니다. 현재 기록을 반드시 내보내 주세요.', 'storage-error'); throw error; }
+        report('offline', '서버 연결 실패 · 기록을 이 계정의 브라우저 백업에 보관했습니다. 연결 복구 시 재시도합니다.');
+        throw error;
+      }
+      if (!active) throw new Error(message);
+      if (response.status === 409) { end('서버 기록이 다른 창에서 변경되었습니다. 덮어쓰기를 중단했습니다. 현재 기록을 내보낸 후 서버 기록을 확인해 주세요.', 'conflict'); throw new Error(message); }
+      if (response.status === 401 || response.status === 403) { end('로그인이 만료되었거나 다른 곳에서 세션이 종료되었습니다. 다시 로그인해 주세요.'); throw new Error(message); }
+      if (!response.ok) {
+        report('offline', '서버가 저장을 완료하지 못했습니다. 계정별 로컬 백업을 보관하고 있습니다.');
+        throw new Error(message);
+      }
+      let result;
+      try { result = await response.json(); } catch (_) { end('저장 응답을 확인할 수 없습니다. 서버 기록을 다시 확인해 주세요.', 'conflict'); throw new Error(message); }
+      if (!Number.isSafeInteger(result.revision) || result.revision <= revision) { end('저장 버전을 확인할 수 없습니다. 서버 기록을 다시 확인해 주세요.', 'conflict'); throw new Error(message); }
+      revision = result.revision;
+      // Server co-op receipts are atomically credited with this save. Apply their
+      // delta to both the submitted snapshot and any newer in-flight local snapshot.
+      if (Number.isSafeInteger(result.stoneAward) && result.stoneAward > 0) {
+        const award = result.stoneAward;
+        const affected = new Set([item.state, latest, pending?.state]);
+        for (const s of affected) if (s) s.transcendStone = (Number(s.transcendStone) || 0) + award;
+        item.raw = JSON.stringify(item.state);
+        if (pending) pending.raw = JSON.stringify(pending.state);
+        write(KEY, JSON.stringify(latest));
+        window.dispatchEvent(new CustomEvent('ringu:stone-award', {detail: {amount: award}}));
+      }
+      lastAcknowledged = item.raw;
+      try {
+        if (pending === item) { remove(scoped('pending')); pending = null; }
+        else writeBackup(pending);
+      } catch (_) { end('저장 후 로컬 백업을 갱신하지 못했습니다. 기록을 내보낸 후 다시 확인해 주세요.', 'storage-error'); throw new Error(message); }
+    }
+    if (active) report('saved', '계정에 저장되었습니다.');
+    return snapshot();
+  }
+  function flush() {
+    clearTimeout(saveTimer); saveTimer = null;
+    if (!active) return Promise.reject(new Error(message));
+    if (inFlight) return inFlight;
+    inFlight = drain().finally(() => { inFlight = null; });
+    return inFlight;
+  }
+  async function logout() {
+    await flush();
+    // Stop core first so it cannot create a new save while logout is pending.
+    end('로그아웃 중입니다. 저장된 모험은 다음 로그인에서 이어집니다.');
+    await leaveAccount();
+  }
+  async function checkSession() {
+    if (!active || pollBusy) return;
+    pollBusy = true;
+    try {
+      const response = await api('/api/session');
+      if (response.status === 401 || response.status === 403) { end('세션이 종료되었습니다. 다시 로그인해 주세요.'); return; }
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data.account || String(data.account.id) !== String(account.id)) { end('로그인 계정이 변경되었습니다. 다시 로그인해 주세요.'); return; }
+      if (pending) void flush().catch(() => {});
+      else if (phase === 'offline') report('saved', '연결이 복구되었습니다.');
+    } catch (_) { /* Offline progress stays in the account backup. */ }
+    finally { pollBusy = false; }
+  }
+  function watchSession() {
+    // Poll continues even with a healthy SSE connection, including proxy failures.
+    pollTimer = setInterval(checkSession, 15000);
+    if (window.RinguCloud?.enabled || location.hostname.endsWith('.trycloudflare.com')) {
+      void (async () => {
+        while (active) {
+          try {const response=await api('/api/watch');if(response.status===401||response.status===403){end('다른 곳에서 로그인되어 현재 세션이 종료되었습니다.');break;}if(!response.ok)await new Promise(r=>setTimeout(r,3000));}
+          catch (_) {if(active)await new Promise(r=>setTimeout(r,3000));}
+        }
+      })();
+      return;
+    }
+    if (typeof EventSource !== 'undefined') {
+      try {
+        events = new EventSource('/api/events', { withCredentials: true });
+        events.addEventListener('session-ended', () => end('다른 곳에서 로그인했거나 세션이 종료되었습니다. 현재 모험을 중단했습니다.'));
+        events.onerror = () => { void checkSession(); };
+      } catch (_) { void checkSession(); }
+    }
+  }
+  function chooseRecovery(backup, server) {
+    const sameRevision = backup.revision === server.revision;
+    return new Promise(resolve => {
+      const actions = [['백업 내보내기', () => exportSave(backup.state)]];
+      if (sameRevision) actions.push(['백업 복구 후 시작', () => resolve(backup.state)]);
+      actions.push(['서버 기록으로 시작', () => resolve(server.state)]);
+      void showOverlay('아직 전송하지 못한 모험이 있습니다', sameRevision
+        ? '이 계정의 로컬 백업이 남아 있습니다. 백업을 복구하거나 서버 기록으로 시작할 수 있습니다. 선택하지 않은 백업도 별도 보관합니다.'
+        : '백업 이후 서버 기록이 변경되었습니다. 충돌을 막기 위해 자동 복구를 중단했습니다. 백업을 파일로 보관하고 서버 기록으로 시작해 주세요.', actions);
+    });
+  }
+  async function boot() {
+    try {
+      const response = await api('/api/session');
+      if (response.status === 401 || response.status === 403) { location.replace('/linsa-rpg/login.html'); throw new Error('로그인이 필요합니다.'); }
+      if (!response.ok) throw new Error('계정 서버에 연결할 수 없습니다. 연결을 확인한 후 다시 시도해 주세요.');
+      const data = await response.json();
+      if (!data.account) { location.replace('/linsa-rpg/login.html'); throw new Error('로그인이 필요합니다.'); }
+      validateSession(data);
+      account = Object.freeze({ id: data.account.id, username: data.account.username }); revision = data.revision;
+      const existing = read(KEY), previousOwner = read(OWNER);
+      archive(existing, previousOwner, 'before-account-session-load');
+      let chosen = data.state, backup = null;
+      const backupRaw = read(scoped('pending'));
+      if (backupRaw !== null) {
+        try {
+          backup = JSON.parse(backupRaw);
+          if (String(backup.accountId) !== String(account.id) || !validState(backup.state) || !Number.isSafeInteger(backup.revision)) throw new Error('invalid backup');
+        } catch (_) {
+          archive(backupRaw, String(account.id), 'unreadable-pending-backup');
+          throw new Error('이 계정의 로컬 백업을 읽을 수 없습니다. 백업 원본은 보존했습니다. 복구 점검 후 다시 시도해 주세요.');
+        }
+        if (JSON.stringify(backup.state) !== JSON.stringify(data.state)) chosen = await chooseRecovery(backup, data);
+        archive(backupRaw, String(account.id), 'preserved-recovery-backup');
+      }
+      // Recheck after a recovery dialog (another login may have occurred).
+      if (backup) {
+        const fresh = await api('/api/session');
+        if (!fresh.ok) throw new Error('계정이 변경되었을 수 있습니다. 새로고침해 주세요.');
+        const current = validateSession(await fresh.json());
+        if (String(current.account.id) !== String(account.id) || current.revision !== revision) throw new Error('선택 중 계정 또는 서버 기록이 변경되었습니다. 새로고침해 주세요.');
+      }
+      write(OWNER, String(account.id));
+      write(KEY, JSON.stringify(chosen === null ? {} : chosen));
+      // Neutralize the old hard-reset path without deleting a single legacy save.
+      write('ringuRPG_hardReset_20260617_v5', 'done');
+      if (backupRaw !== null) remove(scoped('pending'));
+      latest = chosen; lastAcknowledged = JSON.stringify(data.state === null ? {} : data.state);
+      active = true; bootComplete = true; hideOverlay();
+      report('ready', '계정의 모험 기록을 불러왔습니다.');
+      watchSession();
+      if (chosen !== data.state && chosen !== null) { save(chosen); await flush(); }
+      return { account, state: chosen, revision };
+    } catch (error) {
+      if (!ended) end(error.name === 'AbortError' ? '계정 서버의 응답이 늦어지고 있습니다. 새로고침 후 다시 시도해 주세요.' : error.message, 'error');
+      throw error;
+    }
+  }
+  const bridge = {
+    ready: null, save, flush, logout, exportSave,
+    get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
+    subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },
+    onEnded(fn) { endHooks.add(fn); if (ended) fn(snapshot()); return () => endHooks.delete(fn); }
+  };
+  window.RinguSession = bridge;
+  window.addEventListener('online', () => { void checkSession(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void checkSession();
+    else if (active && pending) void flush().catch(() => {});
+  });
+  window.addEventListener('beforeunload', event => {
+    if (pending) { event.preventDefault(); event.returnValue = ''; }
+  });
+  window.addEventListener('storage', event => {
+    if (!bootComplete || !active) return;
+    if (event.key === OWNER && event.newValue !== String(account.id)) end('다른 계정이 이 브라우저에서 열렸습니다. 현재 모험을 중단했습니다.');
+    else if (event.key === KEY && event.newValue !== JSON.stringify(latest === null ? {} : latest)) {
+      // Preserve this tab's pending progress before another tab replaces it.
+      if (pending) { try { archive(pending.raw, String(account.id), 'other-tab-save'); } catch (_) {} }
+      end('다른 창에서 모험 기록이 변경되었습니다. 기록 충돌을 막기 위해 현재 모험을 중단했습니다.', 'conflict');
+    }
+  });
+  bridge.ready = boot();
+  bridge.ready.catch(() => {}); // Core must still await and handle rejection.
+  void domReady().then(() => {
+    const badge = document.createElement('div'); badge.id = 'ringu-session-status'; badge.setAttribute('role', 'status'); badge.setAttribute('aria-live', 'polite');
+    Object.assign(badge.style, { position: 'fixed', bottom: '12px', left: '12px', zIndex: '2147483645', maxWidth: 'calc(100vw - 24px)', padding: '8px 12px', background: '#0b101aec', border: '1px solid #8d7959', borderRadius: '5px', color: '#e6d1aa', font: '12px/1.6 "Malgun Gothic", system-ui, sans-serif' });
+    document.body.append(badge);
+    bridge.subscribe(status => { badge.hidden = !['offline', 'saving', 'pending'].includes(status.phase); badge.textContent = status.message; });
+  });
+})();
