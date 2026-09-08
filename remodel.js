@@ -34,7 +34,15 @@ window.installRinguRemodel=function(g){
  f.renderPetLayer=()=>'';
  function paintPetIcons(){document.querySelectorAll('.pet-card,.pet-result-card').forEach(card=>{const label=card.querySelector('strong')?.textContent||'',data=Object.values(g.PET_DATA).find(p=>label.includes(p.name));if(!data)return;const icon=card.querySelector('.pet-icon');if(icon){const i=Object.keys(g.PET_DATA).sort().indexOf(data.id);icon.textContent='';icon.classList.add('rm-pet-art');icon.style.backgroundPosition=(i%5/4*100)+'% '+(Math.floor(i/5)/4*100)+'%';}});}
  for(const name of ['renderPetCard','renderPetCollectionCard','renderPetSummonResult']){const prev=f[name];f[name]=function(...args){const r=prev(...args);queueMicrotask(paintPetIcons);return r};}
- f.claimMail=id=>{if(!active())return false;const s=state(),mail=s.mailbox.find(m=>m.id===String(id));if(!mail)return false;s.claimedMailReceipts??={};if(s.claimedMailReceipts[mail.id])return false;const before=structuredClone(s);try{s.claimedMailReceipts[mail.id]=Date.now();f.applyMailboxReward(mail.reward);s.mailbox=s.mailbox.filter(m=>m.id!==mail.id);changed();window.renderMailbox();f.toast('우편 보상을 수령했습니다.');return true}catch(e){g.state=before;throw e}};
+ f.claimMail=async id=>{
+  if(!active())return false;const s=state(),mail=s.mailbox.find(m=>String(m.id)===String(id));if(!mail)return false;
+  s.claimedMailReceipts??={};if(s.claimedMailReceipts[mail.id])return false;
+  const before=structuredClone(s);
+  try{s.claimedMailReceipts[mail.id]=Date.now();f.applyMailboxReward(mail.reward);s.mailbox=s.mailbox.filter(m=>String(m.id)!==String(mail.id));changed();window.renderMailbox();}
+  catch(e){g.state=before;f.toast('우편 보상 형식을 확인해 주세요. 보상은 수령되지 않았습니다.');return false;}
+  try{await window.RinguSession.flush();f.toast('우편 보상 수령 · 서버 저장 완료');return true;}
+  catch(e){f.toast('서버 저장 확인 대기 중입니다. 다시 지급하지 않고 연결 복구 시 재시도합니다.');return false;}
+ };
  const rawDaily=f.claimDailyReward;f.claimDailyReward=()=>{if(!active())return false;const r=rawDaily();f.save(false);return r};
  let operation=null;
  f.openEnhance=id=>{if(operation)return f.toast('강화가 끝난 뒤 다른 장비를 선택하세요.');g.enhanceId=state().inventory.find(it=>String(it.id)===String(id))?.id??null;if(g.enhanceId===null)return;f.renderEnhance();$('enhanceModal').classList.add('show')};
@@ -48,6 +56,33 @@ window.installRinguRemodel=function(g){
  f.tryEnhance=()=>forge(false);f.tryTranscend=()=>forge(true);
  for(const name of ['sellItem','bulkSell','toggleEquipItem']){const prev=f[name];f[name]=(...args)=>{if(operation||!active())return f.toast('진행 중인 작업이 끝난 뒤 이용하세요.');return prev(...args)}}
  const oldDraw=f.drawItems;f.drawItems=n=>{if(!active())return false;return oldDraw(n)};
+ // A confirmation owns only the displayed snapshot, never items looted afterwards.
+ f.bulkSell=maxRarity=>{
+  if(operation||!active())return false;
+  const owner=state(),items=owner.inventory.filter(it=>it.rarity<=maxRarity&&!it.locked&&!f.isItemEquipped(it));
+  if(!items.length)return f.toast('판매 가능한 장비가 없습니다.'),false;
+  const quote=items.map(it=>({id:String(it.id),price:f.sellPrice(it)})),total=quote.reduce((n,it)=>n+it.price,0);
+  let modal=$('rmSellConfirm');if(!modal){modal=document.createElement('div');modal.id='rmSellConfirm';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','일괄 판매 확인');document.body.append(modal);}
+  modal.innerHTML='<section class="modal"><h3>🪙 일괄 판매 확인</h3><p><b>'+quote.length+'개</b>의 장비를 판매하고 <b>'+fmt(total)+' 골드</b>를 받습니다.</p><p>장착 중이거나 잠긴 장비는 제외됩니다.<br>판매한 장비는 되돌릴 수 없습니다.</p><button id="rmSellCancel">취소</button> <button class="primary" id="rmSellAccept">확인 · 판매하기</button></section>';
+  $('rmSellCancel').onclick=()=>modal.classList.remove('show');
+  $('rmSellAccept').onclick=()=>{
+   if(!modal.classList.contains('show'))return;
+   modal.classList.remove('show');
+   if(!active()||operation||state()!==owner)return;
+   const valid=quote.every(q=>{const it=owner.inventory.find(it=>String(it.id)===q.id);return it&&!it.locked&&!f.isItemEquipped(it)&&f.sellPrice(it)===q.price;});
+   if(!valid)return f.toast('장비 상태가 변경되었습니다. 판매 목록을 다시 확인하세요.');
+   const ids=new Set(quote.map(q=>q.id));owner.inventory=owner.inventory.filter(it=>!ids.has(String(it.id)));owner.gold+=total;changed();f.toast(quote.length+'개 판매 · +'+fmt(total)+' 골드');
+  };
+  modal.classList.add('show');$('rmSellCancel').focus();return false;
+ };
+ window.openTips=()=>{
+  const labels={atkPercent:'공격력',critChance:'치명타 확률',critDamage:'치명타 피해',goldBonus:'골드 획득량'};
+  const rows=g.slots.map(slot=>'<tr><th>'+esc(slot)+'</th>'+g.rarityNames.map((name,rarity)=>{const sample={slot,rarity,transcend:0,optionRolls:[.8,.8]},lo=f.subOptions(sample),hi=f.subOptions({...sample,optionRolls:[1.201,1.201]});return '<td>'+lo.map(([key,value],i)=>esc(labels[key])+'<br>'+value+'~'+hi[i][1]+'%').join('<br>')+'</td>';}).join('')+'</tr>').join('');
+  const mythic=g.rates.findIndex(r=>r[5]>0)+1;
+  const bonus=g.slots.map(slot=>'<tr><th>'+esc(slot)+'</th>'+[4,5,6].map(rarity=>{const base={slot,rarity,transcend:0,optionRolls:[1,1]},first=f.subOptions({...base,transcend:1}),normal=f.subOptions(base),extra=first.reduce((n,[k,v])=>n+(k==='atkPercent'?v:0),0)-normal.reduce((n,[k,v])=>n+(k==='atkPercent'?v:0),0);const attack=f.itemAtk({...base,baseAtk:10000,enhance:15,transcend:1})/f.itemAtk({...base,baseAtk:10000,enhance:15})-1;return '<td>장비 공격력 +'+Math.round(attack*100)+'%<br>공격력 부옵션 +'+extra+'%</td>';}).join('')+'</tr>').join('');
+  $('tipGrid').innerHTML='<div class="tip-card"><h4>📖 현재 적용 중인 성장 규칙</h4><p>소환 최대 Lv.'+g.rates.length+' · 신화는 Lv.'+mythic+'부터 등장합니다. 타락 장비는 현재 일반 소환에서 나오지 않습니다.</p><p>현재 선택한 소환의 1회 가격: 🪙 '+fmt(f.summonUnitCost())+' G. 레벨별 등급 확률은 소환 화면의 확률표에서 확인할 수 있습니다.</p><p>강화 최대 +15 · 전설 이상 +15 장비는 최대 3초월.<br>강화 실패 시 +2 도전부터 1단계 하락하며, 하락방지권 사용 시 수치를 유지합니다.</p><p>오프라인 보상은 100%, 최대 12시간입니다. 오라 보유 효과는 장착 여부와 무관하게 누적됩니다.</p><p>초월석 던전은 최대 2명. 방장이 시작하며 혼자 시작할 수도 있습니다. 성공 시 하루 이용 횟수를 사용합니다.<br>펫은 전설 이상 장비 보유 및 전투력 15,000 이후 펫 던전에서 시작하는 후반 콘텐츠입니다.</p></div><div class="tip-card"><h4>💎 장비 부옵션 범위</h4><div class="rm-tip-scroll"><table class="tip-table"><thead><tr><th>부위</th>'+g.rarityNames.map(n=>'<th>'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div><p>실제 옵션 계산 함수로 표시한 범위입니다. 타락은 기존 보유 장비 참고용입니다.</p></div><div class="tip-card"><h4>🌟 1초월마다 추가되는 효과</h4><div class="rm-tip-scroll"><table class="tip-table"><thead><tr><th>부위</th><th>전설</th><th>신화</th><th>타락</th></tr></thead><tbody>'+bonus+'</tbody></table></div></div>';
+  $('tipModal').querySelector('h3').textContent='📖 게임 가이드';$('tipModal').querySelector('p').textContent='현재 게임의 계산값과 적용 규칙 안내';$('tipModal').classList.add('show');
+ };
  const rawTowerStart=f.startTower;f.startTower=n=>{if(g.activeTower)return f.toast('이미 탑 전투 중입니다.');return rawTowerStart(n)};
  const rawDungeonStart=f.startDungeonBattle;f.startDungeonBattle=(...args)=>{if(g.activeDungeon||g.activeTower)return f.toast('진행 중인 전투를 먼저 종료하세요.');return rawDungeonStart(...args)};
  const rawDungeonRender=f.renderDungeon;f.renderDungeon=()=>{rawDungeonRender();if(g.dungeonType==='stone'&&!g.activeDungeon){$('dungeonStageList').innerHTML='<p class="rm-note">초월석 던전 · 개인 도전 · 클리어 시 이용 횟수 차감</p>'+Array.from({length:6},(_,i)=>'<button class="rm-dungeon-entry" onclick="quickPartyEntry('+(i+1)+')">'+(i+1)+'단계 도전　→</button>').join('');}};
@@ -67,7 +102,13 @@ window.installRinguRemodel=function(g){
   if(window.RinguSession.subscribe)window.RinguSession.subscribe(status=>{if($('rmSaveStatus'))$('rmSaveStatus').textContent=typeof status==='string'?status:status.message});
   window.RinguSession.onEnded?.(()=>{clearTimeout(saveTimer);try{f.stopBgm()}catch(e){}g.coreFixes?.cancelBattles()});
   setupPortrait();
+  setupMenuIcons();
   art.ready.then(()=>requestAnimationFrame(draw));
+ }
+ function setupMenuIcons(){
+  const rules=[[/^(무기)/,'⚔️'],[/^(방어구|갑옷|장착 장비)/,'🛡️'],[/^(장신구|반지|귀걸이)/,'💍'],[/^(소환|장비 소환|\d+회 소환)/,'🔮'],[/^(인벤토리|가방|장비$)/,'🎒'],[/^(일일 보상)/,'🎁'],[/^(특수 던전)/,'🌀'],[/^(시련의 탑)/,'🏰'],[/^(상점)/,'🛒'],[/^(장비 도감|도감)/,'📚'],[/^(팁|게임 가이드)/,'💡'],[/^(펫)/,'🐾'],[/^(랭킹)/,'🏆'],[/^(설정)/,'⚙️'],[/^(일괄|.*이하 판매)/,'🪙'],[/^(최적 장착)/,'✨'],[/^(자동사냥|사냥)/,'⚔️'],[/^(우편)/,'📬']];
+  const decorate=()=>{document.querySelectorAll('button,.panel-title').forEach(el=>{if(el.querySelector('canvas,.rm-item-art,.rm-monster-icon')||el.closest('.rm-bottom-nav'))return;const text=el.textContent.trim();const rule=rules.find(([re])=>re.test(text));if(rule&&el.dataset.uiIcon!==rule[1])el.dataset.uiIcon=rule[1];});document.querySelectorAll('.rm-bottom-nav button').forEach(el=>{const icon={hunt:'⚔️',character:'🧙',summon:'🔮',inventory:'🎒',menu:'🧭'}[el.dataset.target];if(icon&&el.querySelector('span').textContent!==icon)el.querySelector('span').textContent=icon;});};
+  let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;decorate();});});observer.observe(document.body,{childList:true,subtree:true,characterData:true});decorate();window.RinguSession.onEnded?.(()=>observer.disconnect());
  }
  function setupPortrait(){
   document.querySelector('.topbar .stats').id='rmCurrencyStats';
@@ -97,9 +138,11 @@ window.installRinguRemodel=function(g){
    const age=attackMotion&&s.autoBattle?time-attackMotion.started:2000,reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
    const pose=age<150?1:age<280?2:age<430?3:age<560?4:age<700?5:age<840?2:age<960?1:0;
    const step=age<280?Math.sin(age/280*Math.PI/2):age<700?1:age<960?Math.cos((age-700)/260*Math.PI/2):0;
-   const size=Math.min(w*.44,h*.40),impact=attackMotion?.hit&&age>=460&&age<650?Math.sin((age-460)/190*Math.PI):0;
-   art.sprite(c,'monsters-facing',s.regionIndex*6+s.bossIndex,6,6,w*.58+impact*w*.016,h*.79-size*(1-impact*.04),size*(1+impact*.045),size*(1-impact*.04));
-   const grip=art.battleHero(c,s,map,ix,time,w*(.25+(reduced?0:step*.13)),h*.79,Math.min(h*.52,w*.65),{pose:reduced?0:pose});canvas.dataset.pose=String(reduced?0:pose);canvas.dataset.facing='right';canvas.dataset.monsterFacing='left';canvas.dataset.attacking=String(age<960);if(grip){canvas.dataset.handX=String(grip.handX);canvas.dataset.handY=String(grip.handY)}
+   const impact=attackMotion?.hit&&age>=460&&age<650?Math.sin((age-460)/190*Math.PI):0;
+   const narrow=canvas.clientWidth<520;
+   const bounds=art.monster(c,s.regionIndex*6+s.bossIndex,w*((narrow?.665:.735)+impact*.006),h*.80,w*(narrow?.62:.48),h*.62);
+   if(bounds)canvas.dataset.monsterBounds=JSON.stringify(bounds);
+   const grip=art.battleHero(c,s,map,ix,time,w*(.25+(reduced?0:step*.13)),h*.79,Math.min(h*.52,w*(narrow?.50:.65)),{pose:reduced?0:pose});canvas.dataset.pose=String(reduced?0:pose);canvas.dataset.facing='right';canvas.dataset.monsterFacing='left';canvas.dataset.attacking=String(age<960);if(grip){canvas.dataset.handX=String(grip.handX);canvas.dataset.handY=String(grip.handY)}
   }
   for(const [id,name,index,cols,rows]of [['towerArt','tower',Math.max(0,(g.activeTower?.data.floor||1)-1),6,5],['dungeonBossArt','monsters',g.activeDungeon?.type==='gold'?7:g.activeDungeon?.type==='pet'?5:31,6,6]]){const el=$(id);if(el){el.classList.add('rm-enemy-art');el.style.backgroundImage='url(/linsa-rpg/art/'+name+'.png)';el.style.backgroundSize=(cols*100)+'% '+(rows*100)+'%';el.style.backgroundPosition=(index%cols/(cols-1)*100)+'% '+(Math.floor(index/cols)/(rows-1)*100)+'%';}}
  }

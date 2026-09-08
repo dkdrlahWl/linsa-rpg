@@ -37,7 +37,15 @@
         }
         guardedStates.add(s);
       }
-      if (floor > 0) s.rankingHidden = true;
+      if (floor > 0) {
+        s.rankingHidden = true;
+        s.summons ||= {};
+        for (const group of ['weapon','armor','accessory']) {
+          s.summons[group] ||= {};
+          s.summons[group].level = 15;
+          s.summons[group].exp = Math.max(integer(s.summons[group].exp),g.levelReq[14]);
+        }
+      }
       for (const key of currencyKeys) s[key] = integer(s[key]);
       s.inventory = Array.isArray(s.inventory) ? s.inventory : [];
       const candidates = new Map();

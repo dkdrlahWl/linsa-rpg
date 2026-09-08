@@ -2,12 +2,80 @@
 (()=>{'use strict';
  const images={},names=['worlds','monsters','heroes','hero-combat-v1','tower','pets',...Array.from({length:7},(_,i)=>'gear-'+i)];
  names.push('monsters-left-matte-v1','consumables-v1');
- const ready=Promise.all(names.map(name=>new Promise(resolve=>{const im=new Image();im.onload=()=>resolve();im.onerror=()=>{console.warn('Art unavailable',name);resolve()};im.src='/linsa-rpg/art/'+name+'.png';images[name]=im}))).then(()=>{const im=images['monsters-left-matte-v1'];if(!im.naturalWidth)return;const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);const d=ctx.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){const spill=p[i+1]-Math.max(p[i],p[i+2]);if(p[i+1]>215&&p[i]<80&&p[i+2]<65&&spill>170){p[i+3]*=1-Math.min(1,(spill-170)/50);p[i+1]=Math.min(p[i+1],Math.max(p[i],p[i+2])+22)}}ctx.putImageData(d,0,0);c.complete=true;c.naturalWidth=c.width;images['monsters-facing']=c;});
+ const ready=Promise.all(names.map(name=>new Promise(resolve=>{const im=new Image();im.onload=()=>resolve();im.onerror=()=>{console.warn('Art unavailable',name);resolve()};im.src='/linsa-rpg/art/'+name+'.png';images[name]=im}))).then(prepareMonsters);
+ const monsterFrames=[];
+ function prepareMonsters(){
+  const im=images['monsters-left-matte-v1'];if(!im.naturalWidth)return;
+  const c=document.createElement('canvas');c.width=im.width;c.height=im.height;
+  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
+  const data=ctx.getImageData(0,0,c.width,c.height),p=data.data,w=c.width,h=c.height,n=w*h;
+  // Extract connected silhouettes before cropping: the authored figures cross grid lines.
+  for(let i=0;i<n;i++){const j=i*4,slime=i%w<w*.155&&Math.floor(i/w)<h*.163;
+   const green=slime?p[j+1]>230&&p[j]<30&&p[j+2]<30&&p[j+1]-Math.max(p[j],p[j+2])>210:p[j+1]>205&&p[j]<100&&p[j+2]<100&&p[j+1]-Math.max(p[j],p[j+2])>125;
+   if(green)p[j+3]=0;
+  }
+  const labels=new Int32Array(n),queue=new Int32Array(n),parts=[];let label=0;
+  for(let seed=0;seed<n;seed++){
+   if(labels[seed]||p[seed*4+3]<32)continue;
+   label++;let head=0,tail=1,sx=0,sy=0,x0=w,y0=h,x1=0,y1=0;queue[0]=seed;labels[seed]=label;
+   while(head<tail){const v=queue[head++],x=v%w,y=Math.floor(v/w);sx+=x;sy+=y;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);
+    for(const next of [x?v-1:-1,x<w-1?v+1:-1,y?v-w:-1,y<h-1?v+w:-1])if(next>=0&&!labels[next]&&p[next*4+3]>=32){labels[next]=label;queue[tail++]=next;}
+   }
+   if(tail>=24)parts.push({label,count:tail,x0,x1,y0,y1,cx:sx/tail,cy:sy/tail});
+  }
+  const groups=Array.from({length:36},()=>[]);
+  for(const part of parts){const col=Math.min(5,Math.floor(part.cx/w*6)),row=Math.min(5,Math.floor(part.cy/h*6));groups[row*6+col].push(part);}
+  groups.forEach((group,index)=>{
+   if(!group.length)return;
+   const x0=Math.min(...group.map(p=>p.x0)),x1=Math.max(...group.map(p=>p.x1)),y0=Math.min(...group.map(p=>p.y0)),y1=Math.max(...group.map(p=>p.y1));
+   const cv=document.createElement('canvas');cv.width=x1-x0+1;cv.height=y1-y0+1;
+   const cc=cv.getContext('2d'),out=cc.createImageData(cv.width,cv.height),keep=new Set(group.map(p=>p.label));
+   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const v=y*w+x;if(!keep.has(labels[v]))continue;const j=v*4,k=((y-y0)*cv.width+x-x0)*4;out.data.set(p.subarray(j,j+4),k);}
+   // Despill only the cutout boundary, retaining green creatures' actual body colour.
+   const rgba=out.data,alpha=new Uint8Array(cv.width*cv.height);for(let i=0;i<alpha.length;i++)alpha[i]=rgba[i*4+3];
+   for(let y=0;y<cv.height;y++)for(let x=0;x<cv.width;x++){const i=y*cv.width+x,j=i*4;if(!alpha[i])continue;let edge=false;for(const d of [-2,-1,1,2])if(x+d<0||x+d>=cv.width||y+d<0||y+d>=cv.height||!alpha[i+d]||!alpha[i+d*cv.width])edge=true;if(edge&&rgba[j+1]-Math.max(rgba[j],rgba[j+2])>65)rgba[j+1]=Math.max(rgba[j],rgba[j+2])+35;}
+   cc.putImageData(out,0,0);monsterFrames[index]=cv;
+  });
+ }
+ function monster(ctx,index,x,y,maxWidth,maxHeight){
+  const cv=monsterFrames[index];if(!cv)return;
+  const scale=Math.min(maxWidth/cv.width,maxHeight/cv.height),w=cv.width*scale,h=cv.height*scale;
+  ctx.drawImage(cv,x-w/2,y-h,w,h);
+  return {x:x-w/2,y:y-h,width:w,height:h};
+ }
  const slots=['무기','투구','갑옷','바지','신발','반지','귀걸이'];
  const gearRows=[[0,190,340,501,681,820,927,1086],[0,188,340,492,660,799,924,1086],[0,175,324,489,669,807,923,1086],[0,180,324,490,683,814,929,1086],[0,175,322,490,669,806,935,1086],[0,166,319,473,639,787,921,1086],[0,162,321,491,664,800,925,1086]];
  function frame(name,index,cols,rows){const im=images[name];if(!im?.complete||!im.naturalWidth)return null;const r=Math.floor(index/cols),line=name.startsWith('gear-')?gearRows[Number(name.slice(-1))]:null;return {im,x:index%cols*im.width/cols,y:line?line[r]*im.height/1086:r*im.height/rows,w:im.width/cols,h:line?(line[r+1]-line[r])*im.height/1086:im.height/rows};}
  function sprite(ctx,name,index,cols,rows,x,y,w,h){const f=frame(name,index,cols,rows);if(f)ctx.drawImage(f.im,f.x+.8,f.y+.8,f.w-1.6,f.h-1.6,x,y,w,h);}
- function icon(it,index=0){const grade=Math.max(0,Math.min(6,Number(it.rarity)||0)),row=Math.max(0,slots.indexOf(it.slot)),col=row===0&&grade===6?(index===0?1:0):Math.max(0,Math.min(9,index)),lines=gearRows[grade],sh=lines[row+1]-lines[row];return `<span class="rm-item-art" role="img" aria-label="${String(it.slot||'장비')} 외형" style="background-image:url('/linsa-rpg/art/gear-${grade}.png');background-size:1000% ${1086/sh*100}%;background-position:${col/9*100}% ${lines[row]/(1086-sh)*100}%"></span>`;}
+ const gearCutouts=new Map();
+ function prepareGear(grade){
+  if(gearCutouts.has(grade))return gearCutouts.get(grade);
+  const im=images['gear-'+grade];if(!im?.naturalWidth)return null;
+  const cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;const ctx=cv.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
+  const p=ctx.getImageData(0,0,cv.width,cv.height).data,w=cv.width,h=cv.height,n=w*h,labels=new Int32Array(n),queue=new Int32Array(n),groups=Array.from({length:70},()=>[]);let id=0;
+  // The two common chest pieces physically touch at their sleeve tips in the source.
+  if(grade===0){const seam=Math.round(w*.296);for(let y=Math.floor(h*340/1086);y<Math.ceil(h*501/1086);y++)for(let x=seam-1;x<=seam+1;x++)p[(y*w+x)*4+3]=0;}
+  for(let seed=0;seed<n;seed++){
+   if(labels[seed]||p[seed*4+3]<48)continue;id++;let head=0,tail=1,x0=w,y0=h,x1=0,y1=0,sx=0,sy=0;queue[0]=seed;labels[seed]=id;
+   while(head<tail){const v=queue[head++],x=v%w,y=Math.floor(v/w);x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);sx+=x;sy+=y;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy,next=yy*w+xx;if(xx<0||xx>=w||yy<0||yy>=h||labels[next]||p[next*4+3]<48)continue;labels[next]=id;queue[tail++]=next;}
+   }
+   if(tail<24)continue;
+   const cy=sy/tail/h*1086,row=gearRows[grade].findIndex((v,i)=>i<7&&cy>=v&&cy<gearRows[grade][i+1]),col=Math.min(9,Math.floor(sx/tail/w*10));
+   if(row>=0)groups[row*10+col].push({id,count:tail,x0,x1,y0,y1});
+  }
+  const result=groups.map(group=>{
+   if(!group.length)return null;
+   const largest=Math.max(...group.map(g=>g.count));group=group.filter(g=>g.count>=Math.max(24,largest*.012));
+   const x0=Math.min(...group.map(g=>g.x0)),x1=Math.max(...group.map(g=>g.x1)),y0=Math.min(...group.map(g=>g.y0)),y1=Math.max(...group.map(g=>g.y1));
+   const out=document.createElement('canvas');out.width=x1-x0+5;out.height=y1-y0+5;const c=out.getContext('2d'),d=c.createImageData(out.width,out.height),keep=new Set(group.map(g=>g.id));
+   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const v=y*w+x;if(keep.has(labels[v]))d.data.set(p.subarray(v*4,v*4+4),((y-y0+2)*out.width+x-x0+2)*4);}
+   c.putImageData(d,0,0);return out;
+  });gearCutouts.set(grade,result);return result;
+ }
+ function gearImage(grade,row,col){const cv=prepareGear(grade)?.[row*10+col];if(!cv)return '';return cv.previewURL??=(cv.toDataURL());}
+ function icon(it,index=0){const grade=Math.max(0,Math.min(6,Number(it.rarity)||0)),row=Math.max(0,slots.indexOf(it.slot)),col=row===0&&grade===6?(index===0?1:0):Math.max(0,Math.min(9,index)),url=gearImage(grade,row,col);return '<span class="rm-item-art" data-gear-cutout="'+grade+':'+row+':'+col+'" role="img" aria-label="'+slots[row]+' 외형" style="background-image:url('+url+');background-size:contain!important;background-position:center!important;background-repeat:no-repeat"></span>';}
+ ready.then(()=>document.querySelectorAll('[data-gear-cutout]').forEach(el=>{const [g,r,c]=el.dataset.gearCutout.split(':').map(Number);el.style.backgroundImage='url('+gearImage(g,r,c)+')';}));
  const colors=['#ff536d','#ffad51','#ffe5a2','#7df0b3','#7bcdff','#8281ff','#cc88ff','#e5f1ff','#efb7ff'];
  // Procedural aura, not a looping background picture. Every particle has its own phase.
  function aura(ctx,index,time,x,y,w,h,intensity=1){if(index<0||intensity<=0)return;index=Math.min(8,index);const t=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:time/1000,c=colors[index];ctx.save();ctx.translate(x,y);ctx.globalCompositeOperation='lighter';
@@ -103,5 +171,5 @@ function motionFrame(female,pose){const key=Number(female)*6+pose;if(motionFrame
    ctx.save();ctx.beginPath();ctx.ellipse(px(hand[0]),py(hand[1]),10*u,12*u,0,0,Math.PI*2);ctx.clip();ctx.drawImage(m.canvas,px(m.x0),py(m.y0),m.canvas.width*u,m.canvas.height*u);ctx.restore();}
   return {handX:px(hand[0]),handY:py(hand[1]),pose};
  }
- window.RinguArt={ready,images,frame,sprite,icon,aura,hero,battleHero,colors,assembledBody,weaponSocket};
+ window.RinguArt={ready,images,monster,monsterFrames,prepareGear,frame,sprite,icon,aura,hero,battleHero,colors,assembledBody,weaponSocket};
 })();
