@@ -66,7 +66,7 @@ window.installRinguStoneParty = function(g) {
   // Disable legacy cloud/solo room entry points even when invoked by old markup.
   Object.assign(window,{createPartyRoom:stage=>act('create',{stage}),quickPartyEntry:stage=>act('create',{stage}),loadPartyRooms:poll,joinPartyRoom:id=>act('join',{id}),startPartyRoom:()=>act('start'),leavePartyRoom:()=>act('leave')});
   window.addEventListener('ringu:stone-award',e=>{g.state.transcendStone=(Number(g.state.transcendStone)||0)+e.detail.amount;f.renderTop();f.toast('초월석 +'+e.detail.amount+' · 계정 저장 완료');});
-  const oldPet=f.startPetDungeon;f.startPetDungeon=(...a)=>g.state.inventory.some(it=>it.rarity>=4)?oldPet(...a):f.toast('펫 던전은 전설 이상 장비 획득 후 열립니다.');
+  // Stage 1 is available without the retired legendary-equipment prerequisite.
   for(const name of ['startTower','startGoldDungeon','startPetDungeon']){const before=f[name];f[name]=(...a)=>room&&['waiting','running'].includes(room.status)?f.toast('파티 방에서 나온 뒤 도전하세요.'):before(...a);}
   timer=setInterval(()=>{if(room||$('dungeonModal')?.classList.contains('show'))void poll();},1800);
   window.RinguSession.onEnded(()=>{clearInterval(timer);if(g.activeDungeon?.serverRoom)g.activeDungeon=null;});

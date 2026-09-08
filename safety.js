@@ -135,13 +135,6 @@
   function writeBackup(item) {
     write(scoped('pending'), JSON.stringify({ accountId: account.id, revision, state: item.state, savedAt: new Date().toISOString() }));
   }
-  function exportSave(value) {
-    const state = value === undefined ? (pending?.state ?? latest) : value;
-    const blob = new Blob([JSON.stringify({ format: 'ringu-account-backup-v1', account, revision, exportedAt: new Date().toISOString(), state }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a'); anchor.href = url; anchor.download = `ringu-save-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-    (overlay || document.body).append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
   async function leaveAccount() {
     const response = await api('/api/logout', { method: 'POST' });
     if (!response.ok && response.status !== 401) throw new Error('로그아웃하지 못했습니다. 연결을 확인한 후 다시 시도해 주세요.');
@@ -157,9 +150,9 @@
     for (const fn of endHooks) { try { fn(snapshot()); } catch (error) { console.error(error); } }
     window.dispatchEvent(new CustomEvent('ringu:session-ended', { detail: snapshot() }));
     void showOverlay(kind === 'conflict' ? '다른 모험 기록이 감지되었습니다' : '모험이 일시 중단되었습니다', reason + (backupFailed
-      ? '\n브라우저 백업을 보장할 수 없습니다. 새로고침하거나 로그아웃하기 전에 반드시 현재 기록을 파일로 내보내 주세요.'
-      : '\n미전송 기록은 계정별 백업으로 보관됩니다. 내보내기로 파일도 보관할 수 있습니다.'), [
-      ['내 기록 내보내기', () => exportSave()], ['서버 기록 다시 확인', () => location.reload()], ['로그아웃', leaveAccount]
+      ? '\n브라우저 임시 저장을 보장할 수 없습니다. 현재 화면을 유지하고 연결 및 저장 공간을 확인해 주세요.'
+      : '\n미전송 기록은 계정별 임시 저장으로 보관됩니다.'), [
+      ['서버 기록 다시 확인', () => location.reload()], ['로그아웃', leaveAccount]
     ]);
   }
   function save(state) {
@@ -172,7 +165,7 @@
     try {
       if (read(OWNER) !== String(account.id)) { end('다른 계정이 이 브라우저에서 열렸습니다. 현재 계정을 다시 확인해 주세요.'); return false; }
       writeBackup(item); write(KEY, raw);
-    } catch (_) { end('브라우저에 백업을 보관할 공간이 없습니다. 내 기록을 파일로 내보낸 후 저장 공간을 확보해 주세요.', 'storage-error'); return false; }
+    } catch (_) { end('브라우저에 백업을 보관할 공간이 없습니다. 현재 화면을 유지하고 저장 공간을 확보한 뒤 다시 연결해 주세요.', 'storage-error'); return false; }
     report('pending', '모험 기록을 저장할 준비가 되었습니다.');
     if (saveTimer === null) saveTimer = setTimeout(() => { void flush().catch(() => {}); }, 350);
     return true;
@@ -185,7 +178,7 @@
       try { response = await api('/api/state', { method: 'PUT', body: JSON.stringify({ state: item.state, revision }) }); }
       catch (error) {
         if (!active) throw error;
-        try { writeBackup(pending || item); } catch (_) { end('백업 공간이 부족합니다. 현재 기록을 반드시 내보내 주세요.', 'storage-error'); throw error; }
+        try { writeBackup(pending || item); } catch (_) { end('백업 공간이 부족합니다. 현재 화면을 유지하고 저장 공간을 확보해 주세요.', 'storage-error'); throw error; }
         report('offline', '서버 연결 실패 · 기록을 이 계정의 브라우저 백업에 보관했습니다. 연결 복구 시 재시도합니다.');
         throw error;
       }
@@ -215,7 +208,7 @@
       try {
         if (pending === item) { remove(scoped('pending')); pending = null; }
         else writeBackup(pending);
-      } catch (_) { end('저장 후 로컬 백업을 갱신하지 못했습니다. 기록을 내보낸 후 다시 확인해 주세요.', 'storage-error'); throw new Error(message); }
+      } catch (_) { end('저장 후 로컬 백업을 갱신하지 못했습니다. 현재 화면을 유지하고 저장 상태를 다시 확인해 주세요.', 'storage-error'); throw new Error(message); }
     }
     if (active) report('saved', '계정에 저장되었습니다.');
     return snapshot();
@@ -270,12 +263,12 @@
   function chooseRecovery(backup, server) {
     const sameRevision = backup.revision === server.revision;
     return new Promise(resolve => {
-      const actions = [['백업 내보내기', () => exportSave(backup.state)]];
+      const actions = [];
       if (sameRevision) actions.push(['백업 복구 후 시작', () => resolve(backup.state)]);
       actions.push(['서버 기록으로 시작', () => resolve(server.state)]);
       void showOverlay('아직 전송하지 못한 모험이 있습니다', sameRevision
         ? '이 계정의 로컬 백업이 남아 있습니다. 백업을 복구하거나 서버 기록으로 시작할 수 있습니다. 선택하지 않은 백업도 별도 보관합니다.'
-        : '백업 이후 서버 기록이 변경되었습니다. 충돌을 막기 위해 자동 복구를 중단했습니다. 백업을 파일로 보관하고 서버 기록으로 시작해 주세요.', actions);
+        : '임시 저장 이후 서버 기록이 변경되었습니다. 충돌을 막기 위해 자동 복구를 중단했습니다. 임시 기록은 보존되며 서버 기록으로 시작할 수 있습니다.', actions);
     });
   }
   async function boot() {
@@ -326,7 +319,7 @@
     }
   }
   const bridge = {
-    ready: null, save, flush, logout, exportSave,
+    ready: null, save, flush, logout,
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
     subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },
     onEnded(fn) { endHooks.add(fn); if (ended) fn(snapshot()); return () => endHooks.delete(fn); }
