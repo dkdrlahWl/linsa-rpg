@@ -8,6 +8,7 @@
     const currencyKeys = ['gold', 'essence', 'transcendStone', 'downgradeProtect',
       'dungeonTickets', 'petStone', 'petTicket'];
     const active = () => !!g.state && window.RinguSession?.active !== false;
+    const guardedStates = new WeakSet();
     const integer = (v, fallback = 0) => {
       const n = Number(v);
       return Number.isFinite(n) ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(n))) : fallback;
@@ -26,6 +27,17 @@
     function sanitize() {
       const s = g.state;
       if (!s) return;
+      const floor = Number(window.RinguCloud?.currencyFloor) || 0;
+      if (floor > 0 && !guardedStates.has(s)) {
+        for (const key of currencyKeys) {
+          let value = integer(s[key]);
+          Object.defineProperty(s, key, {enumerable:true, configurable:true,
+            get:()=>Math.max(Number(window.RinguCloud?.currencyFloor)||0,value),
+            set:v=>{value=integer(v);}});
+        }
+        guardedStates.add(s);
+      }
+      if (floor > 0) s.rankingHidden = true;
       for (const key of currencyKeys) s[key] = integer(s[key]);
       s.inventory = Array.isArray(s.inventory) ? s.inventory : [];
       const candidates = new Map();

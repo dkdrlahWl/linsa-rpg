@@ -26,7 +26,13 @@
    await refreshing;
  }
  const rpc=(name,args,signal)=>remote('/rest/v1/rpc/'+name,args,{signal});
- function account(data){return {...data,account:{id:session.user.id,username:session.user.user_metadata?.username||session.user.email?.split('@')[0]||'모험가'}};}
+ async function account(data){
+   // Optional migration: ordinary accounts remain usable before it is installed.
+   let floor=0;
+   try{floor=Number((await rpc('ringu_admin_status',{})).currencyFloor)||0;}catch(e){if(e.status!==404)throw e;}
+   window.RinguCloud.currencyFloor=Math.max(0,floor);
+   return {...data,account:{id:session.user.id,username:session.user.user_metadata?.username||session.user.email?.split('@')[0]||'모험가'}};
+ }
  async function login(body,register,signal){
    const username=String(body.username||'').trim().toLowerCase();
    if(!/^[a-z0-9_]{3,32}$/.test(username)||typeof body.password!=='string'||body.password.length<8||body.password.length>256)throw error('계정 이름과 비밀번호 조건을 확인해 주세요.');
@@ -47,10 +53,10 @@
    try{
      const path=url.pathname,body=init.body?JSON.parse(init.body):{},signal=init.signal;
      if(path==='/api/register'||path==='/api/login')return response(await login(body,path==='/api/register',signal),path==='/api/register'?201:200);
-     if(path==='/api/session')return response(account(await rpc('ringu_account',{p_action:'load'},signal)));
+     if(path==='/api/session')return response(await account(await rpc('ringu_account',{p_action:'load'},signal)));
      if(path==='/api/watch'){await rpc('ringu_account',{p_action:'ping'},signal);await new Promise(r=>setTimeout(r,1500));return response({ok:true});}
      if(path==='/api/logout'){
-       try{await remote('/auth/v1/logout?scope=local',undefined,{signal});}finally{persist(null);}return response({ok:true});
+       try{await remote('/auth/v1/logout?scope=local',undefined,{signal});}finally{persist(null);window.RinguCloud.currencyFloor=0;}return response({ok:true});
      }
      if(path==='/api/state'){
        const saved=await rpc('ringu_account',{p_action:'save',p_state:body.state,p_revision:body.revision},signal);
