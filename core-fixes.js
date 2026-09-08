@@ -98,6 +98,17 @@
         return old.apply(this, args);
       });
     }
+    f.equipBest = function () {
+      if (!active()) return false;
+      sanitize();let changed=0;
+      for(const slot of g.slots){
+        const candidates=g.state.inventory.filter(it=>it.slot===slot);
+        const current=g.state.equipped[slot];
+        candidates.sort((a,b)=>f.itemAtk(b)-f.itemAtk(a)||Number(String(b.id)===String(current))-Number(String(a.id)===String(current))||Number(a.id)-Number(b.id));
+        if(candidates[0]&&String(current)!==String(candidates[0].id)){g.state.equipped[slot]=candidates[0].id;changed++;}
+      }
+      f.renderAll();f.save(false);f.toast(changed?'강화·초월 포함 공격력이 가장 높은 장비를 부위별로 장착했습니다.':'이미 강화·초월 포함 최고 공격력 장비입니다.');return changed>0;
+    };
     wrap('drawItems', old => function (count) {
       if (!active() || ![1, 5, 10].includes(Number(count))) return false;
       sanitize();
@@ -175,7 +186,7 @@
       f.normalizeCharacter();
       if (type === 'gold' && (n > g.state.dungeons.goldUnlocked || g.state.dungeons.goldEntries <= 0)) return false;
       if (type === 'pet' && (g.state.dungeons.petEntries <= 0 ||
-          f.getPower() < (Number(data.required) || 15000))) return false;
+          f.getPower() < (Number(data.required) || 0))) return false;
       const result = old.call(this, type, {...data, stage: n}, 0, partnerName, null);
       if (g.activeDungeon) {
         // Direct startDungeonBattle must consume the same gold entry as the UI route.

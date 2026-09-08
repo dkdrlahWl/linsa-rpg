@@ -4,6 +4,12 @@ window.installRinguRemodel=function(g){
  const state=()=>g.state,active=()=>window.RinguSession.active!==false;
  const equipMap=()=>Object.fromEntries(g.slots.map(slot=>[slot,state().inventory.find(it=>String(it.id)===String(state().equipped[slot]))]));
  const changed=()=>{f.renderAll();f.save(false)};
+ // Reward tables are shared by battle payouts, offline farming and their UI.
+ if(!g.rewardBalanceV3){g.rewardBalanceV3=true;g.bossRegions.forEach(r=>r.bosses.forEach(b=>b.reward*=2));g.collectionRewards.forEach(r=>r.gold*=10);g.towerFloors.forEach(r=>r.gold*=10);g.goldDungeonStages.forEach(r=>r.reward*=10);}
+ function grantAuraMilestone(){const s=state();if(s.collectionClaims?.[50]&&!s.aura50TicketGranted){s.aura50TicketGranted=true;s.auraDrawTickets=Math.max(0,Math.floor(Number(s.auraDrawTickets)||0))+1;return true}return false;}
+ const claimCollection=f.claimCollectionReward;f.claimCollectionReward=(count)=>{if(!active())return false;const result=claimCollection(count);if(grantAuraMilestone())changed();return result;};
+ window.useAuraDrawTicket=()=>{const s=state();if(!active()||!(s.auraDrawTickets>0))return false;const pool=g.auraShopItems.map((_,i)=>i).filter(i=>i!==8&&!s.ownedAuras?.includes(i));if(!pool.length){f.toast('만화경 제외 모든 오라를 보유하고 있습니다. 뽑기권은 보관됩니다.');return false}const index=pool[Math.floor(Math.random()*pool.length)];s.auraDrawTickets--;s.ownedAuras??=[];s.ownedAuras.push(index);changed();window.RinguAudio?.effect('success');f.toast('✨ '+g.auraShopItems[index][0]+' 오라 획득');return index;};
+ const renderCollectionRewards=f.renderCollectionRewards;f.renderCollectionRewards=(...args)=>{renderCollectionRewards(...args);const host=$('collectionRewards');if(host){const first=host.querySelector('.collection-reward small');if(first)first.textContent+=' · 오라 뽑기권 1장 (만화경 제외)';const button=document.createElement('button');button.textContent='✨ 랜덤 오라 뽑기권 사용 · '+(state().auraDrawTickets||0)+'장';button.disabled=!(state().auraDrawTickets>0);button.onclick=window.useAuraDrawTicket;host.append(button);}};
  const noop=()=>Promise.resolve(false);
  let attackTimer=null,attackMotion=null;
  const cancelAttack=()=>{clearTimeout(attackTimer);attackTimer=null;attackMotion=null};
@@ -19,7 +25,7 @@ window.installRinguRemodel=function(g){
  let saveTimer;f.queueSave=()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>f.save(false),150)};
  f.spendGold=cost=>{cost=Number(cost);if(!active()||!Number.isFinite(cost)||cost<0||state().gold<cost)return false;state().gold-=cost;return true};
  f.load=()=>{old.load();const s=state();s.uid=Math.max(Number(s.uid)||1,...s.inventory.map(i=>(Number(i.id)||0)+1));s.regionIndex=Math.max(0,Math.min(g.bossRegions.length-1,s.regionIndex||0));
-  s.remodelStarted=true;setupLayout();f.renderAll();f.save(false);
+  grantAuraMilestone();s.remodelStarted=true;setupLayout();f.renderAll();f.save(false);
  };
  f.gearIcon=it=>art.icon(it,f.itemIndex(it));f.ringuResultIcon=f.gearIcon;
  window.openItemDetail=id=>{const it=state().inventory.find(item=>String(item.id)===String(id));if(!it)return;let modal=$('rmItemDetail');if(!modal){modal=document.createElement('div');modal.id='rmItemDetail';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','장비 상세');document.body.append(modal);}modal.innerHTML='<section class="modal"><h3>'+esc(it.name)+'</h3><div class="rm-detail-art">'+f.gearIcon(it)+'</div><p>'+g.rarityNames[it.rarity]+' · '+esc(it.slot)+' · '+(f.isItemEquipped(it)?'✓ 장착 중':'미장착')+'</p><h3>⚔ '+fmt(f.itemAtk(it))+'</h3><p>'+f.optionText(it)+'</p><p>강화 +'+it.enhance+'　초월 '+(it.transcend||0)+'　'+(it.locked?'🔒 잠금':'')+'</p><button id="rmDetailEnhance">강화 / 초월</button><button id="rmDetailClose">닫기</button></section>';$('rmDetailEnhance').onclick=()=>{modal.classList.remove('show');f.openEnhance(it.id)};$('rmDetailClose').onclick=()=>modal.classList.remove('show');modal.classList.add('show');$('rmDetailClose').focus();};
@@ -32,7 +38,7 @@ window.installRinguRemodel=function(g){
  f.renderPlayerStats=()=>{const s=f.getPlayerStats();$('playerStats').innerHTML=[['⚔','공격력',fmt(s.attack)],['↑','공격력 보너스',s.atkPercent.toFixed(1)+'%'],['✦','치명타 확률',s.critChance.toFixed(1)+'%'],['ϟ','치명타 피해',s.critDamage.toFixed(1)+'%'],['◈','골드 보너스',s.goldBonus.toFixed(1)+'%'],['➶','공격속도','×'+(s.attackSpeed||1).toFixed(2)]].map(([icon,name,value])=>'<div class="player-stat"><span>'+icon+' '+name+'</span><b>'+value+'</b></div>').join('');};
  f.renderAll=()=>{if(!state())return;f.renderTop();f.renderBosses();f.renderBattle();f.renderEquipment();f.renderPlayerStats();f.renderSummon();f.renderInventory();window.renderMailboxBadge?.();f.renderDailyRewardBoxV1();paintPetIcons();};
  f.renderPetLayer=()=>'';
- function paintPetIcons(){document.querySelectorAll('.pet-card,.pet-result-card').forEach(card=>{const label=card.querySelector('strong')?.textContent||'',data=Object.values(g.PET_DATA).find(p=>label.includes(p.name));if(!data)return;const icon=card.querySelector('.pet-icon');if(icon){const i=Object.keys(g.PET_DATA).sort().indexOf(data.id);icon.textContent='';icon.classList.add('rm-pet-art');icon.style.backgroundPosition=(i%5/4*100)+'% '+(Math.floor(i/5)/4*100)+'%';}});}
+ function paintPetIcons(){document.querySelectorAll('.pet-card,.pet-result-card').forEach(card=>{const label=card.querySelector('strong')?.textContent||'',data=Object.values(g.PET_DATA).find(p=>label.includes(p.name));if(!data)return;const icon=card.querySelector('.pet-icon');if(icon){const i=Object.keys(g.PET_DATA).sort().indexOf(data.id),fr=art.frame('pets',i,5,5);icon.textContent='';icon.classList.add('rm-pet-art');if(fr){const url=fr.im.previewURL??=(fr.im.toDataURL());icon.style.backgroundImage='url('+url+')';icon.style.backgroundSize='contain';icon.style.backgroundPosition='center';}}});}
  for(const name of ['renderPetCard','renderPetCollectionCard','renderPetSummonResult']){const prev=f[name];f[name]=function(...args){const r=prev(...args);queueMicrotask(paintPetIcons);return r};}
  f.claimMail=async id=>{
   if(!active())return false;const s=state(),mail=s.mailbox.find(m=>String(m.id)===String(id));if(!mail)return false;
@@ -55,7 +61,43 @@ window.installRinguRemodel=function(g){
  }
  f.tryEnhance=()=>forge(false);f.tryTranscend=()=>forge(true);
  for(const name of ['sellItem','bulkSell','toggleEquipItem']){const prev=f[name];f[name]=(...args)=>{if(operation||!active())return f.toast('진행 중인 작업이 끝난 뒤 이용하세요.');return prev(...args)}}
- const oldDraw=f.drawItems;f.drawItems=n=>{if(!active())return false;return oldDraw(n)};
+ let revealRun=null;
+ function stopReveal(){if(!revealRun)return;revealRun.timers.forEach(clearTimeout);revealRun=null;$('rmFirstReveal')?.classList.remove('show');}
+ window.RinguSession.onEnded?.(stopReveal);
+ function drawResults(items){$('drawResultGrid').innerHTML=items.map(it=>'<article class="rm-drop-card" style="--drop-color:'+g.rarityColors[it.rarity]+'">'+f.gearIcon(it)+'<small>'+(it.isNew?'✨ 최초 획득 · ':'')+esc(g.rarityNames[it.rarity])+'</small><strong>'+esc(it.name)+'</strong><span>⚔ '+fmt(f.itemAtk(it))+'</span></article>').join('');$('drawResultModal').style.removeProperty('display');$('drawResultModal').classList.add('show');}
+ function firstReveals(items){
+  const fresh=items.filter(it=>it.isNew&&it.rarity>=3).sort((a,b)=>a.rarity-b.rarity);
+  if(!fresh.length){window.RinguAudio?.effect('draw',Math.max(...items.map(it=>it.rarity)));drawResults(items);return;}
+  let modal=$('rmFirstReveal');if(!modal){modal=document.createElement('div');modal.id='rmFirstReveal';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','최초 장비 획득');document.body.append(modal);}
+  const run={owner:state(),timers:[],index:0};revealRun=run;
+  const later=(fn,ms)=>run.timers.push(setTimeout(()=>{if(revealRun===run&&active()&&state()===run.owner)fn();},ms));
+  const finish=()=>{stopReveal();if(active()&&state()===run.owner)drawResults(items);};
+  function next(){
+   run.timers.forEach(clearTimeout);run.timers=[];
+   const it=fresh[run.index++];if(!it)return finish();
+   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduced?450:it.rarity>=5?3000:it.rarity===4?2100:1200;
+   modal.className='modal-bg show';modal.dataset.grade=String(it.rarity);modal.style.setProperty('--drop-color',g.rarityColors[it.rarity]);modal.style.setProperty('--reveal-time',duration+'ms');modal.dataset.duration=String(duration);
+   modal.innerHTML='<section class="rm-reveal-stage"><div class="rm-reveal-rays"></div><div class="rm-reveal-orbit"></div><div class="rm-reveal-sparks">'+Array.from({length:it.rarity>=5?30:it.rarity===4?20:12},(_,i)=>'<i style="--i:'+i+'"></i>').join('')+'</div><small class="rm-reveal-eyebrow">FIRST DISCOVERY · '+run.index+' / '+fresh.length+'</small><h2>'+esc(g.rarityNames[it.rarity])+'</h2><div class="rm-reveal-item">'+f.gearIcon(it)+'</div><strong class="rm-reveal-name">'+esc(it.name)+'</strong><p class="rm-reveal-status" aria-live="polite">새로운 힘이 깨어납니다…</p><button class="rm-reveal-skip">연출 건너뛰기</button><button class="rm-reveal-next" disabled>계속</button></section>';
+   modal.querySelector('.rm-reveal-skip').onclick=finish;
+   modal.querySelector('.rm-reveal-next').onclick=next;modal.querySelector('.rm-reveal-skip').focus();
+   window.RinguAudio?.effect('reveal-charge',it.rarity);
+   later(()=>modal.classList.add('charged'),duration*.55);
+   later(()=>{modal.classList.add('revealed');modal.querySelector('.rm-reveal-status').textContent='도감에 새로운 장비가 기록되었습니다';modal.querySelector('.rm-reveal-next').disabled=false;window.RinguAudio?.effect('reveal-impact',it.rarity);},duration);
+   later(next,duration+1600);
+  }
+  next();
+ }
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&revealRun){e.preventDefault();e.stopImmediatePropagation();modalSkip();}},true);
+ function modalSkip(){$('rmFirstReveal')?.querySelector('.rm-reveal-skip')?.click();}
+ f.drawItems=count=>{
+  count=Number(count);if(!active()||revealRun||![1,5,10].includes(count))return false;
+  const s=state(),cost=count*f.summonUnitCost();if(s.gold<cost)return f.toast('골드가 부족합니다.'),false;
+  const before=structuredClone(s);
+  try{if(!f.spendGold(cost))return false;s.discovered??={};const items=[];
+   for(let i=0;i<count;i++){const it=f.makeItem(g.drawGroup);if(!it?.id)throw Error('invalid item');const key=f.itemKey(it);it.isNew=!s.discovered[key];s.discovered[key]=true;items.push(it);}
+   s.inventory.unshift(...items);const summon=f.activeSummon();summon.exp+=count;summon.level=f.getSummonLevel(summon.exp);changed();firstReveals(items);return true;
+  }catch(e){g.state=before;changed();f.toast('소환을 완료하지 못했습니다. 재화와 장비를 복구했습니다.');return false;}
+ };
  // A confirmation owns only the displayed snapshot, never items looted afterwards.
  f.bulkSell=maxRarity=>{
   if(operation||!active())return false;
@@ -80,7 +122,7 @@ window.installRinguRemodel=function(g){
   const rows=g.slots.map(slot=>'<tr><th>'+esc(slot)+'</th>'+g.rarityNames.map((name,rarity)=>{const sample={slot,rarity,transcend:0,optionRolls:[.8,.8]},lo=f.subOptions(sample),hi=f.subOptions({...sample,optionRolls:[1.201,1.201]});return '<td>'+lo.map(([key,value],i)=>esc(labels[key])+'<br>'+value+'~'+hi[i][1]+'%').join('<br>')+'</td>';}).join('')+'</tr>').join('');
   const mythic=g.rates.findIndex(r=>r[5]>0)+1;
   const bonus=g.slots.map(slot=>'<tr><th>'+esc(slot)+'</th>'+[4,5,6].map(rarity=>{const base={slot,rarity,transcend:0,optionRolls:[1,1]},first=f.subOptions({...base,transcend:1}),normal=f.subOptions(base),extra=first.reduce((n,[k,v])=>n+(k==='atkPercent'?v:0),0)-normal.reduce((n,[k,v])=>n+(k==='atkPercent'?v:0),0);const attack=f.itemAtk({...base,baseAtk:10000,enhance:15,transcend:1})/f.itemAtk({...base,baseAtk:10000,enhance:15})-1;return '<td>장비 공격력 +'+Math.round(attack*100)+'%<br>공격력 부옵션 +'+extra+'%</td>';}).join('')+'</tr>').join('');
-  $('tipGrid').innerHTML='<div class="tip-card"><h4>📖 현재 적용 중인 성장 규칙</h4><p>소환 최대 Lv.'+g.rates.length+' · 신화는 Lv.'+mythic+'부터 등장합니다. 타락 장비는 현재 일반 소환에서 나오지 않습니다.</p><p>현재 선택한 소환의 1회 가격: 🪙 '+fmt(f.summonUnitCost())+' G. 레벨별 등급 확률은 소환 화면의 확률표에서 확인할 수 있습니다.</p><p>강화 최대 +15 · 전설 이상 +15 장비는 최대 3초월.<br>강화 실패 시 +2 도전부터 1단계 하락하며, 하락방지권 사용 시 수치를 유지합니다.</p><p>오프라인 보상은 100%, 최대 12시간입니다. 오라 보유 효과는 장착 여부와 무관하게 누적됩니다.</p><p>초월석 던전은 최대 2명. 방장이 시작하며 혼자 시작할 수도 있습니다. 성공 시 하루 이용 횟수를 사용합니다.<br>펫은 전설 이상 장비 보유 및 전투력 15,000 이후 펫 던전에서 시작하는 후반 콘텐츠입니다.</p></div><div class="tip-card"><h4>💎 장비 부옵션 범위</h4><div class="rm-tip-scroll"><table class="tip-table"><thead><tr><th>부위</th>'+g.rarityNames.map(n=>'<th>'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div><p>실제 옵션 계산 함수로 표시한 범위입니다. 타락은 기존 보유 장비 참고용입니다.</p></div><div class="tip-card"><h4>🌟 1초월마다 추가되는 효과</h4><div class="rm-tip-scroll"><table class="tip-table"><thead><tr><th>부위</th><th>전설</th><th>신화</th><th>타락</th></tr></thead><tbody>'+bonus+'</tbody></table></div></div>';
+  $('tipGrid').innerHTML='<div class="tip-card"><h4>📖 현재 적용 중인 성장 규칙</h4><p>소환 최대 Lv.'+g.rates.length+' · 신화는 Lv.'+mythic+'부터 등장합니다. 타락 장비는 현재 일반 소환에서 나오지 않습니다.</p><p>현재 선택한 소환의 1회 가격: 🪙 '+fmt(f.summonUnitCost())+' G. 레벨별 등급 확률은 소환 화면의 확률표에서 확인할 수 있습니다.</p><p>강화 최대 +15 · 전설 이상 +15 장비는 최대 3초월.<br>강화 실패 시 +2 도전부터 1단계 하락하며, 하락방지권 사용 시 수치를 유지합니다.</p><p>오프라인 보상은 100%, 최대 12시간입니다. 일일 보상은 정수 10~15개입니다. 첫 50종 장비 도감 보상에는 만화경 제외 미보유 오라 뽑기권 1장이 포함됩니다. 오라 보유 효과는 장착 여부와 무관하게 누적됩니다.</p><p>초월석 던전은 최대 2명. 방장이 시작하며 혼자 시작할 수도 있습니다. 성공 시 하루 이용 횟수를 사용합니다.<br>펫 던전 1단계 HP는 2,000이며 권장 공격력 제한은 없습니다. 펫 소환은 Lv.1~5, 승급마다 20·30·40·50회가 필요하고 실패 없이 펫을 획득합니다.</p></div><div class="tip-card"><h4>💎 장비 부옵션 범위</h4><div class="rm-tip-scroll"><table class="tip-table"><thead><tr><th>부위</th>'+g.rarityNames.map(n=>'<th>'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div><p>실제 옵션 계산 함수로 표시한 범위입니다. 타락은 기존 보유 장비 참고용입니다.</p></div><div class="tip-card"><h4>🌟 1초월마다 추가되는 효과</h4><div class="rm-tip-scroll"><table class="tip-table"><thead><tr><th>부위</th><th>전설</th><th>신화</th><th>타락</th></tr></thead><tbody>'+bonus+'</tbody></table></div></div>';
   $('tipModal').querySelector('h3').textContent='📖 게임 가이드';$('tipModal').querySelector('p').textContent='현재 게임의 계산값과 적용 규칙 안내';$('tipModal').classList.add('show');
  };
  const rawTowerStart=f.startTower;f.startTower=n=>{if(g.activeTower)return f.toast('이미 탑 전투 중입니다.');return rawTowerStart(n)};
@@ -134,15 +176,18 @@ window.installRinguRemodel=function(g){
  let lastPaint=0;
  function draw(time){requestAnimationFrame(draw);if(time-lastPaint<16||document.hidden||!active()||!state())return;lastPaint=time;const s=state(),map=equipMap(),ix=it=>f.itemIndex(it),hc=$('heroCanvas');if(hc?.clientWidth){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);}
   const preview=$('rmAuraCanvas');if(preview&&$('rmAuraPreview').classList.contains('show')){const c=preview.getContext('2d');c.clearRect(0,0,640,820);art.hero(c,{...s,equippedAura:Number($('rmAuraSelect').value),remodelFx:true},map,ix,time,320,735,620);}
-  const canvas=$('combatCanvas');if(canvas&&canvas.clientWidth){const scale=Math.min(window.devicePixelRatio||1,2),cw=Math.round(canvas.clientWidth*scale),ch=Math.round(canvas.clientHeight*scale);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;art.sprite(c,'worlds',s.regionIndex,3,2,0,0,w,h);const shade=c.createLinearGradient(0,0,0,h);shade.addColorStop(0,'#080c12a8');shade.addColorStop(.45,'#080c1210');shade.addColorStop(1,'#080c12ee');c.fillStyle=shade;c.fillRect(0,0,w,h);
+  const canvas=$('combatCanvas');if(canvas&&canvas.clientWidth){const scale=Math.min(window.devicePixelRatio||1,2),cw=Math.round(canvas.clientWidth*scale),ch=Math.round(canvas.clientHeight*scale);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;c.save();c.filter='saturate(.78) contrast(.9) brightness(.88)';const bg=art.frame('worlds',s.regionIndex,3,2);if(bg){const fit=Math.max(w/bg.w,h/bg.h),sw=w/fit,sh=h/fit;c.drawImage(bg.im,bg.x+(bg.w-sw)/2,bg.y+bg.h-sh,sw,sh,0,0,w,h);}c.restore();const shade=c.createLinearGradient(0,0,0,h);shade.addColorStop(0,'#080c12a8');shade.addColorStop(.45,'#080c1210');shade.addColorStop(1,'#080c12ee');c.fillStyle=shade;c.fillRect(0,0,w,h);
    const age=attackMotion&&s.autoBattle?time-attackMotion.started:2000,reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
    const pose=age<150?1:age<280?2:age<430?3:age<560?4:age<700?5:age<840?2:age<960?1:0;
    const step=age<280?Math.sin(age/280*Math.PI/2):age<700?1:age<960?Math.cos((age-700)/260*Math.PI/2):0;
    const impact=attackMotion?.hit&&age>=460&&age<650?Math.sin((age-460)/190*Math.PI):0;
    const narrow=canvas.clientWidth<520;
-   const bounds=art.monster(c,s.regionIndex*6+s.bossIndex,w*((narrow?.665:.735)+impact*.006),h*.80,w*(narrow?.62:.48),h*.62);
+   const heroX=w*((narrow?.20:.25)+(reduced?0:step*(narrow?.035:.13))),monsterX=w*((narrow?.74:.735)+impact*.006);
+   function contact(x,rx){c.save();c.translate(x,h*.794);c.scale(rx,h*.025);const shadow=c.createRadialGradient(0,0,0,0,0,1);shadow.addColorStop(0,'#05090bd0');shadow.addColorStop(1,'#05090b00');c.fillStyle=shadow;c.fillRect(-1,-1,2,2);c.restore();}
+   contact(heroX,w*.09);contact(monsterX,w*.18);c.save();c.filter='saturate(.86) contrast(.96) brightness(.94)';
+   const bounds=art.monster(c,s.regionIndex*6+s.bossIndex,monsterX,h*.80,w*(narrow?.48:.44),h*(s.bossIndex>=4?.60:.53));
    if(bounds)canvas.dataset.monsterBounds=JSON.stringify(bounds);
-   const grip=art.battleHero(c,s,map,ix,time,w*(.25+(reduced?0:step*.13)),h*.79,Math.min(h*.52,w*(narrow?.50:.65)),{pose:reduced?0:pose});canvas.dataset.pose=String(reduced?0:pose);canvas.dataset.facing='right';canvas.dataset.monsterFacing='left';canvas.dataset.attacking=String(age<960);if(grip){canvas.dataset.handX=String(grip.handX);canvas.dataset.handY=String(grip.handY)}
+   const grip=art.battleHero(c,s,map,ix,time,heroX,h*.79,Math.min(h*.52,w*(narrow?.43:.65)),{pose:reduced?0:pose});canvas.dataset.pose=String(reduced?0:pose);canvas.dataset.facing='right';canvas.dataset.monsterFacing='left';canvas.dataset.attacking=String(age<960);canvas.dataset.heroCenter=String(heroX);if(grip){canvas.dataset.handX=String(grip.handX);canvas.dataset.handY=String(grip.handY)}c.restore();
   }
   for(const [id,name,index,cols,rows]of [['towerArt','tower',Math.max(0,(g.activeTower?.data.floor||1)-1),6,5],['dungeonBossArt','monsters',g.activeDungeon?.type==='gold'?7:g.activeDungeon?.type==='pet'?5:31,6,6]]){const el=$(id);if(el){el.classList.add('rm-enemy-art');el.style.backgroundImage='url(/linsa-rpg/art/'+name+'.png)';el.style.backgroundSize=(cols*100)+'% '+(rows*100)+'%';el.style.backgroundPosition=(index%cols/(cols-1)*100)+'% '+(Math.floor(index/cols)/(rows-1)*100)+'%';}}
  }

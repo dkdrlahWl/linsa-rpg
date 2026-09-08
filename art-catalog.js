@@ -1,16 +1,20 @@
 /* Original generated raster artwork + live, frame-driven aura effects. */
 (()=>{'use strict';
  const images={},names=['worlds','monsters','heroes','hero-combat-v1','tower','pets',...Array.from({length:7},(_,i)=>'gear-'+i)];
- names.push('monsters-left-matte-v1','consumables-v1');
+ names.push('monsters-left-matte-v1','monsters-unified-v2','pets-cutouts-v2','consumables-v1');
  const ready=Promise.all(names.map(name=>new Promise(resolve=>{const im=new Image();im.onload=()=>resolve();im.onerror=()=>{console.warn('Art unavailable',name);resolve()};im.src='/linsa-rpg/art/'+name+'.png';images[name]=im}))).then(prepareMonsters);
  const monsterFrames=[];
  function prepareMonsters(){
-  const im=images['monsters-left-matte-v1'];if(!im.naturalWidth)return;
+  const modern=!!images['monsters-unified-v2']?.naturalWidth,im=modern?images['monsters-unified-v2']:images['monsters-left-matte-v1'];if(!im.naturalWidth)return;
   const c=document.createElement('canvas');c.width=im.width;c.height=im.height;
   const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
   const data=ctx.getImageData(0,0,c.width,c.height),p=data.data,w=c.width,h=c.height,n=w*h;
   // Extract connected silhouettes before cropping: the authored figures cross grid lines.
-  for(let i=0;i<n;i++){const j=i*4,slime=i%w<w*.155&&Math.floor(i/w)<h*.163;
+  if(modern){
+   // Remove the magenta matte, including enclosed gaps between limbs.
+   for(let j=0;j<p.length;j+=4)if(p[j]>200&&p[j+2]>200&&p[j+1]<100)p[j+3]=0;
+  }
+  for(let i=0;!modern&&i<n;i++){const j=i*4,slime=i%w<w*.155&&Math.floor(i/w)<h*.163;
    const green=slime?p[j+1]>230&&p[j]<30&&p[j+2]<30&&p[j+1]-Math.max(p[j],p[j+2])>210:p[j+1]>205&&p[j]<100&&p[j+2]<100&&p[j+1]-Math.max(p[j],p[j+2])>125;
    if(green)p[j+3]=0;
   }
@@ -33,7 +37,7 @@
    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const v=y*w+x;if(!keep.has(labels[v]))continue;const j=v*4,k=((y-y0)*cv.width+x-x0)*4;out.data.set(p.subarray(j,j+4),k);}
    // Despill only the cutout boundary, retaining green creatures' actual body colour.
    const rgba=out.data,alpha=new Uint8Array(cv.width*cv.height);for(let i=0;i<alpha.length;i++)alpha[i]=rgba[i*4+3];
-   for(let y=0;y<cv.height;y++)for(let x=0;x<cv.width;x++){const i=y*cv.width+x,j=i*4;if(!alpha[i])continue;let edge=false;for(const d of [-2,-1,1,2])if(x+d<0||x+d>=cv.width||y+d<0||y+d>=cv.height||!alpha[i+d]||!alpha[i+d*cv.width])edge=true;if(edge&&rgba[j+1]-Math.max(rgba[j],rgba[j+2])>65)rgba[j+1]=Math.max(rgba[j],rgba[j+2])+35;}
+   for(let y=0;y<cv.height;y++)for(let x=0;x<cv.width;x++){const i=y*cv.width+x,j=i*4;if(!alpha[i])continue;let edge=false;for(const d of [-2,-1,1,2])if(x+d<0||x+d>=cv.width||y+d<0||y+d>=cv.height||!alpha[i+d]||!alpha[i+d*cv.width])edge=true;if(edge&&modern&&Math.min(rgba[j],rgba[j+2])>rgba[j+1]+45){rgba[j]=Math.min(rgba[j],rgba[j+1]+25);rgba[j+2]=Math.min(rgba[j+2],rgba[j+1]+35);}if(edge&&!modern&&rgba[j+1]-Math.max(rgba[j],rgba[j+2])>65)rgba[j+1]=Math.max(rgba[j],rgba[j+2])+35;}
    cc.putImageData(out,0,0);monsterFrames[index]=cv;
   });
  }
@@ -45,8 +49,16 @@
  }
  const slots=['무기','투구','갑옷','바지','신발','반지','귀걸이'];
  const gearRows=[[0,190,340,501,681,820,927,1086],[0,188,340,492,660,799,924,1086],[0,175,324,489,669,807,923,1086],[0,180,324,490,683,814,929,1086],[0,175,322,490,669,806,935,1086],[0,166,319,473,639,787,921,1086],[0,162,321,491,664,800,925,1086]];
- function frame(name,index,cols,rows){const im=images[name];if(!im?.complete||!im.naturalWidth)return null;const r=Math.floor(index/cols),line=name.startsWith('gear-')?gearRows[Number(name.slice(-1))]:null;return {im,x:index%cols*im.width/cols,y:line?line[r]*im.height/1086:r*im.height/rows,w:im.width/cols,h:line?(line[r+1]-line[r])*im.height/1086:im.height/rows};}
- function sprite(ctx,name,index,cols,rows,x,y,w,h){const f=frame(name,index,cols,rows);if(f)ctx.drawImage(f.im,f.x+.8,f.y+.8,f.w-1.6,f.h-1.6,x,y,w,h);}
+ let petFrames=null;
+ function preparePets(){
+  if(petFrames)return petFrames;const im=images['pets-cutouts-v2'];if(!im?.naturalWidth)return [];
+  const cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;const ctx=cv.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);const d=ctx.getImageData(0,0,cv.width,cv.height),p=d.data,w=cv.width,h=cv.height,n=w*h,labels=new Int32Array(n),queue=new Int32Array(n),groups=Array.from({length:25},()=>[]);let id=0;
+  for(let j=0;j<p.length;j+=4)if(p[j]>200&&p[j+2]>200&&p[j+1]<100)p[j+3]=0;
+  for(let v=0;v<n;v++){if(labels[v]||p[v*4+3]<48)continue;id++;let head=0,tail=1,sx=0,sy=0,x0=w,y0=h,x1=0,y1=0;queue[0]=v;labels[v]=id;while(head<tail){const u=queue[head++],x=u%w,y=Math.floor(u/w);sx+=x;sy+=y;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);for(const q of [u-w,u+w,x?u-1:-1,x<w-1?u+1:-1])if(q>=0&&q<n&&!labels[q]&&p[q*4+3]>=48){labels[q]=id;queue[tail++]=q;}}if(tail>=30)groups[Math.min(4,Math.floor(sy/tail/h*5))*5+Math.min(4,Math.floor(sx/tail/w*5))].push({id,tail,x0,x1,y0,y1});}
+  petFrames=groups.map(parts=>{if(!parts.length)return null;const largest=Math.max(...parts.map(p=>p.tail));parts=parts.filter(p=>p.tail>=largest*.01);const x0=Math.min(...parts.map(p=>p.x0)),y0=Math.min(...parts.map(p=>p.y0)),x1=Math.max(...parts.map(p=>p.x1)),y1=Math.max(...parts.map(p=>p.y1)),keep=new Set(parts.map(p=>p.id)),out=document.createElement('canvas');out.width=x1-x0+9;out.height=y1-y0+9;const c=out.getContext('2d'),data=c.createImageData(out.width,out.height);for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const v=y*w+x;if(keep.has(labels[v]))data.data.set(p.subarray(v*4,v*4+4),((y-y0+4)*out.width+x-x0+4)*4);}c.putImageData(data,0,0);return out;});return petFrames;
+ }
+ function frame(name,index,cols,rows){if(name==='pets'){const im=preparePets()[index];return im?{im,x:0,y:0,w:im.width,h:im.height}:null;}const im=images[name];if(!im?.complete||!im.naturalWidth)return null;const r=Math.floor(index/cols),line=name.startsWith('gear-')?gearRows[Number(name.slice(-1))]:null;return {im,x:index%cols*im.width/cols,y:line?line[r]*im.height/1086:r*im.height/rows,w:im.width/cols,h:line?(line[r+1]-line[r])*im.height/1086:im.height/rows};}
+ function sprite(ctx,name,index,cols,rows,x,y,w,h){const f=frame(name,index,cols,rows);if(f){if(name==='pets'){const scale=Math.min(w/f.w,h/f.h),dw=f.w*scale,dh=f.h*scale;ctx.drawImage(f.im,x+(w-dw)/2,y+(h-dh)/2,dw,dh);}else ctx.drawImage(f.im,f.x+.8,f.y+.8,f.w-1.6,f.h-1.6,x,y,w,h);}}
  const gearCutouts=new Map();
  function prepareGear(grade){
   if(gearCutouts.has(grade))return gearCutouts.get(grade);
