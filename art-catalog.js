@@ -91,6 +91,8 @@
  const colors=['#ff536d','#ffad51','#ffe5a2','#7df0b3','#7bcdff','#8281ff','#cc88ff','#e5f1ff','#efb7ff'];
  // Procedural aura, not a looping background picture. Every particle has its own phase.
  function aura(ctx,index,time,x,y,w,h,intensity=1){if(index<0||intensity<=0)return;index=Math.min(8,index);const t=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:time/1000,c=colors[index];ctx.save();ctx.translate(x,y);ctx.globalCompositeOperation='lighter';
+  // Soft colour volume makes the animated ribbons readable on dark portraits.
+  ctx.save();ctx.scale(w*.48,h*.5);const halo=ctx.createRadialGradient(0,0,.12,0,0,1);halo.addColorStop(0,'transparent');halo.addColorStop(.56,c+Math.round(Math.min(.26,.14*intensity)*255).toString(16).padStart(2,'0'));halo.addColorStop(1,'transparent');ctx.fillStyle=halo;ctx.fillRect(-1,-1,2,2);ctx.restore();
   const wind=index===0||index===1,ice=index===4,voidAura=index===5||index===6,angel=index===2||index===7;
   const count=wind?30:voidAura?26:20;
   for(let i=0;i<count;i++){const phase=(t*(wind?.35:.13)+i*.618)%1,side=i%2?1:-1,seed=Math.sin(i*47.23),spread=w*(.26+.10*Math.sin(t*.9+i*2)),px=side*spread+Math.sin(t*(ice?1.5:.7)+i)*w*.07,py=h*.45-phase*h*.91;
@@ -99,7 +101,7 @@
    if(wind){ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+side*12+seed*5,py-18,px+Math.sin(t*2+i)*16,py-38);ctx.strokeStyle=c;ctx.globalAlpha=a;ctx.lineWidth=2+(1-phase)*3;ctx.stroke();ctx.globalAlpha=1;}
    else{ctx.globalAlpha=a*1.6;ctx.fillStyle=index===8?`hsl(${i*39+t*30},90%,80%)`:'#f6eeff';ctx.fillRect(px,py,1.7,1.7);ctx.globalAlpha=1;}
   }
-  for(let side of [-1,1]){ctx.beginPath();ctx.moveTo(side*w*.14,h*.48);ctx.bezierCurveTo(side*w*(.55+.035*Math.sin(t)),h*.12,side*w*.13,-h*.14,side*w*(.3+.035*Math.sin(t*.8)),-h*.42);ctx.strokeStyle=c;ctx.globalAlpha=.17*intensity;ctx.lineWidth=3;ctx.shadowColor=c;ctx.shadowBlur=20;ctx.stroke();ctx.shadowBlur=0;}
+  for(let side of [-1,1]){ctx.beginPath();ctx.moveTo(side*w*.14,h*.48);ctx.bezierCurveTo(side*w*(.55+.035*Math.sin(t)),h*.12,side*w*.13,-h*.14,side*w*(.3+.035*Math.sin(t*.8)),-h*.42);ctx.strokeStyle=c;ctx.globalAlpha=.30*intensity;ctx.lineWidth=4;ctx.shadowColor=c;ctx.shadowBlur=24;ctx.stroke();ctx.shadowBlur=0;}
   if(angel)for(let side of [-1,1])for(let j=0;j<7;j++){const sway=Math.sin(t*.8+j*.18)*.025;ctx.beginPath();ctx.moveTo(side*w*.2,-h*.08+j*4);ctx.quadraticCurveTo(side*w*(.5+sway),-h*.40+j*9,side*w*(.36+sway),-h*.48+j*13);ctx.strokeStyle=c;ctx.globalAlpha=(.3-j*.026)*intensity;ctx.lineWidth=4;ctx.stroke();}
   if(ice||voidAura){const beat=Math.floor(t*6);for(let s of [-1,1])if((beat+(s+1))%5===0){ctx.beginPath();for(let j=0;j<7;j++){const px=s*w*.35+Math.sin(j*91+beat*13)*12,py=-h*.3+j*h*.11;if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}ctx.strokeStyle=c;ctx.globalAlpha=.55*intensity;ctx.lineWidth=1;ctx.stroke();}}
   // Each aura has its own silhouette and motion, not merely a recoloured ring.
@@ -145,10 +147,10 @@
  }
  function foregroundGrip(ctx,body,x,y,height){const scale=height/H,h=body.hand;ctx.save();ctx.beginPath();ctx.ellipse(x+(h.x-W/2)*scale,y-height+h.y*scale,20*scale,27*scale,0,0,Math.PI*2);ctx.clip();ctx.drawImage(body.canvas,x-W/2*scale,y-height,W*scale,height);ctx.restore();}
  function hero(ctx,s,equipment,indexOf,time,x,y,height){const female=s.playerGender==='female',body=assembledBody(female);if(!body)return;const scale=height/H;
-  if(s.equippedAura>=0)aura(ctx,s.equippedAura,time,x,y-height*.46,height*.68,height*1.05,s.remodelFx===false?0:.9);
+  if(s.equippedAura>=0)aura(ctx,s.equippedAura,time,x,y-height*.46,Math.min(height*.88,ctx.canvas.width-40),height*1.08,s.remodelFx===false?0:1.5);
   ctx.drawImage(body.canvas,x-W/2*scale,y-height,W*scale,height);
   const weapon=equipment['무기'];if(weapon){heldWeapon(ctx,weapon,indexOf,x+(body.hand.x-W/2)*scale,y-height+body.hand.y*scale,height,2.60);foregroundGrip(ctx,body,x,y,height);if(weaponSocket(weapon,indexOf)?.dual){const other={...body,hand:{x:W-body.hand.x,y:body.hand.y}};heldWeapon(ctx,weapon,indexOf,x+(other.hand.x-W/2)*scale,y-height+other.hand.y*scale,height,2.60,true);foregroundGrip(ctx,other,x,y,height);}}
-  if(s.equippedPet&&s.ownedPets){const p=s.ownedPets.find(p=>p.uid===s.equippedPet);if(p){const ix=Object.keys(window.RinguCore?.PET_DATA||{}).sort().indexOf(p.petId);if(ix>=0)sprite(ctx,'pets',ix,5,5,x+height*.32,y-height*.18,height*.25,height*.25);}}
+  if(s.equippedPet&&s.ownedPets){const p=s.ownedPets.find(p=>p.uid===s.equippedPet);if(p){const ix=Object.keys(window.RinguCore?.PET_DATA||{}).sort().indexOf(p.petId);if(ix>=0){const size=Math.min(height*.25,ctx.canvas.width*.25),pad=20,px=Math.max(pad,Math.min(x+height*.27,ctx.canvas.width-size-pad)),py=Math.max(pad,Math.min(y-size,ctx.canvas.height-size-pad));sprite(ctx,'pets',ix,5,5,px,py,size,size);ctx.canvas.dataset.petBounds=JSON.stringify({x:px,y:py,width:size,height:size});}}}else delete ctx.canvas.dataset.petBounds;
  }
  // Runtime silhouette clips: the generated sheet remains unmodified on disk.
  // Each outline excludes the opaque atlas backdrop and neighbouring poses.
@@ -176,7 +178,7 @@
  function atlasCoverage(c,w,h){const pixels=c.getImageData(0,0,w,h),p=pixels.data;for(let i=0;i<p.length;i+=4){const low=Math.min(p[i],p[i+1],p[i+2]),high=Math.max(p[i],p[i+1],p[i+2]);if(high-low<23&&low>175)p[i+3]*=Math.max(0,1-(low-175)/18);}c.putImageData(pixels,0,0);}
 function motionFrame(female,pose){const key=Number(female)*6+pose;if(motionFrames.has(key))return motionFrames.get(key);const im=images['hero-combat-v1'];if(!im?.naturalWidth)return null;const points=(female?femaleSilhouettes:silhouettes)[pose],row=female?512:0,x0=Math.min(...points.map(p=>p[0]))-1,y0=Math.min(...points.map(p=>p[1]))-1,x1=Math.max(...points.map(p=>p[0]))+1,y1=Math.max(...points.map(p=>p[1]))+1;const canvas=document.createElement('canvas');canvas.width=x1-x0;canvas.height=y1-y0;const c=canvas.getContext('2d');c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x-x0,y-y0):c.moveTo(x-x0,y-y0));c.closePath();c.clip();c.drawImage(im,x0*im.width/1536,(y0+row)*im.height/1024,canvas.width*im.width/1536,canvas.height*im.height/1024,0,0,canvas.width,canvas.height);atlasCoverage(c,canvas.width,canvas.height);const result={canvas,x0,y0};motionFrames.set(key,result);return result;}
  function battleHero(ctx,s,equipment,indexOf,time,x,y,height,motion={pose:0}){const female=s.playerGender==='female',pose=motion.pose||0,m=motionFrame(female,pose);if(!m)return;const u=height/(female?450:460),root=poseRoots[pose],baseline=female?473:503;const hand=poseHands[Number(female)][pose],px=v=>x+(v-root)*u,py=v=>y+(v-baseline)*u;
-  if(s.equippedAura>=0)aura(ctx,s.equippedAura,time,x,y-height*.46,height*.6,height,s.remodelFx===false?0:.85);
+  if(s.equippedAura>=0)aura(ctx,s.equippedAura,time,x,y-height*.46,height*.78,height*1.06,s.remodelFx===false?0:1.35);
   ctx.drawImage(m.canvas,px(m.x0),py(m.y0),m.canvas.width*u,m.canvas.height*u);
   const weapon=equipment['무기'];if(weapon){heldWeapon(ctx,weapon,indexOf,px(hand[0]),py(hand[1]),height,poseAngles[pose]);
    // Repaint exactly the same pose's grip on top of the handle, not a free-floating hand.
