@@ -1,11 +1,24 @@
 /* Compact summon results: the live renderer creates .rm-drop-card, not .draw-card. */
 (() => {
   'use strict';
-  if (window.__ringuCompactDrawV9) return;
+  if (window.__ringuCompactDrawV10) return;
 
   const style = document.createElement('style');
   style.id = 'ringu-mobile-draw-fix-v8';
   style.textContent = `
+@keyframes ringu-summon-arrive {
+  0% {opacity:0;transform:translateY(12px) scale(.82);}
+  72% {opacity:1;transform:translateY(-2px) scale(1.025);}
+  100% {opacity:1;transform:none;}
+}
+#drawResultModal.show #drawResultGrid > .ringu-summon-reveal {
+  animation:ringu-summon-arrive 280ms cubic-bezier(.2,.75,.25,1) var(--ringu-reveal-delay,0ms) both;
+  transform-origin:center;
+}
+@media (prefers-reduced-motion:reduce) {
+  #drawResultModal.show #drawResultGrid > .ringu-summon-reveal {animation:none!important;}
+}
+
 @media (max-width:768px) {
   #drawResultModal.show {
     padding:8px!important;
@@ -116,6 +129,7 @@
 `;
   document.head.append(style);
 
+  const revealed = new WeakSet();
   let observedGrid = null;
   const observer = new MutationObserver(update);
   function update() {
@@ -129,7 +143,12 @@
       observedGrid.style.setProperty('--ringu-result-columns', value);
     }
     observedGrid.dataset.ringuResultCount = String(cards.length);
-    cards.forEach(card => {
+    cards.forEach((card,index) => {
+      if (!revealed.has(card)) {
+        revealed.add(card);
+        card.style.setProperty('--ringu-reveal-delay', String(Math.min(index,9)*70)+'ms');
+        card.classList.add('ringu-summon-reveal');
+      }
       const name = card.querySelector('strong');
       if (name && !name.hasAttribute('title')) name.title = name.textContent.trim();
     });
@@ -145,7 +164,7 @@
     }
     update();
   }
-  window.__ringuCompactDrawV9 = { refresh:attach };
+  window.__ringuCompactDrawV10 = { refresh:attach };
   window.addEventListener('ringu-ready', attach);
   window.addEventListener('load', attach, { once:true });
   if (document.readyState === 'loading') {
