@@ -38,6 +38,8 @@ try{
   await p.setViewportSize({width,height:900});await p.evaluate(()=>openAuraShop());await p.locator('#costumePreviewTab').click();
   for(const id of ['kael','serin']){
    await p.locator('#costumePreview [data-costume="'+id+'"]').click();await p.waitForFunction(id=>RinguCostumeArt.isReady(id),id);
+   assert.match(await p.locator('#costumePreview [data-price]').textContent(),/정수 100개/);
+   assert.ok(!(await p.locator('#costumePreview').textContent()).includes('정수 300개'));
    await p.locator('#costumePreview [data-pose="battle"]').click();await p.waitForTimeout(300);
    const box=await p.locator('#costumePreview').boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1);
    assert.ok(await p.locator('#costumePreview button:disabled').count());

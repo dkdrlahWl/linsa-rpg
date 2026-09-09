@@ -19,7 +19,7 @@
 
 - node --test test/costume-catalog.test.cjs: five tests passed (catalog validation, +5/+10 additive effects, duplication, future-save behavior, invalid inputs and exact large-integer attack arithmetic).
 - test/costume-art-qa.mjs: 72 pose/scale/mirror transforms passed; the 14-pose contact sheet was visually inspected. Twelve hand anchor pixels were sampled on the actual atlases and were opaque skin pixels. These checks are not a claim that all weapon types or actual phone performance have been checked.
-- test/costume-store-qa.mjs: isolated PGlite database passed idempotent migration, closed release gate, exact 300 cost, replay, request-ID reuse, duplicate ownership, insufficient funds, unowned equip, stale revision, +10 combined ownership, equipment preservation and newer-session rejection. Release gate was opened ONLY inside the disposable test DB.
+- test/costume-store-qa.mjs: isolated PGlite database passed idempotent migration, closed release gate, exact 100 cost (after price migration 07), replay, request-ID reuse, duplicate ownership, insufficient funds, unowned equip, stale revision, +10 combined ownership, equipment preservation and newer-session rejection. Release gate was opened ONLY inside the disposable test DB.
 
 ## Still required before release
 

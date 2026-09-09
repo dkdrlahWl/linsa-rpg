@@ -2,7 +2,7 @@
 ((root,factory)=>{const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.RinguCostumeCatalog=api;})(typeof window==='object'?window:globalThis,()=>{
  'use strict';
  const products={
-  kael:{name:'월영의 방랑자 · 카엘',price:300,attackPercent:5,gender:'male',description:'짧은 은회색 머리와 비대칭 망토의 고요한 방랑자',asset:'costume-kael-v1.webp',height:500,
+  kael:{name:'월영의 방랑자 · 카엘',price:100,attackPercent:5,gender:'male',description:'짧은 은회색 머리와 비대칭 망토의 고요한 방랑자',asset:'costume-kael-v1.webp',height:500,
    frames:[
     {box:[30,0,280,535],root:[183,518]},
     {box:[390,0,325,535],root:[550,518],hand:[506,195]},
@@ -12,7 +12,7 @@
     {box:[375,600,399,460],root:[574,1017],hand:[750,758]},
     {box:[785,543,300,530],root:[940,1044],hand:[902,756]}
    ]},
-  serin:{name:'월영의 방랑자 · 세린',price:300,attackPercent:5,gender:'female',description:'묶은 은회색 머리와 갈라진 망토 자락의 달빛 유랑자',asset:'costume-serin-v1.webp',height:520,
+  serin:{name:'월영의 방랑자 · 세린',price:100,attackPercent:5,gender:'female',description:'묶은 은회색 머리와 갈라진 망토 자락의 달빛 유랑자',asset:'costume-serin-v1.webp',height:520,
    frames:[
     {box:[75,0,250,541],root:[183,531]},
     {box:[375,0,335,541],root:[550,531],hand:[484,189]},

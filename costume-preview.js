@@ -7,7 +7,7 @@
   const tabs=document.querySelector('#auraShopModal .shop-tabs');if(!tabs)return;
   const button=document.createElement('button');button.id='costumePreviewTab';button.textContent='🌙 캐릭터';tabs.append(button);
   const panel=document.createElement('dialog');panel.id='costumePreview';panel.setAttribute('aria-label','월영의 방랑자 캐릭터 미리보기');
-  panel.innerHTML='<section class="costume-preview-shell"><header><small>CHARACTER COLLECTION · 01</small><h2>월영의 방랑자</h2><button type="button" data-close aria-label="미리보기 닫기">✕</button></header><p class="costume-preview-status" role="status">출시 준비 중 · 미리보기만 가능하며 정수는 차감되지 않습니다.</p><div class="costume-preview-choices"></div><canvas width="600" height="660" aria-label="선택한 캐릭터의 외형"></canvas><h3 data-name></h3><p data-description></p><div class="costume-preview-controls"><button data-pose="portrait">서 있는 모습</button><button data-pose="battle">전투 동작</button></div><p>출시 예정 가격 💎 정수 300개 · 보유 효과 ⚔ 공격력 +5%<br><small>두 캐릭터 보유 시 합산 +10% · 현재 미리보기에는 효과가 적용되지 않습니다.</small></p><button disabled>구매 준비 중</button></section>';
+  panel.innerHTML='<section class="costume-preview-shell"><header><small>CHARACTER COLLECTION · 01</small><h2>월영의 방랑자</h2><button type="button" data-close aria-label="미리보기 닫기">✕</button></header><p class="costume-preview-status" role="status">출시 준비 중 · 미리보기만 가능하며 정수는 차감되지 않습니다.</p><div class="costume-preview-choices"></div><canvas width="600" height="660" aria-label="선택한 캐릭터의 외형"></canvas><h3 data-name></h3><p data-description></p><div class="costume-preview-controls"><button data-pose="portrait">서 있는 모습</button><button data-pose="battle">전투 동작</button></div><p><span data-price></span><br><small>두 캐릭터 보유 시 합산 +10% · 현재 미리보기에는 효과가 적용되지 않습니다.</small></p><button disabled>구매 준비 중</button></section>';
   document.body.append(panel);
   let chosen=Object.keys(catalog.products)[0],battle=false,raf=null,last=0,request=0;
   const canvas=panel.querySelector('canvas'),ctx=canvas.getContext('2d'),status=panel.querySelector('[role="status"]');
@@ -21,6 +21,7 @@
   function loop(t){if(!panel.open){raf=null;return;}if(!document.hidden&&t-last>=33){last=t;paint(t);}raf=requestAnimationFrame(loop);}
   async function select(id){
    chosen=id;const ticket=++request,p=catalog.products[id];
+   panel.querySelector('[data-price]').textContent='출시 예정 가격 💎 정수 '+p.price.toLocaleString('ko-KR')+'개 · 보유 효과 ⚔ 공격력 +'+p.attackPercent+'%';
    panel.querySelector('[data-name]').textContent=p.name;panel.querySelector('[data-description]').textContent=p.description;
    panel.querySelectorAll('[data-costume]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.costume===id)));
    status.textContent='캐릭터 외형을 불러오는 중…';ctx.clearRect(0,0,canvas.width,canvas.height);
