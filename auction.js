@@ -18,7 +18,7 @@
    const status=await rpc('status');if(seq!==requestSequence)return;ready=status.ready;modal.querySelector('#auctionBalance').textContent='💎 정수 '+fmt(status.essence||0);
    if(!ready){body.innerHTML='';note(errors[status.reason]||errors.AUCTION_NOT_READY);return;}
    if(tab==='list'){
-    rows=g.state.inventory.filter(canList).map(item=>({item}));body.innerHTML='<p>장착·잠금·거래 불가 장비는 제외됩니다. 수수료 0%.</p><div class="auction-grid">'+rows.map((r,i)=>'<button data-row="'+i+'">'+g.fn.gearIcon(r.item)+'<strong>'+esc(r.item.name)+'</strong><small>'+esc(g.rarityNames[r.item.rarity])+' · '+esc(r.item.slot)+' · 강화 +'+esc(r.item.enhance||0)+'</small></button>').join('')+'</div>';note(rows.length?'판매할 장비를 선택하세요.':'등록할 수 있는 장비가 없습니다.');return;
+    const available=g.state.inventory.filter(canList),total=available.length;page=Math.max(0,Math.min(page,Math.ceil(total/20)-1));rows=available.slice(page*20,(page+1)*20).map(item=>({item}));body.innerHTML='<p>장착·잠금·거래 불가 장비는 제외됩니다. 수수료 0%.</p><div class="auction-grid">'+rows.map((r,i)=>'<button data-row="'+i+'">'+g.fn.gearIcon(r.item)+'<strong>'+esc(r.item.name)+'</strong><small>'+esc(g.rarityNames[r.item.rarity])+' · '+esc(r.item.slot)+' · 강화 +'+esc(r.item.enhance||0)+'</small></button>').join('')+'</div><div class="auction-pages"><button data-page="-1" '+(page===0?'disabled':'')+'>이전</button><span>'+(page+1)+' / '+Math.max(1,Math.ceil(total/20))+'</span><button data-page="1" '+((page+1)*20>=total?'disabled':'')+'>다음</button></div>';note(total?'판매할 장비를 선택하세요. (총 '+fmt(total)+'개)':'등록할 수 있는 장비가 없습니다.');return;
    }
    const args=filters();if(args.rarity===null||!Number.isFinite(args.rarity))delete args.rarity;
    const result=await rpc(tab,args);if(seq!==requestSequence)return;rows=result.rows;
@@ -31,14 +31,14 @@
   const row=rows[index];if(!row||busy||!ready)return;const it=row.item;
   const panel=modal.querySelector('#auctionDetail');panel.innerHTML=detail(it)+(tab==='list'?'<label>판매 가격 (정수)<input id="auctionPrice" inputmode="numeric" autocomplete="off" placeholder="1 이상 정수"></label>':'<h3>💎 '+fmt(row.price)+' 정수</h3>')+'<p id="auctionConfirmBalance"></p>'+(tab==='history'?'':'<button id="auctionConfirm" '+(tab==='search'&&row.mine?'disabled':'')+'>'+(tab==='list'?'등록 확인':tab==='mine'?'판매 취소 확인':row.mine?'내가 등록한 상품':'구매 확인')+'</button>')+'<button id="auctionBack">돌아가기</button>';panel.hidden=false;body.hidden=true;
   panel.querySelector('#auctionBack').onclick=()=>{panel.hidden=true;body.hidden=false;};
-  if(tab==='search'){try{const s=await rpc('status');panel.querySelector('#auctionConfirmBalance').textContent='현재 '+fmt(s.essence)+' 정수 → 구매 후 '+fmt(s.essence-row.price)+' 정수';}catch(e){note(translate(e));}}
+  const balanceRequest=tab==='search'?rpc('status'):null;
   const confirmButton=panel.querySelector('#auctionConfirm');if(!confirmButton)return;
   confirmButton.onclick=async()=>{
    if(busy)return;let price=row.price;
    if(tab==='list'){const raw=panel.querySelector('#auctionPrice').value.trim();price=Number(raw);if(!/^\d+$/.test(raw)||!Number.isSafeInteger(price)||price<1)return note(errors.INVALID_NUMBER);}
    const action=tab==='list'?'list':tab==='mine'?'cancel':'buy';
    if(!confirm(it.name+' · 강화 +'+(it.enhance||0)+' · 초월 '+(it.transcend||0)+'\n'+(action==='cancel'?'판매를 취소하고 이 장비를 돌려받을까요?':fmt(price)+' 정수에 '+(action==='list'?'등록':'구매')+'할까요?')))return;
-   busy=true;controls();panel.querySelectorAll('button,input').forEach(b=>b.disabled=true);
+   busy=true;controls();note('서버에서 '+(action==='list'?'등록':action==='buy'?'구매':'취소')+' 처리 중입니다…');panel.querySelectorAll('button,input').forEach(b=>b.disabled=true);
    try{
     if(typeof RinguSession.auctionTransaction!=='function')throw Error('AUCTION_NOT_READY');
     await RinguSession.auctionTransaction(action,action==='list'?{itemId:it.id,price}:{listingId:row.id});
@@ -46,6 +46,7 @@
    }catch(e){note(translate(e));}
    finally{busy=false;controls();panel.querySelectorAll('button,input').forEach(b=>b.disabled=false);void refresh();}
   };
+  if(balanceRequest){const label=confirmButton.textContent;confirmButton.disabled=true;confirmButton.textContent='보유 정수 확인 중…';balanceRequest.then(s=>{if(panel.querySelector('#auctionConfirm')!==confirmButton)return;panel.querySelector('#auctionConfirmBalance').textContent='현재 '+fmt(s.essence)+' 정수 → 구매 후 '+fmt(s.essence-row.price)+' 정수';confirmButton.textContent=label;confirmButton.disabled=!!row.mine;}).catch(e=>note(translate(e)));}
  }
  window.addEventListener('ringu-ready',()=>{
   g=RinguCore;modal=document.createElement('div');modal.id='ringuAuction';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','경매장');

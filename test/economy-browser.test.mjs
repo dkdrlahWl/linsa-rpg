@@ -47,9 +47,10 @@ const server=createServer(async(req,res)=>{try{const path=decodeURIComponent(req
 server.listen(0,'127.0.0.1');await once(server,'listening');
 const base='http://127.0.0.1:'+server.address().port+'/linsa-rpg/',browser=await chromium.launch({channel:'msedge',headless:true});
 async function player(name){
+ const password=randomUUID(); // Ephemeral fixture only; every Auth request is mocked below.
  const c=await browser.newContext({viewport:{width:1440,height:1000}});
  await c.route('https://ekgihnyojihpearcudtd.supabase.co/**',route=>{queue=queue.then(async()=>{try{const value=await service(route.request());if(dropCommand&&route.request().postDataJSON()?.command===dropCommand){dropCommand=null;dropped++;await route.abort('failed');return;}await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(value)});}catch(e){await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:e.message,error:e.message})});}});return queue;});
- const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'login.html');await p.locator('#register-tab').click();await p.locator('#username').fill(name);await p.locator('#password').fill('IsolatedQA2026!');await p.locator('#password-confirm').fill('IsolatedQA2026!');await p.locator('#submit-button').click();try{await p.waitForFunction(()=>window.RinguEconomy&&RinguSession.active);}catch(e){console.log('BOOT_DIAGNOSTIC',name,errors,await p.locator('body').innerText().then(s=>s.slice(-1400)));throw e;}return p;
+ const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'login.html');await p.locator('#register-tab').click();await p.locator('#username').fill(name);await p.locator('#password').fill(password);await p.locator('#password-confirm').fill(password);await p.locator('#submit-button').click();try{await p.waitForFunction(()=>window.RinguEconomy&&RinguSession.active);}catch(e){console.log('BOOT_DIAGNOSTIC',name,errors,await p.locator('body').innerText().then(s=>s.slice(-1400)));throw e;}return p;
 }
 async function run(p,command,args={}){await p.waitForFunction(()=>RinguSession.active&&!document.body.classList.contains('economy-pending'));return p.evaluate(async({command,args})=>RinguEconomy.command(command,args),{command,args});}
 try{
@@ -60,9 +61,22 @@ try{
   RinguEconomy.paint();let rebuilds=0;const render=RinguCore.fn.renderAll;
   let start=performance.now();for(let i=0;i<3;i++)render();const fullMs=(performance.now()-start)/3;
   RinguCore.fn.renderAll=()=>{rebuilds++;return render();};start=performance.now();for(let i=0;i<20;i++)RinguEconomy.paint();const tickMs=(performance.now()-start)/20;
-  RinguCore.fn.renderAll=render;RinguCore.state.inventory=original;RinguEconomy.paint();return {items:2400,fullMs,tickMs,rebuilds};
+  RinguCore.fn.renderAll=render;const first=document.querySelector('[data-item-id="100000"]');RinguCore.state.inventory.push({...original[0],id:999999});RinguCore.fn.renderInventory();if(document.querySelector('[data-item-id="100000"]')!==first)throw Error('Unchanged card recreated');if(!document.querySelector('[data-item-id="999999"]'))throw Error('New card missing');RinguCore.state.inventory=original;RinguEconomy.paint();return {items:2400,fullMs,tickMs,rebuilds};
  });
  console.log('Combat render benchmark',performanceResult);assert.equal(performanceResult.rebuilds,0);
+ const invalidation=await a.evaluate(async()=>{
+  let inventoryRebuilds=0,globalScans=0;const f=RinguCore.fn,render=f.renderInventory,query=document.querySelectorAll.bind(document),oldStep=RinguCore.state.monsterUnlockStep;
+  f.renderInventory=(...args)=>{inventoryRebuilds++;return render(...args);};document.querySelectorAll=function(selector){if(selector==='button,.panel-title')globalScans++;return query(selector);};
+  RinguCore.state.monsterUnlockStep=(oldStep||0)+1;RinguEconomy.paint();RinguCore.state.monsterUnlockStep=oldStep;RinguEconomy.paint();
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  f.renderInventory=render;document.querySelectorAll=query;return {inventoryRebuilds,globalScans};
+ });assert.deepEqual(invalidation,{inventoryRebuilds:0,globalScans:0});console.log('Metadata/observer regression',invalidation);
+ // UI-only inventory fixture, never submitted as a trade or save.
+ await a.evaluate(()=>{window.qaOriginalInventory=RinguCore.state.inventory;const fixture=Array.from({length:41},(_,i)=>({...window.qaOriginalInventory[0],id:200000+i,name:'페이지 검사 '+i}));Object.defineProperty(RinguCore.state,'inventory',{configurable:true,enumerable:true,get:()=>fixture,set:()=>{}});});
+ await a.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await a.locator('[data-tab="list"]').click();try{await a.waitForFunction(()=>document.querySelectorAll('#auctionBody [data-row]').length===20);}catch(e){console.log('AUCTION_UI_DIAGNOSTIC',await a.locator('#ringuAuction').innerText(),await a.evaluate(()=>({count:RinguCore.state.inventory.length,errors:window.RinguAuctionMessages})));throw e;}
+ await a.locator('#auctionBody [data-page="1"]').click();await a.waitForFunction(()=>document.querySelector('#auctionBody [data-row="0"] strong')?.textContent==='페이지 검사 20');
+ await a.locator('#auctionBody [data-page="1"]').click();await a.waitForFunction(()=>document.querySelectorAll('#auctionBody [data-row]').length===1);await a.locator('#auctionBody [data-row="0"]').click();assert.equal(await a.locator('#auctionDetail strong').innerText(),'페이지 검사 40');await a.locator('#auctionClose').click();
+ await a.evaluate(()=>{Object.defineProperty(RinguCore.state,'inventory',{configurable:true,enumerable:true,writable:true,value:window.qaOriginalInventory});delete window.qaOriginalInventory;});console.log('Auction listing pagination passed: 20 / 20 / 1 cards, exact selected item.');
  delaySync=500;await a.evaluate(()=>{window.qaSync=RinguEconomy.command('sync');});await a.waitForTimeout(100);
  assert.equal(await a.evaluate(()=>RinguSession.active&&!document.body.classList.contains('economy-pending')),true);
  assert.ok(await a.evaluate(async()=>{const result=await RinguEconomy.command('equipBest');await window.qaSync;return !!result;}));delaySync=0;
@@ -80,7 +94,7 @@ try{
  dropCommand='daily';assert.ok(await run(a,'daily'));assert.equal(dropped,1);assert.equal(await a.evaluate(()=>RinguCore.state.essence),113);
  assert.equal(await run(a,'daily'),false);assert.equal(await a.evaluate(()=>RinguCore.state.essence),113);
  assert.ok(await run(a,'unequip',{slot:'무기'}));const saleItem=await a.evaluate(()=>structuredClone(RinguCore.state.inventory[0]));
- await a.waitForFunction(()=>RinguSession.active);const listing=await a.evaluate(async it=>RinguSession.auctionTransaction('list',{itemId:it.id,price:7}),saleItem);
+ await a.waitForFunction(()=>RinguSession.active);delaySync=500;await a.evaluate(()=>{window.qaAuctionSync=RinguEconomy.command('sync');});await a.waitForTimeout(50);const listing=await a.evaluate(async it=>{const result=await RinguSession.auctionTransaction('list',{itemId:it.id,price:7});await window.qaAuctionSync;return result;},saleItem);delaySync=0;
  assert.ok(listing);const listingId=(await db.query("select id from ringu_private.auction_listings where status='active'")).rows[0].id;
  await a.goto('about:blank');await b.waitForFunction(()=>RinguSession.active);
  await b.evaluate(id=>RinguSession.auctionTransaction('buy',{listingId:id}),listingId);

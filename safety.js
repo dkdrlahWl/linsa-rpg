@@ -22,7 +22,7 @@
   let account = null, revision = null, active = false, phase = 'loading';
   let message = '계정의 모험 기록을 확인하는 중입니다.';
   let pending = null, latest = null, inFlight = null, saveTimer = null;
-  let mutation = null;
+  let mutation = null, mutationPassive = false;
   let events = null, pollTimer = null, pollBusy = false, ended = false;
   let overlay = null, bootComplete = false, sequence = 0, lastAcknowledged = null;
   const listeners = new Set(), endHooks = new Set();
@@ -346,8 +346,10 @@
     return mutation;
   }
   function serverTransaction(kind,payload){
+    if(mutation&&mutationPassive&&!(kind==='economy'&&payload.command==='sync'))return mutation.catch(()=>{}).then(()=>serverTransaction(kind,payload));
     if(mutation)return Promise.reject(new Error('이미 처리 중입니다.'));
     const passive=kind==='economy'&&payload.command==='sync';
+    mutationPassive=passive;
     const before=flush();
     mutation=(async()=>{
       await before;if(!active)throw new Error(message);if(!passive)active=false;
@@ -375,7 +377,7 @@
       if(e.definitive){remove(scoped('server-request'));if(e.status===401||e.status===403)end('로그인이 종료되었습니다. 다시 로그인해 주세요.');}
       else if(kind!=='economy'||payload.command!=='sync')end('처리 결과가 미확정입니다. 새 요청을 보내지 않고 재접속 시 같은 요청을 확인합니다.','conflict');
       throw e;
-    }).finally(()=>{mutation=null;if(!ended){active=true;report('saved','서버 기록을 반영했습니다.');}});
+    }).finally(()=>{mutation=null;mutationPassive=false;if(!ended){active=true;report('saved','서버 기록을 반영했습니다.');}});
     return mutation;
   }
   async function logout() {

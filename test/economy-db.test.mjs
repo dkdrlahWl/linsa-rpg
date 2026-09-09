@@ -1,5 +1,5 @@
 import {readFile} from 'node:fs/promises';import {randomUUID} from 'node:crypto';import assert from 'node:assert/strict';
-import {execute,initialState} from '../supabase/functions/_shared/economy.mjs';
+import {execute,initialState,balance} from '../supabase/functions/_shared/economy.mjs';
 const {PGlite}=await import(process.env.QA_PGLITE_MODULE||'@electric-sql/pglite');const db=new PGlite(),u=randomUUID(),sid=randomUUID();
 try{
  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
@@ -16,6 +16,14 @@ try{
  await assert.rejects(()=>db.query('select public.ringu_economy_commit($1,$2,$3,$4,$5,$6,$7)',[u,sid,snap.revision,nonce,JSON.stringify({command:'daily',args:{extra:1}}),JSON.stringify(result.state),'{}']),/REQUEST_ID_REUSED/);
  const latest=await snapshot();await assert.rejects(()=>db.query('select public.ringu_save_costume($1,$2,0)',[JSON.stringify({...latest.state,essence:999999}),latest.revision]),/CLIENT_UPDATE_REQUIRED/);
  await assert.rejects(()=>db.query('select public.ringu_economy_commit($1,$2,$3,$4,$5,$6,$7)',[u,sid,snap.revision,randomUUID(),JSON.stringify(fp),JSON.stringify(result.state),'{}']),/SAVE_CONFLICT/);
+ await db.exec(await readFile(new URL('../supabase/16-economy-differential-commit.sql',import.meta.url),'utf8'));
+ const apply=async state=>{const current=await snapshot();return db.query('select public.ringu_economy_commit($1,$2,$3,$4,$5,$6,$7)',[u,sid,current.revision,randomUUID(),JSON.stringify({command:'sync',args:{}}),JSON.stringify(state),'{}']);};
+ const large=structuredClone(latest.state);large.inventory=Array.from({length:2400},(_,i)=>({...balance.gear[0],id:50000+i,auctionUid:randomUUID(),enhance:0,transcend:0}));await apply(large);
+ await db.exec('create table item_write_probe(n int);insert into item_write_probe values(0);create function count_item_writes() returns trigger language plpgsql as $$begin update public.item_write_probe set n=n+1;return new;end$$;create trigger probe after insert or update on ringu_private.auction_items for each row execute function count_item_writes();');
+ large.gold++;await apply(large);assert.equal((await db.query('select n from item_write_probe')).rows[0].n,0);
+ large.inventory[0].enhance=1;await apply(large);assert.equal((await db.query('select n from item_write_probe')).rows[0].n,1);
+ large.inventory.shift();await apply(large);assert.equal((await db.query('select n from item_write_probe')).rows[0].n,2);
+ console.log('2400-item differential commit: unchanged inventory 0 row writes; one enhancement 1 write; one removal 1 tombstone.');
  await db.exec('update ringu_private.auction_release set economy_ready=false');await assert.rejects(()=>db.query('select public.ringu_save_costume($1,$2,0)',[JSON.stringify(latest.state),latest.revision]),/CLIENT_UPDATE_REQUIRED/);
  console.log('Economy gateway: private commit permissions, enrollment, receipt replay, fingerprint mismatch, stale CAS and disabled-release legacy-save rejection passed.');
 }finally{await db.close();}
