@@ -128,10 +128,42 @@
       if (!active && !overlay?.contains(event.target)) { event.preventDefault(); event.stopImmediatePropagation(); }
     }, { capture: true, passive: false });
   }
-  function archive(raw, owner, reason) {
+  let archiveDatabase;
+  function archiveStore() {
+    if (!archiveDatabase) archiveDatabase = new Promise((resolve, reject) => {
+      const request = indexedDB.open('ringu-recovery-archives-v1', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('archives');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error('복구 보관함을 여는 중입니다. 다른 게임 탭을 닫고 다시 시도해 주세요.'));
+    });
+    return archiveDatabase;
+  }
+  async function preserveArchives(entries) {
+    if (!entries.length) return;
+    const db = await archiveStore();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction('archives', 'readwrite');
+      for (const [key, value] of entries) tx.objectStore('archives').put(value, key);
+      tx.oncomplete = resolve;
+      tx.onabort = () => reject(tx.error || new Error('복구 기록 보관 실패'));
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function migrateArchives() {
+    const entries = [];
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (/^ringu\.session\.v1\.(?:account\..+|legacy-unassigned)\.archive\./.test(key)) entries.push([key, read(key)]);
+    }
+    await preserveArchives(entries);
+    // Remove only confirmed archival copies; never pending saves, receipts or login.
+    for (const [key, value] of entries) if (read(key) === value) remove(key);
+  }
+  async function archive(raw, owner, reason) {
     if (raw === null) return;
     const id = owner === null ? 'legacy-unassigned' : 'account.' + encodeURIComponent(owner);
-    write(PREFIX + id + '.archive.' + Date.now() + '.' + (++sequence), JSON.stringify({ reason, savedAt: new Date().toISOString(), raw }));
+    await preserveArchives([[PREFIX + id + '.archive.' + Date.now() + '.' + (++sequence), JSON.stringify({ reason, savedAt: new Date().toISOString(), raw })]]);
   }
   function writeBackup(item) {
     write(scoped('pending'), JSON.stringify({ accountId: account.id, revision, state: item.state, savedAt: new Date().toISOString() }));
@@ -404,6 +436,7 @@
   }
   async function boot() {
     try {
+      await migrateArchives();
       const response = await api('/api/session');
       if (response.status === 401 || response.status === 403) { location.replace('/linsa-rpg/login.html'); throw new Error('로그인이 필요합니다.'); }
       if (!response.ok) throw new Error('계정 서버에 연결할 수 없습니다. 연결을 확인한 후 다시 시도해 주세요.');
@@ -436,7 +469,7 @@
         Object.assign(data,fresh);revision=fresh.revision;remove(scoped('auction-request'));
       }
       const existing = read(KEY), previousOwner = read(OWNER);
-      archive(existing, previousOwner, 'before-account-session-load');
+      await archive(existing, previousOwner, 'before-account-session-load');
       let chosen = data.state, backup = null;
       const backupRaw = read(scoped('pending'));
       if (backupRaw !== null) {
@@ -444,14 +477,14 @@
           backup = JSON.parse(backupRaw);
           if (String(backup.accountId) !== String(account.id) || !validState(backup.state) || !Number.isSafeInteger(backup.revision)) throw new Error('invalid backup');
         } catch (_) {
-          archive(backupRaw, String(account.id), 'unreadable-pending-backup');
+          await archive(backupRaw, String(account.id), 'unreadable-pending-backup');
           throw new Error('이 계정의 로컬 백업을 읽을 수 없습니다. 백업 원본은 보존했습니다. 복구 점검 후 다시 시도해 주세요.');
         }
         if (JSON.stringify(backup.state) !== JSON.stringify(data.state)) {
           if(window.RinguCloud?.economy)chosen={...data.state,...Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>backup.state[k]!==undefined).map(k=>[k,backup.state[k]]))};
           else chosen = await chooseRecovery(backup, data);
         }
-        archive(backupRaw, String(account.id), 'preserved-recovery-backup');
+        await archive(backupRaw, String(account.id), 'preserved-recovery-backup');
       }
       // Recheck after a recovery dialog (another login may have occurred).
       if (backup) {
@@ -497,7 +530,7 @@
     if (event.key === OWNER && event.newValue !== String(account.id)) end('다른 계정이 이 브라우저에서 열렸습니다. 현재 모험을 중단했습니다.');
     else if (event.key === KEY && event.newValue !== JSON.stringify(latest === null ? {} : latest)) {
       // Preserve this tab's pending progress before another tab replaces it.
-      if (pending) { try { archive(pending.raw, String(account.id), 'other-tab-save'); } catch (_) {} }
+      if (pending) { void archive(pending.raw, String(account.id), 'other-tab-save').catch(console.error); }
       end('다른 창에서 모험 기록이 변경되었습니다. 기록 충돌을 막기 위해 현재 모험을 중단했습니다.', 'conflict');
     }
   });

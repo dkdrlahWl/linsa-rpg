@@ -53,6 +53,12 @@ async function player(name){
 async function run(p,command,args={}){await p.waitForFunction(()=>RinguSession.active&&!document.body.classList.contains('economy-pending'));return p.evaluate(async({command,args})=>RinguEconomy.command(command,args),{command,args});}
 try{
  const a=await player('economyqaA'),b=await player('economyqaB');
+ // Reproduce the live quota failure with historical copies filling localStorage.
+ const archived=await a.evaluate(()=>{localStorage.setItem('quota-test-unrelated','preserve');let count=0;try{for(;count<100;count++)localStorage.setItem('ringu.session.v1.account.quota-fixture.archive.'+count,'x'.repeat(100000));}catch(e){if(e.name!=='QuotaExceededError')throw e;}return count;});
+ assert.ok(archived>0);await a.reload();await a.waitForFunction(()=>window.RinguEconomy&&RinguSession.active);
+ assert.equal(await a.evaluate(()=>Object.keys(localStorage).filter(k=>k.includes('quota-fixture.archive.')).length),0);
+ assert.equal(await a.evaluate(()=>localStorage.getItem('quota-test-unrelated')),'preserve');
+ assert.equal(await a.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('ringu-recovery-archives-v1',1);r.onerror=()=>reject(r.error);r.onsuccess=()=>{const q=r.result.transaction('archives').objectStore('archives').getAllKeys();q.onsuccess=()=>{resolve(q.result.filter(k=>k.includes('quota-fixture.archive.')).length);r.result.close();};};})),archived);
  assert.ok(await run(a,'equipBest'));
  await a.waitForFunction(()=>RinguSession.active);const before=await a.evaluate(()=>structuredClone(RinguCore.state));assert.equal(Object.values(before.equipped).length,1);
  // Forged snapshots cannot replace the authoritative balance or inventory.
