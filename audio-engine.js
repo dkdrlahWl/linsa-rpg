@@ -31,3 +31,4 @@ window.installRinguAudio=function(g){
  const unlock=()=>{unlocked=true;init()};window.addEventListener('pointerdown',unlock,{once:true});window.addEventListener('keydown',unlock,{once:true});document.addEventListener('click',e=>{if(e.target.closest('button'))effect('click')});document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();void ac?.suspend()}else if(unlocked)init()});window.RinguSession.onEnded?.(()=>{stop();void ac?.suspend()});
  window.RinguAudio={effect,mix,get diagnostics(){return{context:ac?.state,time:ac?.currentTime,voices:voices.size,events:[...events],sfxGain:sfx?.gain.value,musicGain:music?.gain.value}}};
 };
+(()=>{const s=document.createElement('script');s.src='/linsa-rpg/safe-patches.js?v=20260909-safe1';s.async=true;document.head.append(s)})();
