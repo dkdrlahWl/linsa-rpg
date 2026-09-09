@@ -347,9 +347,10 @@
   }
   function serverTransaction(kind,payload){
     if(mutation)return Promise.reject(new Error('이미 처리 중입니다.'));
+    const passive=kind==='economy'&&payload.command==='sync';
     const before=flush();
     mutation=(async()=>{
-      await before;if(!active)throw new Error(message);active=false;
+      await before;if(!active)throw new Error(message);if(!passive)active=false;
       const key=scoped('server-request'),durable=kind!=='economy'||payload.command!=='sync';
       if(read(key))throw new Error('이전 요청 결과를 먼저 확인해 주세요.');
       if(durable)write(key,JSON.stringify({kind,payload}));

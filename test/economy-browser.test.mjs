@@ -9,7 +9,7 @@ import {execute,initialState,balance} from '../supabase/functions/_shared/econom
 const {PGlite}=await import(process.env.QA_PGLITE_MODULE||'@electric-sql/pglite');
 const {chromium}=createRequire(import.meta.url)(process.env.QA_PLAYWRIGHT_MODULE||'playwright');
 const db=new PGlite(),users=new Map(),tokens=new Map(),errors=[];
-let queue=Promise.resolve(),dropCommand=null,dropped=0;
+let queue=Promise.resolve(),dropCommand=null,dropped=0,delaySync=0;
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
 for(const file of ['01-account-storage.sql','02-ranking-party.sql'])await db.exec(await readFile(new URL('fixtures/'+file,import.meta.url),'utf8'));
 for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
@@ -27,6 +27,7 @@ async function service(req){
  if(path==='/auth/v1/user')return entry.user;
  const name=path.split('/').at(-1);if(name==='ringu_admin_status')return {currencyFloor:0};
  if(name==='ringu-economy'){
+  if(body.command==='sync'&&delaySync)await new Promise(resolve=>setTimeout(resolve,delaySync));
   let snap=await rpc('ringu_economy_snapshot',{p_request_id:body.requestId});
   if(!snap.enrolled){
    // Fixture provision only. The production Edge initializer starts at zero.
@@ -53,6 +54,18 @@ async function player(name){
 async function run(p,command,args={}){await p.waitForFunction(()=>RinguSession.active&&!document.body.classList.contains('economy-pending'));return p.evaluate(async({command,args})=>RinguEconomy.command(command,args),{command,args});}
 try{
  const a=await player('economyqaA'),b=await player('economyqaB');
+ await run(a,'auto',{enabled:false});
+ const performanceResult=await a.evaluate(()=>{
+  const original=RinguCore.state.inventory;RinguCore.state.inventory=Array.from({length:2400},(_,i)=>({...original[0],id:100000+i}));
+  RinguEconomy.paint();let rebuilds=0;const render=RinguCore.fn.renderAll;
+  let start=performance.now();for(let i=0;i<3;i++)render();const fullMs=(performance.now()-start)/3;
+  RinguCore.fn.renderAll=()=>{rebuilds++;return render();};start=performance.now();for(let i=0;i<20;i++)RinguEconomy.paint();const tickMs=(performance.now()-start)/20;
+  RinguCore.fn.renderAll=render;RinguCore.state.inventory=original;RinguEconomy.paint();return {items:2400,fullMs,tickMs,rebuilds};
+ });
+ console.log('Combat render benchmark',performanceResult);assert.equal(performanceResult.rebuilds,0);
+ delaySync=500;await a.evaluate(()=>{window.qaSync=RinguEconomy.command('sync');});await a.waitForTimeout(100);
+ assert.equal(await a.evaluate(()=>RinguSession.active&&!document.body.classList.contains('economy-pending')),true);
+ assert.ok(await a.evaluate(async()=>{const result=await RinguEconomy.command('equipBest');await window.qaSync;return !!result;}));delaySync=0;
  // Reproduce the live quota failure with historical copies filling localStorage.
  const archived=await a.evaluate(()=>{localStorage.setItem('quota-test-unrelated','preserve');let count=0;try{for(;count<100;count++)localStorage.setItem('ringu.session.v1.account.quota-fixture.archive.'+count,'x'.repeat(100000));}catch(e){if(e.name!=='QuotaExceededError')throw e;}return count;});
  assert.ok(archived>0);await a.reload();await a.waitForFunction(()=>window.RinguEconomy&&RinguSession.active);

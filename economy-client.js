@@ -6,16 +6,18 @@
   if(!g?.state||!window.RinguCloud?.economy||window.RinguEconomy)return;
   const f=g.fn,$=id=>document.getElementById(id),item=id=>g.state.inventory.find(x=>String(x.id)===String(id));
   const messages={INSUFFICIENT_GOLD:'골드가 부족합니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',INSUFFICIENT_TRANSCENDSTONE:'초월석이 부족합니다.',INSUFFICIENT_PETSTONE:'펫 스톤이 부족합니다.',INSUFFICIENT_TICKET:'뽑기권이 없습니다.',ALREADY_CLAIMED:'이미 받은 보상입니다.',ALREADY_OWNED:'이미 보유하고 있습니다.',ALL_OWNED:'대상 오라를 모두 보유했습니다. 뽑기권은 유지됩니다.',ALL_PETS_MAX:'보유한 모든 펫이 만렙입니다.',ITEM_NOT_OWNED:'현재 보유한 장비가 아닙니다.',ITEM_LOCKED_OR_EQUIPPED:'장착 또는 잠금 해제 후 이용하세요.',ITEM_IN_ESCROW:'경매장에 등록 중인 장비입니다.',PET_NOT_OWNED:'현재 보유한 펫이 아닙니다.',DUNGEON_LOCKED:'입장 횟수 또는 이전 단계 클리어를 확인하세요.',MONSTER_LOCKED:'이전 몬스터를 먼저 처치하세요.',BATTLE_IN_PROGRESS:'현재 전투를 먼저 종료하세요.',COLLECTION_INCOMPLETE:'도감 달성 수가 부족합니다.',SAVE_CONFLICT:'다른 처리가 진행 중입니다. 잠시 후 다시 시도하세요.',INVALID_ARGUMENTS:'입력값을 확인하세요.',INVALID_ENHANCEMENT:'강화·초월 조건을 확인하세요.',ECONOMY_NOT_READY:'서버 업데이트 중입니다. 잠시 후 접속하세요.'};
-  let pending=null,forgeBusy=false,lastSync=0,backgroundRequested=false;
+  let pending=null,pendingName=null,forgeBusy=false,lastSync=0,backgroundRequested=false,lastLayout=null;
   const closed=()=>!session.active;
   function busy(value){document.body.classList.toggle('economy-pending',value);document.body.setAttribute('aria-busy',String(value));}
   async function command(name,args={}){
+   if(pending&&pendingName==='sync'&&name!=='sync')await pending.catch(()=>{});
    if(pending||closed())return false;
-   busy(true);
+   const interactive=name!=='sync';pendingName=name;
+   if(interactive)busy(true);
    pending=session.economyTransaction(name,args);
    try {const result=await pending;return result;}
    catch(e){f.toast(messages[e.message]||'처리 결과를 확인하지 못했습니다. '+e.message);return false;}
-   finally{pending=null;busy(false);if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
+   finally{pending=null;pendingName=null;if(interactive)busy(false);if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
   }
   function sync(){if(document.hidden||pending||closed()||Date.now()-lastSync<800)return;lastSync=Date.now();return command('sync');}
   function paint(events=[]){
@@ -26,11 +28,14 @@
     const data=b?.type==='gold'?g.goldDungeonStages[b.stage-1]:{hp:2000,reward:10};
     g.activeDungeon=b&&b.type!=='tower'?{...b,maxHp:data.hp,reward:data.reward,serverEconomy:true}:null;
    }
-   f.renderAll();
+   // Combat ticks change HP/currency, not thousands of equipment DOM nodes.
+   const layout=JSON.stringify([s.inventory,s.equipped,s.ownedPets,s.equippedPet,s.ownedAuras,s.equippedAura,s.summons,s.regionIndex,s.bossIndex,s.monsterUnlockStep,s.playerGender,s.playerName,s.collectionClaims,s.discovered,s.mailbox,s.dailyRewardClaims,s.petSummonExp,s.discoveredPets,s.claimedPetCollectionRewards]);
+   const layoutChanged=layout!==lastLayout;lastLayout=layout;
+   if(layoutChanged)f.renderAll();else{f.renderTop();f.renderBattle();}
    if($('towerModal')?.classList.contains('show'))f.renderTower();
    if($('dungeonModal')?.classList.contains('show')){if(g.activeDungeon&&!g.activeDungeon.serverRoom){$('dungeonStageList').innerHTML='';$('dungeonBattle').classList.add('show');f.renderDungeonBattle();}else f.renderDungeon();}
-   if($('enhanceModal')?.classList.contains('show')){f.renderEnhance();if(forgeBusy){$('enhanceBtn').disabled=true;$('transcendBtn').disabled=true;}}
-   for(const name of ['refreshPetUI','renderCollectionRewards','renderAuraShop','renderMailbox']){try{(f[name]||window[name])?.();}catch(e){console.warn('Economy presentation:',name,e.message);}}
+   if(layoutChanged&&$('enhanceModal')?.classList.contains('show')){f.renderEnhance();if(forgeBusy){$('enhanceBtn').disabled=true;$('transcendBtn').disabled=true;}}
+   if(layoutChanged)for(const name of ['refreshPetUI','renderCollectionRewards','renderAuraShop','renderMailbox']){try{(f[name]||window[name])?.();}catch(e){console.warn('Economy presentation:',name,e.message);}}
    for(const e of events){
     if(e.type==='hit'){
      if(e.target==='field'){window.RinguRemodel?.serverHit();setTimeout(()=>{if(session.active){g.presentation.showDamage(e.damage,e.crit);window.RinguAudio?.effect(e.crit?'critical':'hit');}},460);}
@@ -80,6 +85,7 @@
   f.closeDungeon=async()=>{if(g.activeDungeon?.serverRoom||g.dungeonType==='stone')return oldCloseDungeon();if(g.state.serverBattle&&!await command('cancelBattle'))return;$('dungeonModal').classList.remove('show');};
   f.closeTower=async()=>{if(g.state.serverBattle?.type==='tower'&&!await command('cancelBattle'))return;$('towerModal').classList.remove('show');};
   async function forge(trans){
+   if(pending&&pendingName==='sync')await pending.catch(()=>{});
    if(forgeBusy||pending||closed())return false;const it=item(g.enhanceId);if(!it)return false;
    forgeBusy=true;g.enhanceBusy=true;$('enhanceStage').className='enhance-stage forging';$('enhanceResult').textContent='서버에서 결과 확인 중…';
    $('enhanceBtn').disabled=true;$('transcendBtn').disabled=true;f.playForgeSound?.();
