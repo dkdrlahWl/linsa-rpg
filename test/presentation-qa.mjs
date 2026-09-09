@@ -42,6 +42,15 @@ try{
  const checks=[];
  if(process.env.QA_PHASE==='after'){
  await p.evaluate(()=>closePetPanel());
+ const portraitPolicy=await p.evaluate(()=>{
+  const g=RinguCore,a=RinguArt,result=[];
+  for(const gender of ['male','female']){
+   const state={playerGender:gender,equippedAura:-1,equippedPet:null};
+   const render=(equipment,battle=false,pose=0)=>{const cv=document.createElement('canvas');cv.width=640;cv.height=780;const c=cv.getContext('2d');if(battle)a.battleHero(c,state,equipment,g.fn.itemIndex,0,320,710,600,{pose});else a.hero(c,state,equipment,g.fn.itemIndex,0,320,710,640);return cv.toDataURL();};
+   const bare=render({}),weapons=[0,3,6,7].map(i=>({'무기':{slot:'무기',rarity:0,name:g.fn.itemName('무기',0,i)}}));
+   result.push({gender,portraitIndependent:weapons.every(e=>render(e)===bare),combatWeapons:Array.from({length:6},(_,pose)=>render(weapons[0],true,pose)!==render({},true,pose))});
+  }return result;
+ });assert.ok(portraitPolicy.every(r=>r.portraitIndependent&&r.combatWeapons.every(Boolean)));checks.push({portraitPolicy});
  const towerCutouts=await p.evaluate(()=>{
   const cv=document.createElement('canvas');cv.id='qaTowerSheet';cv.width=1200;cv.height=1050;cv.style='position:fixed;inset:0;width:1200px;height:1050px;z-index:999999;background:#17232b';document.body.append(cv);
   const c=cv.getContext('2d');return Array.from({length:30},(_,i)=>{const f=RinguArt.frame('tower',i,6,5);if(!f)return {i,missing:true};const x=i%6*200,y=Math.floor(i/6)*210,scale=Math.min(188/f.w,182/f.h);c.drawImage(f.im,x+(200-f.w*scale)/2,y+186-f.h*scale,f.w*scale,f.h*scale);c.fillStyle='white';c.font='13px sans-serif';c.fillText((i+1)+'층',x+85,y+204);return {i,w:f.w,h:f.h};});
@@ -52,7 +61,8 @@ try{
  const goldNames=await p.evaluate(()=>{const g=RinguCore;g.dungeonType='gold';g.fn.renderDungeon();return g.goldDungeonStages.map((d,i)=>({name:d.name,expected:g.bossRegions[Math.floor(d.artIndex/6)].bosses[d.artIndex%6].name,label:document.querySelectorAll('.dungeon-stage strong')[i]?.textContent}));});
  console.log(JSON.stringify({goldNames}));assert.equal(goldNames.length,20);assert.ok(goldNames.every(d=>d.name===d.expected&&d.label.includes(d.name)));
  for(const stage of [1,10,20]){
-  await p.evaluate(stage=>{const g=RinguCore,d=g.goldDungeonStages[stage-1];g.activeDungeon={type:'gold',stage,hp:d.hp,maxHp:d.hp,elapsed:0};g.fn.renderDungeonBattle();},stage);await p.waitForTimeout(60);
+  await p.evaluate(stage=>{const g=RinguCore;g.activeDungeon={type:'gold',stage,hp:1000000000,maxHp:1000000000,elapsed:0};g.fn.renderDungeonBattle();},stage);
+  await p.waitForFunction(stage=>document.getElementById('dungeonBossArt').dataset.enemyImage==='monsters:'+(stage-1),stage);
   assert.equal(await p.locator('#dungeonBossArt').getAttribute('data-enemy-image'),'monsters:'+(stage-1));
   assert.ok(await p.locator('#dungeonBattleTitle').textContent().then(x=>x.includes(goldNames[stage-1].name)));
  }
