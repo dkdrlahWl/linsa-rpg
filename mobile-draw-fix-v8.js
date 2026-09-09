@@ -131,7 +131,7 @@
 
   const revealed = new WeakSet();
   let observedGrid = null;
-  const observer = new MutationObserver(update);
+  // Explicitly refreshed by the result renderer.
   function update() {
     if (!observedGrid) return;
     const cards = Array.from(observedGrid.children).filter(el =>
@@ -157,10 +157,10 @@
     const grid = document.getElementById('drawResultGrid');
     if (!grid) return;
     if (observedGrid !== grid) {
-      observer.disconnect();
+
       observedGrid = grid;
       // Only inserted/removed cards are observed; style/title writes cannot loop.
-      observer.observe(grid, { childList:true });
+
     }
     update();
   }

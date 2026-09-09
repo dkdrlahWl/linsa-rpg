@@ -1,0 +1,6 @@
+{
+  "name": "ringu-presentation-qa",
+  "private": true,
+  "scripts": {"test": "node test/presentation-qa.mjs"},
+  "devDependencies": {"@electric-sql/pglite": "0.5.8", "playwright": "1.62.1"}
+}

@@ -559,11 +559,15 @@ left:var(--fallen-axe-left)!important;
 </head>
 <script src="/linsa-rpg/safety.js?v=portrait-2"></script>
 <script src="/linsa-rpg/art-catalog.js?v=weapon-only-5"></script>
-<script src="/linsa-rpg/remodel.js?v=weapon-only-5"></script>
+<script src="/linsa-rpg/remodel.js?v=presentation-1"></script>
 <script src="/linsa-rpg/social-style.js?v=weapon-only-5"></script>
-<script src="/linsa-rpg/audio-engine.js?v=1"></script>
+<script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
 <script src="/linsa-rpg/stone-party.js?v=1"></script>
+<script defer src="/linsa-rpg/safe-patches-core-v1.js?v=presentation-1"></script>
+<script defer src="/linsa-rpg/mobile-draw-fix-v8.js?v=presentation-1"></script>
+<script defer src="/linsa-rpg/visual-polish-v3.js?v=presentation-1"></script>
+<script defer src="/linsa-rpg/weapon-pose-fix-v4.js?v=presentation-1"></script>
 <body data-remodel="true">
 <main class="app">
  <header class="topbar"><div class="brand-row"><div class="brand"><b>링구</b>RPG</div><div class="header-actions"><button class="profile-button" onclick="openProfile()"><b>랭킹</b><span id="playerNameTop">모험가</span></button><button id="mailOpenBtn" class="mail-button" type="button" onclick="return window.forceOpenMailboxFromButton ? window.forceOpenMailboxFromButton(event) : false" aria-label="우편함">✉<i class="mail-badge" id="mailBadge">0</i></button><button class="settings-button" onclick="openSettings()" aria-label="설정">⚙</button></div></div><div class="stats"><div class="stat gold"><span class="stat-label">보유 골드</span><span class="stat-value" id="gold">0</span></div><div class="stat essence"><span class="stat-label">정수</span><span class="stat-value" id="essence">0</span></div><div class="stat stone"><span class="stat-label">초월석</span><span class="stat-value" id="transcendStone">0</span></div><div class="stat power"><span class="stat-label">공격력</span><span class="stat-value" id="power">10</span></div><div class="stat"><span class="stat-label">소환 Lv.</span><span class="stat-value" id="summonTop">Lv.1</span><div class="summon-mini"><i id="summonMini"></i></div></div></div></header>
@@ -1011,7 +1015,7 @@ function closePetPanel(){$('petModal').classList.remove('show')}
 function closePetResult(){$('petResultModal').classList.remove('show')}
 function renderPetTab(tab){petActiveTab=tab||petActiveTab;ensurePetModal();['Manage','Summon','Collection'].forEach(n=>{const el=$('petTab'+n);if(el)el.classList.toggle('on',petActiveTab===n.toLowerCase())});if(petActiveTab==='summon')renderPetSummonTab();else if(petActiveTab==='collection')renderPetCollectionTab();else renderPetManageTab()}
 function renderPetPanel(){openPetPanel('manage')}
-function renderPetManageTab(){migratePetState();const eq=getEquippedPet(),body=$('petBody');body.innerHTML='<div class="pet-summary"><b>장착 펫</b><br>'+(eq?PET_DATA[eq.petId].icon+' '+PET_DATA[eq.petId].name+' Lv.'+eq.level+'<br><small>'+petStatText(getPetLevelStats(eq))+'</small>':'장착 중인 펫이 없습니다.')+'</div><div class="pet-grid">'+(state.ownedPets.length?state.ownedPets.map(renderPetCard).join(''):'<div class="empty-list">보유한 펫이 없습니다.<br>펫 소환에서 첫 펫을 획득하세요.</div>')+'</div>'}
+function renderPetManageTab(){migratePetState();const eq=getEquippedPet(),body=$('petBody');body.innerHTML='<div class="pet-summary"><b>장착 펫</b><br>'+(eq?PET_DATA[eq.petId].icon+' '+PET_DATA[eq.petId].name+' Lv.'+eq.level+'<br><small>'+petStatText(getPetLevelStats(eq))+'</small>':'장착 중인 펫이 없습니다.')+'</div><div class="pet-grid pet-management">'+(state.ownedPets.length?state.ownedPets.map(renderPetCard).join(''):'<div class="empty-list">보유한 펫이 없습니다.<br>펫 소환에서 첫 펫을 획득하세요.</div>')+'</div>'}
 function renderPetInventory(){if($('petModal')&&$('petModal').classList.contains('show'))renderPetManageTab()}
 function renderPetCard(p){const d=PET_DATA[p.petId],eq=state.equippedPet===p.uid,stats=getPetLevelStats(p),mats=getSamePetMaterials(p.uid).length;return '<div class="pet-card g'+d.grade+'" style="--pc:'+petColor(d.grade)+'"><div class="pet-head"><span class="pet-icon">'+d.icon+'</span><span><strong>'+escapeHtml(d.name)+'</strong><small>'+petGradeName(d.grade)+' · 내부 '+d.tierInGrade+'번 · Lv.'+p.level+'/'+d.maxLevel+(eq?' · 장착 중':'')+(p.locked?' · 잠금':'')+'</small></span></div><small>'+petStatText(stats)+'</small><div class="pet-actions"><button class="primary" onclick="'+(eq?'unequipPet()':'equipPet(\''+p.uid+'\')')+'">'+(eq?'해제':'장착')+'</button><button '+(p.level>=5||!mats?'disabled':'')+' onclick="levelUpPet(\''+p.uid+'\')">레벨업</button><button onclick="'+(p.locked?'unlockPet':'lockPet')+'(\''+p.uid+'\')">'+(p.locked?'잠금해제':'잠금')+'</button></div><small>레벨업 재료: 같은 펫 '+mats+'마리</small></div>'}
 function renderPetDetailModal(petInstance){if(!petInstance)return;const d=PET_DATA[petInstance.petId];toast(d.name+' Lv.'+petInstance.level+' · '+petStatText(getPetLevelStats(petInstance)))}
@@ -1703,7 +1707,7 @@ if(!d)return '';
 const eq=String(state.equippedPet||'')===String(p.uid),stats=getPetLevelStats(p),mats=getSamePetMaterials(p.uid).length,need=PET_LEVEL_REQUIREMENTS[(Number(p.level)||1)+1]||0,sell=RINGU_PET_SELL_V2[Number(d.grade)||1]||1;
 const equipAction=eq?'unequipPet()':"equipPet('"+p.uid+"')";
 const lockAction=(p.locked?'unlockPet':'lockPet')+"('"+p.uid+"')";
-return `<div class="pet-card g${d.grade}" style="--pc:${petColor(d.grade)}"><div class="pet-head"><span class="pet-icon">${d.icon}</span><span><strong>${escapeHtml(d.name)}</strong><small>${petGradeName(d.grade)} · 내부 ${d.tierInGrade}번 · Lv.${p.level}/${d.maxLevel}${eq?' · 장착 중':''}${p.locked?' · 잠금':''}</small></span></div><small>${petStatText(stats)}</small><div class="pet-actions"><button class="primary" onclick="${equipAction}">${eq?'해제':'장착'}</button><button ${Number(p.level)>=5||mats<need?'disabled':''} onclick="levelUpPet('${p.uid}')">레벨업</button><button onclick="${lockAction}">${p.locked?'잠금해제':'잠금'}</button><button class="pet-sell" ${eq||p.locked?'disabled':''} onclick="sellPet('${p.uid}')">판매 +${sell}</button></div><small>레벨업 재료: 같은 펫 ${mats} / ${need||'-'}마리 · 판매가: 펫 스톤 ${sell}개</small></div>`
+return `<div class="pet-card g${d.grade} ${eq?'is-equipped':''} ${p.locked?'is-locked':''}" style="--pc:${petColor(d.grade)}"><div class="pet-head"><span class="pet-icon">${d.icon}</span><span><strong>${escapeHtml(d.name)}</strong><small>${petGradeName(d.grade)} · 내부 ${d.tierInGrade}번 · Lv.${p.level}/${d.maxLevel}${eq?' · 장착 중':''}${p.locked?' · 잠금':''}</small></span></div><small>${petStatText(stats)}</small><div class="pet-actions"><button class="primary" onclick="${equipAction}">${eq?'해제':'장착'}</button><button ${Number(p.level)>=5||mats<need?'disabled':''} onclick="levelUpPet('${p.uid}')">레벨업</button><button onclick="${lockAction}">${p.locked?'잠금해제':'잠금'}</button><button class="pet-sell" ${eq||p.locked?'disabled':''} onclick="sellPet('${p.uid}')">판매 +${sell}</button></div><small>레벨업 재료: 같은 펫 ${mats} / ${need||'-'}마리 · 판매가: 펫 스톤 ${sell}개</small></div>`
 };
 Object.assign(window,{fixedBaseAtk,itemAtk,summonUnitCost,canRollFallen,openRates,tryEnhance,renderTower,finishTowerClearV15,levelUpPet,sellPet,renderPetCard});
 const RinguCore={get state(){return state},set state(value){state=value},get combat(){return combat},get activeDungeon(){return activeDungeon},set activeDungeon(v){activeDungeon=v},get activeTower(){return activeTower},set activeTower(v){activeTower=v},get enhanceId(){return enhanceId},set enhanceId(v){enhanceId=v},get enhanceBusy(){return enhanceBusy},set enhanceBusy(v){enhanceBusy=v},get drawGroup(){return drawGroup},set drawGroup(v){drawGroup=v},get dungeonType(){return dungeonType},set dungeonType(v){dungeonType=v},get rankingProfiles(){return rankingProfiles},set rankingProfiles(v){rankingProfiles=v},defaults,slots,rarityNames,rarityColors,bossRegions,towerFloors,goldDungeonStages,auraShopItems,PET_DATA,PET_SUMMON_RATES,PET_LEVEL_REQUIREMENTS,collectionRewards,levelReq,rates,fn:{}};
@@ -2838,7 +2842,7 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 .gear-icon.r6.earring .fallen-shape{width:30px;height:41px;background:linear-gradient(180deg,#ffb0c4,#ff2f5f 36%,#31000e 78%,#050006);clip-path:polygon(50% 0,75% 18%,65% 46%,90% 62%,54% 100%,10% 62%,35% 46%,25% 18%)}
 .gear-icon.r6.earring .fallen-core{top:67%;width:12px;height:18px;border-radius:50% 50% 44% 44%}
 .gear-icon.r6 .fallen-spark{position:absolute;z-index:4;width:4px;height:4px;background:#fff;border-radius:50%;box-shadow:0 0 7px #fff,0 0 12px #ff2f5f;animation:fallenSparkV7 1.6s ease-in-out infinite alternate}.gear-icon.r6 .fallen-spark.s1{left:9px;top:12px}.gear-icon.r6 .fallen-spark.s2{right:9px;bottom:10px;animation-delay:.55s}
-.pet-actions{grid-template-columns:repeat(4,minmax(0,1fr))!important}.pet-actions .pet-sell{background:linear-gradient(#35202b,#19121c)!important;color:#ffb3c4!important;border-color:#7a2c45!important}
+.pet-actions .pet-sell{background:linear-gradient(#35202b,#19121c)!important;color:#ffb3c4!important;border-color:#7a2c45!important}
 @keyframes fallenHellPulseV7{from{filter:brightness(.95) saturate(1.05)}to{filter:brightness(1.22) saturate(1.35)}}@keyframes fallenSparkV7{from{opacity:.35;transform:scale(.75)}to{opacity:1;transform:scale(1.25)}}
 </style>
 
@@ -2884,6 +2888,6 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 
 
 
-<link rel="stylesheet" href="/linsa-rpg/remodel.css?v=wearable-4">
+<link rel="stylesheet" href="/linsa-rpg/remodel.css?v=presentation-1">
 </body>
 </html>
