@@ -1,0 +1,3 @@
+[functions.ringu-economy]
+# Auth is explicitly verified through /auth/v1/user and DB newest-session checks.
+verify_jwt = false

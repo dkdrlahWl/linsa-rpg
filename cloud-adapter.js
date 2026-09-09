@@ -31,7 +31,14 @@
    if(cloud.costumeOwner!==owner){cloud.costumeOwner=owner;cloud.costume=null;}
    if(value&&(!cloud.costume||value.costumeRevision>=cloud.costume.costumeRevision))cloud.costume=value;
  }
- async function account(data){
+ async function account(data,initialize=true){
+   window.RinguCloud.economy=!!data.economyReady;
+   if(data.economyReady&&initialize&&!window.RinguCore?.state){
+     const synced=await remote('/functions/v1/ringu-economy',{command:'sync',args:{},requestId:crypto.randomUUID()});
+     data={...data,state:synced.state,revision:synced.revision};
+     window.RinguCloud.initialEconomyEvents=synced.result?.events||[];
+     if(data.costume)data.costume={...data.costume,essence:synced.state.essence,revision:synced.revision};
+   }
    cacheCostume(data.costume);
    // Optional migration: ordinary accounts remain usable before it is installed.
    let floor=0;
@@ -50,7 +57,7 @@
    if(!data.access_token)throw error('가입 설정을 확인해 주세요. 아직 로그인되지 않았습니다.',503);
    persist({...data,expires_at:data.expires_at||Date.now()/1000+data.expires_in});
    const activated=await rpc('ringu_account',{p_action:'activate'},signal);
-   return account(activated);
+   return account(activated,false);
  }
  window.RinguCloud={enabled:true,base:config.base,transport:'supabase'};
  window.fetch=async function(input,init={}){
@@ -65,6 +72,12 @@
        try{await remote('/auth/v1/logout?scope=local',undefined,{signal});}finally{persist(null);window.RinguCloud.currencyFloor=0;}return response({ok:true});
      }
      if(path==='/api/state'){
+       if(window.RinguCloud.economy){
+         const preferences=Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>body.state?.[k]!==undefined).map(k=>[k,body.state[k]]));
+         const saved=await rpc('ringu_save_preferences',{p_preferences:preferences},signal);
+         const claimed=await rpc('ringu_claim_party',{p_revision:saved.revision},signal);
+         return response({state:claimed.state,revision:claimed.revision});
+       }
        const saved=window.RinguCloud.costume
          ?await rpc('ringu_save_costume',{p_state:body.state,p_revision:body.revision,p_costume_revision:window.RinguCloud.costume.costumeRevision},signal)
          :await rpc('ringu_account',{p_action:'save',p_state:body.state,p_revision:body.revision},signal);
@@ -73,6 +86,8 @@
        const claimed=await rpc('ringu_claim_party',{p_revision:saved.revision},signal);
        return response({revision:claimed.revision,stoneAward:claimed.stoneAward});
      }
+     if(path==='/api/economy')return response(await remote('/functions/v1/ringu-economy',body,{signal}));
+     if(path==='/api/auction')return response(await rpc('ringu_auction',{p_action:body.action||'status',p_args:body.args||{},p_request_id:body.requestId||null},signal));
      if(path==='/api/costume'){
        const result=await rpc('ringu_costume',{p_action:body.action||'status',p_id:body.id??null,p_request_id:body.requestId??null,p_revision:body.revision??null},signal);
        cacheCostume(result);return response(result);

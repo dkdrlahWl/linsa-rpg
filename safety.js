@@ -159,7 +159,13 @@
   function save(state) {
     if (!active) return false;
     if (!validState(state)) throw new TypeError('저장할 게임 상태는 객체여야 합니다.');
-    const raw = JSON.stringify(state);
+    const prefs=Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>state[k]!==undefined).map(k=>[k,state[k]]));
+    const raw = JSON.stringify(window.RinguCloud?.economy?{...latest,...prefs}:state);
+    if(window.RinguCloud?.economy){
+      write(KEY,raw);
+      if(window.RinguCore)RinguCore.state=JSON.parse(raw);
+      window.dispatchEvent(new CustomEvent('ringu:economy-state',{detail:{events:[]}}));
+    }
     if (raw === pending?.raw || (!pending && raw === lastAcknowledged)) return true;
     const item = { state: JSON.parse(raw), raw };
     latest = item.state; pending = item;
@@ -194,6 +200,16 @@
       try { result = await response.json(); } catch (_) { end('저장 응답을 확인할 수 없습니다. 서버 기록을 다시 확인해 주세요.', 'conflict'); throw new Error(message); }
       if (!Number.isSafeInteger(result.revision) || result.revision <= revision) { end('저장 버전을 확인할 수 없습니다. 서버 기록을 다시 확인해 주세요.', 'conflict'); throw new Error(message); }
       revision = result.revision;
+      if(window.RinguCloud?.economy&&validState(result.state)){
+        const newer=pending!==item?pending:null;
+        const prefs=newer?Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>newer.state[k]!==undefined).map(k=>[k,newer.state[k]])):{};
+        item.state=structuredClone(result.state);item.raw=JSON.stringify(item.state);
+        latest=newer?{...result.state,...prefs}:item.state;
+        if(newer){newer.state=latest;newer.raw=JSON.stringify(latest);}
+        write(KEY,JSON.stringify(latest));
+        if(window.RinguCore)RinguCore.state=structuredClone(latest);
+        window.dispatchEvent(new CustomEvent('ringu:economy-state',{detail:{events:[]}}));
+      }
       // Server co-op receipts are atomically credited with this save. Apply their
       // delta to both the submitted snapshot and any newer in-flight local snapshot.
       if (Number.isSafeInteger(result.stoneAward) && result.stoneAward > 0) {
@@ -223,6 +239,7 @@
     return inFlight;
   }
   function costumeTransaction(action,id,requestId=crypto.randomUUID()) {
+    if(window.RinguCloud?.economy)return serverTransaction('costume',{action,id,requestId});
     if(mutation)return Promise.reject(new Error('이미 처리 중입니다.'));
     const before=flush();
     mutation=(async()=>{
@@ -253,6 +270,81 @@
     })().finally(()=>{mutation=null;if(active&&pending)void flush().catch(()=>{});});
     return mutation;
   }
+  // Auction mutations are receipt-backed and use a server snapshot. Keep the
+  // legacy simulation paused while ownership is changing; never patch money or
+  // grant the purchased item locally. The release gate remains server-side.
+  function auctionTransaction(action,args) {
+    if(window.RinguCloud?.economy)return serverTransaction('auction',{action,args,requestId:crypto.randomUUID()});
+    if(mutation)return Promise.reject(new Error('이미 처리 중입니다.'));
+    if(window.RinguCore?.enhanceBusy||window.RinguCore?.activeDungeon||window.RinguCore?.activeTower)return Promise.reject(new Error('진행 중인 강화 또는 특수 전투를 먼저 완료해 주세요.'));
+    const before=flush();
+    mutation=(async()=>{
+      await before;if(!active)throw new Error(message);
+      // Flush any last snapshot scheduled while awaiting the preceding save.
+      active=false;
+      const journalKey=scoped('auction-request');let journal;
+      try{journal=JSON.parse(read(journalKey)||'null');}catch{throw new Error('이전 거래 기록을 확인하지 못했습니다.');}
+      if(journal)throw new Error('이전 거래 결과를 서버에서 확인해야 합니다. 새 요청을 보내지 않습니다.');
+      journal={action,args,requestId:crypto.randomUUID()};write(journalKey,JSON.stringify(journal));
+      let result;
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          if(attempt){
+            const receipt=await api('/api/auction',{method:'POST',body:JSON.stringify({action:'receipt',requestId:journal.requestId})});
+            if(!receipt.ok)throw new Error('거래 결과 조회 실패');
+            const found=await receipt.json();if(found.found){result=found.result;break;}
+          }
+          const response=await api('/api/auction',{method:'POST',body:JSON.stringify(journal)});
+          const data=await response.json();
+          if(!response.ok){if(response.status>=500)throw new Error('거래 응답 지연');remove(journalKey);throw Object.assign(new Error(data.error||'처리 실패'),{definitive:true});}
+          result=data;break;
+        }catch(error){if(error.definitive)throw error;if(attempt===2){end('경매장 처리 결과를 확인할 수 없습니다. 새 거래를 보내지 않고 서버 기록을 다시 확인해 주세요.','conflict');throw error;}}
+      }
+      if(!result?.ok||result.requestId!==journal.requestId)throw new Error('거래 응답 검증 실패');
+      const response=await api('/api/session');if(!response.ok)throw new Error('거래 후 계정 조회 실패');
+      const data=validateSession(await response.json());if(data.account.id!==account.id||data.revision<revision)throw new Error('계정 기록 검증 실패');
+      revision=data.revision;latest=structuredClone(data.state);pending=null;lastAcknowledged=JSON.stringify(latest);
+      write(KEY,lastAcknowledged);remove(scoped('pending'));remove(journalKey);
+      if(window.RinguCore){RinguCore.state=structuredClone(latest);RinguCore.fn.normalizeCharacter();RinguCore.fn.renderAll();}
+      return result;
+    })().catch(error=>{
+      if(read(scoped('auction-request')))end('미확정 경매장 거래가 있습니다. 새로고침하여 서버 기록을 확인해 주세요.','conflict');
+      throw error;
+    }).finally(()=>{mutation=null;if(!ended){active=true;report('saved','경매장 처리가 완료되었습니다.');if(pending)void flush().catch(()=>{});}});
+    return mutation;
+  }
+  function serverTransaction(kind,payload){
+    if(mutation)return Promise.reject(new Error('이미 처리 중입니다.'));
+    const before=flush();
+    mutation=(async()=>{
+      await before;if(!active)throw new Error(message);active=false;
+      const key=scoped('server-request'),durable=kind!=='economy'||payload.command!=='sync';
+      if(read(key))throw new Error('이전 요청 결과를 먼저 확인해 주세요.');
+      if(durable)write(key,JSON.stringify({kind,payload}));
+      let result;
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          if(kind==='costume'){const fresh=await api('/api/session');if(!fresh.ok)throw Error('계정 조회 실패');const s=await fresh.json();payload.revision=s.revision;}
+          const r=await api('/api/'+kind,{method:'POST',body:JSON.stringify(payload)});const value=await r.json();
+          if(!r.ok){if(r.status===409&&attempt<2)continue;if(r.status>=500)throw Error('서버 응답 지연');throw Object.assign(Error(value.error||'처리 실패'),{definitive:true,status:r.status});}
+          result=value;break;
+        }catch(e){if(e.definitive||attempt===2)throw e;}
+      }
+      let current=result;
+      if(kind!=='economy'){const fresh=await api('/api/session');if(!fresh.ok)throw Error('처리 후 서버 기록 조회 실패');current=validateSession(await fresh.json());}
+      if(!validState(current?.state)||!Number.isSafeInteger(current.revision)||current.revision<revision)throw Error('서버 응답 검증 실패');
+      revision=current.revision;latest=structuredClone(current.state);pending=null;lastAcknowledged=JSON.stringify(latest);write(KEY,lastAcknowledged);remove(scoped('pending'));if(durable)remove(key);
+      if(window.RinguCore)RinguCore.state=structuredClone(latest);
+      if(kind==='costume')window.dispatchEvent(new CustomEvent('ringu:costume-transaction',{detail:{delta:0,result}}));
+      window.dispatchEvent(new CustomEvent('ringu:economy-state',{detail:{events:result.result?.events||[]}}));
+      return result;
+    })().catch(e=>{
+      if(e.definitive){remove(scoped('server-request'));if(e.status===401||e.status===403)end('로그인이 종료되었습니다. 다시 로그인해 주세요.');}
+      else if(kind!=='economy'||payload.command!=='sync')end('처리 결과가 미확정입니다. 새 요청을 보내지 않고 재접속 시 같은 요청을 확인합니다.','conflict');
+      throw e;
+    }).finally(()=>{mutation=null;if(!ended){active=true;report('saved','서버 기록을 반영했습니다.');}});
+    return mutation;
+  }
   async function logout() {
     await flush();
     // Stop core first so it cannot create a new save while logout is pending.
@@ -268,6 +360,12 @@
       if (!response.ok) return;
       const data = await response.json();
       if (!data.account || String(data.account.id) !== String(account.id)) { end('로그인 계정이 변경되었습니다. 다시 로그인해 주세요.'); return; }
+      if(window.RinguCloud?.economy&&!mutation&&!inFlight&&data.revision>=revision&&validState(data.state)){
+        const prefs=pending?Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>pending.state[k]!==undefined).map(k=>[k,pending.state[k]])):{};
+        revision=data.revision;latest={...data.state,...prefs};lastAcknowledged=JSON.stringify(data.state);
+        if(pending){pending.state=latest;pending.raw=JSON.stringify(latest);writeBackup(pending);}
+        write(KEY,JSON.stringify(latest));if(window.RinguCore)RinguCore.state=structuredClone(latest);window.dispatchEvent(new CustomEvent('ringu:economy-state',{detail:{events:[]}}));
+      }
       if (pending) void flush().catch(() => {});
       else if (phase === 'offline') report('saved', '연결이 복구되었습니다.');
     } catch (_) { /* Offline progress stays in the account backup. */ }
@@ -313,6 +411,30 @@
       if (!data.account) { location.replace('/linsa-rpg/login.html'); throw new Error('로그인이 필요합니다.'); }
       validateSession(data);
       account = Object.freeze({ id: data.account.id, username: data.account.username }); revision = data.revision;
+      const serverJournal=read(scoped('server-request'));
+      if(serverJournal){
+        const record=JSON.parse(serverJournal);if(!['auction','costume','economy'].includes(record.kind))throw Error('이전 요청 기록을 확인해 주세요.');
+        if(record.kind==='costume')record.payload.revision=data.revision;
+        const replay=await api('/api/'+record.kind,{method:'POST',body:JSON.stringify(record.payload)});
+        if(!replay.ok&&replay.status>=500)throw Error('이전 요청 결과를 확인하지 못했습니다. 잠시 후 다시 접속해 주세요.');
+        if(!replay.ok&&[401,403].includes(replay.status))throw Error('다시 로그인해 주세요.');
+        const freshResponse=await api('/api/session');if(!freshResponse.ok)throw Error('서버 기록 조회 실패');const fresh=validateSession(await freshResponse.json());if(fresh.account.id!==account.id)throw Error('계정이 변경되었습니다.');Object.assign(data,fresh);revision=fresh.revision;remove(scoped('server-request'));
+      }
+      const unfinished=read(scoped('auction-request'));
+      if(unfinished){
+        const journal=JSON.parse(unfinished);
+        const receiptResponse=await api('/api/auction',{method:'POST',body:JSON.stringify({action:'receipt',requestId:journal.requestId})});
+        if(!receiptResponse.ok)throw new Error('이전 경매장 거래 결과를 조회하지 못했습니다. 잠시 후 다시 접속해 주세요.');
+        const receipt=await receiptResponse.json();
+        if(!receipt.found){
+          // Same stored ID only: a delayed original and this retry cannot both settle.
+          const retry=await api('/api/auction',{method:'POST',body:JSON.stringify(journal)});
+          if(!retry.ok)throw new Error('이전 경매장 거래가 미확정 상태입니다. 요청 기록을 보존했습니다. 관리자에게 확인해 주세요.');
+        }
+        const freshResponse=await api('/api/session');if(!freshResponse.ok)throw new Error('거래 후 계정 기록을 다시 확인해 주세요.');
+        const fresh=validateSession(await freshResponse.json());if(fresh.account.id!==account.id)throw new Error('계정이 변경되었습니다.');
+        Object.assign(data,fresh);revision=fresh.revision;remove(scoped('auction-request'));
+      }
       const existing = read(KEY), previousOwner = read(OWNER);
       archive(existing, previousOwner, 'before-account-session-load');
       let chosen = data.state, backup = null;
@@ -325,7 +447,10 @@
           archive(backupRaw, String(account.id), 'unreadable-pending-backup');
           throw new Error('이 계정의 로컬 백업을 읽을 수 없습니다. 백업 원본은 보존했습니다. 복구 점검 후 다시 시도해 주세요.');
         }
-        if (JSON.stringify(backup.state) !== JSON.stringify(data.state)) chosen = await chooseRecovery(backup, data);
+        if (JSON.stringify(backup.state) !== JSON.stringify(data.state)) {
+          if(window.RinguCloud?.economy)chosen={...data.state,...Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>backup.state[k]!==undefined).map(k=>[k,backup.state[k]]))};
+          else chosen = await chooseRecovery(backup, data);
+        }
         archive(backupRaw, String(account.id), 'preserved-recovery-backup');
       }
       // Recheck after a recovery dialog (another login may have occurred).
@@ -352,7 +477,8 @@
     }
   }
   const bridge = {
-    ready: null, save, flush, logout, costumeTransaction,
+    ready: null, save, flush, logout, costumeTransaction, auctionTransaction,
+    economyTransaction:(command,args={})=>serverTransaction('economy',{command,args,requestId:crypto.randomUUID()}),
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
     subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },
     onEnded(fn) { endHooks.add(fn); if (ended) fn(snapshot()); return () => endHooks.delete(fn); }

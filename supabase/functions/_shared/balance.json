@@ -1,0 +1,5755 @@
+{
+  "version": "pre-auction-88a7de9",
+  "slots": [
+    "무기",
+    "투구",
+    "갑옷",
+    "바지",
+    "신발",
+    "반지",
+    "귀걸이"
+  ],
+  "rarityNames": [
+    "일반",
+    "희귀",
+    "레어",
+    "에픽",
+    "전설",
+    "신화",
+    "타락"
+  ],
+  "rates": [
+    [
+      100,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      99.98,
+      0.02,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      99.9,
+      0.1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      98,
+      2,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      96,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      93,
+      6.95,
+      0.05,
+      0,
+      0,
+      0
+    ],
+    [
+      88,
+      10.5,
+      1.5,
+      0,
+      0,
+      0
+    ],
+    [
+      84,
+      13,
+      2.95,
+      0.05,
+      0,
+      0
+    ],
+    [
+      80,
+      15,
+      4.9,
+      0.1,
+      0,
+      0
+    ],
+    [
+      74,
+      18,
+      7.5,
+      0.5,
+      0,
+      0
+    ],
+    [
+      69,
+      20,
+      9.97,
+      1,
+      0.03,
+      0
+    ],
+    [
+      64,
+      22,
+      12.45,
+      1.5,
+      0.05,
+      0
+    ],
+    [
+      58,
+      24,
+      13.945,
+      4,
+      0.05,
+      0.005
+    ],
+    [
+      52,
+      25,
+      15.842,
+      7,
+      0.15,
+      0.008
+    ],
+    [
+      46,
+      26,
+      17.787,
+      9.8,
+      0.4,
+      0.013
+    ]
+  ],
+  "levelReq": [
+    0,
+    80,
+    200,
+    380,
+    650,
+    1050,
+    1650,
+    2500,
+    3650,
+    5150,
+    7050,
+    9350,
+    12050,
+    15250,
+    19050
+  ],
+  "bossRegions": [
+    {
+      "name": "초원",
+      "bosses": [
+        {
+          "name": "초원 슬라임",
+          "hp": 600,
+          "reward": 14
+        },
+        {
+          "name": "초원 늑대",
+          "hp": 1932,
+          "reward": 48
+        },
+        {
+          "name": "거대 멧돼지",
+          "hp": 2089,
+          "reward": 52
+        },
+        {
+          "name": "숲의 고블린",
+          "hp": 2247,
+          "reward": 56
+        },
+        {
+          "name": "초원 수호자",
+          "hp": 2508,
+          "reward": 62
+        },
+        {
+          "name": "숲 정령",
+          "hp": 2823,
+          "reward": 70
+        }
+      ],
+      "locked": false
+    },
+    {
+      "name": "사막",
+      "bosses": [
+        {
+          "name": "모래 전갈",
+          "hp": 3114,
+          "reward": 76
+        },
+        {
+          "name": "사막 하이에나",
+          "hp": 3472,
+          "reward": 86
+        },
+        {
+          "name": "고대 미라",
+          "hp": 3830,
+          "reward": 94
+        },
+        {
+          "name": "모래폭풍 정령",
+          "hp": 4187,
+          "reward": 104
+        },
+        {
+          "name": "사막의 폭군",
+          "hp": 4784,
+          "reward": 118
+        },
+        {
+          "name": "사막의 왕",
+          "hp": 5500,
+          "reward": 136
+        }
+      ],
+      "locked": false
+    },
+    {
+      "name": "설원",
+      "bosses": [
+        {
+          "name": "얼음 송곳니",
+          "hp": 7013,
+          "reward": 174
+        },
+        {
+          "name": "설원 트롤",
+          "hp": 7956,
+          "reward": 198
+        },
+        {
+          "name": "빙결 마녀",
+          "hp": 8899,
+          "reward": 222
+        },
+        {
+          "name": "혹한의 거인",
+          "hp": 9842,
+          "reward": 246
+        },
+        {
+          "name": "설원의 군주",
+          "hp": 11413,
+          "reward": 284
+        },
+        {
+          "name": "서리 군주",
+          "hp": 13299,
+          "reward": 332
+        }
+      ],
+      "locked": false
+    },
+    {
+      "name": "화산",
+      "bosses": [
+        {
+          "name": "잿불 와이번",
+          "hp": 16209,
+          "reward": 404
+        },
+        {
+          "name": "용암 기사",
+          "hp": 18531,
+          "reward": 462
+        },
+        {
+          "name": "마그마 주술사",
+          "hp": 20853,
+          "reward": 520
+        },
+        {
+          "name": "흑요석 골렘",
+          "hp": 23175,
+          "reward": 578
+        },
+        {
+          "name": "화산의 군주",
+          "hp": 27046,
+          "reward": 676
+        },
+        {
+          "name": "화염 군주",
+          "hp": 31690,
+          "reward": 792
+        }
+      ],
+      "locked": false
+    },
+    {
+      "name": "천공",
+      "locked": false,
+      "bosses": [
+        {
+          "name": "새벽빛 수문장",
+          "hp": 42922,
+          "reward": 1072
+        },
+        {
+          "name": "은하의 기사",
+          "hp": 49252,
+          "reward": 1230
+        },
+        {
+          "name": "구름궁 현자",
+          "hp": 55581,
+          "reward": 1388
+        },
+        {
+          "name": "찬란한 세라프",
+          "hp": 61910,
+          "reward": 1546
+        },
+        {
+          "name": "별빛의 심판자",
+          "hp": 72459,
+          "reward": 1810
+        },
+        {
+          "name": "천공의 황제",
+          "hp": 85118,
+          "reward": 2128
+        }
+      ]
+    },
+    {
+      "name": "6지역",
+      "locked": false,
+      "bosses": [
+        {
+          "name": "심연 감시자",
+          "hp": 113170,
+          "reward": 2828
+        },
+        {
+          "name": "공허 기사",
+          "hp": 130036,
+          "reward": 3250
+        },
+        {
+          "name": "망각의 사제",
+          "hp": 146903,
+          "reward": 3672
+        },
+        {
+          "name": "검은 균열자",
+          "hp": 163769,
+          "reward": 4094
+        },
+        {
+          "name": "심연의 군주",
+          "hp": 191880,
+          "reward": 4796
+        },
+        {
+          "name": "공허의 지배자",
+          "hp": 225612,
+          "reward": 5640
+        }
+      ]
+    }
+  ],
+  "goldDungeons": [
+    {
+      "stage": 1,
+      "hp": 500,
+      "reward": 25000,
+      "artIndex": 0,
+      "name": "초원 슬라임"
+    },
+    {
+      "stage": 2,
+      "hp": 1200,
+      "reward": 40000,
+      "artIndex": 1,
+      "name": "초원 늑대"
+    },
+    {
+      "stage": 3,
+      "hp": 1650,
+      "reward": 60000,
+      "artIndex": 2,
+      "name": "거대 멧돼지"
+    },
+    {
+      "stage": 4,
+      "hp": 2200,
+      "reward": 80000,
+      "artIndex": 3,
+      "name": "숲의 고블린"
+    },
+    {
+      "stage": 5,
+      "hp": 2600,
+      "reward": 120000,
+      "artIndex": 4,
+      "name": "초원 수호자"
+    },
+    {
+      "stage": 6,
+      "hp": 3400,
+      "reward": 180000,
+      "artIndex": 5,
+      "name": "숲 정령"
+    },
+    {
+      "stage": 7,
+      "hp": 4500,
+      "reward": 250000,
+      "artIndex": 6,
+      "name": "모래 전갈"
+    },
+    {
+      "stage": 8,
+      "hp": 5300,
+      "reward": 320000,
+      "artIndex": 7,
+      "name": "사막 하이에나"
+    },
+    {
+      "stage": 9,
+      "hp": 7600,
+      "reward": 450000,
+      "artIndex": 8,
+      "name": "고대 미라"
+    },
+    {
+      "stage": 10,
+      "hp": 10000,
+      "reward": 600000,
+      "artIndex": 9,
+      "name": "모래폭풍 정령"
+    },
+    {
+      "stage": 11,
+      "hp": 13500,
+      "reward": 800000,
+      "artIndex": 10,
+      "name": "사막의 폭군"
+    },
+    {
+      "stage": 12,
+      "hp": 16000,
+      "reward": 1000000,
+      "artIndex": 11,
+      "name": "사막의 왕"
+    },
+    {
+      "stage": 13,
+      "hp": 23000,
+      "reward": 1400000,
+      "artIndex": 12,
+      "name": "얼음 송곳니"
+    },
+    {
+      "stage": 14,
+      "hp": 31000,
+      "reward": 1800000,
+      "artIndex": 13,
+      "name": "설원 트롤"
+    },
+    {
+      "stage": 15,
+      "hp": 40000,
+      "reward": 2400000,
+      "artIndex": 14,
+      "name": "빙결 마녀"
+    },
+    {
+      "stage": 16,
+      "hp": 47000,
+      "reward": 3000000,
+      "artIndex": 15,
+      "name": "혹한의 거인"
+    },
+    {
+      "stage": 17,
+      "hp": 90000,
+      "reward": 4000000,
+      "artIndex": 16,
+      "name": "설원의 군주"
+    },
+    {
+      "stage": 18,
+      "hp": 115000,
+      "reward": 5200000,
+      "artIndex": 17,
+      "name": "서리 군주"
+    },
+    {
+      "stage": 19,
+      "hp": 155000,
+      "reward": 6800000,
+      "artIndex": 18,
+      "name": "잿불 와이번"
+    },
+    {
+      "stage": 20,
+      "hp": 180000,
+      "reward": 8500000,
+      "artIndex": 19,
+      "name": "용암 기사"
+    }
+  ],
+  "towerFloors": [
+    {
+      "floor": 1,
+      "required": 500,
+      "hp": 7500,
+      "gold": 30000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 0,
+      "petStone": 0,
+      "name": "청동 문지기"
+    },
+    {
+      "floor": 2,
+      "required": 800,
+      "hp": 12000,
+      "gold": 50000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 0,
+      "petStone": 0,
+      "name": "녹빛 가시군주"
+    },
+    {
+      "floor": 3,
+      "required": 1200,
+      "hp": 18000,
+      "gold": 80000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 0,
+      "petStone": 0,
+      "name": "자수정 환영사"
+    },
+    {
+      "floor": 4,
+      "required": 1800,
+      "hp": 27000,
+      "gold": 120000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 1,
+      "petStone": 0,
+      "name": "황금 뿔기사"
+    },
+    {
+      "floor": 5,
+      "required": 2500,
+      "hp": 37500,
+      "gold": 180000,
+      "essence": 0,
+      "protect": 1,
+      "stone": 1,
+      "petStone": 0,
+      "name": "홍염의 집행자"
+    },
+    {
+      "floor": 6,
+      "required": 3400,
+      "hp": 51000,
+      "gold": 270000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 1,
+      "petStone": 0,
+      "name": "심해의 감시자"
+    },
+    {
+      "floor": 7,
+      "required": 4500,
+      "hp": 67500,
+      "gold": 400000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 1,
+      "petStone": 0,
+      "name": "핏빛 사도"
+    },
+    {
+      "floor": 8,
+      "required": 5800,
+      "hp": 87000,
+      "gold": 600000,
+      "essence": 0,
+      "protect": 1,
+      "stone": 2,
+      "petStone": 0,
+      "name": "백은의 심판관"
+    },
+    {
+      "floor": 9,
+      "required": 7000,
+      "hp": 105000,
+      "gold": 850000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 2,
+      "petStone": 0,
+      "name": "멸망의 마룡"
+    },
+    {
+      "floor": 10,
+      "required": 8500,
+      "hp": 127500,
+      "gold": 1200000,
+      "essence": 0,
+      "protect": 2,
+      "stone": 3,
+      "petStone": 0,
+      "name": "종언의 탑주"
+    },
+    {
+      "floor": 11,
+      "required": 10500,
+      "hp": 157500,
+      "gold": 1700000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 3,
+      "petStone": 0,
+      "name": "서리 거울기사"
+    },
+    {
+      "floor": 12,
+      "required": 12500,
+      "hp": 187500,
+      "gold": 2400000,
+      "essence": 0,
+      "protect": 1,
+      "stone": 4,
+      "petStone": 0,
+      "name": "독안개 파수꾼"
+    },
+    {
+      "floor": 13,
+      "required": 14500,
+      "hp": 217500,
+      "gold": 3300000,
+      "essence": 0,
+      "protect": 0,
+      "stone": 4,
+      "petStone": 0,
+      "name": "폭풍의 감시자"
+    },
+    {
+      "floor": 14,
+      "required": 16500,
+      "hp": 247500,
+      "gold": 4500000,
+      "essence": 0,
+      "protect": 1,
+      "stone": 5,
+      "petStone": 0,
+      "name": "환월의 마도사"
+    },
+    {
+      "floor": 15,
+      "required": 19000,
+      "hp": 285000,
+      "gold": 6000000,
+      "essence": 0,
+      "protect": 3,
+      "stone": 6,
+      "petStone": 5,
+      "name": "태양문 심판자"
+    },
+    {
+      "floor": 16,
+      "required": 21500,
+      "hp": 322500,
+      "gold": 8000000,
+      "essence": 0,
+      "protect": 1,
+      "stone": 6,
+      "petStone": 0,
+      "name": "공허의 사냥꾼"
+    },
+    {
+      "floor": 17,
+      "required": 24000,
+      "hp": 360000,
+      "gold": 10500000,
+      "essence": 0,
+      "protect": 1,
+      "stone": 7,
+      "petStone": 0,
+      "name": "혈염 대공"
+    },
+    {
+      "floor": 18,
+      "required": 27000,
+      "hp": 405000,
+      "gold": 13500000,
+      "essence": 0,
+      "protect": 2,
+      "stone": 8,
+      "petStone": 0,
+      "name": "백야의 처형자"
+    },
+    {
+      "floor": 19,
+      "required": 30000,
+      "hp": 450000,
+      "gold": 17000000,
+      "essence": 0,
+      "protect": 2,
+      "stone": 9,
+      "petStone": 0,
+      "name": "차원 균열룡"
+    },
+    {
+      "floor": 20,
+      "required": 33000,
+      "hp": 495000,
+      "gold": 22000000,
+      "essence": 0,
+      "protect": 5,
+      "stone": 12,
+      "petStone": 10,
+      "name": "무한의 시련왕"
+    },
+    {
+      "floor": 21,
+      "required": 36000,
+      "hp": 540000,
+      "gold": 28000000,
+      "essence": 0,
+      "protect": 2,
+      "stone": 12,
+      "petStone": 0,
+      "name": "천공의 문지기"
+    },
+    {
+      "floor": 22,
+      "required": 39000,
+      "hp": 585000,
+      "gold": 35000000,
+      "essence": 0,
+      "protect": 2,
+      "stone": 14,
+      "petStone": 0,
+      "name": "유성 거울기사"
+    },
+    {
+      "floor": 23,
+      "required": 42000,
+      "hp": 630000,
+      "gold": 43000000,
+      "essence": 0,
+      "protect": 3,
+      "stone": 16,
+      "petStone": 0,
+      "name": "백금 성기사"
+    },
+    {
+      "floor": 24,
+      "required": 46000,
+      "hp": 690000,
+      "gold": 52000000,
+      "essence": 0,
+      "protect": 3,
+      "stone": 18,
+      "petStone": 0,
+      "name": "성운의 마도사"
+    },
+    {
+      "floor": 25,
+      "required": 50000,
+      "hp": 750000,
+      "gold": 63000000,
+      "essence": 0,
+      "protect": 7,
+      "stone": 22,
+      "petStone": 15,
+      "name": "여명 집행자"
+    },
+    {
+      "floor": 26,
+      "required": 52000,
+      "hp": 780000,
+      "gold": 76000000,
+      "essence": 0,
+      "protect": 4,
+      "stone": 22,
+      "petStone": 0,
+      "name": "오로라 수호자"
+    },
+    {
+      "floor": 27,
+      "required": 54000,
+      "hp": 810000,
+      "gold": 91000000,
+      "essence": 0,
+      "protect": 4,
+      "stone": 25,
+      "petStone": 0,
+      "name": "은하 균열자"
+    },
+    {
+      "floor": 28,
+      "required": 56000,
+      "hp": 840000,
+      "gold": 108000000,
+      "essence": 0,
+      "protect": 5,
+      "stone": 28,
+      "petStone": 0,
+      "name": "찬란한 세라프"
+    },
+    {
+      "floor": 29,
+      "required": 58000,
+      "hp": 870000,
+      "gold": 127000000,
+      "essence": 0,
+      "protect": 5,
+      "stone": 32,
+      "petStone": 0,
+      "name": "별빛 심판관"
+    },
+    {
+      "floor": 30,
+      "required": 60000,
+      "hp": 900000,
+      "gold": 150000000,
+      "essence": 0,
+      "protect": 10,
+      "stone": 40,
+      "petStone": 30,
+      "name": "천상의 지배자"
+    }
+  ],
+  "collectionRewards": [
+    {
+      "count": 50,
+      "gold": 50000,
+      "essence": 20
+    },
+    {
+      "count": 100,
+      "gold": 150000,
+      "essence": 30
+    },
+    {
+      "count": 150,
+      "gold": 400000,
+      "essence": 40
+    },
+    {
+      "count": 200,
+      "gold": 1000000,
+      "essence": 60
+    },
+    {
+      "count": 300,
+      "gold": 3000000,
+      "essence": 100
+    },
+    {
+      "count": 350,
+      "gold": 6000000,
+      "essence": 150
+    },
+    {
+      "count": 400,
+      "gold": 12000000,
+      "essence": 200
+    }
+  ],
+  "auras": [
+    {
+      "id": 0,
+      "name": "홍련의 숨결",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 1,
+      "name": "잿불의 폭풍",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 2,
+      "name": "여명의 날개",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 3,
+      "name": "숲의 정령무리",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 4,
+      "name": "빙하의 서약",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 5,
+      "name": "심연의 일식",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 6,
+      "name": "공허의 균열",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 7,
+      "name": "백야의 성익",
+      "price": 50,
+      "attackPercent": 3
+    },
+    {
+      "id": 8,
+      "name": "별무리의 만화경",
+      "price": 200,
+      "attackPercent": 12
+    }
+  ],
+  "pets": {
+    "pet_1_001": {
+      "id": "pet_1_001",
+      "name": "작은 풀토끼",
+      "grade": 1,
+      "tierInGrade": 1,
+      "icon": "🐰",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 33,
+        "attackPercent": 0.002,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.005
+      }
+    },
+    "pet_1_002": {
+      "id": "pet_1_002",
+      "name": "나무 다람쥐",
+      "grade": 1,
+      "tierInGrade": 2,
+      "icon": "🐿️",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 50,
+        "attackPercent": 0.003,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.008
+      }
+    },
+    "pet_1_003": {
+      "id": "pet_1_003",
+      "name": "물방울 슬라임",
+      "grade": 1,
+      "tierInGrade": 3,
+      "icon": "💧",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 73,
+        "attackPercent": 0.004,
+        "attackSpeed": 0,
+        "critRate": 0.001,
+        "critDamage": 0.01
+      }
+    },
+    "pet_1_004": {
+      "id": "pet_1_004",
+      "name": "꼬마 병아리",
+      "grade": 1,
+      "tierInGrade": 4,
+      "icon": "🐥",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 100,
+        "attackPercent": 0.005,
+        "attackSpeed": 0.001,
+        "critRate": 0.001,
+        "critDamage": 0.012
+      }
+    },
+    "pet_1_005": {
+      "id": "pet_1_005",
+      "name": "회색 고양이",
+      "grade": 1,
+      "tierInGrade": 5,
+      "icon": "🐱",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 140,
+        "attackPercent": 0.006,
+        "attackSpeed": 0.001,
+        "critRate": 0.001,
+        "critDamage": 0.015
+      }
+    },
+    "pet_2_001": {
+      "id": "pet_2_001",
+      "name": "붉은 여우",
+      "grade": 2,
+      "tierInGrade": 1,
+      "icon": "🦊",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 200,
+        "attackPercent": 0.008,
+        "attackSpeed": 0.001,
+        "critRate": 0.002,
+        "critDamage": 0.02
+      }
+    },
+    "pet_2_002": {
+      "id": "pet_2_002",
+      "name": "바위 거북",
+      "grade": 2,
+      "tierInGrade": 2,
+      "icon": "🐢",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 266,
+        "attackPercent": 0.01,
+        "attackSpeed": 0.001,
+        "critRate": 0.002,
+        "critDamage": 0.025
+      }
+    },
+    "pet_2_003": {
+      "id": "pet_2_003",
+      "name": "바람 참새",
+      "grade": 2,
+      "tierInGrade": 3,
+      "icon": "🐦",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 350,
+        "attackPercent": 0.012,
+        "attackSpeed": 0.002,
+        "critRate": 0.003,
+        "critDamage": 0.03
+      }
+    },
+    "pet_2_004": {
+      "id": "pet_2_004",
+      "name": "푸른 늑대",
+      "grade": 2,
+      "tierInGrade": 4,
+      "icon": "🐺",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 450,
+        "attackPercent": 0.014,
+        "attackSpeed": 0.002,
+        "critRate": 0.003,
+        "critDamage": 0.035
+      }
+    },
+    "pet_2_005": {
+      "id": "pet_2_005",
+      "name": "달빛 부엉이",
+      "grade": 2,
+      "tierInGrade": 5,
+      "icon": "🦉",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 566,
+        "attackPercent": 0.016,
+        "attackSpeed": 0.003,
+        "critRate": 0.004,
+        "critDamage": 0.045
+      }
+    },
+    "pet_3_001": {
+      "id": "pet_3_001",
+      "name": "화염 사자",
+      "grade": 3,
+      "tierInGrade": 1,
+      "icon": "🦁",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 766,
+        "attackPercent": 0.02,
+        "attackSpeed": 0.003,
+        "critRate": 0.005,
+        "critDamage": 0.055
+      }
+    },
+    "pet_3_002": {
+      "id": "pet_3_002",
+      "name": "얼음 표범",
+      "grade": 3,
+      "tierInGrade": 2,
+      "icon": "🐆",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 1000,
+        "attackPercent": 0.024,
+        "attackSpeed": 0.004,
+        "critRate": 0.006,
+        "critDamage": 0.065
+      }
+    },
+    "pet_3_003": {
+      "id": "pet_3_003",
+      "name": "번개 매",
+      "grade": 3,
+      "tierInGrade": 3,
+      "icon": "🦅",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 1266,
+        "attackPercent": 0.028,
+        "attackSpeed": 0.005,
+        "critRate": 0.007,
+        "critDamage": 0.08
+      }
+    },
+    "pet_3_004": {
+      "id": "pet_3_004",
+      "name": "독안개 뱀",
+      "grade": 3,
+      "tierInGrade": 4,
+      "icon": "🐍",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 1600,
+        "attackPercent": 0.032,
+        "attackSpeed": 0.006,
+        "critRate": 0.008,
+        "critDamage": 0.095
+      }
+    },
+    "pet_3_005": {
+      "id": "pet_3_005",
+      "name": "황금 호랑이",
+      "grade": 3,
+      "tierInGrade": 5,
+      "icon": "🐯",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 2000,
+        "attackPercent": 0.038,
+        "attackSpeed": 0.007,
+        "critRate": 0.01,
+        "critDamage": 0.12
+      }
+    },
+    "pet_4_001": {
+      "id": "pet_4_001",
+      "name": "심연 늑대",
+      "grade": 4,
+      "tierInGrade": 1,
+      "icon": "🌑",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 2600,
+        "attackPercent": 0.045,
+        "attackSpeed": 0.008,
+        "critRate": 0.012,
+        "critDamage": 0.15
+      }
+    },
+    "pet_4_002": {
+      "id": "pet_4_002",
+      "name": "폭풍 그리핀",
+      "grade": 4,
+      "tierInGrade": 2,
+      "icon": "🦅",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 3266,
+        "attackPercent": 0.055,
+        "attackSpeed": 0.01,
+        "critRate": 0.014,
+        "critDamage": 0.18
+      }
+    },
+    "pet_4_003": {
+      "id": "pet_4_003",
+      "name": "붉은 키메라",
+      "grade": 4,
+      "tierInGrade": 3,
+      "icon": "🔥",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 4166,
+        "attackPercent": 0.065,
+        "attackSpeed": 0.012,
+        "critRate": 0.016,
+        "critDamage": 0.22
+      }
+    },
+    "pet_4_004": {
+      "id": "pet_4_004",
+      "name": "은월 구미호",
+      "grade": 4,
+      "tierInGrade": 4,
+      "icon": "🦊",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 5166,
+        "attackPercent": 0.08,
+        "attackSpeed": 0.014,
+        "critRate": 0.018,
+        "critDamage": 0.27
+      }
+    },
+    "pet_4_005": {
+      "id": "pet_4_005",
+      "name": "흑염 드레이크",
+      "grade": 4,
+      "tierInGrade": 5,
+      "icon": "🐉",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 6333,
+        "attackPercent": 0.1,
+        "attackSpeed": 0.016,
+        "critRate": 0.02,
+        "critDamage": 0.33
+      }
+    },
+    "pet_5_001": {
+      "id": "pet_5_001",
+      "name": "천공의 페가수스",
+      "grade": 5,
+      "tierInGrade": 1,
+      "icon": "🪽",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 8000,
+        "attackPercent": 0.12,
+        "attackSpeed": 0.018,
+        "critRate": 0.024,
+        "critDamage": 0.42
+      }
+    },
+    "pet_5_002": {
+      "id": "pet_5_002",
+      "name": "지옥의 케르베로스",
+      "grade": 5,
+      "tierInGrade": 2,
+      "icon": "🐺",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 10000,
+        "attackPercent": 0.15,
+        "attackSpeed": 0.021,
+        "critRate": 0.028,
+        "critDamage": 0.52
+      }
+    },
+    "pet_5_003": {
+      "id": "pet_5_003",
+      "name": "고대의 피닉스",
+      "grade": 5,
+      "tierInGrade": 3,
+      "icon": "🐦‍🔥",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 12666,
+        "attackPercent": 0.18,
+        "attackSpeed": 0.025,
+        "critRate": 0.032,
+        "critDamage": 0.65
+      }
+    },
+    "pet_5_004": {
+      "id": "pet_5_004",
+      "name": "별빛의 유니콘",
+      "grade": 5,
+      "tierInGrade": 4,
+      "icon": "🦄",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 16000,
+        "attackPercent": 0.22,
+        "attackSpeed": 0.03,
+        "critRate": 0.038,
+        "critDamage": 0.8
+      }
+    },
+    "pet_5_005": {
+      "id": "pet_5_005",
+      "name": "종말의 흑룡",
+      "grade": 5,
+      "tierInGrade": 5,
+      "icon": "🐉",
+      "maxLevel": 5,
+      "baseStats": {
+        "attack": 20000,
+        "attackPercent": 0.28,
+        "attackSpeed": 0.036,
+        "critRate": 0.045,
+        "critDamage": 1
+      }
+    }
+  },
+  "petCollectionRewards": [
+    {
+      "count": 5,
+      "reward": {
+        "petStone": 10
+      }
+    },
+    {
+      "count": 10,
+      "reward": {
+        "petStone": 15
+      }
+    },
+    {
+      "count": 15,
+      "reward": {
+        "petStone": 20
+      }
+    },
+    {
+      "count": 20,
+      "reward": {
+        "petStone": 30
+      }
+    },
+    {
+      "count": 25,
+      "reward": {
+        "petStone": 50
+      }
+    }
+  ],
+  "gear": [
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 0,
+      "name": "낡은 장검",
+      "baseAtk": 16
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 1,
+      "name": "수련용 검",
+      "baseAtk": 23
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 2,
+      "name": "견습의 대검",
+      "baseAtk": 21
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 3,
+      "name": "무딘 환도",
+      "baseAtk": 19
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 4,
+      "name": "가벼운 마검",
+      "baseAtk": 17
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 5,
+      "name": "초보자의 성검",
+      "baseAtk": 24
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 6,
+      "name": "평범한 쌍검",
+      "baseAtk": 22
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 7,
+      "name": "손때 묻은 도",
+      "baseAtk": 20
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 8,
+      "name": "여행자의 검날",
+      "baseAtk": 18
+    },
+    {
+      "slot": "무기",
+      "rarity": 0,
+      "index": 9,
+      "name": "단단한 룬소드",
+      "baseAtk": 16
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 0,
+      "name": "숲바람의 장검",
+      "baseAtk": 41
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 1,
+      "name": "청동빛 검",
+      "baseAtk": 48
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 2,
+      "name": "사냥꾼의 대검",
+      "baseAtk": 36
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 3,
+      "name": "용병의 환도",
+      "baseAtk": 43
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 4,
+      "name": "새벽녘 마검",
+      "baseAtk": 50
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 5,
+      "name": "바람결의 성검",
+      "baseAtk": 38
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 6,
+      "name": "야성의 쌍검",
+      "baseAtk": 45
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 7,
+      "name": "수호병의 도",
+      "baseAtk": 52
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 8,
+      "name": "비취빛 검날",
+      "baseAtk": 40
+    },
+    {
+      "slot": "무기",
+      "rarity": 1,
+      "index": 9,
+      "name": "은은한 룬소드",
+      "baseAtk": 47
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 0,
+      "name": "빙결의 장검",
+      "baseAtk": 110
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 1,
+      "name": "뇌광의 검",
+      "baseAtk": 117
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 2,
+      "name": "심연의 대검",
+      "baseAtk": 124
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 3,
+      "name": "왕실의 환도",
+      "baseAtk": 131
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 4,
+      "name": "폭풍의 마검",
+      "baseAtk": 138
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 5,
+      "name": "적월의 성검",
+      "baseAtk": 100
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 6,
+      "name": "별빛의 쌍검",
+      "baseAtk": 107
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 7,
+      "name": "환영의 도",
+      "baseAtk": 114
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 8,
+      "name": "백은의 검날",
+      "baseAtk": 121
+    },
+    {
+      "slot": "무기",
+      "rarity": 2,
+      "index": 9,
+      "name": "용맹한 룬소드",
+      "baseAtk": 128
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 0,
+      "name": "천공의 장검",
+      "baseAtk": 261
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 1,
+      "name": "불멸의 검",
+      "baseAtk": 268
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 2,
+      "name": "마왕의 대검",
+      "baseAtk": 275
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 3,
+      "name": "성역의 환도",
+      "baseAtk": 282
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 4,
+      "name": "고대룡의 마검",
+      "baseAtk": 289
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 5,
+      "name": "운명의 성검",
+      "baseAtk": 296
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 6,
+      "name": "차원절단 쌍검",
+      "baseAtk": 303
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 7,
+      "name": "패왕의 도",
+      "baseAtk": 310
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 8,
+      "name": "신탁의 검날",
+      "baseAtk": 317
+    },
+    {
+      "slot": "무기",
+      "rarity": 3,
+      "index": 9,
+      "name": "황혼의 룬소드",
+      "baseAtk": 324
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 0,
+      "name": "태양의 장검",
+      "baseAtk": 860
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 1,
+      "name": "창세의 검",
+      "baseAtk": 867
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 2,
+      "name": "천벌의 대검",
+      "baseAtk": 874
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 3,
+      "name": "신왕의 환도",
+      "baseAtk": 881
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 4,
+      "name": "세계수의 마검",
+      "baseAtk": 888
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 5,
+      "name": "종말의 성검",
+      "baseAtk": 895
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 6,
+      "name": "라그나로크 쌍검",
+      "baseAtk": 902
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 7,
+      "name": "아포칼립스 도",
+      "baseAtk": 909
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 8,
+      "name": "발할라의 검날",
+      "baseAtk": 916
+    },
+    {
+      "slot": "무기",
+      "rarity": 4,
+      "index": 9,
+      "name": "오딘의 룬소드",
+      "baseAtk": 923
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 0,
+      "name": "피의 맹약 도끼",
+      "baseAtk": 2475
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 1,
+      "name": "붉은 심연 검",
+      "baseAtk": 2482
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 2,
+      "name": "멸망의 별 대검",
+      "baseAtk": 2489
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 3,
+      "name": "마신의 건틀릿",
+      "baseAtk": 2496
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 4,
+      "name": "혼돈왕의 메이스",
+      "baseAtk": 2503
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 5,
+      "name": "적룡신의 지팡이",
+      "baseAtk": 2510
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 6,
+      "name": "파멸자의 완드",
+      "baseAtk": 2517
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 7,
+      "name": "무한 재앙 쌍검",
+      "baseAtk": 2524
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 8,
+      "name": "종언의 전투도끼",
+      "baseAtk": 2531
+    },
+    {
+      "slot": "무기",
+      "rarity": 5,
+      "index": 9,
+      "name": "신살자의 파멸대검",
+      "baseAtk": 2538
+    },
+    {
+      "slot": "무기",
+      "rarity": 6,
+      "index": 0,
+      "name": "타락의 멸망검",
+      "baseAtk": 7350
+    },
+    {
+      "slot": "무기",
+      "rarity": 6,
+      "index": 1,
+      "name": "타락의 멸망도끼",
+      "baseAtk": 7392
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 0,
+      "name": "낡은 철투구",
+      "baseAtk": 4
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 1,
+      "name": "수련용 면갑",
+      "baseAtk": 5
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 2,
+      "name": "견습의 전투모",
+      "baseAtk": 6
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 3,
+      "name": "무딘 왕관",
+      "baseAtk": 4
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 4,
+      "name": "가벼운 뿔투구",
+      "baseAtk": 5
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 5,
+      "name": "초보자의 기사투구",
+      "baseAtk": 6
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 6,
+      "name": "평범한 두건",
+      "baseAtk": 4
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 7,
+      "name": "손때 묻은 투구",
+      "baseAtk": 5
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 8,
+      "name": "여행자의 머리장식",
+      "baseAtk": 6
+    },
+    {
+      "slot": "투구",
+      "rarity": 0,
+      "index": 9,
+      "name": "단단한 가면",
+      "baseAtk": 4
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 0,
+      "name": "숲바람의 철투구",
+      "baseAtk": 11
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 1,
+      "name": "청동빛 면갑",
+      "baseAtk": 12
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 2,
+      "name": "사냥꾼의 전투모",
+      "baseAtk": 13
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 3,
+      "name": "용병의 왕관",
+      "baseAtk": 14
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 4,
+      "name": "새벽녘 뿔투구",
+      "baseAtk": 9
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 5,
+      "name": "바람결의 기사투구",
+      "baseAtk": 10
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 6,
+      "name": "야성의 두건",
+      "baseAtk": 11
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 7,
+      "name": "수호병의 투구",
+      "baseAtk": 12
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 8,
+      "name": "비취빛 머리장식",
+      "baseAtk": 13
+    },
+    {
+      "slot": "투구",
+      "rarity": 1,
+      "index": 9,
+      "name": "은은한 가면",
+      "baseAtk": 14
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 0,
+      "name": "빙결의 철투구",
+      "baseAtk": 26
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 1,
+      "name": "뇌광의 면갑",
+      "baseAtk": 33
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 2,
+      "name": "심연의 전투모",
+      "baseAtk": 28
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 3,
+      "name": "왕실의 왕관",
+      "baseAtk": 35
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 4,
+      "name": "폭풍의 뿔투구",
+      "baseAtk": 30
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 5,
+      "name": "적월의 기사투구",
+      "baseAtk": 25
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 6,
+      "name": "별빛의 두건",
+      "baseAtk": 32
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 7,
+      "name": "환영의 투구",
+      "baseAtk": 27
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 8,
+      "name": "백은의 머리장식",
+      "baseAtk": 34
+    },
+    {
+      "slot": "투구",
+      "rarity": 2,
+      "index": 9,
+      "name": "용맹한 가면",
+      "baseAtk": 29
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 0,
+      "name": "천공의 철투구",
+      "baseAtk": 80
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 1,
+      "name": "불멸의 면갑",
+      "baseAtk": 87
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 2,
+      "name": "마왕의 전투모",
+      "baseAtk": 66
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 3,
+      "name": "성역의 왕관",
+      "baseAtk": 73
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 4,
+      "name": "고대룡의 뿔투구",
+      "baseAtk": 80
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 5,
+      "name": "운명의 기사투구",
+      "baseAtk": 87
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 6,
+      "name": "차원절단 두건",
+      "baseAtk": 66
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 7,
+      "name": "패왕의 투구",
+      "baseAtk": 73
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 8,
+      "name": "신탁의 머리장식",
+      "baseAtk": 80
+    },
+    {
+      "slot": "투구",
+      "rarity": 3,
+      "index": 9,
+      "name": "황혼의 가면",
+      "baseAtk": 87
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 0,
+      "name": "태양의 철투구",
+      "baseAtk": 233
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 1,
+      "name": "창세의 면갑",
+      "baseAtk": 240
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 2,
+      "name": "천벌의 전투모",
+      "baseAtk": 214
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 3,
+      "name": "신왕의 왕관",
+      "baseAtk": 221
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 4,
+      "name": "세계수의 뿔투구",
+      "baseAtk": 228
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 5,
+      "name": "종말의 기사투구",
+      "baseAtk": 235
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 6,
+      "name": "라그나로크 두건",
+      "baseAtk": 242
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 7,
+      "name": "아포칼립스 투구",
+      "baseAtk": 216
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 8,
+      "name": "발할라의 머리장식",
+      "baseAtk": 223
+    },
+    {
+      "slot": "투구",
+      "rarity": 4,
+      "index": 9,
+      "name": "오딘의 가면",
+      "baseAtk": 230
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 0,
+      "name": "피의 맹약 철투구",
+      "baseAtk": 641
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 1,
+      "name": "붉은 심연 면갑",
+      "baseAtk": 616
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 2,
+      "name": "멸망의 별 전투모",
+      "baseAtk": 623
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 3,
+      "name": "마신의 왕관",
+      "baseAtk": 630
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 4,
+      "name": "혼돈왕의 뿔투구",
+      "baseAtk": 637
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 5,
+      "name": "적룡신의 기사투구",
+      "baseAtk": 644
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 6,
+      "name": "파멸자의 두건",
+      "baseAtk": 619
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 7,
+      "name": "무한 재앙 투구",
+      "baseAtk": 626
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 8,
+      "name": "종언의 머리장식",
+      "baseAtk": 633
+    },
+    {
+      "slot": "투구",
+      "rarity": 5,
+      "index": 9,
+      "name": "신살자의 가면",
+      "baseAtk": 640
+    },
+    {
+      "slot": "투구",
+      "rarity": 6,
+      "index": 0,
+      "name": "타락의 공허 투구",
+      "baseAtk": 2456
+    },
+    {
+      "slot": "투구",
+      "rarity": 6,
+      "index": 1,
+      "name": "타락의 심연 투구",
+      "baseAtk": 2470
+    },
+    {
+      "slot": "투구",
+      "rarity": 6,
+      "index": 2,
+      "name": "타락의 혈월 투구",
+      "baseAtk": 2484
+    },
+    {
+      "slot": "투구",
+      "rarity": 6,
+      "index": 3,
+      "name": "타락의 망각 투구",
+      "baseAtk": 2498
+    },
+    {
+      "slot": "투구",
+      "rarity": 6,
+      "index": 4,
+      "name": "타락의 종말 투구",
+      "baseAtk": 2512
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 0,
+      "name": "낡은 흉갑",
+      "baseAtk": 4
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 1,
+      "name": "수련용 판금갑옷",
+      "baseAtk": 5
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 2,
+      "name": "견습의 전투복",
+      "baseAtk": 6
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 3,
+      "name": "무딘 사슬갑옷",
+      "baseAtk": 4
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 4,
+      "name": "가벼운 로브",
+      "baseAtk": 5
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 5,
+      "name": "초보자의 용갑",
+      "baseAtk": 6
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 6,
+      "name": "평범한 수호갑",
+      "baseAtk": 4
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 7,
+      "name": "손때 묻은 갑주",
+      "baseAtk": 5
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 8,
+      "name": "여행자의 성의",
+      "baseAtk": 6
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 0,
+      "index": 9,
+      "name": "단단한 전신갑옷",
+      "baseAtk": 4
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 0,
+      "name": "숲바람의 흉갑",
+      "baseAtk": 14
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 1,
+      "name": "청동빛 판금갑옷",
+      "baseAtk": 9
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 2,
+      "name": "사냥꾼의 전투복",
+      "baseAtk": 10
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 3,
+      "name": "용병의 사슬갑옷",
+      "baseAtk": 11
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 4,
+      "name": "새벽녘 로브",
+      "baseAtk": 12
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 5,
+      "name": "바람결의 용갑",
+      "baseAtk": 13
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 6,
+      "name": "야성의 수호갑",
+      "baseAtk": 14
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 7,
+      "name": "수호병의 갑주",
+      "baseAtk": 9
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 8,
+      "name": "비취빛 성의",
+      "baseAtk": 10
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 1,
+      "index": 9,
+      "name": "은은한 전신갑옷",
+      "baseAtk": 11
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 0,
+      "name": "빙결의 흉갑",
+      "baseAtk": 29
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 1,
+      "name": "뇌광의 판금갑옷",
+      "baseAtk": 36
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 2,
+      "name": "심연의 전투복",
+      "baseAtk": 31
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 3,
+      "name": "왕실의 사슬갑옷",
+      "baseAtk": 26
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 4,
+      "name": "폭풍의 로브",
+      "baseAtk": 33
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 5,
+      "name": "적월의 용갑",
+      "baseAtk": 28
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 6,
+      "name": "별빛의 수호갑",
+      "baseAtk": 35
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 7,
+      "name": "환영의 갑주",
+      "baseAtk": 30
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 8,
+      "name": "백은의 성의",
+      "baseAtk": 25
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 2,
+      "index": 9,
+      "name": "용맹한 전신갑옷",
+      "baseAtk": 32
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 0,
+      "name": "천공의 흉갑",
+      "baseAtk": 83
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 1,
+      "name": "불멸의 판금갑옷",
+      "baseAtk": 62
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 2,
+      "name": "마왕의 전투복",
+      "baseAtk": 69
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 3,
+      "name": "성역의 사슬갑옷",
+      "baseAtk": 76
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 4,
+      "name": "고대룡의 로브",
+      "baseAtk": 83
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 5,
+      "name": "운명의 용갑",
+      "baseAtk": 62
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 6,
+      "name": "차원절단 수호갑",
+      "baseAtk": 69
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 7,
+      "name": "패왕의 갑주",
+      "baseAtk": 76
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 8,
+      "name": "신탁의 성의",
+      "baseAtk": 83
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 3,
+      "index": 9,
+      "name": "황혼의 전신갑옷",
+      "baseAtk": 62
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 0,
+      "name": "태양의 흉갑",
+      "baseAtk": 236
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 1,
+      "name": "창세의 판금갑옷",
+      "baseAtk": 210
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 2,
+      "name": "천벌의 전투복",
+      "baseAtk": 217
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 3,
+      "name": "신왕의 사슬갑옷",
+      "baseAtk": 224
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 4,
+      "name": "세계수의 로브",
+      "baseAtk": 231
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 5,
+      "name": "종말의 용갑",
+      "baseAtk": 238
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 6,
+      "name": "라그나로크 수호갑",
+      "baseAtk": 212
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 7,
+      "name": "아포칼립스 갑주",
+      "baseAtk": 219
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 8,
+      "name": "발할라의 성의",
+      "baseAtk": 226
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 4,
+      "index": 9,
+      "name": "오딘의 전신갑옷",
+      "baseAtk": 233
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 0,
+      "name": "피의 맹약 흉갑",
+      "baseAtk": 644
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 1,
+      "name": "붉은 심연 판금갑옷",
+      "baseAtk": 619
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 2,
+      "name": "멸망의 별 전투복",
+      "baseAtk": 626
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 3,
+      "name": "마신의 사슬갑옷",
+      "baseAtk": 633
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 4,
+      "name": "혼돈왕의 로브",
+      "baseAtk": 640
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 5,
+      "name": "적룡신의 용갑",
+      "baseAtk": 615
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 6,
+      "name": "파멸자의 수호갑",
+      "baseAtk": 622
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 7,
+      "name": "무한 재앙 갑주",
+      "baseAtk": 629
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 8,
+      "name": "종언의 성의",
+      "baseAtk": 636
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 5,
+      "index": 9,
+      "name": "신살자의 전신갑옷",
+      "baseAtk": 643
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 6,
+      "index": 0,
+      "name": "타락의 공허 갑옷",
+      "baseAtk": 2462
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 6,
+      "index": 1,
+      "name": "타락의 심연 갑옷",
+      "baseAtk": 2476
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 6,
+      "index": 2,
+      "name": "타락의 혈월 갑옷",
+      "baseAtk": 2490
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 6,
+      "index": 3,
+      "name": "타락의 망각 갑옷",
+      "baseAtk": 2504
+    },
+    {
+      "slot": "갑옷",
+      "rarity": 6,
+      "index": 4,
+      "name": "타락의 종말 갑옷",
+      "baseAtk": 2518
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 0,
+      "name": "낡은 각반",
+      "baseAtk": 4
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 1,
+      "name": "수련용 전투바지",
+      "baseAtk": 5
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 2,
+      "name": "견습의 하의",
+      "baseAtk": 6
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 3,
+      "name": "무딘 다리갑옷",
+      "baseAtk": 4
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 4,
+      "name": "가벼운 사슬바지",
+      "baseAtk": 5
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 5,
+      "name": "초보자의 용린각반",
+      "baseAtk": 6
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 6,
+      "name": "평범한 마법바지",
+      "baseAtk": 4
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 7,
+      "name": "손때 묻은 수호각반",
+      "baseAtk": 5
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 8,
+      "name": "여행자의 철갑바지",
+      "baseAtk": 6
+    },
+    {
+      "slot": "바지",
+      "rarity": 0,
+      "index": 9,
+      "name": "단단한 성전하의",
+      "baseAtk": 4
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 0,
+      "name": "숲바람의 각반",
+      "baseAtk": 11
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 1,
+      "name": "청동빛 전투바지",
+      "baseAtk": 12
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 2,
+      "name": "사냥꾼의 하의",
+      "baseAtk": 13
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 3,
+      "name": "용병의 다리갑옷",
+      "baseAtk": 14
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 4,
+      "name": "새벽녘 사슬바지",
+      "baseAtk": 9
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 5,
+      "name": "바람결의 용린각반",
+      "baseAtk": 10
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 6,
+      "name": "야성의 마법바지",
+      "baseAtk": 11
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 7,
+      "name": "수호병의 수호각반",
+      "baseAtk": 12
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 8,
+      "name": "비취빛 철갑바지",
+      "baseAtk": 13
+    },
+    {
+      "slot": "바지",
+      "rarity": 1,
+      "index": 9,
+      "name": "은은한 성전하의",
+      "baseAtk": 14
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 0,
+      "name": "빙결의 각반",
+      "baseAtk": 32
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 1,
+      "name": "뇌광의 전투바지",
+      "baseAtk": 27
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 2,
+      "name": "심연의 하의",
+      "baseAtk": 34
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 3,
+      "name": "왕실의 다리갑옷",
+      "baseAtk": 29
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 4,
+      "name": "폭풍의 사슬바지",
+      "baseAtk": 36
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 5,
+      "name": "적월의 용린각반",
+      "baseAtk": 31
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 6,
+      "name": "별빛의 마법바지",
+      "baseAtk": 26
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 7,
+      "name": "환영의 수호각반",
+      "baseAtk": 33
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 8,
+      "name": "백은의 철갑바지",
+      "baseAtk": 28
+    },
+    {
+      "slot": "바지",
+      "rarity": 2,
+      "index": 9,
+      "name": "용맹한 성전하의",
+      "baseAtk": 35
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 0,
+      "name": "천공의 각반",
+      "baseAtk": 86
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 1,
+      "name": "불멸의 전투바지",
+      "baseAtk": 65
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 2,
+      "name": "마왕의 하의",
+      "baseAtk": 72
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 3,
+      "name": "성역의 다리갑옷",
+      "baseAtk": 79
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 4,
+      "name": "고대룡의 사슬바지",
+      "baseAtk": 86
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 5,
+      "name": "운명의 용린각반",
+      "baseAtk": 65
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 6,
+      "name": "차원절단 마법바지",
+      "baseAtk": 72
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 7,
+      "name": "패왕의 수호각반",
+      "baseAtk": 79
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 8,
+      "name": "신탁의 철갑바지",
+      "baseAtk": 86
+    },
+    {
+      "slot": "바지",
+      "rarity": 3,
+      "index": 9,
+      "name": "황혼의 성전하의",
+      "baseAtk": 65
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 0,
+      "name": "태양의 각반",
+      "baseAtk": 239
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 1,
+      "name": "창세의 전투바지",
+      "baseAtk": 213
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 2,
+      "name": "천벌의 하의",
+      "baseAtk": 220
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 3,
+      "name": "신왕의 다리갑옷",
+      "baseAtk": 227
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 4,
+      "name": "세계수의 사슬바지",
+      "baseAtk": 234
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 5,
+      "name": "종말의 용린각반",
+      "baseAtk": 241
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 6,
+      "name": "라그나로크 마법바지",
+      "baseAtk": 215
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 7,
+      "name": "아포칼립스 수호각반",
+      "baseAtk": 222
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 8,
+      "name": "발할라의 철갑바지",
+      "baseAtk": 229
+    },
+    {
+      "slot": "바지",
+      "rarity": 4,
+      "index": 9,
+      "name": "오딘의 성전하의",
+      "baseAtk": 236
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 0,
+      "name": "피의 맹약 각반",
+      "baseAtk": 615
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 1,
+      "name": "붉은 심연 전투바지",
+      "baseAtk": 622
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 2,
+      "name": "멸망의 별 하의",
+      "baseAtk": 629
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 3,
+      "name": "마신의 다리갑옷",
+      "baseAtk": 636
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 4,
+      "name": "혼돈왕의 사슬바지",
+      "baseAtk": 643
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 5,
+      "name": "적룡신의 용린각반",
+      "baseAtk": 618
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 6,
+      "name": "파멸자의 마법바지",
+      "baseAtk": 625
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 7,
+      "name": "무한 재앙 수호각반",
+      "baseAtk": 632
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 8,
+      "name": "종언의 철갑바지",
+      "baseAtk": 639
+    },
+    {
+      "slot": "바지",
+      "rarity": 5,
+      "index": 9,
+      "name": "신살자의 성전하의",
+      "baseAtk": 614
+    },
+    {
+      "slot": "바지",
+      "rarity": 6,
+      "index": 0,
+      "name": "타락의 공허 각반",
+      "baseAtk": 2468
+    },
+    {
+      "slot": "바지",
+      "rarity": 6,
+      "index": 1,
+      "name": "타락의 심연 각반",
+      "baseAtk": 2482
+    },
+    {
+      "slot": "바지",
+      "rarity": 6,
+      "index": 2,
+      "name": "타락의 혈월 각반",
+      "baseAtk": 2496
+    },
+    {
+      "slot": "바지",
+      "rarity": 6,
+      "index": 3,
+      "name": "타락의 망각 각반",
+      "baseAtk": 2510
+    },
+    {
+      "slot": "바지",
+      "rarity": 6,
+      "index": 4,
+      "name": "타락의 종말 각반",
+      "baseAtk": 2524
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 0,
+      "name": "낡은 장화",
+      "baseAtk": 4
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 1,
+      "name": "수련용 군화",
+      "baseAtk": 5
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 2,
+      "name": "견습의 철구두",
+      "baseAtk": 6
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 3,
+      "name": "무딘 전투화",
+      "baseAtk": 4
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 4,
+      "name": "가벼운 질풍화",
+      "baseAtk": 5
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 5,
+      "name": "초보자의 용린신",
+      "baseAtk": 6
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 6,
+      "name": "평범한 마법장화",
+      "baseAtk": 4
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 7,
+      "name": "손때 묻은 수호신",
+      "baseAtk": 5
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 8,
+      "name": "여행자의 각갑",
+      "baseAtk": 6
+    },
+    {
+      "slot": "신발",
+      "rarity": 0,
+      "index": 9,
+      "name": "단단한 성전장화",
+      "baseAtk": 4
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 0,
+      "name": "숲바람의 장화",
+      "baseAtk": 14
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 1,
+      "name": "청동빛 군화",
+      "baseAtk": 9
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 2,
+      "name": "사냥꾼의 철구두",
+      "baseAtk": 10
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 3,
+      "name": "용병의 전투화",
+      "baseAtk": 11
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 4,
+      "name": "새벽녘 질풍화",
+      "baseAtk": 12
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 5,
+      "name": "바람결의 용린신",
+      "baseAtk": 13
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 6,
+      "name": "야성의 마법장화",
+      "baseAtk": 14
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 7,
+      "name": "수호병의 수호신",
+      "baseAtk": 9
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 8,
+      "name": "비취빛 각갑",
+      "baseAtk": 10
+    },
+    {
+      "slot": "신발",
+      "rarity": 1,
+      "index": 9,
+      "name": "은은한 성전장화",
+      "baseAtk": 11
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 0,
+      "name": "빙결의 장화",
+      "baseAtk": 35
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 1,
+      "name": "뇌광의 군화",
+      "baseAtk": 30
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 2,
+      "name": "심연의 철구두",
+      "baseAtk": 25
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 3,
+      "name": "왕실의 전투화",
+      "baseAtk": 32
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 4,
+      "name": "폭풍의 질풍화",
+      "baseAtk": 27
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 5,
+      "name": "적월의 용린신",
+      "baseAtk": 34
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 6,
+      "name": "별빛의 마법장화",
+      "baseAtk": 29
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 7,
+      "name": "환영의 수호신",
+      "baseAtk": 36
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 8,
+      "name": "백은의 각갑",
+      "baseAtk": 31
+    },
+    {
+      "slot": "신발",
+      "rarity": 2,
+      "index": 9,
+      "name": "용맹한 성전장화",
+      "baseAtk": 26
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 0,
+      "name": "천공의 장화",
+      "baseAtk": 89
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 1,
+      "name": "불멸의 군화",
+      "baseAtk": 68
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 2,
+      "name": "마왕의 철구두",
+      "baseAtk": 75
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 3,
+      "name": "성역의 전투화",
+      "baseAtk": 82
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 4,
+      "name": "고대룡의 질풍화",
+      "baseAtk": 89
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 5,
+      "name": "운명의 용린신",
+      "baseAtk": 68
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 6,
+      "name": "차원절단 마법장화",
+      "baseAtk": 75
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 7,
+      "name": "패왕의 수호신",
+      "baseAtk": 82
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 8,
+      "name": "신탁의 각갑",
+      "baseAtk": 89
+    },
+    {
+      "slot": "신발",
+      "rarity": 3,
+      "index": 9,
+      "name": "황혼의 성전장화",
+      "baseAtk": 68
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 0,
+      "name": "태양의 장화",
+      "baseAtk": 242
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 1,
+      "name": "창세의 군화",
+      "baseAtk": 216
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 2,
+      "name": "천벌의 철구두",
+      "baseAtk": 223
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 3,
+      "name": "신왕의 전투화",
+      "baseAtk": 230
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 4,
+      "name": "세계수의 질풍화",
+      "baseAtk": 237
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 5,
+      "name": "종말의 용린신",
+      "baseAtk": 211
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 6,
+      "name": "라그나로크 마법장화",
+      "baseAtk": 218
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 7,
+      "name": "아포칼립스 수호신",
+      "baseAtk": 225
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 8,
+      "name": "발할라의 각갑",
+      "baseAtk": 232
+    },
+    {
+      "slot": "신발",
+      "rarity": 4,
+      "index": 9,
+      "name": "오딘의 성전장화",
+      "baseAtk": 239
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 0,
+      "name": "피의 맹약 장화",
+      "baseAtk": 618
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 1,
+      "name": "붉은 심연 군화",
+      "baseAtk": 625
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 2,
+      "name": "멸망의 별 철구두",
+      "baseAtk": 632
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 3,
+      "name": "마신의 전투화",
+      "baseAtk": 639
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 4,
+      "name": "혼돈왕의 질풍화",
+      "baseAtk": 614
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 5,
+      "name": "적룡신의 용린신",
+      "baseAtk": 621
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 6,
+      "name": "파멸자의 마법장화",
+      "baseAtk": 628
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 7,
+      "name": "무한 재앙 수호신",
+      "baseAtk": 635
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 8,
+      "name": "종언의 각갑",
+      "baseAtk": 642
+    },
+    {
+      "slot": "신발",
+      "rarity": 5,
+      "index": 9,
+      "name": "신살자의 성전장화",
+      "baseAtk": 617
+    },
+    {
+      "slot": "신발",
+      "rarity": 6,
+      "index": 0,
+      "name": "타락의 공허 장화",
+      "baseAtk": 2474
+    },
+    {
+      "slot": "신발",
+      "rarity": 6,
+      "index": 1,
+      "name": "타락의 심연 장화",
+      "baseAtk": 2488
+    },
+    {
+      "slot": "신발",
+      "rarity": 6,
+      "index": 2,
+      "name": "타락의 혈월 장화",
+      "baseAtk": 2502
+    },
+    {
+      "slot": "신발",
+      "rarity": 6,
+      "index": 3,
+      "name": "타락의 망각 장화",
+      "baseAtk": 2516
+    },
+    {
+      "slot": "신발",
+      "rarity": 6,
+      "index": 4,
+      "name": "타락의 종말 장화",
+      "baseAtk": 2530
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 0,
+      "name": "낡은 철반지",
+      "baseAtk": 8
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 1,
+      "name": "수련용 인장",
+      "baseAtk": 10
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 2,
+      "name": "견습의 보석반지",
+      "baseAtk": 12
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 3,
+      "name": "무딘 룬링",
+      "baseAtk": 9
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 4,
+      "name": "가벼운 옥반지",
+      "baseAtk": 11
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 5,
+      "name": "초보자의 마력반지",
+      "baseAtk": 8
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 6,
+      "name": "평범한 서약반지",
+      "baseAtk": 10
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 7,
+      "name": "손때 묻은 왕의인장",
+      "baseAtk": 12
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 8,
+      "name": "여행자의 수호링",
+      "baseAtk": 9
+    },
+    {
+      "slot": "반지",
+      "rarity": 0,
+      "index": 9,
+      "name": "단단한 성전반지",
+      "baseAtk": 11
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 0,
+      "name": "숲바람의 철반지",
+      "baseAtk": 18
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 1,
+      "name": "청동빛 인장",
+      "baseAtk": 25
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 2,
+      "name": "사냥꾼의 보석반지",
+      "baseAtk": 22
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 3,
+      "name": "용병의 룬링",
+      "baseAtk": 19
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 4,
+      "name": "새벽녘 옥반지",
+      "baseAtk": 26
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 5,
+      "name": "바람결의 마력반지",
+      "baseAtk": 23
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 6,
+      "name": "야성의 서약반지",
+      "baseAtk": 20
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 7,
+      "name": "수호병의 왕의인장",
+      "baseAtk": 27
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 8,
+      "name": "비취빛 수호링",
+      "baseAtk": 24
+    },
+    {
+      "slot": "반지",
+      "rarity": 1,
+      "index": 9,
+      "name": "은은한 성전반지",
+      "baseAtk": 21
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 0,
+      "name": "빙결의 철반지",
+      "baseAtk": 52
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 1,
+      "name": "뇌광의 인장",
+      "baseAtk": 59
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 2,
+      "name": "심연의 보석반지",
+      "baseAtk": 66
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 3,
+      "name": "왕실의 룬링",
+      "baseAtk": 50
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 4,
+      "name": "폭풍의 옥반지",
+      "baseAtk": 57
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 5,
+      "name": "적월의 마력반지",
+      "baseAtk": 64
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 6,
+      "name": "별빛의 서약반지",
+      "baseAtk": 71
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 7,
+      "name": "환영의 왕의인장",
+      "baseAtk": 55
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 8,
+      "name": "백은의 수호링",
+      "baseAtk": 62
+    },
+    {
+      "slot": "반지",
+      "rarity": 2,
+      "index": 9,
+      "name": "용맹한 성전반지",
+      "baseAtk": 69
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 0,
+      "name": "천공의 철반지",
+      "baseAtk": 153
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 1,
+      "name": "불멸의 인장",
+      "baseAtk": 160
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 2,
+      "name": "마왕의 보석반지",
+      "baseAtk": 167
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 3,
+      "name": "성역의 룬링",
+      "baseAtk": 174
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 4,
+      "name": "고대룡의 옥반지",
+      "baseAtk": 126
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 5,
+      "name": "운명의 마력반지",
+      "baseAtk": 133
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 6,
+      "name": "차원절단 서약반지",
+      "baseAtk": 140
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 7,
+      "name": "패왕의 왕의인장",
+      "baseAtk": 147
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 8,
+      "name": "신탁의 수호링",
+      "baseAtk": 154
+    },
+    {
+      "slot": "반지",
+      "rarity": 3,
+      "index": 9,
+      "name": "황혼의 성전반지",
+      "baseAtk": 161
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 0,
+      "name": "태양의 철반지",
+      "baseAtk": 455
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 1,
+      "name": "창세의 인장",
+      "baseAtk": 462
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 2,
+      "name": "천벌의 보석반지",
+      "baseAtk": 469
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 3,
+      "name": "신왕의 룬링",
+      "baseAtk": 476
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 4,
+      "name": "세계수의 옥반지",
+      "baseAtk": 483
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 5,
+      "name": "종말의 마력반지",
+      "baseAtk": 426
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 6,
+      "name": "라그나로크 서약반지",
+      "baseAtk": 433
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 7,
+      "name": "아포칼립스 왕의인장",
+      "baseAtk": 440
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 8,
+      "name": "발할라의 수호링",
+      "baseAtk": 447
+    },
+    {
+      "slot": "반지",
+      "rarity": 4,
+      "index": 9,
+      "name": "오딘의 성전반지",
+      "baseAtk": 454
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 0,
+      "name": "피의 맹약 철반지",
+      "baseAtk": 1265
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 1,
+      "name": "붉은 심연 인장",
+      "baseAtk": 1272
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 2,
+      "name": "멸망의 별 보석반지",
+      "baseAtk": 1279
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 3,
+      "name": "마신의 룬링",
+      "baseAtk": 1286
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 4,
+      "name": "혼돈왕의 옥반지",
+      "baseAtk": 1229
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 5,
+      "name": "적룡신의 마력반지",
+      "baseAtk": 1236
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 6,
+      "name": "파멸자의 서약반지",
+      "baseAtk": 1243
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 7,
+      "name": "무한 재앙 왕의인장",
+      "baseAtk": 1250
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 8,
+      "name": "종언의 수호링",
+      "baseAtk": 1257
+    },
+    {
+      "slot": "반지",
+      "rarity": 5,
+      "index": 9,
+      "name": "신살자의 성전반지",
+      "baseAtk": 1264
+    },
+    {
+      "slot": "반지",
+      "rarity": 6,
+      "index": 0,
+      "name": "타락의 공허 반지",
+      "baseAtk": 2480
+    },
+    {
+      "slot": "반지",
+      "rarity": 6,
+      "index": 1,
+      "name": "타락의 심연 반지",
+      "baseAtk": 2494
+    },
+    {
+      "slot": "반지",
+      "rarity": 6,
+      "index": 2,
+      "name": "타락의 혈월 반지",
+      "baseAtk": 2508
+    },
+    {
+      "slot": "반지",
+      "rarity": 6,
+      "index": 3,
+      "name": "타락의 망각 반지",
+      "baseAtk": 2522
+    },
+    {
+      "slot": "반지",
+      "rarity": 6,
+      "index": 4,
+      "name": "타락의 종말 반지",
+      "baseAtk": 2536
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 0,
+      "name": "낡은 철귀걸이",
+      "baseAtk": 11
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 1,
+      "name": "수련용 수정귀걸이",
+      "baseAtk": 8
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 2,
+      "name": "견습의 별귀걸이",
+      "baseAtk": 10
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 3,
+      "name": "무딘 룬이어링",
+      "baseAtk": 12
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 4,
+      "name": "가벼운 옥귀걸이",
+      "baseAtk": 9
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 5,
+      "name": "초보자의 마력귀걸이",
+      "baseAtk": 11
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 6,
+      "name": "평범한 서약귀걸이",
+      "baseAtk": 8
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 7,
+      "name": "손때 묻은 왕의귀걸이",
+      "baseAtk": 10
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 8,
+      "name": "여행자의 수호이어링",
+      "baseAtk": 12
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 0,
+      "index": 9,
+      "name": "단단한 성전귀걸이",
+      "baseAtk": 9
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 0,
+      "name": "숲바람의 철귀걸이",
+      "baseAtk": 21
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 1,
+      "name": "청동빛 수정귀걸이",
+      "baseAtk": 18
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 2,
+      "name": "사냥꾼의 별귀걸이",
+      "baseAtk": 25
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 3,
+      "name": "용병의 룬이어링",
+      "baseAtk": 22
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 4,
+      "name": "새벽녘 옥귀걸이",
+      "baseAtk": 19
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 5,
+      "name": "바람결의 마력귀걸이",
+      "baseAtk": 26
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 6,
+      "name": "야성의 서약귀걸이",
+      "baseAtk": 23
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 7,
+      "name": "수호병의 왕의귀걸이",
+      "baseAtk": 20
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 8,
+      "name": "비취빛 수호이어링",
+      "baseAtk": 27
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 1,
+      "index": 9,
+      "name": "은은한 성전귀걸이",
+      "baseAtk": 24
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 0,
+      "name": "빙결의 철귀걸이",
+      "baseAtk": 55
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 1,
+      "name": "뇌광의 수정귀걸이",
+      "baseAtk": 62
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 2,
+      "name": "심연의 별귀걸이",
+      "baseAtk": 69
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 3,
+      "name": "왕실의 룬이어링",
+      "baseAtk": 53
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 4,
+      "name": "폭풍의 옥귀걸이",
+      "baseAtk": 60
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 5,
+      "name": "적월의 마력귀걸이",
+      "baseAtk": 67
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 6,
+      "name": "별빛의 서약귀걸이",
+      "baseAtk": 51
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 7,
+      "name": "환영의 왕의귀걸이",
+      "baseAtk": 58
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 8,
+      "name": "백은의 수호이어링",
+      "baseAtk": 65
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 2,
+      "index": 9,
+      "name": "용맹한 성전귀걸이",
+      "baseAtk": 72
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 0,
+      "name": "천공의 철귀걸이",
+      "baseAtk": 156
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 1,
+      "name": "불멸의 수정귀걸이",
+      "baseAtk": 163
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 2,
+      "name": "마왕의 별귀걸이",
+      "baseAtk": 170
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 3,
+      "name": "성역의 룬이어링",
+      "baseAtk": 177
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 4,
+      "name": "고대룡의 옥귀걸이",
+      "baseAtk": 129
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 5,
+      "name": "운명의 마력귀걸이",
+      "baseAtk": 136
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 6,
+      "name": "차원절단 서약귀걸이",
+      "baseAtk": 143
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 7,
+      "name": "패왕의 왕의귀걸이",
+      "baseAtk": 150
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 8,
+      "name": "신탁의 수호이어링",
+      "baseAtk": 157
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 3,
+      "index": 9,
+      "name": "황혼의 성전귀걸이",
+      "baseAtk": 164
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 0,
+      "name": "태양의 철귀걸이",
+      "baseAtk": 458
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 1,
+      "name": "창세의 수정귀걸이",
+      "baseAtk": 465
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 2,
+      "name": "천벌의 별귀걸이",
+      "baseAtk": 472
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 3,
+      "name": "신왕의 룬이어링",
+      "baseAtk": 479
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 4,
+      "name": "세계수의 옥귀걸이",
+      "baseAtk": 422
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 5,
+      "name": "종말의 마력귀걸이",
+      "baseAtk": 429
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 6,
+      "name": "라그나로크 서약귀걸이",
+      "baseAtk": 436
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 7,
+      "name": "아포칼립스 왕의귀걸이",
+      "baseAtk": 443
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 8,
+      "name": "발할라의 수호이어링",
+      "baseAtk": 450
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 4,
+      "index": 9,
+      "name": "오딘의 성전귀걸이",
+      "baseAtk": 457
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 0,
+      "name": "피의 맹약 철귀걸이",
+      "baseAtk": 1268
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 1,
+      "name": "붉은 심연 수정귀걸이",
+      "baseAtk": 1275
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 2,
+      "name": "멸망의 별 별귀걸이",
+      "baseAtk": 1282
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 3,
+      "name": "마신의 룬이어링",
+      "baseAtk": 1225
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 4,
+      "name": "혼돈왕의 옥귀걸이",
+      "baseAtk": 1232
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 5,
+      "name": "적룡신의 마력귀걸이",
+      "baseAtk": 1239
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 6,
+      "name": "파멸자의 서약귀걸이",
+      "baseAtk": 1246
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 7,
+      "name": "무한 재앙 왕의귀걸이",
+      "baseAtk": 1253
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 8,
+      "name": "종언의 수호이어링",
+      "baseAtk": 1260
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 5,
+      "index": 9,
+      "name": "신살자의 성전귀걸이",
+      "baseAtk": 1267
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 6,
+      "index": 0,
+      "name": "타락의 공허 귀걸이",
+      "baseAtk": 2486
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 6,
+      "index": 1,
+      "name": "타락의 심연 귀걸이",
+      "baseAtk": 2500
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 6,
+      "index": 2,
+      "name": "타락의 혈월 귀걸이",
+      "baseAtk": 2514
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 6,
+      "index": 3,
+      "name": "타락의 망각 귀걸이",
+      "baseAtk": 2528
+    },
+    {
+      "slot": "귀걸이",
+      "rarity": 6,
+      "index": 4,
+      "name": "타락의 종말 귀걸이",
+      "baseAtk": 2542
+    }
+  ],
+  "enhanceCosts": [
+    [
+      60,
+      90,
+      120,
+      150,
+      180,
+      240,
+      300,
+      400,
+      520,
+      680,
+      1000,
+      1400,
+      1900,
+      2600,
+      3600
+    ],
+    [
+      180,
+      270,
+      360,
+      450,
+      540,
+      720,
+      900,
+      1200,
+      1560,
+      2040,
+      3000,
+      4200,
+      5700,
+      7800,
+      10800
+    ],
+    [
+      600,
+      900,
+      1200,
+      1500,
+      1800,
+      2400,
+      3000,
+      4000,
+      5200,
+      6800,
+      10000,
+      14000,
+      19000,
+      26000,
+      36000
+    ],
+    [
+      2700,
+      4050,
+      5400,
+      6750,
+      8100,
+      10800,
+      13500,
+      18000,
+      23400,
+      30600,
+      45000,
+      63000,
+      85500,
+      117000,
+      162000
+    ],
+    [
+      10800,
+      16200,
+      21600,
+      27000,
+      32400,
+      43200,
+      54000,
+      72000,
+      93600,
+      122400,
+      180000,
+      252000,
+      342000,
+      468000,
+      648000
+    ],
+    [
+      42000,
+      63000,
+      84000,
+      105000,
+      126000,
+      168000,
+      210000,
+      280000,
+      364000,
+      476000,
+      700000,
+      980000,
+      1330000,
+      1820000,
+      2520000
+    ],
+    [
+      210000,
+      315000,
+      420000,
+      525000,
+      630000,
+      840000,
+      1050000,
+      1400000,
+      1820000,
+      2380000,
+      3500000,
+      4900000,
+      6650000,
+      9100000,
+      12600000
+    ]
+  ],
+  "enhanceRates": [
+    100,
+    95,
+    90,
+    85,
+    80,
+    72,
+    65,
+    58,
+    52,
+    45,
+    38,
+    32,
+    26,
+    20,
+    15
+  ],
+  "transcendCosts": [
+    [
+      5,
+      10,
+      20
+    ],
+    [
+      5,
+      10,
+      20
+    ],
+    [
+      5,
+      10,
+      20
+    ],
+    [
+      5,
+      10,
+      20
+    ],
+    [
+      5,
+      10,
+      20
+    ],
+    [
+      10,
+      20,
+      40
+    ],
+    [
+      20,
+      40,
+      80
+    ]
+  ],
+  "transcendRates": [
+    50,
+    25,
+    10
+  ],
+  "sellPrices": [
+    [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      231,
+      242,
+      482,
+      504,
+      775
+    ],
+    [
+      30,
+      33,
+      36,
+      39,
+      42,
+      45,
+      48,
+      221,
+      234,
+      247,
+      460,
+      693,
+      946,
+      1449,
+      1992,
+      2825
+    ],
+    [
+      100,
+      110,
+      120,
+      130,
+      280,
+      300,
+      480,
+      680,
+      900,
+      1330,
+      1800,
+      2520,
+      3520,
+      5060,
+      6960,
+      10000
+    ],
+    [
+      300,
+      330,
+      600,
+      780,
+      1120,
+      1650,
+      2240,
+      3060,
+      4140,
+      5700,
+      7800,
+      11130,
+      15840,
+      22540,
+      31920,
+      45250
+    ],
+    [
+      1000,
+      1430,
+      2160,
+      3120,
+      4480,
+      6300,
+      8800,
+      12070,
+      16740,
+      22990,
+      31400,
+      44310,
+      63140,
+      89700,
+      127200,
+      181000
+    ],
+    [
+      3000,
+      4620,
+      7320,
+      11180,
+      16520,
+      23400,
+      32960,
+      45730,
+      63540,
+      87780,
+      121000,
+      171150,
+      243980,
+      346840,
+      492960,
+      702500
+    ],
+    [
+      10000,
+      17930,
+      30840,
+      49790,
+      75740,
+      109500,
+      157120,
+      220490,
+      309060,
+      429970,
+      595400,
+      845670,
+      1209340,
+      1723159,
+      2453280,
+      3500500
+    ]
+  ],
+  "petLevelStats": {
+    "pet_1_001": [
+      {
+        "attack": 33,
+        "attackPercent": 0.002,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.005
+      },
+      {
+        "attack": 35.64,
+        "attackPercent": 0.00216,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.0054
+      },
+      {
+        "attack": 38.279999999999994,
+        "attackPercent": 0.00232,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.0058
+      },
+      {
+        "attack": 40.92,
+        "attackPercent": 0.00248,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.0062
+      },
+      {
+        "attack": 44.550000000000004,
+        "attackPercent": 0.0027,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.006750000000000001
+      }
+    ],
+    "pet_1_002": [
+      {
+        "attack": 50,
+        "attackPercent": 0.003,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.008
+      },
+      {
+        "attack": 54,
+        "attackPercent": 0.0032400000000000003,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.00864
+      },
+      {
+        "attack": 57.99999999999999,
+        "attackPercent": 0.00348,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.00928
+      },
+      {
+        "attack": 62,
+        "attackPercent": 0.00372,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.00992
+      },
+      {
+        "attack": 67.5,
+        "attackPercent": 0.004050000000000001,
+        "attackSpeed": 0,
+        "critRate": 0,
+        "critDamage": 0.0108
+      }
+    ],
+    "pet_1_003": [
+      {
+        "attack": 73,
+        "attackPercent": 0.004,
+        "attackSpeed": 0,
+        "critRate": 0.001,
+        "critDamage": 0.01
+      },
+      {
+        "attack": 78.84,
+        "attackPercent": 0.00432,
+        "attackSpeed": 0,
+        "critRate": 0.00108,
+        "critDamage": 0.0108
+      },
+      {
+        "attack": 84.67999999999999,
+        "attackPercent": 0.00464,
+        "attackSpeed": 0,
+        "critRate": 0.00116,
+        "critDamage": 0.0116
+      },
+      {
+        "attack": 90.52,
+        "attackPercent": 0.00496,
+        "attackSpeed": 0,
+        "critRate": 0.00124,
+        "critDamage": 0.0124
+      },
+      {
+        "attack": 98.55000000000001,
+        "attackPercent": 0.0054,
+        "attackSpeed": 0,
+        "critRate": 0.00135,
+        "critDamage": 0.013500000000000002
+      }
+    ],
+    "pet_1_004": [
+      {
+        "attack": 100,
+        "attackPercent": 0.005,
+        "attackSpeed": 0.001,
+        "critRate": 0.001,
+        "critDamage": 0.012
+      },
+      {
+        "attack": 108,
+        "attackPercent": 0.0054,
+        "attackSpeed": 0.00108,
+        "critRate": 0.00108,
+        "critDamage": 0.012960000000000001
+      },
+      {
+        "attack": 115.99999999999999,
+        "attackPercent": 0.0058,
+        "attackSpeed": 0.00116,
+        "critRate": 0.00116,
+        "critDamage": 0.01392
+      },
+      {
+        "attack": 124,
+        "attackPercent": 0.0062,
+        "attackSpeed": 0.00124,
+        "critRate": 0.00124,
+        "critDamage": 0.01488
+      },
+      {
+        "attack": 135,
+        "attackPercent": 0.006750000000000001,
+        "attackSpeed": 0.00135,
+        "critRate": 0.00135,
+        "critDamage": 0.016200000000000003
+      }
+    ],
+    "pet_1_005": [
+      {
+        "attack": 140,
+        "attackPercent": 0.006,
+        "attackSpeed": 0.001,
+        "critRate": 0.001,
+        "critDamage": 0.015
+      },
+      {
+        "attack": 151.20000000000002,
+        "attackPercent": 0.0064800000000000005,
+        "attackSpeed": 0.00108,
+        "critRate": 0.00108,
+        "critDamage": 0.0162
+      },
+      {
+        "attack": 162.39999999999998,
+        "attackPercent": 0.00696,
+        "attackSpeed": 0.00116,
+        "critRate": 0.00116,
+        "critDamage": 0.0174
+      },
+      {
+        "attack": 173.6,
+        "attackPercent": 0.00744,
+        "attackSpeed": 0.00124,
+        "critRate": 0.00124,
+        "critDamage": 0.0186
+      },
+      {
+        "attack": 189,
+        "attackPercent": 0.008100000000000001,
+        "attackSpeed": 0.00135,
+        "critRate": 0.00135,
+        "critDamage": 0.02025
+      }
+    ],
+    "pet_2_001": [
+      {
+        "attack": 200,
+        "attackPercent": 0.008,
+        "attackSpeed": 0.001,
+        "critRate": 0.002,
+        "critDamage": 0.02
+      },
+      {
+        "attack": 216,
+        "attackPercent": 0.00864,
+        "attackSpeed": 0.00108,
+        "critRate": 0.00216,
+        "critDamage": 0.0216
+      },
+      {
+        "attack": 231.99999999999997,
+        "attackPercent": 0.00928,
+        "attackSpeed": 0.00116,
+        "critRate": 0.00232,
+        "critDamage": 0.0232
+      },
+      {
+        "attack": 248,
+        "attackPercent": 0.00992,
+        "attackSpeed": 0.00124,
+        "critRate": 0.00248,
+        "critDamage": 0.0248
+      },
+      {
+        "attack": 270,
+        "attackPercent": 0.0108,
+        "attackSpeed": 0.00135,
+        "critRate": 0.0027,
+        "critDamage": 0.027000000000000003
+      }
+    ],
+    "pet_2_002": [
+      {
+        "attack": 266,
+        "attackPercent": 0.01,
+        "attackSpeed": 0.001,
+        "critRate": 0.002,
+        "critDamage": 0.025
+      },
+      {
+        "attack": 287.28000000000003,
+        "attackPercent": 0.0108,
+        "attackSpeed": 0.00108,
+        "critRate": 0.00216,
+        "critDamage": 0.027000000000000003
+      },
+      {
+        "attack": 308.56,
+        "attackPercent": 0.0116,
+        "attackSpeed": 0.00116,
+        "critRate": 0.00232,
+        "critDamage": 0.028999999999999998
+      },
+      {
+        "attack": 329.84,
+        "attackPercent": 0.0124,
+        "attackSpeed": 0.00124,
+        "critRate": 0.00248,
+        "critDamage": 0.031
+      },
+      {
+        "attack": 359.1,
+        "attackPercent": 0.013500000000000002,
+        "attackSpeed": 0.00135,
+        "critRate": 0.0027,
+        "critDamage": 0.03375
+      }
+    ],
+    "pet_2_003": [
+      {
+        "attack": 350,
+        "attackPercent": 0.012,
+        "attackSpeed": 0.002,
+        "critRate": 0.003,
+        "critDamage": 0.03
+      },
+      {
+        "attack": 378,
+        "attackPercent": 0.012960000000000001,
+        "attackSpeed": 0.00216,
+        "critRate": 0.0032400000000000003,
+        "critDamage": 0.0324
+      },
+      {
+        "attack": 406,
+        "attackPercent": 0.01392,
+        "attackSpeed": 0.00232,
+        "critRate": 0.00348,
+        "critDamage": 0.0348
+      },
+      {
+        "attack": 434,
+        "attackPercent": 0.01488,
+        "attackSpeed": 0.00248,
+        "critRate": 0.00372,
+        "critDamage": 0.0372
+      },
+      {
+        "attack": 472.50000000000006,
+        "attackPercent": 0.016200000000000003,
+        "attackSpeed": 0.0027,
+        "critRate": 0.004050000000000001,
+        "critDamage": 0.0405
+      }
+    ],
+    "pet_2_004": [
+      {
+        "attack": 450,
+        "attackPercent": 0.014,
+        "attackSpeed": 0.002,
+        "critRate": 0.003,
+        "critDamage": 0.035
+      },
+      {
+        "attack": 486.00000000000006,
+        "attackPercent": 0.015120000000000001,
+        "attackSpeed": 0.00216,
+        "critRate": 0.0032400000000000003,
+        "critDamage": 0.03780000000000001
+      },
+      {
+        "attack": 522,
+        "attackPercent": 0.016239999999999997,
+        "attackSpeed": 0.00232,
+        "critRate": 0.00348,
+        "critDamage": 0.040600000000000004
+      },
+      {
+        "attack": 558,
+        "attackPercent": 0.01736,
+        "attackSpeed": 0.00248,
+        "critRate": 0.00372,
+        "critDamage": 0.0434
+      },
+      {
+        "attack": 607.5,
+        "attackPercent": 0.0189,
+        "attackSpeed": 0.0027,
+        "critRate": 0.004050000000000001,
+        "critDamage": 0.04725000000000001
+      }
+    ],
+    "pet_2_005": [
+      {
+        "attack": 566,
+        "attackPercent": 0.016,
+        "attackSpeed": 0.003,
+        "critRate": 0.004,
+        "critDamage": 0.045
+      },
+      {
+        "attack": 611.2800000000001,
+        "attackPercent": 0.01728,
+        "attackSpeed": 0.0032400000000000003,
+        "critRate": 0.00432,
+        "critDamage": 0.048600000000000004
+      },
+      {
+        "attack": 656.56,
+        "attackPercent": 0.01856,
+        "attackSpeed": 0.00348,
+        "critRate": 0.00464,
+        "critDamage": 0.052199999999999996
+      },
+      {
+        "attack": 701.84,
+        "attackPercent": 0.01984,
+        "attackSpeed": 0.00372,
+        "critRate": 0.00496,
+        "critDamage": 0.055799999999999995
+      },
+      {
+        "attack": 764.1,
+        "attackPercent": 0.0216,
+        "attackSpeed": 0.004050000000000001,
+        "critRate": 0.0054,
+        "critDamage": 0.06075
+      }
+    ],
+    "pet_3_001": [
+      {
+        "attack": 766,
+        "attackPercent": 0.02,
+        "attackSpeed": 0.003,
+        "critRate": 0.005,
+        "critDamage": 0.055
+      },
+      {
+        "attack": 827.2800000000001,
+        "attackPercent": 0.0216,
+        "attackSpeed": 0.0032400000000000003,
+        "critRate": 0.0054,
+        "critDamage": 0.0594
+      },
+      {
+        "attack": 888.56,
+        "attackPercent": 0.0232,
+        "attackSpeed": 0.00348,
+        "critRate": 0.0058,
+        "critDamage": 0.0638
+      },
+      {
+        "attack": 949.84,
+        "attackPercent": 0.0248,
+        "attackSpeed": 0.00372,
+        "critRate": 0.0062,
+        "critDamage": 0.0682
+      },
+      {
+        "attack": 1034.1000000000001,
+        "attackPercent": 0.027000000000000003,
+        "attackSpeed": 0.004050000000000001,
+        "critRate": 0.006750000000000001,
+        "critDamage": 0.07425000000000001
+      }
+    ],
+    "pet_3_002": [
+      {
+        "attack": 1000,
+        "attackPercent": 0.024,
+        "attackSpeed": 0.004,
+        "critRate": 0.006,
+        "critDamage": 0.065
+      },
+      {
+        "attack": 1080,
+        "attackPercent": 0.025920000000000002,
+        "attackSpeed": 0.00432,
+        "critRate": 0.0064800000000000005,
+        "critDamage": 0.07020000000000001
+      },
+      {
+        "attack": 1160,
+        "attackPercent": 0.02784,
+        "attackSpeed": 0.00464,
+        "critRate": 0.00696,
+        "critDamage": 0.0754
+      },
+      {
+        "attack": 1240,
+        "attackPercent": 0.02976,
+        "attackSpeed": 0.00496,
+        "critRate": 0.00744,
+        "critDamage": 0.0806
+      },
+      {
+        "attack": 1350,
+        "attackPercent": 0.032400000000000005,
+        "attackSpeed": 0.0054,
+        "critRate": 0.008100000000000001,
+        "critDamage": 0.08775000000000001
+      }
+    ],
+    "pet_3_003": [
+      {
+        "attack": 1266,
+        "attackPercent": 0.028,
+        "attackSpeed": 0.005,
+        "critRate": 0.007,
+        "critDamage": 0.08
+      },
+      {
+        "attack": 1367.2800000000002,
+        "attackPercent": 0.030240000000000003,
+        "attackSpeed": 0.0054,
+        "critRate": 0.007560000000000001,
+        "critDamage": 0.0864
+      },
+      {
+        "attack": 1468.56,
+        "attackPercent": 0.032479999999999995,
+        "attackSpeed": 0.0058,
+        "critRate": 0.008119999999999999,
+        "critDamage": 0.0928
+      },
+      {
+        "attack": 1569.84,
+        "attackPercent": 0.03472,
+        "attackSpeed": 0.0062,
+        "critRate": 0.00868,
+        "critDamage": 0.0992
+      },
+      {
+        "attack": 1709.1000000000001,
+        "attackPercent": 0.0378,
+        "attackSpeed": 0.006750000000000001,
+        "critRate": 0.00945,
+        "critDamage": 0.10800000000000001
+      }
+    ],
+    "pet_3_004": [
+      {
+        "attack": 1600,
+        "attackPercent": 0.032,
+        "attackSpeed": 0.006,
+        "critRate": 0.008,
+        "critDamage": 0.095
+      },
+      {
+        "attack": 1728,
+        "attackPercent": 0.03456,
+        "attackSpeed": 0.0064800000000000005,
+        "critRate": 0.00864,
+        "critDamage": 0.10260000000000001
+      },
+      {
+        "attack": 1855.9999999999998,
+        "attackPercent": 0.03712,
+        "attackSpeed": 0.00696,
+        "critRate": 0.00928,
+        "critDamage": 0.11019999999999999
+      },
+      {
+        "attack": 1984,
+        "attackPercent": 0.03968,
+        "attackSpeed": 0.00744,
+        "critRate": 0.00992,
+        "critDamage": 0.1178
+      },
+      {
+        "attack": 2160,
+        "attackPercent": 0.0432,
+        "attackSpeed": 0.008100000000000001,
+        "critRate": 0.0108,
+        "critDamage": 0.12825
+      }
+    ],
+    "pet_3_005": [
+      {
+        "attack": 2000,
+        "attackPercent": 0.038,
+        "attackSpeed": 0.007,
+        "critRate": 0.01,
+        "critDamage": 0.12
+      },
+      {
+        "attack": 2160,
+        "attackPercent": 0.04104,
+        "attackSpeed": 0.007560000000000001,
+        "critRate": 0.0108,
+        "critDamage": 0.1296
+      },
+      {
+        "attack": 2320,
+        "attackPercent": 0.044079999999999994,
+        "attackSpeed": 0.008119999999999999,
+        "critRate": 0.0116,
+        "critDamage": 0.1392
+      },
+      {
+        "attack": 2480,
+        "attackPercent": 0.047119999999999995,
+        "attackSpeed": 0.00868,
+        "critRate": 0.0124,
+        "critDamage": 0.1488
+      },
+      {
+        "attack": 2700,
+        "attackPercent": 0.051300000000000005,
+        "attackSpeed": 0.00945,
+        "critRate": 0.013500000000000002,
+        "critDamage": 0.162
+      }
+    ],
+    "pet_4_001": [
+      {
+        "attack": 2600,
+        "attackPercent": 0.045,
+        "attackSpeed": 0.008,
+        "critRate": 0.012,
+        "critDamage": 0.15
+      },
+      {
+        "attack": 2808,
+        "attackPercent": 0.048600000000000004,
+        "attackSpeed": 0.00864,
+        "critRate": 0.012960000000000001,
+        "critDamage": 0.162
+      },
+      {
+        "attack": 3016,
+        "attackPercent": 0.052199999999999996,
+        "attackSpeed": 0.00928,
+        "critRate": 0.01392,
+        "critDamage": 0.174
+      },
+      {
+        "attack": 3224,
+        "attackPercent": 0.055799999999999995,
+        "attackSpeed": 0.00992,
+        "critRate": 0.01488,
+        "critDamage": 0.186
+      },
+      {
+        "attack": 3510.0000000000005,
+        "attackPercent": 0.06075,
+        "attackSpeed": 0.0108,
+        "critRate": 0.016200000000000003,
+        "critDamage": 0.2025
+      }
+    ],
+    "pet_4_002": [
+      {
+        "attack": 3266,
+        "attackPercent": 0.055,
+        "attackSpeed": 0.01,
+        "critRate": 0.014,
+        "critDamage": 0.18
+      },
+      {
+        "attack": 3527.28,
+        "attackPercent": 0.0594,
+        "attackSpeed": 0.0108,
+        "critRate": 0.015120000000000001,
+        "critDamage": 0.19440000000000002
+      },
+      {
+        "attack": 3788.56,
+        "attackPercent": 0.0638,
+        "attackSpeed": 0.0116,
+        "critRate": 0.016239999999999997,
+        "critDamage": 0.20879999999999999
+      },
+      {
+        "attack": 4049.84,
+        "attackPercent": 0.0682,
+        "attackSpeed": 0.0124,
+        "critRate": 0.01736,
+        "critDamage": 0.22319999999999998
+      },
+      {
+        "attack": 4409.1,
+        "attackPercent": 0.07425000000000001,
+        "attackSpeed": 0.013500000000000002,
+        "critRate": 0.0189,
+        "critDamage": 0.243
+      }
+    ],
+    "pet_4_003": [
+      {
+        "attack": 4166,
+        "attackPercent": 0.065,
+        "attackSpeed": 0.012,
+        "critRate": 0.016,
+        "critDamage": 0.22
+      },
+      {
+        "attack": 4499.280000000001,
+        "attackPercent": 0.07020000000000001,
+        "attackSpeed": 0.012960000000000001,
+        "critRate": 0.01728,
+        "critDamage": 0.2376
+      },
+      {
+        "attack": 4832.5599999999995,
+        "attackPercent": 0.0754,
+        "attackSpeed": 0.01392,
+        "critRate": 0.01856,
+        "critDamage": 0.2552
+      },
+      {
+        "attack": 5165.84,
+        "attackPercent": 0.0806,
+        "attackSpeed": 0.01488,
+        "critRate": 0.01984,
+        "critDamage": 0.2728
+      },
+      {
+        "attack": 5624.1,
+        "attackPercent": 0.08775000000000001,
+        "attackSpeed": 0.016200000000000003,
+        "critRate": 0.0216,
+        "critDamage": 0.29700000000000004
+      }
+    ],
+    "pet_4_004": [
+      {
+        "attack": 5166,
+        "attackPercent": 0.08,
+        "attackSpeed": 0.014,
+        "critRate": 0.018,
+        "critDamage": 0.27
+      },
+      {
+        "attack": 5579.280000000001,
+        "attackPercent": 0.0864,
+        "attackSpeed": 0.015120000000000001,
+        "critRate": 0.01944,
+        "critDamage": 0.2916
+      },
+      {
+        "attack": 5992.5599999999995,
+        "attackPercent": 0.0928,
+        "attackSpeed": 0.016239999999999997,
+        "critRate": 0.020879999999999996,
+        "critDamage": 0.3132
+      },
+      {
+        "attack": 6405.84,
+        "attackPercent": 0.0992,
+        "attackSpeed": 0.01736,
+        "critRate": 0.02232,
+        "critDamage": 0.33480000000000004
+      },
+      {
+        "attack": 6974.1,
+        "attackPercent": 0.10800000000000001,
+        "attackSpeed": 0.0189,
+        "critRate": 0.0243,
+        "critDamage": 0.36450000000000005
+      }
+    ],
+    "pet_4_005": [
+      {
+        "attack": 6333,
+        "attackPercent": 0.1,
+        "attackSpeed": 0.016,
+        "critRate": 0.02,
+        "critDamage": 0.33
+      },
+      {
+        "attack": 6839.64,
+        "attackPercent": 0.10800000000000001,
+        "attackSpeed": 0.01728,
+        "critRate": 0.0216,
+        "critDamage": 0.35640000000000005
+      },
+      {
+        "attack": 7346.28,
+        "attackPercent": 0.11599999999999999,
+        "attackSpeed": 0.01856,
+        "critRate": 0.0232,
+        "critDamage": 0.3828
+      },
+      {
+        "attack": 7852.92,
+        "attackPercent": 0.124,
+        "attackSpeed": 0.01984,
+        "critRate": 0.0248,
+        "critDamage": 0.4092
+      },
+      {
+        "attack": 8549.550000000001,
+        "attackPercent": 0.135,
+        "attackSpeed": 0.0216,
+        "critRate": 0.027000000000000003,
+        "critDamage": 0.44550000000000006
+      }
+    ],
+    "pet_5_001": [
+      {
+        "attack": 8000,
+        "attackPercent": 0.12,
+        "attackSpeed": 0.018,
+        "critRate": 0.024,
+        "critDamage": 0.42
+      },
+      {
+        "attack": 8640,
+        "attackPercent": 0.1296,
+        "attackSpeed": 0.01944,
+        "critRate": 0.025920000000000002,
+        "critDamage": 0.4536
+      },
+      {
+        "attack": 9280,
+        "attackPercent": 0.1392,
+        "attackSpeed": 0.020879999999999996,
+        "critRate": 0.02784,
+        "critDamage": 0.48719999999999997
+      },
+      {
+        "attack": 9920,
+        "attackPercent": 0.1488,
+        "attackSpeed": 0.02232,
+        "critRate": 0.02976,
+        "critDamage": 0.5207999999999999
+      },
+      {
+        "attack": 10800,
+        "attackPercent": 0.162,
+        "attackSpeed": 0.0243,
+        "critRate": 0.032400000000000005,
+        "critDamage": 0.5670000000000001
+      }
+    ],
+    "pet_5_002": [
+      {
+        "attack": 10000,
+        "attackPercent": 0.15,
+        "attackSpeed": 0.021,
+        "critRate": 0.028,
+        "critDamage": 0.52
+      },
+      {
+        "attack": 10800,
+        "attackPercent": 0.162,
+        "attackSpeed": 0.022680000000000002,
+        "critRate": 0.030240000000000003,
+        "critDamage": 0.5616000000000001
+      },
+      {
+        "attack": 11600,
+        "attackPercent": 0.174,
+        "attackSpeed": 0.02436,
+        "critRate": 0.032479999999999995,
+        "critDamage": 0.6032
+      },
+      {
+        "attack": 12400,
+        "attackPercent": 0.186,
+        "attackSpeed": 0.02604,
+        "critRate": 0.03472,
+        "critDamage": 0.6448
+      },
+      {
+        "attack": 13500,
+        "attackPercent": 0.2025,
+        "attackSpeed": 0.028350000000000004,
+        "critRate": 0.0378,
+        "critDamage": 0.7020000000000001
+      }
+    ],
+    "pet_5_003": [
+      {
+        "attack": 12666,
+        "attackPercent": 0.18,
+        "attackSpeed": 0.025,
+        "critRate": 0.032,
+        "critDamage": 0.65
+      },
+      {
+        "attack": 13679.28,
+        "attackPercent": 0.19440000000000002,
+        "attackSpeed": 0.027000000000000003,
+        "critRate": 0.03456,
+        "critDamage": 0.7020000000000001
+      },
+      {
+        "attack": 14692.56,
+        "attackPercent": 0.20879999999999999,
+        "attackSpeed": 0.028999999999999998,
+        "critRate": 0.03712,
+        "critDamage": 0.754
+      },
+      {
+        "attack": 15705.84,
+        "attackPercent": 0.22319999999999998,
+        "attackSpeed": 0.031,
+        "critRate": 0.03968,
+        "critDamage": 0.806
+      },
+      {
+        "attack": 17099.100000000002,
+        "attackPercent": 0.243,
+        "attackSpeed": 0.03375,
+        "critRate": 0.0432,
+        "critDamage": 0.8775000000000001
+      }
+    ],
+    "pet_5_004": [
+      {
+        "attack": 16000,
+        "attackPercent": 0.22,
+        "attackSpeed": 0.03,
+        "critRate": 0.038,
+        "critDamage": 0.8
+      },
+      {
+        "attack": 17280,
+        "attackPercent": 0.2376,
+        "attackSpeed": 0.0324,
+        "critRate": 0.04104,
+        "critDamage": 0.8640000000000001
+      },
+      {
+        "attack": 18560,
+        "attackPercent": 0.2552,
+        "attackSpeed": 0.0348,
+        "critRate": 0.044079999999999994,
+        "critDamage": 0.9279999999999999
+      },
+      {
+        "attack": 19840,
+        "attackPercent": 0.2728,
+        "attackSpeed": 0.0372,
+        "critRate": 0.047119999999999995,
+        "critDamage": 0.992
+      },
+      {
+        "attack": 21600,
+        "attackPercent": 0.29700000000000004,
+        "attackSpeed": 0.0405,
+        "critRate": 0.051300000000000005,
+        "critDamage": 1.08
+      }
+    ],
+    "pet_5_005": [
+      {
+        "attack": 20000,
+        "attackPercent": 0.28,
+        "attackSpeed": 0.036,
+        "critRate": 0.045,
+        "critDamage": 1
+      },
+      {
+        "attack": 21600,
+        "attackPercent": 0.30240000000000006,
+        "attackSpeed": 0.03888,
+        "critRate": 0.048600000000000004,
+        "critDamage": 1.08
+      },
+      {
+        "attack": 23200,
+        "attackPercent": 0.32480000000000003,
+        "attackSpeed": 0.04175999999999999,
+        "critRate": 0.052199999999999996,
+        "critDamage": 1.16
+      },
+      {
+        "attack": 24800,
+        "attackPercent": 0.3472,
+        "attackSpeed": 0.04464,
+        "critRate": 0.055799999999999995,
+        "critDamage": 1.24
+      },
+      {
+        "attack": 27000,
+        "attackPercent": 0.37800000000000006,
+        "attackSpeed": 0.0486,
+        "critRate": 0.06075,
+        "critDamage": 1.35
+      }
+    ]
+  }
+}

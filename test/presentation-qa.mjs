@@ -5,7 +5,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.QA_PLAYWRIGHT_MODULE
 const db=new PGlite(),users=new Map(),tokens=new Map();let serial=0,queue=Promise.resolve(),loseCostumeResponse=false,earnedDuringPurchase=false;
 await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
 for(const file of ['01-account-storage.sql','02-ranking-party.sql'])await db.exec(await readFile(new URL('fixtures/'+file,import.meta.url),'utf8'));
-for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
+for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','10-auction-foundation.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
 await db.exec('update ringu_private.costume_release set purchases_enabled=true');
 async function service(req){
  const path=new URL(req.url()).pathname,body=req.postDataJSON()||{};
@@ -19,7 +19,7 @@ async function service(req){
  if(path==='/auth/v1/logout'){await db.query('delete from auth.sessions where id=$1',[entry.sid]);return {};}
  const name=path.split('/').at(-1);
  if(name==='ringu_admin_status')return {currencyFloor:0};
- assert.ok(['ringu_account','ringu_save_costume','ringu_costume','ringu_party','ringu_claim_party','ringu_ranking'].includes(name));
+ assert.ok(['ringu_account','ringu_save_costume','ringu_costume','ringu_party','ringu_claim_party','ringu_ranking','ringu_auction'].includes(name));
  const entries=Object.entries(body);assert.ok(entries.every(([k])=>/^p_[a-z_]+$/.test(k)));
  const args=entries.map(([k],i)=>k+'=> $'+(i+1));
  return (await db.query('select public.'+name+'('+args.join(',')+') as result',entries.map(([,v])=>typeof v==='object'&&v!==null?JSON.stringify(v):v))).rows[0].result;
@@ -35,6 +35,11 @@ try{
  const p=await c.newPage();p.on('console',msg=>{if(msg.type()==='error')console.error('Browser console:',msg.text());});p.on('pageerror',e=>errors.push(e.message));p.on('response',r=>{if(r.status()===404)errors.push('404 '+r.url())});
  await p.goto(base);await p.locator('#register-tab').click();await p.locator('#username').fill('presentationqa');await p.locator('#password').fill('PresentationQA2026!');await p.locator('#password-confirm').fill('PresentationQA2026!');await p.locator('#submit-button').click();await p.locator('#heroCanvas').waitFor({state:'attached'});
  await p.waitForFunction(()=>RinguArt.__weaponPoseV5&&window.__ringuPetAttackNerfV1);await p.evaluate(()=>{RinguCore.state.autoBattle=false;});
+ if(process.env.QA_EXPORT_BALANCE){
+  const balance=await p.evaluate(()=>{const g=RinguCore,f=g.fn,gear=[];for(const slot of g.slots)for(let rarity=0;rarity<7;rarity++)for(let index=0;index<f.gearVariantCount(rarity,slot);index++)gear.push({slot,rarity,index,name:f.itemName(slot,rarity,index),baseAtk:f.fixedBaseAtk(slot,rarity,index)});
+   return {version:'pre-auction-88a7de9',slots:g.slots,rarityNames:g.rarityNames,rates:g.rates,levelReq:g.levelReq,bossRegions:g.bossRegions,goldDungeons:g.goldDungeonStages,towerFloors:g.towerFloors,collectionRewards:g.collectionRewards,auras:g.auraShopItems.map((a,id)=>({id,name:a[0],price:f.auraPrice(id),attackPercent:Number(a[2]??3)||3})),pets:g.PET_DATA,petCollectionRewards:PET_COLLECTION_REWARDS,gear,enhanceCosts:Array.from({length:7},(_,rarity)=>Array.from({length:15},(_,enhance)=>f.enhanceCost({rarity,enhance}))),enhanceRates:Array.from({length:15},(_,i)=>f.successRate(i+1)),transcendCosts:Array.from({length:7},(_,rarity)=>[1,2,3].map(t=>f.transcendCost({rarity},t))),transcendRates:[1,2,3].map(f.transcendRate),sellPrices:Array.from({length:7},(_,rarity)=>Array.from({length:16},(_,enhance)=>f.sellPrice({rarity,enhance}))),petLevelStats:Object.fromEntries(Object.keys(g.PET_DATA).map(petId=>[petId,[1,2,3,4,5].map(level=>f.getPetLevelStats({petId,level}))])),attackParity:gear.filter((_,i)=>i%10===0).flatMap(it=>[0,1,10,11,15].flatMap(enhance=>[0,1,3].map(transcend=>({item:{...it,enhance,transcend,optionRolls:[.876,1.12]},attack:f.itemAtk({...it,enhance,transcend}),options:f.subOptions({...it,enhance,transcend,optionRolls:[.876,1.12]})}))))};
+  });await writeFile(new URL('balance-snapshot.json',out),JSON.stringify(balance,null,2));console.log('BALANCE_EXPORTED');
+ }
  const previewBefore=await p.evaluate(()=>({essence:RinguCore.state.essence,power:RinguCore.fn.getPower(),equipment:RinguCore.state.equipped,inventory:RinguCore.state.inventory}));
  for(const width of [320,1440]){
   await p.setViewportSize({width,height:900});await p.evaluate(()=>openAuraShop());await p.locator('#costumePreviewTab').click();
@@ -166,6 +171,27 @@ try{
  await p.evaluate(()=>{closePetResult();openPetPanel();renderPetTab('summon');summonPet(1);});
  assert.equal(await p.evaluate(()=>RinguCore.state.ownedPets.find(p=>p.petId===Object.keys(PET_DATA)[0]).copies),1);
  checks.push('pet auto-stack migration/reload, equipped and lock retained, partial 10-draw charged once, all-max no cost, scaled sale and sold max pet returns');
+ await p.evaluate(()=>{closePetPanel();closePetResult();});
+ await p.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await p.waitForFunction(()=>document.getElementById('auctionMessage').textContent.includes('서버 검증 전환'));
+ for(const width of [320,390,768,1440]){await p.setViewportSize({width,height:900});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);}
+ assert.equal(await p.locator('#ringuAuction [data-tab]').count(),4);await p.locator('#auctionClose').click();checks.push('auction four tabs, closed server gate, four viewport sizes; no successful transaction UI when unavailable');
+ // Isolated economy-cutover fixtures. This does not enable production trading.
+ await p.evaluate(async()=>{RinguCore.state.equipped={};RinguCore.state.essence=100;RinguCore.state.autoBattle=false;RinguCore.fn.save();await RinguSession.flush();});
+ const sellerId=await p.evaluate(()=>RinguSession.account.id);await db.query('select ringu_private.auction_import($1)',[sellerId]);await db.exec('update ringu_private.auction_release set enabled=true,economy_ready=true');
+ await reload(p);const saleItem=await p.evaluate(()=>RinguCore.state.inventory[0]);
+ await p.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await p.locator('[data-tab="list"]').click();await p.locator('#auctionBody [data-row="0"]').click();await p.locator('#auctionPrice').fill('7');
+ p.once('dialog',d=>d.accept());await p.locator('#auctionConfirm').click();await p.waitForFunction(id=>!document.getElementById('auctionBody').hidden&&!RinguCore.state.inventory.some(it=>it.id===id),saleItem.id).catch(async e=>{console.error('Auction list diagnostics',await p.evaluate(()=>({message:document.getElementById('auctionMessage').textContent,session:RinguSession.status,inventory:RinguCore.state.inventory})));throw e;});await p.evaluate(()=>RinguSession.flush());
+ await p.locator('#auctionClose').click();await p.goto('about:blank'); // Seller offline.
+ const buyerContext=await browser.newContext({viewport:{width:390,height:844}});contexts.push(buyerContext);let dropBuyResponse=true;
+ await buyerContext.route('https://ekgihnyojihpearcudtd.supabase.co/**',route=>{queue=queue.then(async()=>{try{const result=await service(route.request());if(dropBuyResponse&&route.request().url().endsWith('/ringu_auction')&&route.request().postDataJSON()?.p_action==='buy'){dropBuyResponse=false;await route.abort('failed');return;}await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});}catch(e){await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:e.message})});}});return queue;});
+ const bp=await buyerContext.newPage();bp.on('pageerror',e=>errors.push(e.message));await bp.goto(base);await bp.locator('#register-tab').click();await bp.locator('#username').fill('auctionbuyerqa');await bp.locator('#password').fill('AuctionBuyerQA2026!');await bp.locator('#password-confirm').fill('AuctionBuyerQA2026!');await bp.locator('#submit-button').click();await bp.locator('#heroCanvas').waitFor({state:'attached'});
+ await bp.evaluate(async()=>{RinguCore.state.autoBattle=false;RinguCore.state.essence=100;RinguCore.fn.save();await RinguSession.flush();});const buyerId=await bp.evaluate(()=>RinguSession.account.id);await db.query('select ringu_private.auction_import($1)',[buyerId]);await reload(bp);
+ await bp.locator('[data-target="menu"]').click();await bp.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await bp.locator('#auctionRows [data-row="0"]').click();await bp.waitForFunction(()=>document.getElementById('auctionConfirmBalance').textContent.includes('93'));
+ bp.once('dialog',d=>d.accept());await bp.locator('#auctionConfirm').click();await bp.waitForFunction(()=>RinguCore.state.essence===93&&RinguCore.state.inventory.length===1);assert.equal(dropBuyResponse,false);assert.deepEqual(await bp.evaluate(()=>RinguCore.state.inventory[0]),saleItem);
+ await bp.evaluate(()=>RinguSession.flush());await reload(bp);assert.equal(await bp.evaluate(()=>RinguCore.state.essence),93);assert.equal(await bp.evaluate(()=>RinguCore.state.inventory[0].id),saleItem.id);
+ await p.goto(base);await p.waitForFunction(()=>document.getElementById('heroCanvas')||document.body.textContent.includes('서버 기록으로 시작'));const recoverSeller=p.getByRole('button',{name:'서버 기록으로 시작',exact:true});if(await recoverSeller.count())await recoverSeller.click();await p.locator('#heroCanvas').waitFor({state:'attached'});assert.equal(await p.evaluate(()=>RinguCore.state.essence),107);assert.equal(await p.evaluate(id=>RinguCore.state.inventory.some(it=>it.id===id),saleItem.id),false);
+ await p.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await p.locator('[data-tab="history"]').click();await p.locator('[name="side"]').selectOption('sell');await p.locator('#auctionRows [data-row="0"]').waitFor();assert.ok((await p.locator('#auctionRows').textContent()).includes(saleItem.name));await p.locator('#auctionClose').click();
+ checks.push('two isolated browser accounts: list, seller offline, buy, lost response receipt lookup, original item preserved, buyer reload, seller reconnect full proceeds, sale history');
  const metrics=await p.evaluate(()=>({power:RinguCore.fn.getPower(),stats:RinguCore.fn.getPlayerStats().attack,portrait:document.getElementById('rmPortraitAttack')?.textContent,petBase:PET_DATA[Object.keys(PET_DATA).sort()[0]].baseStats.attack,overflow:document.documentElement.scrollWidth>innerWidth,monsterFrames:RinguArt.monsterFrames.length}));
  await writeFile(new URL('metrics.json',out),JSON.stringify({metrics,checks,errors},null,2));console.log(JSON.stringify({metrics,checks,errors}));assert.deepEqual(errors,[]);
 }catch(error){console.error('Browser diagnostics:',JSON.stringify(errors));throw error;}finally{await browser.close();server.close();await db.close();}

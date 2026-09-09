@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <script src="/linsa-rpg/cloud-config.js"></script>
-<script src="/linsa-rpg/cloud-adapter.js?v=costume-live-1"></script>
+<script src="/linsa-rpg/cloud-adapter.js?v=economy-20260909-1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080b12">
@@ -557,16 +557,18 @@ left:var(--fallen-axe-left)!important;
 .daily-reward-strip{width:100%;margin:0 0 10px}.daily-reward-box{width:100%;min-height:74px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;border:1px solid #5a4830;border-radius:14px;background:linear-gradient(135deg,#261d16,#141922 58%,#201525);box-shadow:inset 0 0 0 1px #ffffff08,0 10px 24px #0007;color:#f7ead2;padding:11px 13px;cursor:pointer}.daily-reward-icon{width:52px;height:52px;display:grid;place-items:center;border-radius:13px;background:radial-gradient(circle at 35% 25%,#fff2a8,#d88925 48%,#613016);box-shadow:0 0 22px #f0aa4688;font-size:30px}.daily-reward-copy b{display:block;font-size:15px;color:#ffe7a2}.daily-reward-copy small{display:block;margin-top:4px;font-size:11px;color:#cdbf9f}.daily-reward-box em{font-style:normal;min-width:54px;text-align:center;padding:8px 10px;border-radius:999px;background:#332717;border:1px solid #8d6a2e;color:#ffd975;font-weight:800;font-size:12px}.daily-reward-box.can-claim{border-color:#ffd35a;box-shadow:0 0 0 1px #ffd35a33,0 0 24px #d98b2e66,0 10px 24px #0008;animation:dailyRewardPulseV1 1.8s ease-in-out infinite}.daily-reward-box.can-claim em{background:linear-gradient(#ffd35a,#aa631f);border-color:#ffe6a1;color:#1d1206}.daily-reward-box.claimed{opacity:.76}.daily-reward-modal{text-align:center}.daily-reward-bigbox{width:112px;height:112px;margin:8px auto 12px;display:grid;place-items:center;border-radius:22px;background:radial-gradient(circle at 35% 24%,#fff5b8,#f0a22f 46%,#622817);box-shadow:0 0 35px #f0a22f77;font-size:62px}@keyframes dailyRewardPulseV1{50%{filter:brightness(1.14);transform:translateY(-1px)}}@media(max-width:520px){.daily-reward-box{min-height:68px;grid-template-columns:auto 1fr auto;padding:9px 10px}.daily-reward-icon{width:46px;height:46px;font-size:26px}.daily-reward-copy b{font-size:13px}.daily-reward-copy small{font-size:10px}.daily-reward-box em{min-width:48px;padding:7px 8px;font-size:11px}}
 </style>
 </head>
-<script src="/linsa-rpg/safety.js?v=costume-live-1"></script>
+<script src="/linsa-rpg/safety.js?v=economy-20260909-1"></script>
 <script src="/linsa-rpg/art-catalog.js?v=menu-boss-2"></script>
-<script src="/linsa-rpg/remodel.js?v=unarmed-portrait-1"></script>
+<script src="/linsa-rpg/remodel.js?v=economy-20260909-1"></script>
 <script src="/linsa-rpg/social-style.js?v=costume-live-1"></script>
 <script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
 <script src="/linsa-rpg/stone-party.js?v=1"></script>
 <script src="/linsa-rpg/pet-stack-model.js?v=1"></script>
 <script src="/linsa-rpg/pet-stacks.js?v=1"></script>
-<script defer src="/linsa-rpg/safe-patches-core-v1.js?v=presentation-1"></script>
+<link rel="stylesheet" href="/linsa-rpg/auction.css?v=1">
+<script src="/linsa-rpg/auction.js?v=1"></script>
+<script defer src="/linsa-rpg/safe-patches-core-v1.js?v=economy-20260909-1"></script>
 <script defer src="/linsa-rpg/mobile-draw-fix-v8.js?v=presentation-1"></script>
 <script defer src="/linsa-rpg/visual-polish-v3.js?v=presentation-1"></script>
 <script defer src="/linsa-rpg/weapon-pose-fix-v4.js?v=unarmed-portrait-1"></script>
@@ -575,6 +577,7 @@ left:var(--fallen-axe-left)!important;
 <script defer src="/linsa-rpg/costume-art.js?v=costume-preview-1"></script>
 <script defer src="/linsa-rpg/costume-runtime.js?v=costume-live-1"></script>
 <script defer src="/linsa-rpg/costume-preview.js?v=costume-live-1"></script>
+<script defer src="/linsa-rpg/economy-client.js?v=1"></script>
 <body data-remodel="true">
 <main class="app">
  <header class="topbar"><div class="brand-row"><div class="brand"><b>링구</b>RPG</div><div class="header-actions"><button class="profile-button" onclick="openProfile()"><b>랭킹</b><span id="playerNameTop">모험가</span></button><button id="mailOpenBtn" class="mail-button" type="button" onclick="return window.forceOpenMailboxFromButton ? window.forceOpenMailboxFromButton(event) : false" aria-label="우편함">✉<i class="mail-badge" id="mailBadge">0</i></button><button class="settings-button" onclick="openSettings()" aria-label="설정">⚙</button></div></div><div class="stats"><div class="stat gold"><span class="stat-label">보유 골드</span><span class="stat-value" id="gold">0</span></div><div class="stat essence"><span class="stat-label">정수</span><span class="stat-value" id="essence">0</span></div><div class="stat stone"><span class="stat-label">초월석</span><span class="stat-value" id="transcendStone">0</span></div><div class="stat power"><span class="stat-label">공격력</span><span class="stat-value" id="power">10</span></div><div class="stat"><span class="stat-label">소환 Lv.</span><span class="stat-value" id="summonTop">Lv.1</span><div class="summon-mini"><i id="summonMini"></i></div></div></div></header>
@@ -1867,6 +1870,7 @@ setGender:{get:()=>setGender,set:value=>{setGender=value;window.setGender=value}
 setNickname:{get:()=>setNickname,set:value=>{setNickname=value;window.setNickname=value}},
 openSettings:{get:()=>openSettings,set:value=>{openSettings=value;window.openSettings=value}}
 });
+RinguCore.presentation={showDamage,showTowerDamage,showDungeonDamage,addLog};
 window.RinguCore=RinguCore;
 window.RinguSession.ready.then(()=>{
  window.installRinguRemodel(RinguCore);

@@ -72,9 +72,10 @@ window.installRinguRemodel=function(g){
   const fresh=items.filter(it=>it.isNew&&it.rarity>=3).sort((a,b)=>a.rarity-b.rarity);
   if(!fresh.length){window.RinguAudio?.effect('draw',Math.max(...items.map(it=>it.rarity)));drawResults(items);return;}
   let modal=$('rmFirstReveal');if(!modal){modal=document.createElement('div');modal.id='rmFirstReveal';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','최초 장비 획득');document.body.append(modal);}
-  const run={owner:state(),timers:[],index:0};revealRun=run;
-  const later=(fn,ms)=>run.timers.push(setTimeout(()=>{if(revealRun===run&&active()&&state()===run.owner)fn();},ms));
-  const finish=()=>{stopReveal();if(active()&&state()===run.owner)drawResults(items);};
+  const run={owner:state(),account:window.RinguSession.account?.id,timers:[],index:0};revealRun=run;
+  const sameOwner=()=>window.RinguCloud?.economy?window.RinguSession.account?.id===run.account:state()===run.owner;
+  const later=(fn,ms)=>run.timers.push(setTimeout(()=>{if(revealRun===run&&sameOwner())fn();},ms));
+  const finish=()=>{stopReveal();if(sameOwner())drawResults(items);};
   function next(){
    run.timers.forEach(clearTimeout);run.timers=[];
    const it=fresh[run.index++];if(!it)return finish();
@@ -208,6 +209,6 @@ window.installRinguRemodel=function(g){
    el.style.backgroundImage='url("'+url+'")';el.style.backgroundSize='contain';el.style.backgroundPosition='center';el.dataset.enemyImage=key;
   }
  }
- window.RinguRemodel={changed,equipMap,paintPetIcons};
+ window.RinguRemodel={changed,equipMap,paintPetIcons,showServerDraw:firstReveals,serverHit:()=>{attackMotion={started:performance.now(),hit:true};window.RinguAudio?.effect('swing');}};
 };
 })();
