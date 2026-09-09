@@ -32,4 +32,4 @@ window.installRinguAudio=function(g){
  window.RinguAudio={effect,mix,get diagnostics(){return{context:ac?.state,time:ac?.currentTime,voices:voices.size,events:[...events],sfxGain:sfx?.gain.value,musicGain:music?.gain.value}}};
 };
 (()=>{const s=document.createElement('script');s.src='/linsa-rpg/safe-patches.js?v=20260909-safe1';s.async=true;document.head.append(s)})();
-(()=>{const s=document.createElement('script');s.src='/linsa-rpg/visual-polish-v3.js?v=20260909-1';s.async=true;document.head.append(s)})();
+(()=>{const s=document.createElement('script');s.src='/linsa-rpg/visual-polish-v3.js?v=20260909-2';s.async=true;s.onload=()=>{const w=document.createElement('script');w.src='/linsa-rpg/weapon-pose-fix-v4.js?v=20260909-1';w.async=true;document.head.append(w)};document.head.append(s)})();
