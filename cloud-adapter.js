@@ -26,7 +26,13 @@
    await refreshing;
  }
  const rpc=(name,args,signal)=>remote('/rest/v1/rpc/'+name,args,{signal});
+ function cacheCostume(value){
+   const owner=session?.user?.id,cloud=window.RinguCloud;
+   if(cloud.costumeOwner!==owner){cloud.costumeOwner=owner;cloud.costume=null;}
+   if(value&&(!cloud.costume||value.costumeRevision>=cloud.costume.costumeRevision))cloud.costume=value;
+ }
  async function account(data){
+   cacheCostume(data.costume);
    // Optional migration: ordinary accounts remain usable before it is installed.
    let floor=0;
    try{floor=Number((await rpc('ringu_admin_status',{})).currencyFloor)||0;}catch(e){if(e.status!==404)throw e;}
@@ -59,11 +65,17 @@
        try{await remote('/auth/v1/logout?scope=local',undefined,{signal});}finally{persist(null);window.RinguCloud.currencyFloor=0;}return response({ok:true});
      }
      if(path==='/api/state'){
-       const saved=await rpc('ringu_account',{p_action:'save',p_state:body.state,p_revision:body.revision},signal);
+       const saved=window.RinguCloud.costume
+         ?await rpc('ringu_save_costume',{p_state:body.state,p_revision:body.revision,p_costume_revision:window.RinguCloud.costume.costumeRevision},signal)
+         :await rpc('ringu_account',{p_action:'save',p_state:body.state,p_revision:body.revision},signal);
        // The existing save queue can merge a server-awarded stone delta without
        // replacing a newer local snapshot. A lost response causes CAS recovery.
        const claimed=await rpc('ringu_claim_party',{p_revision:saved.revision},signal);
        return response({revision:claimed.revision,stoneAward:claimed.stoneAward});
+     }
+     if(path==='/api/costume'){
+       const result=await rpc('ringu_costume',{p_action:body.action||'status',p_id:body.id??null,p_request_id:body.requestId??null,p_revision:body.revision??null},signal);
+       cacheCostume(result);return response(result);
      }
      if(path==='/api/ranking'||path.startsWith('/api/characters/')){
        const list=await rpc('ringu_ranking',{},signal);

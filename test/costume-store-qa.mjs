@@ -4,8 +4,10 @@ const {PGlite}=await import(process.env.QA_PGLITE_MODULE||'@electric-sql/pglite'
 try{
  await db.exec("create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid,created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;");
  await db.exec(await readFile(new URL('fixtures/01-account-storage.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('fixtures/02-ranking-party.sql',import.meta.url),'utf8'));
  const migration=await readFile(new URL('../supabase/06-costume-foundation.sql',import.meta.url),'utf8');await db.exec(migration);await db.exec(migration);
  const priceMigration=await readFile(new URL('../supabase/07-costume-price-100.sql',import.meta.url),'utf8');await db.exec(priceMigration);await db.exec(priceMigration);
+ const integration=await readFile(new URL('../supabase/08-costume-integration.sql',import.meta.url),'utf8');await db.exec(integration);await db.exec(integration);
  // Fail the build when client products and authoritative prices/bonuses diverge.
  const products=(await db.query('select id,name,price,attack_percent from ringu_private.costume_catalog order by id')).rows;
  assert.deepEqual(products.map(p=>({...p,price:Number(p.price)})),Object.entries(catalog.products).map(([id,p])=>({id,name:p.name,price:p.price,attack_percent:p.attackPercent})).sort((a,b)=>a.id.localeCompare(b.id)));
@@ -19,7 +21,7 @@ try{
  assert.equal((await call()).ready,false);await assert.rejects(call('buy','kael',randomUUID(),1),/COSTUME_RELEASE_NOT_READY/);
  await assert.rejects(call(null),/INVALID_ACTION/);
  // TEST DATABASE ONLY. Production must not enable this flag before economy migration.
- await db.exec('update ringu_private.costume_release set essence_authoritative=true');
+ await db.exec('update ringu_private.costume_release set purchases_enabled=true');
  // Force failure AFTER debit and ownership insert; the entire RPC must roll back.
  await db.exec("create function ringu_private.test_receipt_failure() returns trigger language plpgsql as $$begin raise exception 'INJECTED_RECEIPT_FAILURE'; end$$;create trigger test_receipt_failure before insert on ringu_private.costume_receipts for each row execute function ringu_private.test_receipt_failure();");
  await assert.rejects(call('buy','kael',randomUUID(),1),/INJECTED_RECEIPT_FAILURE/);
@@ -27,6 +29,8 @@ try{
  await db.exec('drop trigger test_receipt_failure on ringu_private.costume_receipts;drop function ringu_private.test_receipt_failure()');
  const request=randomUUID(),first=await call('buy','kael',request,1);assert.equal(first.essence,99);assert.equal(first.attackPercent,5);assert.equal(first.equipped,null);
  const replay=await call('buy','kael',request,1);assert.equal(replay.essence,99);assert.equal(replay.revision,first.revision);
+ await assert.rejects(db.query("select public.ringu_account('save',$1,$2)",[JSON.stringify({essence:199}),first.revision]),/CLIENT_UPDATE_REQUIRED/);
+ await assert.rejects(db.query('select public.ringu_save_costume($1,$2,$3)',[JSON.stringify({essence:199}),first.revision,0]),/SAVE_CONFLICT/);
  await assert.rejects(call('buy','serin',request,first.revision),/REQUEST_ID_REUSED/);
  await assert.rejects(call('buy','kael',randomUUID(),first.revision),/ALREADY_OWNED/);
  await assert.rejects(call('buy','serin',randomUUID(),first.revision),/INSUFFICIENT_ESSENCE/);
@@ -43,6 +47,10 @@ try{
  await db.query("select set_config('test.uid',$1,false),set_config('test.sid',$2,false)",[other,otherSession]);await db.query("select public.ringu_account('activate')");
  const separate=await call();assert.deepEqual(separate.owned,[]);assert.equal(separate.equipped,null);assert.equal(separate.attackPercent,0);
  await assert.rejects(call('equip','kael',randomUUID(),separate.revision),/COSTUME_NOT_OWNED/);
+ await db.exec('create table ringu_private.admin_accounts(account_id uuid primary key,currency_floor bigint)');
+ await db.query('insert into ringu_private.admin_accounts values($1,99999999999)',[other]);
+ await db.query("update ringu_private.accounts set state='{"+'"essence":99999999999'+"}'::jsonb where id=$1",[other]);
+ const adminBuy=await call('buy','serin',randomUUID(),separate.revision);assert.equal(adminBuy.essence,99999999999);
  await db.query("select set_config('test.uid',$1,false),set_config('test.sid',$2,false)",[uid,sid]);assert.deepEqual((await call()).owned,['kael','serin']);
  const newer=randomUUID();await db.query("insert into auth.sessions(id,user_id,created_at) values($1,$2,now()+interval '1 second')",[newer,uid]);await assert.rejects(call(),/SESSION_REPLACED/);
  console.log('PASS: client/server catalog parity; role restrictions; atomic rollback; account isolation; withdrawn ownership; repeatable migration; release gate; exact charge; replay; nonce misuse; duplicate; insufficient funds; unowned equip; revision conflict; additive ownership; equipment preservation; session takeover');

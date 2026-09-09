@@ -1,44 +1,32 @@
-# 월영의 방랑자 — implementation checkpoint
+# 월영의 방랑자 — costume-live-1
 
-## Staged release status
+## Implemented integration
+- Kael and Serin cost 100 essence each. Prices/descriptions come from the catalog; the server validates actual price and balance.
+- Private unique ownership, equipped selection and request receipts are server-owned. Purchase debits and ownership insert are atomic, replay-safe and newest-session-only.
+- The save queue serializes purchases/equip with saves. Concurrent earned essence is merged as a delta, not overwritten by the purchase snapshot.
+- Costume receipt revisions reject stale pre-purchase snapshots. Old save API calls are rejected after a costume transaction, requesting an updated client.
+- Equipped appearance restores from account load and appears in portraits, combat and ranking inspection. Portraits have no equipment overlays; combat retains the current weapon, aura and pose-specific grip. Pets are retained.
+- Ownership grants +5% each (+10% combined), regardless of equipped appearance. Choosing the default character does not remove ownership bonuses.
+- Admin accounts with a configured currency floor are not debited.
+- Image decoding is lazy and cache-limited. All seven poses and hand/ground anchors live in the shared catalog. Original generation prompts: art/COSTUME-PROMPTS.md.
 
-- Supabase foundation was applied on 2026-09-09 through the project's SQL Editor. The result explicitly confirmed purchase_enabled=false. Existing account saves and balances were not updated.
-- The game now includes a read-only Character preview in the existing shop. Standing and six-pose battle previews load on demand, close with Escape, and never mutate equipment, currency, power or ownership. Purchasing and actual equipped costumes are NOT released.
-- Full presentation QA passed with the added preview at 320px and 1440px, existing six-width UI/forge/audio/save regression checks, no page errors and no document overflow.
+## Important security scope
+This release fixes legitimate-client save collisions, purchase receipts, ownership authorization and equipped appearance. It does NOT migrate the entire legacy economy/combat to server-authoritative rewards. The legacy account state (including earned essence, gear and combat stats) is still client-trusted; a malicious modified client can still forge legacy balances. Do not claim full anti-cheat or authoritative currency earning.
 
-## Implemented code
+The old essence_authoritative flag stays false. A separate purchases_enabled flag accurately describes costume shop availability. This is a deliberate scoped launch, not a completed authoritative-economy migration.
 
-- Two original full-character atlases with portrait and six combat poses each. Created using the built-in imagegen skill; prompts in art/COSTUME-PROMPTS.md. Lossless WebP preserves transparency.
-- costume-catalog.js is the versioned product and pose registry. Immutable definitions are validated at startup; unknown future ownership survives normalization without granting effects. Unsupported save versions fail rather than silently discarding ownership.
-- costume-art.js reads registry data. Ground roots, hand sockets and weapon grip share scale/mirror transforms. Portraits never render equipment; combat renders the current weapon with foreground fingers. It does not mutate combat state or hitboxes.
-- Image requests are deduplicated and failures have retry cooldowns. At most two decoded atlases remain cached; setActive pins the selected appearance. Shop thumbnails should not preload every combat atlas.
-- The pure bonus function computes floor(originalAttack * (100 + uniqueOwnedBonus) / 100); it never writes increased attack back as base attack.
-- supabase/06-costume-foundation.sql adds private ownership, selection, catalog and request receipts. Same-account row locking, revision checks and atomic balance/ownership updates prevent partial transactions. The shop defaults CLOSED because existing essence saves are still client-trusted. Do not enable the release flag until the authoritative economy migration is complete.
+## Deployment
+Apply 06, 07, then 08. Migration 08 was applied to production on 2026-09-09 and returned purchases_enabled=false. Deploy costume-live-1 frontend, verify public assets, then run 09 to open purchases.
+No account reset or blanket ownership grant is performed. Existing prices are 100. Stored purchase receipts are never rewritten when prices change.
+To pause new purchase/equip operations, set purchases_enabled=false; do not delete ownership or roll the account wrappers back after people purchase.
 
-## Executed tests
+## Tests executed
+- Catalog validation, unique additive attack bonuses, exact large-integer arithmetic, unknown future IDs retained.
+- PGlite migration repeated; release gate; 100 cost; insufficient funds; duplicate/replayed requests; nonce reuse; injected receipt failure atomic rollback; account isolation; RLS restrictions; unowned equip; withdrawn product ownership; session takeover; old save rejection; stale receipt rejection; admin floor retention.
+- Full application with isolated backend: purchase both, equip Kael, default appearance, +5/+10 bonus, field render selection, ranking costumeId, reload persistence and exact balance.
+- Lost response after a committed purchase retried with the same nonce; double-click did not duplicate purchase; +3 essence earned while purchase was in-flight survived both immediate save and reload. Exactly two purchase receipts for two characters.
+- Existing six-width UI, 124 base weapon cases, 36 monster images, forge success/failure, audio, account save/reload regression passed with no page errors.
+- Art tests cover 72 pose/scale/mirror transforms and injected draw failures. This is not a claim of testing every weapon on every real mobile device or of full server combat authority.
 
-- node --test test/costume-catalog.test.cjs: five tests passed (catalog validation, +5/+10 additive effects, duplication, future-save behavior, invalid inputs and exact large-integer attack arithmetic).
-- test/costume-art-qa.mjs: 72 pose/scale/mirror transforms passed; the 14-pose contact sheet was visually inspected. Twelve hand anchor pixels were sampled on the actual atlases and were opaque skin pixels. These checks are not a claim that all weapon types or actual phone performance have been checked.
-- test/costume-store-qa.mjs: isolated PGlite database passed idempotent migration, closed release gate, exact 100 cost (after price migration 07), replay, request-ID reuse, duplicate ownership, insufficient funds, unowned equip, stale revision, +10 combined ownership, equipment preservation and newer-session rejection. Release gate was opened ONLY inside the disposable test DB.
-
-## Still required before release
-
-1. Move essence reward verification and spending to authoritative server operations; preserve existing reward rates and admin behavior. Prevent old account saves from overwriting canonical balances. Stage old-client compatibility and rollback before production changes.
-2. Integrate costume RPC responses with the existing save queue without dropping concurrently earned rewards. Source ownership from private server tables, not player-submitted state.
-3. Wire the existing shop and character-management controls, confirmation dialog, actual scene renderer, player inspection and +5/+10 attack display. Use shared renderer and registry rather than duplicating hooks.
-4. Verify full purchase-to-relogin flow, all weapon categories, mobile framing and live profile synchronization. Then apply tested migrations and deploy together.
-
-Production Supabase has the closed foundation migration. No balance change or ownership grant has been performed. Public release in this stage is limited to read-only previews; do not describe this as a completed costume launch.
-
-## Additional update-safety checks
-
-- Catalog/server migration price, name and bonus parity is asserted against the disposable database. Adding a client product without matching server data fails the test.
-- A deliberately failing receipt trigger verifies a debit and ownership insert both roll back, leaving balance, revision and ownership unchanged.
-- Authenticated roles cannot read private ownership tables or unlock the shop directly. A second account cannot inspect or equip the first account's costumes.
-- Withdrawing a product from sale retains existing ownership, equip access and ownership bonuses.
-- Three injected rendering failures (body, weapon, foreground fingers) leave the canvas transform unchanged. All 72 pose/scale/mirror cases also pass after this change.
-- These are local automated checks, not a guarantee of no bugs or a completed live launch. Separate-connection concurrency, actual production purchase flows and real-device performance remain release requirements.
-
-## Adding a future costume
-
-Use a permanent unique product ID. Add complete art metadata and all seven poses to the catalog, produce a matching server-catalog migration, and run the catalog/art/store tests. Never reuse an old ID for a different product. Preserve previously owned IDs when a product is withdrawn. Keep purchase prices and authority on the server. The current game is fixed-direction idle combat; free WASD movement, mouse aiming and dash are not implemented by this feature.
+## Future costumes
+Use permanent unique IDs. Add art metadata, seven complete poses, price and bonus; add a matching forward server catalog migration. Never reuse an owned ID. Catalog/server parity tests must pass. Withdraw products by disabling new sales, not deleting ownership. Schema changes must preserve unknown future IDs and require explicit migrations.

@@ -2,9 +2,11 @@ process.env.QA_PHASE??='after';
 const {PGlite}=await import(process.env.QA_PGLITE_MODULE||'@electric-sql/pglite');
 import {createServer} from 'node:http';import {readFile} from 'node:fs/promises';import {once} from 'node:events';import {createRequire} from 'node:module';import {randomUUID} from 'node:crypto';import assert from 'node:assert/strict';
 const {chromium}=createRequire(import.meta.url)(process.env.QA_PLAYWRIGHT_MODULE||'playwright');
-const db=new PGlite(),users=new Map(),tokens=new Map();let serial=0,queue=Promise.resolve();
+const db=new PGlite(),users=new Map(),tokens=new Map();let serial=0,queue=Promise.resolve(),loseCostumeResponse=false,earnedDuringPurchase=false;
 await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
 for(const file of ['01-account-storage.sql','02-ranking-party.sql'])await db.exec(await readFile(new URL('fixtures/'+file,import.meta.url),'utf8'));
+for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
+await db.exec('update ringu_private.costume_release set purchases_enabled=true');
 async function service(req){
  const path=new URL(req.url()).pathname,body=req.postDataJSON()||{};
  if(path==='/auth/v1/settings')return {mailer_autoconfirm:true};
@@ -17,7 +19,7 @@ async function service(req){
  if(path==='/auth/v1/logout'){await db.query('delete from auth.sessions where id=$1',[entry.sid]);return {};}
  const name=path.split('/').at(-1);
  if(name==='ringu_admin_status')return {currencyFloor:0};
- assert.ok(['ringu_account','ringu_party','ringu_claim_party','ringu_ranking'].includes(name));
+ assert.ok(['ringu_account','ringu_save_costume','ringu_costume','ringu_party','ringu_claim_party','ringu_ranking'].includes(name));
  const entries=Object.entries(body);assert.ok(entries.every(([k])=>/^p_[a-z_]+$/.test(k)));
  const args=entries.map(([k],i)=>k+'=> $'+(i+1));
  return (await db.query('select public.'+name+'('+args.join(',')+') as result',entries.map(([,v])=>typeof v==='object'&&v!==null?JSON.stringify(v):v))).rows[0].result;
@@ -29,7 +31,7 @@ const out=new URL('../test-artifacts/'+(process.env.QA_PHASE||'before')+'/',impo
 const {mkdir,writeFile}=await import('node:fs/promises');await mkdir(out,{recursive:true});
 try{
  const c=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});contexts.push(c);
- await c.route('https://ekgihnyojihpearcudtd.supabase.co/**',route=>{queue=queue.then(async()=>{try{await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(await service(route.request()))});}catch(e){await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:e.message})});}});return queue;});
+ await c.route('https://ekgihnyojihpearcudtd.supabase.co/**',route=>{queue=queue.then(async()=>{try{const result=await service(route.request());if(loseCostumeResponse&&route.request().url().endsWith('/ringu_costume')&&route.request().postDataJSON()?.p_action==='buy'){loseCostumeResponse=false;await p.evaluate(()=>{RinguCore.state.essence+=3;RinguCore.fn.save();});earnedDuringPurchase=true;await route.abort('failed');return;}await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});}catch(e){await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:e.message})});}});return queue;});
  const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('response',r=>{if(r.status()===404)errors.push('404 '+r.url())});
  await p.goto(base);await p.locator('#register-tab').click();await p.locator('#username').fill('presentationqa');await p.locator('#password').fill('PresentationQA2026!');await p.locator('#password-confirm').fill('PresentationQA2026!');await p.locator('#submit-button').click();await p.locator('#heroCanvas').waitFor({state:'attached'});
  await p.waitForFunction(()=>RinguArt.__weaponPoseV5&&window.__ringuPetAttackNerfV1);await p.evaluate(()=>{RinguCore.state.autoBattle=false;});
@@ -131,6 +133,27 @@ try{
  checks.push('forge success/failure, two-strike animation, distinct result sounds, double-charge prevention');
  await p.waitForTimeout(6000);assert.equal(await p.evaluate(()=>RinguAudio.diagnostics.voices),0);checks.push('audio voices return to zero');
  await p.evaluate(async()=>{RinguCore.state.gold=2468;RinguCore.fn.save();await RinguSession.flush();});await reload(p);assert.equal(await p.evaluate(()=>RinguCore.state.gold),2468);checks.push('isolated account save/reload preserved gold');
+ await p.evaluate(async()=>{RinguCore.state.essence=200;RinguCore.fn.save();await RinguSession.flush();openAuraShop();});
+ const beforeCostumePower=await p.evaluate(()=>RinguCore.fn.getPower());
+ await p.locator('#costumePreviewTab').click();await p.locator('#costumePreview [data-costume="kael"]').click();
+ await p.waitForFunction(()=>!document.querySelector('#costumePreview [data-buy]').disabled);
+ loseCostumeResponse=true;p.once('dialog',d=>d.accept());await p.evaluate(()=>{const b=document.querySelector('#costumePreview [data-buy]');b.click();b.click();});
+ await p.waitForFunction(()=>RinguCostumes.snapshot?.owned.includes('kael'));
+ await p.evaluate(()=>RinguSession.flush());assert.ok(earnedDuringPurchase);assert.equal(await p.evaluate(()=>RinguCore.state.essence),103);
+ assert.equal(await p.evaluate(()=>RinguCore.fn.getPower()),Math.floor(beforeCostumePower*1.05));
+ await p.locator('#costumePreview [data-equip]').click();await p.waitForFunction(()=>RinguCostumes.snapshot?.equipped==='kael');
+ await p.locator('#costumePreview [data-close]').click();await p.evaluate(()=>closeAuraShop());
+ await reload(p);assert.equal(await p.evaluate(()=>RinguCore.state.essence),103);assert.equal(await p.evaluate(()=>RinguCostumes.snapshot.equipped),'kael');
+ await p.evaluate(()=>document.querySelector('[data-target="character"]').click());await p.waitForFunction(()=>document.querySelector('#heroCanvas').dataset.costume==='kael');
+ const rendered=await p.evaluate(()=>{const cv=document.createElement('canvas');cv.width=700;cv.height=800;RinguArt.battleHero(cv.getContext('2d'),RinguCore.state,{},()=>0,0,350,700,500,{pose:2});return cv.dataset.costume;});assert.equal(rendered,'kael');
+ const rank=await p.evaluate(async()=>{const data=await(await fetch('/api/ranking')).json();return data.rows.find(row=>row.id===RinguSession.account.id);});assert.equal(rank.costumeId,'kael');
+ await p.evaluate(()=>openAuraShop());await p.locator('#costumePreviewTab').click();await p.locator('#costumePreview [data-costume="serin"]').click();
+ p.once('dialog',d=>d.accept());await p.locator('#costumePreview [data-buy]').click();await p.waitForFunction(()=>RinguCostumes.snapshot?.owned.includes('serin'));await p.evaluate(()=>RinguSession.flush());
+ assert.equal(await p.evaluate(()=>RinguCore.state.essence),3);assert.equal(await p.evaluate(()=>RinguCore.fn.getPower()),Math.floor(beforeCostumePower*1.1));
+ await p.locator('#costumePreview [data-default]').click();await p.waitForFunction(()=>RinguCostumes.snapshot.equipped===null);assert.equal(await p.evaluate(()=>RinguCore.fn.getPower()),Math.floor(beforeCostumePower*1.1));
+ await p.locator('#costumePreview [data-close]').click();await p.evaluate(()=>closeAuraShop());await reload(p);assert.equal(await p.evaluate(()=>RinguCore.state.essence),3);assert.equal(await p.evaluate(()=>RinguCostumes.snapshot.owned.length),2);
+ assert.equal(Number((await db.query("select count(*) n from ringu_private.costume_receipts where action='buy'")).rows[0].n),2);checks.push('lost purchase response retry, double-click, concurrent +3 essence reward preserved; exactly two unique purchase receipts');
+ checks.push('100 essence purchase, owned-only equip, 5/10% bonus, portrait/combat/ranking appearance, unequip bonus retention, exact balance and ownership after reload');
  }
  const metrics=await p.evaluate(()=>({power:RinguCore.fn.getPower(),stats:RinguCore.fn.getPlayerStats().attack,portrait:document.getElementById('rmPortraitAttack')?.textContent,petBase:PET_DATA[Object.keys(PET_DATA).sort()[0]].baseStats.attack,overflow:document.documentElement.scrollWidth>innerWidth,monsterFrames:RinguArt.monsterFrames.length}));
  await writeFile(new URL('metrics.json',out),JSON.stringify({metrics,checks,errors},null,2));console.log(JSON.stringify({metrics,checks,errors}));assert.deepEqual(errors,[]);

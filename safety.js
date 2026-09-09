@@ -22,6 +22,7 @@
   let account = null, revision = null, active = false, phase = 'loading';
   let message = '계정의 모험 기록을 확인하는 중입니다.';
   let pending = null, latest = null, inFlight = null, saveTimer = null;
+  let mutation = null;
   let events = null, pollTimer = null, pollBusy = false, ended = false;
   let overlay = null, bootComplete = false, sequence = 0, lastAcknowledged = null;
   const listeners = new Set(), endHooks = new Set();
@@ -214,11 +215,43 @@
     return snapshot();
   }
   function flush() {
+    if (mutation) return mutation.then(() => flush());
     clearTimeout(saveTimer); saveTimer = null;
     if (!active) return Promise.reject(new Error(message));
     if (inFlight) return inFlight;
     inFlight = drain().finally(() => { inFlight = null; });
     return inFlight;
+  }
+  function costumeTransaction(action,id,requestId=crypto.randomUUID()) {
+    if(mutation)return Promise.reject(new Error('이미 처리 중입니다.'));
+    const before=flush();
+    mutation=(async()=>{
+      await before;if(!active)throw new Error(message);
+      const previousEssence=Number(latest?.essence)||0;
+      const body=JSON.stringify({action,id,requestId,revision});
+      let response,result;
+      try{
+        // Retrying the exact receipt ID cannot buy twice after a lost response.
+        for(let attempt=0;attempt<2;attempt++){
+          try{response=await api('/api/costume',{method:'POST',body});result=await response.json();break;}
+          catch(e){if(attempt===1)throw e;}
+        }
+      }catch(e){end('구매 처리 결과를 확인하지 못했습니다. 새로고침하여 서버 기록을 확인해 주세요.','conflict');throw e;}
+      if(!response.ok){if([401,403,409].includes(response.status))end('서버 기록 또는 로그인 상태가 변경되었습니다. 새로고침해 주세요.','conflict');throw new Error(result.error||'처리하지 못했습니다.');}
+      if(!active||!Number.isSafeInteger(result.revision)||result.revision<revision||!Number.isSafeInteger(result.essence)){
+        end('구매 응답을 확인하지 못했습니다. 새로고침해 주세요.','conflict');throw new Error('INVALID_COSTUME_RESPONSE');
+      }
+      revision=result.revision;const delta=result.essence-previousEssence;
+      for(const s of new Set([latest,pending?.state]))if(s)s.essence=(Number(s.essence)||0)+delta;
+      if(pending)pending.raw=JSON.stringify(pending.state);
+      try{
+        write(KEY,JSON.stringify(latest));
+        if(pending)writeBackup(pending);else{lastAcknowledged=JSON.stringify(latest);remove(scoped('pending'));}
+      }catch(e){end('서버 처리는 완료됐지만 브라우저 저장 공간이 부족합니다. 다시 접속하여 서버 기록을 불러와 주세요.','storage-error');throw e;}
+      window.dispatchEvent(new CustomEvent('ringu:costume-transaction',{detail:{delta,result}}));
+      return result;
+    })().finally(()=>{mutation=null;if(active&&pending)void flush().catch(()=>{});});
+    return mutation;
   }
   async function logout() {
     await flush();
@@ -319,7 +352,7 @@
     }
   }
   const bridge = {
-    ready: null, save, flush, logout,
+    ready: null, save, flush, logout, costumeTransaction,
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
     subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },
     onEnded(fn) { endHooks.add(fn); if (ended) fn(snapshot()); return () => endHooks.delete(fn); }
