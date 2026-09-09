@@ -33,6 +33,19 @@ try{
  const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('response',r=>{if(r.status()===404)errors.push('404 '+r.url())});
  await p.goto(base);await p.locator('#register-tab').click();await p.locator('#username').fill('presentationqa');await p.locator('#password').fill('PresentationQA2026!');await p.locator('#password-confirm').fill('PresentationQA2026!');await p.locator('#submit-button').click();await p.locator('#heroCanvas').waitFor({state:'attached'});
  await p.waitForFunction(()=>RinguArt.__weaponPoseV5&&window.__ringuPetAttackNerfV1);await p.evaluate(()=>{RinguCore.state.autoBattle=false;});
+ const previewBefore=await p.evaluate(()=>({essence:RinguCore.state.essence,power:RinguCore.fn.getPower(),equipment:RinguCore.state.equipped,inventory:RinguCore.state.inventory}));
+ for(const width of [320,1440]){
+  await p.setViewportSize({width,height:900});await p.evaluate(()=>openAuraShop());await p.locator('#costumePreviewTab').click();
+  for(const id of ['kael','serin']){
+   await p.locator('#costumePreview [data-costume="'+id+'"]').click();await p.waitForFunction(id=>RinguCostumeArt.isReady(id),id);
+   await p.locator('#costumePreview [data-pose="battle"]').click();await p.waitForTimeout(300);
+   const box=await p.locator('#costumePreview').boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1);
+   assert.ok(await p.locator('#costumePreview button:disabled').count());
+   await p.locator('#costumePreview').screenshot({path:decodeURIComponent(new URL('costume-'+id+'-'+width+'.png',out).pathname).replace(/^\//,'')});
+  }
+  await p.locator('#costumePreview [data-close]').click();await p.evaluate(()=>closeAuraShop());
+ }
+ assert.deepEqual(await p.evaluate(()=>({essence:RinguCore.state.essence,power:RinguCore.fn.getPower(),equipment:RinguCore.state.equipped,inventory:RinguCore.state.inventory})),previewBefore);
  for(const width of [320,360,390,412,768,1440]){
   await p.setViewportSize({width,height:900});await p.evaluate(()=>document.querySelector('[data-target="character"]').click());await p.waitForTimeout(150);
   await p.screenshot({path:decodeURIComponent(new URL('character-'+width+'.png',out).pathname).replace(/^\//,'')});

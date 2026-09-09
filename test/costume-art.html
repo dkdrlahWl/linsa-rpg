@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><title>Costume renderer validation</title>
+<style>body{background:#14212c;color:#eadbc4;font:14px sans-serif;margin:16px}canvas{display:block;max-width:100%;height:auto}h1{font-size:20px}</style>
+<h1>월영의 방랑자 · 렌더링 검사 (출시 전)</h1><canvas id="sheet" width="1680" height="960"></canvas>
+<script src="../art-catalog.js"></script><script src="../costume-catalog.js"></script><script src="../costume-art.js"></script>
+<script>
+window.qaReady=(async()=>{await RinguArt.ready;await Promise.all(['kael','serin'].map(RinguCostumeArt.load));
+ const ctx=sheet.getContext('2d');const gear={'무기':{slot:'무기',rarity:0,name:'낡은 장검'}};
+ const results=[];
+ for(const [row,id]of ['kael','serin'].entries())for(let col=0;col<7;col++){
+  const x=col*240+120,y=row*480+440;ctx.fillStyle='#eadbc4';ctx.fillText(id+' '+(col?'pose '+(col-1):'portrait'),col*240+12,row*480+20);
+  const pose=RinguCostumeArt.draw(ctx,id,{x,y,height:350,pose:col?col-1:null,equipment:gear,indexOf:()=>0});results.push({id,...pose});
+ }
+ return results;
+})();
+</script>
