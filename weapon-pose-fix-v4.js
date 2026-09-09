@@ -67,9 +67,9 @@
         const model=weaponGeometry(socket);
         const hold=left=>{
           const hand=palm(female,left,W,H),hx=bx+hand.x*scale,hy=by+hand.y*scale;
-          const h=height*(socket.gauntlet?.14:.46),w=h*socket.w/socket.h;
-          // Blade up and slightly outward, safely clear of the torso and face.
-          const rotation=socket.gauntlet?.25:-1.98-model.angle;
+          const h=height*(socket.gauntlet?.14:.40),w=h*socket.w/socket.h;
+          // Relaxed arm: point the blade down/out, rotating around the handle, not the image centre.
+          const rotation=socket.gauntlet?.25:1.94-model.angle;
           ctx.save();ctx.translate(hx,hy);if(left)ctx.scale(-1,1);ctx.rotate(rotation);
           ctx.drawImage(socket.im,-socket.u*w,-socket.v*h,w,h);ctx.restore();
           // Repaint opaque fingers only; the transparent grip opening retains the hilt.

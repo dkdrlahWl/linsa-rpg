@@ -2,6 +2,8 @@
 window.installRinguRemodel=function(g){
  const $=id=>document.getElementById(id),f=g.fn,old=Object.fromEntries(Object.getOwnPropertyNames(f).map(k=>[k,f[k]])),esc=s=>f.escapeHtml(String(s??'')),fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR'),art=window.RinguArt;
  const state=()=>g.state,active=()=>window.RinguSession.active!==false;
+ // One shared identity for the stage list, battle title and isolated boss artwork.
+ g.goldDungeonStages.forEach((stage,i)=>{stage.artIndex=i;stage.name=g.bossRegions[Math.floor(i/6)].bosses[i%6].name;});
  const equipMap=()=>Object.fromEntries(g.slots.map(slot=>[slot,state().inventory.find(it=>String(it.id)===String(state().equipped[slot]))]));
  const changed=()=>{f.renderAll();f.save(false)};
  // Reward tables are shared by battle payouts, offline farming and their UI.
@@ -129,7 +131,7 @@ window.installRinguRemodel=function(g){
  const rawTowerStart=f.startTower;f.startTower=n=>{if(g.activeTower)return f.toast('이미 탑 전투 중입니다.');return rawTowerStart(n)};
  const rawDungeonStart=f.startDungeonBattle;f.startDungeonBattle=(...args)=>{if(g.activeDungeon||g.activeTower)return f.toast('진행 중인 전투를 먼저 종료하세요.');return rawDungeonStart(...args)};
  if(window.RinguPetDungeon)window.RinguPetDungeon.name='별빛 성소의 수호수';
- const rawDungeonBattleRender=f.renderDungeonBattle;f.renderDungeonBattle=()=>{const result=rawDungeonBattleRender();if(g.activeDungeon?.type==='pet')$('dungeonBattleTitle').textContent='1단계 · 별빛 성소의 수호수';return result;};
+ const rawDungeonBattleRender=f.renderDungeonBattle;f.renderDungeonBattle=()=>{const result=rawDungeonBattleRender();if(g.activeDungeon?.type==='pet')$('dungeonBattleTitle').textContent='1단계 · 별빛 성소의 수호수';if(g.activeDungeon?.type==='gold'){const d=g.goldDungeonStages[g.activeDungeon.stage-1];$('dungeonBattleTitle').textContent='골드 던전 '+d.stage+'단계 · '+d.name;}return result;};
  const rawDungeonRender=f.renderDungeon;f.renderDungeon=()=>{rawDungeonRender();if(g.dungeonType==='stone'&&!g.activeDungeon){$('dungeonStageList').innerHTML='<p class="rm-note">초월석 던전 · 개인 도전 · 클리어 시 이용 횟수 차감</p>'+Array.from({length:6},(_,i)=>'<button class="rm-dungeon-entry" onclick="quickPartyEntry('+(i+1)+')">'+(i+1)+'단계 도전　→</button>').join('');}};
  f.syncRanking=async()=>{try{const res=await fetch('/api/ranking');if(!res.ok)return;const data=await res.json();const own={id:window.RinguSession.account?.id,name:state().playerName,power:f.getPower(),tower:state().towerCleared,gender:state().playerGender,equipment:f.ownProfile().equipment};const rows=(data.rows||[]).filter(r=>r.id!==own.id);if(!state().rankingHidden)rows.push(own);rows.sort((a,b)=>b.power-a.power);g.rankingProfiles=rows;$('rankStatus').textContent='동일 서버의 저장된 캐릭터 기록';$('rankList').innerHTML=rows.map((p,i)=>'<button class="rm-rank-row" onclick="openRankingCharacter('+i+')"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(p.name)+'</strong><b>⚔ '+fmt(p.power)+'</b></button>').join('')}catch(e){$('rankStatus').textContent='랭킹 연결을 확인하세요.'}};
  f.openProfile=()=>{$('profileModal').classList.add('show');$('profileUid').textContent=state().playerUid;$('nicknameInput').value=state().playerName;f.syncRanking()};
@@ -170,11 +172,17 @@ window.installRinguRemodel=function(g){
   nav.addEventListener('click',event=>{const button=event.target.closest('button');if(button)showPage(button.dataset.target)});
   window.scrollToId=id=>showPage(id==='equipGrid'?'character':id==='summonPanel'?'summon':id==='inventoryPanel'?'inventory':'hunt');
   window.RinguPortrait={showPage};showPage('hunt');
-  const previewButton=document.createElement('button');previewButton.textContent='오라 미리보기';previewButton.onclick=openAuraPreview;features.querySelector('nav').append(previewButton);
+  const previewButton=document.createElement('button');previewButton.textContent='오라 미리보기';previewButton.dataset.uiIcon='✨';previewButton.onclick=openAuraPreview;features.querySelector('nav').append(previewButton);
  }
  function openAuraPreview(){
   let modal=$('rmAuraPreview');if(!modal){modal=document.createElement('div');modal.id='rmAuraPreview';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','rmAuraTitle');modal.innerHTML='<section class="modal"><h3 id="rmAuraTitle">캐릭터 오라</h3><p>캐릭터 뒤에서 실시간으로 움직이는 효과입니다. 미리보기는 장비·재화·보유 오라를 변경하지 않습니다.</p><canvas id="rmAuraCanvas" width="640" height="820" aria-label="캐릭터 뒤 오라 애니메이션 미리보기"></canvas><label for="rmAuraSelect">오라 선택</label><select id="rmAuraSelect">'+g.auraShopItems.map(([name],i)=>'<option value="'+i+'">'+esc(name)+'</option>').join('')+'</select><button id="rmAuraClose">닫기</button></section>';document.body.append(modal);$('rmAuraClose').onclick=()=>modal.classList.remove('show');}
   $('rmAuraSelect').value=String(Math.max(0,state().equippedAura));modal.classList.add('show');$('rmAuraSelect').focus();
+ }
+ const enemyImages=new Map();
+ function enemyImage(kind,index){
+  const key=kind+':'+index;if(enemyImages.has(key))return enemyImages.get(key);
+  const im=kind==='tower'?art.frame('tower',index,6,5)?.im:art.monsterFrames[index];
+  if(!im)return '';const url=im.toDataURL('image/png');enemyImages.set(key,url);return url;
  }
  let lastPaint=0;
  function draw(time){requestAnimationFrame(draw);if(time-lastPaint<16||document.hidden||!active()||!state())return;lastPaint=time;const s=state(),map=equipMap(),ix=it=>f.itemIndex(it),hc=$('heroCanvas');if(hc?.clientWidth){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);}
@@ -192,7 +200,13 @@ window.installRinguRemodel=function(g){
    if(bounds)canvas.dataset.monsterBounds=JSON.stringify(bounds);
    const grip=art.battleHero(c,s,map,ix,time,heroX,h*.79,Math.min(h*.52,w*(narrow?.43:.65)),{pose:reduced?0:pose});canvas.dataset.pose=String(reduced?0:pose);canvas.dataset.facing='right';canvas.dataset.monsterFacing='left';canvas.dataset.attacking=String(age<960);canvas.dataset.heroCenter=String(heroX);if(grip){canvas.dataset.handX=String(grip.handX);canvas.dataset.handY=String(grip.handY)}c.restore();
   }
-  for(const [id,name,index,cols,rows]of [['towerArt','tower',Math.max(0,(g.activeTower?.data.floor||1)-1),6,5],['dungeonBossArt','monsters',g.activeDungeon?.type==='gold'?7:31,6,6]]){const el=$(id);if(el){const pet=id==='dungeonBossArt'&&g.activeDungeon?.type==='pet';el.classList.add('rm-enemy-art');el.classList.toggle('rm-pet-boss',pet);el.style.backgroundImage='url(/linsa-rpg/art/'+(pet?'pet-dungeon-guardian-v1':name)+'.png)';el.style.backgroundSize=pet?'contain':(cols*100)+'% '+(rows*100)+'%';el.style.backgroundPosition=pet?'center':(index%cols/(cols-1)*100)+'% '+(Math.floor(index/cols)/(rows-1)*100)+'%';}}
+  for(const [id,kind,index]of [['towerArt','tower',Math.max(0,(g.activeTower?.data.floor||1)-1)],['dungeonBossArt','monsters',g.activeDungeon?.type==='gold'?(g.goldDungeonStages[g.activeDungeon.stage-1]?.artIndex??0):31]]){
+   const el=$(id);if(!el)continue;const pet=id==='dungeonBossArt'&&g.activeDungeon?.type==='pet';
+   el.classList.add('rm-enemy-art');el.classList.toggle('rm-pet-boss',pet);
+   const key=pet?'pet':kind+':'+index;if(el.dataset.enemyImage===key)continue;
+   const url=pet?'/linsa-rpg/art/pet-dungeon-guardian-v1.png':enemyImage(kind,index);if(!url)continue;
+   el.style.backgroundImage='url("'+url+'")';el.style.backgroundSize='contain';el.style.backgroundPosition='center';el.dataset.enemyImage=key;
+  }
  }
  window.RinguRemodel={changed,equipMap,paintPetIcons};
 };

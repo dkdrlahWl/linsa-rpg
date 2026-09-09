@@ -42,6 +42,23 @@ try{
  const checks=[];
  if(process.env.QA_PHASE==='after'){
  await p.evaluate(()=>closePetPanel());
+ const towerCutouts=await p.evaluate(()=>{
+  const cv=document.createElement('canvas');cv.id='qaTowerSheet';cv.width=1200;cv.height=1050;cv.style='position:fixed;inset:0;width:1200px;height:1050px;z-index:999999;background:#17232b';document.body.append(cv);
+  const c=cv.getContext('2d');return Array.from({length:30},(_,i)=>{const f=RinguArt.frame('tower',i,6,5);if(!f)return {i,missing:true};const x=i%6*200,y=Math.floor(i/6)*210,scale=Math.min(188/f.w,182/f.h);c.drawImage(f.im,x+(200-f.w*scale)/2,y+186-f.h*scale,f.w*scale,f.h*scale);c.fillStyle='white';c.font='13px sans-serif';c.fillText((i+1)+'층',x+85,y+204);return {i,w:f.w,h:f.h};});
+ });
+ console.log(JSON.stringify({towerCutouts}));
+ assert.ok(towerCutouts.every(x=>!x.missing&&x.w>40&&x.h>80),'all thirty isolated tower silhouettes exist');
+ await p.setViewportSize({width:1200,height:1050});await p.locator('#qaTowerSheet').screenshot({path:decodeURIComponent(new URL('tower-cutouts.png',out).pathname).replace(/^\//,'')});await p.evaluate(()=>document.getElementById('qaTowerSheet').remove());
+ const goldNames=await p.evaluate(()=>{const g=RinguCore;g.dungeonType='gold';g.fn.renderDungeon();return g.goldDungeonStages.map((d,i)=>({name:d.name,expected:g.bossRegions[Math.floor(d.artIndex/6)].bosses[d.artIndex%6].name,label:document.querySelectorAll('.dungeon-stage strong')[i]?.textContent}));});
+ console.log(JSON.stringify({goldNames}));assert.equal(goldNames.length,20);assert.ok(goldNames.every(d=>d.name===d.expected&&d.label.includes(d.name)));
+ for(const stage of [1,10,20]){
+  await p.evaluate(stage=>{const g=RinguCore,d=g.goldDungeonStages[stage-1];g.activeDungeon={type:'gold',stage,hp:d.hp,maxHp:d.hp,elapsed:0};g.fn.renderDungeonBattle();},stage);await p.waitForTimeout(60);
+  assert.equal(await p.locator('#dungeonBossArt').getAttribute('data-enemy-image'),'monsters:'+(stage-1));
+  assert.ok(await p.locator('#dungeonBattleTitle').textContent().then(x=>x.includes(goldNames[stage-1].name)));
+ }
+ await p.evaluate(()=>{RinguCore.activeDungeon=null;RinguCore.fn.closeDungeon();});
+ await p.setViewportSize({width:1440,height:900});await p.locator('#rmFeatureNav').screenshot({path:decodeURIComponent(new URL('menu-plaques.png',out).pathname).replace(/^\//,'')});
+ checks.push({towerCutouts,goldNames});
  const attacks=await p.evaluate(()=>{
  const g=RinguCore,s=g.state,result=[];function check(label){g.fn.renderAll();const value=g.fn.getPlayerStats().attack,display=document.getElementById('rmPortraitAttack').textContent;result.push({label,value,power:g.fn.getPower(),display,gear:g.fn.getPlayerStats().equipmentAtk});}
  check('pet-equipped');unequipPet();check('pet-unequipped');equipPet('qa-pet-1');check('pet-reequipped');levelUpPet('qa-pet-1');check('pet-level-up');

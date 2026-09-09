@@ -57,7 +57,45 @@
   for(let v=0;v<n;v++){if(labels[v]||p[v*4+3]<48)continue;id++;let head=0,tail=1,sx=0,sy=0,x0=w,y0=h,x1=0,y1=0;queue[0]=v;labels[v]=id;while(head<tail){const u=queue[head++],x=u%w,y=Math.floor(u/w);sx+=x;sy+=y;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);for(const q of [u-w,u+w,x?u-1:-1,x<w-1?u+1:-1])if(q>=0&&q<n&&!labels[q]&&p[q*4+3]>=48){labels[q]=id;queue[tail++]=q;}}if(tail>=30)groups[Math.min(4,Math.floor(sy/tail/h*5))*5+Math.min(4,Math.floor(sx/tail/w*5))].push({id,tail,x0,x1,y0,y1});}
   petFrames=groups.map(parts=>{if(!parts.length)return null;const largest=Math.max(...parts.map(p=>p.tail));parts=parts.filter(p=>p.tail>=largest*.01);const x0=Math.min(...parts.map(p=>p.x0)),y0=Math.min(...parts.map(p=>p.y0)),x1=Math.max(...parts.map(p=>p.x1)),y1=Math.max(...parts.map(p=>p.y1)),keep=new Set(parts.map(p=>p.id)),out=document.createElement('canvas');out.width=x1-x0+9;out.height=y1-y0+9;const c=out.getContext('2d'),data=c.createImageData(out.width,out.height);for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const v=y*w+x;if(keep.has(labels[v]))data.data.set(p.subarray(v*4,v*4+4),((y-y0+4)*out.width+x-x0+4)*4);}c.putImageData(data,0,0);return out;});return petFrames;
  }
- function frame(name,index,cols,rows){if(name==='pets'){const im=preparePets()[index];return im?{im,x:0,y:0,w:im.width,h:im.height}:null;}const im=images[name];if(!im?.complete||!im.naturalWidth)return null;const r=Math.floor(index/cols),line=name.startsWith('gear-')?gearRows[Number(name.slice(-1))]:null;return {im,x:index%cols*im.width/cols,y:line?line[r]*im.height/1086:r*im.height/rows,w:im.width/cols,h:line?(line[r+1]-line[r])*im.height/1086:im.height/rows};}
+ let towerFrames;
+ function prepareTower(){
+  if(towerFrames)return towerFrames;
+  const im=images.tower;if(!im?.naturalWidth)return [];
+  const cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;
+  const ctx=cv.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
+  const p=ctx.getImageData(0,0,cv.width,cv.height).data,w=cv.width,h=cv.height,n=w*h;
+  // Two authored silhouettes touch at their tips. Follow the transparent valley
+  // between them, instead of a straight grid cut through a sword or wing.
+  function separate(left,right,top,bottom,centre){
+   left=Math.floor(left*w);right=Math.ceil(right*w);top=Math.floor(top*h);bottom=Math.ceil(bottom*h);
+   const span=right-left+1,rows=bottom-top,back=new Int16Array(span*rows);let prev=new Float64Array(span);
+   for(let y=top;y<bottom;y++){const next=new Float64Array(span);
+    for(let j=0;j<span;j++){let best=prev[j],from=j;for(let k=Math.max(0,j-3);k<=Math.min(span-1,j+3);k++){const cost=prev[k]+Math.abs(k-j)*.08;if(cost<best){best=cost;from=k;}}
+     next[j]=best+(p[(y*w+left+j)*4+3]>=48?100:0)+Math.abs(left+j-centre*w)*.002;back[(y-top)*span+j]=from;}
+    prev=next;
+   }
+   let j=prev.indexOf(Math.min(...prev));for(let y=bottom-1;y>=top;y--){const next=back[(y-top)*span+j];for(let x=Math.min(j,next);x<=Math.max(j,next);x++)p[(y*w+left+x)*4+3]=0;j=next;}
+  }
+  separate(.44,.52,0,.192,.49);separate(.305,.365,.765,1,1/3);
+  const labels=new Int32Array(n),queue=new Int32Array(n),groups=Array.from({length:30},()=>[]);let id=0;
+  // Connected silhouettes may extend past their atlas cells; never include the next figure's pixels.
+  for(let seed=0;seed<n;seed++){
+   if(labels[seed]||p[seed*4+3]<48)continue;
+   id++;let head=0,tail=1,sx=0,sy=0,x0=w,y0=h,x1=0,y1=0;queue[0]=seed;labels[seed]=id;
+   while(head<tail){const v=queue[head++],x=v%w,y=Math.floor(v/w);sx+=x;sy+=y;x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);
+    for(const q of [x?v-1:-1,x<w-1?v+1:-1,y?v-w:-1,y<h-1?v+w:-1])if(q>=0&&!labels[q]&&p[q*4+3]>=48){labels[q]=id;queue[tail++]=q;}}
+   if(tail>=32){const row=[.188,.38,.572,.768,1].findIndex(end=>sy/tail/h<end);groups[Math.max(0,row)*6+Math.min(5,Math.floor(sx/tail/w*6))].push({id,tail,x0,y0,x1,y1});}
+  }
+  towerFrames=groups.map(parts=>{
+   if(!parts.length)return null;
+   const largest=Math.max(...parts.map(p=>p.tail));parts=parts.filter(p=>p.tail>=largest*.008);
+   const x0=Math.min(...parts.map(p=>p.x0)),y0=Math.min(...parts.map(p=>p.y0)),x1=Math.max(...parts.map(p=>p.x1)),y1=Math.max(...parts.map(p=>p.y1)),keep=new Set(parts.map(p=>p.id));
+   const out=document.createElement('canvas');out.width=x1-x0+9;out.height=y1-y0+9;const c=out.getContext('2d'),d=c.createImageData(out.width,out.height);
+   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const v=y*w+x;if(keep.has(labels[v]))d.data.set(p.subarray(v*4,v*4+4),((y-y0+4)*out.width+x-x0+4)*4);}
+   c.putImageData(d,0,0);return out;
+  });return towerFrames;
+ }
+ function frame(name,index,cols,rows){if(name==='pets'||name==='tower'){const im=(name==='pets'?preparePets():prepareTower())[index];return im?{im,x:0,y:0,w:im.width,h:im.height}:null;}const im=images[name];if(!im?.complete||!im.naturalWidth)return null;const r=Math.floor(index/cols),line=name.startsWith('gear-')?gearRows[Number(name.slice(-1))]:null;return {im,x:index%cols*im.width/cols,y:line?line[r]*im.height/1086:r*im.height/rows,w:im.width/cols,h:line?(line[r+1]-line[r])*im.height/1086:im.height/rows};}
  function sprite(ctx,name,index,cols,rows,x,y,w,h){const f=frame(name,index,cols,rows);if(f){if(name==='pets'){const scale=Math.min(w/f.w,h/f.h),dw=f.w*scale,dh=f.h*scale;ctx.drawImage(f.im,x+(w-dw)/2,y+(h-dh)/2,dw,dh);}else ctx.drawImage(f.im,f.x+.8,f.y+.8,f.w-1.6,f.h-1.6,x,y,w,h);}}
  const gearCutouts=new Map();
  function prepareGear(grade){
