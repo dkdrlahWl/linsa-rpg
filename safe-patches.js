@@ -32,8 +32,9 @@ function grantAway(){if(!hiddenAt)return;const f=F(),s=S();const left=hiddenAt;h
 function markAway(){if(hiddenAt)return;hiddenAt=Date.now();wasAuto=!!S()?.autoBattle;try{F()?.save?.(false)}catch{}}
 
 function installDungeonDamage(){window.showDungeonDamage=function(damage){const host=document.getElementById('dungeonBossArt')||document.getElementById('dungeonBattle');if(!host)return;const el=document.createElement('div');el.className='dungeon-pop';el.textContent='-'+Math.floor(Number(damage)||0).toLocaleString('ko-KR');host.appendChild(el);setTimeout(()=>el.remove(),800)}}
+function nerfPetAttack(){if(window.__ringuPetAttackNerfV1)return;const data=G()?.PET_DATA||window.PET_DATA;if(!data)return;for(const pet of Object.values(data)){if(!pet?.baseStats)continue;const attack=Number(pet.baseStats.attack);if(Number.isFinite(attack))pet.baseStats.attack=Math.max(0,Math.floor(attack/3))}window.__ringuPetAttackNerfV1=true;try{window.refreshPetUI?.()}catch{}}
 
-function install(){if(installed||!G()||!F()||!S())return false;installed=true;const f=F(),g=G();initProgress();decorateLocks();decorateTop();installDungeonDamage();
+function install(){if(installed||!G()||!F()||!S())return false;installed=true;const f=F(),g=G();nerfPetAttack();initProgress();decorateLocks();decorateTop();installDungeonDamage();
  const rb=f.renderBosses;f.renderBosses=function(...args){const out=rb?.apply(this,args);decorateLocks();return out};
  const sr=f.selectRegion;f.selectRegion=function(i,...args){i=Number(i)||0;if(!isUnlocked(i,0)){f.toast?.('이전 지역의 마지막 몬스터를 먼저 처치하세요.');return false}return sr?.call(this,i,...args)};
  const sb=f.selectBoss;f.selectBoss=function(i,...args){i=Number(i)||0;if(!isUnlocked(Number(S()?.regionIndex)||0,i)){f.toast?.('이전 몬스터를 먼저 처치하세요.');return false}return sb?.call(this,i,...args)};
@@ -42,6 +43,6 @@ function install(){if(installed||!G()||!F()||!S())return false;installed=true;co
  const sync=f.syncRanking;f.syncRanking=async function(...args){const r=await sync?.apply(this,args);renderRank();return r};
  window.switchRanking=function(mode){rankMode=mode==='tower'?'tower':'power';renderRank();return false};
  document.addEventListener('visibilitychange',()=>{if(document.hidden)markAway();else grantAway()},{capture:true});window.addEventListener('pagehide',markAway,{capture:true});window.addEventListener('pageshow',()=>{if(!document.hidden)grantAway()},{capture:true});
- try{f.renderBosses?.()}catch{};decorateLocks();return true}
+ try{f.renderBosses?.()}catch{};decorateLocks();try{window.refreshPetUI?.()}catch{};return true}
 window.addEventListener('ringu-ready',install,{once:true});setTimeout(install,0);setTimeout(install,1500);setTimeout(install,4000);
 })();
