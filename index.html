@@ -564,6 +564,8 @@ left:var(--fallen-axe-left)!important;
 <script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
 <script src="/linsa-rpg/stone-party.js?v=1"></script>
+<script src="/linsa-rpg/pet-stack-model.js?v=1"></script>
+<script src="/linsa-rpg/pet-stacks.js?v=1"></script>
 <script defer src="/linsa-rpg/safe-patches-core-v1.js?v=presentation-1"></script>
 <script defer src="/linsa-rpg/mobile-draw-fix-v8.js?v=presentation-1"></script>
 <script defer src="/linsa-rpg/visual-polish-v3.js?v=presentation-1"></script>
@@ -1814,6 +1816,10 @@ transcendRate:{get:()=>transcendRate,set:value=>{transcendRate=value;window.tran
 canTranscend:{get:()=>canTranscend,set:value=>{canTranscend=value;window.canTranscend=value}},
 normalizeCharacter:{get:()=>normalizeCharacter,set:value=>{normalizeCharacter=value;window.normalizeCharacter=value}},
 migratePetState:{get:()=>migratePetState,set:value=>{migratePetState=value;window.migratePetState=value}},
+addPet:{get:()=>addPet,set:value=>{addPet=value;window.addPet=value}},
+canSummonPet:{get:()=>canSummonPet,set:value=>{canSummonPet=value;window.canSummonPet=value}},
+petStatText:{get:()=>petStatText,set:value=>{petStatText=value;window.petStatText=value}},
+renderPetSummonTab:{get:()=>renderPetSummonTab,set:value=>{renderPetSummonTab=value;window.renderPetSummonTab=value}},
 getPetStats:{get:()=>getPetStats,set:value=>{getPetStats=value;window.getPetStats=value}},
 getPetLevelStats:{get:()=>getPetLevelStats,set:value=>{getPetLevelStats=value;window.getPetLevelStats=value}},
 getEquippedPet:{get:()=>getEquippedPet,set:value=>{getEquippedPet=value;window.getEquippedPet=value}},
@@ -1868,6 +1874,7 @@ window.RinguSession.ready.then(()=>{
  window.installRinguSocial(RinguCore);
  window.installRinguAudio(RinguCore);
  window.installRinguStoneParty?.(RinguCore);
+ window.installRinguPetStacks(RinguCore);
  load();
  window.dispatchEvent(new Event('ringu-ready'));
  window.addEventListener('pointerdown',()=>{if(window.RinguSession.active)initAudio()},{once:true});

@@ -32,7 +32,7 @@ const {mkdir,writeFile}=await import('node:fs/promises');await mkdir(out,{recurs
 try{
  const c=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});contexts.push(c);
  await c.route('https://ekgihnyojihpearcudtd.supabase.co/**',route=>{queue=queue.then(async()=>{try{const result=await service(route.request());if(loseCostumeResponse&&route.request().url().endsWith('/ringu_costume')&&route.request().postDataJSON()?.p_action==='buy'){loseCostumeResponse=false;await p.evaluate(()=>{RinguCore.state.essence+=3;RinguCore.fn.save();});earnedDuringPurchase=true;await route.abort('failed');return;}await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(result)});}catch(e){await route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({message:e.message})});}});return queue;});
- const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('response',r=>{if(r.status()===404)errors.push('404 '+r.url())});
+ const p=await c.newPage();p.on('console',msg=>{if(msg.type()==='error')console.error('Browser console:',msg.text());});p.on('pageerror',e=>errors.push(e.message));p.on('response',r=>{if(r.status()===404)errors.push('404 '+r.url())});
  await p.goto(base);await p.locator('#register-tab').click();await p.locator('#username').fill('presentationqa');await p.locator('#password').fill('PresentationQA2026!');await p.locator('#password-confirm').fill('PresentationQA2026!');await p.locator('#submit-button').click();await p.locator('#heroCanvas').waitFor({state:'attached'});
  await p.waitForFunction(()=>RinguArt.__weaponPoseV5&&window.__ringuPetAttackNerfV1);await p.evaluate(()=>{RinguCore.state.autoBattle=false;});
  const previewBefore=await p.evaluate(()=>({essence:RinguCore.state.essence,power:RinguCore.fn.getPower(),equipment:RinguCore.state.equipped,inventory:RinguCore.state.inventory}));
@@ -155,6 +155,17 @@ try{
  assert.equal(Number((await db.query("select count(*) n from ringu_private.costume_receipts where action='buy'")).rows[0].n),2);checks.push('lost purchase response retry, double-click, concurrent +3 essence reward preserved; exactly two unique purchase receipts');
  checks.push('100 essence purchase, owned-only equip, 5/10% bonus, portrait/combat/ranking appearance, unequip bonus retention, exact balance and ownership after reload');
  }
+ const stacked=await p.evaluate(()=>{const s=RinguCore.state,id=Object.keys(PET_DATA).sort()[0];s.petStone=1000;s.petSummonExp=140;s.equippedPet=null;s.ownedPets=[{uid:'stack-a',petId:id,level:1},{uid:'stack-b',petId:id,level:1,locked:true}];s.equippedPet='stack-b';RinguPetStacks.normalize();openPetPanel();return {n:s.ownedPets.length,level:s.ownedPets[0].level,copies:s.ownedPets[0].copies,eq:s.equippedPet,locked:s.ownedPets[0].locked};});
+ assert.deepEqual(stacked,{n:1,level:2,copies:2,eq:'stack-b',locked:true});
+ await p.evaluate(()=>RinguCore.fn.save());await reload(p);assert.equal(await p.evaluate(()=>RinguCore.state.ownedPets[0].copies),2);
+ const partial=await p.evaluate(()=>{const s=RinguCore.state,ids=Object.keys(PET_DATA);s.equippedPet=null;s.petStone=1000;s.petSummonExp=140;s.ownedPets=ids.map((petId,i)=>({uid:'max-'+i,petId,level:i?5:4,copies:i?12:11,locked:false}));summonPet(10);return {stone:s.petStone,count:s.ownedPets.length,pool:RinguPetStacks.candidates().length,results:document.querySelectorAll('#petResultGrid .pet-result-card').length,level:s.ownedPets[0].level};});
+ assert.deepEqual(partial,{stone:990,count:25,pool:0,results:1,level:5});await p.waitForTimeout(600);
+ assert.equal(await p.evaluate(()=>{summonPet(1);return RinguCore.state.petStone;}),990);
+ p.once('dialog',d=>d.accept());assert.equal(await p.evaluate(()=>sellPet('max-0')),true);
+ assert.equal(await p.evaluate(()=>RinguCore.state.petStone),1002);assert.equal(await p.evaluate(()=>RinguPetStacks.candidates().length),1);
+ await p.evaluate(()=>{closePetResult();openPetPanel();renderPetTab('summon');summonPet(1);});
+ assert.equal(await p.evaluate(()=>RinguCore.state.ownedPets.find(p=>p.petId===Object.keys(PET_DATA)[0]).copies),1);
+ checks.push('pet auto-stack migration/reload, equipped and lock retained, partial 10-draw charged once, all-max no cost, scaled sale and sold max pet returns');
  const metrics=await p.evaluate(()=>({power:RinguCore.fn.getPower(),stats:RinguCore.fn.getPlayerStats().attack,portrait:document.getElementById('rmPortraitAttack')?.textContent,petBase:PET_DATA[Object.keys(PET_DATA).sort()[0]].baseStats.attack,overflow:document.documentElement.scrollWidth>innerWidth,monsterFrames:RinguArt.monsterFrames.length}));
  await writeFile(new URL('metrics.json',out),JSON.stringify({metrics,checks,errors},null,2));console.log(JSON.stringify({metrics,checks,errors}));assert.deepEqual(errors,[]);
-}finally{await browser.close();server.close();await db.close();}
+}catch(error){console.error('Browser diagnostics:',JSON.stringify(errors));throw error;}finally{await browser.close();server.close();await db.close();}
