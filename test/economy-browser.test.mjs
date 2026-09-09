@@ -56,6 +56,7 @@ async function run(p,command,args={}){await p.waitForFunction(()=>RinguSession.a
 try{
  const a=await player('economyqaA'),b=await player('economyqaB');
  await run(a,'auto',{enabled:false});
+ const legacySaveWrites=await a.evaluate(()=>{let count=0;const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='swordEnhanceRPG_balance_20260617_v5')count++;return set.call(this,k,v);};try{RinguCore.fn.save();}finally{Storage.prototype.setItem=set;}return count;});assert.equal(legacySaveWrites,0);console.log('Authoritative save skips the legacy duplicate save path.');
  const performanceResult=await a.evaluate(()=>{
   const original=RinguCore.state.inventory;RinguCore.state.inventory=Array.from({length:2400},(_,i)=>({...original[0],id:100000+i}));
   RinguEconomy.paint();let rebuilds=0;const render=RinguCore.fn.renderAll;
@@ -72,11 +73,11 @@ try{
   f.renderInventory=render;document.querySelectorAll=query;return {inventoryRebuilds,globalScans};
  });assert.deepEqual(invalidation,{inventoryRebuilds:0,globalScans:0});console.log('Metadata/observer regression',invalidation);
  // UI-only inventory fixture, never submitted as a trade or save.
- await a.evaluate(()=>{window.qaOriginalInventory=RinguCore.state.inventory;const fixture=Array.from({length:41},(_,i)=>({...window.qaOriginalInventory[0],id:200000+i,name:'페이지 검사 '+i}));Object.defineProperty(RinguCore.state,'inventory',{configurable:true,enumerable:true,get:()=>fixture,set:()=>{}});});
+ await a.evaluate(()=>{const descriptor=Object.getOwnPropertyDescriptor(RinguCore,'state'),fixture=Array.from({length:41},(_,i)=>({...RinguCore.state.inventory[0],id:200000+i,name:'페이지 검사 '+i}));window.qaStateDescriptor=descriptor;Object.defineProperty(RinguCore,'state',{...descriptor,get:()=>({...descriptor.get(),inventory:fixture})});});
  await a.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await a.locator('[data-tab="list"]').click();try{await a.waitForFunction(()=>document.querySelectorAll('#auctionBody [data-row]').length===20);}catch(e){console.log('AUCTION_UI_DIAGNOSTIC',await a.locator('#ringuAuction').innerText(),await a.evaluate(()=>({count:RinguCore.state.inventory.length,errors:window.RinguAuctionMessages})));throw e;}
  await a.locator('#auctionBody [data-page="1"]').click();await a.waitForFunction(()=>document.querySelector('#auctionBody [data-row="0"] strong')?.textContent==='페이지 검사 20');
  await a.locator('#auctionBody [data-page="1"]').click();await a.waitForFunction(()=>document.querySelectorAll('#auctionBody [data-row]').length===1);await a.locator('#auctionBody [data-row="0"]').click();assert.equal(await a.locator('#auctionDetail strong').innerText(),'페이지 검사 40');await a.locator('#auctionClose').click();
- await a.evaluate(()=>{Object.defineProperty(RinguCore.state,'inventory',{configurable:true,enumerable:true,writable:true,value:window.qaOriginalInventory});delete window.qaOriginalInventory;});console.log('Auction listing pagination passed: 20 / 20 / 1 cards, exact selected item.');
+ await a.evaluate(()=>{Object.defineProperty(RinguCore,'state',window.qaStateDescriptor);delete window.qaStateDescriptor;});console.log('Auction listing pagination passed: 20 / 20 / 1 cards, exact selected item.');
  delaySync=500;await a.evaluate(()=>{window.qaSync=RinguEconomy.command('sync');});await a.waitForTimeout(100);
  assert.equal(await a.evaluate(()=>RinguSession.active&&!document.body.classList.contains('economy-pending')),true);
  assert.ok(await a.evaluate(async()=>{const result=await RinguEconomy.command('equipBest');await window.qaSync;return !!result;}));delaySync=0;
@@ -86,7 +87,16 @@ try{
  assert.equal(await a.evaluate(()=>Object.keys(localStorage).filter(k=>k.includes('quota-fixture.archive.')).length),0);
  assert.equal(await a.evaluate(()=>localStorage.getItem('quota-test-unrelated')),'preserve');
  assert.equal(await a.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('ringu-recovery-archives-v1',1);r.onerror=()=>reject(r.error);r.onsuccess=()=>{const q=r.result.transaction('archives').objectStore('archives').getAllKeys();q.onsuccess=()=>{resolve(q.result.filter(k=>k.includes('quota-fixture.archive.')).length);r.result.close();};};})),archived);
- assert.ok(await run(a,'equipBest'));
+ assert.ok(await run(a,'unequip',{slot:'무기'}));
+ await a.waitForFunction(()=>document.querySelector('#inventoryList [data-action="equip"]')?.textContent==='장착');
+ await a.locator('#inventoryPanel .best').click();
+ await a.waitForFunction(()=>document.querySelector('#inventoryList .item.equipped [data-action="equip"]')?.textContent==='해제');
+ await a.locator('#inventoryList [data-action="equip"]').click();
+ await a.waitForFunction(()=>!Object.keys(RinguCore.state.equipped).length&&document.querySelector('#inventoryList [data-action="equip"]')?.textContent==='장착');
+ await a.waitForFunction(()=>RinguSession.active&&!document.body.classList.contains('economy-pending'));
+ await a.locator('#inventoryList [data-action="equip"]').click();
+ await a.waitForFunction(()=>Object.keys(RinguCore.state.equipped).length===1&&document.querySelector('#inventoryList .item.equipped [data-action="equip"]')?.textContent==='해제');
+ console.log('Single-click equip regression passed: best equip, unequip, equip synchronize card badges and buttons.');
  await a.waitForFunction(()=>RinguSession.active);const before=await a.evaluate(()=>structuredClone(RinguCore.state));assert.equal(Object.values(before.equipped).length,1);
  // Forged snapshots cannot replace the authoritative balance or inventory.
  await a.evaluate(async()=>{RinguCore.state.essence=999999;RinguCore.state.inventory=[];RinguCore.fn.save();await RinguSession.flush();});

@@ -23,7 +23,7 @@ window.installRinguRemodel=function(g){
  for(const name of ['initCloudSync','pullCloudState','uploadCloudState','syncMailboxReceipts'])f[name]=noop;
  f.getCloudSession=()=>null;f.checkTargetMail=()=>false;f.scheduleCloudSave=()=>{};
  f.ensureCloudFreshForAction=async()=>active();f.saveChanceAction=()=>f.save(false);
- f.save=()=>{if(!state()||!active())return;state().lastSeen=Date.now();state().savedAt=Date.now();state().remodelProfile=f.ownProfile();try{localStorage.setItem('swordEnhanceRPG_balance_20260617_v5',JSON.stringify(state()))}catch(e){f.toast('브라우저 임시 저장 공간이 부족합니다. 서버 저장 상태를 확인하세요.')}window.RinguSession.save(state());};
+ f.save=()=>{if(!state()||!active())return;if(window.RinguCloud?.economy){window.RinguSession.save(state());return;}state().lastSeen=Date.now();state().savedAt=Date.now();state().remodelProfile=f.ownProfile();try{localStorage.setItem('swordEnhanceRPG_balance_20260617_v5',JSON.stringify(state()))}catch(e){f.toast('브라우저 임시 저장 공간이 부족합니다. 서버 저장 상태를 확인하세요.')}window.RinguSession.save(state());};
  let saveTimer;f.queueSave=()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>f.save(false),150)};
  f.spendGold=cost=>{cost=Number(cost);if(!active()||!Number.isFinite(cost)||cost<0||state().gold<cost)return false;state().gold-=cost;return true};
  f.load=()=>{old.load();const s=state();s.uid=Math.max(Number(s.uid)||1,...s.inventory.map(i=>(Number(i.id)||0)+1));s.regionIndex=Math.max(0,Math.min(g.bossRegions.length-1,s.regionIndex||0));

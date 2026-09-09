@@ -31,7 +31,8 @@
    // Combat ticks change HP/currency, not thousands of equipment DOM nodes.
    const layout=JSON.stringify([s.inventory,s.equipped,s.ownedPets,s.equippedPet,s.ownedAuras,s.equippedAura,s.summons,s.regionIndex,s.bossIndex,s.monsterUnlockStep,s.playerGender,s.playerName,s.collectionClaims,s.discovered,s.mailbox,s.dailyRewardClaims,s.petSummonExp,s.discoveredPets,s.claimedPetCollectionRewards]);
    const layoutChanged=layout!==lastLayout;lastLayout=layout;
-   const inventory=JSON.stringify(s.inventory),inventoryChanged=inventory!==lastInventory;lastInventory=inventory;
+   // Equipped IDs also change card badges, toggle labels and attack comparisons.
+   const inventory=JSON.stringify([s.inventory,s.equipped]),inventoryChanged=inventory!==lastInventory;lastInventory=inventory;
    if(layoutChanged)f.renderAll({inventory:inventoryChanged});else{f.renderTop();f.renderBattle();}
    if($('towerModal')?.classList.contains('show'))f.renderTower();
    if($('dungeonModal')?.classList.contains('show')){if(g.activeDungeon&&!g.activeDungeon.serverRoom){$('dungeonStageList').innerHTML='';$('dungeonBattle').classList.add('show');f.renderDungeonBattle();}else f.renderDungeon();}
@@ -57,8 +58,8 @@
   f.finishTowerClearV15=()=>false;f.finishDungeonClearV15=()=>false;
   f.applyMailboxReward=()=>false;f.makeItem=()=>null;f.addPet=()=>null;f.spendGold=()=>false;
   f.drawItems=count=>command('summon',{group:g.drawGroup,count:Number(count)});
-  f.equipBest=()=>command('equipBest');
-  f.toggleEquipItem=id=>{const it=item(id);if(it)return command(g.state.equipped[it.slot]===it.id?'unequip':'equip',g.state.equipped[it.slot]===it.id?{slot:it.slot}:{id:it.id});};
+  f.equipBest=async()=>{const result=await command('equipBest');if(result)f.toast('최고 공격력 장비를 장착했습니다.');return result;};
+  f.toggleEquipItem=async id=>{const it=item(id);if(!it)return false;const removing=g.state.equipped[it.slot]===it.id;const result=await command(removing?'unequip':'equip',removing?{slot:it.slot}:{id:it.id});if(result)f.toast(it.name+(removing?' 장착 해제':' 장착 완료'));return result;};
   f.toggleLock=id=>{const it=item(id);if(it)return command('lock',{id:it.id,locked:!it.locked});};
   f.claimDailyReward=()=>command('daily');
   f.claimCollectionReward=count=>command('collection',{count:Number(count)});
