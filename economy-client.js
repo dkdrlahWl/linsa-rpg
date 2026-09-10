@@ -64,11 +64,19 @@
   f.claimDailyReward=()=>command('daily');
   f.claimCollectionReward=count=>command('collection',{count:Number(count)});
   f.claimMail=id=>command('mail',{id:String(id)});
-  f.buyAura=id=>command('auraBuy',{id:Number(id)});
+  f.buyAura=id=>{
+   id=Number(id);const product=g.auraShopItems[id];if(!Number.isInteger(id)||!product)return false;
+   if(!window.RinguShop)return f.toast('상점을 불러오는 중입니다. 새로고침 후 다시 확인해 주세요.');
+   return RinguShop.request(()=>({name:product[0],price:f.auraPrice(id),owned:g.state.ownedAuras.includes(id),description:f.auraEffectText(id),icon:'◉'}),()=>command('auraBuy',{id}));
+  };
   f.equipAura=id=>command('auraEquip',{id:Number(id)});
   f.unequipAura=()=>command('auraEquip',{id:-1});
   window.useAuraDrawTicket=()=>command('auraTicket');
-  f.buyConsumable=type=>command('consumable',{type});
+  f.buyConsumable=type=>{
+   if(!['stone','protect'].includes(type))return false;
+   if(!window.RinguShop)return f.toast('상점을 불러오는 중입니다. 새로고침 후 다시 확인해 주세요.');
+   return RinguShop.request(()=>({name:type==='protect'?'하락방지권':'초월석',price:type==='protect'?10:25,description:'구매 수량 1개',icon:type==='protect'?'◇':'◆'}),()=>command('consumable',{type}));
+  };
   f.summonPet=count=>command('petSummon',{count:Number(count)});
   f.equipPet=uid=>command('petEquip',{uid:String(uid)});
   f.unequipPet=()=>command('petEquip',{uid:null});
