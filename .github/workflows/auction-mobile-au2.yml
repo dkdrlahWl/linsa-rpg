@@ -7,13 +7,12 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          fetch-depth: 2
       - name: Prepare exact versioned assets and previous-page comparison
         run: |
+          git fetch --no-tags --depth=1 origin 720dea37b8a5f3e0e163fded6411e681e9398c16
           mkdir -p "$RUNNER_TEMP/au2-before"
           for name in index.html auction.js auction.css; do git show 720dea37b8a5f3e0e163fded6411e681e9398c16:"$name" > "$RUNNER_TEMP/au2-before/$name"; done
           python3 - <<'PY'
@@ -27,10 +26,10 @@ jobs:
           p.write_text(s)
           assert hashlib.sha256(p.read_bytes()).hexdigest()=='1e45a0ffba5b2b3c786f09fb51314a5720154cf0e2eb290bee130ccb69bb47c4'
           PY
-      - name: Install pinned browser dependencies without package lifecycle scripts
+      - name: Install pinned test libraries and discover runner Chrome
         run: |
           npm install --ignore-scripts --no-audit --no-fund --package-lock=false
-          npx playwright install --with-deps chromium
+          command -v google-chrome
       - name: Syntax and unchanged gameplay regressions
         run: |
           node --check auction.js
@@ -40,9 +39,9 @@ jobs:
         env:
           QA_PHASE: before
           QA_BEFORE_DIR: ${{ runner.temp }}/au2-before
-        run: node test/auction-mobile-ui.test.mjs
+        run: QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/auction-mobile-ui.test.mjs
       - name: Verify new mobile desktop stats sorting and navigation
-        run: node test/auction-mobile-ui.test.mjs
+        run: QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/auction-mobile-ui.test.mjs
       - name: Commit validated page versions to the isolated branch only
         run: |
           test "$(git branch --show-current)" = 'fix/auction-mobile-AU2-20260911'
