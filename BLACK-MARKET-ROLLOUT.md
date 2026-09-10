@@ -36,3 +36,8 @@ GitHub Actions 실행 `34436481154`에서 BM2 변경 파일 해시, JavaScript �
 
 ## BP1 price update
 Current prices: common 5, uncommon 15, rare 30, epic 50 essence. Apply the CLI-generated `supabase/migrations/*_black_market_prices_bp1.sql` after the existing foundation migrations. This updates the generator and unexpired offers only; completed purchases retain their original prices and cannot be bought twice. Historical 100-essence receipts remain valid. The old foundation migration is intentionally immutable.
+
+
+## BP2 current prices
+일반 정수 3개 / 희귀 정수 5개 / 레어 정수 10개 / 에픽 정수 15개.
+Apply the CLI-generated `supabase/migrations/*_black_market_prices_bp2.sql` after BP1. Existing unexpired offers use these prices too; item attributes, rotation times, odds, purchase limits and completed purchases are preserved. No retrospective refund. Auction UI changes remain on their separate branch and are not part of this price-only release.

@@ -30,7 +30,7 @@
   });
   $('blackMarketRetry').disabled=!!fetching||busy;
   $('blackMarketClose').disabled=busy;
-  $('blackMarketRatesBody').innerHTML=(snapshot?.rates||[80,15,4.9,0.1]).map((n,i)=>'<div><span>'+esc(g.rarityNames[i])+'</span><b>'+n+'%</b><small>정수 '+[5,15,30,50][i]+'개</small></div>').join('');
+  $('blackMarketRatesBody').innerHTML=(snapshot?.rates||[80,15,4.9,0.1]).map((n,i)=>'<div><span>'+esc(g.rarityNames[i])+'</span><b>'+n+'%</b><small>정수 '+[3,5,10,15][i]+'개</small></div>').join('');
  }
  async function refresh(){
   if(!modal?.open||fetching||busy||ended())return;
@@ -97,7 +97,7 @@
    '<div class="bm-toolbar"><div><b id="blackMarketBalance"></b><small id="blackMarketCountdown"></small></div><button type="button" id="blackMarketRates" aria-expanded="false" aria-controls="blackMarketRatesPanel">확률 보기</button></div>'+
    '<section id="blackMarketRatesPanel" hidden><h3>등급별 진열 확률</h3><div id="blackMarketRatesBody"></div><p>각 상품의 등급을 위 확률로 추첨합니다. 부위는 7종 중 동일 확률이며, 같은 부위·등급 안에서는 장비를 균등 추첨합니다. 이미 진열한 동일 장비는 제외합니다. 정수는 확정된 장비를 구매할 때만 사용됩니다.</p></section>'+
    '<p id="blackMarketStatus" role="status" aria-live="polite"></p><section id="blackMarketItems" aria-label="공통 진열 장비 5개"></section>'+
-   '<footer class="bm-footer"><span>한국시간 00시 · 18시 갱신<br>전 유저 동일 진열 · 상품별 각 1회</span><button type="button" id="blackMarketRetry">다시 불러오기</button></footer><small class="bm-version">암시장 BP1</small>';
+   '<footer class="bm-footer"><span>한국시간 00시 · 18시 갱신<br>전 유저 동일 진열 · 상품별 각 1회</span><button type="button" id="blackMarketRetry">다시 불러오기</button></footer><small class="bm-version">암시장 BP2</small>';
   document.body.append(modal);
   $('blackMarketClose').onclick=close;
   modal.addEventListener('cancel',e=>{e.preventDefault();close();});
@@ -112,7 +112,7 @@
   window.addEventListener('ringu:economy-state',()=>{if(modal.open){balance();}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&modal.open){stale=true;render();void refresh();}});
   RinguSession.onEnded(()=>{busy=false;close();snapshot=null;stale=true;});
-  window.RinguBlackMarket={open,version:'BP1'};
+  window.RinguBlackMarket={open,version:'BP2'};
  }
  window.addEventListener('ringu-ready',install,{once:true});
  if(window.RinguCore?.state&&window.RinguSession?.active)install();

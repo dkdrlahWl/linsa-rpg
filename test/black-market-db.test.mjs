@@ -6,6 +6,8 @@ const {PGlite}=await import(process.env.QA_PGLITE_MODULE||'@electric-sql/pglite'
 const migrationDir=new URL('../supabase/migrations/',import.meta.url);
 const migrationNames=(await readdir(migrationDir)).filter(n=>n.endsWith('_black_market_prices_bp1.sql'));assert.equal(migrationNames.length,1);
 const priceMigration=await readFile(new URL(migrationNames[0],migrationDir),'utf8');
+const bp2Names=(await readdir(migrationDir)).filter(n=>n.endsWith('_black_market_prices_bp2.sql'));assert.equal(bp2Names.length,1);
+const bp2Migration=await readFile(new URL(bp2Names[0],migrationDir),'utf8');
 const dir=await mkdtemp(join(tmpdir(),'linsa-bm1-'));let db=new PGlite(dir),checks=0;
 const check=(ok,label)=>{assert.ok(ok,label);checks++;};
 const same=(a,b,label)=>{assert.deepEqual(a,b,label);checks++;};
@@ -67,16 +69,50 @@ try{
  await db.exec('begin;'+priceMigration+'commit;');
  await identify(A);
 
+
+ // BP2 migration on a populated BP1 rotation, isolated from the live service.
+ {
+  await db.exec('begin');await identify(A);
+  const old=await call(),oldPrices=[5,15,30,50],newPrices=[3,5,10,15];
+  const mixed=[0,1,2,3,0].map((rarity,slot)=>({slot,price:oldPrices[rarity],item:{...balance.gear.find(it=>it.rarity===rarity),enhance:0,transcend:0,optionRolls:[.876,1.12]}}));
+  await db.query('update ringu_private.black_market_cycles set offers=$1 where id=$2',[JSON.stringify(mixed),old.rotation]);
+  await db.query("insert into ringu_private.black_market_cycles(id,starts_at,ends_at,offers,rates) values('2001-01-01/00','2001-01-01T00:00:00Z','2001-01-01T18:00:00Z',$1,$2)",[JSON.stringify(mixed),JSON.stringify(old.rates)]);
+  const requestIds=Array.from({length:4},randomUUID),previousReceipts=[];
+  for(let r=0;r<4;r++){const receipt=await call('buy',old.rotation,r,requestIds[r]);same(receipt.price,oldPrices[r]);previousReceipts.push(receipt);}
+  const beforeStates=await Promise.all(players.map(state));
+  const beforePurchases=(await db.query('select * from ringu_private.black_market_purchases order by account_id,slot')).rows;
+  const beforeCycles=(await db.query('select * from ringu_private.black_market_cycles order by id')).rows;
+  const beforeFunctions=(await db.query("select oid::text,proacl::text,prosecdef,proconfig from pg_proc where oid in ('ringu_private.black_market_current()'::regprocedure,'public.ringu_black_market(text,text,integer,uuid)'::regprocedure) order by oid")).rows;
+  await db.exec(bp2Migration);
+  const current=await call();same(current.items.map(x=>x.price),[3,5,10,15,3]);
+  same(current.items.map(x=>x.item),mixed.map(x=>x.item),'no reroll');
+  same(current.rotation,old.rotation);same(current.rates,old.rates);same(current.expiresAt,old.expiresAt);
+  same(current.items.slice(0,4).map(x=>x.purchased),[true,true,true,true],'purchased slots stay purchased');
+  same(await Promise.all(players.map(state)),beforeStates,'no refunds or inventory changes');
+  same((await db.query('select * from ringu_private.black_market_purchases order by account_id,slot')).rows,beforePurchases,'old receipt prices preserved');
+  same((await db.query("select offers from ringu_private.black_market_cycles where id='2001-01-01/00'")).rows[0].offers,mixed,'expired rotation unchanged');
+  same((await db.query('select * from ringu_private.black_market_cycles order by id')).rows.map(({offers,...rest})=>rest),beforeCycles.map(({offers,...rest})=>rest),'rotation data unchanged');
+  same((await db.query("select oid::text,proacl::text,prosecdef,proconfig from pg_proc where oid in ('ringu_private.black_market_current()'::regprocedure,'public.ringu_black_market(text,text,integer,uuid)'::regprocedure) order by oid")).rows,beforeFunctions,'permissions unchanged');
+  for(let r=0;r<4;r++)same(await call('buy',old.rotation,r,requestIds[r]),previousReceipts[r],'historical receipt replay');
+  await db.exec('savepoint bp2_duplicate');await reject(call('buy',old.rotation,0,randomUUID()),/BLACK_MARKET_PURCHASED/);await db.exec('rollback to savepoint bp2_duplicate');
+  await identify(B);let expectedEssence=(await state(B)).essence;
+  for(let r=0;r<4;r++){const purchased=await call('buy',old.rotation,r,randomUUID());same(purchased.price,newPrices[r]);expectedEssence-=newPrices[r];same((await state(B)).essence,expectedEssence,'new exact debit');}
+  const afterState=await state(B),afterItems=(await call()).items;
+  await db.exec(bp2Migration);same((await call()).items,afterItems,'repeat migration stable');same(await state(B),afterState);
+  await db.exec('rollback');
+ }
+ await db.exec('begin;'+bp2Migration+'commit;');await identify(A);
+
  for(let r=0;r<4;r++){
   await db.exec('begin');const forced=[0,0,0,0];forced[r]=100;
   await db.query('update ringu_private.black_market_config set rates=$1',[JSON.stringify(forced)]);
   await db.exec('delete from ringu_private.black_market_cycles');const x=await call();
-  same(x.items.length,5);check(x.items.every(o=>o.item.rarity===r&&o.price===[5,15,30,50][r]),'rarity-price map');
+  same(x.items.length,5);check(x.items.every(o=>o.item.rarity===r&&o.price===[3,5,10,15][r]),'rarity-price map');
   check(x.items.every(o=>o.item.optionRolls.every(n=>n>=.8&&n<=1.2)),'fixed options');
   same(new Set(x.items.map(o=>o.item.slot+'|'+o.item.name)).size,5,'distinct display templates');
   const prior=await state(A);
   await call('buy',x.rotation,0,randomUUID());
-  same((await state(A)).essence,prior.essence-[5,15,30,50][r],'actual rarity debit');
+  same((await state(A)).essence,prior.essence-[3,5,10,15][r],'actual rarity debit');
   await reject(call('buy',x.rotation,0,randomUUID()),/BLACK_MARKET_PURCHASED/);
   await db.exec('rollback');
  }
@@ -120,5 +156,5 @@ try{
  await db.exec('set role authenticated');await call();checks++;await db.exec('reset role');
  const newSid=randomUUID();await db.query('insert into auth.sessions(id,user_id,created_at) values($1,$2,clock_timestamp()+interval \'1 second\')',[newSid,A.id]);await reject(call(),/SESSION_/);
  await identify(B);const persisted=await call();await db.close();db=new PGlite(dir);await identify(B);same((await call()).items,persisted.items,'DB restart retains inventory and personal purchases');
- console.log(`PASS BP1 PostgreSQL: ${checks} assertions (shared display, prices, options, KST boundaries, replay, rollback, limits, CAS, authorization, restart).`);
+ console.log(`PASS BP2 PostgreSQL: ${checks} assertions (shared display, prices, options, KST boundaries, replay, rollback, limits, CAS, authorization, restart).`);
 } finally {await db.close();await rm(dir,{recursive:true,force:true});}
