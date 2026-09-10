@@ -1,0 +1,64 @@
+name: Validate auction eight-listing cap AL8
+on:
+  push:
+    branches: [fix/auction-eight-AL8-20260910]
+    paths: [.github/workflows/auction-limit-al8.yml]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: al8_qa
+          POSTGRES_USER: al8qa
+          POSTGRES_PASSWORD: isolated-test-only
+        ports:
+          - 55440:5432
+        options: >-
+          --health-cmd "pg_isready -U al8qa -d al8_qa"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply only the exact locally tested auction UI changes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          def blob(b):return hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+          patches=json.loads(Path('maintenance/auction-limit-patch.json').read_text())
+          for name,p in patches.items():
+              path=Path(name);data=path.read_bytes()
+              assert blob(data)==p['before'], 'Source changed: '+name
+              text=data.decode('utf-8')
+              for before,after in p['changes']:
+                  assert text.count(before)==1, 'Ambiguous patch anchor: '+name
+                  text=text.replace(before,after,1)
+              data=text.encode('utf-8')
+              assert blob(data)==p['after'], 'Not locally tested output: '+name
+              path.write_bytes(data)
+          expected={'supabase/18-auction-listing-limit.sql':'e398ddc2895fb6bf913e36f6bd9c23363271b54e','test/auction-listing-limit.test.mjs':'4b93e61b87ba6e798b5b2df3fce45de22abe832d'}
+          for name,sha in expected.items():assert blob(Path(name).read_bytes())==sha,name
+          print('PASS exact output hashes; index changes only the auction script version')
+          PY
+          node --check auction.js
+      - name: Install test client without lifecycle scripts
+        run: npm install --prefix "$RUNNER_TEMP/al8-qa" --ignore-scripts --no-audit --no-fund --no-save pg@8.16.3
+      - name: Test actual simultaneous final-slot registration on fresh PostgreSQL
+        env:
+          AL8_QA_PG_URL: postgresql://al8qa:isolated-test-only@127.0.0.1:55440/al8_qa
+        run: QA_PG_MODULE="$RUNNER_TEMP/al8-qa/node_modules/pg/esm/index.mjs" node test/auction-listing-limit.test.mjs
+      - name: Run existing isolated gameplay regressions
+        run: node --test test/economy.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs
+      - name: Commit validated changes to isolated branch and remove temporary workflow
+        run: |
+          git rm -- .github/workflows/auction-limit-al8.yml maintenance/auction-limit-patch.json
+          git add -- auction.js index.html
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: enforce eight active auction listings per account'
+          git push origin HEAD:refs/heads/fix/auction-eight-AL8-20260910
