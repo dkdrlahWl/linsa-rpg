@@ -1,0 +1,64 @@
+{
+  "cloud-adapter.js": {
+    "before": "39aa4cd024885f966601ae9b329c21bbfaa128c4",
+    "after": "b8e13cfa76f532f3e5655fdfad440f7081cd1077",
+    "changes": [
+      [
+        " async function account(data,initialize=true){\n   window.RinguCloud.economy=!!data.economyReady;\n   if(data.economyReady&&initialize&&!window.RinguCore?.state){\n     const synced=await remote('/functions/v1/ringu-economy',{command:'sync',args:{},requestId:crypto.randomUUID()});\n     data={...data,state:synced.state,revision:synced.revision};\n     window.RinguCloud.initialEconomyEvents=synced.result?.events||[];\n     if(data.costume)data.costume={...data.costume,essence:synced.state.essence,revision:synced.revision};\n   }\n   cacheCostume(data.costume);\n   // Optional migration: ordinary accounts remain usable before it is installed.\n   let floor=0;\n   try{floor=Number((await rpc('ringu_admin_status',{})).currencyFloor)||0;}catch(e){if(e.status!==404)throw e;}\n   window.RinguCloud.currencyFloor=Math.max(0,floor);\n   return {...data,account:{id:session.user.id,username:session.user.user_metadata?.username||session.user.email?.split('@')[0]||'모험가'}};\n }\n",
+        " // Login rechecks must not perform another economic mutation. In particular,\n // pending-backup validation used to sync twice and reject its own new revision.\n let initialEconomy=null;\n async function account(data,initialize=true,signal){\n   const owner=session?.user?.id;\n   window.RinguCloud.economy=!!data.economyReady;\n   if(data.economyReady&&initialize&&!window.RinguCore?.state){\n     if(initialEconomy?.owner!==owner)initialEconomy={owner,requestId:crypto.randomUUID(),done:false,promise:null};\n     const attempt=initialEconomy;\n     if(!attempt.done){\n       // A retry after a lost response uses the SAME server receipt ID.\n       if(!attempt.promise)attempt.promise=remote('/functions/v1/ringu-economy',{\n         command:'sync',args:{},requestId:attempt.requestId\n       },{signal}).then(synced=>{\n         if(session?.user?.id!==owner)throw error('로그인 계정이 변경되었습니다.',401);\n         if(!synced?.state||!Number.isSafeInteger(synced.revision)||synced.revision<data.revision)throw error('서버 기록을 확인하지 못했습니다.',503);\n         attempt.done=true;\n         window.RinguCloud.initialEconomyEvents=synced.result?.events||[];\n         return synced;\n       }).finally(()=>{attempt.promise=null;});\n       const synced=await attempt.promise;\n       if(synced.revision>=data.revision)data={...data,state:synced.state,revision:synced.revision};\n       if(data.costume)data.costume={...data.costume,essence:data.state.essence,revision:data.revision};\n     }\n   }\n   if(session?.user?.id!==owner)throw error('로그인 계정이 변경되었습니다.',401);\n   cacheCostume(data.costume);\n   // Optional admin metadata is read-only. Propagate cancellation to every hop.\n   let floor=0;\n   try{floor=Number((await rpc('ringu_admin_status',{},signal)).currencyFloor)||0;}catch(e){if(e.status!==404)throw e;}\n   window.RinguCloud.currencyFloor=Math.max(0,floor);\n   return {...data,account:{id:session.user.id,username:session.user.user_metadata?.username||session.user.email?.split('@')[0]||'모험가'}};\n }\n"
+      ],
+      ["return account(activated,false);", "return account(activated,false,signal);"],
+      ["account(await rpc('ringu_account',{p_action:'load'},signal))", "account(await rpc('ringu_account',{p_action:'load'},signal),true,signal)"]
+    ]
+  },
+  "safety.js": {
+    "before": "a5b1569e69251714924900f8f9cfec1c2415b423",
+    "after": "3e3da575b0606f94c7a29b1b0c0c994be3d9802a",
+    "changes": [
+      ["!['offline', 'saving', 'pending'].includes(status.phase)", "!['loading', 'offline', 'saving', 'pending'].includes(status.phase)"],
+      [
+        "    const controller = new AbortController();\n    const timer = setTimeout(() => controller.abort(), 12000);\n    try {\n      return await window.fetch(path, { ...options, credentials: 'same-origin', cache: 'no-store', signal: controller.signal,\n        headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });",
+        "    const { timeoutMs = 12000, ...requestOptions } = options;\n    const controller = new AbortController();\n    const timer = setTimeout(() => controller.abort(), timeoutMs);\n    try {\n      return await window.fetch(path, { ...requestOptions, credentials: 'same-origin', cache: 'no-store', signal: controller.signal,\n        headers: { Accept: 'application/json', ...(requestOptions.body ? { 'Content-Type': 'application/json' } : {}), ...requestOptions.headers } });"
+      ],
+      [
+        "      await migrateArchives();\n      const response = await api('/api/session');",
+        "      await migrateArchives();\n      report('loading', '장비와 계정 기록을 불러오는 중입니다. 창을 닫지 말고 잠시 기다려 주세요.');\n      // Initial authenticated load also settles offline progress. Normal action\n      // timeouts remain unchanged; the boot request is bounded and cancellable.\n      const response = await api('/api/session', { timeoutMs: 45000 });"
+      ],
+      [
+        "    ready: null, save, flush, logout, costumeTransaction, auctionTransaction,",
+        "    ready: null, save, flush, logout, costumeTransaction, auctionTransaction,\n    startupFailed: () => end('게임 화면을 준비하지 못했습니다. 장비와 서버 기록은 지우지 않았습니다. 서버 기록 다시 확인을 눌러 재시도해 주세요.', 'error'),"
+      ]
+    ]
+  },
+  "auth-client.mjs": {
+    "before": "164184b84fb2af3eb260c3df4ea654c1901fced9",
+    "after": "9f7b39926f9bcf7437f4320b12df7c4cf7798d51",
+    "changes": [["const timeout = setTimeout(() => controller.abort(), 15000);", "const timeout = setTimeout(() => controller.abort(), 30000);"]]
+  },
+  "index.html": {
+    "before": "4122f755b34fbcb69c02b09a94d71f92983ea53d",
+    "after": "6ea8417b19807bde1ec842acf478355899720c50",
+    "changes": [
+      [
+        "const inventoryNodeCache=new Map();\nfunction renderInventory(){\n const list=sortInventoryItems([...(state.inventory||[])]),count=$('invCount'),box=$('inventoryList');\n if(count)count.textContent=list.length+'개';if(!box)return;",
+        "const inventoryNodeCache=new Map();\nconst INVENTORY_PAGE_SIZE=40;\nlet inventoryPage=0,inventorySort=null;\nfunction inventoryPageRows(all){\n const sort=$('sortSelect')?.value||'';\n if(sort!==inventorySort){inventoryPage=0;inventorySort=sort;}\n const pages=Math.max(1,Math.ceil(all.length/INVENTORY_PAGE_SIZE));\n inventoryPage=Math.max(0,Math.min(inventoryPage,pages-1));\n const box=$('inventoryList');let nav=$('inventoryPages');\n if(box&&!nav){\n  nav=document.createElement('nav');nav.id='inventoryPages';nav.className='inventory-pages';nav.setAttribute('aria-label','장비 목록 페이지');\n  nav.innerHTML='<button type=\"button\" data-step=\"-1\" aria-label=\"이전 장비 페이지\">이전</button><span aria-live=\"polite\"></span><button type=\"button\" data-step=\"1\" aria-label=\"다음 장비 페이지\">다음</button>';\n  nav.addEventListener('click',event=>{\n   const button=event.target.closest('button[data-step]');if(!button||button.disabled)return;\n   inventoryPage+=Number(button.dataset.step);renderInventory();box.scrollIntoView({block:'start'});\n  });\n  box.after(nav);\n }\n if(nav){\n  nav.hidden=all.length<=INVENTORY_PAGE_SIZE;\n  nav.querySelector('[data-step=\"-1\"]').disabled=inventoryPage===0;\n  nav.querySelector('[data-step=\"1\"]').disabled=inventoryPage>=pages-1;\n  const from=inventoryPage*INVENTORY_PAGE_SIZE;\n  nav.querySelector('span').textContent=(inventoryPage+1)+' / '+pages+'페이지 · '+(all.length?from+1:0)+'–'+Math.min(all.length,from+INVENTORY_PAGE_SIZE)+' / '+all.length+'개';\n }\n // This slices display rows only; the complete account inventory is unchanged.\n return all.slice(inventoryPage*INVENTORY_PAGE_SIZE,(inventoryPage+1)*INVENTORY_PAGE_SIZE);\n}\nfunction renderInventory(){\n const all=sortInventoryItems([...(state.inventory||[])]),count=$('invCount'),box=$('inventoryList');\n if(count)count.textContent=all.length+'개';if(!box)return;\n const list=inventoryPageRows(all);"
+      ],
+      ["}).catch(error=>console.error('Ringu boot failed',error));", "}).catch(error=>{console.error('Ringu boot failed',error);window.RinguSession.startupFailed?.();});"],
+      ["2026-09-10-linsa-black-market-BM2", "2026-09-10-login-inventory-LI1"],
+      ["cloud-adapter.js?v=black-market-BM1", "cloud-adapter.js?v=login-inventory-LI1"],
+      ["safety.js?v=black-market-BM1", "safety.js?v=login-inventory-LI1"],
+      [
+        "</head>",
+        "<style id=\"inventoryPagesStyleLI1\">\n.inventory-pages{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 8px;margin-top:10px;border-top:1px solid #665b46;color:#d9c69f;font-size:12px}\n.inventory-pages[hidden]{display:none!important}\n.inventory-pages button{min-width:62px;min-height:44px;border:1px solid #897450;border-radius:7px;background:#202c38;color:#e6d3ac;padding:8px 12px;touch-action:manipulation}\n.inventory-pages button:disabled{opacity:.4;cursor:not-allowed}\n.inventory-pages button:focus-visible{outline:2px solid #99caff;outline-offset:2px}\n.inventory-pages span{text-align:center;font-variant-numeric:tabular-nums}\n</style>\n</head>"
+      ]
+    ]
+  },
+  "login.html": {
+    "before": "d3c074f9f86cfbb208a56d9710a736362e7906d8",
+    "after": "07393980b3225150157083ddde3f1a8aa3c43a2a",
+    "changes": [
+      ["/linsa-rpg/cloud-adapter.js?v=economy-20260909-1", "/linsa-rpg/cloud-adapter.js?v=login-inventory-LI1"],
+      ["/linsa-rpg/auth-client.mjs", "/linsa-rpg/auth-client.mjs?v=login-inventory-LI1"]
+    ]
+  }
+}
