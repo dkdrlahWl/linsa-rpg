@@ -76,6 +76,7 @@ try{
  await page.goto(base,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window.RinguEconomy&&window.RinguSession?.active&&document.querySelector('#ringuAuction'));
  await page.evaluate(()=>RinguArt.ready);
+ await page.locator('.rm-bottom-nav [data-target="menu"]').click();
  await page.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();
  await page.waitForFunction(()=>document.querySelectorAll('#auctionRows [data-row]').length===20);
  if(phase==='before'){
@@ -103,7 +104,7 @@ try{
    const initial=await measure();assert.ok(initial.shell.x>=0&&initial.shell.right<=width+1&&initial.shell.y>=0&&initial.shell.bottom<=height+1,JSON.stringify({width,height,initial}));assert.equal(initial.frame,'none');assert.equal(initial.overflows,0);assert.ok(initial.scrollWidth<=initial.clientWidth+1);assert.ok(initial.scroll.height>60);
    await page.locator('.auction-scroll').evaluate(el=>el.scrollTop=el.scrollHeight);
    const end=await measure();assert.equal(end.header.y,initial.header.y);assert.equal(end.close.y,initial.close.y);
-   await page.locator('#auctionBody [data-page="1"]').isVisible().then(assert.ok);
+   await page.locator('#auctionBody [data-auction-page="1"]').isVisible().then(assert.ok);
    dimensions.push({width,height,...end});
    if(width===390&&height===844||width===1440){await page.locator('.auction-scroll').evaluate(el=>el.scrollTop=125);await page.screenshot({path:new URL('after-'+width+'.png',out).pathname});}
   }
@@ -111,12 +112,14 @@ try{
   await page.locator('#ringuAuction [data-tab="list"]').click();await page.waitForFunction(()=>document.querySelector('.auction-sort-note'));
   const order=await page.evaluate(()=>{
    const g=RinguCore;const available=g.state.inventory.filter(it=>!it.locked&&!g.fn.isItemEquipped(it)&&it.tradable!==false&&it.tradeable!==false&&!it.bound&&!it.soulbound&&!it.boundTo).sort((a,b)=>(b.enhance||0)-(a.enhance||0)||g.fn.itemAtk(b)-g.fn.itemAtk(a));
-   return {saved:JSON.stringify(g.state.inventory),names:available.map(it=>it.name),ids:available.map(it=>it.id)};
+   return {saved:JSON.stringify(g.state.inventory),names:available.map(it=>it.name),ids:available.map(it=>it.id),stats:available.map(it=>'강화 +'+it.enhance+'공격력 '+g.fn.itemAtk(it).toLocaleString('ko-KR')+'초월 '+it.transcend+'단계')};
   });
   assert.ok(order.ids.indexOf(101)<order.ids.indexOf(102),'enhancement beats rarity/base attack');assert.ok(order.ids.indexOf(103)<order.ids.indexOf(104),'transcend-inclusive actual attack breaks tie');
   assert.deepEqual(await page.locator('#auctionBody .auction-item-name').allTextContents(),order.names.slice(0,20));
-  await page.locator('#auctionBody [data-page="1"]').click();await page.waitForFunction(()=>document.querySelector('.auction-pages span')?.textContent.startsWith('2 /'));
+  assert.deepEqual(await page.locator('#auctionBody .auction-item-stats').allTextContents(),order.stats.slice(0,20));
+  await page.locator('#auctionBody [data-auction-page="1"]').click();await page.waitForFunction(()=>document.querySelector('.auction-pages span')?.textContent.startsWith('2 /'));
   assert.deepEqual(await page.locator('#auctionBody .auction-item-name').allTextContents(),order.names.slice(20,40));
+  assert.deepEqual(await page.locator('#auctionBody .auction-item-stats').allTextContents(),order.stats.slice(20,40));
   assert.equal(await page.evaluate(()=>JSON.stringify(RinguCore.state.inventory)),order.saved,'selling sort does not reorder saved inventory');
   const chosen=await page.locator('#auctionBody [data-row="0"] .auction-item-name').textContent();await page.locator('#auctionBody [data-row="0"]').click();
   assert.equal(await page.locator('#auctionDetail .auction-item-name').textContent(),chosen);assert.ok(await page.locator('#auctionPrice').isVisible());
