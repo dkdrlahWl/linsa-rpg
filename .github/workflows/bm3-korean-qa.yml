@@ -1,0 +1,26 @@
+name: BM3 AU2 Korean visual acceptance
+on:
+  push:
+    branches: [fix/black-market-BM3-20260911]
+    paths: [.github/workflows/bm3-korean-qa.yml]
+permissions:
+  contents: read
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - run: |
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          sudo timeout 90s apt-get install -y --no-install-recommends fonts-noto-cjk
+          QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/black-market-bm3-browser.test.mjs
+          QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/auction-mobile-ui.test.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: BM3-AU2-Korean
+          path: test-output/
+          retention-days: 1
