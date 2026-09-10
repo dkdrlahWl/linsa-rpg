@@ -1,0 +1,97 @@
+name: Verify stone-only S3 and restore tower
+on:
+  push:
+    branches: [fix/stone-only-S3-20260910]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Apply bounded source edits on the isolated branch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          def edit(name, changes, digest=None):
+              p=Path(name);raw=p.read_bytes()
+              if digest: assert hashlib.sha256(raw).hexdigest()==digest, 'Source drift: '+name
+              s=raw.decode('utf-8')
+              for before,after in changes:
+                  assert s.count(before)==1, 'Ambiguous patch: '+name+' '+before[:80]
+                  s=s.replace(before,after,1)
+              p.write_text(s)
+          edit('index.html',[
+              ('stone-party.js?v=1','stone-party.js?v=stone-hp-S3'),
+              ('economy-client.js?v=tower-hp-TH3','economy-client.js?v=tower-restored-S3'),
+              ('hp:Math.floor(300000*Math.pow(1.5,i))','hp:Math.floor(100000*Math.pow(1.5,i))')
+          ],'a97f5a67af4d3e835bdd18173131738ac83ab5367a135cbfa91d8073e7ccd250')
+          edit('economy-client.js',[
+              (" // TH3: display the same one-third tower HP used by the authoritative server.\n function applyTowerHpBalance(g){\n  if(g.towerHpVersion==='TH3')return;\n  for(const floor of g.towerFloors)floor.hp=Math.max(1,Math.floor(floor.hp/3));\n  g.towerHpVersion='TH3';\n }\n",''),
+              ('  applyTowerHpBalance(g);\n','')
+          ],'3b22411b30084967a7d06253637fb6235eb237e4ef2dde0ba6160b3733ea5697')
+          edit('stone-party.js',[
+              ('Math.floor(300000*1.5**i)','Math.floor(100000*1.5**i)'),
+              ("'2인 협동 · 혼자 시작 가능 · 오늘 남은 보상 '","'HP 1/3 적용 [S3] · 2인 협동 · 혼자 시작 가능 · 오늘 남은 보상 '")
+          ],'a2918182313a07d2db96b4c5a2693d5974997b02f5afa3316e121f1586b44ac6')
+          edit('supabase/functions/ringu-economy/index.ts',[("from '../_shared/tower-hp-third.mjs'","from '../_shared/tower-hp-restored.mjs'")])
+          Path('supabase/functions/_shared/tower-hp-third.mjs').unlink()
+          Path('test/tower-hp-third.test.mjs').unlink()
+          p=Path('test/auction8-tower-browser.test.mjs');s=p.read_text()
+          s=s.replace("from '../supabase/functions/_shared/tower-hp-third.mjs'","from '../supabase/functions/_shared/tower-hp-restored.mjs'",1)
+          s=s.replace("chromium.launch({channel:'msedge',headless:true})","chromium.launch({headless:true})",1)
+          anchor="await db.exec('update ringu_private.auction_release set economy_ready=true,enabled=true');"
+          assert s.count(anchor)==1
+          s=s.replace(anchor,"await db.exec('begin;\\n'+await readFile(new URL('../supabase/19-stone-hp-third.sql',import.meta.url),'utf8')+'\\ncommit;');\n"+anchor,1)
+          s=s.replace("assert.equal(displayed.version,'TH3');","assert.equal(displayed.version,undefined);",1)
+          s=s.replace('assert.equal(battle.max,2500);assert.ok(battle.hp>0&&battle.hp<=2500);', 'assert.equal(battle.max,7500);assert.ok(battle.hp>0&&battle.hp<=7500);',1)
+          s=s.replace("assert.equal(battle.version,'TH3');","assert.equal(battle.version,'ORIGINAL_S3');",1)
+          anchor=' const items=await a.evaluate(()=>RinguCore.state.inventory.map(x=>x.id));assert.equal(items.length,9);'
+          assert s.count(anchor)==1
+          checks=''' await a.evaluate(()=>RinguCore.fn.openDungeon('stone'));
+           await a.waitForFunction(()=>document.querySelectorAll('[data-stone="create"]').length===6);
+           for(const [i,hp] of [100000,150000,225000,337500,506250,759375].entries())assert.ok((await a.locator('[data-stone="create"][data-stage="'+(i+1)+'"]').innerText()).includes(hp.toLocaleString('ko-KR')));
+           assert.ok((await a.locator('#dungeonSummary').innerText()).includes('[S3]'));
+           await a.locator('[data-stone="create"][data-stage="1"]').click();
+           await a.waitForFunction(()=>document.querySelector('.rm-stone-room')?.textContent.includes('100,000 / 100,000'));
+           await (await import('node:fs/promises')).mkdir('test-output',{recursive:true});
+           await a.screenshot({path:'test-output/stone-S3-100000.png'});
+           await a.locator('[data-stone="start"]').click();
+           await a.waitForFunction(()=>RinguCore.activeDungeon?.serverRoom&&RinguCore.activeDungeon.maxHp===100000);
+           assert.ok(await a.evaluate(()=>RinguCore.activeDungeon.hp>0&&RinguCore.activeDungeon.hp<=100000));
+           await a.locator('[data-stone="leave"]').click();
+           await a.waitForFunction(()=>!RinguCore.activeDungeon?.serverRoom);
+           await a.evaluate(()=>RinguCore.fn.closeDungeon());
+          '''
+          s=s.replace(anchor,checks+anchor,1)
+          s=s.replace('test-output/auction8-TH3.png','test-output/auction8-S3.png')
+          s=s.replace('PASS focused browser acceptance: all 30 displayed HP values, actual first-floor server fight,','PASS S3 browser acceptance: all 30 original tower HP values, original 7500-HP first-floor fight, all six reduced stone entry values, actual 100000-HP stone room and fight,')
+          Path('test/stone-s3-browser.test.mjs').write_text(s);p.unlink()
+          PY
+      - name: Install pinned test dependencies
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          npx playwright install --with-deps chromium
+      - name: Validate gameplay, migration, tower restoration and auction regression
+        run: |
+          node --check stone-party.js
+          node --check economy-client.js
+          node --check test/stone-s3-browser.test.mjs
+          node --test test/tower-hp-restored.test.mjs test/stone-hp-third-db.test.mjs test/auction-listing-limit.test.mjs test/economy.test.mjs test/economy-edge.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/login-inventory.test.mjs test/login-recovery.test.mjs
+      - name: Real browser with isolated SQL and synthetic accounts
+        run: timeout 150s node test/stone-s3-browser.test.mjs
+      - name: Commit only tested changes to the isolated branch
+        run: |
+          git add -- index.html economy-client.js stone-party.js supabase/functions/ringu-economy/index.ts supabase/functions/_shared/tower-hp-third.mjs test/tower-hp-third.test.mjs test/auction8-tower-browser.test.mjs test/stone-s3-browser.test.mjs
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: restore tower and reduce only stone dungeon bosses to one-third HP'
+          git push origin HEAD:refs/heads/fix/stone-only-S3-20260910
+          git rev-parse HEAD
+          sha256sum index.html economy-client.js stone-party.js supabase/19-stone-hp-third.sql supabase/functions/_shared/tower-hp-restored.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: stone-S3-browser
+          path: test-output/
+          retention-days: 1
