@@ -31,18 +31,36 @@
    if(cloud.costumeOwner!==owner){cloud.costumeOwner=owner;cloud.costume=null;}
    if(value&&(!cloud.costume||value.costumeRevision>=cloud.costume.costumeRevision))cloud.costume=value;
  }
- async function account(data,initialize=true){
+ // Login rechecks must not perform another economic mutation. In particular,
+ // pending-backup validation used to sync twice and reject its own new revision.
+ let initialEconomy=null;
+ async function account(data,initialize=true,signal){
+   const owner=session?.user?.id;
    window.RinguCloud.economy=!!data.economyReady;
    if(data.economyReady&&initialize&&!window.RinguCore?.state){
-     const synced=await remote('/functions/v1/ringu-economy',{command:'sync',args:{},requestId:crypto.randomUUID()});
-     data={...data,state:synced.state,revision:synced.revision};
-     window.RinguCloud.initialEconomyEvents=synced.result?.events||[];
-     if(data.costume)data.costume={...data.costume,essence:synced.state.essence,revision:synced.revision};
+     if(initialEconomy?.owner!==owner)initialEconomy={owner,requestId:crypto.randomUUID(),done:false,promise:null};
+     const attempt=initialEconomy;
+     if(!attempt.done){
+       // A retry after a lost response uses the SAME server receipt ID.
+       if(!attempt.promise)attempt.promise=remote('/functions/v1/ringu-economy',{
+         command:'sync',args:{},requestId:attempt.requestId
+       },{signal}).then(synced=>{
+         if(session?.user?.id!==owner)throw error('로그인 계정이 변경되었습니다.',401);
+         if(!synced?.state||!Number.isSafeInteger(synced.revision)||synced.revision<data.revision)throw error('서버 기록을 확인하지 못했습니다.',503);
+         attempt.done=true;
+         window.RinguCloud.initialEconomyEvents=synced.result?.events||[];
+         return synced;
+       }).finally(()=>{attempt.promise=null;});
+       const synced=await attempt.promise;
+       if(synced.revision>=data.revision)data={...data,state:synced.state,revision:synced.revision};
+       if(data.costume)data.costume={...data.costume,essence:data.state.essence,revision:data.revision};
+     }
    }
+   if(session?.user?.id!==owner)throw error('로그인 계정이 변경되었습니다.',401);
    cacheCostume(data.costume);
-   // Optional migration: ordinary accounts remain usable before it is installed.
+   // Optional admin metadata is read-only. Propagate cancellation to every hop.
    let floor=0;
-   try{floor=Number((await rpc('ringu_admin_status',{})).currencyFloor)||0;}catch(e){if(e.status!==404)throw e;}
+   try{floor=Number((await rpc('ringu_admin_status',{},signal)).currencyFloor)||0;}catch(e){if(e.status!==404)throw e;}
    window.RinguCloud.currencyFloor=Math.max(0,floor);
    return {...data,account:{id:session.user.id,username:session.user.user_metadata?.username||session.user.email?.split('@')[0]||'모험가'}};
  }
@@ -57,7 +75,7 @@
    if(!data.access_token)throw error('가입 설정을 확인해 주세요. 아직 로그인되지 않았습니다.',503);
    persist({...data,expires_at:data.expires_at||Date.now()/1000+data.expires_in});
    const activated=await rpc('ringu_account',{p_action:'activate'},signal);
-   return account(activated,false);
+   return account(activated,false,signal);
  }
  window.RinguCloud={enabled:true,base:config.base,transport:'supabase'};
  window.fetch=async function(input,init={}){
@@ -66,7 +84,7 @@
    try{
      const path=url.pathname,body=init.body?JSON.parse(init.body):{},signal=init.signal;
      if(path==='/api/register'||path==='/api/login')return response(await login(body,path==='/api/register',signal),path==='/api/register'?201:200);
-     if(path==='/api/session')return response(await account(await rpc('ringu_account',{p_action:'load'},signal)));
+     if(path==='/api/session')return response(await account(await rpc('ringu_account',{p_action:'load'},signal),true,signal));
      if(path==='/api/watch'){await rpc('ringu_account',{p_action:'ping'},signal);await new Promise(r=>setTimeout(r,1500));return response({ok:true});}
      if(path==='/api/logout'){
        try{await remote('/auth/v1/logout?scope=local',undefined,{signal});}finally{persist(null);window.RinguCloud.currencyFloor=0;}return response({ok:true});

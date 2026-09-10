@@ -50,7 +50,7 @@ form.addEventListener('submit', async event => {
   $('submit-label').textContent = mode === 'register' ? '계정을 만드는 중…' : '모험 기록을 확인하는 중…';
   feedback('');
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 30000);
   try {
     const response = await fetch(`/api/${mode}`, {
       method: 'POST', credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
