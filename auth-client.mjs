@@ -1,6 +1,17 @@
 const $ = id => document.getElementById(id);
 let mode = 'login';
 let busy = false;
+let authStage = 'auth';
+let authStarted = 0;
+const stageLabels = {settings:'가입 설정 확인',auth:'인증 서버 응답 대기',account:'계정 서버 응답 대기',complete:'게임으로 이동'};
+function showProgress(){
+  if(!busy)return;
+  const elapsed=Math.max(0,Math.floor((Date.now()-authStarted)/1000));
+  $('submit-label').textContent=(stageLabels[authStage]||'로그인 처리')+' · '+elapsed+'초';
+}
+window.addEventListener('ringu:auth-progress',event=>{
+  if(busy&&Object.hasOwn(stageLabels,event.detail?.stage)){authStage=event.detail.stage;showProgress();}
+});
 const form = $('auth-form');
 function feedback(message, kind = 'error') {
   $('feedback').textContent = message;
@@ -45,32 +56,47 @@ form.addEventListener('submit', async event => {
     $('password-confirm').focus(); return;
   }
   busy = true;
+  authStage=mode==='register'?'settings':'auth';authStarted=Date.now();
   for (const button of document.querySelectorAll('.tabs button, .submit')) button.disabled = true;
   form.setAttribute('aria-busy', 'true');
   $('submit-label').textContent = mode === 'register' ? '계정을 만드는 중…' : '모험 기록을 확인하는 중…';
   feedback('');
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  let timeout;
+  const progressTimer=setInterval(showProgress,1000);showProgress();
+  const deadline=new Promise((_,reject)=>{
+    timeout=setTimeout(()=>{controller.abort();reject(new DOMException('Aborted','AbortError'));},30000);
+  });
   try {
+    const operation=(async()=>{
     const response = await fetch(`/api/${mode}`, {
       method: 'POST', credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    const data = await response.json().catch(() => ({}));
+    const data = await response.json().catch(error=>{if(error.name==='AbortError')throw error;return {};});
+    return {response,data};
+    })();
+    // A stalled transport or response body must not keep the button locked forever.
+    const {response,data}=await Promise.race([operation,deadline]);
     if (!response.ok) {
       const messages = { 400: '입력한 계정 이름과 비밀번호 조건을 확인해 주세요.', 401: '계정 이름 또는 비밀번호가 올바르지 않습니다.', 403: '요청을 확인할 수 없습니다. 페이지를 새로고침해 주세요.', 409: '이미 사용 중인 계정 이름입니다.', 429: '요청이 많습니다. 잠시 후 다시 시도해 주세요.' };
       const serverMessage = typeof data.error === 'string' ? data.error : typeof data.message === 'string' ? data.message : '';
-      throw new Error(messages[response.status] || (/[가-힣]/.test(serverMessage) ? serverMessage : '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'));
+      const expired=/SESSION_|LOGIN_REQUIRED/.test(serverMessage);
+      const message=expired?'로그인 세션을 다시 확인해야 합니다. 다른 탭의 로그인 시도를 멈춘 뒤 다시 눌러 주세요.':
+        response.status===401&&authStage==='account'?'인증은 완료됐지만 계정 서버 확인에 실패했습니다. 다시 시도해 주세요.':
+        messages[response.status]||(/[가-힣]/.test(serverMessage)?serverMessage:'서버가 응답하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      throw new Error(message+' [LI2-'+authStage.toUpperCase()+' / HTTP '+response.status+']');
     }
     $('password').value = '';
     $('password-confirm').value = '';
     feedback('문이 열렸습니다. 모험으로 이동합니다…', 'success');
     window.location.assign('/linsa-rpg/');
   } catch (error) {
-    feedback(error.name === 'AbortError' ? '응답이 늦어지고 있습니다. 잠시 후 다시 시도해 주세요.' : error instanceof TypeError ? '네트워크 연결을 확인해 주세요.' : error.message);
+    const code='[LI2-'+authStage.toUpperCase()+']';
+    feedback(error.name==='AbortError'?(stageLabels[authStage]||'로그인 처리')+'가 30초 안에 완료되지 않았습니다. 잠시 후 다시 시도해 주세요. '+code:error instanceof TypeError?'서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요. '+code:error.message);
   } finally {
-    clearTimeout(timeout);
+    clearTimeout(timeout);clearInterval(progressTimer);
     busy = false;
     for (const button of document.querySelectorAll('.tabs button, .submit')) button.disabled = false;
     form.setAttribute('aria-busy', 'false');

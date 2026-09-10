@@ -64,18 +64,30 @@
    window.RinguCloud.currencyFloor=Math.max(0,floor);
    return {...data,account:{id:session.user.id,username:session.user.user_metadata?.username||session.user.email?.split('@')[0]||'모험가'}};
  }
+ const authProgress=stage=>window.dispatchEvent(new CustomEvent('ringu:auth-progress',{detail:{stage}}));
+ const checkCancelled=signal=>{if(signal?.aborted)throw new DOMException('Aborted','AbortError');};
  async function login(body,register,signal){
+   checkCancelled(signal);
    const username=String(body.username||'').trim().toLowerCase();
    if(!/^[a-z0-9_]{3,32}$/.test(username)||typeof body.password!=='string'||body.password.length<8||body.password.length>256)throw error('계정 이름과 비밀번호 조건을 확인해 주세요.');
-   if(register){const settings=await remote('/auth/v1/settings',undefined,{auth:false,method:'GET',signal});
+   if(register){authProgress('settings');const settings=await remote('/auth/v1/settings',undefined,{auth:false,method:'GET',signal});
      if(!settings.mailer_autoconfirm)throw error('서버 준비 중입니다. 관리자가 Confirm email 설정을 꺼야 가입할 수 있습니다.',503);
    }
+   authProgress('auth');
    const data=await remote(register?'/auth/v1/signup':'/auth/v1/token?grant_type=password',
      {email:username+'@players.ringu.example',password:body.password,...(register?{data:{username}}:{})},{auth:false,signal});
-   if(!data.access_token)throw error('가입 설정을 확인해 주세요. 아직 로그인되지 않았습니다.',503);
+   checkCancelled(signal);
+   if(!data.access_token||!data.user?.id)throw error('가입 설정을 확인해 주세요. 아직 로그인되지 않았습니다.',503);
    persist({...data,expires_at:data.expires_at||Date.now()/1000+data.expires_in});
+   authProgress('account');
    const activated=await rpc('ringu_account',{p_action:'activate'},signal);
-   return account(activated,false,signal);
+   checkCancelled(signal);
+   if(activated?.account?.id!==data.user.id)throw error('계정 기록을 확인하지 못했습니다.',503);
+   // Login only needs a verified, activated account. Do not block navigation on
+   // optional admin metadata or reserialize the full equipment inventory here.
+   // The game page still loads authoritative state/admin metadata before play.
+   authProgress('complete');
+   return {account:activated.account,revision:activated.revision,economyReady:!!activated.economyReady};
  }
  window.RinguCloud={enabled:true,base:config.base,transport:'supabase'};
  window.fetch=async function(input,init={}){
