@@ -1,0 +1,32 @@
+name: Verify deployed BM3 and AU2 assets
+on:
+  push:
+    branches: [fix/black-market-BM3-20260911]
+    paths: [.github/workflows/bm3-live-check.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Compare public files with the immutable tested release
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const raw='https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/6ee545163b8d914039a34be01df5ef9c41f13641/';
+          const site='https://dkdrlahwl.github.io/linsa-rpg/';
+          for(const [path,query] of [['index.html',''],['black-market.js','?v=consumables-BM3'],['black-market.css','?v=consumables-BM3'],['auction.js','?v=mobile-details-AU2'],['auction.css','?v=mobile-details-AU2']]){
+            const source=await fetch(raw+path,{signal:AbortSignal.timeout(15000)});assert.equal(source.status,200);const expected=hash(Buffer.from(await source.arrayBuffer()));
+            let actual,status;
+            for(let i=0;i<12;i++){
+              const response=await fetch(site+path+query,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});status=response.status;actual=hash(Buffer.from(await response.arrayBuffer()));
+              if(status===200&&actual===expected)break;
+              await new Promise(r=>setTimeout(r,5000));
+            }
+            assert.equal(status,200,path);assert.equal(actual,expected,path);console.log('PASS live tested asset',path,actual);
+          }
+          console.log('PASS existing game URL serves the exact tested BM3 and AU2 release. No player credentials, accounts or purchases used.');
+          JS
