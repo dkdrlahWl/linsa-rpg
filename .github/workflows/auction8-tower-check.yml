@@ -1,0 +1,59 @@
+name: Check auction8 and TH3
+on:
+  push:
+    branches: [fix/auction8-tower-third-20260910]
+    paths: [.github/workflows/auction8-tower-check.yml]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: al8_qa
+          POSTGRES_USER: al8qa
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ['55440:5432']
+        options: >-
+          --health-cmd "pg_isready -U al8qa -d al8_qa"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install local QA dependencies
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          npm install --prefix "$RUNNER_TEMP/al8-qa" --ignore-scripts --no-audit --no-fund --no-save pg@8.16.3
+          npx playwright install --with-deps chromium
+      - name: Validate source syntax and regression suites
+        run: |
+          node --check auction.js
+          node --check economy-client.js
+          node --check supabase/functions/_shared/tower-hp-third.mjs
+          node --test test/tower-hp-third.test.mjs test/economy.test.mjs test/economy-edge.test.mjs test/economy-db.test.mjs test/auction-db.test.mjs test/black-market-db.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/login-inventory.test.mjs test/login-recovery.test.mjs
+      - name: Verify eighth-slot contention against isolated PostgreSQL
+        env:
+          AL8_QA_PG_URL: postgresql://al8qa:isolated-test-only@127.0.0.1:55440/al8_qa
+        run: QA_PG_MODULE="$RUNNER_TEMP/al8-qa/node_modules/pg/esm/index.mjs" node test/auction-listing-limit.test.mjs
+      - name: Verify existing auction transaction races
+        run: QA_POSTGRES_BIN="$(dirname "$(find /usr/lib/postgresql -name initdb | sort -V | tail -1)")" node test/auction-concurrency.test.mjs
+      - name: Prepare local browser fixture for the new server entrypoint and migration
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('test/economy-browser.test.mjs');s=p.read_text()
+          s=s.replace("from '../supabase/functions/_shared/economy.mjs'","from '../supabase/functions/_shared/tower-hp-third.mjs'",1)
+          old="await db.exec('update ringu_private.auction_release set economy_ready=true,enabled=true');"
+          new="await db.exec('begin;\\n'+await readFile(new URL('../supabase/18-auction-listing-limit.sql',import.meta.url),'utf8')+'\\ncommit;');\n"+old
+          assert s.count(old)==1;s=s.replace(old,new,1);p.write_text(s)
+          PY
+      - name: Browser integration using synthetic accounts only
+        run: node test/economy-browser.test.mjs
+      - name: Report exact tested hashes
+        run: |
+          git rev-parse HEAD
+          sha256sum auction.js index.html economy-client.js supabase/18-auction-listing-limit.sql supabase/functions/ringu-economy/index.ts supabase/functions/_shared/tower-hp-third.mjs test/tower-hp-third.test.mjs
