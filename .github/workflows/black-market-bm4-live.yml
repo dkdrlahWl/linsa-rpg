@@ -1,0 +1,33 @@
+name: Verify deployed black-market BM4
+on:
+  push:
+    branches: [fix/black-market-noon-BM4-20260911]
+    paths: [.github/workflows/black-market-bm4-live.yml]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Match public assets against the tested immutable release
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          const hash=b=>createHash('sha256').update(b).digest('hex');
+          const raw='https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/7af7d10c12ac0e23f6261f66ebacc10e3e909742/';
+          const site='https://dkdrlahwl.github.io/linsa-rpg/';
+          const deadline=Date.now()+240000;
+          for(const [file,query]of [['index.html',''],['black-market.js','?v=refresh-BM4']]){
+           const r=await fetch(raw+file,{signal:AbortSignal.timeout(15000)});assert.equal(r.status,200);const expected=hash(Buffer.from(await r.arrayBuffer()));
+           let actual,status;
+           do{
+            const r=await fetch(site+file+query,{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(15000)});status=r.status;actual=hash(Buffer.from(await r.arrayBuffer()));
+            if(status===200&&actual===expected)break;
+            if(Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,5000));
+           }while(Date.now()<deadline);
+           assert.equal(status,200);assert.equal(actual,expected,file);console.log('PASS deployed BM4',file,actual);
+          }
+          console.log('PASS existing game site serves the tested noon-refresh release; no player accounts or transactions used.');
+          JS
