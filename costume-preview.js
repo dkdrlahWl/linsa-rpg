@@ -22,9 +22,9 @@
   async function transact(action,id){
    if(busy)return;
    const product=RinguCostumes.snapshot?.products?.find(p=>p.id===id);
-   if(action==='buy'&&(!product||!confirm(catalog.products[id].name+'을 정수 '+product.price+'개로 구매할까요?')))return;
+   if(action==='buy'&&(!product||!window.RinguShop)){status.textContent='상품 정보를 확인하지 못했습니다. 새로고침 후 다시 확인해 주세요.';return;}
    busy=true;refreshButtons();status.textContent='서버에 저장하는 중…';
-   try{await RinguCostumes.act(action,id);status.textContent=action==='buy'?'구매 완료 · 보유 효과가 적용되었습니다.':id?'캐릭터 장착 완료':'기본 캐릭터로 변경했습니다.';window.RinguAudio?.effect(action==='buy'?'purchase':'equip');}
+   try{const result=action==='buy'?await RinguShop.request(()=>{const s=RinguCostumes.snapshot,p=s?.products?.find(p=>p.id===id);return p?{name:catalog.products[id].name,price:p.price,owned:s.owned.includes(id),available:s.ready,description:'보유 효과: 공격력 +'+catalog.products[id].attackPercent+'%',icon:'☾'}:null;},()=>RinguCostumes.act(action,id)):await RinguCostumes.act(action,id);if(result===false){status.textContent='구매가 완료되지 않았습니다.';return;}status.textContent=action==='buy'?'구매 완료 · 보유 효과가 적용되었습니다.':id?'캐릭터 장착 완료':'기본 캐릭터로 변경했습니다.';window.RinguAudio?.effect(action==='buy'?'purchase':'equip');}
    catch(e){status.textContent=({INSUFFICIENT_ESSENCE:'정수가 부족합니다.',ALREADY_OWNED:'이미 보유한 캐릭터입니다.',COSTUME_NOT_OWNED:'먼저 캐릭터를 구매해 주세요.',COSTUME_RELEASE_NOT_READY:'상점 업데이트 중입니다. 잠시 후 다시 열어 주세요.',SAVE_CONFLICT:'저장 기록이 변경되었습니다. 새로고침해 주세요.'})[e.message]||e.message;}
    finally{busy=false;refreshButtons();}
   }
@@ -55,7 +55,7 @@
   panel.querySelector('[data-close]').onclick=close;
   panel.addEventListener('close',()=>{request++;if(raf!==null)cancelAnimationFrame(raf);raf=null;button.focus();});
   panel.querySelectorAll('[data-pose]').forEach(b=>b.onclick=()=>{battle=b.dataset.pose==='battle';panel.querySelectorAll('[data-pose]').forEach(other=>other.setAttribute('aria-pressed',String(other===b)));paint();});
-  button.onclick=()=>{if(!panel.open)panel.showModal();void select(chosen);refreshButtons();void RinguCostumes.refresh().then(()=>{refreshButtons();status.textContent='보유 정보 확인 완료';}).catch(e=>{status.textContent=e.message;});if(raf===null)raf=requestAnimationFrame(loop);};
+  button.onclick=()=>{if(!panel.open){window.RinguShop?.resetInput();panel.showModal();}void select(chosen);refreshButtons();void RinguCostumes.refresh().then(()=>{refreshButtons();status.textContent='보유 정보 확인 완료';}).catch(e=>{status.textContent=e.message;});if(raf===null)raf=requestAnimationFrame(loop);};
   window.RinguSession.onEnded?.(()=>{if(panel.open)close();});
  }
  window.addEventListener('ringu-ready',install,{once:true});install();
