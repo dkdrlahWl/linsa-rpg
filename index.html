@@ -571,7 +571,7 @@ left:var(--fallen-axe-left)!important;
 <script src="/linsa-rpg/social-style.js?v=costume-live-1"></script>
 <script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
-<script src="/linsa-rpg/stone-party.js?v=1"></script>
+<script src="/linsa-rpg/stone-party.js?v=stone-hp-S3"></script>
 <script src="/linsa-rpg/pet-stack-model.js?v=1"></script>
 <script src="/linsa-rpg/pet-stacks.js?v=1"></script>
 <link rel="stylesheet" href="/linsa-rpg/auction.css?v=1">
@@ -586,7 +586,7 @@ left:var(--fallen-axe-left)!important;
 <script defer src="/linsa-rpg/costume-runtime.js?v=costume-live-1"></script>
 <script defer src="/linsa-rpg/costume-preview.js?v=linsa-shop-LS1"></script>
 <script defer src="/linsa-rpg/shop-controls.js?v=black-market-BM1"></script>
-<script defer src="/linsa-rpg/economy-client.js?v=tower-hp-TH3"></script>
+<script defer src="/linsa-rpg/economy-client.js?v=tower-restored-S3"></script>
 <link rel="stylesheet" href="/linsa-rpg/black-market.css?v=BM1">
 <script defer src="/linsa-rpg/black-market.js?v=BM2"></script>
 <body data-remodel="true">
@@ -657,7 +657,7 @@ const sellPrices=[10,30,100,300,1000,3000,10000];
 const levelReq=[0,100,250,500,1000,2000,4000,8000,12000,20000,30000,45000,65000,90000,120000];
 const bossRegions=[{name:'초원',bosses:[{name:'초원 슬라임',hp:600,reward:100},{name:'초원 늑대',hp:250,reward:250},{name:'거대 멧돼지',hp:500,reward:500},{name:'숲의 고블린',hp:1000,reward:1000},{name:'초원 수호자',hp:2000,reward:2000},{name:'숲 정령',hp:5000,reward:5000}]},{name:'사막',bosses:[{name:'모래 전갈',hp:8000,reward:10000},{name:'사막 하이에나',hp:16000,reward:22000},{name:'고대 미라',hp:32000,reward:48000},{name:'모래폭풍 정령',hp:65000,reward:105000},{name:'사막의 폭군',hp:130000,reward:230000}]},{name:'설원',bosses:[{name:'얼음 송곳니',hp:300000,reward:600000},{name:'설원 트롤',hp:360000,reward:780000},{name:'빙결 마녀',hp:432000,reward:980000},{name:'혹한의 거인',hp:518400,reward:1220000},{name:'설원의 군주',hp:622080,reward:1520000}]},{name:'화산',bosses:[{name:'잿불 와이번',hp:760000,reward:1980000},{name:'용암 기사',hp:912000,reward:2490000},{name:'마그마 주술사',hp:1094400,reward:3130000},{name:'흑요석 골렘',hp:1313280,reward:3940000},{name:'화산의 군주',hp:1575936,reward:4960000}]},{name:'천공',locked:true,bosses:[]}];
 const goldDungeonStages=[{stage:1,hp:500,reward:2500},{stage:2,hp:1200,reward:4000},{stage:3,hp:1650,reward:6000},{stage:4,hp:2200,reward:8000},{stage:5,hp:2600,reward:12000},{stage:6,hp:3400,reward:18000},{stage:7,hp:4500,reward:25000},{stage:8,hp:5300,reward:32000},{stage:9,hp:7600,reward:45000},{stage:10,hp:10000,reward:60000},{stage:11,hp:13500,reward:80000},{stage:12,hp:16000,reward:100000},{stage:13,hp:23000,reward:140000},{stage:14,hp:31000,reward:180000},{stage:15,hp:40000,reward:240000},{stage:16,hp:47000,reward:300000},{stage:17,hp:90000,reward:400000},{stage:18,hp:115000,reward:520000},{stage:19,hp:155000,reward:680000},{stage:20,hp:180000,reward:850000}];
-const stoneDungeonStages=Array.from({length:6},(_,i)=>({stage:i+1,hp:Math.floor(300000*Math.pow(1.5,i)),reward:i+2}));
+const stoneDungeonStages=Array.from({length:6},(_,i)=>({stage:i+1,hp:Math.floor(100000*Math.pow(1.5,i)),reward:i+2}));
 const prefixes=[['낡은','수련용','견습의','무딘','가벼운','초보자의','평범한','손때 묻은','여행자의','단단한'],['숲바람의','청동빛','사냥꾼의','용병의','새벽녘','바람결의','야성의','수호병의','비취빛','은은한'],['빙결의','뇌광의','심연의','왕실의','폭풍의','적월의','별빛의','환영의','백은의','용맹한'],['천공의','불멸의','마왕의','성역의','고대룡의','운명의','차원절단','패왕의','신탁의','황혼의'],['태양의','창세의','천벌의','신왕의','세계수의','종말의','라그나로크','아포칼립스','발할라의','오딘의'],['피의 맹약','붉은 심연','멸망의 별','마신의','혼돈왕의','적룡신의','파멸자의','무한 재앙','종언의','신살자의'],['타락의','심연 타락','핏빛 타락','망각의','영혼 포식']];
 const bases={무기:['장검','검','대검','환도','마검','성검','쌍검','도','검날','룬소드'],투구:['철투구','면갑','전투모','왕관','뿔투구','기사투구','두건','투구','머리장식','가면'],갑옷:['흉갑','판금갑옷','전투복','사슬갑옷','로브','용갑','수호갑','갑주','성의','전신갑옷'],바지:['각반','전투바지','하의','다리갑옷','사슬바지','용린각반','마법바지','수호각반','철갑바지','성전하의'],신발:['장화','군화','철구두','전투화','질풍화','용린신','마법장화','수호신','각갑','성전장화'],반지:['철반지','인장','보석반지','룬링','옥반지','마력반지','서약반지','왕의인장','수호링','성전반지'],귀걸이:['철귀걸이','수정귀걸이','별귀걸이','룬이어링','옥귀걸이','마력귀걸이','서약귀걸이','왕의귀걸이','수호이어링','성전귀걸이']};
 const mythicWeaponBases=['도끼','검','대검','건틀릿','메이스','지팡이','완드','쌍검','전투도끼','파멸대검'];

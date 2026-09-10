@@ -5,7 +5,7 @@ import {once} from 'node:events';
 import {createRequire} from 'node:module';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
-import {execute,initialState,balance} from '../supabase/functions/_shared/tower-hp-third.mjs';
+import {execute,initialState,balance} from '../supabase/functions/_shared/tower-hp-restored.mjs';
 const {PGlite}=await import(process.env.QA_PGLITE_MODULE||'@electric-sql/pglite');
 const {chromium}=createRequire(import.meta.url)(process.env.QA_PLAYWRIGHT_MODULE||'playwright');
 const db=new PGlite(),users=new Map(),tokens=new Map(),errors=[];
@@ -14,6 +14,7 @@ await db.exec(`create role anon;create role authenticated;create role service_ro
 for(const file of ['01-account-storage.sql','02-ranking-party.sql'])await db.exec(await readFile(new URL('fixtures/'+file,import.meta.url),'utf8'));
 for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
 await db.exec('begin;\n'+await readFile(new URL('../supabase/18-auction-listing-limit.sql',import.meta.url),'utf8')+'\ncommit;');
+await db.exec('begin;\n'+await readFile(new URL('../supabase/19-stone-hp-third.sql',import.meta.url),'utf8')+'\ncommit;');
 await db.exec('update ringu_private.auction_release set economy_ready=true,enabled=true');
 async function rpc(name,body={}){const entries=Object.entries(body);return (await db.query('select public.'+name+'('+entries.map(([k],i)=>k+'=> $'+(i+1)).join(',')+') r',entries.map(([,v])=>typeof v==='object'&&v!==null?JSON.stringify(v):v))).rows[0].r;}
 async function service(req){
@@ -46,7 +47,7 @@ async function service(req){
 }
 const server=createServer(async(req,res)=>{try{const path=decodeURIComponent(req.url.split('?')[0]);if(!path.startsWith('/linsa-rpg/')||path.includes('..'))throw Error();const file=path.slice(11)||'index.html';const data=await readFile(new URL('../'+file,import.meta.url));res.setHeader('Content-Type',file.endsWith('.html')?'text/html':/\.(js|mjs)$/.test(file)?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':'image/png');res.end(data);}catch{res.writeHead(404);res.end();}});
 server.listen(0,'127.0.0.1');await once(server,'listening');
-const base='http://127.0.0.1:'+server.address().port+'/linsa-rpg/',browser=await chromium.launch({channel:'msedge',headless:true});
+const base='http://127.0.0.1:'+server.address().port+'/linsa-rpg/',browser=await chromium.launch({headless:true});
 async function player(name){
  const password=randomUUID(); // Ephemeral fixture only; every Auth request is mocked below.
  const c=await browser.newContext({viewport:{width:1440,height:1000}});
@@ -59,10 +60,24 @@ try{
  const a=await player('releaseqaA');
  await run(a,'auto',{enabled:false});await run(a,'unequip',{slot:'무기'});
  const displayed=await a.evaluate(()=>({version:RinguCore.towerHpVersion,hp:RinguCore.towerFloors.map(x=>x.hp)}));
- assert.equal(displayed.version,'TH3');assert.deepEqual(displayed.hp,balance.towerFloors.map(x=>x.hp));
+ assert.equal(displayed.version,undefined);assert.deepEqual(displayed.hp,balance.towerFloors.map(x=>x.hp));
  assert.ok(await run(a,'startDungeon',{type:'tower',stage:1}));
  const battle=await a.evaluate(()=>({max:RinguCore.activeTower.data.hp,hp:RinguCore.state.serverBattle.hp,version:RinguCore.state.serverBattle.hpVersion}));
- assert.equal(battle.max,2500);assert.ok(battle.hp>0&&battle.hp<=2500);assert.equal(battle.version,'TH3');await run(a,'cancelBattle');
+ assert.equal(battle.max,7500);assert.ok(battle.hp>0&&battle.hp<=7500);assert.equal(battle.version,'ORIGINAL_S3');await run(a,'cancelBattle');
+ await a.evaluate(()=>RinguCore.fn.openDungeon('stone'));
+ await a.waitForFunction(()=>document.querySelectorAll('[data-stone="create"]').length===6);
+ for(const [i,hp] of [100000,150000,225000,337500,506250,759375].entries())assert.ok((await a.locator('[data-stone="create"][data-stage="'+(i+1)+'"]').innerText()).includes(hp.toLocaleString('ko-KR')));
+ assert.ok((await a.locator('#dungeonSummary').innerText()).includes('[S3]'));
+ await a.locator('[data-stone="create"][data-stage="1"]').click();
+ await a.waitForFunction(()=>document.querySelector('.rm-stone-room')?.textContent.includes('100,000 / 100,000'));
+ await (await import('node:fs/promises')).mkdir('test-output',{recursive:true});
+ await a.screenshot({path:'test-output/stone-S3-100000.png'});
+ await a.locator('[data-stone="start"]').click();
+ await a.waitForFunction(()=>RinguCore.activeDungeon?.serverRoom&&RinguCore.activeDungeon.maxHp===100000);
+ assert.ok(await a.evaluate(()=>RinguCore.activeDungeon.hp>0&&RinguCore.activeDungeon.hp<=100000));
+ await a.locator('[data-stone="leave"]').click();
+ await a.waitForFunction(()=>!RinguCore.activeDungeon?.serverRoom);
+ await a.evaluate(()=>RinguCore.fn.closeDungeon());
  const items=await a.evaluate(()=>RinguCore.state.inventory.map(x=>x.id));assert.equal(items.length,9);
  for(const id of items.slice(0,8))await a.evaluate(itemId=>RinguSession.auctionTransaction('list',{itemId,price:7}),id);
  assert.equal((await db.query("select count(*)::int n from ringu_private.auction_listings where status='active'")).rows[0].n,8);
@@ -76,6 +91,6 @@ try{
  assert.equal((await db.query("select count(*)::int n from ringu_private.auction_listings where status='active'")).rows[0].n,8);
  assert.deepEqual(errors,[]);
  const fs=await import('node:fs/promises');await fs.mkdir('test-output',{recursive:true});
- await a.screenshot({path:'test-output/auction8-TH3.png'});
- console.log('PASS focused browser acceptance: all 30 displayed HP values, actual first-floor server fight, eight registrations, ninth rejected without item loss, visible cap counter, cancellation frees exactly one slot; zero browser errors. Synthetic accounts only. Legacy 2400-item benchmark was not rerun here.');
+ await a.screenshot({path:'test-output/auction8-S3.png'});
+ console.log('PASS S3 browser acceptance: all 30 original tower HP values, original 7500-HP first-floor fight, all six reduced stone entry values, actual 100000-HP stone room and fight, eight registrations, ninth rejected without item loss, visible cap counter, cancellation frees exactly one slot; zero browser errors. Synthetic accounts only. Legacy 2400-item benchmark was not rerun here.');
 }finally{await browser.close();server.close();await db.close();}
