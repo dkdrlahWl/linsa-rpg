@@ -1,0 +1,65 @@
+name: Validate login recovery LI2
+on:
+  push:
+    branches: [diagnose/login-LI2-20260910]
+    paths: [.github/workflows/login-li2-validate.yml]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply exact locally tested login-only changes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          def blob(b):return hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+          def patch(name,before_sha,after_sha,changes):
+              p=Path(name);b=p.read_bytes();assert blob(b)==before_sha,'Source changed: '+name
+              t=b.decode('utf-8')
+              for old,new in changes:
+                  assert t.count(old)==1,'Ambiguous anchor: '+name
+                  t=t.replace(old,new,1)
+              b=t.encode();assert blob(b)==after_sha,'Not locally tested output: '+name
+              p.write_bytes(b)
+          patch('cloud-adapter.js','b8e13cfa76f532f3e5655fdfad440f7081cd1077','ad7446c3e3af9695398cdb45af7f04aff35be060',[
+          (" async function login(body,register,signal){", " const authProgress=stage=>window.dispatchEvent(new CustomEvent('ringu:auth-progress',{detail:{stage}}));\n const checkCancelled=signal=>{if(signal?.aborted)throw new DOMException('Aborted','AbortError');};\n async function login(body,register,signal){\n   checkCancelled(signal);"),
+          ("   if(register){const settings=", "   if(register){authProgress('settings');const settings="),
+          ("   const data=await remote(register?'/auth/v1/signup'", "   authProgress('auth');\n   const data=await remote(register?'/auth/v1/signup'"),
+          ("   if(!data.access_token)throw error('가입 설정을 확인해 주세요. 아직 로그인되지 않았습니다.',503);", "   checkCancelled(signal);\n   if(!data.access_token||!data.user?.id)throw error('가입 설정을 확인해 주세요. 아직 로그인되지 않았습니다.',503);"),
+          ("   const activated=await rpc('ringu_account',{p_action:'activate'},signal);\n   return account(activated,false,signal);", "   authProgress('account');\n   const activated=await rpc('ringu_account',{p_action:'activate'},signal);\n   checkCancelled(signal);\n   if(activated?.account?.id!==data.user.id)throw error('계정 기록을 확인하지 못했습니다.',503);\n   // Login only needs a verified, activated account. Do not block navigation on\n   // optional admin metadata or reserialize the full equipment inventory here.\n   // The game page still loads authoritative state/admin metadata before play.\n   authProgress('complete');\n   return {account:activated.account,revision:activated.revision,economyReady:!!activated.economyReady};")])
+          patch('auth-client.mjs','9f7b39926f9bcf7437f4320b12df7c4cf7798d51','1ad70849bf9ea2c92c8e012d19481ea013d8720f',[
+          ("let busy = false;", "let busy = false;\nlet authStage = 'auth';\nlet authStarted = 0;\nconst stageLabels = {settings:'가입 설정 확인',auth:'인증 서버 응답 대기',account:'계정 서버 응답 대기',complete:'게임으로 이동'};\nfunction showProgress(){\n  if(!busy)return;\n  const elapsed=Math.max(0,Math.floor((Date.now()-authStarted)/1000));\n  $('submit-label').textContent=(stageLabels[authStage]||'로그인 처리')+' · '+elapsed+'초';\n}\nwindow.addEventListener('ringu:auth-progress',event=>{\n  if(busy&&Object.hasOwn(stageLabels,event.detail?.stage)){authStage=event.detail.stage;showProgress();}\n});"),
+          ("  busy = true;", "  busy = true;\n  authStage=mode==='register'?'settings':'auth';authStarted=Date.now();"),
+          ("  const timeout = setTimeout(() => controller.abort(), 30000);", "  let timeout;\n  const progressTimer=setInterval(showProgress,1000);showProgress();\n  const deadline=new Promise((_,reject)=>{\n    timeout=setTimeout(()=>{controller.abort();reject(new DOMException('Aborted','AbortError'));},30000);\n  });"),
+          ("    const response = await fetch(`/api/${mode}`, {", "    const operation=(async()=>{\n    const response = await fetch(`/api/${mode}`, {"),
+          ("    const data = await response.json().catch(() => ({}));", "    const data = await response.json().catch(error=>{if(error.name==='AbortError')throw error;return {};});\n    return {response,data};\n    })();\n    // A stalled transport or response body must not keep the button locked forever.\n    const {response,data}=await Promise.race([operation,deadline]);"),
+          ("      throw new Error(messages[response.status] || (/[가-힣]/.test(serverMessage) ? serverMessage : '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'));", "      const expired=/SESSION_|LOGIN_REQUIRED/.test(serverMessage);\n      const message=expired?'로그인 세션을 다시 확인해야 합니다. 다른 탭의 로그인 시도를 멈춘 뒤 다시 눌러 주세요.':\n        response.status===401&&authStage==='account'?'인증은 완료됐지만 계정 서버 확인에 실패했습니다. 다시 시도해 주세요.':\n        messages[response.status]||(/[가-힣]/.test(serverMessage)?serverMessage:'서버가 응답하지 못했습니다. 잠시 후 다시 시도해 주세요.');\n      throw new Error(message+' [LI2-'+authStage.toUpperCase()+' / HTTP '+response.status+']');"),
+          ("    feedback(error.name === 'AbortError' ? '응답이 늦어지고 있습니다. 잠시 후 다시 시도해 주세요.' : error instanceof TypeError ? '네트워크 연결을 확인해 주세요.' : error.message);", "    const code='[LI2-'+authStage.toUpperCase()+']';\n    feedback(error.name==='AbortError'?(stageLabels[authStage]||'로그인 처리')+'가 30초 안에 완료되지 않았습니다. 잠시 후 다시 시도해 주세요. '+code:error instanceof TypeError?'서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요. '+code:error.message);"),
+          ("    clearTimeout(timeout);", "    clearTimeout(timeout);clearInterval(progressTimer);")])
+          patch('login.html','07393980b3225150157083ddde3f1a8aa3c43a2a','e63453b834519db987ba32e7e6c753abdf91a16b',[
+          ('cloud-adapter.js?v=login-inventory-LI1','cloud-adapter.js?v=login-recovery-LI2'),
+          ('auth-client.mjs?v=login-inventory-LI1','auth-client.mjs?v=login-recovery-LI2'),
+          ('<p class="privacy"><span aria-hidden="true">◇</span> 계정별로 안전하게 이어지는 모험 기록</p>', '<p class="privacy"><span aria-hidden="true">◇</span> 계정별로 안전하게 이어지는 모험 기록</p>\n      <p id="auth-build" style="text-align:center;color:#a9997f;font-size:11px">로그인 점검 LI2</p>')])
+          print('PASS: three production files match locally tested hashes')
+          PY
+          node --check cloud-adapter.js
+          node --check auth-client.mjs
+      - name: Test staged login with fake network, credentials and storage
+        run: node test/login-recovery.test.mjs
+      - name: Retest prior session and inventory recovery
+        run: node test/login-inventory.test.mjs
+      - name: Retest existing economy, costume and pet logic
+        run: node --test test/economy.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs
+      - name: Commit tested login changes on diagnostic branch, not main
+        run: |
+          git rm -- .github/workflows/login-li2-diagnostics.yml .github/workflows/login-li2-validate.yml
+          git add -- cloud-adapter.js auth-client.mjs login.html
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: reduce login waits and show bounded stage-specific connection errors'
+          git push origin HEAD:refs/heads/diagnose/login-LI2-20260910
