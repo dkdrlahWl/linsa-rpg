@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
 import vm from 'node:vm';
-import {execute,initialState,balance} from '../supabase/functions/_shared/economy.mjs';
+import {execute,initialState,balance} from '../supabase/functions/_shared/tower-hp-third.mjs';
 const NOW=Date.UTC(2026,8,10,10);
 const OLD_HP=[7500,12000,18000,27000,37500,51000,67500,87000,105000,127500,157500,187500,217500,247500,285000,322500,360000,405000,450000,495000,540000,585000,630000,690000,750000,780000,810000,840000,870000,900000];
 const run=(s,c='sync',args={},now=NOW)=>execute(s,c,args,{now,random:()=>.99,itemIds:[],uuid:randomUUID,adminFloor:0,costumePercent:0});
@@ -21,6 +21,9 @@ test('TH3: final frontend override and server match on every floor, including re
  const line=html.split('\n').find(l=>l.startsWith('towerFloors.splice(0,towerFloors.length,...RINGU_TOWER_BALANCE_V2.map'));
  assert.ok(line);const ctx={towerFloors:[],RINGU_TOWER_BALANCE_V2:JSON.parse(table[1]),RINGU_TOWER_NAMES_V2:balance.towerFloors.map(f=>f.name)};
  vm.runInNewContext(line,ctx);
+ const client=readFileSync(new URL('../economy-client.js',import.meta.url),'utf8');
+ const helper=client.match(/ function applyTowerHpBalance\(g\)\{[\s\S]*?\n \}/);assert.ok(helper);
+ ctx.g={towerFloors:ctx.towerFloors};vm.runInNewContext(helper[0]+';applyTowerHpBalance(g);applyTowerHpBalance(g);',ctx);
  const actual=JSON.parse(JSON.stringify(ctx.towerFloors));for(const f of actual)f.gold*=10;
  assert.deepEqual(actual,balance.towerFloors);
 });
