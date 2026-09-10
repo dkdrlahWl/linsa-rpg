@@ -1,0 +1,41 @@
+name: Verify deployed AL8 TH3
+on:
+  push:
+    branches: [fix/auction8-tower-third-20260910]
+    paths: [.github/workflows/auction8-th3-live-smoke.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read-only public asset and authentication smoke check
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          const base='https://dkdrlahwl.github.io/linsa-rpg/';
+          const expected={
+           'index.html':'a97f5a67af4d3e835bdd18173131738ac83ab5367a135cbfa91d8073e7ccd250',
+           'auction.js?v=listing-limit-AL8':'785ab827db2b66269eae06a9fcb47f610a7bff56335ac7f8368a6dbc3307ab66',
+           'economy-client.js?v=tower-hp-TH3':'3b22411b30084967a7d06253637fb6235eb237e4ef2dde0ba6160b3733ea5697'
+          };
+          for(const [path,hash] of Object.entries(expected)){
+           let actual,status;
+           for(let attempt=0;attempt<5;attempt++){
+            const r=await fetch(base+path,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});status=r.status;
+            actual=createHash('sha256').update(Buffer.from(await r.arrayBuffer())).digest('hex');
+            if(status===200&&actual===hash)break;
+            if(attempt<4)await new Promise(resolve=>setTimeout(resolve,5000));
+           }
+           assert.equal(status,200,path);assert.equal(actual,hash,path);console.log('PASS public deployed hash',path,actual);
+          }
+          const edge='https://ekgihnyojihpearcudtd.supabase.co/functions/v1/ringu-economy';
+          const origin='https://dkdrlahwl.github.io';
+          const preflight=await fetch(edge,{method:'OPTIONS',headers:{Origin:origin},signal:AbortSignal.timeout(20000)});
+          assert.equal(preflight.status,204);assert.equal(preflight.headers.get('Access-Control-Allow-Origin'),origin);
+          const unauthorized=await fetch(edge,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(20000)});
+          assert.equal(unauthorized.status,401);assert.equal((await unauthorized.json()).error,'LOGIN_REQUIRED');
+          console.log('PASS deployed edge starts, CORS preflight and no-credential request rejected before database access. No player accounts or credentials used.');
+          JS
