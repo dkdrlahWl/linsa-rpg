@@ -35,9 +35,13 @@ try{
   await db.exec('begin');const forced=[0,0,0,0];forced[r]=100;
   await db.query('update ringu_private.black_market_config set rates=$1',[JSON.stringify(forced)]);
   await db.exec('delete from ringu_private.black_market_cycles');const x=await call();
-  same(x.items.length,5);check(x.items.every(o=>o.item.rarity===r&&o.price===[5,15,30,50][r]),'rarity-price map');
+  same(x.items.length,5);check(x.items.every(o=>o.item.rarity===r&&o.price===[5,15,50,100][r]),'rarity-price map');
   check(x.items.every(o=>o.item.optionRolls.every(n=>n>=.8&&n<=1.2)),'fixed options');
   same(new Set(x.items.map(o=>o.item.slot+'|'+o.item.name)).size,5,'distinct display templates');
+  const prior=await state(A);
+  await call('buy',x.rotation,0,randomUUID());
+  same((await state(A)).essence,prior.essence-[5,15,50,100][r],'actual rarity debit');
+  await reject(call('buy',x.rotation,0,randomUUID()),/BLACK_MARKET_PURCHASED/);
   await db.exec('rollback');
  }
  const x=await call();same(x.rates,balance.rates[8].slice(0,4));same(x.items.length,5);
@@ -80,5 +84,5 @@ try{
  await db.exec('set role authenticated');await call();checks++;await db.exec('reset role');
  const newSid=randomUUID();await db.query('insert into auth.sessions(id,user_id,created_at) values($1,$2,clock_timestamp()+interval \'1 second\')',[newSid,A.id]);await reject(call(),/SESSION_/);
  await identify(B);const persisted=await call();await db.close();db=new PGlite(dir);await identify(B);same((await call()).items,persisted.items,'DB restart retains inventory and personal purchases');
- console.log(`PASS BM1 PostgreSQL: ${checks} assertions (shared display, prices, options, KST boundaries, replay, rollback, limits, CAS, authorization, restart).`);
+ console.log(`PASS BM2 PostgreSQL: ${checks} assertions (shared display, prices, options, KST boundaries, replay, rollback, limits, CAS, authorization, restart).`);
 } finally {await db.close();await rm(dir,{recursive:true,force:true});}

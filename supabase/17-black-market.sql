@@ -1,4 +1,4 @@
--- LINSA BLACK MARKET BM1. Additive only; existing accounts/catalogue are not reset.
+-- LINSA BLACK MARKET BM2. Additive only; existing accounts/catalogue are not reset.
 -- The release depends on the existing server-authoritative economy (migrations 10-16).
 begin;
 create table if not exists ringu_private.black_market_config (
@@ -304,7 +304,7 @@ create table if not exists ringu_private.black_market_purchases (
  rotation_id text not null references ringu_private.black_market_cycles(id),
  slot integer not null check(slot between 0 and 4),
  request_id uuid not null,item_id bigint not null references ringu_private.auction_items(id),
- price integer not null check(price in (5,15,30,50)),result jsonb not null,
+ price integer not null check(price in (5,15,50,100)),result jsonb not null,
  purchased_at timestamptz not null default clock_timestamp(),
  primary key(account_id,rotation_id,slot),unique(account_id,request_id)
 );
@@ -353,7 +353,7 @@ begin
    order by random() limit 1;
   if not found then raise exception 'BLACK_MARKET_CATALOGUE_INVALID';end if;
   key:=gear.slot||'|'||gear.rarity||'|'||gear.name;seen:=array_append(seen,key);
-  price:=(array[5,15,30,50])[r+1];
+  price:=(array[5,15,50,100])[r+1];
   template:=jsonb_build_object('slot',gear.slot,'rarity',gear.rarity,'name',gear.name,
    'baseAtk',gear.base_atk,'enhance',0,'transcend',0,
    'optionRolls',jsonb_build_array(0.8+floor(random()*401)/1000,0.8+floor(random()*401)/1000));
@@ -397,7 +397,7 @@ begin
   select jsonb_agg(o.value||jsonb_build_object('purchased',exists(
    select 1 from ringu_private.black_market_purchases p where p.account_id=u and p.rotation_id=cycle.id and p.slot=(o.value->>'slot')::integer
   )) order by (o.value->>'slot')::integer) into rows from jsonb_array_elements(cycle.offers) o;
-  return jsonb_build_object('ready',true,'version','BM1','rotation',cycle.id,
+  return jsonb_build_object('ready',true,'version','BM2','rotation',cycle.id,
    'serverNow',floor(extract(epoch from clock_timestamp())*1000),
    'startsAt',floor(extract(epoch from cycle.starts_at)*1000),'expiresAt',floor(extract(epoch from cycle.ends_at)*1000),
    'rates',cycle.rates,'items',rows,'essence',a.state->'essence','revision',a.revision);
@@ -429,4 +429,4 @@ end $$;
 revoke all on function public.ringu_black_market(text,text,integer,uuid) from public,anon;
 grant execute on function public.ringu_black_market(text,text,integer,uuid) to authenticated;
 commit;
-select 'BM1 installed: shared five offers, 00:00/18:00 KST, one per offer/account/window' as result;
+select 'BM2 installed: shared five offers, 00:00/18:00 KST, one per offer/account/window' as result;
