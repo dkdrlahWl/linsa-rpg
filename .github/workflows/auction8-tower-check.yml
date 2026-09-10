@@ -4,7 +4,7 @@ on:
     branches: [fix/auction8-tower-third-20260910]
     paths: [.github/workflows/auction8-tower-check.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -22,14 +22,26 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          persist-credentials: false
       - name: Install local QA dependencies
         run: |
           npm install --ignore-scripts --no-audit --no-fund --package-lock=false
           npm install --prefix "$RUNNER_TEMP/al8-qa" --ignore-scripts --no-audit --no-fund --no-save pg@8.16.3
           npx playwright install --with-deps chromium
-      - name: Validate source syntax and regression suites
+      - name: Prepare versioned assets and isolated test fixtures
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html');s=p.read_text();old='economy-client.js?v=linsa-shop-LS1';new='economy-client.js?v=tower-hp-TH3'
+          assert s.count(old)==1;s=s.replace(old,new,1);p.write_text(s)
+          p=Path('test/auction-concurrency.test.mjs');s=p.read_text();old="'-h 127.0.0.1 -p '+port";new="'-h 127.0.0.1 -k '+dir+' -p '+port"
+          assert s.count(old)==1;s=s.replace(old,new,1);p.write_text(s)
+          p=Path('test/economy-browser.test.mjs');s=p.read_text();old="from '../supabase/functions/_shared/economy.mjs'"
+          assert s.count(old)==1;s=s.replace(old,"from '../supabase/functions/_shared/tower-hp-third.mjs'",1)
+          old="await db.exec('update ringu_private.auction_release set economy_ready=true,enabled=true');"
+          new="await db.exec('begin;\\n'+await readFile(new URL('../supabase/18-auction-listing-limit.sql',import.meta.url),'utf8')+'\\ncommit;');\n"+old
+          assert s.count(old)==1;s=s.replace(old,new,1);p.write_text(s)
+          PY
+      - name: Validate syntax and regression suites
         run: |
           node --check auction.js
           node --check economy-client.js
@@ -41,19 +53,21 @@ jobs:
         run: QA_PG_MODULE="$RUNNER_TEMP/al8-qa/node_modules/pg/esm/index.mjs" node test/auction-listing-limit.test.mjs
       - name: Verify existing auction transaction races
         run: QA_POSTGRES_BIN="$(dirname "$(find /usr/lib/postgresql -name initdb | sort -V | tail -1)")" node test/auction-concurrency.test.mjs
-      - name: Prepare local browser fixture for the new server entrypoint and migration
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('test/economy-browser.test.mjs');s=p.read_text()
-          s=s.replace("from '../supabase/functions/_shared/economy.mjs'","from '../supabase/functions/_shared/tower-hp-third.mjs'",1)
-          old="await db.exec('update ringu_private.auction_release set economy_ready=true,enabled=true');"
-          new="await db.exec('begin;\\n'+await readFile(new URL('../supabase/18-auction-listing-limit.sql',import.meta.url),'utf8')+'\\ncommit;');\n"+old
-          assert s.count(old)==1;s=s.replace(old,new,1);p.write_text(s)
-          PY
       - name: Browser integration using synthetic accounts only
         run: node test/economy-browser.test.mjs
-      - name: Report exact tested hashes
+      - name: Commit only validated version and fixture updates to test branch
         run: |
+          git add -- index.html test/economy-browser.test.mjs test/auction-concurrency.test.mjs
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test: validated auction8 and TH3 release with versioned client'
+          git push origin HEAD:refs/heads/fix/auction8-tower-third-20260910
           git rev-parse HEAD
-          sha256sum auction.js index.html economy-client.js supabase/18-auction-listing-limit.sql supabase/functions/ringu-economy/index.ts supabase/functions/_shared/tower-hp-third.mjs test/tower-hp-third.test.mjs
+          git ls-files -s auction.js index.html economy-client.js supabase/18-auction-listing-limit.sql supabase/functions/ringu-economy/index.ts supabase/functions/_shared/tower-hp-third.mjs test/tower-hp-third.test.mjs test/auction-listing-limit.test.mjs test/economy-browser.test.mjs test/auction-concurrency.test.mjs
+      - name: Upload QA screenshots and reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: auction8-TH3-qa
+          retention-days: 1
+          path: |
+            test-output/
+            /tmp/ringu-postgres-contention-*/postgres.log
