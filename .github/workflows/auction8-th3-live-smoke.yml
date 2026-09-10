@@ -5,12 +5,32 @@ on:
     paths: [.github/workflows/auction8-th3-live-smoke.yml]
 permissions:
   contents: read
+  pages: read
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Read-only public asset and authentication smoke check
+      - name: Verify deployed Edge without player credentials
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const edge='https://ekgihnyojihpearcudtd.supabase.co/functions/v1/ringu-economy',origin='https://dkdrlahwl.github.io';
+          const p=await fetch(edge,{method:'OPTIONS',headers:{Origin:origin},signal:AbortSignal.timeout(20000)});
+          assert.equal(p.status,204);assert.equal(p.headers.get('Access-Control-Allow-Origin'),origin);
+          const u=await fetch(edge,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(20000)});
+          assert.equal(u.status,401);assert.equal((await u.json()).error,'LOGIN_REQUIRED');
+          console.log('PASS deployed Edge starts, CORS preflight and unauthorized rejection before DB access. No player credentials or transactions.');
+          JS
+      - name: Read Pages deployment status
+        env:
+          GH_READ_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          const r=await fetch('https://api.github.com/repos/dkdrlahWl/linsa-rpg/pages/deployments/af770cd04df535254b5756a5137471a2c76aa46e',{headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+process.env.GH_READ_TOKEN},signal:AbortSignal.timeout(15000)});
+          const d=await r.json();console.log('Pages release status',r.status,JSON.stringify({status:d.status,message:d.message}));
+          JS
+      - name: Verify exact deployed public assets
         run: |
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
@@ -23,19 +43,17 @@ jobs:
           };
           for(const [path,hash] of Object.entries(expected)){
            let actual,status;
-           for(let attempt=0;attempt<5;attempt++){
+           for(let attempt=0;attempt<13;attempt++){
             const r=await fetch(base+path,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});status=r.status;
             actual=createHash('sha256').update(Buffer.from(await r.arrayBuffer())).digest('hex');
             if(status===200&&actual===hash)break;
-            if(attempt<4)await new Promise(resolve=>setTimeout(resolve,5000));
+            console.log('Waiting for public file',path,status,actual);
+            if(attempt<12)await new Promise(resolve=>setTimeout(resolve,5000));
+           }
+           if(actual!==hash){
+            const r=await fetch(base+path+(path.includes('?')?'&':'?')+'release=af770cd',{signal:AbortSignal.timeout(15000)});
+            console.log('Cache-separated diagnostic',path,r.status,createHash('sha256').update(Buffer.from(await r.arrayBuffer())).digest('hex'));
            }
            assert.equal(status,200,path);assert.equal(actual,hash,path);console.log('PASS public deployed hash',path,actual);
           }
-          const edge='https://ekgihnyojihpearcudtd.supabase.co/functions/v1/ringu-economy';
-          const origin='https://dkdrlahwl.github.io';
-          const preflight=await fetch(edge,{method:'OPTIONS',headers:{Origin:origin},signal:AbortSignal.timeout(20000)});
-          assert.equal(preflight.status,204);assert.equal(preflight.headers.get('Access-Control-Allow-Origin'),origin);
-          const unauthorized=await fetch(edge,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(20000)});
-          assert.equal(unauthorized.status,401);assert.equal((await unauthorized.json()).error,'LOGIN_REQUIRED');
-          console.log('PASS deployed edge starts, CORS preflight and no-credential request rejected before database access. No player accounts or credentials used.');
           JS
