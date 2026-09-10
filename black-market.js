@@ -2,7 +2,7 @@
 (() => {
  'use strict';
  const $=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString('ko-KR');
- const errors={BLACK_MARKET_REFRESHED:'진열 상품이 갱신되었습니다. 새 상품을 확인해 주세요.',BLACK_MARKET_PURCHASED:'이번 진열에서 이미 구매한 상품입니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',BLACK_MARKET_NOT_READY:'암시장 서버를 준비 중입니다.',ECONOMY_NOT_READY:'서버 연결을 준비 중입니다.',REQUEST_ID_REUSED:'이전 구매 기록을 먼저 확인해 주세요.'};
+ const errors={RESOURCE_BALANCE_LIMIT:'재료 보유 한도에 도달했습니다.',BLACK_MARKET_OFFER_INVALID:'상품 정보를 다시 불러와 주세요.',BLACK_MARKET_REFRESHED:'진열 상품이 갱신되었습니다. 새 상품을 확인해 주세요.',BLACK_MARKET_PURCHASED:'이번 진열에서 이미 구매한 상품입니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',BLACK_MARKET_NOT_READY:'암시장 서버를 준비 중입니다.',ECONOMY_NOT_READY:'서버 연결을 준비 중입니다.',REQUEST_ID_REUSED:'이전 구매 기록을 먼저 확인해 주세요.'};
  let g,modal,snapshot=null,fetching=null,generation=0,clockBase=0,clockAt=0,timer,returnFocus,stale=true,busy=false,lastPoll=0,signature='';
  const esc=x=>g.fn.escapeHtml(String(x??''));
  const serverNow=()=>clockBase+Math.max(0,performance.now()-clockAt);
@@ -12,16 +12,26 @@
  const errorText=e=>errors[e.message]||(/ringu_black_market|PGRST202|지원하지 않는 요청/.test(e.message)?'암시장 서버를 준비 중입니다. 아직 정수는 사용되지 않습니다.':'상품 정보를 확인하지 못했습니다. 다시 불러오기를 눌러 주세요.');
  function status(message){$('blackMarketStatus').textContent=message;}
  function balance(){ $('blackMarketBalance').textContent='정수 '+fmt(g.state.essence||0)+'개'; }
+ // Consumables never pass through equipment attack/option/icon calculations.
+ const materials={transcendStone:{name:'초월석',icon:'◆',description:'장비 초월 시 사용하는 재료'},downgradeProtect:{name:'하락방지권',icon:'▣',description:'장비 강화 실패 시 강화 단계 하락 방지'}};
+ function productView(it){
+  if(it?.kind==='consumable'){
+   const m=materials[it.resource];if(!m||it.quantity!==1)throw Error('INVALID_RESPONSE');
+   return {name:m.name+' 1개',icon:m.icon,art:'<span class="bm-consumable-icon" aria-hidden="true">'+m.icon+'</span>',info:'소모품 · 1개',options:esc(m.description),description:'소모품 · 1개 · '+m.description};
+  }
+  const info=g.rarityNames[it.rarity]+' · '+it.slot+' · 공격력 '+fmt(g.fn.itemAtk(it));
+  return {name:it.name,icon:'⚔',art:g.fn.gearIcon(it),info,options:g.fn.optionText(it),description:info+' · '+text(g.fn.optionText(it))};
+ }
  function render(){
   balance();const rows=snapshot?.ready?snapshot.items:[];
   const next=JSON.stringify([snapshot?.rotation,rows]);
   if(signature!==next){
    signature=next;
    $('blackMarketItems').innerHTML=rows.map(row=>{
-    const it=row.item;
-    return '<article class="bm-offer bm-r'+it.rarity+'" data-offer="'+row.slot+'">'+g.fn.gearIcon(it)+
-     '<div class="bm-item-info"><strong>'+esc(it.name)+'</strong><small>'+esc(g.rarityNames[it.rarity])+' · '+esc(it.slot)+' · 공격력 '+fmt(g.fn.itemAtk(it))+'</small><span class="bm-option">'+g.fn.optionText(it)+'</span></div>'+
-     '<button type="button" data-bm-slot="'+row.slot+'" aria-label="'+esc(it.name)+' 정수 '+row.price+'개 구매" '+(row.purchased?'disabled':'')+'><b>정수 '+row.price+'개</b><span>'+(row.purchased?'구매 완료':'구매')+'</span></button></article>';
+    const it=row.item,v=productView(it);
+    return '<article class="bm-offer '+(it.kind==='consumable'?'bm-consumable':'bm-r'+it.rarity)+'" data-offer="'+row.slot+'">'+v.art+
+     '<div class="bm-item-info"><strong>'+esc(v.name)+'</strong><small>'+esc(v.info)+'</small><span class="bm-option">'+v.options+'</span></div>'+
+     '<button type="button" data-bm-slot="'+row.slot+'" aria-label="'+esc(v.name)+' 정수 '+row.price+'개 구매" '+(row.purchased?'disabled':'')+'><b>정수 '+row.price+'개</b><span>'+(row.purchased?'구매 완료':'구매')+'</span></button></article>';
    }).join('');
   }
   modal.querySelectorAll('[data-bm-slot]').forEach(button=>{
@@ -30,7 +40,9 @@
   });
   $('blackMarketRetry').disabled=!!fetching||busy;
   $('blackMarketClose').disabled=busy;
-  $('blackMarketRatesBody').innerHTML=(snapshot?.rates||[80,15,4.9,0.1]).map((n,i)=>'<div><span>'+esc(g.rarityNames[i])+'</span><b>'+n+'%</b><small>정수 '+[3,5,10,15][i]+'개</small></div>').join('');
+  const rates=snapshot?.nextRates||snapshot?.rates||[49.1,15,4.9,1,15,15],names=[...g.rarityNames.slice(0,4),'초월석','하락방지권'],prices=['3','5','10','15','13~18','4~8'];
+  $('blackMarketRatesBody').innerHTML=rates.map((n,i)=>'<div><span>'+esc(names[i])+'</span><b>'+n+'%</b><small>정수 '+prices[i]+'개</small></div>').join('');
+  $('blackMarketRatesNotice').textContent=snapshot?.ratesApplyNextRotation?'새 확률과 소모품은 다음 진열부터 적용됩니다. 현재 상품과 구매 기록은 유지됩니다.':'각 진열칸에서 독립 추첨 · 소모품은 1개씩 · 가격은 진열 갱신 시 결정되어 모든 유저에게 동일합니다.';
  }
  async function refresh(){
   if(!modal?.open||fetching||busy||ended())return;
@@ -66,7 +78,8 @@
   const offer=snapshot.items.find(row=>row.slot===slot);if(!offer||offer.purchased)return;
   const rotation=snapshot.rotation,item=offer.item;
   if(!window.RinguShop||!RinguSession.blackMarketTransaction){status(errors.BLACK_MARKET_NOT_READY);return;}
-  const product=()=>({name:item.name,price:offer.price,icon:'⚔',description:g.rarityNames[item.rarity]+' · '+item.slot+' · 공격력 '+fmt(g.fn.itemAtk(item))+' · '+text(g.fn.optionText(item)),owned:snapshot?.rotation===rotation&&!!snapshot.items.find(row=>row.slot===slot)?.purchased,available:canBuy()&&snapshot.rotation===rotation});
+  const v=productView(item);
+  const product=()=>({name:v.name,price:offer.price,icon:v.icon,description:v.description,owned:snapshot?.rotation===rotation&&!!snapshot.items.find(row=>row.slot===slot)?.purchased,available:canBuy()&&snapshot.rotation===rotation});
   await RinguShop.request(product,async()=>{
    if(!canBuy()||snapshot.rotation!==rotation)throw Error('BLACK_MARKET_REFRESHED');
    busy=true;render();
@@ -95,9 +108,9 @@
   modal.innerHTML='<header class="bm-header"><div><small>아는 사람만 찾는 거래소</small><h2 id="blackMarketTitle">암시장</h2></div><button type="button" id="blackMarketClose" aria-label="암시장 닫기">닫기</button></header>'+
    '<section class="bm-merchant"><img src="/linsa-rpg/art/merchant-seongmin-BM1.webp" alt="테이블 너머에서 물건을 파는 여성 상인 성민" width="448" height="420"><div class="bm-merchant-copy"><span>암시장 상인</span><h3>성민</h3><p>몰래 파는거야<br>빨리 구매해</p></div></section>'+
    '<div class="bm-toolbar"><div><b id="blackMarketBalance"></b><small id="blackMarketCountdown"></small></div><button type="button" id="blackMarketRates" aria-expanded="false" aria-controls="blackMarketRatesPanel">확률 보기</button></div>'+
-   '<section id="blackMarketRatesPanel" hidden><h3>등급별 진열 확률</h3><div id="blackMarketRatesBody"></div><p>각 상품의 등급을 위 확률로 추첨합니다. 부위는 7종 중 동일 확률이며, 같은 부위·등급 안에서는 장비를 균등 추첨합니다. 이미 진열한 동일 장비는 제외합니다. 정수는 확정된 장비를 구매할 때만 사용됩니다.</p></section>'+
-   '<p id="blackMarketStatus" role="status" aria-live="polite"></p><section id="blackMarketItems" aria-label="공통 진열 장비 5개"></section>'+
-   '<footer class="bm-footer"><span>한국시간 00시 · 18시 갱신<br>전 유저 동일 진열 · 상품별 각 1회</span><button type="button" id="blackMarketRetry">다시 불러오기</button></footer><small class="bm-version">암시장 BP2</small>';
+   '<section id="blackMarketRatesPanel" hidden><h3>상품별 진열 확률</h3><p id="blackMarketRatesNotice"></p><div id="blackMarketRatesBody"></div><p>각 진열칸에서 상품 종류를 위 확률로 추첨합니다. 장비 부위는 7종 중 동일 확률이며 같은 부위·등급 안에서 이미 진열한 동일 장비는 제외합니다. 소모품은 서로 다른 칸에 중복 등장할 수 있습니다. 초월석 가격은 13~18, 하락방지권 가격은 4~8 정수의 정수값을 균등 추첨하며, 진열 동안 변하지 않습니다. 정수는 확정된 상품 구매 시에만 사용됩니다.</p></section>'+
+   '<p id="blackMarketStatus" role="status" aria-live="polite"></p><section id="blackMarketItems" aria-label="공통 진열 상품 5개"></section>'+
+   '<footer class="bm-footer"><span>한국시간 00시 · 18시 갱신<br>전 유저 동일 진열 · 상품별 각 1회</span><button type="button" id="blackMarketRetry">다시 불러오기</button></footer><small class="bm-version">암시장 BM3</small>';
   document.body.append(modal);
   $('blackMarketClose').onclick=close;
   modal.addEventListener('cancel',e=>{e.preventDefault();close();});
@@ -112,7 +125,7 @@
   window.addEventListener('ringu:economy-state',()=>{if(modal.open){balance();}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&modal.open){stale=true;render();void refresh();}});
   RinguSession.onEnded(()=>{busy=false;close();snapshot=null;stale=true;});
-  window.RinguBlackMarket={open,version:'BP2'};
+  window.RinguBlackMarket={open,version:'BM3'};
  }
  window.addEventListener('ringu-ready',install,{once:true});
  if(window.RinguCore?.state&&window.RinguSession?.active)install();

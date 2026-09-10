@@ -1,0 +1,141 @@
+-- BM3: shared equipment + consumables. Apply transactionally after BP2.
+-- Preserve all existing offers/receipts. New probabilities start at the next rotation.
+set local lock_timeout='5s';
+set local statement_timeout='30s';
+select pg_advisory_xact_lock(70909,10);
+alter table ringu_private.black_market_purchases alter column item_id drop not null;
+alter table ringu_private.black_market_purchases
+ drop constraint black_market_purchases_price_check,
+ add constraint black_market_purchases_price_check
+ check(price in (3,4,5,6,7,8,10,13,14,15,16,17,18,30,50,100));
+update ringu_private.black_market_config set rates='[49.1,15,4.9,1,15,15]'::jsonb where singleton;
+
+create or replace function ringu_private.black_market_current()
+returns ringu_private.black_market_cycles language plpgsql security definer set search_path='' as $$
+declare period record; cycle ringu_private.black_market_cycles%rowtype;
+ cfg ringu_private.black_market_config%rowtype; gear ringu_private.black_market_catalogue%rowtype;
+ offers jsonb:='[]'; seen text[]:='{}'; i integer; r integer; j integer; roll numeric;
+ chosen_slot text; price integer; template jsonb; key text; resource text;
+begin
+ perform pg_advisory_xact_lock(70909,10);
+ select * into period from ringu_private.black_market_period(clock_timestamp());
+ select * into cycle from ringu_private.black_market_cycles where id=period.id;
+ if found then return cycle;end if;
+ select * into strict cfg from ringu_private.black_market_config where singleton;
+ if jsonb_array_length(cfg.rates)<>6 or
+  (select sum(value::numeric) from jsonb_array_elements_text(cfg.rates))<>100 or
+  exists(select 1 from jsonb_array_elements_text(cfg.rates) where value::numeric<0) then
+  raise exception 'BLACK_MARKET_CONFIG_INVALID';
+ end if;
+ for i in 0..4 loop
+  roll:=random()*100;r:=5;
+  for j in 0..5 loop
+   roll:=roll-(cfg.rates->>j)::numeric;
+   if roll<0 then r:=j;exit;end if;
+  end loop;
+  if r>=4 then
+   resource:=case when r=4 then 'transcendStone' else 'downgradeProtect' end;
+   -- Roll once when the shared offer is created, never on display or purchase.
+   price:=case when r=4 then 13+floor(random()*6)::integer else 4+floor(random()*5)::integer end;
+   template:=jsonb_build_object('kind','consumable','resource',resource,'quantity',1,
+    'name',case when r=4 then '초월석' else '하락방지권' end);
+   offers:=offers||jsonb_build_array(jsonb_build_object('slot',i,'kind','consumable','price',price,'item',template));
+  else
+   chosen_slot:=cfg.slots->>floor(random()*jsonb_array_length(cfg.slots))::integer;
+   select * into gear from ringu_private.black_market_catalogue c
+    where c.rarity=r and c.slot=chosen_slot and not ((c.slot||'|'||c.rarity||'|'||c.name)=any(seen))
+    order by random() limit 1;
+   if not found then raise exception 'BLACK_MARKET_CATALOGUE_INVALID';end if;
+   key:=gear.slot||'|'||gear.rarity||'|'||gear.name;seen:=array_append(seen,key);
+   price:=(array[3,5,10,15])[r+1];
+   template:=jsonb_build_object('slot',gear.slot,'rarity',gear.rarity,'name',gear.name,
+    'baseAtk',gear.base_atk,'enhance',0,'transcend',0,
+    'optionRolls',jsonb_build_array(0.8+floor(random()*401)/1000,0.8+floor(random()*401)/1000));
+   offers:=offers||jsonb_build_array(jsonb_build_object('slot',i,'kind','equipment','price',price,'item',template));
+  end if;
+ end loop;
+ insert into ringu_private.black_market_cycles(id,starts_at,ends_at,offers,rates)
+ values(period.id,period.starts_at,period.ends_at,offers,cfg.rates) returning * into cycle;
+ return cycle;
+end $$;
+revoke all on function ringu_private.black_market_current() from public,anon,authenticated;
+
+create or replace function public.ringu_black_market(
+ p_action text default 'status',p_rotation text default null,p_slot integer default null,p_request_id uuid default null
+) returns jsonb language plpgsql security definer set search_path='' as $$
+declare u uuid;a ringu_private.accounts%rowtype;cycle ringu_private.black_market_cycles%rowtype;
+ receipt ringu_private.black_market_purchases%rowtype;offer jsonb;it jsonb;inv jsonb;
+ discovered jsonb;key text;balance bigint;iid bigint;item_uid uuid;result jsonb;rows jsonb;
+ kind text;resource text;amount bigint;price integer;next_rates jsonb;
+begin
+ if p_action is null or p_action not in ('status','buy') then raise exception 'INVALID_ARGUMENTS';end if;
+ perform pg_advisory_xact_lock(70909,10);
+ u:=ringu_private.require_session(false);
+ select * into strict a from ringu_private.accounts where id=u for update;
+ if not exists(select 1 from ringu_private.auction_release where singleton and economy_ready)
+  or not exists(select 1 from ringu_private.auction_accounts where account_id=u) then
+  if p_action='status' then return jsonb_build_object('ready',false,'reason','ECONOMY_NOT_READY');end if;
+  raise exception 'BLACK_MARKET_NOT_READY';
+ end if;
+ if p_action='buy' then
+  if p_request_id is null or p_rotation is null or length(p_rotation)>40 or p_slot is null or p_slot not between 0 and 4 then raise exception 'INVALID_ARGUMENTS';end if;
+  select * into receipt from ringu_private.black_market_purchases where account_id=u and request_id=p_request_id;
+  if found then
+   if receipt.rotation_id<>p_rotation or receipt.slot<>p_slot then raise exception 'REQUEST_ID_REUSED';end if;
+   return receipt.result;
+  end if;
+ end if;
+ cycle:=ringu_private.black_market_current();
+ if p_action='status' then
+  select jsonb_agg(o.value||jsonb_build_object('purchased',exists(
+   select 1 from ringu_private.black_market_purchases p where p.account_id=u and p.rotation_id=cycle.id and p.slot=(o.value->>'slot')::integer
+  )) order by (o.value->>'slot')::integer) into rows from jsonb_array_elements(cycle.offers) o;
+  select rates into next_rates from ringu_private.black_market_config where singleton;
+  return jsonb_build_object('ready',true,'version','BM3','rotation',cycle.id,
+   'serverNow',floor(extract(epoch from clock_timestamp())*1000),
+   'startsAt',floor(extract(epoch from cycle.starts_at)*1000),'expiresAt',floor(extract(epoch from cycle.ends_at)*1000),
+   'rates',cycle.rates,'nextRates',next_rates,'ratesApplyNextRotation',cycle.rates<>next_rates,
+   'items',rows,'essence',a.state->'essence','revision',a.revision);
+ end if;
+ if p_rotation<>cycle.id then raise exception 'BLACK_MARKET_REFRESHED';end if;
+ if exists(select 1 from ringu_private.black_market_purchases where account_id=u and rotation_id=cycle.id and slot=p_slot) then raise exception 'BLACK_MARKET_PURCHASED';end if;
+ offer:=cycle.offers->p_slot;it:=offer->'item';kind:=coalesce(offer->>'kind','equipment');
+ if offer is null or (offer->>'slot')::integer<>p_slot then raise exception 'BLACK_MARKET_OFFER_INVALID';end if;
+ price:=ringu_private.auction_integer(offer->'price',1);
+ balance:=ringu_private.auction_integer(a.state->'essence');
+ if balance<price then raise exception 'INSUFFICIENT_ESSENCE';end if;
+ if kind='consumable' then
+  resource:=it->>'resource';
+  if it->>'kind' is distinct from 'consumable' or resource is null or resource not in ('transcendStone','downgradeProtect')
+   or it->'quantity' is distinct from '1'::jsonb
+   or (resource='transcendStone' and price not between 13 and 18)
+   or (resource='downgradeProtect' and price not between 4 and 8) then raise exception 'BLACK_MARKET_OFFER_INVALID';end if;
+  amount:=ringu_private.auction_integer(coalesce(a.state->resource,'0'::jsonb));
+  if amount>=9007199254740991 then raise exception 'RESOURCE_BALANCE_LIMIT';end if;
+  -- Resource counters only: no fake equipment, catalogue/discovery changes, or new item ID.
+  update ringu_private.accounts set state=state||jsonb_build_object(resource,amount+1,'essence',balance-price),
+   revision=revision+1,updated_at=clock_timestamp() where id=u;
+  result:=jsonb_build_object('ok',true,'kind',kind,'rotation',cycle.id,'slot',p_slot,
+   'requestId',p_request_id,'item',it,'resource',resource,'quantity',1,'price',price);
+ elsif kind='equipment' then
+  if jsonb_typeof(a.state->'inventory') is distinct from 'array' then raise exception 'INVALID_INVENTORY';end if;
+  if it->>'kind'='consumable' then raise exception 'BLACK_MARKET_OFFER_INVALID';end if;
+  iid:=nextval('ringu_private.auction_item_ids');item_uid:=gen_random_uuid();
+  key:=it->>'slot'||'|'||(it->>'rarity')||'|'||(it->>'name');
+  discovered:=coalesce(a.state->'discovered','{}'::jsonb);
+  it:=it||jsonb_build_object('id',iid,'auctionUid',item_uid,'isNew',not coalesce((discovered->>key)::boolean,false));
+  discovered:=discovered||jsonb_build_object(key,true);
+  inv:=jsonb_build_array(it)||(a.state->'inventory');
+  insert into ringu_private.auction_items(id,uid,owner_id,item) values(iid,item_uid,u,it);
+  update ringu_private.accounts set state=state||jsonb_build_object('inventory',inv,'essence',balance-price,'discovered',discovered,
+   'uid',least(9007199254740991,greatest(coalesce((state->>'uid')::bigint,1),iid+1))),
+   revision=revision+1,updated_at=clock_timestamp() where id=u;
+  result:=jsonb_build_object('ok',true,'kind',kind,'rotation',cycle.id,'slot',p_slot,'requestId',p_request_id,'item',it,'price',price);
+ else raise exception 'BLACK_MARKET_OFFER_INVALID';
+ end if;
+ insert into ringu_private.black_market_purchases(account_id,rotation_id,slot,request_id,item_id,price,result)
+ values(u,cycle.id,p_slot,p_request_id,iid,price,result);
+ return result;
+end $$;
+revoke all on function public.ringu_black_market(text,text,integer,uuid) from public,anon;
+grant execute on function public.ringu_black_market(text,text,integer,uuid) to authenticated;

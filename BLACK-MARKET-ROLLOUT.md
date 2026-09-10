@@ -41,3 +41,12 @@ Current prices: common 5, uncommon 15, rare 30, epic 50 essence. Apply the CLI-g
 ## BP2 current prices
 일반 정수 3개 / 희귀 정수 5개 / 레어 정수 10개 / 에픽 정수 15개.
 Apply the CLI-generated `supabase/migrations/*_black_market_prices_bp2.sql` after BP1. Existing unexpired offers use these prices too; item attributes, rotation times, odds, purchase limits and completed purchases are preserved. No retrospective refund. Auction UI changes remain on their separate branch and are not part of this price-only release.
+
+
+## BM3 equipment + consumables
+Prices in essence: common 3 / uncommon 5 / rare 10 / epic 15.
+Per-slot odds: common 49.1% / uncommon 15% / rare 4.9% / epic 1% / transcendence stone 15% / downgrade protection 15% (total 100%).
+Stone: one unit, uniformly priced at integers 13–18. Protection: one unit, uniformly priced at integers 4–8. Prices roll once per shared rotation, not per user or purchase.
+Apply the CLI-generated `supabase/migrations/*_black_market_consumables_bm3.sql` after BP2. Existing five offers and purchased slots remain untouched. New odds and materials begin with the next scheduled rotation (KST 00:00/18:00), with this timing shown in the UI. No retroactive refund or reroll.
+A consumable purchase atomically debits essence and increments only its resource counter; it never creates an equipment record. Receipt replay, per-slot purchase limits, authentication and row locks are retained. Historical equipment receipts remain valid.
+This release also includes the previously validated AU2 auction mobile scrolling, full item details and enhancement-first/attack-second sorting.

@@ -42,3 +42,9 @@
 #blackMarketRatesPanel p{font-size:10px;color:#a1adb0;line-height:1.65;margin:9px 0 0}
 @media(max-width:380px){#blackMarketModal{padding:12px}#blackMarketModal .bm-merchant{height:145px}#blackMarketModal .bm-merchant-copy{padding:12px}#blackMarketModal .bm-offer{grid-template-columns:38px minmax(0,1fr) 78px;gap:6px;padding:7px;min-height:66px}#blackMarketModal .bm-offer .gear-icon,#blackMarketModal .bm-offer .rm-item-art{width:38px!important;height:38px!important;min-width:38px}#blackMarketModal .bm-item-info>strong{font-size:12px}#blackMarketModal .bm-item-info>small{font-size:9px}#blackMarketModal .bm-footer{margin-top:8px;padding-top:8px}}
 @media(prefers-reduced-motion:reduce){#blackMarketModal *,#blackMarketModal *::before,#blackMarketModal *::after{animation:none!important;transition:none!important}}
+
+/* BM3 consumables use material glyphs, never equipment stats. */
+#blackMarketModal .bm-consumable{border-left-color:#e1c386}
+#blackMarketModal .bm-consumable-icon{width:44px;height:44px;display:grid;place-items:center;font-size:30px;color:#e1c386;background:#263442;border-radius:8px}
+#blackMarketRatesNotice{color:#edc987!important}
+@media(max-width:380px){#blackMarketModal .bm-consumable-icon{width:38px;height:38px}}
