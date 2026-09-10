@@ -1,0 +1,37 @@
+name: Verify deployed black market BP2
+on:
+  push:
+    branches: [fix/black-market-prices-BP2-20260911]
+    paths: [.github/workflows/black-market-bp2-live.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Match public Pages files to tested price-only commit
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          const sha='93d901ecfb26e8d0f686371be11a0eb41042cbea';
+          const raw='https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/'+sha+'/';
+          const live='https://dkdrlahwl.github.io/linsa-rpg/';
+          const files=[['index.html','index.html'],['black-market.js','black-market.js?v=prices-BP2']];
+          async function read(url){const r=await fetch(url,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});assert.equal(r.status,200,url);return r.text();}
+          const hash=s=>createHash('sha256').update(s).digest('hex');
+          const expected=await Promise.all(files.map(([name])=>read(raw+name)));
+          assert.ok(expected[0].includes('black-market.js?v=prices-BP2'));
+          assert.ok(expected[1].includes('[3,5,10,15][i]'));
+          for(let attempt=0;attempt<60;attempt++){
+           const actual=await Promise.all(files.map(([,path])=>read(live+path)));
+           if(actual.every((s,i)=>hash(s)===hash(expected[i]))){
+            console.log(JSON.stringify({release:sha,publicAssets:files.map(([,path],i)=>({path,sha256:hash(actual[i]),matchesTestedCommit:true})),prices:{common:3,uncommon:5,rare:10,epic:15},credentialsUsed:false,productionTransactions:0}));
+            process.exit(0);
+           }
+           if(attempt===59)throw Error('BP2 Pages has not propagated; do not claim public deployment verified');
+           if(attempt%6===0)console.log('Waiting for GitHub Pages propagation');
+           await new Promise(resolve=>setTimeout(resolve,5000));
+          }
+          JS
