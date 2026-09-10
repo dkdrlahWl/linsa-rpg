@@ -1,0 +1,48 @@
+name: Review auction8 and tower HP
+on:
+  push:
+    branches: [fix/auction8-tower-third-20260910]
+    paths: [.github/workflows/auction8-tower-review.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Inspect tower definitions and tests
+        run: |
+          python3 - <<'PY'
+          import pathlib,re
+          print('ROOT_FILES:', ', '.join(p.name for p in pathlib.Path('.').iterdir()))
+          print('TEST_FILES:', ', '.join(str(p) for p in pathlib.Path('test').glob('*')))
+          for p in [pathlib.Path('index.html'),*pathlib.Path('.').glob('*.js'),*pathlib.Path('supabase').glob('*.sql')]:
+              lines=p.read_text().splitlines()
+              hits=[i for i,l in enumerate(lines) if len(l)<20000 and re.search(r'tower|시련의.?탑',l,re.I)]
+              if not hits: continue
+              print('\nFILE',str(p),'TOTAL_LINES',len(lines))
+              wanted=set()
+              for i in hits:
+                  wanted.update(range(max(0,i-3),min(len(lines),i+5)))
+              for i in sorted(wanted):
+                  l=lines[i]
+                  if len(l)>6000: l=l[:500]+' [long embedded data omitted]'
+                  print(f'{i+1}: {l}')
+          PY
+      - name: Run existing regression tests
+        run: node --test test/*.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: auction8-tower-source
+          retention-days: 1
+          path: |
+            index.html
+            *.js
+            *.mjs
+            package.json
+            test/
+            supabase/
