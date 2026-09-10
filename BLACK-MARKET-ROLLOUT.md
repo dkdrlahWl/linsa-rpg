@@ -32,3 +32,7 @@
 프런트엔드는 상점 또는 메뉴의 암시장 버튼으로 열며, 하단에 `암시장 BM2`가 표시됩니다. 성민 이름·대사·이미지와 기존 남청색·황동색 UI, 구매 확인창은 유지합니다. 이번 BM2 변경은 가격 안내·확률 제목·버전 표시와 대응 서버 SQL·테스트에 한정합니다.
 
 GitHub Actions 실행 `34436481154`에서 BM2 변경 파일 해시, JavaScript 문법, 격리 데이터베이스의 가격 차감·재구매 제한 검사 및 기존 회귀 검사가 성공한 것을 확인했습니다. 이번 설치 확인 과정에서는 실제 휴대폰 또는 운영 계정으로 구매하지 않았습니다. 전체 기능의 실사용 검증이 끝났다고 간주하지 않습니다.
+
+
+## BP1 price update
+Current prices: common 5, uncommon 15, rare 30, epic 50 essence. Apply the CLI-generated `supabase/migrations/*_black_market_prices_bp1.sql` after the existing foundation migrations. This updates the generator and unexpired offers only; completed purchases retain their original prices and cannot be bought twice. Historical 100-essence receipts remain valid. The old foundation migration is intentionally immutable.
