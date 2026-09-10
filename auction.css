@@ -4,7 +4,7 @@
 #ringuAuction>.auction-modal{display:flex;flex-direction:column;width:min(850px,100%)!important;max-height:calc(100vh - 24px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;padding:0!important;overflow:hidden!important;min-width:0;box-sizing:border-box;isolation:isolate}
 #ringuAuction>.auction-modal::before,#ringuAuction>.auction-modal::after{content:none!important;display:none!important}
 #ringuAuction [hidden]{display:none!important}
-#ringuAuction .auction-header{flex:0 1 auto;min-height:0;overflow:auto;padding:14px 18px 10px;border-bottom:1px solid #425462}
+#ringuAuction .auction-header{flex:none;min-height:0;overflow:auto;padding:14px 18px 10px;border-bottom:1px solid #425462}
 #ringuAuction .auction-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 10px}
 #ringuAuction h2{font-size:20px;line-height:1.4;margin:0}
 #ringuAuction h2 small{font-size:10px!important;color:#a6b4bf;font-weight:400}

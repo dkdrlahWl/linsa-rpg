@@ -99,9 +99,9 @@ try{
    const measure=()=>page.locator('#ringuAuction').evaluate(el=>{
     const shell=el.querySelector('.auction-modal'),sc=el.querySelector('.auction-scroll'),close=el.querySelector('#auctionClose'),head=el.querySelector('.auction-header');
     const box=x=>{const b=x.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height,bottom:b.bottom,right:b.right};};
-    return {shell:box(shell),scroll:box(sc),header:box(head),close:box(close),frame:getComputedStyle(shell,'::after').content,overflows:[...el.querySelectorAll('.auction-card')].filter(c=>c.scrollWidth>c.clientWidth+1||c.scrollHeight>c.clientHeight+1).length,scrollWidth:sc.scrollWidth,clientWidth:sc.clientWidth};
+    return {shell:box(shell),scroll:box(sc),header:box(head),headerClient:head.clientHeight,headerScroll:head.scrollHeight,close:box(close),frame:getComputedStyle(shell,'::after').content,overflows:[...el.querySelectorAll('.auction-card')].filter(c=>c.scrollWidth>c.clientWidth+1||c.scrollHeight>c.clientHeight+1).length,scrollWidth:sc.scrollWidth,clientWidth:sc.clientWidth};
    });
-   const initial=await measure();assert.ok(initial.shell.x>=0&&initial.shell.right<=width+1&&initial.shell.y>=0&&initial.shell.bottom<=height+1,JSON.stringify({width,height,initial}));assert.equal(initial.frame,'none');assert.equal(initial.overflows,0);assert.ok(initial.scrollWidth<=initial.clientWidth+1);assert.ok(initial.scroll.height>60);
+   const initial=await measure();assert.ok(initial.shell.x>=0&&initial.shell.right<=width+1&&initial.shell.y>=0&&initial.shell.bottom<=height+1,JSON.stringify({width,height,initial}));assert.equal(initial.frame,'none');if(height>=640)assert.ok(initial.headerScroll<=initial.headerClient+1,'all header tabs must remain visible');assert.equal(initial.overflows,0);assert.ok(initial.scrollWidth<=initial.clientWidth+1);assert.ok(initial.scroll.height>60);
    await page.locator('.auction-scroll').evaluate(el=>el.scrollTop=el.scrollHeight);
    const end=await measure();assert.equal(end.header.y,initial.header.y);assert.equal(end.close.y,initial.close.y);
    await page.locator('#auctionBody [data-auction-page="1"]').isVisible().then(assert.ok);
@@ -129,7 +129,7 @@ try{
   activeCount=8;await page.locator('#ringuAuction [data-tab="list"]').click();await page.waitForFunction(()=>document.querySelector('#auctionListingCount')?.textContent.includes('8 / 8'));
   assert.equal(await page.locator('#auctionBody [data-row]').count(),0,'capacity still blocks registration UI');
   await page.locator('#auctionClose').click();assert.ok(await page.locator('#ringuAuction').isHidden());
-  activeCount=3;await page.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('#auctionRows .auction-card').length===20);
+  listings[0].seller_name='테스트 판매자';listings[1].item.name=state.inventory[8].name;activeCount=3;await page.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('#auctionRows .auction-card').length===20);
   await page.locator('.auction-scroll').evaluate(el=>el.scrollTop=130);
   await page.screenshot({path:new URL('after-390.png',out).pathname});
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
