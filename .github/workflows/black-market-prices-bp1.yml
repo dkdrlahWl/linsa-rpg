@@ -15,8 +15,6 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/bp1-qa" --ignore-scripts --no-audit --no-fund --no-save @electric-sql/pglite@0.5.8
           npm install --prefix "$RUNNER_TEMP/bp1-cli" --no-audit --no-fund --no-save supabase@2.81.3
-          "$RUNNER_TEMP/bp1-cli/node_modules/.bin/supabase" --help
-          "$RUNNER_TEMP/bp1-cli/node_modules/.bin/supabase" migration --help
           "$RUNNER_TEMP/bp1-cli/node_modules/.bin/supabase" migration new --help
           "$RUNNER_TEMP/bp1-cli/node_modules/.bin/supabase" migration new black_market_prices_bp1
       - name: Prepare bounded price-only source changes and migration regressions
@@ -100,14 +98,15 @@ jobs:
            same(await call('buy',legacy.rotation,2,oldRareId),oldRare,'old rare receipt replays without refund');
            const newEpic=await call('buy',legacy.rotation,3,randomUUID());same(newEpic.price,50);same((await state(B)).essence,beforeB.essence-50);
            await identify(A);same(await call('buy',legacy.rotation,3,oldEpicId),oldEpic,'old epic receipt still records 100');
+           await db.exec('savepoint bp1_duplicate');
            await reject(call('buy',legacy.rotation,3,randomUUID()),/BLACK_MARKET_PURCHASED/);
+           await db.exec('rollback to savepoint bp1_duplicate');
            const newRare=await call('buy',legacy.rotation,2,randomUUID());same(newRare.price,30);same((await state(A)).essence,beforeA.essence-30);
            const snapshot=await call();await db.exec(priceMigration);same((await call()).items,snapshot.items,'migration idempotent');
            await db.exec('rollback');
            await db.exec('begin;'+priceMigration+'commit;');
            await identify(A);
           '''
-          # Only the existing final-balance tests use the new map; legacy fixtures retain old prices.
           s=s.replace('[5,15,50,100][r]','[5,15,30,50][r]')
           s=s.replace(anchor,extra+'\n'+anchor,1)
           s=s.replace('PASS BM2 PostgreSQL:','PASS BP1 PostgreSQL:')
