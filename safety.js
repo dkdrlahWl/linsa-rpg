@@ -449,7 +449,7 @@
       account = Object.freeze({ id: data.account.id, username: data.account.username }); revision = data.revision;
       const serverJournal=read(scoped('server-request'));
       if(serverJournal){
-        const record=JSON.parse(serverJournal);if(!['auction','costume','economy'].includes(record.kind))throw Error('이전 요청 기록을 확인해 주세요.');
+        const record=JSON.parse(serverJournal);if(!['auction','costume','economy','black-market'].includes(record.kind))throw Error('이전 요청 기록을 확인해 주세요.');
         if(record.kind==='costume')record.payload.revision=data.revision;
         const replay=await api('/api/'+record.kind,{method:'POST',body:JSON.stringify(record.payload)});
         if(!replay.ok&&replay.status>=500)throw Error('이전 요청 결과를 확인하지 못했습니다. 잠시 후 다시 접속해 주세요.');
@@ -515,6 +515,7 @@
   const bridge = {
     ready: null, save, flush, logout, costumeTransaction, auctionTransaction,
     economyTransaction:(command,args={})=>serverTransaction('economy',{command,args,requestId:crypto.randomUUID()}),
+    blackMarketTransaction:(rotation,slot)=>serverTransaction('black-market',{action:'buy',rotation,slot,requestId:crypto.randomUUID()}),
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
     subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },
     onEnded(fn) { endHooks.add(fn); if (ended) fn(snapshot()); return () => endHooks.delete(fn); }

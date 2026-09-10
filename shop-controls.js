@@ -7,7 +7,7 @@
  function resetInput(){epoch++;gesture=null;keyboard=null;}
  function targetOf(target){
   const button=target?.closest?.('button');
-  const surface=button?.closest('#auraShopModal,#costumePreview,#shopPurchaseConfirm');
+  const surface=button?.closest('#auraShopModal,#costumePreview,#shopPurchaseConfirm,#blackMarketModal');
   if(!surface)return null;
   const visible=surface.tagName==='DIALOG'?surface.open:surface.classList.contains('show');
   const key=button.id||button.getAttribute('onclick')||JSON.stringify(Object.entries(button.dataset))+'|'+button.textContent;
@@ -133,7 +133,7 @@
    finish(result);window.RinguCore.fn.toast('구매가 완료되었습니다.');
   }catch(error){
    if(active!==p)return;p.busy=false;
-   const known={INSUFFICIENT_ESSENCE:'정수가 부족합니다.',ALREADY_OWNED:'이미 보유한 상품입니다.',COSTUME_RELEASE_NOT_READY:'상점 업데이트 중입니다. 잠시 후 다시 열어 주세요.'};
+   const known={BLACK_MARKET_REFRESHED:'진열이 갱신되었습니다. 취소 후 새 상품을 확인해 주세요.',BLACK_MARKET_PURCHASED:'이번 진열에서 이미 구매한 상품입니다.',BLACK_MARKET_NOT_READY:'암시장 서버를 준비 중입니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',ALREADY_OWNED:'이미 보유한 상품입니다.',COSTUME_RELEASE_NOT_READY:'상점 업데이트 중입니다. 잠시 후 다시 열어 주세요.'};
    p.notice=known[error.message]||'구매 결과를 확인하지 못했습니다. 서버 기록을 확인한 뒤 다시 이용해 주세요.';
    p.uncertain=!known[error.message];refresh();
   }
