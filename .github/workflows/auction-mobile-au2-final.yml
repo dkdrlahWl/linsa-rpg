@@ -1,0 +1,51 @@
+name: Final auction AU2 visual acceptance
+on:
+  push:
+    branches: [fix/auction-mobile-AU2-20260911]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Keep full header visible and verify it instead of just its position
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('auction.css');s=p.read_text();old='.auction-header{flex:0 1 auto;';assert s.count(old)==1;p.write_text(s.replace(old,'.auction-header{flex:none;',1))
+          p=Path('test/auction-mobile-ui.test.mjs');s=p.read_text()
+          old='header:box(head),close:box(close),';assert s.count(old)==1
+          s=s.replace(old,'header:box(head),headerClient:head.clientHeight,headerScroll:head.scrollHeight,close:box(close),',1)
+          old='assert.equal(initial.frame,\'none\');';assert s.count(old)==1
+          s=s.replace(old,old+"if(height>=640)assert.ok(initial.headerScroll<=initial.headerClient+1,'all header tabs must remain visible');",1)
+          old="activeCount=3;await page.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();";assert s.count(old)==1
+          s=s.replace(old,"listings[0].seller_name='테스트 판매자';listings[1].item.name=state.inventory[8].name;"+old,1)
+          p.write_text(s)
+          PY
+      - name: Install pinned QA libraries and Korean fonts for screenshot review
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          sudo timeout 90s apt-get install -y --no-install-recommends fonts-noto-cjk
+          command -v google-chrome
+      - name: Validate nine viewports plus unchanged gameplay and transactions
+        run: |
+          node --check auction.js
+          node --test test/economy.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/tower-hp-restored.test.mjs test/auction-db.test.mjs test/black-market-db.test.mjs
+          QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/auction-mobile-ui.test.mjs
+      - name: Commit validated styling and tests to the isolated branch only
+        run: |
+          test "$(git branch --show-current)" = 'fix/auction-mobile-AU2-20260911'
+          git rm -- .github/workflows/auction-mobile-au2-final.yml
+          git add -- auction.css test/auction-mobile-ui.test.mjs
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: preserve full auction header while scrolling mobile item details'
+          git push origin HEAD:refs/heads/fix/auction-mobile-AU2-20260911
+          git rev-parse HEAD
+          sha256sum auction.js auction.css index.html
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: auction-AU2-final
+          path: test-output/auction-AU2/
+          retention-days: 1
