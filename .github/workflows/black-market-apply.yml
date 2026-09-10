@@ -1,0 +1,88 @@
+name: Validate LINSA black-market BM1
+on:
+  push:
+    branches: [feature/black-market-BM1-20260910]
+    paths: [.github/workflows/black-market-apply.yml]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply only the exact tested LINSA source patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          def blob(data):
+              return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          changes=json.loads(Path('maintenance/black-market-baseline-patch.json').read_text())
+          for name,p in changes.items():
+              path=Path(name);original=path.read_bytes()
+              assert blob(original)==p['before'], 'Source changed: '+name
+              text=original.decode('utf-8')
+              for before,after in p['changes']:
+                  assert text.count(before)==1, 'Missing or ambiguous anchor: '+name
+                  text=text.replace(before,after,1)
+              result=text.encode('utf-8')
+              assert blob(result)==p['after'], 'Output differs from locally tested file: '+name
+              path.write_bytes(result)
+          expected={
+              'black-market.js':'cada835f090e5a3ca502d1f014e1074e33011323',
+              'black-market.css':'93e94187f44f884294b7d5cf6d83aedb4b5c1725',
+              'black-market.sql.in':'8d0521cb38ee1eeb3976fe6e2cf5a623e1e0b940',
+              'scripts/build-black-market.mjs':'dc9dd0941d04ecf955cc260586846db5fb7dc3d2',
+              'art/merchant-seongmin-BM1.webp':'f49526e36f2c5aab33aff8916a2a709e0e6aec78'
+          }
+          for name,sha in expected.items():
+              assert blob(Path(name).read_bytes())==sha, 'Uploaded file differs: '+name
+          print('PASS: exact integration patch and asset hashes')
+          PY
+          node scripts/build-black-market.mjs
+          test "$(git hash-object supabase/17-black-market.sql)" = c3fe4ac4357c1025f4bfc2506a29c754a55ba48e
+      - name: Validate JavaScript syntax and unchanged embedded artwork
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import subprocess,tempfile,re
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__();self.active=False;self.parts=[];self.scripts=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='script':
+                      a=dict(attrs);self.active=not a.get('src') and a.get('type','').lower() in ('','text/javascript','application/javascript','module');self.parts=[]
+              def handle_data(self,data):
+                  if self.active:self.parts.append(data)
+              def handle_endtag(self,tag):
+                  if tag=='script' and self.active:
+                      self.scripts.append(''.join(self.parts));self.active=False
+          text=Path('index.html').read_text(encoding='utf-8-sig')
+          original=subprocess.check_output(['git','show','HEAD:index.html']).decode('utf-8-sig')
+          assert re.findall(r'data:image/[^\s\"\x27]+',text)==re.findall(r'data:image/[^\s\"\x27]+',original)
+          parser=Scripts();parser.feed(text)
+          with tempfile.TemporaryDirectory() as tmp:
+              for i,code in enumerate(parser.scripts):
+                  file=Path(tmp)/f'script-{i}.js';file.write_text(code)
+                  subprocess.run(['node','--check',str(file)],check=True)
+              for file in Path('.').glob('*.js'):
+                  subprocess.run(['node','--check',str(file)],check=True)
+          print('PASS: executable scripts and unchanged embedded artwork')
+          PY
+      - name: Install pinned isolated test engine without lifecycle scripts
+        run: npm install --prefix "$RUNNER_TEMP/bm1-qa" --ignore-scripts --no-audit --no-fund --no-save @electric-sql/pglite@0.5.8
+      - name: Test SQL in a new local temporary database, never production
+        run: QA_PGLITE_MODULE="$RUNNER_TEMP/bm1-qa/node_modules/@electric-sql/pglite/dist/index.js" node test/black-market-db.test.mjs
+      - name: Run existing isolated regression tests
+        run: node --test test/economy.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs
+      - name: Commit validated code only to feature branch and remove temporary tooling
+        run: |
+          git rm -- .github/workflows/black-market-tooling.yml .github/workflows/black-market-apply.yml maintenance/black-market-baseline-patch.json
+          git add -- index.html cloud-adapter.js safety.js shop-controls.js supabase/17-black-market.sql
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: integrate validated shared black market; production SQL still pending'
+          git push origin HEAD:refs/heads/feature/black-market-BM1-20260910
