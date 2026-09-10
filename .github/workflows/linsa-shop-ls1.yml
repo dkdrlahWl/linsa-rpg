@@ -1,0 +1,74 @@
+name: Validate LINSA shop LS1
+on:
+  push:
+    branches: [fix/linsa-shop-LS1-20260910]
+    paths: [.github/workflows/linsa-shop-ls1.yml]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply exact locally tested changes to the current LINSA source
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib,re,subprocess,tempfile
+          def blob(data):
+              return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          before_hashes={'index.html':'dfa2091f2c898a794579f846050984678ceaca3f','economy-client.js':'4db4d6a729101a41e7292cff38d477950dbb901f','costume-preview.js':'0f370b27cf02f53c63943595837ce73c17039489'}
+          after_hashes={'index.html':'eab7c86a31629ccd2ac11ac37abf3b8c0b406bba','economy-client.js':'7e9a96be05032a6426cc4ca82f1fdc4009d261f4','costume-preview.js':'1fe88a1b2991df111e587b67161d25f5fc63d22b','shop-controls.js':'8a2e854fc4bb1efcc8827431d355c82c0b87bfe6'}
+          changes=json.loads(r'''{
+          "index.html":[
+          ["<meta name=\"ringu-build\" content=\"2026-06-14-v23-remove-cloud-overwrite-restore-buttons\">","<meta name=\"ringu-build\" content=\"2026-09-10-linsa-shop-LS1\">"],
+          ["<script defer src=\"/linsa-rpg/economy-client.js?v=equipment-state-20260910-1\"></script>","<script defer src=\"/linsa-rpg/shop-controls.js?v=linsa-shop-LS1\"></script>\n<script defer src=\"/linsa-rpg/economy-client.js?v=linsa-shop-LS1\"></script>"],
+          ["/linsa-rpg/costume-preview.js?v=costume-live-1","/linsa-rpg/costume-preview.js?v=linsa-shop-LS1"],
+          ["<button id=\"auraShopQuick\" data-open-aura-shop=\"1\" onclick=\"openAuraShop()\" onpointerup=\"openAuraShop()\">상점</button>","<button id=\"auraShopQuick\" data-open-aura-shop=\"1\" type=\"button\">상점</button>"],
+          ["function openAuraShop(){const modal=$('auraShopModal');if(!modal)return toast('상점을 불러오지 못했습니다.');modal.classList.add('show');renderAuraShop()}","function openAuraShop(){const modal=$('auraShopModal');if(!modal)return toast('상점을 불러오지 못했습니다.');if(modal.classList.contains('show'))return;window.RinguShop?.resetInput();renderAuraShop();modal.classList.add('show')}"],
+          ["function closeAuraShop(){$('auraShopModal').classList.remove('show')}","function closeAuraShop(){window.RinguShop?.cancel();window.RinguShop?.resetInput();$('auraShopModal').classList.remove('show')}"],
+          ["document.addEventListener('click',e=>{const aura=e.target.closest('[data-open-aura-shop]');if(aura){e.preventDefault();return openAuraShop()}});","document.addEventListener('click',e=>{const aura=e.target.closest('[data-open-aura-shop]');if(aura){e.preventDefault();e.stopImmediatePropagation();return openAuraShop()}},true);"],
+          ["const aura=e.target.closest('[data-open-aura-shop]');if(aura){e.preventDefault();return openAuraShop()}const rank=","const rank="]
+          ],
+          "economy-client.js":[
+          ["f.buyAura=id=>command('auraBuy',{id:Number(id)});","f.buyAura=id=>{\n   id=Number(id);const product=g.auraShopItems[id];if(!Number.isInteger(id)||!product)return false;\n   if(!window.RinguShop)return f.toast('상점을 불러오는 중입니다. 새로고침 후 다시 확인해 주세요.');\n   return RinguShop.request(()=>({name:product[0],price:f.auraPrice(id),owned:g.state.ownedAuras.includes(id),description:f.auraEffectText(id),icon:'◉'}),()=>command('auraBuy',{id}));\n  };"],
+          ["f.buyConsumable=type=>command('consumable',{type});","f.buyConsumable=type=>{\n   if(!['stone','protect'].includes(type))return false;\n   if(!window.RinguShop)return f.toast('상점을 불러오는 중입니다. 새로고침 후 다시 확인해 주세요.');\n   return RinguShop.request(()=>({name:type==='protect'?'하락방지권':'초월석',price:type==='protect'?10:25,description:'구매 수량 1개',icon:type==='protect'?'◇':'◆'}),()=>command('consumable',{type}));\n  };"]
+          ],
+          "costume-preview.js":[
+          ["if(action==='buy'&&(!product||!confirm(catalog.products[id].name+'을 정수 '+product.price+'개로 구매할까요?')))return;","if(action==='buy'&&(!product||!window.RinguShop)){status.textContent='상품 정보를 확인하지 못했습니다. 새로고침 후 다시 확인해 주세요.';return;}"],
+          ["try{await RinguCostumes.act(action,id);status.textContent=","try{const result=action==='buy'?await RinguShop.request(()=>{const s=RinguCostumes.snapshot,p=s?.products?.find(p=>p.id===id);return p?{name:catalog.products[id].name,price:p.price,owned:s.owned.includes(id),available:s.ready,description:'보유 효과: 공격력 +'+catalog.products[id].attackPercent+'%',icon:'☾'}:null;},()=>RinguCostumes.act(action,id)):await RinguCostumes.act(action,id);if(result===false){status.textContent='구매가 완료되지 않았습니다.';return;}status.textContent="],
+          ["button.onclick=()=>{if(!panel.open)panel.showModal();","button.onclick=()=>{if(!panel.open){window.RinguShop?.resetInput();panel.showModal();}"]
+          ]}''')
+          original_html=Path('index.html').read_text(encoding='utf-8')
+          for name,pairs in changes.items():
+              path=Path(name);data=path.read_bytes()
+              assert blob(data)==before_hashes[name], 'Source changed: '+name
+              text=data.decode('utf-8')
+              for before,after in pairs:
+                  assert text.count(before)==1, 'Missing or ambiguous patch anchor: '+name
+                  text=text.replace(before,after,1)
+              result=text.encode('utf-8')
+              assert blob(result)==after_hashes[name], 'Not the locally tested output: '+name
+              path.write_bytes(result)
+          for name,sha in after_hashes.items():
+              assert blob(Path(name).read_bytes())==sha
+          html=Path('index.html').read_text(encoding='utf-8')
+          assert re.findall(r'data:image/[^\s\"\x27]+',original_html)==re.findall(r'data:image/[^\s\"\x27]+',html), 'Embedded artwork changed'
+          with tempfile.TemporaryDirectory() as tmp:
+              for i,code in enumerate(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',html,re.S)):
+                  if not code.strip():continue
+                  file=Path(tmp)/f'script-{i}.js';file.write_text(code)
+                  subprocess.run(['node','--check',str(file)],check=True)
+              for file in Path('.').glob('*.js'):
+                  subprocess.run(['node','--check',str(file)],check=True)
+          print('PASS: exact locally browser-tested output; all JavaScript syntax checks; embedded artwork unchanged')
+          PY
+      - name: Run existing isolated economy, costume and pet unit tests
+        run: node --test test/economy.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs
+      - name: Commit source files only and remove temporary validation workflow
+        run: |
+          git rm -- .github/workflows/linsa-shop-ls1.yml
+          git add -- index.html economy-client.js costume-preview.js shop-controls.js
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: confirm shop purchases and prevent mobile click-through in linsa-rpg'
+          git push origin HEAD:refs/heads/fix/linsa-shop-LS1-20260910
