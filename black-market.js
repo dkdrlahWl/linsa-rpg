@@ -70,7 +70,7 @@
    const h=Math.floor(remaining/3600),m=Math.floor(remaining%3600/60),s=remaining%60;
    $('blackMarketCountdown').textContent=remaining?'다음 진열까지 '+[h,m,s].map(n=>String(n).padStart(2,'0')).join(':'):'상품 갱신 확인 중…';
    if(!remaining){stale=true;render();if(!fetching&&performance.now()-lastPoll>1500)void refresh();}
-  }else $('blackMarketCountdown').textContent='매일 00:00 · 18:00 갱신 (한국시간)';
+  }else $('blackMarketCountdown').textContent='매일 12:00 · 18:00 · 24:00(00:00) 갱신 (한국시간)';
   if(!document.hidden&&!fetching&&!busy&&performance.now()-lastPoll>30000)void refresh();
  }
  async function buy(slot){
@@ -110,7 +110,7 @@
    '<div class="bm-toolbar"><div><b id="blackMarketBalance"></b><small id="blackMarketCountdown"></small></div><button type="button" id="blackMarketRates" aria-expanded="false" aria-controls="blackMarketRatesPanel">확률 보기</button></div>'+
    '<section id="blackMarketRatesPanel" hidden><h3>상품별 진열 확률</h3><p id="blackMarketRatesNotice"></p><div id="blackMarketRatesBody"></div><p>각 진열칸에서 상품 종류를 위 확률로 추첨합니다. 장비 부위는 7종 중 동일 확률이며 같은 부위·등급 안에서 이미 진열한 동일 장비는 제외합니다. 소모품은 서로 다른 칸에 중복 등장할 수 있습니다. 초월석 가격은 13~18, 하락방지권 가격은 4~8 정수의 정수값을 균등 추첨하며, 진열 동안 변하지 않습니다. 정수는 확정된 상품 구매 시에만 사용됩니다.</p></section>'+
    '<p id="blackMarketStatus" role="status" aria-live="polite"></p><section id="blackMarketItems" aria-label="공통 진열 상품 5개"></section>'+
-   '<footer class="bm-footer"><span>한국시간 00시 · 18시 갱신<br>전 유저 동일 진열 · 상품별 각 1회</span><button type="button" id="blackMarketRetry">다시 불러오기</button></footer><small class="bm-version">암시장 BM3</small>';
+   '<footer class="bm-footer"><span>한국시간 12시 · 18시 · 24시(00시) 갱신<br>전 유저 동일 진열 · 상품별 각 1회</span><button type="button" id="blackMarketRetry">다시 불러오기</button></footer><small class="bm-version">암시장 BM4</small>';
   document.body.append(modal);
   $('blackMarketClose').onclick=close;
   modal.addEventListener('cancel',e=>{e.preventDefault();close();});
@@ -125,7 +125,7 @@
   window.addEventListener('ringu:economy-state',()=>{if(modal.open){balance();}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&modal.open){stale=true;render();void refresh();}});
   RinguSession.onEnded(()=>{busy=false;close();snapshot=null;stale=true;});
-  window.RinguBlackMarket={open,version:'BM3'};
+  window.RinguBlackMarket={open,version:'BM4'};
  }
  window.addEventListener('ringu-ready',install,{once:true});
  if(window.RinguCore?.state&&window.RinguSession?.active)install();

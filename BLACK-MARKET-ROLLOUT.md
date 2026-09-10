@@ -50,3 +50,8 @@ Stone: one unit, uniformly priced at integers 13–18. Protection: one unit, uni
 Apply the CLI-generated `supabase/migrations/*_black_market_consumables_bm3.sql` after BP2. Existing five offers and purchased slots remain untouched. New odds and materials begin with the next scheduled rotation (KST 00:00/18:00), with this timing shown in the UI. No retroactive refund or reroll.
 A consumable purchase atomically debits essence and increments only its resource counter; it never creates an equipment record. Receipt replay, per-slot purchase limits, authentication and row locks are retained. Historical equipment receipts remain valid.
 This release also includes the previously validated AU2 auction mobile scrolling, full item details and enhancement-first/attack-second sorting.
+
+
+## BM4 current refresh schedule
+한국시간 매일 12시 / 18시 / 24시(00시), 하루 3회 상품 갱신.
+Added only noon: periods 00:00–12:00, 12:00–18:00, 18:00–24:00. Existing prices, odds, five offers per period and per-account per-slot purchase rules are unchanged. The unexpired midnight rotation keeps its items and purchase records but now ends at noon. Completed historical cycles and receipts are untouched. Apply `supabase/migrations/*_black_market_refresh_bm4.sql` after BM3. This supersedes the older 00:00/18:00 schedule above.

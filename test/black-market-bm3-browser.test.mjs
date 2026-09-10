@@ -15,7 +15,7 @@ for(const file of ['01-account-storage.sql','02-ranking-party.sql'])await db.exe
 for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql','16-economy-differential-commit.sql','17-black-market.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
 await db.exec('begin;\n'+await readFile(new URL('../supabase/18-auction-listing-limit.sql',import.meta.url),'utf8')+'\ncommit;');
 await db.exec('begin;\n'+await readFile(new URL('../supabase/19-stone-hp-third.sql',import.meta.url),'utf8')+'\ncommit;');
-for(const n of (await readdir(new URL('../supabase/migrations/',import.meta.url))).sort())if(/_black_market_(prices_bp[12]|consumables_bm3)\.sql$/.test(n))await db.exec('begin;'+await readFile(new URL('../supabase/migrations/'+n,import.meta.url),'utf8')+'commit;');
+for(const n of (await readdir(new URL('../supabase/migrations/',import.meta.url))).sort())if(/_black_market_(prices_bp[12]|consumables_bm3|refresh_bm4)\.sql$/.test(n))await db.exec('begin;'+await readFile(new URL('../supabase/migrations/'+n,import.meta.url),'utf8')+'commit;');
 await db.exec('update ringu_private.auction_release set economy_ready=true,enabled=true');
 async function rpc(name,body={}){const entries=Object.entries(body);return (await db.query('select public.'+name+'('+entries.map(([k],i)=>k+'=> $'+(i+1)).join(',')+') r',entries.map(([,v])=>typeof v==='object'&&v!==null?JSON.stringify(v):v))).rows[0].r;}
 async function service(req){
@@ -67,6 +67,8 @@ try{
  await a.setViewportSize({width:390,height:844});
  await a.locator('.rm-bottom-nav [data-target="menu"]').click();await a.locator('#blackMarketMenuButton').click();
  await a.waitForFunction(()=>document.querySelectorAll('#blackMarketItems [data-offer]').length===5);
+ assert.match(await a.locator('.bm-footer').innerText(),/12시 · 18시 · 24시/);
+ assert.equal(await a.evaluate(()=>RinguBlackMarket.version),'BM4');
  const get=()=>a.evaluate(()=>({essence:RinguCore.state.essence,stone:RinguCore.state.transcendStone,protect:RinguCore.state.downgradeProtect,inventory:JSON.stringify(RinguCore.state.inventory)}));
  const before=await get();
  assert.match(await a.locator('[data-offer="0"]').innerText(),/초월석 1개/);assert.match(await a.locator('[data-offer="1"]').innerText(),/하락방지권 1개/);
