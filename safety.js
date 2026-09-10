@@ -49,11 +49,12 @@
     } catch (error) { return Promise.reject(error); }
   };
   async function api(path, options = {}) {
+    const { timeoutMs = 12000, ...requestOptions } = options;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      return await window.fetch(path, { ...options, credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
-        headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });
+      return await window.fetch(path, { ...requestOptions, credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+        headers: { Accept: 'application/json', ...(requestOptions.body ? { 'Content-Type': 'application/json' } : {}), ...requestOptions.headers } });
     } finally { clearTimeout(timer); }
   }
   // Keep old saves intact even if legacy startup attempts removeItem/clear.
@@ -440,7 +441,10 @@
   async function boot() {
     try {
       await migrateArchives();
-      const response = await api('/api/session');
+      report('loading', '장비와 계정 기록을 불러오는 중입니다. 창을 닫지 말고 잠시 기다려 주세요.');
+      // Initial authenticated load also settles offline progress. Normal action
+      // timeouts remain unchanged; the boot request is bounded and cancellable.
+      const response = await api('/api/session', { timeoutMs: 45000 });
       if (response.status === 401 || response.status === 403) { location.replace('/linsa-rpg/login.html'); throw new Error('로그인이 필요합니다.'); }
       if (!response.ok) throw new Error('계정 서버에 연결할 수 없습니다. 연결을 확인한 후 다시 시도해 주세요.');
       const data = await response.json();
@@ -514,6 +518,7 @@
   }
   const bridge = {
     ready: null, save, flush, logout, costumeTransaction, auctionTransaction,
+    startupFailed: () => end('게임 화면을 준비하지 못했습니다. 장비와 서버 기록은 지우지 않았습니다. 서버 기록 다시 확인을 눌러 재시도해 주세요.', 'error'),
     economyTransaction:(command,args={})=>serverTransaction('economy',{command,args,requestId:crypto.randomUUID()}),
     blackMarketTransaction:(rotation,slot)=>serverTransaction('black-market',{action:'buy',rotation,slot,requestId:crypto.randomUUID()}),
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
@@ -544,6 +549,6 @@
     const badge = document.createElement('div'); badge.id = 'ringu-session-status'; badge.setAttribute('role', 'status'); badge.setAttribute('aria-live', 'polite');
     Object.assign(badge.style, { position: 'fixed', bottom: '12px', left: '12px', zIndex: '2147483645', maxWidth: 'calc(100vw - 24px)', padding: '8px 12px', background: '#0b101aec', border: '1px solid #8d7959', borderRadius: '5px', color: '#e6d1aa', font: '12px/1.6 "Malgun Gothic", system-ui, sans-serif' });
     document.body.append(badge);
-    bridge.subscribe(status => { badge.hidden = !['offline', 'saving', 'pending'].includes(status.phase); badge.textContent = status.message; });
+    bridge.subscribe(status => { badge.hidden = !['loading', 'offline', 'saving', 'pending'].includes(status.phase); badge.textContent = status.message; });
   });
 })();
