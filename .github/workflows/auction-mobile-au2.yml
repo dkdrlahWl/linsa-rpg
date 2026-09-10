@@ -25,6 +25,17 @@ jobs:
             assert s.count(a)==1;s=s.replace(a,z,1)
           p.write_text(s)
           assert hashlib.sha256(p.read_bytes()).hexdigest()=='1e45a0ffba5b2b3c786f09fb51314a5720154cf0e2eb290bee130ccb69bb47c4'
+          p=Path('auction.js');s=p.read_text();assert 'data-auction-page' not in s
+          p.write_text(s.replace('data-page','data-auction-page').replace('b.dataset.page','b.dataset.auctionPage'))
+          p=Path('test/auction-mobile-ui.test.mjs');s=p.read_text().replace('data-page','data-auction-page')
+          old='await page.evaluate(()=>RinguArt.ready);';assert s.count(old)==1
+          s=s.replace(old,old+'\n await page.locator(\'.rm-bottom-nav [data-target="menu"]\').click();',1)
+          old='ids:available.map(it=>it.id)';assert s.count(old)==1
+          s=s.replace(old,old+",stats:available.map(it=>'강화 +'+it.enhance+'공격력 '+g.fn.itemAtk(it).toLocaleString('ko-KR')+'초월 '+it.transcend+'단계')",1)
+          for lo,hi in [(0,20),(20,40)]:
+            old=f'order.names.slice({lo},{hi}));';assert s.count(old)==1
+            s=s.replace(old,old+f"\n  assert.deepEqual(await page.locator('#auctionBody .auction-item-stats').allTextContents(),order.stats.slice({lo},{hi}));",1)
+          p.write_text(s)
           PY
       - name: Install pinned test libraries and discover runner Chrome
         run: |
@@ -46,7 +57,7 @@ jobs:
         run: |
           test "$(git branch --show-current)" = 'fix/auction-mobile-AU2-20260911'
           git rm -- .github/workflows/auction-mobile-au2.yml
-          git add -- index.html
+          git add -- index.html auction.js test/auction-mobile-ui.test.mjs
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: version verified mobile auction UI with full stats and enhancement-first sorting'
           git push origin HEAD:refs/heads/fix/auction-mobile-AU2-20260911
           git rev-parse HEAD
