@@ -1,1 +1,59 @@
-#ringuAuction .modal{width:min(850px,96vw);max-height:90dvh;overflow:auto}#ringuAuction input,#ringuAuction select{min-width:0;max-width:100%;min-height:44px;padding:10px;background:#101c26;color:#eee;border:1px solid #665b47;border-radius:6px;font:inherit}#ringuAuction button{min-height:44px}#ringuAuction .auction-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#auctionFilters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:15px}.auction-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.auction-grid>button{display:flex;align-items:center;flex-direction:column;gap:7px;padding:14px 8px;min-width:0;overflow-wrap:anywhere}.auction-grid time,.auction-grid small{font-size:12px;color:#a6b4bf}.auction-grid .gear-icon,#auctionDetail .gear-icon{width:76px;height:76px;flex:none}.auction-pages{display:flex;justify-content:center;align-items:center;gap:15px;margin:15px 0}#auctionDetail label{display:grid;gap:10px;margin-bottom:15px}#auctionDetail[hidden]{display:none}#auctionMessage{color:#d5c19a;white-space:pre-line}#auctionClose{margin-top:12px;width:100%}@media(max-width:540px){#ringuAuction .auction-tabs{grid-template-columns:repeat(2,1fr)}.auction-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* AU2: fixed dialog shell + independently scrolling content.
+   The old absolute image frame scrolled through the cards on mobile. */
+#ringuAuction.show{padding:12px!important;padding-top:calc(12px + env(safe-area-inset-top))!important;padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;overflow:hidden}
+#ringuAuction>.auction-modal{display:flex;flex-direction:column;width:min(850px,100%)!important;max-height:calc(100vh - 24px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;padding:0!important;overflow:hidden!important;min-width:0;box-sizing:border-box;isolation:isolate}
+#ringuAuction>.auction-modal::before,#ringuAuction>.auction-modal::after{content:none!important;display:none!important}
+#ringuAuction [hidden]{display:none!important}
+#ringuAuction .auction-header{flex:0 1 auto;min-height:0;overflow:auto;padding:14px 18px 10px;border-bottom:1px solid #425462}
+#ringuAuction .auction-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 10px}
+#ringuAuction h2{font-size:20px;line-height:1.4;margin:0}
+#ringuAuction h2 small{font-size:10px!important;color:#a6b4bf;font-weight:400}
+#ringuAuction #auctionBalance{margin:0;color:#e7dac1;font-variant-numeric:tabular-nums}
+#ringuAuction #auctionListingCount{margin:5px 0 8px}
+#ringuAuction #auctionMessage{margin:7px 0 0;color:#d5c19a;white-space:pre-line;font-size:12px!important;line-height:1.5!important}
+#ringuAuction .auction-scroll{flex:1 1 auto;min-height:100px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;padding:12px 18px 6px}
+#ringuAuction .auction-footer{flex:none;padding:10px 18px 12px;border-top:1px solid #425462}
+#ringuAuction #auctionClose{width:100%;margin:0}
+#ringuAuction input,#ringuAuction select{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:44px;padding:10px;background:#101c26;color:#eee;border:1px solid #665b47;border-radius:6px;font:inherit}
+#ringuAuction button{min-height:44px;touch-action:manipulation}
+#ringuAuction button:focus-visible,#ringuAuction input:focus-visible,#ringuAuction select:focus-visible,#ringuAuction .auction-scroll:focus-visible{outline:2px solid #e5c485;outline-offset:-3px}
+#ringuAuction .auction-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#ringuAuction #auctionFilters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
+#ringuAuction #auctionFilters button{grid-column:1/-1}
+#ringuAuction .auction-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#ringuAuction .auction-card{display:flex;align-items:stretch;flex-direction:column;gap:7px;min-width:0;height:auto!important;padding:12px 10px!important;overflow-wrap:anywhere;text-align:left;white-space:normal;line-height:1.5}
+#ringuAuction .auction-art{display:grid;place-items:center;flex:none;width:100%;height:80px;overflow:hidden}
+#ringuAuction .auction-art .gear-icon,#ringuAuction .auction-art .rm-item-art{display:block;width:76px!important;height:76px!important;min-width:0!important;max-width:100%;flex:none;margin:0!important;transform:none!important}
+#ringuAuction .auction-art img{display:block;width:100%;height:100%;object-fit:contain}
+#ringuAuction .auction-item-name{display:block;font-size:15px;line-height:1.5;font-weight:700;overflow-wrap:anywhere}
+#ringuAuction .auction-grade,#ringuAuction .auction-seller,#ringuAuction time{display:block;font-size:12px!important;line-height:1.5;color:#b7c4ce}
+#ringuAuction .auction-item-stats{display:grid;gap:3px;font-size:12px;line-height:1.5;font-variant-numeric:tabular-nums}
+#ringuAuction .auction-item-stats>span{display:flex;justify-content:space-between;flex-wrap:wrap;gap:3px 6px}
+#ringuAuction .auction-item-stats b{color:#f1e4c9}
+#ringuAuction .auction-options{display:block;border-top:1px solid #425462;padding-top:7px;color:#abdced;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+#ringuAuction .auction-price{display:block;margin-top:auto;padding-top:8px;color:#93ddff;font-size:14px;font-variant-numeric:tabular-nums}
+#ringuAuction time{font-size:11px!important;overflow-wrap:anywhere}
+#ringuAuction .auction-sort-note{margin:0 0 10px;color:#d5c19a}
+#ringuAuction .auction-pages{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px;margin:15px 0}
+#ringuAuction .auction-detail-item{display:flex;flex-direction:column;gap:10px;max-width:430px;margin:0 auto 18px}
+#ringuAuction .auction-detail-item .auction-art{height:100px}
+#ringuAuction .auction-detail-item .auction-art .rm-item-art,#ringuAuction .auction-detail-item .auction-art .gear-icon{width:96px!important;height:96px!important}
+#ringuAuction #auctionDetail label{display:grid;gap:8px;margin-bottom:15px}
+#ringuAuction #auctionDetail>button{width:100%;margin:5px 0}
+@media(max-width:600px){
+ #ringuAuction .auction-header{padding:12px 12px 8px}
+ #ringuAuction .auction-scroll{padding:10px 12px 4px;scrollbar-gutter:auto}
+ #ringuAuction .auction-footer{padding:8px 12px 10px}
+ #ringuAuction .auction-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #ringuAuction .auction-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #ringuAuction .auction-card{padding:10px 8px!important}
+ #ringuAuction .auction-item-name{font-size:14px}
+ #ringuAuction input,#ringuAuction select{font-size:16px}
+}
+@media(max-width:350px){#ringuAuction .auction-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-height:520px){
+ #ringuAuction .auction-header{padding:8px 12px 6px}
+ #ringuAuction .auction-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}
+ #ringuAuction .auction-tabs button{padding:6px 3px!important}
+ #ringuAuction .auction-footer{padding:6px 12px}
+}
