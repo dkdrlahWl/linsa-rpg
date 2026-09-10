@@ -1,0 +1,66 @@
+name: Diagnose authentication timeout
+on:
+  push:
+    branches: [diagnose/auth-timeout-20260910]
+    paths: [.github/workflows/auth-timeout-check.yml]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check deployed login transport and public endpoint timings
+        run: |
+          python3 - <<'PY'
+          import json,re,subprocess,concurrent.futures,datetime,tempfile
+          from pathlib import Path
+          config=json.loads(re.search(r'=(\{.*\});',Path('cloud-config.js').read_text()).group(1))
+          root=config['url'];key=config['publishableKey']
+          # At most four requests. No real credentials, user IDs, sessions, or purchases.
+          probes=[
+              ('deployed-login-js','https://dkdrlahwl.github.io/linsa-rpg/cloud-adapter.js',None,False),
+              ('auth-health',root+'/auth/v1/health',None,True),
+              ('auth-empty-password-request',root+'/auth/v1/token?grant_type=password','{}',True),
+              ('rest-anonymous-ping',root+'/rest/v1/rpc/ringu_account','{"p_action":"ping"}',True)
+          ]
+          def run_probe(probe):
+              name,url,body,has_key=probe
+              with tempfile.TemporaryDirectory() as tmp:
+                  response=Path(tmp)/'body';headers=Path(tmp)/'headers'
+                  cmd=['curl','--silent','--show-error','--connect-timeout','5','--max-time','20','--output',str(response),'--dump-header',str(headers),'--write-out','%{json}',url]
+                  if has_key:cmd+=['--header','apikey: '+key]
+                  if body is not None:cmd+=['--header','Content-Type: application/json','--data',body]
+                  result=subprocess.run(cmd,capture_output=True,text=True,timeout=25)
+                  raw=json.loads(result.stdout or '{}')
+                  out={'name':name,'checked_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'exit_code':result.returncode}
+                  for field in ['http_code','time_namelookup','time_connect','time_appconnect','time_starttransfer','time_total']:
+                      out[field]=raw.get(field)
+                  if result.returncode:out['transport_error']=result.stderr[:180]
+                  if response.exists():
+                      payload=response.read_bytes()
+                      if name=='deployed-login-js':
+                          out['LI2_transport_present']=b"authProgress('account')" in payload
+                      else:
+                          try:
+                              parsed=json.loads(payload)
+                              if isinstance(parsed,dict):out['response_code']=parsed.get('code',parsed.get('error_code'))
+                          except Exception:pass
+                  if headers.exists():
+                      for line in headers.read_text(errors='replace').splitlines():
+                          if line.lower().startswith(('sb-request-id:','x-kong-upstream-latency:','x-kong-proxy-latency:','cf-ray:')):
+                              k,v=line.split(':',1);out[k.lower()]=v.strip()
+                  return out
+          with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+              output=list(pool.map(run_probe,probes))
+          Path('auth-diagnostic-results.json').write_text(json.dumps(output,indent=2))
+          for row in output:print(json.dumps(row))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auth-diagnostic-results
+          path: auth-diagnostic-results.json
+          retention-days: 3
