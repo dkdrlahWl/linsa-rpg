@@ -1,0 +1,34 @@
+name: Inspect HUD HU1
+on:
+  push:
+    branches: [fix/hud-HU1-20260911]
+    paths: [.github/workflows/hud-hu1-inspect.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Print current HUD and essence price render locations
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          targets=['index.html','remodel.css','remodel.js','economy-client.js','black-market.js','costume-shop.js','shop-ui.js']
+          needles=['rmCurrencyStats','profile-button','mail','메일','우편','settings','설정','essence','정수','aura','shop','상점','blackMarket','암시장','consumable']
+          for name in targets:
+            p=Path(name)
+            if not p.exists(): continue
+            lines=p.read_text(errors='replace').splitlines()
+            print('\n===== FILE',name,'=====')
+            shown=set()
+            for i,line in enumerate(lines):
+              if any(n.lower() in line.lower() for n in needles):
+                a=max(0,i-2);b=min(len(lines),i+3)
+                key=(a,b)
+                if key in shown: continue
+                shown.add(key)
+                print(f'--- {a+1}:{b} ---')
+                for j in range(a,b): print(f'{j+1}: {lines[j]}')
+          PY
