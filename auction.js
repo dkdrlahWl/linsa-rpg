@@ -18,8 +18,8 @@
  // AU2: every card uses the same per-item calculations as the equipment detail.
  function itemSummary(it){
   const color=g.rarityColors[it.rarity]||'#a5adba';
-  const options=String(g.fn.optionText(it)||'부옵션 없음').split(/<br\s*\/?>/i).map(esc).join('<br>');
-  return '<span class="auction-art">'+g.fn.gearIcon(it)+'</span><strong class="auction-item-name" style="color:'+esc(color)+'">'+esc(it.name)+'</strong><small class="auction-grade">'+esc(g.rarityNames[it.rarity])+' · '+esc(it.slot)+'</small><span class="auction-item-stats"><span class="auction-enhance">강화 <b>+'+esc(it.enhance||0)+'</b></span><span class="auction-attack">공격력 <b>'+fmt(g.fn.itemAtk(it))+'</b></span><span class="auction-transcend">초월 <b>'+esc(it.transcend||0)+'단계</b></span></span><span class="auction-options">'+options+'</span>';
+  const options=g.fn.optionText(it,true)||'부옵션 없음';
+  return '<span class="auction-art">'+g.fn.gearIcon(it)+'</span><strong class="auction-item-name" style="color:'+esc(color)+'">'+esc(it.name)+'</strong><small class="auction-grade">'+esc(g.rarityNames[it.rarity])+' · '+esc(it.slot)+'</small><span class="auction-item-stats"><span class="auction-enhance">강화 <b>+'+esc(it.enhance||0)+'</b></span><span class="auction-attack">공격력 <b>'+g.fn.itemAttackText(it)+'</b></span><span class="auction-transcend">초월 <b>'+esc(it.transcend||0)+'단계</b></span></span><span class="auction-options">'+options+'</span>';
  }
  const detail=it=>'<div class="auction-detail-item">'+itemSummary(it)+'</div>';
  const scrollTop=()=>{const viewport=modal.querySelector('.auction-scroll');if(viewport)viewport.scrollTop=0;};
@@ -83,4 +83,4 @@
 })();
 
 // RU2: load the shared presentation after the document styles are available.
-(()=>{const load=()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='/linsa-rpg/royal-ui.css?v=HUNT3';document.body.append(css);const script=document.createElement('script');script.src='/linsa-rpg/royal-ui.js?v=HUNT3';document.head.append(script);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();
+(()=>{const load=()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='/linsa-rpg/royal-ui.css?v=RG1';document.body.append(css);const script=document.createElement('script');script.src='/linsa-rpg/royal-ui.js?v=RG1';document.head.append(script);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();

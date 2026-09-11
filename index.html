@@ -567,7 +567,7 @@ left:var(--fallen-axe-left)!important;
 </head>
 <script src="/linsa-rpg/safety.js?v=login-inventory-LI1"></script>
 <script src="/linsa-rpg/art-catalog.js?v=menu-boss-2"></script>
-<script src="/linsa-rpg/remodel.js?v=single-save-20260910-1"></script>
+<script src="/linsa-rpg/remodel.js?v=ranges-RG1"></script>
 <script src="/linsa-rpg/social-style.js?v=costume-live-1"></script>
 <script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
@@ -575,7 +575,7 @@ left:var(--fallen-axe-left)!important;
 <script src="/linsa-rpg/pet-stack-model.js?v=1"></script>
 <script src="/linsa-rpg/pet-stacks.js?v=1"></script>
 <link rel="stylesheet" href="/linsa-rpg/auction.css?v=mobile-details-AU2">
-<script src="/linsa-rpg/auction.js?v=hunt-H3"></script>
+<script src="/linsa-rpg/auction.js?v=ranges-RG1"></script>
 <script defer src="/linsa-rpg/safe-patches-core-v1.js?v=economy-20260909-1"></script>
 <script defer src="/linsa-rpg/mobile-draw-fix-v8.js?v=presentation-1"></script>
 <script defer src="/linsa-rpg/visual-polish-v3.js?v=presentation-1"></script>
@@ -588,7 +588,7 @@ left:var(--fallen-axe-left)!important;
 <script defer src="/linsa-rpg/shop-controls.js?v=black-market-BM1"></script>
 <script defer src="/linsa-rpg/economy-client.js?v=offline-OFF2"></script>
 <link rel="stylesheet" href="/linsa-rpg/black-market.css?v=icons-BM5">
-<script defer src="/linsa-rpg/black-market.js?v=icons-BM5"></script>
+<script defer src="/linsa-rpg/black-market.js?v=ranges-RG1"></script>
 <script defer src="/linsa-rpg/ranking-ui.js?v=ranking-RK1"></script>
 <body data-remodel="true">
 <main class="app">
@@ -727,10 +727,12 @@ function fallenSwordTemplate(idSeed){return{id:idSeed||0,slot:'무기',rarity:6,
 function fallenAxeTemplate(idSeed){return{id:idSeed||0,slot:'무기',rarity:6,name:'타락의 멸망도끼',baseAtk:fixedBaseAtk('무기',6,1),optionRolls:[1.12,1.08],enhance:0,transcend:0,locked:true}}
 function fallenArmorTemplate(idSeed){return{id:idSeed||0,slot:'갑옷',rarity:6,name:'타락의 멸망갑옷',baseAtk:fixedBaseAtk('갑옷',6,0),optionRolls:[1.12,1.08],enhance:0,transcend:0,locked:true}}
 function itemAtk(it){const steps=[3,6.85,14.25,27.5,45,100,180],step=steps[it.rarity]||3,level=Math.max(0,it.enhance||0),bonus=level<=10?step*level:step*10+step*2*(level-10),enhanced=it.baseAtk+bonus,transcend=Math.min(3,Math.max(0,Number(it.transcend)||0)),transcendRate=it.slot==='무기'?(it.rarity>=6?.25:.45):.3;return Math.floor(enhanced*(1+transcend*transcendRate))}
-function itemAttackText(it){const base=Number(it.baseAtk)||0;return fmt(base)+' > '+fmt(itemAtk(it))}
+// RG1: actual obtainable equipment bounds from the server catalogue, not theoretical roll bounds.
+const RINGU_ITEM_BASE_LIMITS_RG1={"0|무기":[16,24],"1|무기":[36,52],"2|무기":[100,138],"3|무기":[261,324],"4|무기":[860,923],"5|무기":[2475,2538],"6|무기":[7350,7392],"0|투구":[4,6],"1|투구":[9,14],"2|투구":[25,35],"3|투구":[66,87],"4|투구":[214,242],"5|투구":[616,644],"6|투구":[2456,2512],"0|갑옷":[4,6],"1|갑옷":[9,14],"2|갑옷":[25,36],"3|갑옷":[62,83],"4|갑옷":[210,238],"5|갑옷":[615,644],"6|갑옷":[2462,2518],"0|바지":[4,6],"1|바지":[9,14],"2|바지":[26,36],"3|바지":[65,86],"4|바지":[213,241],"5|바지":[614,643],"6|바지":[2468,2524],"0|신발":[4,6],"1|신발":[9,14],"2|신발":[25,36],"3|신발":[68,89],"4|신발":[211,242],"5|신발":[614,642],"6|신발":[2474,2530],"0|반지":[8,12],"1|반지":[18,27],"2|반지":[50,71],"3|반지":[126,174],"4|반지":[426,483],"5|반지":[1229,1286],"6|반지":[2480,2536],"0|귀걸이":[8,12],"1|귀걸이":[18,27],"2|귀걸이":[51,72],"3|귀걸이":[129,177],"4|귀걸이":[422,479],"5|귀걸이":[1225,1282],"6|귀걸이":[2486,2542]};
+function itemAttackText(it){const values=(RINGU_ITEM_BASE_LIMITS_RG1[it.rarity+'|'+it.slot]||[]).map(baseAtk=>itemAtk({...it,baseAtk}));if(!values.length)return fmt(itemAtk(it));return fmt(itemAtk(it))+' <span class="item-stat-range" title="같은 등급·부위, 동일 강화·초월 단계의 공격력 범위">('+fmt(Math.min(...values))+'~'+fmt(Math.max(...values))+')</span>'}
 function subOptions(it){const ratio=[.1,.25,.5,.75,1,1.35,1.75][it.rarity]||.1,rolls=it.optionRolls||[1,1],defs={무기:[['critChance',20]],투구:[['atkPercent',20]],갑옷:[['critDamage',50]],바지:[['atkPercent',20]],신발:[['critDamage',50]],반지:[['goldBonus',10]],귀걸이:[['goldBonus',12]]}[it.slot]||[],options=defs.map(([key,value],i)=>[key,Number((value*ratio*(rolls[i]||1)).toFixed(1))]),transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(transcend)options.push(['atkPercent',transcend*(it.slot==='무기'?(it.rarity>=6?25:(it.rarity>=5?20:15)):10)]);return options}
 function optionName(key){return{atkPercent:'공격력',critChance:'치명타 확률',critDamage:'치명타 피해',goldBonus:'골드 획득량'}[key]}
-function optionText(it){const options=subOptions(it);return options.map(([key,value],i)=>(key==='atkPercent'&&(it.transcend||0)>0&&i===options.length-1?'초월 공격력':optionName(key))+' +'+Number(value.toFixed(1))+'%').join('<br>')}
+function optionText(it,compact=false){const options=subOptions(it),low=subOptions({...it,optionRolls:[.8,.8]}),high=subOptions({...it,optionRolls:[1.2,1.2]});return options.map(([key,value],i)=>'<span class="item-option-line">'+(key==='atkPercent'&&(it.transcend||0)>0&&i===options.length-1?'초월 공격력':compact?({critChance:'치확',critDamage:'치피',atkPercent:'공격력',goldBonus:'골드 획득'}[key]||optionName(key)):optionName(key))+' +'+Number(value.toFixed(1))+'%'+(low[i][1]===high[i][1]?'':' <span class="item-stat-range">('+Number(low[i][1].toFixed(1))+'%~'+Number(high[i][1].toFixed(1))+'%)</span>')+'</span>').join('<br>')}
 function getPlayerStats(){let equipmentAtk=0,atkPercent=0,critChance=0,critDamage=100,goldBonus=0;Object.values(state.equipped||{}).forEach(id=>{const it=state.inventory.find(x=>x.id===id);if(!it)return;equipmentAtk+=itemAtk(it);subOptions(it).forEach(([key,value])=>{if(key==='atkPercent')atkPercent+=value;if(key==='critChance')critChance+=value;if(key==='critDamage')critDamage+=value;if(key==='goldBonus')goldBonus+=value})});atkPercent+=ownedAuraAttackBonus(state.ownedAuras);critChance=Math.min(75,critChance);const attack=Math.floor((50+equipmentAtk)*(1+atkPercent/100));return{baseAttack:50,equipmentAtk,attack,atkPercent,critChance,critDamage,goldBonus}}
 function getPower(){return getPlayerStats().attack}
 function isEquipped(id){return Object.values(state.equipped).includes(id)}

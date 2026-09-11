@@ -111,3 +111,14 @@ body[data-remodel] #rmCurrencyStats .stat-value{white-space:normal!important;ove
  body[data-remodel] .rm-bottom-nav button{min-height:46px!important;padding:3px 2px!important;gap:2px!important}
  body[data-remodel] .rm-bottom-nav button>span{font-size:21px!important;line-height:22px!important}
 }
+
+/* RG1: inline reference ranges; keep existing cards and columns. */
+.item-stat-range{color:#929da6!important;font-size:.82em!important;font-weight:400!important;font-style:normal;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:baseline}
+.item-option-line{white-space:normal;overflow-wrap:anywhere}
+#ringuAuction .auction-attack{flex-wrap:wrap;column-gap:3px}
+#ringuAuction .auction-attack b{min-width:0;max-width:100%;white-space:normal;text-align:right}
+#ringuAuction .auction-options,#blackMarketModal .bm-option{white-space:normal;overflow-wrap:anywhere}
+.item-info,.item-sub,.rm-equipped-slot>span:last-child{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.rm-equipped-slot em{white-space:normal}
+
+@media(max-width:380px){#ringuAuction .auction-card .auction-attack,#ringuAuction .auction-card .auction-attack b{font-size:11px!important}#ringuAuction .auction-card .auction-attack .item-stat-range{font-size:.76em!important}#ringuAuction .auction-card .auction-options{font-size:11px!important}}

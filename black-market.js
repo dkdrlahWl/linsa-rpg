@@ -19,8 +19,8 @@
    const m=materials[it.resource];if(!m||it.quantity!==1)throw Error('INVALID_RESPONSE');
    return {name:m.name+' 1개',icon:m.icon,art:'<span class="rm-consumable-art bm-material-art" style="background-position:'+m.atlas*100+'% 0%" role="img" aria-label="'+m.name+'"></span>',info:'소모품 · 1개',options:esc(m.description),description:'소모품 · 1개 · '+m.description};
   }
-  const info=g.rarityNames[it.rarity]+' · '+it.slot+' · 공격력 '+fmt(g.fn.itemAtk(it));
-  return {name:it.name,icon:'⚔',art:g.fn.gearIcon(it),info,options:g.fn.optionText(it),description:info+' · '+text(g.fn.optionText(it))};
+  const info=esc(g.rarityNames[it.rarity])+' · '+esc(it.slot)+' · 공격력 '+g.fn.itemAttackText(it);
+  return {name:it.name,icon:'⚔',art:g.fn.gearIcon(it),info,options:g.fn.optionText(it),description:text(info)+' · '+text(g.fn.optionText(it))};
  }
  function render(){
   balance();const rows=snapshot?.ready?snapshot.items:[];
@@ -30,7 +30,7 @@
    $('blackMarketItems').innerHTML=rows.map(row=>{
     const it=row.item,v=productView(it);
     return '<article class="bm-offer '+(it.kind==='consumable'?'bm-consumable':'bm-r'+it.rarity)+'" data-offer="'+row.slot+'">'+v.art+
-     '<div class="bm-item-info"><strong>'+esc(v.name)+'</strong><small>'+esc(v.info)+'</small><span class="bm-option">'+v.options+'</span></div>'+
+     '<div class="bm-item-info"><strong>'+esc(v.name)+'</strong><small>'+v.info+'</small><span class="bm-option">'+v.options+'</span></div>'+
      '<button type="button" data-bm-slot="'+row.slot+'" aria-label="'+esc(v.name)+' 정수 '+row.price+'개 구매" '+(row.purchased?'disabled':'')+'><b>정수 '+row.price+'개</b><span>'+(row.purchased?'구매 완료':'구매')+'</span></button></article>';
    }).join('');
   }
