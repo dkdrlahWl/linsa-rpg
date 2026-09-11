@@ -1,4 +1,5 @@
 import {execute,initialState} from '../_shared/tower-hp-restored.mjs';
+import {readEconomyRequest} from '../_shared/request-body.mjs';
 const url=Deno.env.get('SUPABASE_URL')!;
 const publishable=Deno.env.get('SUPABASE_ANON_KEY')||JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')||'{}').default;
 const service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}').default;
@@ -19,8 +20,8 @@ Deno.serve(async request=>{
   // Verified by Auth and again by database newest-session checks. Never trust a
   // browser-supplied user ID or JWT payload without verification.
   const auth=await fetch(url+'/auth/v1/user',{headers:{apikey:publishable,Authorization:authorization}});if(!auth.ok)return respond({error:'LOGIN_REQUIRED'},401);const user=await auth.json();
-  const text=await request.text();if(text.length>16000)return respond({error:'REQUEST_TOO_LARGE'},413);let body;try{body=JSON.parse(text);}catch{return respond({error:'INVALID_ARGUMENTS'},400);}
-  if(!body||typeof body!=='object'||Array.isArray(body))return respond({error:'INVALID_ARGUMENTS'},400);
+  const parsed=await readEconomyRequest(request);if(parsed.error)return respond({error:parsed.error},parsed.status);
+  const body=parsed.body;
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.requestId||''))return respond({error:'REQUEST_ID_REQUIRED'},400);
   const fingerprint={command:body.command,args:body.args||{}};
   for(let attempt=0;attempt<3;attempt++){

@@ -149,3 +149,7 @@ body[data-remodel] .modal button.danger{color:#ffd5ce;border-color:#98605b}
 @keyframes rm-forge-impact{0%,20%,40%,60%,80%,100%{transform:translateY(0)}23.333%,63.333%{transform:translateY(4px)}}
 @keyframes rm-forge-sparks{0%,20%,40%,60%,80%,100%{opacity:0;transform:scale(.4)}23.333%,63.333%{opacity:.9;transform:scale(.85)}32%,73%{opacity:0;transform:scale(1.2)}}
 @media(prefers-reduced-motion:reduce){.enhance-stage.forging .enhance-hammer,.enhance-stage.forging #enhanceGear,.enhance-stage.forging .enhance-sparks{animation:none}.enhance-stage.success,.enhance-stage.fail{animation:none}.enhance-stage .enhance-result{animation:none;opacity:1}}
+
+/* SG1: reserve enough mobile header width for Korean gold amounts. */
+@media(max-width:1099px){body[data-remodel] #rmCurrencyStats{grid-template-columns:minmax(0,1.4fr) repeat(5,minmax(0,1fr))!important}}
+body[data-remodel] #gold{display:block;max-width:100%;font-variant-numeric:tabular-nums}

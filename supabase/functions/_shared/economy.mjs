@@ -131,7 +131,10 @@ export function execute(snapshot,command,args,context){
   if(typeof args.locked!=='boolean')fail('INVALID_ARGUMENTS');gear(args.id).locked=args.locked;
  }else if(command==='sell'){
   if(!Array.isArray(args.ids)||!args.ids.length||args.ids.length>10000||new Set(args.ids).size!==args.ids.length)fail('INVALID_ARGUMENTS');
-  const items=args.ids.map(gear);for(const it of items)if(it.locked||equipped(s,it))fail('ITEM_LOCKED_OR_EQUIPPED');
+  // SG1: one linear inventory scan instead of a scan for every sale ID.
+  const owned=new Map(s.inventory.map(it=>[it.id,it]));
+  const items=args.ids.map(id=>{int(id,1);const it=owned.get(id);if(!it)fail('ITEM_NOT_OWNED');return it;});
+  for(const it of items)if(it.locked||equipped(s,it))fail('ITEM_LOCKED_OR_EQUIPPED');
   const price=items.reduce((n,it)=>safeAdd(n,balance.sellPrices[it.rarity][it.enhance||0]),0),ids=new Set(args.ids);s.inventory=s.inventory.filter(it=>!ids.has(it.id));award('gold',price);events.push({type:'sell',count:items.length,amount:price});
  }else if(command==='auraBuy'){
   const id=int(args.id,0,balance.auras.length-1);if(s.ownedAuras.includes(id))fail('ALREADY_OWNED');spend('essence',balance.auras[id].price);s.ownedAuras.push(id);

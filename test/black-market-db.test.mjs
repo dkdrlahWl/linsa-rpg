@@ -1,3 +1,4 @@
+// IEEE-754 option endpoints can serialize as 1.2000000000000002.
 // Isolated PGlite PostgreSQL. No network, production credentials or user accounts.
 import {readFile,readdir,mkdtemp,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';import assert from 'node:assert/strict';
@@ -108,7 +109,7 @@ try{
   await db.query('update ringu_private.black_market_config set rates=$1',[JSON.stringify(forced)]);
   await db.exec('delete from ringu_private.black_market_cycles');const x=await call();
   same(x.items.length,5);check(x.items.every(o=>o.item.rarity===r&&o.price===[3,5,10,15][r]),'rarity-price map');
-  check(x.items.every(o=>o.item.optionRolls.every(n=>n>=.8&&n<=1.2)),'fixed options');
+  check(x.items.every(o=>o.item.optionRolls.every(n=>Number.isFinite(n)&&n>=.8-1e-12&&n<=1.2+1e-12)),'fixed options');
   same(new Set(x.items.map(o=>o.item.slot+'|'+o.item.name)).size,5,'distinct display templates');
   const prior=await state(A);
   await call('buy',x.rotation,0,randomUUID());
