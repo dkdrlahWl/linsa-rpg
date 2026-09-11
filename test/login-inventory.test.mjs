@@ -14,9 +14,9 @@ for(const x of fixture.inventory)fixture.discovered[x.slot+'|'+x.rarity+'|'+x.na
 let checks=0;
 function eq(a,b,m){assert.deepEqual(a,b,m);checks++;}
 function truth(a,m){assert.ok(a,m);checks++;}
-function setup({pending=false,lost=false,replaced=false,abortSync=false}={}){
+export function setup({pending=false,lost=false,replaced=false,abortSync=false,delaySync=false}={}){
  const records=new Map(),archives=new Map(),calls=[],listeners=new Map();
- const owner='QA_ONLY_ACCOUNT';let state=structuredClone(fixture),revision=10,syncCalls=0,firstLost=lost;
+ const owner='QA_ONLY_ACCOUNT';let state=structuredClone(fixture),revision=10,syncCalls=0,firstLost=lost,releaseSync;
  class Storage {
   get length(){return records.size}key(i){return [...records.keys()][i]??null}
   getItem(k){return records.get(k)??null}setItem(k,v){records.set(String(k),String(v))}
@@ -52,6 +52,7 @@ function setup({pending=false,lost=false,replaced=false,abortSync=false}={}){
    if(abortSync)return await new Promise((_,reject)=>init.signal?.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
    if(receipts.has(body.requestId))result=receipts.get(body.requestId);
    else{revision++;state.serverClock=Date.now();result={state:structuredClone(state),revision,result:{events:[]}};receipts.set(body.requestId,result)}
+   if(delaySync&&syncCalls>1)await new Promise(resolve=>{releaseSync=resolve;});
    if(firstLost){firstLost=false;throw new TypeError('Lost response after server committed');}
   }else if(url.includes('/ringu_admin_status'))result={currencyFloor:0};
   else if(url.includes('/ringu_save_preferences')){Object.assign(state,body.p_preferences);revision++;result={state:structuredClone(state),revision};}
@@ -69,7 +70,7 @@ function setup({pending=false,lost=false,replaced=false,abortSync=false}={}){
  };
  window.window=window;const ctx=vm.createContext(window);
  vm.runInContext(readFileSync(root+'cloud-adapter.js','utf8'),ctx);
- return {window,calls,records,archives,get syncCalls(){return syncCalls},
+ return {window,calls,records,archives,get releaseSync(){return releaseSync},get syncCalls(){return syncCalls},
   start(){vm.runInContext(readFileSync(root+'safety.js','utf8'),ctx);return window.RinguSession.ready}};
 }
 const plain=x=>JSON.parse(JSON.stringify(x));

@@ -369,7 +369,13 @@
       let current=result;
       if(kind!=='economy'){const fresh=await api('/api/session');if(!fresh.ok)throw Error('처리 후 서버 기록 조회 실패');current=validateSession(await fresh.json());}
       if(!validState(current?.state)||!Number.isSafeInteger(current.revision)||current.revision<revision)throw Error('서버 응답 검증 실패');
-      revision=current.revision;latest=structuredClone(current.state);pending=null;lastAcknowledged=JSON.stringify(latest);write(KEY,lastAcknowledged);remove(scoped('pending'));if(durable)remove(key);
+      // PT1: passive sync may finish after a local preference toggle. Keep that
+      // newer preference pending; economic values always come from the server.
+      const newer=pending;
+      const prefs=newer?Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>newer.state[k]!==undefined).map(k=>[k,newer.state[k]])):{};
+      revision=current.revision;lastAcknowledged=JSON.stringify(current.state);latest={...structuredClone(current.state),...prefs};
+      if(newer){newer.state=structuredClone(latest);newer.raw=JSON.stringify(latest);writeBackup(newer);}else remove(scoped('pending'));
+      write(KEY,JSON.stringify(latest));if(durable)remove(key);
       if(window.RinguCore)RinguCore.state=structuredClone(latest);
       if(kind==='costume')window.dispatchEvent(new CustomEvent('ringu:costume-transaction',{detail:{delta:0,result}}));
       window.dispatchEvent(new CustomEvent('ringu:economy-state',{detail:{events:result.result?.events||[]}}));
