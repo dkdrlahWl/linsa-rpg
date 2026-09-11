@@ -1,0 +1,123 @@
+/* RK1 · Hall of Honor. Scoped to the ranking dialog only. */
+#profileModal.rk-ready{--rk-gold:#e2c48c;--rk-muted:#9aaabd;--rk-line:#655c45}
+body[data-remodel] #profileModal.rk-ready.show{padding:10px!important;padding-top:max(10px,env(safe-area-inset-top))!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important;background:#020711e8!important;overflow:hidden}
+#profileModal.rk-ready>.rk-shell{box-sizing:border-box;position:relative;isolation:isolate;display:flex;flex-direction:column;width:min(680px,100%)!important;height:min(940px,calc(100vh - 20px));height:min(940px,calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));max-height:none!important;min-height:0;padding:0!important;overflow:hidden!important;border:1px solid #a58d60!important;border-radius:16px 5px 16px 5px!important;background:linear-gradient(180deg,#071226ce,#06101ded 34%,#06111bea 80%,#071120ed),url('/linsa-rpg/art/citadel-stage-v1.webp') center/cover!important;box-shadow:0 0 0 3px #101a23,0 0 0 4px #7865456b,0 26px 90px #000c,inset 0 0 45px #050912!important}
+#profileModal.rk-ready>.rk-shell::after{content:''!important;display:block;position:absolute;inset:5px!important;width:auto;height:auto;border:1px solid #9e804544!important;border-image:none!important;border-radius:10px 2px 10px 2px;z-index:0;pointer-events:none;opacity:1;box-shadow:inset 0 0 0 1px #efce8c09}
+#profileModal.rk-ready>.rk-shell::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 0,#55769928,transparent 40%),radial-gradient(ellipse at 0 100%,#d0a14918,transparent 25%),radial-gradient(ellipse at 100% 100%,#d0a14918,transparent 25%)}
+#profileModal.rk-ready .rk-header,#profileModal.rk-ready .rk-list,#profileModal.rk-ready .rk-footer{position:relative;z-index:1}
+#profileModal.rk-ready .rk-header{flex:none;padding:18px 24px 0;min-width:0}
+#profileModal.rk-ready .rk-brand{position:relative;display:flex;flex-direction:column;align-items:center;color:#e4c992;margin:0 auto 10px;width:max-content;font-family:Georgia,'Times New Roman',serif;text-shadow:0 2px 4px #000}
+#profileModal.rk-ready .rk-brand>span{font-size:34px;line-height:1.05;letter-spacing:7px;padding-left:7px}
+#profileModal.rk-ready .rk-brand>small{font-family:Georgia,serif;font-size:9px!important;letter-spacing:3px;margin-top:6px;color:#c1a77b}
+#profileModal.rk-ready .rk-icon{display:inline-block;flex:none;width:22px;height:22px;vertical-align:middle}
+#profileModal.rk-ready .rk-brand-sigil{width:19px;height:19px;color:#bb9c61;margin-bottom:4px}
+#profileModal.rk-ready .rk-title-wrap{display:flex;align-items:center;justify-content:center;gap:12px}
+#profileModal.rk-ready .rk-title-wrap::before,#profileModal.rk-ready .rk-title-wrap::after{content:'✧';font-size:24px;color:#ae915a}
+#profileModal.rk-ready #rankingTitle{font-family:'Noto Serif CJK KR','Noto Serif KR','Nanum Myeongjo',Batang,Georgia,serif;font-size:30px!important;line-height:1.45!important;font-weight:700!important;letter-spacing:1.5px!important;text-align:center;margin:0!important;color:#edd7a5!important;text-shadow:0 2px 8px #000,0 0 18px #e7b9641c}
+#profileModal.rk-ready .rk-rule{display:flex;align-items:center;justify-content:center;gap:12px;margin:7px 0 13px;color:#a28350;height:12px}
+#profileModal.rk-ready .rk-rule::before,#profileModal.rk-ready .rk-rule::after{content:'';height:1px;width:40%;background:linear-gradient(90deg,transparent,#a88a55)}
+#profileModal.rk-ready .rk-rule::after{transform:scaleX(-1)}
+#profileModal.rk-ready .rk-close-x{position:absolute;top:11px;right:10px;width:44px;height:44px;min-height:44px;margin:0;padding:0!important;display:grid;place-items:center;border:0!important;background:none!important;color:#c4bca9!important;font-size:27px!important;font-weight:300;border-radius:50%!important;z-index:2}
+#profileModal.rk-ready .profile-form{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:9px;margin:0 0 9px;align-items:stretch}
+#profileModal.rk-ready #nicknameInput{width:100%;min-width:0;height:44px;box-sizing:border-box;padding:9px 13px;border:1px solid #677180;border-radius:6px 2px 6px 2px;background:#030c19cc;color:#edeef2;font-size:16px;line-height:1.4}
+#profileModal.rk-ready button.rk-save-name,#profileModal.rk-ready button.rk-close{min-height:44px;background:linear-gradient(120deg,#a0803c4d,#57432266 45%,#8c6c3133)!important;border:1px solid #a18a57!important;box-shadow:inset 0 0 0 2px #07101a,inset 0 0 0 3px #c8a87533;color:#f3dfb4!important;border-radius:5px 1px 5px 1px!important;font-size:13px!important;font-weight:700}
+#profileModal.rk-ready .uid-line{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 0 0 10px;margin:0 0 11px;border:1px solid #4351658f;border-radius:5px;background:#060d1899;color:#a4afbd;font-size:11px;box-sizing:border-box}
+#profileModal.rk-ready .uid-line>span{margin-right:auto;white-space:nowrap}
+#profileModal.rk-ready #profileUid{color:#d9e2ef;font-size:12px;font-weight:500;letter-spacing:.5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;user-select:text}
+#profileModal.rk-ready .rk-copy{width:40px;height:36px;min-height:36px;padding:7px!important;border:0!important;background:none!important;color:#9caabc!important;flex:none}
+#profileModal.rk-ready .rk-copy svg{width:17px;height:17px}
+#profileModal.rk-ready .ranking-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 10px}
+#profileModal.rk-ready .ranking-tabs>button{display:flex;align-items:center;justify-content:center;gap:9px;min-width:0;min-height:50px;margin:0;padding:10px 5px!important;background:linear-gradient(135deg,#15283c99,#0c1525b3)!important;border:1px solid #526077!important;border-radius:5px 1px 5px 1px!important;box-shadow:inset 0 0 0 2px #08111d,inset 0 0 0 3px #c4d5ee0d;color:#aebed2!important;font-size:14px!important;line-height:1.4;font-weight:700}
+#profileModal.rk-ready .ranking-tabs>button.on{background:linear-gradient(120deg,#a9883552,#42372099 55%,#a5843938)!important;border-color:#d3b678!important;color:#ffebbb!important;box-shadow:inset 0 0 0 2px #201d16,inset 0 0 0 3px #dac38b55,0 0 15px #d6a74a20}
+#profileModal.rk-ready .ranking-tabs svg{width:26px;height:26px}
+#profileModal.rk-ready #rankStatus{display:block;margin:0 0 10px;padding:8px 10px;min-height:30px;height:auto;box-sizing:border-box;border:1px solid #53607842;border-left:0;border-right:0;background:linear-gradient(90deg,transparent,#20354b3b,transparent);border-radius:0;font-size:11px;line-height:1.4;text-align:center;color:#aab9cc;overflow-wrap:anywhere}
+#profileModal.rk-ready #rankStatus.error{color:#ffb8a8}
+#profileModal.rk-ready #rankList{flex:1 1 auto;min-height:70px;max-height:none!important;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:3px 24px 9px;margin:0;scrollbar-width:thin;scrollbar-color:#8e7b5466 #06111e;scroll-padding-block:5px}
+#profileModal.rk-ready button.rk-row{--medal:#b4bbbf;position:relative;flex:none;display:grid;grid-template-columns:66px minmax(0,1fr) auto;align-items:center;gap:11px;isolation:isolate;min-height:80px;width:100%;height:auto;margin:0;padding:9px 17px 9px 9px!important;box-sizing:border-box;border:1px solid #596778!important;border-radius:7px 2px 7px 2px!important;background:linear-gradient(110deg,#1c30427a,#0b1423e6 80%)!important;box-shadow:inset 0 0 0 2px #07111c,inset 0 0 0 3px #91a5bc18,0 4px 10px #0002;text-align:left;line-height:1.4;overflow:hidden;touch-action:pan-y}
+#profileModal.rk-ready button.rk-row::before{content:'';position:absolute;z-index:0;inset:3px;pointer-events:none;border:1px solid #d8c09216;border-radius:5px 1px 5px 1px;background:linear-gradient(135deg,#b9a07799 0 2px,transparent 3px) top left/12px 12px no-repeat,linear-gradient(315deg,#b9a07799 0 2px,transparent 3px) bottom right/12px 12px no-repeat}
+#profileModal.rk-ready button.rk-medal-1{--medal:#efcf85;border-color:#bea161!important;background:linear-gradient(112deg,#81633266,#4339264d 52%,#091321e8)!important;box-shadow:inset 0 0 0 2px #18180f,inset 0 0 0 3px #d3bb834d,0 0 12px #deb35510}
+#profileModal.rk-ready button.rk-medal-2{--medal:#c1d7ed;border-color:#95a9bd!important;background:linear-gradient(112deg,#58759655,#223a514d 52%,#091321e8)!important}
+#profileModal.rk-ready button.rk-medal-3{--medal:#d5a574;border-color:#a4774b!important;background:linear-gradient(112deg,#92603855,#5437224d 52%,#091321e8)!important}
+#profileModal.rk-ready button.rk-me{border-color:#edc277!important;box-shadow:inset 0 0 0 2px #41311b,inset 0 0 0 3px #f6d49155,0 0 13px #d4923029}
+#profileModal.rk-ready button.rk-me::after{content:'';position:absolute;top:50%;left:0;width:4px;height:24px;background:#e6bf72;transform:translateY(-50%);box-shadow:0 0 9px #ffcf71;border-radius:0 3px 3px 0;pointer-events:none}
+#profileModal.rk-ready .rk-badge{position:relative;display:grid;place-items:center;width:66px;height:60px;color:var(--medal);font-family:Georgia,'Times New Roman',serif}
+#profileModal.rk-ready .rk-laurel{position:absolute;inset:0;width:100%;height:100%;opacity:.85;pointer-events:none}
+#profileModal.rk-ready .rk-crown{position:absolute;width:18px;height:14px;left:24px;top:0}
+#profileModal.rk-ready .rk-rank{font-size:33px;line-height:1;font-weight:400;padding-top:5px;text-shadow:0 2px 4px #000}
+#profileModal.rk-ready .rk-regular .rk-rank{font-size:29px;color:#c9bfa6}
+#profileModal.rk-ready .rk-player{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;min-width:0;z-index:1}
+#profileModal.rk-ready .rk-name{color:#f1f1ed;font-size:17px;line-height:1.5;font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
+#profileModal.rk-ready .rk-you{display:inline-block;padding:1px 5px;color:#edcc92;background:#89682945;border:1px solid #b38d4855;border-radius:4px;font-size:9px!important;line-height:1.4;white-space:nowrap}
+#profileModal.rk-ready .rk-score{position:relative;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:3px 6px;max-width:210px;min-width:0;z-index:1;color:#e6e9ee;text-shadow:0 2px 3px #000;text-align:right;font-variant-numeric:tabular-nums}
+#profileModal.rk-ready .rk-score>.rk-icon{width:20px;height:20px;color:var(--medal)}
+#profileModal.rk-ready .rk-value{font-family:Georgia,'Times New Roman',serif;font-size:27px;line-height:1.2;font-weight:600;overflow-wrap:anywhere;max-width:100%}
+#profileModal.rk-ready .rk-unit{font-size:14px!important;color:#c7d4e3}
+#profileModal.rk-ready .rk-watermark{position:absolute;right:14%;top:-12px;z-index:0;color:var(--medal);opacity:.07;transform:rotate(-10deg);pointer-events:none}
+#profileModal.rk-ready .rk-watermark>.rk-icon{width:112px;height:100px}
+#profileModal.rk-ready .rk-footer{flex:none;padding:9px 24px 17px}
+#profileModal.rk-ready button.rk-my-rank{display:flex;align-items:center;gap:10px;width:100%;min-height:37px;padding:7px 10px!important;border:1px solid #af8d4a55!important;border-radius:4px!important;background:linear-gradient(90deg,#72562622,#091425b0)!important;font-size:12px!important;color:#e9d2a5!important}
+#profileModal.rk-ready .rk-my-label{color:#a5b1c0;margin-right:1px;font-size:11px}
+#profileModal.rk-ready .rk-my-score{margin-left:auto;font-size:12px;overflow-wrap:anywhere;min-width:0;text-align:right}
+#profileModal.rk-ready #rankingNote{margin:8px 0 10px!important;color:#8999af!important;text-align:center;font-size:10px!important;line-height:1.4!important;letter-spacing:.1px}
+#profileModal.rk-ready .rk-actions{display:block;margin:0;padding:0}
+#profileModal.rk-ready .rk-actions button{display:block;width:100%;margin:0;letter-spacing:3px}
+#profileModal.rk-ready .rk-empty{display:flex;flex:1;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:28px 15px;min-height:140px;color:#9eb0c4;text-align:center;box-sizing:border-box}
+#profileModal.rk-ready .rk-empty .rk-icon{width:35px;height:35px;color:#b49964;opacity:.8;margin-bottom:5px}
+#profileModal.rk-ready .rk-empty strong{font-size:15px;color:#d6ccb9}
+#profileModal.rk-ready .rk-empty p{margin:0;font-size:11px!important}
+#profileModal.rk-ready button{cursor:pointer}
+#profileModal.rk-ready button:disabled{cursor:default;opacity:.65}
+#profileModal.rk-ready button:hover:not(:disabled){filter:brightness(1.12)}
+#profileModal.rk-ready button:focus-visible,#profileModal.rk-ready input:focus-visible,#profileModal.rk-ready .rk-list:focus-visible{outline:2px solid #f4d393;outline-offset:-3px}
+@media(max-width:600px){
+ #profileModal.rk-ready .rk-header{padding:15px 17px 0}
+ #profileModal.rk-ready .rk-brand>span{font-size:27px;letter-spacing:6px}
+ #profileModal.rk-ready .rk-brand>small{font-size:8px!important;letter-spacing:2px;margin-top:4px}
+ #profileModal.rk-ready .rk-brand{margin-bottom:8px}
+ #profileModal.rk-ready #rankingTitle{font-size:24px!important;letter-spacing:1px!important}
+ #profileModal.rk-ready .rk-title-wrap{gap:9px}
+ #profileModal.rk-ready .rk-title-wrap::before,#profileModal.rk-ready .rk-title-wrap::after{font-size:16px}
+ #profileModal.rk-ready .rk-rule{margin:5px 0 10px}
+ #profileModal.rk-ready .profile-form{grid-template-columns:minmax(0,1fr) 84px}
+ #profileModal.rk-ready .ranking-tabs>button{min-height:46px;font-size:13px!important;gap:7px}
+ #profileModal.rk-ready .ranking-tabs svg{width:23px;height:23px}
+ #profileModal.rk-ready #rankList{padding:3px 17px 8px;gap:9px}
+ #profileModal.rk-ready button.rk-row{min-height:73px;grid-template-columns:55px minmax(0,1fr) auto;gap:9px;padding:7px 11px 7px 7px!important}
+ #profileModal.rk-ready .rk-badge{width:55px;height:54px}
+ #profileModal.rk-ready .rk-crown{left:19px;width:16px;height:13px}
+ #profileModal.rk-ready .rk-rank{font-size:29px}
+ #profileModal.rk-ready .rk-regular .rk-rank{font-size:26px}
+ #profileModal.rk-ready .rk-name{font-size:15px}
+ #profileModal.rk-ready .rk-value{font-size:23px}
+ #profileModal.rk-ready .rk-score{max-width:34vw;gap:3px 4px}
+ #profileModal.rk-ready .rk-score>.rk-icon{width:17px;height:17px}
+ #profileModal.rk-ready .rk-footer{padding:8px 17px 14px}
+ #profileModal.rk-ready .rk-close-x{right:6px;top:6px}
+}
+@media(max-width:350px){
+ #profileModal.rk-ready .rk-header{padding:12px 12px 0}
+ #profileModal.rk-ready #rankList{padding-left:12px;padding-right:12px}
+ #profileModal.rk-ready .rk-footer{padding-left:12px;padding-right:12px}
+ #profileModal.rk-ready #rankingTitle{font-size:21px!important}
+ #profileModal.rk-ready .rk-name{font-size:14px}
+ #profileModal.rk-ready .rk-value{font-size:21px}
+}
+@media(max-height:700px){
+ #profileModal.rk-ready .rk-brand{flex-direction:row;gap:8px;margin-bottom:5px}
+ #profileModal.rk-ready .rk-brand>span{font-size:18px;letter-spacing:4px}
+ #profileModal.rk-ready .rk-brand>small{display:none}
+ #profileModal.rk-ready .rk-brand-sigil{width:15px;height:15px;margin:0}
+ #profileModal.rk-ready .rk-header{padding-top:12px}
+ #profileModal.rk-ready .rk-footer{padding-top:6px;padding-bottom:10px}
+ #profileModal.rk-ready #rankingNote{margin:6px 0!important}
+}
+@media(max-height:500px){
+ #profileModal.rk-ready .rk-brand,#profileModal.rk-ready .rk-rule,#profileModal.rk-ready .uid-line,#profileModal.rk-ready .profile-form,#profileModal.rk-ready #rankStatus{display:none}
+ #profileModal.rk-ready #rankingTitle{font-size:21px!important;line-height:1.4!important;margin-bottom:6px!important}
+ #profileModal.rk-ready .ranking-tabs{margin-bottom:8px}
+ #profileModal.rk-ready .rk-header{padding-top:8px}
+ #profileModal.rk-ready #rankingNote{display:none}
+ #profileModal.rk-ready .rk-footer{display:grid;grid-template-columns:minmax(0,1fr) 76px;gap:9px;padding-top:7px;padding-bottom:9px;align-items:center}
+ #profileModal.rk-ready .rk-my-rank{min-height:44px!important}
+}
+@media(prefers-reduced-motion:reduce){#profileModal.rk-ready *,#profileModal.rk-ready *::before,#profileModal.rk-ready *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
