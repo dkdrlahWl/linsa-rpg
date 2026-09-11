@@ -1,0 +1,80 @@
+/* HU1 · premium fantasy HUD. Presentation only. */
+.hu-icon{display:inline-block;width:1em;height:1em;overflow:visible;vertical-align:-.14em;filter:drop-shadow(0 2px 3px #0008)}
+.hu-icon-essence{color:#7e8cff;filter:drop-shadow(0 0 5px #725fff8a) drop-shadow(0 2px 3px #0009)}
+.hu-essence-cost{display:inline-flex;align-items:center;justify-content:center;gap:.35em;min-width:0;color:#f0e8ff;font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.15}
+.hu-essence-cost .hu-cost-icon{width:1.2em;height:1.2em;flex:none}
+.hu-essence-cost b{color:inherit;font:inherit;font-weight:800}
+body[data-remodel] #rmTopHeader.hu-hud{position:relative;isolation:isolate;overflow:hidden;border:1px solid #856f49;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#06101beb,#071522e8 74%,#091624f2),radial-gradient(circle at 40% -40%,#34547435,transparent 52%)!important;box-shadow:inset 0 -1px #d6af6655,inset 0 0 36px #01101f80,0 7px 24px #0005;padding:18px 26px 15px!important}
+body[data-remodel] #rmTopHeader.hu-hud::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 18% 0,#a77e3516,transparent 24%),linear-gradient(90deg,transparent,#d0a85b0b 50%,transparent);border-bottom:1px solid #c59b5630}
+body[data-remodel] #rmTopHeader.hu-hud::after{content:'✦';position:absolute;left:50%;bottom:-9px;z-index:2;transform:translateX(-50%);display:grid;place-items:center;width:26px;height:18px;color:#dfbd79;background:#081520;font-size:13px;text-shadow:0 0 8px #f0be5c}
+body[data-remodel] #rmTopHeader.hu-hud .hu-brand{align-self:center;min-width:0;filter:drop-shadow(0 4px 7px #0008)}
+body[data-remodel] #rmTopHeader.hu-hud .brand-title,body[data-remodel] #rmTopHeader.hu-hud .brand h1{color:#ecd7a8!important;text-shadow:0 2px 7px #000,0 0 20px #c69c4930}
+body[data-remodel] #rmTopActions{display:flex!important;justify-content:flex-end!important;gap:10px!important;min-width:0}
+body[data-remodel] #rmTopActions button[data-ui-icon]::before{content:none!important;display:none!important}
+body[data-remodel] #rmTopActions button{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:88px!important;height:82px!important;min-width:0;padding:8px 6px!important;overflow:hidden;border:1px solid #657587!important;border-radius:11px 3px 11px 3px!important;background:linear-gradient(145deg,#17293aee,#0b1724f0 70%)!important;box-shadow:inset 0 0 0 2px #07111b,inset 0 0 0 3px #d9bd7a12,0 6px 14px #0004!important;color:#d8dfe9!important}
+body[data-remodel] #rmTopActions button::after{content:'';position:absolute;inset:4px;border:1px solid #d5bd8a15;border-radius:8px 2px 8px 2px;pointer-events:none}
+body[data-remodel] #rmTopActions button.profile-button{border-color:#b48e4d!important;background:linear-gradient(145deg,#3a2e1edb,#101a24ed 70%)!important;color:#f2d79b!important}
+body[data-remodel] #rmTopActions button:hover{filter:brightness(1.13)}
+body[data-remodel] #rmTopActions .hu-icon{width:31px;height:31px;color:#d5bb85;flex:none}
+body[data-remodel] #rmTopActions .mail-button .hu-icon{color:#dfd7c6}
+body[data-remodel] #rmTopActions .settings-button .hu-icon{color:#c2a875}
+body[data-remodel] #rmTopActions .hu-action-label{font-size:13px;line-height:1.1;font-weight:800;letter-spacing:.2px}
+body[data-remodel] #rmTopActions #headerNickname{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px!important;color:#98a5b6!important;line-height:1.1}
+body[data-remodel] #rmCurrencyStats{position:relative;grid-column:1/-1!important;display:grid!important;grid-template-columns:1.25fr repeat(4,1fr) 1.35fr!important;gap:0!important;min-width:0;padding:13px 4px 2px;border-top:1px solid #8c714a66;background:linear-gradient(90deg,transparent,#1023376b 10%,#0a18278a 50%,#1023376b 90%,transparent)}
+body[data-remodel] #rmCurrencyStats .rm-stat{position:relative;display:grid!important;grid-template-columns:36px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;align-content:center;column-gap:9px;row-gap:1px;min-width:0;min-height:63px;padding:4px 14px!important;text-align:left!important}
+body[data-remodel] #rmCurrencyStats .rm-stat:not(:first-child)::before{content:'';position:absolute;left:0;top:13%;height:74%;width:1px;background:linear-gradient(transparent,#9c8056aa,transparent)}
+body[data-remodel] #rmCurrencyStats .rm-stat-icon{grid-row:1/3;display:grid;place-items:center;width:36px;height:36px;margin:0!important;font-size:28px!important;line-height:1;color:#d3b876;filter:none}
+body[data-remodel] #rmCurrencyStats .rm-stat-icon .hu-icon{width:34px;height:34px}
+body[data-remodel] #rmCurrencyStats .rm-stat-gold .hu-icon{color:#d8b65f;filter:drop-shadow(0 0 5px #d6a63266)}
+body[data-remodel] #rmCurrencyStats .rm-stat-stone .hu-icon{color:#63c8f5;filter:drop-shadow(0 0 5px #4ec9ff55)}
+body[data-remodel] #rmCurrencyStats .rm-stat-petstone .hu-icon{color:#d48d52;filter:drop-shadow(0 0 5px #e57e3155)}
+body[data-remodel] #rmCurrencyStats .rm-stat-power .hu-icon{color:#d5dae1}
+body[data-remodel] #rmCurrencyStats .rm-stat-summon .hu-icon{color:#b787ef;filter:drop-shadow(0 0 5px #a869f05c)}
+body[data-remodel] #rmCurrencyStats .rm-stat>span:nth-child(2){grid-column:2;grid-row:1;min-width:0;margin:0!important;color:#aeb8c5!important;font-size:11px!important;line-height:1.25!important;white-space:nowrap}
+body[data-remodel] #rmCurrencyStats .rm-stat strong{grid-column:2;grid-row:2;display:block!important;width:auto!important;max-width:100%;min-width:0;margin:0!important;padding:0!important;color:#f0e4c4;font-size:20px!important;line-height:1.25!important;font-variant-numeric:tabular-nums;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}
+body[data-remodel] #rmCurrencyStats .rm-stat-gold strong{color:#e5c77c!important}
+body[data-remodel] #rmCurrencyStats .rm-stat-essence strong{color:#ca82f1!important;text-shadow:0 0 8px #bd5fe958}
+body[data-remodel] #rmCurrencyStats .rm-stat-stone strong{color:#57cfe8!important}
+body[data-remodel] #rmCurrencyStats .rm-stat-power strong{color:#69baf0!important}
+body[data-remodel] #rmCurrencyStats .rm-stat-summon{grid-template-columns:34px minmax(0,1fr)}
+body[data-remodel] #rmCurrencyStats .rm-stat-summon strong{font-size:15px!important;color:#ebe0cf!important}
+body[data-remodel] #rmCurrencyStats .rm-stat-summon small{grid-column:2;display:block!important;margin:3px 0 0!important;height:5px!important;border-radius:99px;background:#1d293b!important;overflow:hidden}
+body[data-remodel] #rmCurrencyStats .rm-stat-summon small::before{border-radius:99px;background:linear-gradient(90deg,#a85dea,#e366ca)!important;box-shadow:0 0 5px #d25ada99}
+#blackMarketModal .hu-essence-cost,#shopPurchaseConfirm .hu-essence-cost,#costumeShopModal .hu-essence-cost,.rm-aura-price .hu-essence-cost,.rm-consumable-card .hu-essence-cost{font-size:inherit;color:#f0e7ff}
+#blackMarketModal [data-bm-slot] .hu-essence-cost{font-size:17px;gap:5px}
+#blackMarketModal [data-bm-slot] .hu-essence-cost .hu-icon{width:21px;height:21px}
+#blackMarketRatesBody .hu-essence-cost{font-size:11px}
+#shopPurchasePrice .hu-essence-cost{font-size:20px;color:#f0dfff}
+#shopPurchaseBalance .hu-essence-cost{font-size:inherit}
+.hu-cost-arrow{padding:0 .25em;color:#8ea0b3}
+@media(max-width:1099px){
+ body[data-remodel] #rmTopHeader.hu-hud{padding:14px 16px 12px!important;gap:10px 18px!important}
+ body[data-remodel] #rmTopActions{gap:7px!important}
+ body[data-remodel] #rmTopActions button{width:72px!important;height:68px!important}
+ body[data-remodel] #rmTopActions .hu-icon{width:25px;height:25px}
+ body[data-remodel] #rmCurrencyStats{grid-template-columns:1.3fr repeat(4,1fr) 1.35fr!important}
+ body[data-remodel] #rmCurrencyStats .rm-stat{grid-template-columns:28px minmax(0,1fr);column-gap:6px;padding:4px 8px!important}
+ body[data-remodel] #rmCurrencyStats .rm-stat-icon{width:28px;height:28px}
+ body[data-remodel] #rmCurrencyStats .rm-stat-icon .hu-icon{width:27px;height:27px}
+ body[data-remodel] #rmCurrencyStats .rm-stat strong{font-size:17px!important}
+ body[data-remodel] #rmCurrencyStats .rm-stat-summon strong{font-size:13px!important}
+}
+@media(max-width:600px){
+ body[data-remodel] #rmTopHeader.hu-hud{grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;padding:11px 10px 9px!important;border-radius:0 0 8px 8px}
+ body[data-remodel] #rmTopHeader.hu-hud .hu-brand{min-width:0}
+ body[data-remodel] #rmTopActions{align-self:center;gap:5px!important}
+ body[data-remodel] #rmTopActions button{width:50px!important;height:52px!important;padding:5px 3px!important;border-radius:8px 2px 8px 2px!important}
+ body[data-remodel] #rmTopActions .hu-icon{width:21px;height:21px}
+ body[data-remodel] #rmTopActions .hu-action-label{font-size:9px}
+ body[data-remodel] #rmTopActions #headerNickname{display:none}
+ body[data-remodel] #rmCurrencyStats{grid-column:1/-1!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;row-gap:3px!important;padding-top:8px}
+ body[data-remodel] #rmCurrencyStats .rm-stat{grid-template-columns:24px minmax(0,1fr);min-height:45px;padding:3px 5px!important;text-align:left!important}
+ body[data-remodel] #rmCurrencyStats .rm-stat:nth-child(4)::before{content:none}
+ body[data-remodel] #rmCurrencyStats .rm-stat-icon{width:24px;height:24px}
+ body[data-remodel] #rmCurrencyStats .rm-stat-icon .hu-icon{width:23px;height:23px}
+ body[data-remodel] #rmCurrencyStats .rm-stat>span:nth-child(2){font-size:9px!important}
+ body[data-remodel] #rmCurrencyStats .rm-stat strong{font-size:14px!important}
+ body[data-remodel] #rmCurrencyStats .rm-stat-summon strong{font-size:11px!important}
+ body[data-remodel] #rmCurrencyStats .rm-stat-summon small{height:4px!important;margin-top:2px!important}
+}
+@media(max-width:350px){body[data-remodel] #rmTopActions button{width:45px!important}body[data-remodel] #rmCurrencyStats .rm-stat{grid-template-columns:21px minmax(0,1fr);padding-left:3px!important;padding-right:3px!important}body[data-remodel] #rmCurrencyStats .rm-stat-icon{width:21px;height:21px}body[data-remodel] #rmCurrencyStats .rm-stat-icon .hu-icon{width:20px;height:20px}}
