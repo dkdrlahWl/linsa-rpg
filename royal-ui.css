@@ -1,0 +1,80 @@
+/* RU1: navy and gold panels, supplied artwork, compact lists. */
+body[data-remodel] .topbar{height:calc(238px + env(safe-area-inset-top))!important;padding:calc(10px + env(safe-area-inset-top)) 12px 12px!important;display:grid!important;grid-template-rows:72px 132px!important;gap:10px!important;background:linear-gradient(90deg,#07101dd9,#0a1724aa),url('art/citadel-stage-v1.webp') center 32%/cover!important;border:1px solid #ad8b4e!important;box-shadow:inset 0 0 0 3px #081320,inset 0 0 0 4px #806b4355!important}
+body[data-remodel] .brand-row{width:100%!important;min-width:0;flex:initial!important}
+body[data-remodel] .brand{font-size:28px!important;letter-spacing:3px!important}
+body[data-remodel] .header-actions{gap:6px!important}
+body[data-remodel] .header-actions button{position:relative;width:58px!important;min-width:44px!important;height:66px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px!important;border:1px solid #b49a65!important;border-radius:5px!important;background:#071321e8!important;font-size:14px!important}
+body[data-remodel] .header-actions button::before{display:none!important}
+body[data-remodel] .header-actions #playerNameTop{display:none!important}
+.ru-action-art{width:38px;height:38px;object-fit:contain;mix-blend-mode:screen}
+body[data-remodel] #rmCurrencyStats{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,62px)!important;gap:6px!important;width:100%!important;overflow:visible!important}
+body[data-remodel] #rmCurrencyStats .stat{position:relative;display:flex!important;flex-direction:column;justify-content:center;min-width:0!important;padding:5px 6px 5px 42px!important;border:1px solid #586071!important;border-radius:9px 2px!important;background:linear-gradient(120deg,#152333e8,#07131eee)!important;box-shadow:inset 0 0 0 2px #09121c!important;text-align:left!important;overflow:hidden!important}
+body[data-remodel] #rmCurrencyStats .stat-label{font-size:12px!important;line-height:18px!important;color:#c6cbd4!important;letter-spacing:0!important;white-space:nowrap!important}
+body[data-remodel] #rmCurrencyStats .stat-value{font-size:17px!important;line-height:22px!important;margin:0!important;color:#e4d0a0!important;letter-spacing:-.4px;max-width:100%;white-space:nowrap}
+body[data-remodel] #rmCurrencyStats .essence .stat-value{color:#e4a9ff!important}
+.ru-stat-art{position:absolute;left:4px;top:50%;transform:translateY(-50%);width:36px;height:44px;object-fit:contain;mix-blend-mode:screen}
+body[data-remodel] #rmCurrencyStats .ringu-stat-icon{position:absolute;left:7px;top:18px;font-size:25px;width:30px;margin:0}
+body[data-remodel] #rmCurrencyStats .ru-stat-art~.stat-label .ringu-stat-icon{display:none}
+body[data-remodel] .summon-mini{display:none!important}
+body[data-remodel] main.app{padding-top:calc(252px + env(safe-area-inset-top))!important}
+.ru-currency{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;white-space:nowrap;color:#e8bcff;font-variant-numeric:tabular-nums}
+.ru-currency img{display:inline-block!important;width:24px!important;height:24px!important;object-fit:contain;mix-blend-mode:screen;flex:none}
+#profileModal.rk-ready .rk-brand,#profileModal.rk-ready .rk-rule{display:none!important}
+#profileModal.rk-ready .rk-header{padding:10px 12px 0!important}
+#profileModal.rk-ready #rankingTitle{font-size:22px!important;margin:0 34px 8px!important}
+#profileModal.rk-ready .profile-form{margin-bottom:5px!important}
+#profileModal.rk-ready .uid-line{margin-bottom:6px!important;min-height:30px}
+#profileModal.rk-ready .ranking-tabs{margin-bottom:4px!important}
+#profileModal.rk-ready .ranking-tabs>button{min-height:40px!important;padding:6px!important}
+#profileModal.rk-ready #rankStatus{min-height:22px!important;padding:3px!important;margin-bottom:5px!important}
+#profileModal.rk-ready #rankList{gap:5px!important;padding:2px 12px 6px!important}
+#profileModal.rk-ready button.rk-row{min-height:52px!important;grid-template-columns:40px minmax(0,1fr) auto!important;gap:7px!important;padding:4px 8px!important}
+#profileModal.rk-ready .rk-badge{width:38px!important;height:40px!important}
+#profileModal.rk-ready .rk-rank{font-size:23px!important}
+#profileModal.rk-ready .rk-crown{left:12px!important;width:14px!important;height:10px!important}
+#profileModal.rk-ready .rk-name{font-size:14px!important;line-height:1.3!important}
+#profileModal.rk-ready .rk-value{font-size:19px!important}
+#profileModal.rk-ready .rk-score{max-width:145px!important;gap:3px!important}
+#profileModal.rk-ready .rk-score>.rk-icon{width:16px!important;height:16px!important}
+#profileModal.rk-ready .rk-footer{padding:5px 12px 8px!important}
+#profileModal.rk-ready #rankingNote{margin:4px 0!important}
+#profileModal.rk-ready .rk-actions{display:none!important}
+#ringuAuction .auction-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+#ringuAuction .auction-header{padding:8px 10px!important}
+#ringuAuction .auction-tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important}
+#ringuAuction .auction-tabs button{font-size:12px!important;padding:5px 2px!important}
+#ringuAuction #auctionFilters{gap:5px!important;margin-bottom:7px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#ringuAuction #auctionFilters button{min-height:34px!important;padding:4px!important}
+#ringuAuction .auction-scroll{padding:6px 10px!important}
+#ringuAuction .auction-card{gap:3px!important;padding:6px!important}
+#ringuAuction .auction-card .auction-art{height:40px!important}
+#ringuAuction .auction-card .auction-art .gear-icon,#ringuAuction .auction-card .auction-art .rm-item-art{width:38px!important;height:38px!important}
+#ringuAuction .auction-card .auction-item-name{font-size:14px!important;line-height:18px!important}
+#ringuAuction .auction-card time{display:none!important}
+#ringuAuction .auction-card .auction-item-stats{display:grid!important;grid-template-columns:1fr 1fr;gap:1px 5px!important;font-size:12px!important;line-height:16px!important}
+#ringuAuction .auction-card .auction-attack{grid-column:1/-1;grid-row:1}
+#ringuAuction .auction-card .auction-item-stats>span{gap:2px!important;white-space:nowrap}
+#ringuAuction .auction-card .auction-options{display:block!important;padding-top:3px!important;font-size:12px!important;line-height:16px!important;overflow:visible!important}
+#ringuAuction .auction-card .auction-art{float:left}
+#ringuAuction #auctionListingCount{margin:3px 0!important}
+#ringuAuction #auctionMessage{margin:3px 0 0!important;line-height:16px!important}
+@media(max-height:720px){#ringuAuction #auctionFilters{grid-template-columns:repeat(4,minmax(0,1fr))!important}#ringuAuction #auctionFilters input,#ringuAuction #auctionFilters select{padding:4px!important;min-height:32px!important;font-size:12px!important}#ringuAuction #auctionFilters input{grid-column:span 2}#ringuAuction #auctionFilters select[name=sort]{grid-column:span 2}#ringuAuction #auctionFilters button{grid-column:span 2!important}#ringuAuction .auction-card .auction-art{height:28px!important}#ringuAuction .auction-card .auction-art .rm-item-art,#ringuAuction .auction-card .auction-art .gear-icon{height:28px!important;width:28px!important}}
+
+#ringuAuction .auction-card .auction-price{padding-top:2px!important;font-size:14px!important}
+#ringuAuction .auction-card .auction-grade{line-height:16px!important}
+#ringuAuction .auction-footer{padding:6px 10px!important}
+@media(min-width:1100px){body[data-remodel] .topbar{grid-template-columns:310px minmax(0,1fr)!important;grid-template-rows:132px!important;height:158px!important;padding:12px 24px!important;gap:24px!important}body[data-remodel] main.app{padding-top:176px!important}body[data-remodel] #rmCurrencyStats .stat{padding-left:56px!important}.ru-stat-art{width:46px;left:5px}body[data-remodel] #rmCurrencyStats .stat-value{font-size:21px!important}}
+@media(max-width:370px){body[data-remodel] .brand{font-size:22px!important}body[data-remodel] .header-actions button{width:48px!important}body[data-remodel] #rmCurrencyStats .stat{padding-left:32px!important}.ru-stat-art{width:28px;left:2px}body[data-remodel] #rmCurrencyStats .stat-value{font-size:14px!important}body[data-remodel] #rmCurrencyStats .ringu-stat-icon{font-size:20px;left:2px}}
+@media(max-height:650px){#profileModal.rk-ready .uid-line{display:none!important}#profileModal.rk-ready .rk-my-rank{min-height:30px!important}#profileModal.rk-ready #rankingNote{display:none!important}}
+#ringuAuction .auction-card{position:relative}
+#ringuAuction .auction-card .auction-art{position:absolute;top:6px;left:6px;width:30px!important;height:30px!important}
+#ringuAuction .auction-card .auction-art .gear-icon,#ringuAuction .auction-card .auction-art .rm-item-art{width:30px!important;height:30px!important}
+#ringuAuction .auction-card .auction-item-name{padding-left:34px;min-height:30px;display:flex;align-items:center}
+#ringuAuction .auction-card .auction-item-stats>span{white-space:normal;overflow-wrap:anywhere}
+
+body[data-remodel] .topbar #rmCurrencyStats{height:130px!important;grid-auto-rows:62px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+
+body[data-remodel] #rmCurrencyStats .stat-value{white-space:normal!important;overflow-wrap:anywhere;text-overflow:clip;overflow:visible!important;line-height:1.15!important}
+@media(max-height:720px){#ringuAuction .auction-header{padding:6px 10px!important}#ringuAuction .auction-footer{padding:4px 10px!important}#ringuAuction #auctionListingCount{font-size:12px!important;line-height:16px!important;margin:2px 0!important}#ringuAuction #auctionMessage{line-height:14px!important}}
+
+@media(min-width:1100px){body[data-remodel] .rm-bottom-nav{top:176px!important}body[data-remodel] .rm-sidebar{top:385px!important}body[data-remodel] .layout>.panel{scroll-margin-top:176px!important}}

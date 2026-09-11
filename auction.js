@@ -40,7 +40,7 @@
    }
    const args=filters();if(args.rarity===null||!Number.isFinite(args.rarity))delete args.rarity;
    const result=await rpc(tab,args);if(seq!==requestSequence)return;rows=result.rows;
-   const list=body.querySelector('#auctionRows');list.innerHTML=rows.map((r,i)=>'<button class="auction-card" data-row="'+i+'">'+itemSummary(r.item)+'<b class="auction-price">💎 '+fmt(r.price)+' 정수</b><small class="auction-seller">'+esc(r.seller_name||'')+'</small><time>'+esc(new Date(r.traded_at||r.created_at).toLocaleString('ko-KR'))+'</time></button>').join('')||'<p>등록된 물품이나 거래 내역이 없습니다.</p>';
+   const list=body.querySelector('#auctionRows');list.innerHTML=rows.map((r,i)=>'<button class="auction-card" data-row="'+i+'">'+itemSummary(r.item)+'<b class="auction-price">💎 '+fmt(r.price)+' 정수</b><time>'+esc(new Date(r.traded_at||r.created_at).toLocaleString('ko-KR'))+'</time></button>').join('')||'<p>등록된 물품이나 거래 내역이 없습니다.</p>';
    body.querySelector('#auctionPage').textContent=(page+1)+' / '+Math.max(1,Math.ceil(result.total/20));body.querySelector('[data-auction-page="-1"]').disabled=page===0;body.querySelector('[data-auction-page="1"]').disabled=(page+1)*20>=result.total;note('수수료 0% · 정수로만 거래합니다.');
   }catch(e){if(seq===requestSequence)note(translate(e));}
  }
@@ -81,3 +81,6 @@
   RinguSession.onEnded(()=>{clearInterval(timer);ready=false;});
  },{once:true});
 })();
+
+// RU2: load the shared presentation after the document styles are available.
+(()=>{const load=()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='/linsa-rpg/royal-ui.css?v=RU2';document.body.append(css);const script=document.createElement('script');script.src='/linsa-rpg/royal-ui.js?v=RU2';document.head.append(script);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();
