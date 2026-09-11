@@ -135,3 +135,6 @@ body[data-remodel] #profileModal.rk-ready.show{padding:10px!important;padding-to
  #profileModal.rk-ready button.rk-row{min-height:71px}
  #profileModal.rk-ready .rk-rule{height:10px;margin:5px 0 8px}
 }
+
+/* RK1 already provides accessible decorative SVG icons for both tabs. */
+#profileModal.rk-ready .ranking-tabs>button[data-ui-icon]::before{content:none!important;display:none!important}

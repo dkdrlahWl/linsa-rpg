@@ -66,6 +66,7 @@ try{
  // Synthetic display state only, not real player records.
  await page.evaluate(()=>{RinguCore.fn.getPower=()=>676;});
  await page.locator('.profile-button').click();await page.waitForFunction(()=>document.querySelectorAll('.rk-row').length===28);
+ assert.equal(await page.locator('#towerRankTab').evaluate(el=>getComputedStyle(el,'::before').content),'none');
  assert.equal(await page.locator('#rankingTitle').textContent(),'전체 공격력 랭킹');assert.equal(await page.locator('#profileUid').textContent(),'RK1-TEST-UID');
  const getRows=()=>page.locator('.rk-row').evaluateAll(rows=>rows.map(r=>({id:r.dataset.rkProfile,source:r.dataset.rkSource,name:r.querySelector('.rk-name').textContent,rank:r.querySelector('.rk-rank').textContent,value:r.querySelector('.rk-value').textContent,me:r.classList.contains('rk-me'),medal:[1,2,3].find(n=>r.classList.contains('rk-medal-'+n))})));
  let rows=await getRows();assert.deepEqual(rows.slice(0,3).map(r=>r.name),['링구','재원','도현']);assert.deepEqual(rows.slice(0,3).map(r=>r.medal),[1,2,3]);assert.equal(rows[2].me,true);assert.equal(rows[2].value,'676');
