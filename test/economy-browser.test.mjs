@@ -12,7 +12,7 @@ const db=new PGlite(),users=new Map(),tokens=new Map(),errors=[];
 let queue=Promise.resolve(),dropCommand=null,dropped=0,delaySync=0;
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
 for(const file of ['01-account-storage.sql','02-ranking-party.sql'])await db.exec(await readFile(new URL('fixtures/'+file,import.meta.url),'utf8'));
-for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
+for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql','16-economy-differential-commit.sql','18-auction-listing-limit.sql','20-auction-sale-notifications.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
 await db.exec('update ringu_private.auction_release set economy_ready=true,enabled=true');
 async function rpc(name,body={}){const entries=Object.entries(body);return (await db.query('select public.'+name+'('+entries.map(([k],i)=>k+'=> $'+(i+1)).join(',')+') r',entries.map(([,v])=>typeof v==='object'&&v!==null?JSON.stringify(v):v))).rows[0].r;}
 async function service(req){
@@ -62,7 +62,7 @@ try{
   RinguEconomy.paint();let rebuilds=0;const render=RinguCore.fn.renderAll;
   let start=performance.now();for(let i=0;i<3;i++)render();const fullMs=(performance.now()-start)/3;
   RinguCore.fn.renderAll=()=>{rebuilds++;return render();};start=performance.now();for(let i=0;i<20;i++)RinguEconomy.paint();const tickMs=(performance.now()-start)/20;
-  RinguCore.fn.renderAll=render;const first=document.querySelector('[data-item-id="100000"]');RinguCore.state.inventory.push({...original[0],id:999999});RinguCore.fn.renderInventory();if(document.querySelector('[data-item-id="100000"]')!==first)throw Error('Unchanged card recreated');if(!document.querySelector('[data-item-id="999999"]'))throw Error('New card missing');RinguCore.state.inventory=original;RinguEconomy.paint();return {items:2400,fullMs,tickMs,rebuilds};
+  RinguCore.fn.renderAll=render;const first=document.querySelector('[data-item-id="100000"]');RinguCore.state.inventory.unshift({...original[0],id:999999});RinguCore.fn.renderInventory();if(document.querySelector('[data-item-id="100000"]')!==first)throw Error('Unchanged card recreated');if(!document.querySelector('[data-item-id="999999"]'))throw Error('New card missing');RinguCore.state.inventory=original;RinguEconomy.paint();return {items:2400,fullMs,tickMs,rebuilds};
  });
  console.log('Combat render benchmark',performanceResult);assert.equal(performanceResult.rebuilds,0);
  const invalidation=await a.evaluate(async()=>{
@@ -75,8 +75,8 @@ try{
  // UI-only inventory fixture, never submitted as a trade or save.
  await a.evaluate(()=>{const descriptor=Object.getOwnPropertyDescriptor(RinguCore,'state'),fixture=Array.from({length:41},(_,i)=>({...RinguCore.state.inventory[0],id:200000+i,name:'페이지 검사 '+i}));window.qaStateDescriptor=descriptor;Object.defineProperty(RinguCore,'state',{...descriptor,get:()=>({...descriptor.get(),inventory:fixture})});});
  await a.getByRole('button',{name:'⚖️ 경매장',exact:true}).click();await a.locator('[data-tab="list"]').click();try{await a.waitForFunction(()=>document.querySelectorAll('#auctionBody [data-row]').length===20);}catch(e){console.log('AUCTION_UI_DIAGNOSTIC',await a.locator('#ringuAuction').innerText(),await a.evaluate(()=>({count:RinguCore.state.inventory.length,errors:window.RinguAuctionMessages})));throw e;}
- await a.locator('#auctionBody [data-page="1"]').click();await a.waitForFunction(()=>document.querySelector('#auctionBody [data-row="0"] strong')?.textContent==='페이지 검사 20');
- await a.locator('#auctionBody [data-page="1"]').click();await a.waitForFunction(()=>document.querySelectorAll('#auctionBody [data-row]').length===1);await a.locator('#auctionBody [data-row="0"]').click();assert.equal(await a.locator('#auctionDetail strong').innerText(),'페이지 검사 40');await a.locator('#auctionClose').click();
+ await a.locator('#auctionBody [data-auction-page="1"]').click();await a.waitForFunction(()=>document.querySelector('#auctionBody [data-row="0"] strong')?.textContent==='페이지 검사 20');
+ await a.locator('#auctionBody [data-auction-page="1"]').click();await a.waitForFunction(()=>document.querySelectorAll('#auctionBody [data-row]').length===1);await a.locator('#auctionBody [data-row="0"]').click();assert.equal(await a.locator('#auctionDetail strong').innerText(),'페이지 검사 40');await a.locator('#auctionClose').click();
  await a.evaluate(()=>{Object.defineProperty(RinguCore,'state',window.qaStateDescriptor);delete window.qaStateDescriptor;});console.log('Auction listing pagination passed: 20 / 20 / 1 cards, exact selected item.');
  delaySync=500;await a.evaluate(()=>{window.qaSync=RinguEconomy.command('sync');});await a.waitForTimeout(100);
  assert.equal(await a.evaluate(()=>RinguSession.active&&!document.body.classList.contains('economy-pending')),true);

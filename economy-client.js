@@ -5,8 +5,36 @@
   const g=window.RinguCore,session=window.RinguSession;
   if(!g?.state||!window.RinguCloud?.economy||window.RinguEconomy)return;
   const f=g.fn,$=id=>document.getElementById(id),item=id=>g.state.inventory.find(x=>String(x.id)===String(id));
-  const messages={REQUEST_TOO_LARGE:'판매 요청이 너무 큽니다. 게임을 새로고침한 뒤 다시 시도해 주세요.',INSUFFICIENT_GOLD:'골드가 부족합니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',INSUFFICIENT_TRANSCENDSTONE:'초월석이 부족합니다.',INSUFFICIENT_PETSTONE:'펫 스톤이 부족합니다.',INSUFFICIENT_TICKET:'뽑기권이 없습니다.',ALREADY_CLAIMED:'이미 받은 보상입니다.',ALREADY_OWNED:'이미 보유하고 있습니다.',ALL_OWNED:'대상 오라를 모두 보유했습니다. 뽑기권은 유지됩니다.',ALL_PETS_MAX:'보유한 모든 펫이 만렙입니다.',ITEM_NOT_OWNED:'현재 보유한 장비가 아닙니다.',ITEM_LOCKED_OR_EQUIPPED:'장착 또는 잠금 해제 후 이용하세요.',ITEM_IN_ESCROW:'경매장에 등록 중인 장비입니다.',PET_NOT_OWNED:'현재 보유한 펫이 아닙니다.',DUNGEON_LOCKED:'입장 횟수 또는 이전 단계 클리어를 확인하세요.',MONSTER_LOCKED:'이전 몬스터를 먼저 처치하세요.',BATTLE_IN_PROGRESS:'현재 전투를 먼저 종료하세요.',COLLECTION_INCOMPLETE:'도감 달성 수가 부족합니다.',SAVE_CONFLICT:'다른 처리가 진행 중입니다. 잠시 후 다시 시도하세요.',INVALID_ARGUMENTS:'입력값을 확인하세요.',INVALID_ENHANCEMENT:'강화·초월 조건을 확인하세요.',ECONOMY_NOT_READY:'서버 업데이트 중입니다. 잠시 후 접속하세요.'};
+  const messages={REQUEST_TOO_LARGE:'분해 요청이 너무 큽니다. 게임을 새로고침한 뒤 다시 시도해 주세요.',INSUFFICIENT_GOLD:'골드가 부족합니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',INSUFFICIENT_TRANSCENDSTONE:'초월석이 부족합니다.',INSUFFICIENT_PETSTONE:'펫 스톤이 부족합니다.',INSUFFICIENT_TICKET:'뽑기권이 없습니다.',ALREADY_CLAIMED:'이미 받은 보상입니다.',ALREADY_OWNED:'이미 보유하고 있습니다.',ALL_OWNED:'대상 오라를 모두 보유했습니다. 뽑기권은 유지됩니다.',ALL_PETS_MAX:'보유한 모든 펫이 만렙입니다.',ITEM_NOT_OWNED:'현재 보유한 장비가 아닙니다.',ITEM_LOCKED_OR_EQUIPPED:'장착 또는 잠금 해제 후 이용하세요.',ITEM_IN_ESCROW:'경매장에 등록 중인 장비입니다.',PET_NOT_OWNED:'현재 보유한 펫이 아닙니다.',DUNGEON_LOCKED:'입장 횟수 또는 이전 단계 클리어를 확인하세요.',MONSTER_LOCKED:'이전 몬스터를 먼저 처치하세요.',BATTLE_IN_PROGRESS:'현재 전투를 먼저 종료하세요.',COLLECTION_INCOMPLETE:'도감 달성 수가 부족합니다.',SAVE_CONFLICT:'다른 처리가 진행 중입니다. 잠시 후 다시 시도하세요.',INVALID_ARGUMENTS:'입력값을 확인하세요.',INVALID_ENHANCEMENT:'강화·초월 조건을 확인하세요.',ECONOMY_NOT_READY:'서버 업데이트 중입니다. 잠시 후 접속하세요.'};
   let pending=null,pendingName=null,forgeBusy=false,lastSync=0,backgroundRequested=false,lastLayout=null,lastInventory=null,lastProtection=null;
+  let desiredProtection=null,protectionTask=null;
+  const protectionValue=()=>desiredProtection??!!g.state.useProtect;
+  function paintProtection(){
+   const button=$('protectToggle');if(!button)return;
+   button.textContent='하락 방지 '+(protectionValue()?'ON':'OFF')+' · 보유 '+Number(g.state.downgradeProtect||0).toLocaleString()+'장';
+   button.setAttribute('aria-pressed',String(protectionValue()));button.style.color=protectionValue()?'#8fffc8':'#aab5c9';button.disabled=forgeBusy;
+  }
+  async function persistProtection(){
+   try{
+    while(desiredProtection!==null){
+     if(pending)await pending.catch(()=>{});
+     if(closed())break;
+     const chosen=desiredProtection;
+     const result=await command('setProtect',{enabled:chosen});
+     if(!result)break;
+     if(desiredProtection===chosen)desiredProtection=null;
+    }
+   }finally{protectionTask=null;paintProtection();}
+  }
+  window.toggleProtectUse=()=>{
+   if(forgeBusy)return f.toast('강화 결과를 확인한 뒤 하락방지를 변경하세요.');
+   if(closed()&&pendingName!=='setProtect')return;
+   desiredProtection=!protectionValue();g.state.useProtect=desiredProtection;
+   // Draw the choice immediately; a late server response cannot flip it back.
+   paintProtection();
+   if(!protectionTask)protectionTask=persistProtection();
+  };
+  const renderEnhance=f.renderEnhance;f.renderEnhance=(...args)=>{const result=renderEnhance(...args);paintProtection();return result;};
   const closed=()=>!session.active;
   function busy(value){document.body.classList.toggle('economy-pending',value);document.body.setAttribute('aria-busy',String(value));let status=$('economyRequestStatus');if(!status){status=document.createElement('div');status.id='economyRequestStatus';status.setAttribute('role','status');status.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:2147483646;background:#101a24ee;color:#edd2a1;border:1px solid #b79657;padding:10px 20px;border-radius:8px;pointer-events:none';document.body.append(status);}status.hidden=!value;status.textContent=value?'처리 중… 잠시만 기다려 주세요.':'';}
   async function command(name,args={}){
@@ -21,6 +49,7 @@
   }
   function sync(){if(document.hidden||pending||closed()||Date.now()-lastSync<800)return;lastSync=Date.now();return command('sync');}
   function paint(events=[]){
+   if(desiredProtection!==null)g.state.useProtect=desiredProtection;
    const s=g.state,c=s.serverCombat,b=s.serverBattle;
    Object.assign(g.combat,{hp:c?.hp??f.currentBoss().hp,elapsed:c?.elapsed??0});
    g.activeTower=b?.type==='tower'?{data:g.towerFloors[b.stage-1],hp:b.hp,elapsed:b.elapsed,serverEconomy:true}:null;
@@ -47,7 +76,7 @@
     }else if(e.type==='summon')window.RinguRemodel?.showServerDraw(e.items);
     else if(e.type==='petSummon')f.renderPetSummonResult(e.results);
     else if(e.type==='daily')f.toast('일일 보상 · 정수 +'+e.amount);
-    else if(e.type==='sell')f.toast(e.count+'개 판매 · 골드 +'+e.amount.toLocaleString());
+    else if(e.type==='dismantle')f.toast('장비 '+e.count.toLocaleString()+'개 분해 완료 · '+(e.essence?'정수 '+e.essence.toLocaleString()+'개 획득!':'획득한 정수 없음'));
     else if(e.type==='battleWon'||e.type==='battleLost'){f.toast(e.type==='battleWon'?'던전 클리어 · 서버에 보상을 저장했습니다.':'시간 초과 · 입장 횟수는 유지됩니다.');window.RinguAudio?.effect(e.type==='battleWon'?'success':'failure');}
     else if(e.type==='offline'&&(e.amount||e.seconds>=60)){
      $('offlineGold').textContent=e.amount?'+'+e.amount.toLocaleString()+' 골드':'처치 0회 · 보상 없음';
@@ -55,7 +84,7 @@
      if(description)description.textContent=e.version==='OFF2'?(e.monster||'선택한 몬스터')+' · '+(e.kills||0).toLocaleString()+'회 처치 · '+(e.failures||0).toLocaleString()+'회 시간 초과. 종료 시 장비와 치명타를 반영해 최대 12시간 동안 사냥한 결과입니다.':'보상은 최대 12시간까지 누적됩니다.';
      $('offlineModal').querySelector('button').textContent='확인';$('offlineModal').classList.add('show');
     }
-    else if(e.type==='kill')g.presentation.addLog('몬스터 처치 · 골드 +'+e.amount+(e.essence?' · 정수 +1':''));
+    else if(e.type==='kill')g.presentation.addLog('몬스터 처치 · 골드 +'+e.amount);
    }
   }
   window.addEventListener('ringu:economy-state',e=>paint(e.detail?.events||[]));
@@ -101,9 +130,10 @@
   f.closeDungeon=async()=>{if(g.activeDungeon?.serverRoom||g.dungeonType==='stone')return oldCloseDungeon();if(g.state.serverBattle&&!await command('cancelBattle'))return;$('dungeonModal').classList.remove('show');};
   f.closeTower=async()=>{if(g.state.serverBattle?.type==='tower'&&!await command('cancelBattle'))return;$('towerModal').classList.remove('show');};
   async function forge(trans){
+   if(protectionTask)await protectionTask;
    if(pending&&pendingName==='sync')await pending.catch(()=>{});
    if(forgeBusy||pending||closed())return false;const it=item(g.enhanceId);if(!it)return false;
-   forgeBusy=true;g.enhanceBusy=true;$('enhanceStage').className='enhance-stage forging';$('enhanceResult').textContent='서버에서 결과 확인 중…';
+   forgeBusy=true;g.enhanceBusy=true;paintProtection();$('enhanceStage').className='enhance-stage forging';$('enhanceResult').textContent='서버에서 결과 확인 중…';
    $('enhanceBtn').disabled=true;$('transcendBtn').disabled=true;f.playForgeSound?.();
    const start=performance.now(),result=await command(trans?'transcend':'enhance',trans?{id:it.id}:{id:it.id,protect:!!g.state.useProtect});
    await new Promise(resolve=>setTimeout(resolve,Math.max(0,600-(performance.now()-start))));
@@ -116,11 +146,12 @@
   f.tryEnhance=()=>forge(false);f.tryTranscend=()=>forge(true);
   const closeEnhance=f.closeEnhance;f.closeEnhance=()=>forgeBusy?f.toast('강화 결과를 확인한 뒤 닫으세요.'):closeEnhance();
   function sell(items){
-   if(!items.length)return f.toast('판매 가능한 장비가 없습니다.');
-   const ids=items.map(it=>it.id),total=items.reduce((n,it)=>n+f.sellPrice(it),0);
+   if(!items.length)return f.toast('분해 가능한 장비가 없습니다.');
+   const ids=items.map(it=>it.id);
    let modal=$('rmSellConfirm');if(!modal){modal=document.createElement('div');modal.id='rmSellConfirm';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');document.body.append(modal);}
-   modal.innerHTML='<section class="modal"><h3>🪙 판매 확인</h3><p>'+ids.length+'개 장비 · '+total.toLocaleString()+' 골드</p><p>판매한 장비는 되돌릴 수 없습니다.</p><button id="rmSellCancel">취소</button><button id="rmSellAccept">확인 · 판매하기</button></section>';
-   $('rmSellCancel').onclick=()=>modal.classList.remove('show');$('rmSellAccept').onclick=async()=>{if(pending)return;$('rmSellAccept').disabled=true;const result=await command('sell',{ids});if(result)modal.classList.remove('show');else $('rmSellAccept').disabled=false;};modal.classList.add('show');$('rmSellCancel').focus();
+   modal.setAttribute('aria-label','장비 분해 확인');
+   modal.innerHTML='<section class="modal"><h3>장비 분해</h3><p>장비 <b>'+ids.length.toLocaleString()+'개</b>를 분해합니다.</p><p>장비마다 독립적으로 <b>0.1%</b> 확률로 정수를 획득합니다.<br>일반 1 · 희귀 2 · 레어 3 · 에픽 4<br>전설 5 · 신화 6 · 타락 7개</p><p>골드는 지급되지 않습니다.<br>분해한 장비는 되돌릴 수 없습니다.</p><button id="rmSellCancel">취소</button><button id="rmSellAccept">확인 · 분해하기</button></section>';
+   $('rmSellCancel').onclick=()=>modal.classList.remove('show');$('rmSellAccept').onclick=async()=>{if(pending)return;$('rmSellAccept').disabled=true;const result=await command('dismantle',{ids});if(result)modal.classList.remove('show');else $('rmSellAccept').disabled=false;};modal.classList.add('show');$('rmSellCancel').focus();
   }
   f.sellItem=id=>{const it=item(id);if(it)return sell([it]);};
   f.bulkSell=rarity=>sell(g.state.inventory.filter(it=>it.rarity<=rarity&&!it.locked&&!Object.values(g.state.equipped).includes(it.id)));

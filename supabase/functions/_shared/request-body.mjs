@@ -18,8 +18,9 @@ export async function readEconomyRequest(request){
  }
  let body;try{body=JSON.parse(text);}catch{return {error:'INVALID_ARGUMENTS',status:400};}
  if(!body||typeof body!=='object'||Array.isArray(body))return {error:'INVALID_ARGUMENTS',status:400};
- if(body.command!=='sell'&&text.length>MAX_NORMAL_REQUEST_LENGTH)return {error:'REQUEST_TOO_LARGE',status:413};
+ const equipmentRemoval=body.command==='sell'||body.command==='dismantle';
+ if(!equipmentRemoval&&text.length>MAX_NORMAL_REQUEST_LENGTH)return {error:'REQUEST_TOO_LARGE',status:413};
  // Large bodies are useful only for a bounded ID list, not arbitrary JSON.
- if(body.command==='sell'&&(!Array.isArray(body.args?.ids)||!body.args.ids.length||body.args.ids.length>10000))return {error:'INVALID_ARGUMENTS',status:400};
+ if(equipmentRemoval&&(!Array.isArray(body.args?.ids)||!body.args.ids.length||body.args.ids.length>10000))return {error:'INVALID_ARGUMENTS',status:400};
  return {body};
 }

@@ -102,25 +102,8 @@ window.installRinguRemodel=function(g){
    s.inventory.unshift(...items);const summon=f.activeSummon();summon.exp+=count;summon.level=f.getSummonLevel(summon.exp);changed();firstReveals(items);return true;
   }catch(e){g.state=before;changed();f.toast('소환을 완료하지 못했습니다. 재화와 장비를 복구했습니다.');return false;}
  };
- // A confirmation owns only the displayed snapshot, never items looted afterwards.
- f.bulkSell=maxRarity=>{
-  if(operation||!active())return false;
-  const owner=state(),items=owner.inventory.filter(it=>it.rarity<=maxRarity&&!it.locked&&!f.isItemEquipped(it));
-  if(!items.length)return f.toast('판매 가능한 장비가 없습니다.'),false;
-  const quote=items.map(it=>({id:String(it.id),price:f.sellPrice(it)})),total=quote.reduce((n,it)=>n+it.price,0);
-  let modal=$('rmSellConfirm');if(!modal){modal=document.createElement('div');modal.id='rmSellConfirm';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','일괄 판매 확인');document.body.append(modal);}
-  modal.innerHTML='<section class="modal"><h3>🪙 일괄 판매 확인</h3><p><b>'+quote.length+'개</b>의 장비를 판매하고 <b>'+fmt(total)+' 골드</b>를 받습니다.</p><p>장착 중이거나 잠긴 장비는 제외됩니다.<br>판매한 장비는 되돌릴 수 없습니다.</p><button id="rmSellCancel">취소</button> <button class="primary" id="rmSellAccept">확인 · 판매하기</button></section>';
-  $('rmSellCancel').onclick=()=>modal.classList.remove('show');
-  $('rmSellAccept').onclick=()=>{
-   if(!modal.classList.contains('show'))return;
-   modal.classList.remove('show');
-   if(!active()||operation||state()!==owner)return;
-   const valid=quote.every(q=>{const it=owner.inventory.find(it=>String(it.id)===q.id);return it&&!it.locked&&!f.isItemEquipped(it)&&f.sellPrice(it)===q.price;});
-   if(!valid)return f.toast('장비 상태가 변경되었습니다. 판매 목록을 다시 확인하세요.');
-   const ids=new Set(quote.map(q=>q.id));owner.inventory=owner.inventory.filter(it=>!ids.has(String(it.id)));owner.gold+=total;changed();f.toast(quote.length+'개 판매 · +'+fmt(total)+' 골드');
-  };
-  modal.classList.add('show');$('rmSellCancel').focus();return false;
- };
+ // Server economy installs atomic dismantling after core initialization.
+ f.bulkSell=()=>f.toast('서버 연결 후 장비 분해를 이용해 주세요.');
  window.openTips=()=>{
   const labels={atkPercent:'공격력',critChance:'치명타 확률',critDamage:'치명타 피해',goldBonus:'골드 획득량'};
   const rows=g.slots.map(slot=>'<tr><th>'+esc(slot)+'</th>'+g.rarityNames.map((name,rarity)=>{const sample={slot,rarity,transcend:0,optionRolls:[.8,.8]},lo=f.subOptions(sample),hi=f.subOptions({...sample,optionRolls:[1.201,1.201]});return '<td>'+lo.map(([key,value],i)=>esc(labels[key])+'<br>'+value+'~'+hi[i][1]+'%').join('<br>')+'</td>';}).join('')+'</tr>').join('');
@@ -154,7 +137,7 @@ window.installRinguRemodel=function(g){
   art.ready.then(()=>requestAnimationFrame(draw));
  }
  function setupMenuIcons(){
-  const rules=[[/^(무기)/,'⚔️'],[/^(방어구|갑옷|장착 장비)/,'🛡️'],[/^(장신구|반지|귀걸이)/,'💍'],[/^(소환|장비 소환|\d+회 소환)/,'🔮'],[/^(인벤토리|가방|장비$)/,'🎒'],[/^(일일 보상)/,'🎁'],[/^(특수 던전)/,'🌀'],[/^(시련의 탑)/,'🏰'],[/^(상점)/,'🛒'],[/^(장비 도감|도감)/,'📚'],[/^(팁|게임 가이드)/,'💡'],[/^(펫)/,'🐾'],[/^(랭킹)/,'🏆'],[/^(설정)/,'⚙️'],[/^(일괄|.*이하 판매)/,'🪙'],[/^(최적 장착)/,'✨'],[/^(자동사냥|사냥)/,'⚔️'],[/^(우편)/,'📬']];
+  const rules=[[/^(무기)/,'⚔️'],[/^(방어구|갑옷|장착 장비)/,'🛡️'],[/^(장신구|반지|귀걸이)/,'💍'],[/^(소환|장비 소환|\d+회 소환)/,'🔮'],[/^(인벤토리|가방|장비$)/,'🎒'],[/^(일일 보상)/,'🎁'],[/^(특수 던전)/,'🌀'],[/^(시련의 탑)/,'🏰'],[/^(상점)/,'🛒'],[/^(장비 도감|도감)/,'📚'],[/^(팁|게임 가이드)/,'💡'],[/^(펫)/,'🐾'],[/^(랭킹)/,'🏆'],[/^(설정)/,'⚙️'],[/^(일괄|.*이하 분해)/,'🪙'],[/^(최적 장착)/,'✨'],[/^(자동사냥|사냥)/,'⚔️'],[/^(우편)/,'📬']];
   const decorate=root=>{const nodes=[...(root.matches?.('button,.panel-title')?[root]:[]),...root.querySelectorAll('button,.panel-title')];nodes.forEach(el=>{if(el.querySelector('canvas,.rm-item-art,.rm-monster-icon')||el.closest('.rm-bottom-nav'))return;const text=el.textContent.trim();const rule=rules.find(([re])=>re.test(text));if(rule&&el.dataset.uiIcon!==rule[1])el.dataset.uiIcon=rule[1];});root.querySelectorAll('.rm-bottom-nav button').forEach(el=>{const icon={hunt:'⚔️',character:'🧙',summon:'🔮',inventory:'🎒',menu:'🧭'}[el.dataset.target];if(icon&&el.querySelector('span').textContent!==icon)el.querySelector('span').textContent=icon;});};
   let queued=false;const roots=new Set();const observer=new MutationObserver(records=>{for(const record of records){const el=record.target.nodeType===1?record.target:record.target.parentElement;const control=el?.closest('button,.panel-title');if(control)roots.add(control);const added=[...record.addedNodes].filter(node=>node.nodeType===1);if(added.length>8&&el)roots.add(el);else for(const node of added)roots.add(node);}if(queued||!roots.size)return;queued=true;requestAnimationFrame(()=>{queued=false;const batch=[...roots];roots.clear();for(const root of batch)if(root.isConnected&&!batch.some(other=>other!==root&&other.contains(root)))decorate(root);});});observer.observe(document.body,{childList:true,subtree:true,characterData:true});decorate(document);window.RinguSession.onEnded?.(()=>{observer.disconnect();roots.clear();});
  }

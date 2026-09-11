@@ -33,9 +33,9 @@ try{
  const saleResult=execute(saleSnap.state,'sell',{ids},{...saleSnap,random:()=>.5,uuid:randomUUID});
  const sellCommit=()=>db.query('select public.ringu_economy_commit($1,$2,$3,$4,$5,$6,$7)',[u,sid,saleSnap.revision,saleNonce,JSON.stringify({command:'sell',args:{ids}}),JSON.stringify(saleResult.state),JSON.stringify({events:saleResult.events})]);
  await sellCommit();await sellCommit();const paid=(await snapshot()).state;
- assert.equal(paid.gold,saleSnap.state.gold+gain);assert.deepEqual(paid.inventory,saleSnap.state.inventory.slice(0,2));
+ assert.equal(paid.gold,saleSnap.state.gold);assert.deepEqual(paid.inventory,saleSnap.state.inventory.slice(0,2));
  assert.equal((await db.query('select count(*)::int n from ringu_private.auction_items where id=any($1::bigint[]) and owner_id is null',[ids])).rows[0].n,1135);
- console.log('PASS SG1 actual SQL: 1,137-item inventory, 1,135-item atomic sale, protected equipment retained, exact credit once and every sold item tombstoned.');
+ console.log('PASS SG1 actual SQL: 1,137-item inventory, 1,135-item atomic dismantle, protected equipment retained, zero gold and every removed item tombstoned.');
  await db.exec('update ringu_private.auction_release set economy_ready=false');await assert.rejects(()=>db.query('select public.ringu_save_costume($1,$2,0)',[JSON.stringify(latest.state),latest.revision]),/CLIENT_UPDATE_REQUIRED/);
  console.log('Economy gateway: private commit permissions, enrollment, receipt replay, fingerprint mismatch, stale CAS and disabled-release legacy-save rejection passed.');
 }finally{await db.close();}

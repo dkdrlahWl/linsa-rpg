@@ -9,6 +9,7 @@ globalThis.fetch=async(url,init)=>{
  if(url.endsWith('/auth/v1/user'))return Response.json({id:user});
  const args=JSON.parse(init.body),name=url.split('/').at(-1);
  if(name==='ringu_economy_snapshot'){snapshots++;return Response.json({state,revision,now:Date.now(),ready:true,enrolled:true,accountId:user,sessionId:sid,itemIds:[],adminFloor:0,costumePercent:0,receipt:receipts.get(args.p_request_id)?.result});}
+ if(name==='ringu_daily_boss')return Response.json({now:Date.now(),remaining:3,total:0,ranking:[]});
  if(name==='ringu_economy_commit'){
   const old=receipts.get(args.p_request_id);if(old){assert.deepEqual(args.p_fingerprint,old.fingerprint);return Response.json({result:old.result});}
   assert.equal(args.p_revision,revision);assert.equal(init.headers.apikey,'fixture-secret');state=args.p_state;revision++;commits++;receipts.set(args.p_request_id,{fingerprint:args.p_fingerprint,result:args.p_result});
@@ -17,9 +18,9 @@ globalThis.fetch=async(url,init)=>{
  throw Error('Unexpected RPC');
 };
 await import('../supabase/functions/ringu-economy/index.ts');
-const req=(args,command='sell',requestId=randomUUID(),tail='')=>new Request('https://sg1.invalid',{method:'POST',headers:{Authorization:'Bearer fixture',Origin:'https://dkdrlahwl.github.io'},body:JSON.stringify({command,args,requestId})+tail});
-test('1,137 and 10,000 long IDs exceed old 16k cap but now sell atomically at exact server prices',async()=>{
- for(const n of [1137,10000]){const ids=seed(n),gain=state.inventory.reduce((sum,it)=>sum+balance.sellPrices[it.rarity][it.enhance],0);const r=req({ids});assert.ok((await r.clone().text()).length>16000);const response=await handler(r);assert.equal(response.status,200);const result=await response.json();assert.equal(result.state.inventory.length,0);assert.equal(result.state.gold,100000+gain);assert.equal(commits,1);assert.equal(result.result.events.find(e=>e.type==='sell').count,n);}
+const req=(args,command='dismantle',requestId=randomUUID(),tail='')=>new Request('https://sg1.invalid',{method:'POST',headers:{Authorization:'Bearer fixture',Origin:'https://dkdrlahwl.github.io'},body:JSON.stringify({command,args,requestId})+tail});
+test('1,137 and 10,000 long IDs exceed old 16k cap but now dismantle atomically without gold',async()=>{
+ for(const n of [1137,10000]){const ids=seed(n),gain=state.inventory.reduce((sum,it)=>sum+balance.sellPrices[it.rarity][it.enhance],0);const r=req({ids});assert.ok((await r.clone().text()).length>16000);const response=await handler(r);assert.equal(response.status,200);const result=await response.json();assert.equal(result.state.inventory.length,0);assert.equal(result.state.gold,100000);assert.equal(commits,1);assert.equal(result.result.events.find(e=>e.type==='dismantle').count,n);}
 });
 test('locked/equipped/foreign/duplicate/unsafe IDs reject without selling any item',async()=>{
  for(const mode of ['locked','equipped','foreign','duplicate','unsafe']){let ids=seed(1137);if(mode==='locked')state.inventory[1000].locked=true;if(mode==='equipped')state.equipped['무기']=ids[1000];if(mode==='foreign')ids[1000]=123;if(mode==='duplicate')ids[1000]=ids[0];if(mode==='unsafe')ids[1000]=Number.MAX_SAFE_INTEGER+1;const before=structuredClone(state),r=await handler(req({ids}));assert.equal(r.status,400,mode);assert.equal(commits,0);assert.deepEqual(state,before);}

@@ -378,7 +378,7 @@
       write(KEY,JSON.stringify(latest));if(durable)remove(key);
       if(window.RinguCore)RinguCore.state=structuredClone(latest);
       if(kind==='costume')window.dispatchEvent(new CustomEvent('ringu:costume-transaction',{detail:{delta:0,result}}));
-      window.dispatchEvent(new CustomEvent('ringu:economy-state',{detail:{events:result.result?.events||[]}}));
+      window.dispatchEvent(new CustomEvent('ringu:economy-state',{detail:{events:result.result?.events||[],dailyBoss:result.result?.dailyBoss}}));
       return result;
     })().catch(e=>{
       if(e.definitive){remove(scoped('server-request'));if(e.status===401||e.status===403)end('로그인이 종료되었습니다. 다시 로그인해 주세요.');}

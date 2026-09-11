@@ -43,7 +43,8 @@ export function execute(snapshot,command,args,context){
  const freshId=()=>{const id=context.itemIds.shift();int(id,1);if(s.inventory.some(x=>x.id===id))fail('ITEM_ID_COLLISION');return id;};
  const addItem=template=>{const id=freshId(),it={...template,id,auctionUid:context.uuid(),enhance:template.enhance||0,transcend:template.transcend||0};s.discovered??={};it.isNew=!s.discovered[itemKey(it)];s.discovered[itemKey(it)]=true;s.inventory.unshift(it);s.uid=Math.max(s.uid||1,id+1);return it;};
  if(!args||typeof args!=='object'||Array.isArray(args))fail('INVALID_ARGUMENTS');
- const allowed={sync:[],background:[],daily:[],summon:['group','count'],enhance:['id','protect'],transcend:['id'],equip:['id'],equipBest:[],unequip:['slot'],lock:['id','locked'],sell:['ids'],auraBuy:['id'],auraEquip:['id'],auraTicket:[],consumable:['type'],collection:['count'],mail:['id'],select:['region','boss'],auto:['enabled'],startDungeon:['type','stage'],cancelBattle:[],petSummon:['count'],petEquip:['uid'],petLock:['uid','locked'],petSell:['uid'],petCollection:['count']};
+ const allowed={sync:[],background:[],daily:[],summon:['group','count'],enhance:['id','protect'],transcend:['id'],equip:['id'],equipBest:[],unequip:['slot'],lock:['id','locked'],dismantle:['ids'],sell:['ids'],auraBuy:['id'],auraEquip:['id'],auraTicket:[],consumable:['type'],collection:['count'],mail:['id'],select:['region','boss'],auto:['enabled'],startDungeon:['type','stage'],cancelBattle:[],petSummon:['count'],petEquip:['uid'],petLock:['uid','locked'],petSell:['uid'],petCollection:['count']};
+ allowed.setProtect=['enabled'];
  if(!allowed[command]||Object.keys(args).some(k=>!allowed[command].includes(k)))fail('INVALID_ARGUMENTS');
  for(const key of ['gold','essence','transcendStone','downgradeProtect','dungeonTickets','petStone','petTicket'])s[key]=int(s[key]||0);
  if(context.adminFloor>0){
@@ -98,7 +99,7 @@ export function execute(snapshot,command,args,context){
    s.serverCombat??={hp:current.hp,elapsed:0,lastTick:s.serverClock??now};const combat=s.serverCombat,due=Math.min(60,Math.floor((now-combat.lastTick)/1000));
    for(let i=0;i<due;i++){
     const crit=random()*100<power.critChance,damage=Math.floor(power.attack*(crit?1+power.critDamage/100:1));combat.hp=Math.max(0,combat.hp-damage);combat.elapsed++;combat.lastTick+=1000;events.push({type:'hit',target:'field',damage,crit});
-    if(combat.hp===0){const amount=Math.floor(current.reward*(1+power.goldBonus/100));award('gold',amount);const essence=random()<.01?1:0;if(essence)award('essence',1);if(step===s.monsterUnlockStep&&step<bosses.length-1)s.monsterUnlockStep++;events.push({type:'kill',amount,essence});combat.hp=current.hp;combat.elapsed=0;}
+    if(combat.hp===0){const amount=Math.floor(current.reward*(1+power.goldBonus/100));award('gold',amount);if(step===s.monsterUnlockStep&&step<bosses.length-1)s.monsterUnlockStep++;events.push({type:'kill',amount});combat.hp=current.hp;combat.elapsed=0;}
     else if(combat.elapsed>=15){combat.hp=current.hp;combat.elapsed=0;events.push({type:'fieldRetry'});}
    }
   }
@@ -107,7 +108,9 @@ export function execute(snapshot,command,args,context){
  s.serverClock=now;
  s.serverBackgroundAt=command==='background'?now:null;
  pets.normalize(s,balance.pets);
- if(command==='petSummon'){
+ if(command==='setProtect'){
+  if(typeof args.enabled!=='boolean')fail('INVALID_ARGUMENTS');s.useProtect=args.enabled;
+ }else if(command==='petSummon'){
   if(![1,10].includes(args.count))fail('INVALID_ARGUMENTS');if(s.petStone<args.count*10)fail('INSUFFICIENT_PETSTONE');
   if(!pets.pool(s,balance.pets).length)fail('ALL_PETS_MAX');
   const results=[];for(let i=0;i<args.count;i++){const roll=pets.pick(pets.pool(s,balance.pets),random);if(!roll)break;const added=pets.add(s,balance.pets,roll.petId);spend('petStone',10);s.petSummonExp=(s.petSummonExp||0)+1;results.push({type:'pet',petId:roll.petId,uid:added.pet.uid,previousLevel:added.previousLevel,level:added.pet.level,copies:added.pet.copies});}events.push({type:'petSummon',results});
@@ -135,9 +138,12 @@ export function execute(snapshot,command,args,context){
   const it=gear(args.id),trans=command==='transcend',next=trans?(it.transcend||0)+1:it.enhance+1;
   if(trans?(it.rarity<4||it.enhance!==15||next>3):next>15)fail('INVALID_ENHANCEMENT');
   if(args.protect!==undefined&&typeof args.protect!=='boolean')fail('INVALID_ARGUMENTS');
+  // Persist the same explicit choice used by this attempt. The reply must not
+  // replace the button with an older preference from a previous save/sync.
+  if(!trans)s.useProtect=args.protect??s.useProtect;
   spend(trans?'transcendStone':'gold',trans?balance.transcendCosts[it.rarity][next-1]:balance.enhanceCosts[it.rarity][next-1]);
   const success=random()*100<(trans?balance.transcendRates[next-1]:balance.enhanceRates[next-1]);let protectedFailure=false;
-  if(success)it[trans?'transcend':'enhance']=next;else if(!trans&&next>=2){if(args.protect&&s.downgradeProtect>0){spend('downgradeProtect',1);protectedFailure=true;}else it.enhance--;}
+  if(success)it[trans?'transcend':'enhance']=next;else if(!trans&&next>=2){if(s.useProtect&&s.downgradeProtect>0){spend('downgradeProtect',1);protectedFailure=true;}else it.enhance--;}
   events.push({type:command,item:it,success,protectedFailure});
  }else if(command==='equip'){
   const it=gear(args.id);s.equipped[it.slot]=it.id;
@@ -147,13 +153,18 @@ export function execute(snapshot,command,args,context){
   if(!balance.slots.includes(args.slot))fail('INVALID_ARGUMENTS');delete s.equipped[args.slot];
  }else if(command==='lock'){
   if(typeof args.locked!=='boolean')fail('INVALID_ARGUMENTS');gear(args.id).locked=args.locked;
- }else if(command==='sell'){
+ }else if(command==='sell'||command==='dismantle'){
   if(!Array.isArray(args.ids)||!args.ids.length||args.ids.length>10000||new Set(args.ids).size!==args.ids.length)fail('INVALID_ARGUMENTS');
   // SG1: one linear inventory scan instead of a scan for every sale ID.
   const owned=new Map(s.inventory.map(it=>[it.id,it]));
   const items=args.ids.map(id=>{int(id,1);const it=owned.get(id);if(!it)fail('ITEM_NOT_OWNED');return it;});
   for(const it of items)if(it.locked||equipped(s,it))fail('ITEM_LOCKED_OR_EQUIPPED');
-  const price=items.reduce((n,it)=>safeAdd(n,balance.sellPrices[it.rarity][it.enhance||0]),0),ids=new Set(args.ids);s.inventory=s.inventory.filter(it=>!ids.has(it.id));award('gold',price);events.push({type:'sell',count:items.length,amount:price});
+  // The legacy command is an alias, never a way to recover the old gold payout.
+  // Production supplies an unbiased integer RNG; one independent draw per item.
+  let essence=0;
+  for(const it of items){int(it.rarity,0,6);const roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000);if(roll===0)essence=safeAdd(essence,it.rarity+1);}
+  const ids=new Set(args.ids);s.inventory=s.inventory.filter(it=>!ids.has(it.id));
+  if(essence)award('essence',essence);events.push({type:'dismantle',count:items.length,essence});
  }else if(command==='auraBuy'){
   const id=int(args.id,0,balance.auras.length-1);if(s.ownedAuras.includes(id))fail('ALREADY_OWNED');spend('essence',balance.auras[id].price);s.ownedAuras.push(id);
  }else if(command==='auraEquip'){
