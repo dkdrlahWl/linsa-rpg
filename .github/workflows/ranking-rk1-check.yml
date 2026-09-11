@@ -32,6 +32,7 @@ jobs:
           s+='try{\n'+Path('test/ranking-ui-acceptance.txt').read_text()+"\n}catch(e){if(activePage){console.log('RK1_DIAGNOSTIC',errors,unexpected,await activePage.locator('body').innerText().then(s=>s.slice(-1800)));await activePage.screenshot({path:new URL('failure.png',out).pathname}).catch(()=>{});}throw e;}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}\n"
           Path('test/ranking-ui.test.mjs').write_text(s)
           PY
+          python3 maintenance/ranking-rk1-polish.py
           npm install --ignore-scripts --no-audit --no-fund --package-lock=false
           sudo timeout 60s apt-get install -y --no-install-recommends fonts-noto-cjk
       - name: Source and existing behavior regressions
@@ -41,11 +42,11 @@ jobs:
           node --test test/economy.test.mjs test/tower-hp-restored.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/login-inventory.test.mjs test/login-recovery.test.mjs
       - name: Real browser ranking tabs, identity mapping, mobile scrolling and controls
         run: QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/ranking-ui.test.mjs
-      - name: Commit tested page wiring to the isolated branch only
+      - name: Commit tested files to the isolated branch only
         run: |
           test "$(git branch --show-current)" = 'fix/ranking-RK1-20260911'
-          git rm -- .github/workflows/ranking-rk1-check.yml test/ranking-ui-acceptance.txt
-          git add -- index.html test/ranking-ui.test.mjs
+          git rm -- .github/workflows/ranking-rk1-check.yml test/ranking-ui-acceptance.txt maintenance/ranking-rk1-polish.py
+          git add -- index.html ranking-ui.js ranking-ui.css RANKING-UI-RK1.md test/ranking-ui.test.mjs
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: verified gold-navy attack and tower ranking UI with live profiles'
           git push origin HEAD:refs/heads/fix/ranking-RK1-20260911
           git rev-parse HEAD
