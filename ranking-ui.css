@@ -121,3 +121,17 @@ body[data-remodel] #profileModal.rk-ready.show{padding:10px!important;padding-to
  #profileModal.rk-ready .rk-my-rank{min-height:44px!important}
 }
 @media(prefers-reduced-motion:reduce){#profileModal.rk-ready *,#profileModal.rk-ready *::before,#profileModal.rk-ready *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Final spacing: more visible rows, no laurel/number overlap, reachable footer. */
+#profileModal.rk-ready .rk-footer{display:grid;grid-template-columns:minmax(0,1fr) 76px;gap:6px 9px;align-items:center}
+#profileModal.rk-ready #rkMyRank{min-height:44px!important;min-width:0}
+#profileModal.rk-ready #rankingNote{grid-column:1/-1;order:2;margin:2px 0 0!important}
+#profileModal.rk-ready .rk-watermark{opacity:.035;right:23%;top:0}
+#profileModal.rk-ready .rk-watermark>.rk-icon{width:90px;height:82px}
+#profileModal.rk-ready .rk-rank{font-size:30px;position:relative}
+@media(max-width:600px){
+ #profileModal.rk-ready .rk-rank{font-size:26px}
+ #profileModal.rk-ready .rk-name{font-size:16px}
+ #profileModal.rk-ready button.rk-row{min-height:71px}
+ #profileModal.rk-ready .rk-rule{height:10px;margin:5px 0 8px}
+}
