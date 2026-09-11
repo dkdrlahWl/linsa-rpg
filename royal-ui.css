@@ -122,3 +122,11 @@ body[data-remodel] #rmCurrencyStats .stat-value{white-space:normal!important;ove
 .rm-equipped-slot em{white-space:normal}
 
 @media(max-width:380px){#ringuAuction .auction-card .auction-attack,#ringuAuction .auction-card .auction-attack b{font-size:11px!important}#ringuAuction .auction-card .auction-attack .item-stat-range{font-size:.76em!important}#ringuAuction .auction-card .auction-options{font-size:11px!important}}
+
+/* RG2: match the black market option tint; preserve all reference ranges. */
+#inventoryList .item-option-line,#ringuAuction .item-option-line{color:#d1bd93!important}
+@media(max-width:1099px){
+ #inventoryList .sub-options .item-option-line{font-size:10px!important}
+ #inventoryList .sub-options .item-stat-range{font-size:9.84px!important}
+}
+@media(max-width:1099px){#inventoryList .item>.gear-row{flex:1 1 0;min-width:0}#inventoryList .item>.gear-row>.item-info{flex:1;min-width:0}}
