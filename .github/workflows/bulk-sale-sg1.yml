@@ -1,0 +1,39 @@
+name: Validate bulk selling and Korean gold SG1
+on:
+  push:
+    branches: [fix/bulk-sale-gold-SG1-20260911]
+    paths: [.github/workflows/bulk-sale-sg1.yml, maintenance/build-sg1.py, test/bulk-sale-request.test.mjs]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Prepare bounded patch and pinned QA
+        run: |
+          python3 maintenance/build-sg1.py
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          sudo timeout 60s apt-get install -y --no-install-recommends fonts-noto-cjk
+      - name: Actual Edge handler and isolated SQL regressions
+        run: |
+          node --check economy-client.js
+          node --experimental-strip-types --test test/bulk-sale-request.test.mjs test/economy.test.mjs test/economy-edge.test.mjs test/economy-db.test.mjs test/tower-hp-restored.test.mjs test/auction-db.test.mjs test/black-market-db.test.mjs test/login-inventory.test.mjs test/login-recovery.test.mjs
+      - name: Verify five mobile bulk-sale buttons and gold display
+        run: QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/bulk-sale-gold-browser.test.mjs
+      - name: Commit only validated files to the isolated branch
+        run: |
+          test "$(git branch --show-current)" = 'fix/bulk-sale-gold-SG1-20260911'
+          git rm -- .github/workflows/bulk-sale-sg1.yml maintenance/build-sg1.py
+          git add -- index.html economy-client.js remodel.css supabase/functions/_shared/economy.mjs supabase/functions/ringu-economy/index.ts test/economy-db.test.mjs test/bulk-sale-gold-browser.test.mjs
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: bulk sell large inventories atomically and format mobile gold from ten million'
+          git push origin HEAD:refs/heads/fix/bulk-sale-gold-SG1-20260911
+          git rev-parse HEAD
+          sha256sum index.html economy-client.js remodel.css supabase/functions/ringu-economy/index.ts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: bulk-sale-SG1-QA
+          path: test-output/SG1/
+          retention-days: 1
