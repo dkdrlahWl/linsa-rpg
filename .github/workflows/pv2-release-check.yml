@@ -1,0 +1,47 @@
+name: Validate premium mobile PV2
+on:
+  push:
+    branches: [fix/premium-mobile-PV2-20260911]
+    paths: [.github/workflows/pv2-release-check.yml, maintenance/pv2-build.py, premium-ui-v2.js, premium-ui-v2.css]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Apply bounded wiring and source patches
+        run: |
+          python3 maintenance/pv2-build.py
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+      - name: Syntax and gameplay regressions
+        run: |
+          node --check premium-ui-v2.js
+          node --check auction.js
+          node --test test/economy.test.mjs test/tower-hp-restored.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/login-inventory.test.mjs test/login-recovery.test.mjs test/auction-db.test.mjs test/black-market-db.test.mjs
+      - name: Verify requested presentation contracts
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';
+          const js=fs.readFileSync('premium-ui-v2.js','utf8'),css=fs.readFileSync('premium-ui-v2.css','utf8'),idx=fs.readFileSync('index.html','utf8'),auction=fs.readFileSync('auction.js','utf8');
+          assert.ok(idx.includes('premium-ui-v2.js?v=PV2')&&idx.includes('premium-ui-v2.css?v=PV2'));
+          for(const label of ['메인 카테고리','캐릭터','장비','소환','가방','경매장','암시장','랭킹','사냥'])assert.ok(js.includes(label),label);
+          assert.ok(js.includes("data-target=\"home\"")||js.includes("['home','메인'"));
+          assert.ok(css.includes('grid-template-columns:repeat(3,minmax(0,1fr))')&&css.includes('grid-template-rows:repeat(2,56px)'));
+          assert.ok(css.includes('button.rk-row{min-height:50px')&&css.includes('#rankList'));
+          assert.ok(auction.includes('RinguHUD.priceHTML(r.price)')&&auction.includes("'보유 '+RinguHUD.priceHTML"));
+          assert.ok(js.includes("text.includes('초월석')")&&js.includes("text.includes('하락방지권')"));
+          assert.ok(js.includes('pv-material-stone')&&js.includes('pv-material-protect'));
+          assert.ok(css.includes('.header-actions button[data-ui-icon]::before'));
+          console.log('PASS PV2 source contracts: mobile HUD 3x2, separate home/hunt, functional category routing, 5-row ranking target, shared essence icon pricing, material art, duplicate header icon suppression.');
+          JS
+      - name: Commit validated release to isolated branch
+        run: |
+          test "$(git branch --show-current)" = 'fix/premium-mobile-PV2-20260911'
+          git rm -- .github/workflows/pv2-release-check.yml maintenance/pv2-build.py
+          git add -- index.html auction.js premium-ui-v2.js premium-ui-v2.css
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: mobile main lobby, separate hunt, compact ranking and unified essence pricing'
+          git push origin HEAD:refs/heads/fix/premium-mobile-PV2-20260911
+          git rev-parse HEAD
+          sha256sum index.html auction.js premium-ui-v2.js premium-ui-v2.css
