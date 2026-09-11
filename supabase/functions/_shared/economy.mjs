@@ -59,8 +59,26 @@ export function execute(snapshot,command,args,context){
  const paused=!!context.partyBusy;
  const elapsed=Math.max(0,Math.min(43200000,now-(s.serverClock??s.lastSeen??now)));
  if(!paused&&(elapsed>=60000||(s.serverBackgroundAt!=null&&elapsed>=1000))&&s.autoBattle&&!s.serverBattle){
-  const farm=balance.bossRegions.filter(r=>!r.locked).flatMap(r=>r.bosses).filter(b=>power.attack*15>=b.hp).sort((a,b)=>b.reward-a.reward)[0];
-  if(farm){const cycle=Math.max(1,Math.min(15,Math.ceil(farm.hp/Math.max(1,power.attack)))),amount=Math.floor(Math.floor(elapsed/1000/cycle)*farm.reward*(1+power.goldBonus/100));award('gold',amount);events.push({type:'offline',amount});}s.serverCombat=null;
+  // OFF2: settle only the selected, unlocked monster with the pre-command
+  // equipment. One server roll per second, exactly the online 15-hit deadline.
+  // Keep partial fights and fractional seconds; never substitute another boss.
+  if(current&&!balance.bossRegions[s.regionIndex].locked&&step<=(s.monsterUnlockStep||0)){
+   s.serverCombat??={hp:current.hp,elapsed:0,lastTick:s.serverClock??s.lastSeen??now};
+   const combat=s.serverCombat,start=Math.max(combat.lastTick,now-43200000),ticks=Math.max(0,Math.floor((now-start)/1000));
+   let kills=0,failures=0;
+   for(let i=0;i<ticks;i++){
+    const crit=power.critChance>0&&random()*100<power.critChance;
+    const damage=Math.floor(power.attack*(crit?1+power.critDamage/100:1));
+    combat.hp=Math.max(0,combat.hp-damage);combat.elapsed++;
+    if(combat.hp===0){kills++;combat.hp=current.hp;combat.elapsed=0;}
+    else if(combat.elapsed>=15){failures++;combat.hp=current.hp;combat.elapsed=0;}
+   }
+   combat.lastTick=start+ticks*1000;
+   const amount=kills*Math.floor(current.reward*(1+power.goldBonus/100));
+   if(amount)award('gold',amount);
+   if(kills&&step===s.monsterUnlockStep&&step<bosses.length-1)s.monsterUnlockStep++;
+   events.push({type:'offline',amount,kills,failures,monster:current.name,seconds:ticks,version:'OFF2'});
+  }else{s.serverCombat=null;events.push({type:'offline',amount:0,kills:0,failures:0,version:'OFF2'});}
  }else if(!paused){
   const special=s.serverBattle;
   if(special){

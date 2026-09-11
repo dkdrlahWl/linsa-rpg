@@ -48,7 +48,12 @@
     else if(e.type==='daily')f.toast('일일 보상 · 정수 +'+e.amount);
     else if(e.type==='sell')f.toast(e.count+'개 판매 · 골드 +'+e.amount.toLocaleString());
     else if(e.type==='battleWon'||e.type==='battleLost'){f.toast(e.type==='battleWon'?'던전 클리어 · 서버에 보상을 저장했습니다.':'시간 초과 · 입장 횟수는 유지됩니다.');window.RinguAudio?.effect(e.type==='battleWon'?'success':'failure');}
-    else if(e.type==='offline'&&e.amount){$('offlineGold').textContent='+'+e.amount.toLocaleString()+' 골드';$('offlineModal').classList.add('show');}
+    else if(e.type==='offline'&&(e.amount||e.seconds>=60)){
+     $('offlineGold').textContent=e.amount?'+'+e.amount.toLocaleString()+' 골드':'처치 0회 · 보상 없음';
+     const description=$('offlineModal').querySelector('p:not(.offline-gold)');
+     if(description)description.textContent=e.version==='OFF2'?(e.monster||'선택한 몬스터')+' · '+(e.kills||0).toLocaleString()+'회 처치 · '+(e.failures||0).toLocaleString()+'회 시간 초과. 종료 시 장비와 치명타를 반영해 최대 12시간 동안 사냥한 결과입니다.':'보상은 최대 12시간까지 누적됩니다.';
+     $('offlineModal').querySelector('button').textContent='확인';$('offlineModal').classList.add('show');
+    }
     else if(e.type==='kill')g.presentation.addLog('몬스터 처치 · 골드 +'+e.amount+(e.essence?' · 정수 +1':''));
    }
   }

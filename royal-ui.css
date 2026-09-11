@@ -78,3 +78,36 @@ body[data-remodel] #rmCurrencyStats .stat-value{white-space:normal!important;ove
 @media(max-height:720px){#ringuAuction .auction-header{padding:6px 10px!important}#ringuAuction .auction-footer{padding:4px 10px!important}#ringuAuction #auctionListingCount{font-size:12px!important;line-height:16px!important;margin:2px 0!important}#ringuAuction #auctionMessage{line-height:14px!important}}
 
 @media(min-width:1100px){body[data-remodel] .rm-bottom-nav{top:176px!important}body[data-remodel] .rm-sidebar{top:385px!important}body[data-remodel] .layout>.panel{scroll-margin-top:176px!important}}
+/* HUNT3: preserve the artwork while giving the fight most of the mobile viewport. */
+@media(max-width:1099px){
+ body[data-remodel] .topbar{height:calc(152px + env(safe-area-inset-top))!important;padding:calc(5px + env(safe-area-inset-top)) 8px 6px!important;grid-template-rows:44px 88px!important;gap:5px!important}
+ body[data-remodel] .brand{font-size:24px!important;letter-spacing:2px!important}
+ body[data-remodel] .brand small{font-size:7px!important;margin-top:0}
+ body[data-remodel] .header-actions button{width:46px!important;height:44px!important;padding:2px!important;gap:0!important;font-size:12px!important}
+ .ru-action-art{width:27px;height:27px}
+ body[data-remodel] .topbar #rmCurrencyStats{height:88px!important;grid-template-rows:repeat(2,42px)!important;grid-auto-rows:42px!important;gap:4px!important}
+ body[data-remodel] #rmCurrencyStats .stat{padding:3px 4px 3px 31px!important;border-radius:5px 2px!important}
+ body[data-remodel] #rmCurrencyStats .stat-label{font-size:11px!important;line-height:14px!important}
+ .ru-stat-art{left:3px;width:26px;height:34px}
+ body[data-remodel] #rmCurrencyStats .ringu-stat-icon{left:3px;top:10px;width:25px;font-size:22px}
+ body[data-remodel] main.app{padding-top:calc(160px + env(safe-area-inset-top))!important}
+ body[data-remodel] .layout{gap:8px!important}
+ body[data-remodel] .boss-panel .region-tabs{padding:2px 4px 0!important}
+ body[data-remodel] .boss-panel .region-tab{min-height:34px!important;padding:5px 2px!important;font-size:12px!important}
+ body[data-remodel] .boss-list{padding:5px!important;gap:5px!important}
+ body[data-remodel] .boss-list .boss-btn{padding:4px 3px!important;min-width:88px!important}
+ body[data-remodel] .boss-list .rm-monster-icon{width:31px!important;height:29px!important;margin:0 auto 2px!important}
+ body[data-remodel] .boss-list .boss-btn strong{font-size:11px!important;line-height:15px!important}
+ body[data-remodel] .boss-list .boss-btn>span:last-child{font-size:9px!important;line-height:12px!important}
+ body[data-remodel] .boss-list .ringu-lock-tag{display:none!important}
+ body[data-remodel] .boss-list .ringu-monster-locked::after{content:'🔒';position:absolute;right:3px;top:2px;font-size:11px}
+ body[data-remodel] .battle-panel .arena{height:var(--ru-hunt-height,320px)!important;min-height:230px!important}
+ body[data-remodel] .battle-panel .rm-location{top:9px!important;left:12px!important}
+ body[data-remodel] .battle-panel .battle-head{top:25px!important;left:12px!important;right:12px!important}
+ body[data-remodel] .battle-panel .battle-head h2{font-size:20px!important;margin-bottom:3px!important}
+ body[data-remodel] .battle-panel .hp-wrap{bottom:42px!important;left:12px!important;right:12px!important}
+ body[data-remodel] .battle-panel .battle-log{height:36px!important;padding:6px 12px!important;font-size:10px!important}
+ body[data-remodel] .rm-bottom-nav{padding:3px 6px calc(4px + env(safe-area-inset-bottom))!important}
+ body[data-remodel] .rm-bottom-nav button{min-height:46px!important;padding:3px 2px!important;gap:2px!important}
+ body[data-remodel] .rm-bottom-nav button>span{font-size:21px!important;line-height:22px!important}
+}

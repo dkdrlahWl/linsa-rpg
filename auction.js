@@ -83,4 +83,4 @@
 })();
 
 // RU2: load the shared presentation after the document styles are available.
-(()=>{const load=()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='/linsa-rpg/royal-ui.css?v=RU2';document.body.append(css);const script=document.createElement('script');script.src='/linsa-rpg/royal-ui.js?v=RU2';document.head.append(script);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();
+(()=>{const load=()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='/linsa-rpg/royal-ui.css?v=HUNT3';document.body.append(css);const script=document.createElement('script');script.src='/linsa-rpg/royal-ui.js?v=HUNT3';document.head.append(script);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();

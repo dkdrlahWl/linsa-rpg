@@ -13,11 +13,11 @@
  function status(message){$('blackMarketStatus').textContent=message;}
  function balance(){ $('blackMarketBalance').textContent='정수 '+fmt(g.state.essence||0)+'개'; }
  // Consumables never pass through equipment attack/option/icon calculations.
- const materials={transcendStone:{name:'초월석',icon:'◆',description:'장비 초월 시 사용하는 재료'},downgradeProtect:{name:'하락방지권',icon:'▣',description:'장비 강화 실패 시 강화 단계 하락 방지'}};
+ const materials={transcendStone:{name:'초월석',icon:'◆',atlas:0,description:'장비 초월 시 사용하는 재료'},downgradeProtect:{name:'하락방지권',icon:'▣',atlas:1,description:'장비 강화 실패 시 강화 단계 하락 방지'}};
  function productView(it){
   if(it?.kind==='consumable'){
    const m=materials[it.resource];if(!m||it.quantity!==1)throw Error('INVALID_RESPONSE');
-   return {name:m.name+' 1개',icon:m.icon,art:'<span class="bm-consumable-icon" aria-hidden="true">'+m.icon+'</span>',info:'소모품 · 1개',options:esc(m.description),description:'소모품 · 1개 · '+m.description};
+   return {name:m.name+' 1개',icon:m.icon,art:'<span class="rm-consumable-art bm-material-art" style="background-position:'+m.atlas*100+'% 0%" role="img" aria-label="'+m.name+'"></span>',info:'소모품 · 1개',options:esc(m.description),description:'소모품 · 1개 · '+m.description};
   }
   const info=g.rarityNames[it.rarity]+' · '+it.slot+' · 공격력 '+fmt(g.fn.itemAtk(it));
   return {name:it.name,icon:'⚔',art:g.fn.gearIcon(it),info,options:g.fn.optionText(it),description:info+' · '+text(g.fn.optionText(it))};
