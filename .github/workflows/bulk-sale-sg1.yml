@@ -19,6 +19,8 @@ jobs:
           p=Path('test/black-market-db.test.mjs');s=p.read_text();old='n=>n>=.8&&n<=1.2';assert s.count(old)==1
           s=s.replace(old,'n=>Number.isFinite(n)&&n>=.8-1e-12&&n<=1.2+1e-12',1)
           p.write_text('// IEEE-754 option endpoints can serialize as 1.2000000000000002.\n'+s)
+          p=Path('remodel.css');s=p.read_text();old='grid-template-columns:minmax(0,1.4fr) repeat(5,minmax(0,1fr))';assert s.count(old)==1
+          p.write_text(s.replace(old,old+'!important',1))
           PY
           npm install --ignore-scripts --no-audit --no-fund --package-lock=false
           sudo timeout 60s apt-get install -y --no-install-recommends fonts-noto-cjk
