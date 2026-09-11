@@ -1,0 +1,46 @@
+name: Validate premium HUD HU1
+on:
+  push:
+    branches: [fix/hud-HU1-20260911]
+    paths: [.github/workflows/hud-hu1-release.yml, hud-ui.js, hud-ui.css, maintenance/build-hu1.py]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Apply bounded presentation wiring
+        run: |
+          python3 maintenance/build-hu1.py
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          sudo timeout 60s apt-get install -y --no-install-recommends fonts-noto-cjk
+      - name: Syntax and unchanged gameplay regressions
+        run: |
+          node --check hud-ui.js
+          node --check black-market.js
+          node --check costume-shop.js
+          node --check test/hud-ui.test.mjs
+          node --test test/economy.test.mjs test/tower-hp-restored.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/login-inventory.test.mjs test/login-recovery.test.mjs test/auction-db.test.mjs test/black-market-db.test.mjs
+      - name: Real-page responsive HUD and purchase-price acceptance
+        run: |
+          QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/hud-ui.test.mjs
+          QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node test/black-market-bm3-browser.test.mjs
+      - name: Commit only validated release files
+        run: |
+          test "$(git branch --show-current)" = 'fix/hud-HU1-20260911'
+          git rm -- .github/workflows/hud-hu1-inspect.yml .github/workflows/hud-hu1-release.yml maintenance/build-hu1.py
+          git add -- index.html black-market.js costume-shop.js hud-ui.js hud-ui.css HUD-HU1.md test/hud-ui.test.mjs test/black-market-bm3-browser.test.mjs
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: premium fantasy HUD icons and essence-icon purchase prices'
+          git push origin HEAD:refs/heads/fix/hud-HU1-20260911
+          git rev-parse HEAD
+          sha256sum index.html hud-ui.js hud-ui.css black-market.js costume-shop.js
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: HUD-HU1-QA
+          path: |
+            test-output/HU1/
+            test-output/BM3/
+          retention-days: 1
