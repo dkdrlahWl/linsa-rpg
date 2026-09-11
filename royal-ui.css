@@ -130,3 +130,8 @@ body[data-remodel] #rmCurrencyStats .stat-value{white-space:normal!important;ove
  #inventoryList .sub-options .item-stat-range{font-size:9.84px!important}
 }
 @media(max-width:1099px){#inventoryList .item>.gear-row{flex:1 1 0;min-width:0}#inventoryList .item>.gear-row>.item-info{flex:1;min-width:0}}
+
+/* AN1: shared completed-sale count at all three navigation levels. */
+.auction-notice-host{position:relative!important;overflow:visible!important}
+.auction-sale-badge{position:absolute!important;top:2px;right:3px;z-index:4;display:flex!important;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 5px;box-sizing:border-box;border:1px solid #ffc07a;border-radius:12px;background:#df3746;color:#fff!important;font:800 12px/1 sans-serif!important;box-shadow:0 0 9px #ed405a99;pointer-events:none}
+.rm-bottom-nav .auction-sale-badge{top:0;right:5px}
