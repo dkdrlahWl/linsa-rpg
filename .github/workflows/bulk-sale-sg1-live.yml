@@ -1,0 +1,39 @@
+name: Verify deployed bulk sale and Korean gold SG1
+on:
+  push:
+    branches: [fix/bulk-sale-gold-SG1-20260911]
+    paths: [.github/workflows/bulk-sale-sg1-live.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Match public files to the tested release and check Edge startup
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          const digest=b=>createHash('sha256').update(b).digest('hex');
+          const raw='https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/7039f9fa0424b425d3a19621d6d89c8c3ad90bbb/';
+          const site='https://dkdrlahwl.github.io/linsa-rpg/';
+          const deadline=Date.now()+240000;
+          for(const [path,query] of [['index.html',''],['economy-client.js','?v=bulk-sale-SG1'],['remodel.css','?v=gold-SG1']]){
+            const source=await fetch(raw+path,{signal:AbortSignal.timeout(15000)});assert.equal(source.status,200);
+            const expected=digest(Buffer.from(await source.arrayBuffer()));let actual,status;
+            do{
+              const response=await fetch(site+path+query,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});
+              status=response.status;actual=digest(Buffer.from(await response.arrayBuffer()));
+              if(status===200&&actual===expected)break;
+              if(Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,5000));
+            }while(Date.now()<deadline);
+            assert.equal(status,200,path);assert.equal(actual,expected,path);console.log('PASS deployed SG1 asset',path,actual);
+          }
+          const edge='https://ekgihnyojihpearcudtd.supabase.co/functions/v1/ringu-economy',origin='https://dkdrlahwl.github.io';
+          const preflight=await fetch(edge,{method:'OPTIONS',headers:{Origin:origin},signal:AbortSignal.timeout(20000)});
+          assert.equal(preflight.status,204);assert.equal(preflight.headers.get('Access-Control-Allow-Origin'),origin);
+          const unauthorized=await fetch(edge,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(20000)});
+          assert.equal(unauthorized.status,401);assert.equal((await unauthorized.json()).error,'LOGIN_REQUIRED');
+          console.log('PASS deployed Edge starts with custom authentication intact. No player credentials or transactions used.');
+          JS
