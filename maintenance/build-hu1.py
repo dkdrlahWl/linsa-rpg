@@ -8,7 +8,7 @@ def patch(path,old,new,count=1):
 p=Path('index.html');s=p.read_text()
 css='<link rel="stylesheet" href="/linsa-rpg/remodel.css?v=gold-SG1">';assert s.count(css)==1
 s=s.replace(css,css+'\n<link rel="stylesheet" href="/linsa-rpg/hud-ui.css?v=hud-HU1">',1)
-match=re.search(r'<script defer src="/linsa-rpg/costume-shop\.js[^\"]*"></script>',s);assert match
+match=re.search(r'<script[^>]*src=["\']/linsa-rpg/costume-shop\.js[^"\']*["\'][^>]*></script>',s);assert match
 s=s[:match.start()]+'<script defer src="/linsa-rpg/hud-ui.js?v=hud-HU1"></script>\n'+s[match.start():]
 p.write_text(s)
 
@@ -68,7 +68,6 @@ body=r'''try{
   assert.ok(m.left>=-1&&m.right<=width+1,JSON.stringify(m));assert.equal(m.overflow,false,JSON.stringify(m));assert.equal(m.statsOverflow,false,JSON.stringify(m));assert.equal(m.summonOverflow,false,JSON.stringify(m));dimensions.push({width,height,...m});
  }
  await page.setViewportSize({width:390,height:844});await page.locator('.profile-button').click();await page.waitForFunction(()=>document.querySelector('#profileModal')?.classList.contains('show'));await page.keyboard.press('Escape');
- // Shared shop confirmation uses icon + number, not a diamond or visible '정수 N개'.
  await page.evaluate(()=>openShopConfirm({kind:'consumable',type:'protect',name:'강화 하락 방지권',price:10,icon:'🛡️',description:'테스트'}));
  await page.waitForFunction(()=>document.querySelector('#shopPurchaseConfirm')?.open);
  assert.equal(await page.locator('#shopPurchasePrice').innerText(),'10');assert.equal(await page.locator('#shopPurchasePrice .hu-icon-essence').count(),1);assert.equal((await page.locator('#shopPurchasePrice').innerText()).includes('정수'),false);await page.locator('#shopPurchaseCancel').click();
@@ -80,7 +79,6 @@ body=r'''try{
 '''
 Path('test/hud-ui.test.mjs').write_text(prefix+body)
 
-# Adjust BM3 browser assertions to the shared icon price presentation.
 p=Path('test/black-market-bm3-browser.test.mjs');s=p.read_text()
 s=s.replace("assert.equal(await a.locator('#shopPurchasePrice').textContent(),'정수 18개');","assert.equal(await a.locator('#shopPurchasePrice').innerText(),'18');assert.equal(await a.locator('#shopPurchasePrice .hu-icon-essence').count(),1);")
 s=s.replace("assert.equal(await a.locator('#shopPurchaseName').textContent(),'하락방지권 1개');", "assert.equal(await a.locator('#shopPurchaseName').textContent(),'하락방지권 1개');assert.equal(await a.locator('[data-bm-slot=\"1\"] .hu-icon-essence').count(),1);")
