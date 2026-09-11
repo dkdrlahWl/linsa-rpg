@@ -92,7 +92,7 @@
  function valid(product){return product&&typeof product.name==='string'&&Number.isSafeInteger(product.price)&&product.price>=0;}
  function quote(product){
   $('shopPurchaseName').textContent=product.name;$('shopPurchaseDescription').textContent=product.description||'';
-  $('shopPurchaseIcon').textContent=product.icon||'✦';$('shopPurchasePrice').innerHTML=window.RinguHUD?RinguHUD.priceHTML(product.price):'정수 '+fmt(product.price)+'개';
+  $('shopPurchaseIcon').textContent=product.icon||'✦';$('shopPurchasePrice').textContent='정수 '+fmt(product.price)+'개';
  }
  function refresh(){
   const p=active;if(!p||!dialog.open)return;
@@ -100,8 +100,8 @@
   const changed=p.account!==account();const bad=!valid(product)||!Number.isFinite(balance)||balance<0;
   const ended=!window.RinguSession?.active;const owned=!!product?.owned;
   const insufficient=!bad&&balance<p.price;
-  $('shopPurchaseBalance').innerHTML=Number.isFinite(balance)?(window.RinguHUD?RinguHUD.priceHTML(balance):'정수 '+fmt(balance)+'개'):'확인 불가';
-  $('shopPurchaseAfter').innerHTML=!bad&&balance>=p.price?(window.RinguHUD?RinguHUD.priceHTML(balance-p.price):'정수 '+fmt(balance-p.price)+'개'):'정수 부족';
+  $('shopPurchaseBalance').textContent=Number.isFinite(balance)?'정수 '+fmt(balance)+'개':'확인 불가';
+  $('shopPurchaseAfter').textContent=!bad&&balance>=p.price?'정수 '+fmt(balance-p.price)+'개':'정수 부족';
   let message=p.notice||'';
   if(p.busy)message='서버에서 구매 결과를 확인하는 중…';
   else if(changed||ended)message='로그인 상태를 확인해 주세요.';

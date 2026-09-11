@@ -31,7 +31,7 @@
  async function refresh(){
   if(!modal.classList.contains('show')||busy)return;const seq=++requestSequence;
   try{
-   const status=await rpc('status');if(seq!==requestSequence)return;ready=status.ready;updateListingCount(status);modal.querySelector('#auctionBalance').innerHTML=window.RinguHUD?'보유 '+RinguHUD.priceHTML(status.essence||0):'정수 '+fmt(status.essence||0)+'개';
+   const status=await rpc('status');if(seq!==requestSequence)return;ready=status.ready;updateListingCount(status);modal.querySelector('#auctionBalance').textContent='💎 정수 '+fmt(status.essence||0);
    if(!ready){body.innerHTML='';note(errors[status.reason]||errors.AUCTION_NOT_READY);return;}
    if(tab==='list'){
     if(listingBlocked()){rows=[];body.innerHTML='<p>계정당 판매 중인 물품은 최대 8개입니다. 기존 물품은 유지되며, 판매 완료 또는 취소로 빈자리가 생기면 다시 등록할 수 있습니다.</p>';note(listingNotice());return;}
@@ -40,7 +40,7 @@
    }
    const args=filters();if(args.rarity===null||!Number.isFinite(args.rarity))delete args.rarity;
    const result=await rpc(tab,args);if(seq!==requestSequence)return;rows=result.rows;
-   const list=body.querySelector('#auctionRows');list.innerHTML=rows.map((r,i)=>'<button class="auction-card" data-row="'+i+'">'+itemSummary(r.item)+'<b class="auction-price">'+(window.RinguHUD?RinguHUD.priceHTML(r.price):'정수 '+fmt(r.price)+'개')+'</b><small class="auction-seller">'+esc(r.seller_name||'')+'</small><time>'+esc(new Date(r.traded_at||r.created_at).toLocaleString('ko-KR'))+'</time></button>').join('')||'<p>등록된 물품이나 거래 내역이 없습니다.</p>';
+   const list=body.querySelector('#auctionRows');list.innerHTML=rows.map((r,i)=>'<button class="auction-card" data-row="'+i+'">'+itemSummary(r.item)+'<b class="auction-price">💎 '+fmt(r.price)+' 정수</b><small class="auction-seller">'+esc(r.seller_name||'')+'</small><time>'+esc(new Date(r.traded_at||r.created_at).toLocaleString('ko-KR'))+'</time></button>').join('')||'<p>등록된 물품이나 거래 내역이 없습니다.</p>';
    body.querySelector('#auctionPage').textContent=(page+1)+' / '+Math.max(1,Math.ceil(result.total/20));body.querySelector('[data-auction-page="-1"]').disabled=page===0;body.querySelector('[data-auction-page="1"]').disabled=(page+1)*20>=result.total;note('수수료 0% · 정수로만 거래합니다.');
   }catch(e){if(seq===requestSequence)note(translate(e));}
  }
@@ -49,7 +49,7 @@
   const row=rows[index];if(!row||busy||!ready)return;
   if(tab==='list'&&listingBlocked())return note(listingNotice());
   const it=row.item;
-  const panel=modal.querySelector('#auctionDetail');panel.innerHTML=detail(it)+(tab==='list'?'<label>판매 가격 (정수)<input id="auctionPrice" inputmode="numeric" autocomplete="off" placeholder="1 이상 정수"></label>':'<h3>'+(window.RinguHUD?RinguHUD.priceHTML(row.price):'정수 '+fmt(row.price)+'개')+'</h3>')+'<p id="auctionConfirmBalance"></p>'+(tab==='history'?'':'<button id="auctionConfirm" '+(tab==='search'&&row.mine?'disabled':'')+'>'+(tab==='list'?'등록 확인':tab==='mine'?'판매 취소 확인':row.mine?'내가 등록한 상품':'구매 확인')+'</button>')+'<button id="auctionBack">돌아가기</button>';panel.hidden=false;body.hidden=true;scrollTop();
+  const panel=modal.querySelector('#auctionDetail');panel.innerHTML=detail(it)+(tab==='list'?'<label>판매 가격 (정수)<input id="auctionPrice" inputmode="numeric" autocomplete="off" placeholder="1 이상 정수"></label>':'<h3>💎 '+fmt(row.price)+' 정수</h3>')+'<p id="auctionConfirmBalance"></p>'+(tab==='history'?'':'<button id="auctionConfirm" '+(tab==='search'&&row.mine?'disabled':'')+'>'+(tab==='list'?'등록 확인':tab==='mine'?'판매 취소 확인':row.mine?'내가 등록한 상품':'구매 확인')+'</button>')+'<button id="auctionBack">돌아가기</button>';panel.hidden=false;body.hidden=true;scrollTop();
   panel.querySelector('#auctionBack').onclick=()=>{panel.hidden=true;body.hidden=false;};
   const balanceRequest=tab==='search'?rpc('status'):null;
   const confirmButton=panel.querySelector('#auctionConfirm');if(!confirmButton)return;
@@ -68,7 +68,7 @@
    }catch(e){if(e.message==='AUCTION_LISTING_LIMIT')activeListingCount=Math.max(LISTING_LIMIT,activeListingCount||0);note(translate(e));}
    finally{busy=false;controls();panel.querySelectorAll('button,input').forEach(b=>b.disabled=false);if(tab==='list'&&listingBlocked())confirmButton.disabled=true;void refresh();}
   };
-  if(balanceRequest){const label=confirmButton.textContent;confirmButton.disabled=true;confirmButton.textContent='보유 정수 확인 중…';balanceRequest.then(s=>{if(panel.querySelector('#auctionConfirm')!==confirmButton)return;panel.querySelector('#auctionConfirmBalance').innerHTML=window.RinguHUD?'현재 '+RinguHUD.priceHTML(s.essence)+' → 구매 후 '+RinguHUD.priceHTML(s.essence-row.price):'현재 '+fmt(s.essence)+' 정수 → 구매 후 '+fmt(s.essence-row.price)+' 정수';confirmButton.textContent=label;confirmButton.disabled=!!row.mine;}).catch(e=>note(translate(e)));}
+  if(balanceRequest){const label=confirmButton.textContent;confirmButton.disabled=true;confirmButton.textContent='보유 정수 확인 중…';balanceRequest.then(s=>{if(panel.querySelector('#auctionConfirm')!==confirmButton)return;panel.querySelector('#auctionConfirmBalance').textContent='현재 '+fmt(s.essence)+' 정수 → 구매 후 '+fmt(s.essence-row.price)+' 정수';confirmButton.textContent=label;confirmButton.disabled=!!row.mine;}).catch(e=>note(translate(e)));}
  }
  window.addEventListener('ringu-ready',()=>{
   g=RinguCore;modal=document.createElement('div');modal.id='ringuAuction';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','경매장');

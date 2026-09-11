@@ -11,7 +11,7 @@
  const text=x=>{const el=document.createElement('div');el.innerHTML=x;return el.textContent||'';};
  const errorText=e=>errors[e.message]||(/ringu_black_market|PGRST202|지원하지 않는 요청/.test(e.message)?'암시장 서버를 준비 중입니다. 아직 정수는 사용되지 않습니다.':'상품 정보를 확인하지 못했습니다. 다시 불러오기를 눌러 주세요.');
  function status(message){$('blackMarketStatus').textContent=message;}
- function balance(){const n=g.state.essence||0;$('blackMarketBalance').innerHTML=window.RinguHUD?RinguHUD.priceHTML(n):'정수 '+fmt(n)+'개';}
+ function balance(){ $('blackMarketBalance').textContent='정수 '+fmt(g.state.essence||0)+'개'; }
  // Consumables never pass through equipment attack/option/icon calculations.
  const materials={transcendStone:{name:'초월석',icon:'◆',description:'장비 초월 시 사용하는 재료'},downgradeProtect:{name:'하락방지권',icon:'▣',description:'장비 강화 실패 시 강화 단계 하락 방지'}};
  function productView(it){
@@ -31,7 +31,7 @@
     const it=row.item,v=productView(it);
     return '<article class="bm-offer '+(it.kind==='consumable'?'bm-consumable':'bm-r'+it.rarity)+'" data-offer="'+row.slot+'">'+v.art+
      '<div class="bm-item-info"><strong>'+esc(v.name)+'</strong><small>'+esc(v.info)+'</small><span class="bm-option">'+v.options+'</span></div>'+
-     '<button type="button" data-bm-slot="'+row.slot+'" aria-label="'+esc(v.name)+' 정수 '+row.price+'개 구매" '+(row.purchased?'disabled':'')+'><b>'+(window.RinguHUD?RinguHUD.priceHTML(row.price):'정수 '+row.price+'개')+'</b><span>'+(row.purchased?'구매 완료':'구매')+'</span></button></article>';
+     '<button type="button" data-bm-slot="'+row.slot+'" aria-label="'+esc(v.name)+' 정수 '+row.price+'개 구매" '+(row.purchased?'disabled':'')+'><b>정수 '+row.price+'개</b><span>'+(row.purchased?'구매 완료':'구매')+'</span></button></article>';
    }).join('');
   }
   modal.querySelectorAll('[data-bm-slot]').forEach(button=>{
