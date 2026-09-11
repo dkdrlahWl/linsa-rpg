@@ -57,7 +57,9 @@
    view=action;signature='';render();
   });
   const button=document.createElement('button');button.id='dailyBossMenu';button.className='db-menu';button.innerHTML='<span aria-hidden="true"></span>일일보스';button.onclick=()=>{view='main';show();render();void request('dailyBossStatus');};
-  document.querySelector('.main-quick')?.append(button);
+  const mount=()=>{const menu=document.querySelector('#rmFeatureNav nav, nav.quick');if(menu&&!menu.contains(button))menu.prepend(button);};
+  mount();
+  const menuObserver=new MutationObserver(mount);menuObserver.observe(document.body,{childList:true,subtree:true});
   window.RinguDailyBoss={open:button.onclick};
   window.addEventListener('ringu:economy-state',e=>accept(e.detail?.dailyBoss));
   // First sync also restores a running battle or its unacknowledged result.

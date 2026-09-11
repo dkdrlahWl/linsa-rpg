@@ -151,7 +151,20 @@
    let modal=$('rmSellConfirm');if(!modal){modal=document.createElement('div');modal.id='rmSellConfirm';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');document.body.append(modal);}
    modal.setAttribute('aria-label','장비 분해 확인');
    modal.innerHTML='<section class="modal"><h3>장비 분해</h3><p>장비 <b>'+ids.length.toLocaleString()+'개</b>를 분해합니다.</p><p>장비마다 독립적으로 <b>0.1%</b> 확률로 정수를 획득합니다.<br>일반 1 · 희귀 2 · 레어 3 · 에픽 4<br>전설 5 · 신화 6 · 타락 7개</p><p>골드는 지급되지 않습니다.<br>분해한 장비는 되돌릴 수 없습니다.</p><button id="rmSellCancel">취소</button><button id="rmSellAccept">확인 · 분해하기</button></section>';
-   $('rmSellCancel').onclick=()=>modal.classList.remove('show');$('rmSellAccept').onclick=async()=>{if(pending)return;$('rmSellAccept').disabled=true;const result=await command('dismantle',{ids});if(result)modal.classList.remove('show');else $('rmSellAccept').disabled=false;};modal.classList.add('show');$('rmSellCancel').focus();
+   $('rmSellCancel').onclick=()=>modal.classList.remove('show');
+   $('rmSellAccept').onclick=async()=>{
+    const accept=$('rmSellAccept'),cancel=$('rmSellCancel');if(accept.disabled)return;
+    accept.disabled=true;cancel.disabled=true;accept.textContent='분해 처리 중…';modal.setAttribute('aria-busy','true');
+    // Wait for the existing transaction instead of silently dropping this click.
+    while(pending)await pending.catch(()=>{});
+    const result=await command('dismantle',{ids});modal.removeAttribute('aria-busy');
+    const event=result?.result?.events?.find(e=>e.type==='dismantle');
+    if(event){
+     modal.setAttribute('aria-label','장비 분해 결과');
+     modal.innerHTML='<section class="modal"><h3>분해 완료</h3><p>장비 <b>'+event.count.toLocaleString()+'개</b> 분해</p><p role="status" style="font-size:20px;color:#e5c0ff">정수 <b>'+Number(event.essence||0).toLocaleString()+'개</b> 획득</p><p>'+(event.essence?'획득한 정수를 보유량에 반영했습니다.':'이번 분해에서는 정수를 얻지 못했습니다. 장비마다 획득 확률은 0.1%입니다.')+'</p><button id="rmSellDone">확인</button></section>';
+     $('rmSellDone').onclick=()=>modal.classList.remove('show');$('rmSellDone').focus();
+    }else{accept.disabled=false;cancel.disabled=false;accept.textContent='확인 · 분해하기';}
+   };modal.classList.add('show');$('rmSellCancel').focus();
   }
   f.sellItem=id=>{const it=item(id);if(it)return sell([it]);};
   f.bulkSell=rarity=>sell(g.state.inventory.filter(it=>it.rarity<=rarity&&!it.locked&&!Object.values(g.state.equipped).includes(it.id)));

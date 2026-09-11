@@ -11,7 +11,7 @@ import {execute,initialState,balance} from '../supabase/functions/_shared/econom
 const {PGlite}=await import(process.env.QA_PGLITE_MODULE||'@electric-sql/pglite');
 const {chromium}=createRequire(import.meta.url)(process.env.QA_PLAYWRIGHT_MODULE||'playwright');
 const db=new PGlite(),users=new Map(),tokens=new Map(),errors=[];
-let queue=Promise.resolve(),dropCommand=null,dropped=0,delaySync=0;
+let queue=Promise.resolve(),dropCommand=null,dropped=0,delaySync=0,roll=0;
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
 for(const file of ['01-account-storage.sql','02-ranking-party.sql'])await db.exec(await readFile(new URL('fixtures/'+file,import.meta.url),'utf8'));
 for(const file of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql'])await db.exec(await readFile(new URL('../supabase/'+file,import.meta.url),'utf8'));
@@ -47,7 +47,7 @@ async function service(req){
    if(body.command!=='dailyBossStatus')dailyBoss=await rpc('ringu_daily_boss',{p_user:entry.user.id,p_session:entry.sid,p_action:body.command==='dailyBossStart'?'start':'ack',p_request_id:body.command==='dailyBossStart'?body.requestId:body.args.id,p_revision:snap.revision,p_hits:body.command==='dailyBossStart'?planBattle(snap.state,0,()=>.5):null});
    const fresh=await rpc('ringu_economy_snapshot');return {state:fresh.state,revision:fresh.revision,result:{events:[],dailyBoss},requestId:body.requestId};
   }
-  const computed=snap.receipt?{state:snap.state,events:snap.receipt.events}:execute(snap.state,body.command,body.args,{...snap,random:()=>.5,randomInt:()=>0,uuid:randomUUID});
+  const computed=snap.receipt?{state:snap.state,events:snap.receipt.events}:execute(snap.state,body.command,body.args,{...snap,random:()=>.5,randomInt:()=>roll,uuid:randomUUID});
   const result=await rpc('ringu_economy_commit',{p_user:entry.user.id,p_session:entry.sid,p_revision:snap.revision,p_request_id:body.requestId,p_fingerprint:{command:body.command,args:body.args},p_state:computed.state,p_result:{events:computed.events}});
   const fresh=await rpc('ringu_economy_snapshot');return {state:fresh.state,revision:fresh.revision,result:{...result.result,dailyBoss},requestId:body.requestId};
  }
@@ -65,8 +65,8 @@ async function player(name){
 }
 async function run(p,command,args={}){await p.waitForFunction(()=>RinguSession.active&&!document.body.classList.contains('economy-pending'));return p.evaluate(async({command,args})=>RinguEconomy.command(command,args),{command,args});}
 try{
- const a=await player('dailybossqa');await a.setViewportSize({width:390,height:844});
- await a.waitForFunction(()=>window.RinguDailyBoss);await a.evaluate(()=>RinguDailyBoss.open());await a.waitForFunction(()=>!document.querySelector('#dailyBoss [data-action="start"]').disabled);
+ const a=await player('dailybossqa');await a.locator('#rmFeatureNav #dailyBossMenu').click();await a.locator('#dailyBoss [data-action="close"]').click();await a.setViewportSize({width:390,height:844});await a.locator('.rm-bottom-nav [data-target="menu"]').click();
+ await a.waitForFunction(()=>window.RinguDailyBoss);await a.locator('#rmFeatureNav #dailyBossMenu').click();await a.waitForFunction(()=>!document.querySelector('#dailyBoss [data-action="start"]').disabled);
  const out=new URL('../test-artifacts/daily-boss/',import.meta.url);await mkdir(out,{recursive:true});
  const shot=async name=>a.locator('#dailyBoss').screenshot({path:new URL(name+'.png',out).pathname.replace(/^\//,'')});
  for(const width of [320,390,768]){
@@ -86,8 +86,10 @@ try{
  const entry=[...tokens.values()][0];await db.query("update ringu_private.accounts set state=jsonb_set(state,'{inventory}',$1),revision=revision+1 where id=$2",[JSON.stringify(Array.from({length:1248},(_,i)=>({...balance.gear[0],id:50000+i,auctionUid:randomUUID(),enhance:0,transcend:0}))),entry.user.id]);
  await run(a,'sync');const before=await a.evaluate(()=>({gold:RinguCore.state.gold,essence:RinguCore.state.essence}));
  await a.evaluate(()=>{window.qaRedraws=0;const f=RinguCore.fn,original=f.renderInventory;f.renderInventory=(...args)=>{qaRedraws++;return original(...args);};f.bulkSell(0);});
- await a.locator('#rmSellConfirm.show').waitFor();assert.match(await a.locator('#rmSellConfirm').innerText(),/1,248/);assert.match(await a.locator('#rmSellConfirm').innerText(),/0.1%/);await a.locator('#rmSellAccept').click();
+ await a.locator('#rmSellConfirm.show').waitFor();assert.match(await a.locator('#rmSellConfirm').innerText(),/1,248/);assert.match(await a.locator('#rmSellConfirm').innerText(),/0.1%/);delaySync=1200;await a.evaluate(()=>{void RinguEconomy.command('sync');});await a.locator('#rmSellAccept').click();assert.equal(await a.locator('#rmSellAccept').isDisabled(),true);assert.match(await a.locator('#rmSellAccept').innerText(),/처리 중/);
  await a.waitForFunction(()=>RinguCore.state.inventory.length===0);assert.deepEqual(await a.evaluate(()=>({gold:RinguCore.state.gold,essence:RinguCore.state.essence})),{gold:before.gold,essence:before.essence+1248});assert.equal(await a.evaluate(()=>qaRedraws),1);
  assert.match(await a.locator('#toasts').innerText(),/장비 1,248개 분해 완료/);
- assert.deepEqual(errors,[]);console.log('PASS mobile browser: 320/390/768 layouts, 8 ranks, 48 probabilities, real ten-second battle, refresh recovery, no Escape/X exit, server result acknowledgement, 1248-item bulk dismantle and exactly one inventory render.');
+ assert.match(await a.locator('#rmSellConfirm').innerText(),/1,248개/);await a.locator('#rmSellDone').click();roll=999;delaySync=0;
+ const zero=await player('zerorewardqa');await zero.evaluate(()=>RinguCore.fn.bulkSell(0));await zero.locator('#rmSellAccept').click();await zero.locator('#rmSellDone').waitFor();assert.match(await zero.locator('#rmSellConfirm').innerText(),/정수 0개/);await zero.waitForTimeout(2500);assert.equal(await zero.locator('#rmSellDone').isVisible(),true);
+ assert.deepEqual(errors,[]);console.log('PASS desktop/mobile menu clicks, 320/390/768 layouts, ten-second battle, refresh recovery, 1248-item dismantle during delayed sync, immediate pending feedback, persistent positive and zero reward results.');
 }finally{await browser.close();server.close();await db.close();}
