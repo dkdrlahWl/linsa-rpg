@@ -1,0 +1,38 @@
+name: Verify premium HUD1 and essence price icons
+on:
+  push:
+    branches: [fix/premium-hud-HUD1-20260911]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Apply bounded presentation patch
+        run: |
+          python3 maintenance/hud1-build.py
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+      - name: Syntax and existing gameplay regressions
+        run: |
+          node --check hud-ui.js
+          node --check black-market.js
+          node --check shop-controls.js
+          node --test test/economy.test.mjs test/tower-hp-restored.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/login-inventory.test.mjs test/login-recovery.test.mjs
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';
+          const h=fs.readFileSync('hud-ui.js','utf8'),i=fs.readFileSync('index.html','utf8'),b=fs.readFileSync('black-market.js','utf8'),s=fs.readFileSync('shop-controls.js','utf8');
+          for(const key of ['gold','essence','stone','pet','power','summon','rank','mail','settings'])assert.ok(h.includes(key+":"),key);
+          assert.ok(i.includes('hud-ui.css?v=HUD1')&&i.includes('hud-ui.js?v=HUD1'));
+          assert.ok(i.includes('RinguHUD.priceHTML(25)')&&i.includes('RinguHUD.priceHTML(10)'));
+          assert.ok(b.includes('RinguHUD.priceHTML(row.price)'));assert.ok(s.includes('RinguHUD.priceHTML(product.price)'));
+          assert.ok(!/diamond/i.test(h));console.log('PASS HUD1 source: only existing resources; custom essence/mail/settings icons; essence icon+number purchases.');
+          JS
+      - name: Commit tested files to isolated branch
+        run: |
+          git rm -- .github/workflows/hud1-check.yml maintenance/hud1-build.py
+          git add -- index.html hud-ui.js hud-ui.css black-market.js shop-controls.js
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: premium fantasy top HUD and shared essence icon pricing'
+          git push origin HEAD:refs/heads/fix/premium-hud-HUD1-20260911
+          git rev-parse HEAD
