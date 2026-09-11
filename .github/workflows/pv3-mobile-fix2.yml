@@ -1,0 +1,43 @@
+name: Validate PV3 mobile hotfix
+on:
+  push:
+    branches: [fix/mobile-layout-PV3-20260911]
+    paths:
+      - .github/workflows/pv3-mobile-fix2.yml
+      - maintenance/pv3-mobile.py
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Apply patch
+        run: python3 maintenance/pv3-mobile.py
+      - name: Install QA
+        run: npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+      - name: Syntax and regressions
+        run: |
+          node --check premium-ui-v2.js
+          node --check remodel.js
+          node --test test/economy.test.mjs test/tower-hp-restored.test.mjs test/costume-catalog.test.cjs test/pet-stack-model.test.cjs test/login-inventory.test.mjs test/login-recovery.test.mjs
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';
+          const js=fs.readFileSync('premium-ui-v2.js','utf8'),css=fs.readFileSync('premium-ui-v2.css','utf8'),rm=fs.readFileSync('remodel.js','utf8'),html=fs.readFileSync('index.html','utf8');
+          assert.ok(js.includes('ensureNavSetup()'));
+          assert.ok(js.includes("buttons.length<5||!window.RinguPortrait?.showPage"));
+          assert.ok(rm.includes("dataset.pv2==='1'||el.querySelector('.pv-icon')"));
+          assert.ok(css.includes('grid-template-columns:repeat(3,minmax(0,1fr))!important'));
+          assert.ok(css.includes('#rankList{min-height:255px!important;max-height:255px!important'));
+          assert.ok(html.includes('premium-ui-v2.js?v=PV3')&&html.includes('premium-ui-v2.css?v=PV3'));
+          console.log('PASS PV3 source contracts');
+          JS
+      - name: Commit validated hotfix
+        run: |
+          test "$(git branch --show-current)" = 'fix/mobile-layout-PV3-20260911'
+          git rm -- .github/workflows/pv3-mobile-fix2.yml maintenance/pv3-mobile.py .github/workflows/pv3-mobile-fix.yml
+          git add -- premium-ui-v2.js premium-ui-v2.css remodel.js index.html
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: mobile HUD 3x2 grid and stable main navigation'
+          git push origin HEAD:refs/heads/fix/mobile-layout-PV3-20260911
+          git rev-parse HEAD
