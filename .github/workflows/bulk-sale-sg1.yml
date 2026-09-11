@@ -14,6 +14,12 @@ jobs:
       - name: Prepare bounded patch and pinned QA
         run: |
           python3 maintenance/build-sg1.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('test/black-market-db.test.mjs');s=p.read_text();old='n=>n>=.8&&n<=1.2';assert s.count(old)==1
+          s=s.replace(old,'n=>Number.isFinite(n)&&n>=.8-1e-12&&n<=1.2+1e-12',1)
+          p.write_text('// IEEE-754 option endpoints can serialize as 1.2000000000000002.\n'+s)
+          PY
           npm install --ignore-scripts --no-audit --no-fund --package-lock=false
           sudo timeout 60s apt-get install -y --no-install-recommends fonts-noto-cjk
       - name: Actual Edge handler and isolated SQL regressions
@@ -26,7 +32,7 @@ jobs:
         run: |
           test "$(git branch --show-current)" = 'fix/bulk-sale-gold-SG1-20260911'
           git rm -- .github/workflows/bulk-sale-sg1.yml maintenance/build-sg1.py
-          git add -- index.html economy-client.js remodel.css supabase/functions/_shared/economy.mjs supabase/functions/ringu-economy/index.ts test/economy-db.test.mjs test/bulk-sale-gold-browser.test.mjs
+          git add -- index.html economy-client.js remodel.css supabase/functions/_shared/economy.mjs supabase/functions/ringu-economy/index.ts test/economy-db.test.mjs test/black-market-db.test.mjs test/bulk-sale-gold-browser.test.mjs
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: bulk sell large inventories atomically and format mobile gold from ten million'
           git push origin HEAD:refs/heads/fix/bulk-sale-gold-SG1-20260911
           git rev-parse HEAD
