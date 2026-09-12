@@ -169,27 +169,27 @@
         {
           "name": "초원 늑대",
           "hp": 1932,
-          "reward": 48
+          "reward": 49
         },
         {
           "name": "거대 멧돼지",
           "hp": 2089,
-          "reward": 52
+          "reward": 56
         },
         {
           "name": "숲의 고블린",
           "hp": 2247,
-          "reward": 56
+          "reward": 62
         },
         {
           "name": "초원 수호자",
           "hp": 2508,
-          "reward": 62
+          "reward": 71
         },
         {
           "name": "숲 정령",
           "hp": 2823,
-          "reward": 70
+          "reward": 84
         }
       ],
       "locked": false
@@ -200,32 +200,32 @@
         {
           "name": "모래 전갈",
           "hp": 3114,
-          "reward": 76
+          "reward": 94
         },
         {
           "name": "사막 하이에나",
           "hp": 3472,
-          "reward": 86
+          "reward": 110
         },
         {
           "name": "고대 미라",
           "hp": 3830,
-          "reward": 94
+          "reward": 124
         },
         {
           "name": "모래폭풍 정령",
           "hp": 4187,
-          "reward": 104
+          "reward": 141
         },
         {
           "name": "사막의 폭군",
           "hp": 4784,
-          "reward": 118
+          "reward": 165
         },
         {
           "name": "사막의 왕",
           "hp": 5500,
-          "reward": 136
+          "reward": 195
         }
       ],
       "locked": false
@@ -236,32 +236,32 @@
         {
           "name": "얼음 송곳니",
           "hp": 7013,
-          "reward": 174
+          "reward": 257
         },
         {
           "name": "설원 트롤",
           "hp": 7956,
-          "reward": 198
+          "reward": 300
         },
         {
           "name": "빙결 마녀",
           "hp": 8899,
-          "reward": 222
+          "reward": 346
         },
         {
           "name": "혹한의 거인",
           "hp": 9842,
-          "reward": 246
+          "reward": 393
         },
         {
           "name": "설원의 군주",
           "hp": 11413,
-          "reward": 284
+          "reward": 465
         },
         {
           "name": "서리 군주",
           "hp": 13299,
-          "reward": 332
+          "reward": 557
         }
       ],
       "locked": false
@@ -272,32 +272,32 @@
         {
           "name": "잿불 와이번",
           "hp": 16209,
-          "reward": 404
+          "reward": 694
         },
         {
           "name": "용암 기사",
           "hp": 18531,
-          "reward": 462
+          "reward": 813
         },
         {
           "name": "마그마 주술사",
           "hp": 20853,
-          "reward": 520
+          "reward": 936
         },
         {
           "name": "흑요석 골렘",
           "hp": 23175,
-          "reward": 578
+          "reward": 1063
         },
         {
           "name": "화산의 군주",
           "hp": 27046,
-          "reward": 676
+          "reward": 1270
         },
         {
           "name": "화염 군주",
           "hp": 31690,
-          "reward": 792
+          "reward": 1520
         }
       ],
       "locked": false
@@ -309,32 +309,32 @@
         {
           "name": "새벽빛 수문장",
           "hp": 42922,
-          "reward": 1072
+          "reward": 2101
         },
         {
           "name": "은하의 기사",
           "hp": 49252,
-          "reward": 1230
+          "reward": 2460
         },
         {
           "name": "구름궁 현자",
           "hp": 55581,
-          "reward": 1388
+          "reward": 2831
         },
         {
           "name": "찬란한 세라프",
           "hp": 61910,
-          "reward": 1546
+          "reward": 3215
         },
         {
           "name": "별빛의 심판자",
           "hp": 72459,
-          "reward": 1810
+          "reward": 3837
         },
         {
           "name": "천공의 황제",
           "hp": 85118,
-          "reward": 2128
+          "reward": 4596
         }
       ]
     },
@@ -345,32 +345,32 @@
         {
           "name": "심연 감시자",
           "hp": 113170,
-          "reward": 2828
+          "reward": 6221
         },
         {
           "name": "공허 기사",
           "hp": 130036,
-          "reward": 3250
+          "reward": 7280
         },
         {
           "name": "망각의 사제",
           "hp": 146903,
-          "reward": 3672
+          "reward": 8372
         },
         {
           "name": "검은 균열자",
           "hp": 163769,
-          "reward": 4094
+          "reward": 9498
         },
         {
           "name": "심연의 군주",
           "hp": 191880,
-          "reward": 4796
+          "reward": 11318
         },
         {
           "name": "공허의 지배자",
           "hp": 225612,
-          "reward": 5640
+          "reward": 13536
         }
       ]
     }

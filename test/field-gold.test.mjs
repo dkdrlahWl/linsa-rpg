@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {balance} from '../supabase/functions/_shared/economy.mjs';
+const baseline=[14,48,52,56,62,70,76,86,94,104,118,136,174,198,222,246,284,332,404,462,520,578,676,792,1072,1230,1388,1546,1810,2128,2828,3250,3672,4094,4796,5640];
+const source=readFileSync(new URL('../remodel.js',import.meta.url),'utf8');
+const patch=source.split('\n').find(line=>line.includes('if(!g.fieldGoldFG1)'));
+const g={bossRegions:[{bosses:baseline.map(reward=>({reward}))}]};
+vm.runInNewContext(patch,{g});
+const expected=baseline.map((reward,i)=>Math.floor(reward*(100+4*i)/100));
+assert.deepEqual(g.bossRegions[0].bosses.map(b=>b.reward),expected);
+vm.runInNewContext(patch,{g});
+assert.deepEqual(g.bossRegions[0].bosses.map(b=>b.reward),expected);
+assert.deepEqual(balance.bossRegions.flatMap(r=>r.bosses.map(b=>b.reward)),expected);
+assert.equal(expected[0],14);assert.equal(expected[35],13536);
+console.log('PASS FG1: all 36 rewards, client/server parity, no double scaling');
