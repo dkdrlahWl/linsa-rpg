@@ -10,6 +10,10 @@ window.installRinguPetStacks=function(g){
  f.addPet=id=>{if(!active())return null;return m.add(g.state,data,id)?.pet||null;};
  const can=count=>active()&&[1,10].includes(Number(count))&&!busy&&candidates().length>0&&g.state.petStone>=Number(count)*10;
  f.canSummonPet=can;
+ // Server state renders before the session becomes active again. Re-evaluate
+ // buttons on session completion without rebuilding the tab or losing scroll.
+ const refreshSummonButtons=()=>document.querySelectorAll('#petBody [data-pet-count]').forEach(button=>{button.disabled=!can(Number(button.dataset.petCount));});
+ window.RinguSession?.subscribe?.(refreshSummonButtons);
  function save(){f.refreshPetUI();f.save(false);window.RinguRemodel?.paintPetIcons();}
  f.summonPet=count=>{
   count=Number(count);if(!active()||busy||![1,10].includes(count))return false;normalize();
@@ -52,7 +56,7 @@ window.installRinguPetStacks=function(g){
  f.renderPetSummonTab=()=>{
   normalize();const s=g.state,pool=m.pool(s,data),rates=[1,2,3,4,5].map(grade=>({grade,rate:pool.filter(x=>x.grade===grade).reduce((n,x)=>n+x.probability,0)}));
   g.PET_SUMMON_RATES.splice(0,g.PET_SUMMON_RATES.length,...rates);
-  $('petBody').innerHTML=currencies()+summonProgress()+'<div class="pet-summon-actions"><button '+(can(1)?'':'disabled')+' onclick="summonPet(1)"><strong>1회 소환</strong><small>펫 스톤 10개</small></button><button '+(can(10)?'':'disabled')+' onclick="summonPet(10)"><strong>10회 소환</strong><small>펫 스톤 100개</small></button></div><div class="pet-rule-box"><strong>중복 펫은 자동으로 처리돼요</strong><p>Lv.1~4: 자동 합성으로 성장<br>Lv.5: 새로 나온 중복 펫만 자동판매</p><small>자동판매 보상 · 펫 스톤<br>1급 1개 / 2급 3개 / 3급 8개 / 4급 25개 / 5급 100개</small></div><details class="pet-help"><summary>성장 및 소환 안내</summary><p>Lv.2/3/4/5까지 같은 펫 추가 1/2/3/5마리가 필요합니다. 만렙 펫도 동일 확률로 소환되며, 기존에 장착하거나 잠근 펫은 그대로 유지됩니다. 자동판매되어도 소환 경험치는 획득합니다.</p></details><table class="pet-rate-table"><thead><tr><th>등급</th><th>소환 확률</th></tr></thead><tbody>'+rates.map(r=>'<tr><td>'+r.grade+'급</td><td>'+(r.rate*100).toFixed(3)+'%</td></tr>').join('')+'</tbody></table><details class="pet-help"><summary>개별 펫 확률 · '+pool.length+'종</summary>'+pool.map(r=>'<p>'+esc(data[r.petId].name)+' '+(r.probability*100).toFixed(4)+'%</p>').join('')+'</details>';
+  $('petBody').innerHTML=currencies()+summonProgress()+'<div class="pet-summon-actions"><button data-pet-count="1" '+(can(1)?'':'disabled')+' onclick="summonPet(1)"><strong>1회 소환</strong><small>펫 스톤 10개</small></button><button data-pet-count="10" '+(can(10)?'':'disabled')+' onclick="summonPet(10)"><strong>10회 소환</strong><small>펫 스톤 100개</small></button></div><div class="pet-rule-box"><strong>중복 펫은 자동으로 처리돼요</strong><p>Lv.1~4: 자동 합성으로 성장<br>Lv.5: 새로 나온 중복 펫만 자동판매</p><small>자동판매 보상 · 펫 스톤<br>1급 1개 / 2급 3개 / 3급 8개 / 4급 25개 / 5급 100개</small></div><details class="pet-help"><summary>성장 및 소환 안내</summary><p>Lv.2/3/4/5까지 같은 펫 추가 1/2/3/5마리가 필요합니다. 만렙 펫도 동일 확률로 소환되며, 기존에 장착하거나 잠근 펫은 그대로 유지됩니다. 자동판매되어도 소환 경험치는 획득합니다.</p></details><table class="pet-rate-table"><thead><tr><th>등급</th><th>소환 확률</th></tr></thead><tbody>'+rates.map(r=>'<tr><td>'+r.grade+'급</td><td>'+(r.rate*100).toFixed(3)+'%</td></tr>').join('')+'</tbody></table><details class="pet-help"><summary>개별 펫 확률 · '+pool.length+'종</summary>'+pool.map(r=>'<p>'+esc(data[r.petId].name)+' '+(r.probability*100).toFixed(4)+'%</p>').join('')+'</details>';
  };
  const result=f.renderPetSummonResult;f.renderPetSummonResult=results=>{result(results);$('petResultGrid')?.querySelectorAll('.pet-result-card').forEach((card,i)=>{const r=results[i],small=card.querySelector('small');if(r?.type==='pet'&&small)small.textContent=r.autoSold?'자동판매 · 펫 스톤 +'+r.autoSoldStone:(r.previousLevel?'자동 합성':'첫 보유')+' · Lv.'+r.level+' · 누적 '+r.copies+'마리';});};
  window.RinguPetStacks={normalize,candidates,renderManage,sale:uid=>{normalize();const p=g.state.ownedPets.find(p=>p.uid===uid);return p?m.sale(p,data):0;}};
