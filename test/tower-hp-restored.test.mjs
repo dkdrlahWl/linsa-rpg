@@ -48,7 +48,7 @@ test('tower rewards still pay once and sequential floor restrictions stay in eff
   const before=structuredClone(current);
   current=execute(current,'sync',{}, {...ctx(t+=1000),costumePercent:100000000}).state;
   assert.equal(current.towerCleared,floor.floor);assert.equal(current.serverBattle,null);
-  for(const [k,f] of [['gold','gold'],['essence','essence'],['transcendStone','stone'],['downgradeProtect','protect'],['petStone','petStone']])assert.equal(current[k]-before[k],floor[f]||0);
+  for(const [k,f] of [['gold','gold'],['essence','essence'],['transcendStone','stone'],['downgradeProtect','protect'],['petStone','petStone']])assert.equal(current[k]-before[k],(floor[f]||0)*(floor.floor>=6?2:1));
   const gold=current.gold;current=execute(current,'sync',{},ctx(t)).state;assert.equal(current.gold,gold);
  }
  assert.throws(()=>execute(state(),'startDungeon',{type:'tower',stage:2},ctx(now)),/DUNGEON_LOCKED/);

@@ -17,3 +17,8 @@ export function rollOption(it,random){
  it.optionRolls=[value/optionBase(it),.8];it.cubeVersion=CUBE_VERSION;it.cubeTier=tier;
  return {tier,value};
 }
+// Derive the visible tier from the actual displayed value, including legacy snapshots.
+export function optionTier(it){
+ const value=Number((optionBase(it)*(it.optionRolls?.[0]||1)).toFixed(1));
+ return Math.max(0,optionBands(it).findIndex(b=>value>=b.min&&value<=b.max));
+}

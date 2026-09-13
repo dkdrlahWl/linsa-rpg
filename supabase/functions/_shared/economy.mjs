@@ -91,7 +91,7 @@ export function execute(snapshot,command,args,context){
     if(special.hp===0){
      if(special.type==='gold'){if(s.dungeons.goldEntries<=0)fail('DUNGEON_LOCKED');s.dungeons.goldEntries--;award('gold',data.reward);s.dungeons.goldUnlocked=Math.min(20,Math.max(s.dungeons.goldUnlocked,special.stage+1));}
      else if(special.type==='pet'){if(s.dungeons.petEntries<=0)fail('DUNGEON_LOCKED');s.dungeons.petEntries--;award('petStone',10);}
-     else{if(special.stage!==s.towerCleared+1)fail('DUNGEON_LOCKED');s.towerCleared=special.stage;for(const [key,field] of [['gold','gold'],['essence','essence'],['transcendStone','stone'],['downgradeProtect','protect'],['petStone','petStone']])award(key,data[field]||0);}
+     else{if(special.stage!==s.towerCleared+1)fail('DUNGEON_LOCKED');s.towerCleared=special.stage;for(const [key,field] of [['gold','gold'],['essence','essence'],['transcendStone','stone'],['downgradeProtect','protect'],['petStone','petStone']])award(key,(data[field]||0)*(special.stage>=6?2:1));}
      events.push({type:'battleWon',battle:special.type,stage:special.stage});s.serverBattle=null;break;
     }
     if(special.elapsed>=15){events.push({type:'battleLost',battle:special.type});s.serverBattle=null;break;}
