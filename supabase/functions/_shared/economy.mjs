@@ -189,7 +189,7 @@ export function execute(snapshot,command,args,context){
   const id=String(args.id),mail=s.mailbox.find(m=>String(m.id)===id);if(!mail)fail('MAIL_NOT_FOUND');s.claimedMailReceipts??={};if(s.claimedMailReceipts[id])fail('ALREADY_CLAIMED');
   // Mail exists in trusted server state. Browser never submits its reward payload.
   const normalizeReward=value=>{if(!value||typeof value!=='object')return {};const out={...normalizeReward(value.reward),...value};const key={gold:'gold',essence:'essence',stone:'transcendStone',goldDungeonEntry:'goldDungeonEntry'}[value.rewardType];if(key)out[key]=value.amount;if(value.rewardType==='uidGoldProtect'){out.gold=100000000;out.downgradeProtect=3;}return out;};
-  const reward=normalizeReward(mail.reward);for(const key of ['gold','essence','transcendStone','downgradeProtect','petStone','petTicket','auraDrawTickets'])if(reward[key])award(key,reward[key]);
+  const reward=normalizeReward(mail.reward);for(const key of ['gold','essence','transcendStone','downgradeProtect','petStone','petTicket','auraDrawTickets','jadeCube','sunCube'])if(reward[key])award(key,reward[key]);
   if(reward.stone)award('transcendStone',reward.stone);if(reward.goldDungeonEntry)s.dungeons.goldEntries=safeAdd(s.dungeons.goldEntries,reward.goldDungeonEntry);
   for(const it of [...(reward.items||[]),...(reward.item?[reward.item]:[])]){if(!balance.gear.some(g=>g.slot===it.slot&&g.rarity===it.rarity&&g.name===it.name))fail('UNKNOWN_EQUIPMENT');addItem(it);}
   s.claimedMailReceipts[id]=now;s.mailbox=s.mailbox.filter(m=>String(m.id)!==id);
