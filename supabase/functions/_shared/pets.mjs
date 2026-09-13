@@ -31,8 +31,7 @@ const petModel=(()=>{
   s.claimedPetCollectionRewards=[...new Set((Array.isArray(s.claimedPetCollectionRewards)?s.claimedPetCollectionRewards:[]).map(Number).filter(Number.isFinite))];
  }
  function pool(s,data){
-  const excluded=new Set();for(const p of s.ownedPets||[])if(p.level>=5)excluded.add(p.petId);
-  const remaining=Object.values(data).filter(p=>!excluded.has(p.id));if(!remaining.length)return [];
+  const remaining=Object.values(data);if(!remaining.length)return [];
   const rates=gradeRates[progress(s.petSummonExp).level-1];
   let grades=[1,2,3,4,5].filter(g=>rates[g-1]>0&&remaining.some(p=>p.grade===g));
   // Legacy maxed inventories with low summon XP must not become stuck.
@@ -44,6 +43,7 @@ const petModel=(()=>{
  }
  function pick(candidates,random=Math.random){if(!candidates.length)return null;const roll=random();if(!Number.isFinite(roll)||roll<0||roll>=1)throw Error('INVALID_PET_RANDOM');let cursor=roll;for(const p of candidates){cursor-=p.probability;if(cursor<0)return p;}return candidates.at(-1);}
  function add(s,data,id){normalize(s,data);if(!Object.hasOwn(data,id))return null;let pet=s.ownedPets.find(p=>p.petId===id);const previousLevel=pet?.level||0;
+  if(pet&&pet.level>=5){const autoSoldStone=sellBase[data[id].grade];s.petStone=sum(s.petStone,autoSoldStone);return {pet,previousLevel,autoSold:true,autoSoldStone};}
   if(pet){pet.copies=sum(pet.copies,1);pet.level=level(pet.copies);}else{pet={uid:'pet_stack_'+id,petId:id,level:1,copies:1,locked:false,obtainedAt:Date.now()};s.ownedPets.unshift(pet);}
   if(!s.discoveredPets.includes(id))s.discoveredPets.push(id);
   return {pet,previousLevel};

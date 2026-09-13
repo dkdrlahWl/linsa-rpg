@@ -18,7 +18,7 @@ export function stats(s,costumePercent=0){let equipmentAtk=0,atkPercent=0,critCh
  return {attack:Math.floor(attack*(1+costumePercent/100)),equipmentAtk,atkPercent,critChance,critDamage,goldBonus,attackSpeed};
 }
 const summonLevel=exp=>balance.levelReq.reduce((lv,n,i)=>exp>=n?i+1:lv,1);
-const costs=[250,250,250,500,500,500,1000,1000,1000,2500,2500,2500,6000,6000,6000];
+const costs=[250,250,250,500,500,500,1000,1000,1000,2500,7500,7500,18000,18000,18000];
 const kstDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
 const dailyKey=now=>'midnight-v2:'+kstDay(now);
 const seedValue=(seed,n)=>{let h=2166136261;for(const c of String(seed)+'|'+n)h=Math.imul(h^c.charCodeAt(0),16777619);return .8+((h>>>0)%401)/1000;};
@@ -115,7 +115,7 @@ export function execute(snapshot,command,args,context){
  }else if(command==='petSummon'){
   if(![1,10].includes(args.count))fail('INVALID_ARGUMENTS');if(s.petStone<args.count*10)fail('INSUFFICIENT_PETSTONE');
   if(!pets.pool(s,balance.pets).length)fail('ALL_PETS_MAX');
-  const results=[];for(let i=0;i<args.count;i++){const roll=pets.pick(pets.pool(s,balance.pets),random);if(!roll)break;const added=pets.add(s,balance.pets,roll.petId);spend('petStone',10);s.petSummonExp=(s.petSummonExp||0)+1;results.push({type:'pet',petId:roll.petId,uid:added.pet.uid,previousLevel:added.previousLevel,level:added.pet.level,copies:added.pet.copies});}events.push({type:'petSummon',results});
+  const results=[];for(let i=0;i<args.count;i++){const roll=pets.pick(pets.pool(s,balance.pets),random);if(!roll)break;const added=pets.add(s,balance.pets,roll.petId);spend('petStone',10);s.petSummonExp=(s.petSummonExp||0)+1;results.push({type:'pet',petId:roll.petId,uid:added.pet.uid,previousLevel:added.previousLevel,level:added.pet.level,copies:added.pet.copies,autoSold:!!added.autoSold,autoSoldStone:added.autoSoldStone||0});}events.push({type:'petSummon',results});
  }else if(command==='petEquip'){
   if(args.uid!==null&&!s.ownedPets.some(p=>p.uid===args.uid))fail('PET_NOT_OWNED');s.equippedPet=args.uid;
  }else if(command==='petLock'||command==='petSell'){

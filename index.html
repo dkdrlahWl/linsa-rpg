@@ -564,6 +564,7 @@ left:var(--fallen-axe-left)!important;
 .inventory-pages button:focus-visible{outline:2px solid #99caff;outline-offset:2px}
 .inventory-pages span{text-align:center;font-variant-numeric:tabular-nums}
 </style>
+<link rel="stylesheet" href="/linsa-rpg/pet-mobile.css?v=PS2">
 </head>
 <script src="/linsa-rpg/safety.js?v=BM5-CQ3"></script>
 <script src="/linsa-rpg/art-catalog.js?v=menu-boss-2"></script>
@@ -572,8 +573,8 @@ left:var(--fallen-axe-left)!important;
 <script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
 <script src="/linsa-rpg/stone-party.js?v=stone-hp-S3"></script>
-<script src="/linsa-rpg/pet-stack-model.js?v=1"></script>
-<script src="/linsa-rpg/pet-stacks.js?v=1"></script>
+<script src="/linsa-rpg/pet-stack-model.js?v=PS2"></script>
+<script src="/linsa-rpg/pet-stacks.js?v=PS2"></script>
 <link rel="stylesheet" href="/linsa-rpg/auction.css?v=mobile-details-AU2">
 <script src="/linsa-rpg/auction.js?v=PCHEADER2"></script>
 <script defer src="/linsa-rpg/safe-patches-core-v1.js?v=economy-20260909-1"></script>
@@ -919,7 +920,7 @@ const ratios=[1.75,1.35,1,.75,.5,.25,.1],rollMin=.8,rollMax=1.201,rar=['타락',
 const defs=[['무기','치명타 확률',20],['투구','공격력%',20],['갑옷','치명타 피해',50],['바지','공격력%',20],['신발','치명타 피해',50],['반지','골드 획득량',10],['귀걸이','골드 획득량',12]];
 const fmtPct=v=>Number(v.toFixed(1)).toString()+'%';
 const optRows=defs.map(([slot,opt,base])=>'<tr><td>'+slot+'</td><td>'+opt+'</td>'+ratios.map(r=>'<td>'+fmtPct(base*r*rollMin)+'~'+fmtPct(base*r*rollMax)+'</td>').join('')+'</tr>').join('');
- const costs=[250,250,250,500,500,500,1000,1000,1000,2500,2500,2500,6000,6000,6000];
+ const costs=[250,250,250,500,500,500,1000,1000,1000,2500,7500,7500,18000,18000,18000];
 const costRows=costs.map((c,i)=>'<tr><td>Lv.'+(i+1)+'</td><td>'+fmt(c)+' G</td></tr>').join('');
 $('tipGrid').innerHTML='<div class="tip-card"><h4>장비 등급별 · 부위별 부옵션 범위</h4><table class="tip-table"><thead><tr><th>부위</th><th>부옵션</th>'+rar.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+optRows+'</tbody></table><p class="rank-note">실제 장비 생성 로직 기준입니다. 장비마다 0.8~1.201배 난수로 결정됩니다.<br>초월 옵션은 별도 추가됩니다: 무기 1초월당 공격력% +15%, 신화 무기는 +20%, 타락 무기는 +40%, 타락 비무기 부위는 +25%, 그 외 부위 1초월당 공격력% +10%.<br>타락 등급은 소환 Lv.15에서만 1% 확률로 등장합니다. 무기/방어구/장신구 소환 카테고리별 부위가 분리됩니다.<br>오라는 장착 여부와 관계없이 보유 효과가 누적됩니다. 일반 오라는 공격력% +3%, 무지개 오라는 공격력% +12%입니다.</p></div><div class="tip-card summon-cost-card"><h4>소환 레벨별 1회 소환가격</h4><table class="tip-table"><thead><tr><th>소환 레벨</th><th>1회 가격</th></tr></thead><tbody>'+costRows+'</tbody></table></div>';
 $('tipModal').classList.add('show')}
@@ -1083,7 +1084,7 @@ function closePetPanel(){$('petModal').classList.remove('show')}
 function closePetResult(){$('petResultModal').classList.remove('show')}
 function renderPetTab(tab){petActiveTab=tab||petActiveTab;ensurePetModal();['Manage','Summon','Collection'].forEach(n=>{const el=$('petTab'+n);if(el)el.classList.toggle('on',petActiveTab===n.toLowerCase())});if(petActiveTab==='summon')renderPetSummonTab();else if(petActiveTab==='collection')renderPetCollectionTab();else renderPetManageTab()}
 function renderPetPanel(){openPetPanel('manage')}
-function renderPetManageTab(){migratePetState();const eq=getEquippedPet(),body=$('petBody');body.innerHTML='<div class="pet-summary"><b>장착 펫</b><br>'+(eq?PET_DATA[eq.petId].icon+' '+PET_DATA[eq.petId].name+' Lv.'+eq.level+'<br><small>'+petStatText(getPetLevelStats(eq))+'</small>':'장착 중인 펫이 없습니다.')+'</div><div class="pet-grid pet-management">'+(state.ownedPets.length?state.ownedPets.map(renderPetCard).join(''):'<div class="empty-list">보유한 펫이 없습니다.<br>펫 소환에서 첫 펫을 획득하세요.</div>')+'</div>'}
+function renderPetManageTab(){if(window.RinguPetStacks?.renderManage)return window.RinguPetStacks.renderManage();migratePetState();const eq=getEquippedPet(),body=$('petBody');body.innerHTML='<div class="pet-summary"><b>장착 펫</b><br>'+(eq?PET_DATA[eq.petId].icon+' '+PET_DATA[eq.petId].name+' Lv.'+eq.level+'<br><small>'+petStatText(getPetLevelStats(eq))+'</small>':'장착 중인 펫이 없습니다.')+'</div><div class="pet-grid pet-management">'+(state.ownedPets.length?state.ownedPets.map(renderPetCard).join(''):'<div class="empty-list">보유한 펫이 없습니다.<br>펫 소환에서 첫 펫을 획득하세요.</div>')+'</div>'}
 function renderPetInventory(){if($('petModal')&&$('petModal').classList.contains('show'))renderPetManageTab()}
 function renderPetCard(p){const d=PET_DATA[p.petId],eq=state.equippedPet===p.uid,stats=getPetLevelStats(p),mats=getSamePetMaterials(p.uid).length;return '<div class="pet-card g'+d.grade+'" style="--pc:'+petColor(d.grade)+'"><div class="pet-head"><span class="pet-icon">'+d.icon+'</span><span><strong>'+escapeHtml(d.name)+'</strong><small>'+petGradeName(d.grade)+' · 내부 '+d.tierInGrade+'번 · Lv.'+p.level+'/'+d.maxLevel+(eq?' · 장착 중':'')+(p.locked?' · 잠금':'')+'</small></span></div><small>'+petStatText(stats)+'</small><div class="pet-actions"><button class="primary" onclick="'+(eq?'unequipPet()':'equipPet(\''+p.uid+'\')')+'">'+(eq?'해제':'장착')+'</button><button '+(p.level>=5||!mats?'disabled':'')+' onclick="levelUpPet(\''+p.uid+'\')">레벨업</button><button onclick="'+(p.locked?'unlockPet':'lockPet')+'(\''+p.uid+'\')">'+(p.locked?'잠금해제':'잠금')+'</button></div><small>레벨업 재료: 같은 펫 '+mats+'마리</small></div>'}
 function renderPetDetailModal(petInstance){if(!petInstance)return;const d=PET_DATA[petInstance.petId];toast(d.name+' Lv.'+petInstance.level+' · '+petStatText(getPetLevelStats(petInstance)))}
@@ -1717,7 +1718,7 @@ fixedBaseAtk=function(slot,rarity,idx){rarity=Number(rarity)||0;if(rarity>=6)ret
 function enhanceMultiplier(level){level=Math.max(0,Math.min(15,Number(level)||0));return level<=10?1+level*.05:1.5+(level-10)*.10}
 function enhancedBaseAtk(base,level){base=Number(base)||0;level=Math.max(0,Math.min(15,Number(level)||0));const raw=base*enhanceMultiplier(level);return level>0?Math.max(Math.ceil(raw),Math.floor(base)+level):Math.floor(raw)}
 itemAtk=function(it){if(!it)return 0;const base=Number(it.baseAtk)||0,enhanced=enhancedBaseAtk(base,it.enhance),transcend=Math.min(3,Math.max(0,Number(it.transcend)||0)),rarity=Number(it.rarity)||0,rate=it.slot==='무기'?(rarity>=6?.40:.45):(rarity>=6?.25:.30);return Math.floor(enhanced*(1+transcend*rate))};
-summonUnitCost=function(){return[250,250,250,500,500,500,1000,1000,1000,2500,2500,2500,6000,6000,6000][Math.max(1,Math.min(15,activeSummon().level))-1]};
+summonUnitCost=function(){return[250,250,250,500,500,500,1000,1000,1000,2500,7500,7500,18000,18000,18000][Math.max(1,Math.min(15,activeSummon().level))-1]};
 canRollFallen=function(){return false};
 openRates=function(){let rows=rates.map((r,i)=>'<tr class="'+(i+1===activeSummon().level?'current':'')+'"><td>Lv.'+(i+1)+'</td>'+r.map((v,j)=>'<td style="color:'+rarityColors[j]+'">'+v+'%</td>').join('')+'</tr>').join('');$('rateTable').innerHTML='<p class="summon-kind">'+groupName(drawGroup)+' 소환 확률</p><table class="rate-table"><thead><tr><th>레벨</th>'+rarityNames.slice(0,6).map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table>';$('rateModal').classList.add('show')};
 tryEnhance=async function(){if(!await ensureCloudFreshForAction('강화'))return;const it=state.inventory.find(x=>x.id===enhanceId);if(!it||it.enhance>=15||enhanceBusy)return;const cost=enhanceCost(it),target=it.enhance+1;if(!spendGold(cost))return toast('강화 골드가 부족합니다.');enhanceBusy=true;renderTop();renderEnhance();const stage=$('enhanceStage');stage.className='enhance-stage forging';$('enhanceResult').textContent='';playForgeSound();setTimeout(()=>{const success=Math.random()*100<successRate(target);stage.className='enhance-stage '+(success?'success':'fail');if(success){it.enhance++;$('enhanceResult').textContent='강화 성공';toast('강화 성공! +'+it.enhance)}else if(target>=2&&state.useProtect&&state.downgradeProtect>0){state.downgradeProtect--;$('enhanceResult').textContent='하락 방지';toast('하락방지권 1장 사용 · 강화 수치 유지')}else{if(target>=2)it.enhance=Math.max(0,it.enhance-1);$('enhanceResult').textContent='강화 실패';toast(target>=2?'강화 실패 · +'+it.enhance+'로 하락':'강화 실패 · 강화 수치 유지')}enhanceBusy=false;renderAll();renderEnhance();saveChanceAction();setTimeout(()=>{if($('enhanceStage'))$('enhanceStage').className='enhance-stage'},650)},470)};
