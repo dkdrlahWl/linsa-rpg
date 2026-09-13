@@ -459,7 +459,7 @@
       account = Object.freeze({ id: data.account.id, username: data.account.username }); revision = data.revision;
       const serverJournal=read(scoped('server-request'));
       if(serverJournal){
-        const record=JSON.parse(serverJournal);if(!['auction','costume','economy','black-market'].includes(record.kind))throw Error('이전 요청 기록을 확인해 주세요.');
+        const record=JSON.parse(serverJournal);if(!['auction','costume','economy','black-market','gold-transfer'].includes(record.kind))throw Error('이전 요청 기록을 확인해 주세요.');
         if(record.kind==='costume')record.payload.revision=data.revision;
         const replay=await api('/api/'+record.kind,{method:'POST',body:JSON.stringify(record.payload)});
         if(!replay.ok&&replay.status>=500)throw Error('이전 요청 결과를 확인하지 못했습니다. 잠시 후 다시 접속해 주세요.');
@@ -527,6 +527,7 @@
     startupFailed: () => end('게임 화면을 준비하지 못했습니다. 장비와 서버 기록은 지우지 않았습니다. 서버 기록 다시 확인을 눌러 재시도해 주세요.', 'error'),
     economyTransaction:(command,args={})=>serverTransaction('economy',{command,args,requestId:crypto.randomUUID()}),
     blackMarketTransaction:(rotation,slot,quantity=1)=>serverTransaction('black-market',{action:'buy',rotation,slot,quantity,requestId:crypto.randomUUID()}),
+    goldTransferTransaction:(recipient,amount)=>serverTransaction('gold-transfer',{action:'send',recipient,amount,requestId:crypto.randomUUID()}),
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
     subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },
     onEnded(fn) { endHooks.add(fn); if (ended) fn(snapshot()); return () => endHooks.delete(fn); }

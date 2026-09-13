@@ -174,6 +174,7 @@
   f.bulkSell=rarity=>sell(g.state.inventory.filter(it=>it.rarity<=rarity&&!it.locked&&!Object.values(g.state.equipped).includes(it.id)));
   $('enhanceBtn').onclick=f.tryEnhance;$('transcendBtn').onclick=f.tryTranscend;
   window.RinguEconomy={command,sync,paint};paint(window.RinguCloud.initialEconomyEvents||[]);window.RinguCloud.initialEconomyEvents=[];
+  void import('/linsa-rpg/gold-transfer.js?v=GT1');
   document.addEventListener('visibilitychange',()=>{if(document.hidden){backgroundRequested=true;if(!pending&&session.active){backgroundRequested=false;void command('background');}}else{backgroundRequested=false;void sync();}});
  }
  window.addEventListener('ringu-ready',install);install();
