@@ -24,9 +24,17 @@ try{
  large.inventory[0].enhance=1;await apply(large);assert.equal((await db.query('select n from item_write_probe')).rows[0].n,1);
  large.inventory.shift();await apply(large);assert.equal((await db.query('select n from item_write_probe')).rows[0].n,2);
  console.log('2400-item differential commit: unchanged inventory 0 row writes; one enhancement 1 write; one removal 1 tombstone.');
+ // CQ1: receipt replay cannot spend twice, even when a response is lost.
+ let cs=await snapshot();let funded=structuredClone(cs.state);funded.sunCube=2;funded.inventory=[{...balance.gear.find(x=>x.rarity===4),id:80001,auctionUid:randomUUID(),enhance:15,transcend:3}];await apply(funded);
+ cs=await snapshot();const cubeNonce=randomUUID(),cubeArgs={id:80001,type:'sun'},cubeResult=execute(cs.state,'cubeRoll',cubeArgs,{...cs,random:()=>.999,uuid:randomUUID});
+ const cubeCommit=()=>db.query('select public.ringu_economy_commit($1,$2,$3,$4,$5,$6,$7)',[u,sid,cs.revision,cubeNonce,JSON.stringify({command:'cubeRoll',args:cubeArgs}),JSON.stringify(cubeResult.state),JSON.stringify({events:cubeResult.events})]);
+ await cubeCommit();await cubeCommit();assert.equal((await snapshot()).state.sunCube,1);assert.equal((await snapshot()).state.inventory[0].cubeTier,3);
+ await assert.rejects(()=>db.query('select public.ringu_economy_commit($1,$2,$3,$4,$5,$6,$7)',[u,sid,cs.revision,randomUUID(),JSON.stringify({command:'cubeRoll',args:cubeArgs}),JSON.stringify(cubeResult.state),'{}']),/SAVE_CONFLICT/);
+ console.log('CQ1 SQL: cube receipt replay spends once; stale concurrent commit rejected.');
+
  // SG1: exact large-sale debit and item tombstones with receipt replay.
  const saleSeed=structuredClone((await snapshot()).state);saleSeed.autoBattle=false;
- saleSeed.inventory=Array.from({length:1137},(_,i)=>({...balance.gear[0],id:Number.MAX_SAFE_INTEGER-i,auctionUid:randomUUID(),enhance:i%16,transcend:0,optionRolls:[1,1],locked:i===0}));
+ saleSeed.inventory=Array.from({length:1137},(_,i)=>({...balance.gear[0],id:Number.MAX_SAFE_INTEGER-i,auctionUid:randomUUID(),enhance:i%16,transcend:0,optionRolls:[.8,.8],cubeVersion:1,cubeTier:0,locked:i===0}));
  saleSeed.equipped={'무기':saleSeed.inventory[1].id};await apply(saleSeed);
  const saleSnap=await snapshot(),ids=saleSnap.state.inventory.slice(2).map(it=>it.id),saleNonce=randomUUID();
  const gain=saleSnap.state.inventory.slice(2).reduce((n,it)=>n+balance.sellPrices[it.rarity][it.enhance],0);

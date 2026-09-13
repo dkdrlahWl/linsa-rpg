@@ -12,7 +12,7 @@ for(let rarity=0;rarity<7;rarity++){
  const r=execute(s,'dismantle',{ids:[1]},ctx);
  assert.equal(r.state.gold,s.gold);assert.equal(r.state.essence,rarity+1);assert.equal(r.state.inventory.length,0);
  let successes=0;for(let bucket=0;bucket<1000;bucket++)successes+=execute(s,'dismantle',{ids:[1]},{...ctx,randomInt:()=>bucket}).state.essence>0?1:0;
- assert.equal(successes,1);
+ assert.equal(successes,5);
 }
 for(const successes of [0,1,2,4]){
  const s=state();s.inventory=items(1248,3);let calls=0;
@@ -30,5 +30,5 @@ const killed=execute(hunter,'sync',{}, {...ctx,random:()=>0});assert.equal(kille
 const plan=planBattle(s,0,()=>0);assert.deepEqual(plan.map(h=>h.at),Array.from({length:10},(_,i)=>(i+1)*1000));assert.equal(plan.length,10);
 let seq=[4294967295,4294967000,12345];assert.equal(randomInt(1000,()=>seq.shift()),345);assert.equal(seq.length,0);
 // Independent empirical probability check with production CSPRNG (7 million draws).
-for(let rarity=0;rarity<7;rarity++){let wins=0;for(let i=0;i<1_000_000;i++)if(randomInt(1000)===0)wins++;assert.ok(wins>800&&wins<1200,`rarity ${rarity}: ${wins}`);console.log(`rarity ${rarity}: ${wins}/1,000,000 wins; reward ${rarity+1}`);}
+for(let rarity=0;rarity<7;rarity++){let wins=0;for(let i=0;i<1_000_000;i++)if(randomInt(1000)<5)wins++;assert.ok(wins>4500&&wins<5500,`rarity ${rarity}: ${wins}`);console.log(`rarity ${rarity}: ${wins}/1,000,000 wins; reward ${rarity+1}`);}
 console.log('PASS: exact probability buckets, independent 1248-item/mixed draws, no gold, tamper rejection, field drop removal, ten-second plan and CSPRNG rejection sampling.');

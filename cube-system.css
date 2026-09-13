@@ -1,0 +1,67 @@
+/* CQ1: give equipment names, stars and actions their own space on mobile. */
+#inventoryList .item-title{display:flex!important;flex-wrap:wrap!important;align-items:center;gap:5px!important;min-width:0}
+#inventoryList .ringu-item-title{display:flex!important;flex-wrap:wrap!important;gap:4px!important;overflow:visible!important;text-overflow:clip!important;white-space:normal!important;min-width:0;max-width:100%;line-height:1.5!important}
+#inventoryList .cube-item-name{overflow-wrap:anywhere;white-space:normal}
+#inventoryList .ringu-plus,#inventoryList .transcend-stars{flex:none!important;white-space:nowrap!important;overflow:visible!important;letter-spacing:1px}
+body[data-remodel] .inventory-tools{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+body[data-remodel] .inventory-tools select{grid-column:span 2;min-width:0;width:100%}
+body[data-remodel] .inventory-tools button{min-width:0;white-space:nowrap!important;font-size:clamp(10px,2.8vw,13px)!important;padding:10px 2px!important}
+.inventory-tools button.sell-bulk::before,.inventory-tools button.sell-bulk::after{display:none!important;content:none!important}
+.inventory-tools .sell-bulk img,.inventory-tools .sell-bulk canvas{display:none!important}
+#enhanceModal.cube-workshop .modal{width:min(460px,100%)!important;max-height:calc(100dvh - 24px)!important;padding:16px!important;box-sizing:border-box;overflow:auto!important}
+body[data-remodel] #enhanceModal.cube-workshop.show{padding:12px!important}
+.cube-workshop [hidden]{display:none!important}
+#enhanceModal #enhanceTitle{font-size:18px!important;margin:0 0 12px!important;overflow-wrap:anywhere;line-height:1.4}
+.cube-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+#enhanceModal .cube-tabs button{padding:10px 4px!important}
+#enhanceModal .cube-tabs [aria-selected=true]{border-color:#c6a466!important;color:#ffe4a6!important;background:#55462a!important}
+#enhanceModal #enhanceStage{height:105px!important;margin:0!important;min-height:0!important}
+#enhanceModal #enhanceGear .rm-item-art{width:94px!important;height:94px!important}
+#enhanceModal .enhance-hammer{width:48px;height:82px;left:calc(50% + 10px);top:0}
+#enhanceModal[data-workshop-tab=cube] .enhance-hammer{display:none!important}
+#enhanceModal #enhanceDesc{margin:8px 0!important;font-size:12px!important;line-height:1.65!important;overflow-wrap:anywhere}
+#enhanceModal #enhanceDesc .item-option-line{display:block}
+#enhanceModal .modal-stats{gap:5px!important;margin:10px 0!important}
+#enhanceModal .modal-stats>div{font-size:11px!important;padding:9px 3px!important;min-width:0;overflow-wrap:anywhere}
+#enhanceModal .modal-stats b{font-size:13px!important;white-space:normal!important}
+#enhanceModal #protectToggle{font-size:11px!important;white-space:normal!important;overflow-wrap:anywhere}
+#enhanceModal .modal-actions{margin-top:10px!important;gap:8px!important}
+#enhanceModal .modal-actions button{min-height:42px}
+.cube-stock{display:flex;align-items:center;gap:12px;padding:8px 0}
+.cube-stock img{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 0 8px #59efd333)}
+.cube-stock strong,.cube-stock small{display:block;line-height:1.6}
+.cube-stock small{color:#a9bdc4}
+.cube-reveal{--tier:#65bdff;position:relative;border:1px solid var(--tier);border-radius:9px;padding:12px;text-align:center;background:radial-gradient(ellipse at center,#52607433,#0c1720);color:var(--tier);overflow:hidden}
+.cube-reveal small,.cube-reveal strong,.cube-reveal span{display:block}
+.cube-reveal strong{font-size:24px;margin:5px 0}
+.cube-reveal span{font-size:11px;color:#b5c4ca}
+.cube-reveal.rolling{animation:cube-pulse .55s ease-in-out infinite alternate}
+.cube-reveal.rolling strong{animation:cube-shimmer .6s linear infinite alternate}
+.cube-reveal.revealed{animation:cube-reveal .8s ease-out}
+.cube-reveal.tier-2,.cube-reveal.tier-3{box-shadow:inset 0 0 25px color-mix(in srgb,var(--tier) 20%,transparent),0 0 16px color-mix(in srgb,var(--tier) 30%,transparent)}
+.cube-bands{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
+.cube-bands>div{display:grid;grid-template-columns:1fr auto;gap:2px 6px;border:1px solid #354550;border-radius:5px;padding:6px 8px;font-size:11px}
+.cube-bands b{color:var(--tier)}.cube-bands span{grid-row:2;color:#becad0}.cube-bands small{grid-column:2;grid-row:1/3;align-self:center;color:var(--tier)}
+#enhanceModal .cube-note{font-size:10px!important;line-height:1.6!important;color:#9cabb5;margin:8px 0!important}
+#cubeRoll,#cubeBuy{width:100%;margin-top:6px;min-height:40px}
+.cube-shop-card>img{width:60px;height:60px;object-fit:contain}.cube-shop-card>span{min-width:0}.cube-shop-card small{display:block;overflow-wrap:anywhere}
+@keyframes cube-pulse{from{box-shadow:inset 0 0 6px #6cffdd22}to{box-shadow:inset 0 0 38px #6cffdd88}}
+@keyframes cube-shimmer{to{transform:scale(1.12);filter:brightness(1.8)}}
+@keyframes cube-reveal{0%{filter:brightness(2);transform:scale(.97)}100%{filter:brightness(1);transform:scale(1)}}
+@media(max-width:1099px){
+ #inventoryList .item{display:block!important;padding:10px!important}
+ #inventoryList .item>.gear-row{width:100%;gap:10px!important}
+ #inventoryList .item>.gear-row>.rm-item-art{width:60px!important;height:76px!important;flex:0 0 60px!important}
+ #inventoryList .item-info{flex:1!important;width:0;max-width:none}
+ #inventoryList .item-actions{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important;margin-top:9px;gap:5px!important}
+ #inventoryList .item-actions button{font-size:11px!important;min-height:36px;padding:6px 2px!important;white-space:nowrap}
+ #inventoryList .sub-options .item-option-line{font-size:11px!important}
+ #inventoryList .sub-options{margin-top:4px!important}
+ #inventoryList .ringu-item-title{font-size:13px!important}
+ .cube-shop-card{grid-template-columns:48px minmax(0,1fr) auto!important;gap:8px!important}.cube-shop-card>img{width:48px;height:48px}
+}
+@media(prefers-reduced-motion:reduce){.cube-reveal,.cube-reveal strong{animation:none!important}}
+@media(max-width:1099px){
+ body[data-remodel] #inventoryList .item .item-actions{width:100%!important;min-width:0!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;justify-content:stretch!important;gap:5px!important}
+ body[data-remodel] #inventoryList .item .item-actions button,body[data-remodel] #inventoryList .item .item-actions .sell{width:100%!important;min-height:38px!important;font-size:11px!important;line-height:1.3!important;letter-spacing:0!important;white-space:nowrap!important}
+}

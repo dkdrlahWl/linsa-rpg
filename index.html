@@ -586,7 +586,7 @@ left:var(--fallen-axe-left)!important;
 <script defer src="/linsa-rpg/costume-runtime.js?v=costume-live-1"></script>
 <script defer src="/linsa-rpg/costume-preview.js?v=linsa-shop-LS1"></script>
 <script defer src="/linsa-rpg/shop-controls.js?v=black-market-BM1"></script>
-<script defer src="/linsa-rpg/economy-client.js?v=daily-boss-DB2"></script>
+<script defer src="/linsa-rpg/economy-client.js?v=CQ2"></script>
 <link rel="stylesheet" href="/linsa-rpg/black-market.css?v=icons-BM5">
 <script defer src="/linsa-rpg/black-market.js?v=ranges-RG1"></script>
 <script defer src="/linsa-rpg/ranking-ui.js?v=ranking-RK1"></script>
@@ -738,7 +738,7 @@ function getPower(){return getPlayerStats().attack}
 function isEquipped(id){return Object.values(state.equipped).includes(id)}
 function isItemEquipped(it){return !!(it&&state.equipped&&String(state.equipped[it.slot])===String(it.id))}
 function transcendStars(it){const n=Math.max(0,Math.min(3,Number(it&&it.transcend)||0));return n?'★'.repeat(n):''}
-function itemTitleHtml(it){const color=rarityColors[it.rarity]||'#dce8ff',stars=transcendStars(it);return escapeHtml((it.locked?'[잠금] ':'')+it.name)+' <span class="ringu-plus">+'+(Number(it.enhance)||0)+'</span>'+(stars?' <span class="transcend-stars" style="--star-color:'+color+';color:'+color+'" aria-label="'+(Number(it.transcend)||0)+'초월">'+stars+'</span>':'')}
+function itemTitleHtml(it){const color=rarityColors[it.rarity]||'#dce8ff',stars=transcendStars(it);return '<span class="cube-item-name">'+escapeHtml((it.locked?'[잠금] ':'')+it.name)+'</span> <span class="ringu-plus">+'+(Number(it.enhance)||0)+'</span>'+(stars?' <span class="transcend-stars" style="--star-color:'+color+';color:'+color+'" aria-label="'+(Number(it.transcend)||0)+'초월">'+stars+'</span>':'')}
 function sortInventoryItems(list){return list.sort((a,b)=>{const ae=isItemEquipped(a)?1:0,be=isItemEquipped(b)?1:0;if(be!==ae)return be-ae;const eh=(Number(b.enhance)||0)-(Number(a.enhance)||0);if(eh)return eh;const tr=(Number(b.transcend)||0)-(Number(a.transcend)||0);if(tr)return tr;const rr=(Number(b.rarity)||0)-(Number(a.rarity)||0);if(rr)return rr;return itemAtk(b)-itemAtk(a)})}
 function refreshEquipmentViews(){renderTop();renderEquipment();renderPlayerStats();renderInventory();decorateTranscendStars();queueSave()}
 function toggleEquipItem(id){const it=state.inventory.find(x=>String(x.id)===String(id));if(!it)return false;if(isItemEquipped(it)){delete state.equipped[it.slot];toast(it.name+' 장착 해제')}else{state.equipped[it.slot]=it.id;toast(it.name+' 장착 완료')}refreshEquipmentViews();return false}
@@ -2966,5 +2966,7 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 <link rel="stylesheet" href="/linsa-rpg/ranking-ui.css?v=ranking-RK1">
 <link rel="stylesheet" href="/linsa-rpg/daily-boss.css?v=DB1">
 <script defer src="/linsa-rpg/daily-boss.js?v=DB2"></script>
+<link rel="stylesheet" href="/linsa-rpg/cube-system.css?v=CQ1">
+<script type="module" src="/linsa-rpg/cube-system.js?v=CQ1"></script>
 </body>
 </html>

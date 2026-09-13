@@ -1,5 +1,6 @@
 import balance from './balance.json' with {type:'json'};
 import pets from './pets.mjs';
+import {CUBES,cubeType,initializeOptions,rollOption} from './cubes.mjs';
 export {balance};
 export const itemKey=it=>it.slot+'|'+it.rarity+'|'+it.name;
 const catalogue=new Map(balance.gear.map(it=>[itemKey(it),it]));
@@ -33,7 +34,7 @@ export function execute(snapshot,command,args,context){
   const template=catalogue.get(itemKey(it));
   if(!template)fail('UNKNOWN_EQUIPMENT');
   it.baseAtk??=template.baseAtk;it.enhance??=0;it.transcend??=0;
-  it.optionRolls??=[seedValue(it.legacyId??it.id,0),seedValue(it.legacyId??it.id,1)];
+  initializeOptions(it);
   if(missingDiscovery)s.discovered[itemKey(it)]=true;
  }
  if(s.collectionClaims[50]&&!s.aura50TicketGranted){s.aura50TicketGranted=true;s.auraDrawTickets=safeAdd(s.auraDrawTickets||0,1);}
@@ -41,12 +42,12 @@ export function execute(snapshot,command,args,context){
  const award=(key,n)=>{s[key]=Math.max(context.adminFloor||0,safeAdd(s[key]||0,n));};
  const gear=id=>{int(id,1);const it=s.inventory.find(x=>x.id===id);if(!it)fail('ITEM_NOT_OWNED');return it;};
  const freshId=()=>{const id=context.itemIds.shift();int(id,1);if(s.inventory.some(x=>x.id===id))fail('ITEM_ID_COLLISION');return id;};
- const addItem=template=>{const id=freshId(),it={...template,id,auctionUid:context.uuid(),enhance:template.enhance||0,transcend:template.transcend||0};s.discovered??={};it.isNew=!s.discovered[itemKey(it)];s.discovered[itemKey(it)]=true;s.inventory.unshift(it);s.uid=Math.max(s.uid||1,id+1);return it;};
+ const addItem=template=>{const id=freshId(),it={...template,id,auctionUid:context.uuid(),enhance:template.enhance||0,transcend:template.transcend||0};s.discovered??={};it.isNew=!s.discovered[itemKey(it)];s.discovered[itemKey(it)]=true;initializeOptions(it);s.inventory.unshift(it);s.uid=Math.max(s.uid||1,id+1);return it;};
  if(!args||typeof args!=='object'||Array.isArray(args))fail('INVALID_ARGUMENTS');
  const allowed={sync:[],background:[],daily:[],summon:['group','count'],enhance:['id','protect'],transcend:['id'],equip:['id'],equipBest:[],unequip:['slot'],lock:['id','locked'],dismantle:['ids'],sell:['ids'],auraBuy:['id'],auraEquip:['id'],auraTicket:[],consumable:['type'],collection:['count'],mail:['id'],select:['region','boss'],auto:['enabled'],startDungeon:['type','stage'],cancelBattle:[],petSummon:['count'],petEquip:['uid'],petLock:['uid','locked'],petSell:['uid'],petCollection:['count']};
- allowed.setProtect=['enabled'];
+ allowed.setProtect=['enabled'];allowed.cubeBuy=['type'];allowed.cubeRoll=['id','type'];
  if(!allowed[command]||Object.keys(args).some(k=>!allowed[command].includes(k)))fail('INVALID_ARGUMENTS');
- for(const key of ['gold','essence','transcendStone','downgradeProtect','dungeonTickets','petStone','petTicket'])s[key]=int(s[key]||0);
+ for(const key of ['gold','essence','transcendStone','downgradeProtect','dungeonTickets','petStone','petTicket','jadeCube','sunCube'])s[key]=int(s[key]||0);
  if(context.adminFloor>0){
   for(const key of ['gold','essence','transcendStone','downgradeProtect','dungeonTickets','petStone','petTicket'])s[key]=Math.max(s[key],int(context.adminFloor));
   s.rankingHidden=true;
@@ -162,7 +163,7 @@ export function execute(snapshot,command,args,context){
   // The legacy command is an alias, never a way to recover the old gold payout.
   // Production supplies an unbiased integer RNG; one independent draw per item.
   let essence=0;
-  for(const it of items){int(it.rarity,0,6);const roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000);if(roll===0)essence=safeAdd(essence,it.rarity+1);}
+  for(const it of items){int(it.rarity,0,6);const roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000);if(roll<5)essence=safeAdd(essence,it.rarity+1);}
   const ids=new Set(args.ids);s.inventory=s.inventory.filter(it=>!ids.has(it.id));
   if(essence)award('essence',essence);events.push({type:'dismantle',count:items.length,essence});
  }else if(command==='auraBuy'){
@@ -171,6 +172,13 @@ export function execute(snapshot,command,args,context){
   int(args.id,-1,balance.auras.length-1);if(args.id!==-1&&!s.ownedAuras.includes(args.id))fail('NOT_OWNED');s.equippedAura=args.id;
  }else if(command==='auraTicket'){
   if(!(s.auraDrawTickets>0))fail('INSUFFICIENT_TICKET');const pool=balance.auras.filter(x=>x.id!==8&&!s.ownedAuras.includes(x.id));if(!pool.length)fail('ALL_OWNED');const aura=pool[Math.floor(random()*pool.length)];s.auraDrawTickets--;s.ownedAuras.push(aura.id);events.push({type:'aura',id:aura.id});
+ }else if(command==='cubeBuy'){
+  const cube=Object.hasOwn(CUBES,args.type)?CUBES[args.type]:null;if(!cube)fail('INVALID_ARGUMENTS');
+  spend('essence',cube.price);award(cube.key,1);events.push({type:'cubeBuy',cube:args.type});
+ }else if(command==='cubeRoll'){
+  const it=gear(args.id),type=cubeType(it);if(!type||args.type!==type)fail('INVALID_CUBE_TARGET');
+  const before=options(it)[0][1];spend(CUBES[type].key,1);
+  const result=rollOption(it,random);events.push({type:'cubeRoll',id:it.id,cube:type,before,...result});
  }else if(command==='consumable'){
   if(!['protect','stone'].includes(args.type))fail('INVALID_ARGUMENTS');spend('essence',args.type==='protect'?10:25);award(args.type==='protect'?'downgradeProtect':'transcendStone',1);
  }else if(command==='collection'){

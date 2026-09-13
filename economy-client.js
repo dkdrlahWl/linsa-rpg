@@ -5,7 +5,7 @@
   const g=window.RinguCore,session=window.RinguSession;
   if(!g?.state||!window.RinguCloud?.economy||window.RinguEconomy)return;
   const f=g.fn,$=id=>document.getElementById(id),item=id=>g.state.inventory.find(x=>String(x.id)===String(id));
-  const messages={REQUEST_TOO_LARGE:'분해 요청이 너무 큽니다. 게임을 새로고침한 뒤 다시 시도해 주세요.',INSUFFICIENT_GOLD:'골드가 부족합니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',INSUFFICIENT_TRANSCENDSTONE:'초월석이 부족합니다.',INSUFFICIENT_PETSTONE:'펫 스톤이 부족합니다.',INSUFFICIENT_TICKET:'뽑기권이 없습니다.',ALREADY_CLAIMED:'이미 받은 보상입니다.',ALREADY_OWNED:'이미 보유하고 있습니다.',ALL_OWNED:'대상 오라를 모두 보유했습니다. 뽑기권은 유지됩니다.',ALL_PETS_MAX:'보유한 모든 펫이 만렙입니다.',ITEM_NOT_OWNED:'현재 보유한 장비가 아닙니다.',ITEM_LOCKED_OR_EQUIPPED:'장착 또는 잠금 해제 후 이용하세요.',ITEM_IN_ESCROW:'경매장에 등록 중인 장비입니다.',PET_NOT_OWNED:'현재 보유한 펫이 아닙니다.',DUNGEON_LOCKED:'입장 횟수 또는 이전 단계 클리어를 확인하세요.',MONSTER_LOCKED:'이전 몬스터를 먼저 처치하세요.',BATTLE_IN_PROGRESS:'현재 전투를 먼저 종료하세요.',COLLECTION_INCOMPLETE:'도감 달성 수가 부족합니다.',SAVE_CONFLICT:'다른 처리가 진행 중입니다. 잠시 후 다시 시도하세요.',INVALID_ARGUMENTS:'입력값을 확인하세요.',INVALID_ENHANCEMENT:'강화·초월 조건을 확인하세요.',ECONOMY_NOT_READY:'서버 업데이트 중입니다. 잠시 후 접속하세요.'};
+  const messages={INVALID_CUBE_TARGET:'이 큐브를 사용할 수 없는 장비입니다.',INSUFFICIENT_JADECUBE:'비취 큐브가 부족합니다.',INSUFFICIENT_SUNCUBE:'태양 큐브가 부족합니다.',REQUEST_TOO_LARGE:'분해 요청이 너무 큽니다. 게임을 새로고침한 뒤 다시 시도해 주세요.',INSUFFICIENT_GOLD:'골드가 부족합니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',INSUFFICIENT_TRANSCENDSTONE:'초월석이 부족합니다.',INSUFFICIENT_PETSTONE:'펫 스톤이 부족합니다.',INSUFFICIENT_TICKET:'뽑기권이 없습니다.',ALREADY_CLAIMED:'이미 받은 보상입니다.',ALREADY_OWNED:'이미 보유하고 있습니다.',ALL_OWNED:'대상 오라를 모두 보유했습니다. 뽑기권은 유지됩니다.',ALL_PETS_MAX:'보유한 모든 펫이 만렙입니다.',ITEM_NOT_OWNED:'현재 보유한 장비가 아닙니다.',ITEM_LOCKED_OR_EQUIPPED:'장착 또는 잠금 해제 후 이용하세요.',ITEM_IN_ESCROW:'경매장에 등록 중인 장비입니다.',PET_NOT_OWNED:'현재 보유한 펫이 아닙니다.',DUNGEON_LOCKED:'입장 횟수 또는 이전 단계 클리어를 확인하세요.',MONSTER_LOCKED:'이전 몬스터를 먼저 처치하세요.',BATTLE_IN_PROGRESS:'현재 전투를 먼저 종료하세요.',COLLECTION_INCOMPLETE:'도감 달성 수가 부족합니다.',SAVE_CONFLICT:'다른 처리가 진행 중입니다. 잠시 후 다시 시도하세요.',INVALID_ARGUMENTS:'입력값을 확인하세요.',INVALID_ENHANCEMENT:'강화·초월 조건을 확인하세요.',ECONOMY_NOT_READY:'서버 업데이트 중입니다. 잠시 후 접속하세요.'};
   let pending=null,pendingName=null,forgeBusy=false,lastSync=0,backgroundRequested=false,lastLayout=null,lastInventory=null,lastProtection=null;
   let desiredProtection=null,protectionTask=null;
   const protectionValue=()=>desiredProtection??!!g.state.useProtect;
@@ -150,7 +150,7 @@
    const ids=items.map(it=>it.id);
    let modal=$('rmSellConfirm');if(!modal){modal=document.createElement('div');modal.id='rmSellConfirm';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');document.body.append(modal);}
    modal.setAttribute('aria-label','장비 분해 확인');
-   modal.innerHTML='<section class="modal"><h3>장비 분해</h3><p>장비 <b>'+ids.length.toLocaleString()+'개</b>를 분해합니다.</p><p>장비마다 독립적으로 <b>0.1%</b> 확률로 정수를 획득합니다.<br>일반 1 · 희귀 2 · 레어 3 · 에픽 4<br>전설 5 · 신화 6 · 타락 7개</p><p>골드는 지급되지 않습니다.<br>분해한 장비는 되돌릴 수 없습니다.</p><button id="rmSellCancel">취소</button><button id="rmSellAccept">확인 · 분해하기</button></section>';
+   modal.innerHTML='<section class="modal"><h3>장비 분해</h3><p>장비 <b>'+ids.length.toLocaleString()+'개</b>를 분해합니다.</p><p>장비마다 독립적으로 <b>0.5%</b> 확률로 정수를 획득합니다.<br>일반 1 · 희귀 2 · 레어 3 · 에픽 4<br>전설 5 · 신화 6 · 타락 7개</p><p>골드는 지급되지 않습니다.<br>분해한 장비는 되돌릴 수 없습니다.</p><button id="rmSellCancel">취소</button><button id="rmSellAccept">확인 · 분해하기</button></section>';
    $('rmSellCancel').onclick=()=>modal.classList.remove('show');
    $('rmSellAccept').onclick=async()=>{
     const accept=$('rmSellAccept'),cancel=$('rmSellCancel');if(accept.disabled)return;
@@ -161,7 +161,7 @@
     const event=result?.result?.events?.find(e=>e.type==='dismantle');
     if(event){
      modal.setAttribute('aria-label','장비 분해 결과');
-     modal.innerHTML='<section class="modal"><h3>분해 완료</h3><p>장비 <b>'+event.count.toLocaleString()+'개</b> 분해</p><p role="status" style="font-size:20px;color:#e5c0ff">정수 <b>'+Number(event.essence||0).toLocaleString()+'개</b> 획득</p><p>'+(event.essence?'획득한 정수를 보유량에 반영했습니다.':'이번 분해에서는 정수를 얻지 못했습니다. 장비마다 획득 확률은 0.1%입니다.')+'</p><button id="rmSellDone">확인</button></section>';
+     modal.innerHTML='<section class="modal"><h3>분해 완료</h3><p>장비 <b>'+event.count.toLocaleString()+'개</b> 분해</p><p role="status" style="font-size:20px;color:#e5c0ff">정수 <b>'+Number(event.essence||0).toLocaleString()+'개</b> 획득</p><p>'+(event.essence?'획득한 정수를 보유량에 반영했습니다.':'이번 분해에서는 정수를 얻지 못했습니다. 장비마다 획득 확률은 0.5%입니다.')+'</p><button id="rmSellDone">확인</button></section>';
      $('rmSellDone').onclick=()=>modal.classList.remove('show');$('rmSellDone').focus();
     }else{accept.disabled=false;cancel.disabled=false;accept.textContent='확인 · 분해하기';}
    };modal.classList.add('show');$('rmSellCancel').focus();
