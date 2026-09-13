@@ -1,7 +1,7 @@
 // Shared display rules. Random draws and spending are executed only on the server.
 export const CUBE_VERSION=1;
 export const CUBES={jade:{name:'비취 큐브',price:20,key:'jadeCube',rarities:[0,1,2,3]},sun:{name:'태양 큐브',price:50,key:'sunCube',rarities:[4,5]}};
-export const TIERS=[{name:'레어',chance:60,color:'#65bdff'},{name:'에픽',chance:30,color:'#be86ff'},{name:'유니크',chance:8,color:'#ffe078'},{name:'레전더리',chance:2,color:'#ff9654'}];
+export const TIERS=[{name:'레어',chance:60,color:'#65bdff'},{name:'에픽',chance:30,color:'#be86ff'},{name:'유니크',chance:8,color:'#ffe078'},{name:'레전더리',chance:2,color:'#b6ff00'}];
 const ratios=[.1,.25,.5,.75,1,1.35,1.75];
 const bases={무기:20,투구:20,갑옷:50,바지:20,신발:50,반지:10,귀걸이:12};
 export const optionBase=it=>bases[it.slot]*ratios[it.rarity];

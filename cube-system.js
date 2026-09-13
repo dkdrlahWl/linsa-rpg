@@ -1,4 +1,4 @@
-import {CUBES,TIERS,cubeType,optionBands,optionTier,optionBase} from './supabase/functions/_shared/cubes.mjs';
+import {CUBES,TIERS,cubeType,optionBands,optionTier,optionBase} from './supabase/functions/_shared/cubes.mjs?v=LIME1';
 const $=id=>document.getElementById(id),art=type=>'/linsa-rpg/art/cube-'+type+'.png',fmt=n=>Number(n||0).toLocaleString('ko-KR');
 function install(){
  const g=window.RinguCore,f=g?.fn;if(!g?.state||!window.RinguEconomy||window.RinguCubes)return;
