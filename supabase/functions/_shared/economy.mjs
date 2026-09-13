@@ -126,7 +126,7 @@ export function execute(snapshot,command,args,context){
  }else if(command==='daily'){
   const key=dailyKey(now);s.dailyRewardClaims??={};if(s.dailyRewardClaims[key])fail('ALREADY_CLAIMED');const amount=10+Math.floor(random()*6);award('essence',amount);s.dailyRewardClaims[key]={essence:amount,claimedAt:now};events.push({type:'daily',amount});
  }else if(command==='summon'){
-  if(!['weapon','armor','accessory'].includes(args.group)||![1,5,10].includes(args.count))fail('INVALID_ARGUMENTS');
+  if(!['weapon','armor','accessory'].includes(args.group)||![1,5,10,50].includes(args.count))fail('INVALID_ARGUMENTS');
   const summon=s.summons[args.group],level=summonLevel(summon.exp);spend('gold',costs[level-1]*args.count);const items=[];
   for(let i=0;i<args.count;i++){
    const slots=args.group==='weapon'?['무기']:args.group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이'],slot=slots[Math.floor(random()*slots.length)];

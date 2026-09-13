@@ -135,3 +135,71 @@ body[data-remodel] #rmCurrencyStats .stat-value{white-space:normal!important;ove
 .auction-notice-host{position:relative!important;overflow:visible!important}
 .auction-sale-badge{position:absolute!important;top:2px;right:3px;z-index:4;display:flex!important;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 5px;box-sizing:border-box;border:1px solid #ffc07a;border-radius:12px;background:#df3746;color:#fff!important;font:800 12px/1 sans-serif!important;box-shadow:0 0 9px #ed405a99;pointer-events:none}
 .rm-bottom-nav .auction-sale-badge{top:0;right:5px}
+
+/* Mobile density: reclaim space with smaller art and horizontal purchase controls. */
+@media(max-width:600px){
+ body[data-remodel] .topbar{height:calc(116px + env(safe-area-inset-top))!important;padding:calc(4px + env(safe-area-inset-top)) 8px 5px!important;grid-template-rows:38px 64px!important;gap:3px!important}
+ body[data-remodel] .brand{font-size:21px!important}
+ body[data-remodel] .header-actions button{height:38px!important;min-height:38px!important;width:44px!important;font-size:11px!important}
+ body[data-remodel] .ru-action-art{width:22px;height:22px}
+ body[data-remodel] .topbar #rmCurrencyStats{height:64px!important;grid-template-rows:repeat(2,30px)!important;grid-auto-rows:30px!important;gap:4px!important}
+ body[data-remodel] #rmCurrencyStats .stat{padding:2px 3px 2px 24px!important}
+ body[data-remodel] #rmCurrencyStats .stat-label{font-size:10px!important;line-height:11px!important}
+ body[data-remodel] #rmCurrencyStats .stat-value{font-size:13px!important;line-height:15px!important}
+ body[data-remodel] .ru-stat-art{width:20px;height:25px;left:2px}
+ body[data-remodel] #rmCurrencyStats .ringu-stat-icon{font-size:18px!important;width:20px;top:4px;left:2px}
+ body[data-remodel] main.app{padding-top:calc(122px + env(safe-area-inset-top))!important;padding-inline:7px!important}
+ body[data-remodel] #inventoryList{gap:5px!important;padding:0 7px 8px!important}
+ body[data-remodel] #inventoryList .item{padding:6px!important;min-height:0!important}
+ body[data-remodel] #inventoryList .item>.gear-row{gap:6px!important;min-height:0!important}
+ body[data-remodel] #inventoryList .item>.gear-row>.rm-item-art{width:38px!important;height:44px!important;flex:0 0 38px!important;min-width:38px!important}
+ body[data-remodel] #inventoryList .ringu-item-title{font-size:12px!important;line-height:1.25!important;gap:3px!important}
+ body[data-remodel] #inventoryList .item-title{gap:3px!important}
+ body[data-remodel] #inventoryList .item-sub{font-size:10px!important;line-height:1.3!important;margin-top:2px!important}
+ body[data-remodel] #inventoryList .sub-options{margin-top:2px!important;line-height:1.35!important}
+ body[data-remodel] #inventoryList .item .item-actions{margin-top:5px!important;gap:4px!important}
+ body[data-remodel] #inventoryList .item .item-actions button,body[data-remodel] #inventoryList .item .item-actions .sell{min-height:32px!important;padding:4px 2px!important}
+ body[data-remodel] #inventoryList .option-tier-badge{padding:0 3px;line-height:1.3!important;margin:0 2px 0 0}
+ #blackMarketModal{width:calc(100vw - 12px);padding:9px;max-height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+ #blackMarketModal .bm-header{margin-bottom:6px;gap:6px}
+ #blackMarketModal .bm-header small{font-size:9px}
+ #blackMarketModal h2{font-size:20px;margin:0;letter-spacing:2px}
+ #blackMarketModal .bm-header button,#blackMarketModal .bm-toolbar button{min-height:36px;padding:5px 10px}
+ #blackMarketModal .bm-merchant{height:68px;margin-bottom:6px}
+ #blackMarketModal .bm-merchant-copy{padding:6px 10px;width:68%}
+ #blackMarketModal .bm-merchant-copy>span{font-size:9px}
+ #blackMarketModal .bm-merchant-copy h3{font-size:19px;margin:0;letter-spacing:2px}
+ #blackMarketModal .bm-merchant-copy p{font-size:10px;line-height:1.2}
+ #blackMarketModal .bm-merchant-copy p br{display:none}
+ #blackMarketModal .bm-toolbar{margin-bottom:4px}
+ #blackMarketCountdown{margin-top:1px;font-size:10px}
+ #blackMarketStatus{font-size:10px;margin:3px 0 5px;min-height:0}
+ #blackMarketItems{gap:5px}
+ #blackMarketModal .bm-offer{grid-template-columns:32px minmax(0,1fr);gap:3px 6px;padding:6px;min-height:0}
+ #blackMarketModal .bm-offer .gear-icon,#blackMarketModal .bm-offer .rm-item-art,#blackMarketModal .bm-material-art,#blackMarketModal .bm-cube-art{width:32px!important;height:32px!important;min-width:32px!important}
+ #blackMarketModal .bm-item-info>strong{font-size:12px}
+ #blackMarketModal .bm-item-info>small{font-size:10px;margin-top:1px}
+ #blackMarketModal .bm-option{margin-top:1px}
+ #blackMarketModal .bm-buy-controls{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) 58px 100px;align-items:center;gap:5px;min-width:0}
+ #blackMarketModal .bm-buy-controls>small{text-align:left;font-size:10px}
+ #blackMarketModal .bm-buy-controls select{min-height:32px;height:32px;font-size:12px;padding:2px}
+ #blackMarketModal .bm-buy-controls button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:32px;padding:3px}
+ #blackMarketModal .bm-offer button>span{margin:0}
+ #blackMarketModal .bm-footer{margin-top:6px;padding-top:6px}
+}
+
+@media(max-width:600px){
+ body[data-remodel] .inventory-tools{padding:0 7px 7px!important;gap:4px!important}
+ body[data-remodel] .inventory-tools button,body[data-remodel] .inventory-tools select{min-height:32px!important;padding:4px 6px!important}
+ body[data-remodel] #cubeBagSummary{padding:0 7px 6px;gap:4px;font-size:11px}
+ body[data-remodel] #cubeBagSummary>span{padding:3px 5px}
+}
+/* Fifty summons retain readable artwork and a scrollable result grid. */
+body[data-remodel] #summonPanel .draw-buttons{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media(max-width:768px){
+ #drawResultModal #drawResultGrid[data-ringu-result-count="50"]{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card{grid-template-rows:64px 22px minmax(30px,auto) 18px!important}
+ #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>strong{font-size:11px!important;line-height:15px!important;display:block!important;max-height:none!important;white-space:normal!important;overflow-wrap:anywhere!important}
+ #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>small{font-size:10px!important}
+ #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>span{font-size:10px!important}
+}

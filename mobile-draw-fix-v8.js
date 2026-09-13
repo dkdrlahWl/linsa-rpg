@@ -143,6 +143,8 @@
       observedGrid.style.setProperty('--ringu-result-columns', value);
     }
     observedGrid.dataset.ringuResultCount = String(cards.length);
+    const title=document.querySelector('#drawResultModal > .modal > h3');
+    if(title&&cards.length)title.textContent='소환 결과 · '+cards.length+'개'+(cards.length>=50?' · 아래로 스크롤':'');
     cards.forEach((card,index) => {
       if (!revealed.has(card)) {
         revealed.add(card);

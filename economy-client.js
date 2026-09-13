@@ -93,6 +93,10 @@
   f.finishTowerClearV15=()=>false;f.finishDungeonClearV15=()=>false;
   f.applyMailboxReward=()=>false;f.makeItem=()=>null;f.addPet=()=>null;f.spendGold=()=>false;
   f.drawItems=count=>command('summon',{group:g.drawGroup,count:Number(count)});
+  const draw50=document.createElement('button');draw50.className='draw';draw50.id='draw50';draw50.innerHTML='50회 소환<span id="drawCost50"></span>';
+  draw50.onclick=()=>f.drawItems(50);document.querySelector('#summonPanel .draw-buttons')?.append(draw50);
+  const renderSummon=f.renderSummon;
+  f.renderSummon=(...args)=>{const result=renderSummon(...args);$('drawCost50').textContent=(f.summonUnitCost()*50).toLocaleString('ko-KR')+' G';return result;};
   f.equipBest=async()=>{const result=await command('equipBest');if(result)f.toast('최고 공격력 장비를 장착했습니다.');return result;};
   f.toggleEquipItem=async id=>{const it=item(id);if(!it)return false;const removing=g.state.equipped[it.slot]===it.id;const result=await command(removing?'unequip':'equip',removing?{slot:it.slot}:{id:it.id});if(result)f.toast(it.name+(removing?' 장착 해제':' 장착 완료'));return result;};
   f.toggleLock=id=>{const it=item(id);if(it)return command('lock',{id:it.id,locked:!it.locked});};
