@@ -1,4 +1,5 @@
 import balance from './balance.json' with {type:'json'};
+import {selectGear} from './gear-selection.mjs';
 import pets from './pets.mjs';
 import {CUBES,cubeType,initializeOptions,rollOption} from './cubes.mjs';
 export {balance};
@@ -131,7 +132,7 @@ export function execute(snapshot,command,args,context){
   for(let i=0;i<args.count;i++){
    const slots=args.group==='weapon'?['무기']:args.group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이'],slot=slots[Math.floor(random()*slots.length)];
    let roll=random()*100,rarity=balance.rates[level-1].length-1;for(let r=0;r<balance.rates[level-1].length;r++){roll-=balance.rates[level-1][r];if(roll<0){rarity=r;break;}}
-   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=candidates[Math.floor(random()*candidates.length)];if(!base)fail('UNKNOWN_EQUIPMENT');
+   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
    const seed=s.uid+random();items.push(addItem({slot,rarity,name:base.name,baseAtk:base.baseAtk,optionRolls:[seedValue(seed,0),seedValue(seed,1)]}));
   }
   summon.exp+=args.count;summon.level=summonLevel(summon.exp);events.push({type:'summon',items});
