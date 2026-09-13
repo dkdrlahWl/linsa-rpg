@@ -203,3 +203,11 @@ body[data-remodel] #summonPanel .draw-buttons{grid-template-columns:repeat(2,min
  #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>small{font-size:10px!important}
  #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>span{font-size:10px!important}
 }
+/* Desktop header: give the four actions their own row within the brand column. */
+@media(min-width:1100px){
+ body[data-remodel] .topbar>.brand-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:36px 66px!important;gap:8px!important;align-content:center!important;justify-items:start!important;margin:0!important}
+ body[data-remodel] .topbar .brand{margin:0!important;line-height:1!important}
+ body[data-remodel] .topbar .header-actions{display:flex!important;flex-wrap:nowrap!important;gap:6px!important;width:auto!important;max-width:100%!important;margin:0!important}
+ body[data-remodel] .topbar .header-actions button{flex:0 0 58px!important;width:58px!important}
+}
+
