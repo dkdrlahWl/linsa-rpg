@@ -5,6 +5,6 @@ assert.equal(M.destination(0,0,'w'),null);assert.equal(M.destination(7,7,'d'),nu
 const moves=[{x:4,y:3,at:1000},{x:4,y:2,at:1180}];
 assert.deepEqual(M.positionAt({x:3,y:3},moves,1179),{x:3,y:3});assert.deepEqual(M.positionAt({x:3,y:3},moves,1180),{x:4,y:3});assert.deepEqual(M.positionAt({x:3,y:3},moves,1360),{x:4,y:2});
 const w={tiles:[27],showAt:500,hitAt:1000,damage:840};assert.equal(M.hitDamage(w,{x:3,y:3},500),840);assert.equal(M.hitDamage(w,{x:3,y:3},950),0);assert.equal(M.hitDamage(w,{x:4,y:3},500),0);
-const target={id:'dead',hp:0,present:true,revived:false,deadAt:1000,x:3,y:3};const helpers=[{id:'a',hp:100,present:true,stillAt:1000,seenAt:4000,x:3,y:3}];assert.equal(M.reviveProgress(target,helpers,4000),1);assert.equal(M.reviveProgress({...target,revived:true},helpers,4000),0);assert.equal(M.reviveProgress(target,[...helpers.map(h=>({...h,stillAt:3000})),{...helpers[0],id:'b',stillAt:3000}],4000),1/3);
+const target={id:'dead',hp:0,present:true,revived:false,deadAt:1000,x:3,y:3};const helpers=[{id:'a',hp:100,present:true,stillAt:1000,seenAt:4000,x:3,y:3}];assert.equal(M.reviveProgress(target,helpers,4000),1);assert.equal(M.reviveProgress({...target,revived:true},helpers,4000),1);assert.equal(M.reviveProgress(target,[...helpers.map(h=>({...h,stillAt:3000})),{...helpers[0],id:'b',stillAt:3000}],4000),1/3);
 assert.equal(4200000/(7*2000*.75),400);assert.equal(M.LIMIT_MS,420000);
 console.log('PASS WB1 model: fixed damage, 64-tile bounds, arrival hit ownership, delayed-warning grace, revival no stacking, 7×2000 at 75% uptime = 400s.');

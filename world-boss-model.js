@@ -11,7 +11,7 @@
  function hitDamage(wave,position,seenAt){return seenAt>wave.hitAt-100?0:wave.tiles.includes(position.x+position.y*8)?wave.damage:0;}
  function safeTiles(wave){const blocked=new Set(wave.tiles);return Array.from({length:64},(_,i)=>i).filter(i=>!blocked.has(i));}
  function contribution(member,room){const total=room.members.reduce((n,m)=>n+Number(m.damage),0);return total?Number(member?.damage||0)/total*100:0;}
- function reviveProgress(target,members,time){if(target.hp>0||target.revived||!target.present)return 0;let progress=0;
+ function reviveProgress(target,members,time){if(target.hp>0||!target.present)return 0;let progress=0;
   for(const h of members)if(h.id!==target.id&&h.hp>0&&h.present&&!h.background&&time-h.seenAt<2000&&h.x===target.x&&h.y===target.y)progress=Math.max(progress,clamp((time-Math.max(h.stillAt,target.deadAt))/3000,0,1));return progress;}
  return{MOVE_MS,LIMIT_MS,patterns,directions,clamp,destination,positionAt,interpolate,hitDamage,safeTiles,contribution,reviveProgress};
 });

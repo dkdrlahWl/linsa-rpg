@@ -27,6 +27,7 @@ try{
  await db.exec((await readFile(new URL('../supabase/migrations/20260914123914_world_boss_attack_cadence.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914124948_world_boss_mobile_attacks.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914142815_weekly_boss_stage_one_rewards.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
+ await db.exec(await readFile(new URL('../supabase/migrations/20260914151949_weekly_boss_unlimited_revives.sql',import.meta.url),'utf8'));
  for(const u of users){await db.query('insert into auth.users values($1)',[u.id]);await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[u.sid,u.id]);await identity(u);await db.query("select public.ringu_account('activate')");await db.query('update ringu_private.accounts set state=$2 where id=$1',[u.id,JSON.stringify({playerName:u.name,playerGender:'male',remodelProfile:{power:50}})]);}
  assert.equal((await call(users[0])).unlockedAt,null);
  await assert.rejects(()=>call(users[0],'create'),/WORLD_BOSS_LOCKED/);
@@ -66,8 +67,14 @@ try{
  await db.query('select ringu_private.wb_advance($1)',[r.id]);
  v=(await db.query('select ringu_private.wb_view($1) v',[r.id])).rows[0].v;
  assert.equal(v.members.find(m=>m.id===users[1].id).hp,600);assert.equal(v.members.find(m=>m.id===users[1].id).revived,true);
- await db.query('update ringu_private.wb_members set hp=0 where room_id=$1 and account_id=$2',[r.id,users[1].id]);
- await db.query('select ringu_private.wb_advance($1)',[r.id]);assert.equal((await db.query('select hp from ringu_private.wb_members where room_id=$1 and account_id=$2',[r.id,users[1].id])).rows[0].hp,'0');
+ // Every later death needs a fresh three-second rescue, with no lifetime cap.
+ for(let revival=2;revival<=4;revival++){
+  await db.query('update ringu_private.wb_members set hp=0,dead_at=$3 where room_id=$1 and account_id=$2',[r.id,users[1].id,new Date(time).toISOString()]);
+  await db.query('select ringu_private.wb_advance($1)',[r.id]);assert.equal((await db.query('select hp from ringu_private.wb_members where room_id=$1 and account_id=$2',[r.id,users[1].id])).rows[0].hp,'0');
+  await clock(3000);await db.query('update ringu_private.wb_members set seen_at=$2 where room_id=$1',[r.id,new Date(time).toISOString()]);
+  await db.query('select ringu_private.wb_advance($1)',[r.id]);assert.equal((await db.query('select hp from ringu_private.wb_members where room_id=$1 and account_id=$2',[r.id,users[1].id])).rows[0].hp,'600');
+ }
+ await db.query('update ringu_private.wb_members set hp=0,dead_at=$3 where room_id=$1 and account_id=$2',[r.id,users[1].id,new Date(time).toISOString()]);
  // Death still qualifies; explicit leaver doesn't. Quota and entitlement atomic.
  await call(users[9],'leave',r.id);await db.query('update ringu_private.wb_rooms set hp=0 where id=$1',[r.id]);
  v=await call(users[0],'sync',r.id,{packet:5});assert.equal(v.room.status,'won');assert.equal(v.remaining,2);
