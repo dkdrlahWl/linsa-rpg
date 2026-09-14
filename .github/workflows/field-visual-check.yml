@@ -1,0 +1,22 @@
+name: Field visual acceptance
+on:
+  push:
+    branches: [feature/field-F1-20260915]
+permissions:
+  contents: read
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: node --check remodel.js && node --check field-visuals.js
+      - run: node test/field-visuals.test.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: field-F1
+          path: test-output/field/
+          retention-days: 3

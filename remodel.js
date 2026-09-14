@@ -1,4 +1,5 @@
 (()=>{'use strict';
+ const fieldScript=document.createElement('script');fieldScript.src='/linsa-rpg/field-visuals.js?v=F1';document.head.append(fieldScript);
 window.installRinguRemodel=function(g){
  const $=id=>document.getElementById(id),f=g.fn,old=Object.fromEntries(Object.getOwnPropertyNames(f).map(k=>[k,f[k]])),esc=s=>f.escapeHtml(String(s??'')),fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR'),art=window.RinguArt;
  const state=()=>g.state,active=()=>window.RinguSession.active!==false;
@@ -15,8 +16,9 @@ window.installRinguRemodel=function(g){
  window.useAuraDrawTicket=()=>{const s=state();if(!active()||!(s.auraDrawTickets>0))return false;const pool=g.auraShopItems.map((_,i)=>i).filter(i=>i!==8&&!s.ownedAuras?.includes(i));if(!pool.length){f.toast('만화경 제외 모든 오라를 보유하고 있습니다. 뽑기권은 보관됩니다.');return false}const index=pool[Math.floor(Math.random()*pool.length)];s.auraDrawTickets--;s.ownedAuras??=[];s.ownedAuras.push(index);changed();window.RinguAudio?.effect('success');f.toast('✨ '+g.auraShopItems[index][0]+' 오라 획득');return index;};
  const renderCollectionRewards=f.renderCollectionRewards;f.renderCollectionRewards=(...args)=>{renderCollectionRewards(...args);const host=$('collectionRewards');if(host){const first=host.querySelector('.collection-reward small');if(first)first.textContent+=' · 오라 뽑기권 1장 (만화경 제외)';const button=document.createElement('button');button.textContent='✨ 랜덤 오라 뽑기권 사용 · '+(state().auraDrawTickets||0)+'장';button.disabled=!(state().auraDrawTickets>0);button.onclick=window.useAuraDrawTicket;host.append(button);}};
  const noop=()=>Promise.resolve(false);
- let attackTimer=null,attackMotion=null;
- const cancelAttack=()=>{clearTimeout(attackTimer);attackTimer=null;attackMotion=null};
+ let attackTimer=null,attackMotion=null,fieldImpact=null;
+ const showFieldDamage=g.presentation.showDamage;g.presentation.showDamage=(damage,crit)=>{fieldImpact={at:performance.now(),crit:!!crit,region:state().regionIndex,boss:state().bossIndex};return showFieldDamage(damage,crit);};
+ const cancelAttack=()=>{clearTimeout(attackTimer);attackTimer=null;attackMotion=null;fieldImpact=null};
  const originalAttack=f.attack;
  f.attack=()=>{if(!active())return;if(g.activeTower||g.activeDungeon)return originalAttack();if(!state().autoBattle||attackTimer!==null||g.combat.hp<=0)return;const owner=state(),region=owner.regionIndex,boss=owner.bossIndex;window.RinguAudio?.effect('swing');attackMotion={started:performance.now(),hit:false};attackTimer=setTimeout(()=>{attackTimer=null;if(!active()||state()!==owner||!owner.autoBattle||owner.regionIndex!==region||owner.bossIndex!==boss||g.activeTower||g.activeDungeon)return cancelAttack();attackMotion.hit=true;originalAttack();},460);};
  for(const name of ['selectRegion','selectBoss','toggleAutoBattle']){const before=f[name];f[name]=(...args)=>{cancelAttack();return before(...args)}}
@@ -174,24 +176,15 @@ window.installRinguRemodel=function(g){
  const visibleCanvases=new WeakMap(),canvasObserver=new IntersectionObserver(entries=>{for(const entry of entries)visibleCanvases.set(entry.target,entry.isIntersecting);});
  function visibleCanvas(el){if(!el)return false;if(!visibleCanvases.has(el)){visibleCanvases.set(el,false);canvasObserver.observe(el);}return visibleCanvases.get(el)&&el.clientWidth>0;}
  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
- const scene=document.createElement('canvas');let sceneKey='',lastPaint=0,portraitKey='',lastPortrait=0;
- function draw(time){requestAnimationFrame(draw);if(time-lastPaint<1000/30-1||document.hidden||window.RinguWorldBoss?.isBattleVisible||!active()||!state())return;lastPaint=time;const s=state(),hc=$('heroCanvas'),canvas=$('combatCanvas'),heroVisible=visibleCanvas(hc),combatVisible=visibleCanvas(canvas),previewVisible=$('rmAuraPreview')?.classList.contains('show');const map=heroVisible||combatVisible||previewVisible?equipMap():{},ix=it=>f.itemIndex(it);if(heroVisible){const key=JSON.stringify([hc.width,hc.height,s.playerGender,s.equippedAura,s.remodelFx,s.equippedPet,s.ownedPets,map,window.RinguCostumes?.snapshot,window.RinguCostumeArt?.isReady(window.RinguCostumes?.snapshot?.equipped)]);if(key!==portraitKey||s.equippedAura>=0&&time-lastPortrait>=1000/15){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);portraitKey=key;lastPortrait=time;}}
+ let lastPaint=0,portraitKey='',lastPortrait=0;
+ function draw(time){requestAnimationFrame(draw);if(time-lastPaint<1000/30-1||document.hidden||window.RinguWorldBoss?.isBattleVisible||!active()||!state())return;lastPaint=time;const s=state(),hc=$('heroCanvas'),canvas=$('combatCanvas'),heroVisible=visibleCanvas(hc),combatVisible=visibleCanvas(canvas),previewVisible=$('rmAuraPreview')?.classList.contains('show');const map=heroVisible||previewVisible?equipMap():{},ix=it=>f.itemIndex(it);if(heroVisible){const key=JSON.stringify([hc.width,hc.height,s.playerGender,s.equippedAura,s.remodelFx,s.equippedPet,s.ownedPets,map,window.RinguCostumes?.snapshot,window.RinguCostumeArt?.isReady(window.RinguCostumes?.snapshot?.equipped)]);if(key!==portraitKey||s.equippedAura>=0&&time-lastPortrait>=1000/15){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);portraitKey=key;lastPortrait=time;}}
   const preview=$('rmAuraCanvas');if(preview&&$('rmAuraPreview').classList.contains('show')){const c=preview.getContext('2d');c.clearRect(0,0,640,820);art.hero(c,{...s,equippedAura:Number($('rmAuraSelect').value),remodelFx:true},map,ix,time,320,735,620);}
-  if(combatVisible){const scale=Math.min(window.devicePixelRatio||1,1.5),cw=Math.round(canvas.clientWidth*scale),ch=Math.round(canvas.clientHeight*scale);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height,key=[w,h,s.regionIndex].join(':');
-   // The expensive filtered landscape and gradient are static until resize/region change.
-   if(sceneKey!==key){scene.width=w;scene.height=h;const bg=art.frame('worlds',s.regionIndex,3,2),back=scene.getContext('2d');back.save();back.filter='saturate(.78) contrast(.9) brightness(.88)';if(bg){const fit=Math.max(w/bg.w,h/bg.h),sw=w/fit,sh=h/fit;back.drawImage(bg.im,bg.x+(bg.w-sw)/2,bg.y+bg.h-sh,sw,sh,0,0,w,h);}back.restore();const shade=back.createLinearGradient(0,0,0,h);shade.addColorStop(0,'#080c12a8');shade.addColorStop(.45,'#080c1210');shade.addColorStop(1,'#080c12ee');back.fillStyle=shade;back.fillRect(0,0,w,h);if(bg)sceneKey=key;}
-   c.clearRect(0,0,w,h);c.drawImage(scene,0,0);
-   const age=attackMotion&&s.autoBattle?time-attackMotion.started:2000,reduced=reducedMotion.matches;
-   const pose=age<150?1:age<280?2:age<430?3:age<560?4:age<700?5:age<840?2:age<960?1:0;
-   const step=age<280?Math.sin(age/280*Math.PI/2):age<700?1:age<960?Math.cos((age-700)/260*Math.PI/2):0;
-   const impact=attackMotion?.hit&&age>=460&&age<650?Math.sin((age-460)/190*Math.PI):0;
-   const narrow=canvas.clientWidth<520;
-   const heroX=w*((narrow?.20:.25)+(reduced?0:step*(narrow?.035:.13))),monsterX=w*((narrow?.74:.735)+impact*.006);
-   function contact(x,rx){c.save();c.translate(x,h*.794);c.scale(rx,h*.025);const shadow=c.createRadialGradient(0,0,0,0,0,1);shadow.addColorStop(0,'#05090bd0');shadow.addColorStop(1,'#05090b00');c.fillStyle=shadow;c.fillRect(-1,-1,2,2);c.restore();}
-   contact(heroX,w*.09);contact(monsterX,w*.18);c.save();
-   const bounds=art.monster(c,s.regionIndex*6+s.bossIndex,monsterX,h*.80,w*(narrow?.48:.44),h*(s.bossIndex>=4?.60:.53));
+  if(combatVisible){const scale=Math.min(window.devicePixelRatio||1,1.5),cw=Math.round(canvas.clientWidth*scale),ch=Math.round(canvas.clientHeight*scale);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+   const hitAge=s.autoBattle&&fieldImpact&&fieldImpact.region===s.regionIndex&&fieldImpact.boss===s.bossIndex?time-fieldImpact.at:Infinity;
+   const bounds=window.RinguFieldVisual?.draw(c,s.regionIndex*6+s.bossIndex,w,h,hitAge,fieldImpact?.crit,reducedMotion.matches);
    if(bounds)canvas.dataset.monsterBounds=JSON.stringify(bounds);
-   const grip=art.battleHero(c,s,map,ix,time,heroX,h*.79,Math.min(h*.52,w*(narrow?.43:.65)),{pose:reduced?0:pose});canvas.dataset.pose=String(reduced?0:pose);canvas.dataset.facing='right';canvas.dataset.monsterFacing='left';canvas.dataset.attacking=String(age<960);canvas.dataset.heroCenter=String(heroX);if(grip){canvas.dataset.handX=String(grip.handX);canvas.dataset.handY=String(grip.handY)}c.restore();
+   canvas.dataset.heroVisible='false';canvas.dataset.monsterFacing='front';canvas.dataset.attacking=String(hitAge>=0&&hitAge<280);delete canvas.dataset.heroCenter;delete canvas.dataset.handX;delete canvas.dataset.handY;
+
   }
   for(const [id,kind,index]of [['towerArt','tower',Math.max(0,(g.activeTower?.data.floor||1)-1)],['dungeonBossArt','monsters',g.activeDungeon?.type==='gold'?(g.goldDungeonStages[g.activeDungeon.stage-1]?.artIndex??0):31]]){
    const el=$(id);if(!el)continue;const pet=id==='dungeonBossArt'&&g.activeDungeon?.type==='pet';
