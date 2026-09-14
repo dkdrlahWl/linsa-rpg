@@ -5,7 +5,7 @@ import {CUBES,cubeType,initializeOptions,rollOption} from './cubes.mjs';
 export {balance};
 export const itemKey=it=>it.slot+'|'+it.rarity+'|'+it.name;
 const catalogue=new Map(balance.gear.map(it=>[itemKey(it),it]));
-const epicArmor=it=>it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot);
+const epicArmor=it=>(it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&it.rarity>=3);
 const canonicalBase=it=>epicArmor(it)?(catalogue.get(itemKey(it))?.baseAtk??it.baseAtk):it.baseAtk;
 const fail=code=>{throw Error(code);};
 const int=(v,min=0,max=Number.MAX_SAFE_INTEGER)=>{if(!Number.isSafeInteger(v)||v<min||v>max)fail('INVALID_ARGUMENTS');return v;};
