@@ -16,6 +16,8 @@
  function releaseLobbyPointer(e){if(e&&e.pointerId!==lobbyPointer)return;lobbyPointer=null;setTimeout(()=>{if(open&&lobbyPointer===null&&deferredLobby!==null){const html=deferredLobby;deferredLobby=null;lobbyHtml(html);}},0);}
  let origin={x:0,y:6},moves=[],seq=0,packet=0,serverOffset=0,bestRtt=Infinity,lastGood=0,frameId=0,lastFrame=0;
  let syncTimer,urgentTimer,unsubscribe,channelRoom=null,network='connecting',errorText='',lobbyRooms=[];
+ let lastHurtSound=-Infinity;
+ function hurtSound(){const t=now();if(t-lastHurtSound<180)return;lastHurtSound=t;window.RinguAudio?.effect('raid-hurt');}
  const seen=new Map(),reports=new Map(),resolved=new Set(),spriteCache=new Map(),remotePositions=new Map();
  let boardCache=null,boardSize=0,previousFocus=null,activePointers=new Map(),keys=new Set(),lastMove=-Infinity;
  let queuedKey=null,inputOrder=0;const held=new Map(),shots=[],hitSeen=new Map();
@@ -51,8 +53,9 @@
   const next=data.room;
   if(next&&room?.id===next.id&&next.version<room.version)return;
   const previous=room;room=next||null;
+  if(previous?.id===room?.id&&room){const old=previous.members.find(m=>m.id===userId),current=room.members.find(m=>m.id===userId);if(old&&current&&current.hp<old.hp&&!reports.size)hurtSound();}
   if(previous?.id!==room?.id){shots.length=0;hitSeen.clear();clearInput();}
-  if(room&&previous?.id===room.id)for(const m of room.members){const h=m.lastHit;if(h&&h.id!==hitSeen.get(m.id)){hitSeen.set(m.id,h.id);if(h.damage>0&&now()-h.at<2500)shots.push({member:m.id,damage:h.damage,crit:!!h.crit,at:now()});}else if(!h){const old=previous.members.find(p=>p.id===m.id);const damage=m.damage-(old?.damage??m.damage);if(damage>0)shots.push({member:m.id,damage,crit:false,at:now()});}}
+  if(room&&previous?.id===room.id)for(const m of room.members){const h=m.lastHit;if(h&&h.id!==hitSeen.get(m.id)){hitSeen.set(m.id,h.id);if(h.damage>0&&now()-h.at<2500&&(m.id!==userId||(!held.size&&!queuedKey&&now()-lastMove>=M.MOVE_MS)))shots.push({member:m.id,damage:h.damage,crit:!!h.crit,at:now()});}else if(!h){const old=previous.members.find(p=>p.id===m.id);const damage=m.damage-(old?.damage??m.damage);if(damage>0)shots.push({member:m.id,damage,crit:false,at:now()});}}
   if(shots.length>40)shots.splice(0,shots.length-40);
   if(room){
    const me=mine();
@@ -123,7 +126,7 @@
   const me=mine(),t=now();if(!open||busy||!$('wb-overlay').hidden||room?.status!=='running'||!me?.hp||document.hidden||t<room.startedAt||Date.now()-lastGood>2000||t-lastMove<M.MOVE_MS)return;
   if(predictedHp()<=0){clearInput();return;}
   const p=moves.at(-1)||origin,d=M.destination(p.x,p.y,key);if(!d){queuedKey=null;return;}
-  moves.push({...d,seq:++seq,at:t});queuedKey=null;lastMove=t;scheduleSync(40);
+  for(let i=shots.length-1;i>=0;i--)if(shots[i].member===userId&&t-shots[i].at<360)shots.splice(i,1);moves.push({...d,seq:++seq,at:t});queuedKey=null;lastMove=t;scheduleSync(40);
  }
  function scheduleSync(delay=120){if(urgentTimer)return;urgentTimer=setTimeout(()=>{urgentTimer=null;sync();},delay);}
  async function sync(){
@@ -150,6 +153,7 @@
   const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   for(let i=shots.length-1;i>=0;i--){const h=shots[i],age=t-h.at;if(age>1400){shots.splice(i,1);continue;}const m=room.members.find(m=>m.id===h.member);if(!m)continue;
    if(!h.start){const p=m.id===userId?M.interpolate(origin,moves,t):m;h.start={x:(p.x+.5)*s,y:(p.y+.4)*s};}
+   if(m.id===userId&&!h.swingSound){h.swingSound=true;window.RinguAudio?.effect('raid-swing');}if(m.id===userId&&age>=360&&!h.hitSound){h.hitSound=true;window.RinguAudio?.effect(h.crit?'raid-critical':'raid-hit');}
    const hit=age-360,color=h.crit?'#ffc452':'#8feaff',local=m.id===userId;c.save();c.lineCap='round';
    if(hit<0){const q=M.clamp(age/360,0,1),x=h.start.x+(target.x-h.start.x)*q,y=h.start.y+(target.y-h.start.y)*q;c.translate(x,y);c.rotate(Math.atan2(target.y-h.start.y,target.x-h.start.x)+Math.PI/2);c.globalCompositeOperation='lighter';c.shadowColor=color;c.shadowBlur=18;c.fillStyle=color;c.beginPath();c.moveTo(-s*.48,s*.2);c.quadraticCurveTo(0,-s*.6,s*.48,s*.2);c.quadraticCurveTo(0,-s*.28,-s*.48,s*.2);c.fill();c.strokeStyle=color;c.lineWidth=h.crit?6:4;c.beginPath();c.moveTo(-s*.38,s*.16);c.quadraticCurveTo(0,-s*.52,s*.38,s*.16);c.stroke();c.shadowBlur=5;c.strokeStyle='#fff';c.lineWidth=2;c.stroke();c.globalAlpha=.3;c.beginPath();c.moveTo(-s*.25,s*.36);c.quadraticCurveTo(0,-s*.2,s*.25,s*.36);c.stroke();}
    else{const alpha=M.clamp(1-hit/1040,0,1);c.translate(target.x,target.y);if(hit<260&&!reduced){c.globalCompositeOperation='lighter';c.strokeStyle=color;c.lineWidth=h.crit?4:2;c.shadowColor=color;c.shadowBlur=16;for(let j=0;j<8;j++){const angle=j*Math.PI/4+.2;const r=s*(.15+hit/230);c.beginPath();c.moveTo(Math.cos(angle)*r*.2,Math.sin(angle)*r*.2);c.lineTo(Math.cos(angle)*r,Math.sin(angle)*r);c.stroke();}c.fillStyle='#fff';c.globalAlpha=(1-hit/260)*.75;c.beginPath();c.arc(0,0,s*.26,0,Math.PI*2);c.fill();}
@@ -164,7 +168,7 @@
   let c=canvas.getContext('2d');c.clearRect(0,0,w,w);c.fillStyle='#171615';c.fillRect(0,0,w,w);c.drawImage(board(w),0,0);const s=w/8,t=now(),me=mine();
   for(const wave of room.waves||[]){
    if(t<wave.showAt)continue;if(!seen.has(wave.id))seen.set(wave.id,t);
-   if(t>=wave.hitAt&&!resolved.has(wave.id)&&!reports.has(wave.id)&&me?.hp>0){const p=M.positionAt(origin,moves,wave.hitAt),seenAt=seen.get(wave.id);reports.set(wave.id,{id:wave.id,seenAt,localDamage:M.hitDamage(wave,p,seenAt)});scheduleSync(80);}
+   if(t>=wave.hitAt&&!resolved.has(wave.id)&&!reports.has(wave.id)&&me?.hp>0){const p=M.positionAt(origin,moves,wave.hitAt),seenAt=seen.get(wave.id);const localDamage=M.hitDamage(wave,p,seenAt);reports.set(wave.id,{id:wave.id,seenAt,localDamage});if(localDamage>0)hurtSound();scheduleSync(80);}
    const impact=t-wave.hitAt;if(impact>220)continue;
    const progress=M.clamp((t-wave.showAt)/(wave.hitAt-wave.showAt),0,1);
    for(const tile of wave.tiles){const x=(tile%8+.5)*s,y=(Math.floor(tile/8)+.5)*s;
