@@ -566,15 +566,14 @@ left:var(--fallen-axe-left)!important;
 </style>
 <link rel="stylesheet" href="/linsa-rpg/pet-mobile.css?v=PS2">
 <script src="/linsa-rpg/gear-sets.js?v=SET1"></script>
-<style id="ranking-mobile-RK4">
-@media(max-width:600px){
- body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!important;inset:0!important;height:100vh!important;height:100dvh!important;padding:12px!important;overflow:hidden!important;box-sizing:border-box!important;align-items:center!important}
- #playerEquipModal#playerEquipModal>.modal{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto minmax(0,1fr) auto!important;height:calc(100vh - 24px)!important;height:calc(100dvh - 24px)!important;max-height:760px!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box!important;padding:14px!important;gap:8px!important;transform:none!important;margin:0!important}
- #playerEquipModal#playerEquipModal #playerEquipTitle,#playerEquipModal#playerEquipModal #playerEquipStats{position:static!important;margin:0!important;min-width:0}
- #playerEquipModal#playerEquipModal #playerEquipGrid{display:block!important;min-height:0!important;height:100%!important;max-height:100%!important;overflow:auto!important;overscroll-behavior:contain;box-sizing:border-box!important;margin:0!important;padding:0 2px 10px!important;align-self:stretch!important}
- #playerEquipModal#playerEquipModal>.modal>.modal-actions{position:static!important;inset:auto!important;margin:0!important;padding:6px 0 0!important;transform:none!important;align-self:stretch!important;width:100%!important;min-height:50px!important;z-index:auto!important;box-sizing:border-box!important}
- #playerEquipModal#playerEquipModal .modal-actions button{margin:0!important;min-height:44px!important}
-}
+<style id="ranking-mobile-RK5">
+/* RK5: reserve footer space; only equipment and sets scroll. */
+body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!important;inset:0!important;height:100vh!important;height:100dvh!important;padding:12px!important;padding-top:max(12px,env(safe-area-inset-top))!important;padding-bottom:max(12px,env(safe-area-inset-bottom))!important;overflow:hidden!important;box-sizing:border-box!important;align-items:center!important}
+#playerEquipModal#playerEquipModal>.modal{display:flex!important;flex-direction:column!important;height:calc(100vh - 24px)!important;height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;max-height:760px!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box!important;padding:14px!important;gap:8px!important;transform:none!important;margin:0!important}
+#playerEquipModal#playerEquipModal #playerEquipTitle,#playerEquipModal#playerEquipModal #playerEquipStats{position:static!important;flex:0 0 auto!important;margin:0!important;min-width:0}
+#playerEquipModal#playerEquipModal #playerEquipGrid{display:block!important;flex:1 1 0px!important;min-height:0!important;height:auto!important;max-height:none!important;min-width:0!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box!important;margin:0!important;padding:0 2px 12px!important;align-self:stretch!important}
+#playerEquipModal#playerEquipModal>.modal>.modal-actions{position:static!important;flex:0 0 auto!important;inset:auto!important;margin:0!important;padding:6px 0 0!important;transform:none!important;align-self:stretch!important;width:100%!important;min-height:50px!important;z-index:auto!important;box-sizing:border-box!important;background:#111d27}
+#playerEquipModal#playerEquipModal .modal-actions button{margin:0!important;min-height:44px!important;width:100%!important}
 </style>
 </head>
 <script src="/linsa-rpg/safety.js?v=BM5-CQ3"></script>
@@ -2975,7 +2974,7 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 
 
 <link rel="stylesheet" href="/linsa-rpg/remodel.css?v=gold-SG1">
-<link rel="stylesheet" href="/linsa-rpg/ranking-ui.css?v=RK4">
+<link rel="stylesheet" href="/linsa-rpg/ranking-ui.css?v=RK5">
 <link rel="stylesheet" href="/linsa-rpg/daily-boss.css?v=DB1">
 <script defer src="/linsa-rpg/daily-boss.js?v=DB2"></script>
 <link rel="stylesheet" href="/linsa-rpg/cube-system.css?v=BM5-CQ3">
