@@ -65,6 +65,12 @@
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clearHits();});
   session.onEnded?.(clearHits);
+  function showDailyReward(amount){
+   let modal=$('dailyRewardReceived');
+   if(!modal){modal=document.createElement('dialog');modal.id='dailyRewardReceived';modal.setAttribute('aria-labelledby','dailyRewardReceivedTitle');modal.style.cssText='background:#111c28;color:#f5dfb3;border:1px solid #a78a54;border-radius:14px;padding:28px;width:min(340px,calc(100vw - 32px));text-align:center;box-shadow:0 12px 55px #000b';modal.innerHTML='<h3 id="dailyRewardReceivedTitle">일일 보상 수령 완료</h3><p id="dailyRewardReceivedAmount" style="font-size:26px;font-weight:800;color:#e7b6ff;margin:24px 0"></p><form method="dialog"><button style="width:100%" autofocus>확인</button></form>';document.body.append(modal);}
+   $('dailyRewardReceivedAmount').textContent='정수 '+Number(amount).toLocaleString('ko-KR')+'개 획득';
+   if(!modal.open)modal.showModal();
+  }
   function paint(events=[]){
    if(desiredProtection!==null)g.state.useProtect=desiredProtection;
    const s=g.state,c=s.serverCombat,b=s.serverBattle;
@@ -96,7 +102,7 @@
      else g.presentation.showDungeonDamage(e.damage);
     }else if(e.type==='summon')window.RinguRemodel?.showServerDraw(e.items);
     else if(e.type==='petSummon')f.renderPetSummonResult(e.results);
-    else if(e.type==='daily')f.toast('일일 보상 · 정수 +'+e.amount);
+    else if(e.type==='daily')showDailyReward(e.amount);
     else if(e.type==='dismantle')f.toast('장비 '+e.count.toLocaleString()+'개 분해 완료 · '+(e.essence?'정수 '+e.essence.toLocaleString()+'개 획득!':'획득한 정수 없음'));
     else if(e.type==='battleWon'||e.type==='battleLost'){f.toast(e.type==='battleWon'?'던전 클리어 · 서버에 보상을 저장했습니다.':'시간 초과 · 입장 횟수는 유지됩니다.');window.RinguAudio?.effect(e.type==='battleWon'?'success':'failure');}
     else if(e.type==='offline'&&(e.amount||e.seconds>=60)){

@@ -31,6 +31,10 @@ try{
  // Keep a pressed button alive if a new waiting-room snapshot arrives.
  const start=p.getByRole('button',{name:'혼자 시작',exact:true});await hold('sync');const box=await start.boundingBox();await p.mouse.move(box.x+box.width/2,box.y+box.height/2);await p.mouse.down();
  await p.evaluate(()=>{qa.room.members[0].name='갱신된 모험가';qa.room.version=++qa.version;qa.notify({room:structuredClone(qa.room)});});await p.mouse.up();assert.equal(await p.getByRole('button',{name:'전투 시작 중…',exact:true}).count(),1);assert.equal(await calls('start'),0);await release();await p.locator('#wb-arena').waitFor({state:'visible'});assert.equal(await calls('start'),1);
+ // Announce once per pattern, fade without a blocking overlay, then announce the next.
+ await p.waitForTimeout(300);assert.match(await p.locator('#wb-pattern-banner').innerText(),/낙화/);assert.equal(await p.locator('#wb-pattern-banner').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
+ await p.waitForTimeout(2400);assert.equal(await p.locator('#wb-pattern-banner').evaluate(el=>Number(getComputedStyle(el).opacity)),0);
+ await p.evaluate(()=>{qa.room.pattern=2;qa.room.version=++qa.version;qa.notify({room:structuredClone(qa.room)});});await p.waitForTimeout(300);assert.match(await p.locator('#wb-pattern-banner').innerText(),/모서리 폭발/);assert.ok(await p.locator('#wb-pattern-banner').evaluate(el=>Number(getComputedStyle(el).opacity)>.9));
  // Result can arrive over realtime while a sync response is pending.
  await hold('sync');await p.evaluate(()=>{qa.room.status='won';qa.room.hp=0;qa.room.endedAt=Date.now();qa.room.version=++qa.version;qa.notify({room:structuredClone(qa.room)});});await p.getByRole('button',{name:'확인',exact:true}).click();assert.equal(await p.getByRole('button',{name:'확인 중…',exact:true}).count(),1);await release();await p.locator('#wb-screen').waitFor({state:'hidden'});assert.equal(await calls('ack'),1);assert.equal(await p.evaluate(()=>qa.maxActive),1,'sync and actions never overlap');
  // An actual failure must stay visible in the result dialog and allow retry.

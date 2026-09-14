@@ -103,6 +103,7 @@ try{
  await a.evaluate(async()=>{RinguCore.state.essence=999999;RinguCore.state.inventory=[];RinguCore.fn.save();await RinguSession.flush();});
  assert.equal(await a.evaluate(()=>RinguCore.state.essence),100);assert.equal(await a.evaluate(()=>RinguCore.state.inventory.length),1);
  dropCommand='daily';assert.ok(await run(a,'daily'));assert.equal(dropped,1);assert.equal(await a.evaluate(()=>RinguCore.state.essence),113);
+ assert.equal(await a.locator('#dailyRewardReceivedAmount').innerText(),'정수 13개 획득');await a.locator('#dailyRewardReceived button').click();await a.locator('#dailyRewardReceived').waitFor({state:'hidden'});
  assert.equal(await run(a,'daily'),false);assert.equal(await a.evaluate(()=>RinguCore.state.essence),113);
  assert.ok(await run(a,'unequip',{slot:'무기'}));const saleItem=await a.evaluate(()=>structuredClone(RinguCore.state.inventory[0]));
  await a.waitForFunction(()=>RinguSession.active);delaySync=500;await a.evaluate(()=>{window.qaAuctionSync=RinguEconomy.command('sync');});await a.waitForTimeout(50);const listing=await a.evaluate(async it=>{const result=await RinguSession.auctionTransaction('list',{itemId:it.id,price:7});await window.qaAuctionSync;return result;},saleItem);delaySync=0;
