@@ -47,7 +47,7 @@
    catch(e){f.toast(messages[e.message]||'처리 결과를 확인하지 못했습니다. '+e.message);return false;}
    finally{pending=null;pendingName=null;if(interactive)busy(false);if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
   }
-  function sync(){if(document.hidden||pending||closed()||Date.now()-lastSync<800)return;lastSync=Date.now();return command('sync');}
+  function sync(){if(document.hidden||window.RinguWorldBoss?.isBattleVisible||pending||closed()||Date.now()-lastSync<800)return;lastSync=Date.now();return command('sync');}
   function paint(events=[]){
    if(desiredProtection!==null)g.state.useProtect=desiredProtection;
    const s=g.state,c=s.serverCombat,b=s.serverBattle;

@@ -74,6 +74,7 @@ try{
   const layout=await p.evaluate(()=>{const ids=['wb-screen','wb-arena','wb-battle'];const data=Object.fromEntries(ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return[id,{x:r.x,y:r.y,w:r.width,h:r.height,bottom:r.bottom}];}));data.buttons=[...document.querySelectorAll('[data-key]')].map(b=>{const r=b.getBoundingClientRect();return{x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom};});return data;});
   assert.ok(layout['wb-arena'].w>=200,JSON.stringify({width,height,layout}));assert.ok(Math.abs(layout['wb-arena'].w-layout['wb-arena'].h)<1);
   for(const b of layout.buttons){assert.ok(b.x>=0&&b.right<=width+1&&b.y>=0&&b.bottom<=height+1,JSON.stringify({width,height,b}));assert.ok(b.w>=43&&b.h>=43);}
+  const hpRows=await p.locator('.wb-party-row').evaluateAll(rows=>rows.map(row=>{const r=row.getBoundingClientRect();return{y:r.y,h:r.height,bottom:r.bottom};}));for(let i=1;i<hpRows.length;i++){assert.ok(hpRows[i].y>=hpRows[i-1].bottom-.5);assert.ok(hpRows[i].h>=8,'readable HP rows at '+width);}
   await p.screenshot({path:`test-output/world-boss/battle-${width}.png`});
  }
  await p.setViewportSize({width:390,height:844});const countBefore=requests;await pause(12000);const calls=requests-countBefore;assert.ok(calls<=160,'network calls are heartbeat/event based, not frames: '+calls);

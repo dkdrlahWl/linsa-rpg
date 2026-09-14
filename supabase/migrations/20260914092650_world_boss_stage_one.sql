@@ -23,7 +23,7 @@ create table ringu_private.wb_members (
  seq bigint not null default 0, packet bigint not null default 0, revived boolean not null default false,
  dead_at timestamptz, still_at timestamptz not null default clock_timestamp(),
  seen_at timestamptz not null default clock_timestamp(), accrued_at timestamptz not null default clock_timestamp(),
- background boolean not null default false, reward text not null default 'none', acknowledged_at timestamptz,
+ background boolean not null default false, reward text not null default 'none', acknowledged_at timestamptz, left_at timestamptz,
  primary key(room_id,account_id)
 );
 create unique index wb_one_active on ringu_private.wb_members(account_id) where active;
@@ -152,7 +152,7 @@ declare r ringu_private.wb_rooms%rowtype;now_at timestamptz:=clock_timestamp();m
 begin
  select * into r from ringu_private.wb_rooms where id=p_room for update;
  if r.status not in ('waiting','running') then return; end if;
- update ringu_private.wb_members set present=false,active=false,ready=false where room_id=p_room and present and seen_at<now_at-interval '15 seconds';
+ update ringu_private.wb_members set present=false,active=false,ready=false,left_at=seen_at+interval '15 seconds' where room_id=p_room and present and seen_at<now_at-interval '15 seconds';
  if not exists(select 1 from ringu_private.wb_members where room_id=p_room and account_id=r.host and present) then
   select account_id into r.host from ringu_private.wb_members where room_id=p_room and present order by joined_at,account_id limit 1;
   if r.host is not null then update ringu_private.wb_rooms set host=r.host where id=p_room; end if;
@@ -235,7 +235,7 @@ begin
    insert into ringu_private.wb_members(room_id,account_id,name,gender,costume,attack,hp,x,y,ready)
    values(p_room,u,left(coalesce(a.state->>'playerName','모험가'),24),case when a.state->>'playerGender'='female' then 'female' else 'male' end,
     (select costume_id from ringu_private.costume_selection where account_id=u),attack_value,attack_value,counted%8,6+counted/8,p_action='create')
-   on conflict(room_id,account_id) do update set present=true,active=true,seen_at=now_at,ready=false;
+   on conflict(room_id,account_id) do update set present=true,active=true,seen_at=now_at,ready=false,left_at=null;
   end if;
  elsif p_room is not null then
   select * into r from ringu_private.wb_rooms where id=p_room for update;
@@ -248,7 +248,7 @@ begin
    update ringu_private.wb_members set acknowledged_at=now_at where room_id=p_room and account_id=u;
    p_room:=null;
   elsif p_action='leave' then
-   update ringu_private.wb_members set present=false,active=false,ready=false where room_id=p_room and account_id=u;
+   update ringu_private.wb_members set present=false,active=false,ready=false,left_at=now_at where room_id=p_room and account_id=u;
    perform ringu_private.wb_advance(p_room);
    p_room:=null;
   elsif not m.present then raise exception 'ROOM_LEFT';
@@ -358,14 +358,33 @@ create policy wb_private_receive on realtime.messages for select to authenticate
 alter function public.ringu_economy_snapshot(uuid) rename to ringu_economy_snapshot_before_world_boss;
 revoke all on function public.ringu_economy_snapshot_before_world_boss(uuid) from public,anon,authenticated;
 create function public.ringu_economy_snapshot(p_request_id uuid default null) returns jsonb language plpgsql security definer set search_path='' as $$
-declare result jsonb;
+declare result jsonb; blocked_until timestamptz; previous_clock numeric;
 begin
  result:=public.ringu_economy_snapshot_before_world_boss(p_request_id);
+ -- Freeze field combat while raiding; on the next economy command, advance its
+ -- clock past the raid without granting retrospective field kills. Time AFTER
+ -- the raid still receives normal offline handling. No direct account mutation.
+ previous_clock:=coalesce((result#>>'{state,serverClock}')::numeric,(result#>>'{state,lastSeen}')::numeric,extract(epoch from clock_timestamp())*1000);
+ select max(coalesce(m.left_at,r.ended_at)) into blocked_until from ringu_private.wb_members m
+  join ringu_private.wb_rooms r on r.id=m.room_id where m.account_id=auth.uid()
+   and coalesce(m.left_at,r.ended_at)>to_timestamp(previous_clock/1000);
+ if blocked_until is not null then
+  result:=jsonb_set(result,'{state,serverClock}',to_jsonb(floor(extract(epoch from blocked_until)*1000)));
+  result:=jsonb_set(result,'{state,serverCombat}','null'::jsonb);
+ end if;
  return result||jsonb_build_object('partyBusy',coalesce((result->>'partyBusy')::boolean,false) or exists(
   select 1 from ringu_private.wb_members where account_id=auth.uid() and active));
 end $$;
 revoke all on function public.ringu_economy_snapshot(uuid) from public,anon;
 grant execute on function public.ringu_economy_snapshot(uuid) to authenticated;
+
+create function ringu_private.wb_exclusive_party() returns trigger language plpgsql security definer set search_path='' as $$
+begin
+ if new.active and exists(select 1 from ringu_private.wb_members where account_id=new.account_id and active) then raise exception 'BATTLE_IN_PROGRESS';end if;
+ return new;
+end $$;
+revoke all on function ringu_private.wb_exclusive_party() from public,anon,authenticated;
+create trigger wb_exclusive_party before insert or update of active on ringu_private.members for each row execute function ringu_private.wb_exclusive_party();
 
 -- Ensure an abandoned battle never leaves field combat permanently paused.
 create function ringu_private.wb_sweep() returns void language plpgsql security definer set search_path='' as $$

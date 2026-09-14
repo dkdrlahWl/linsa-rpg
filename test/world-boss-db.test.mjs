@@ -72,6 +72,14 @@ try{
  assert.equal((await call(users[0])).remaining,0);
  const helper=(await call(users[0],'create')).room;await call(users[0],'start',helper.id);await clock(2100);await db.query('update ringu_private.wb_rooms set hp=0 where id=$1',[helper.id]);v=await call(users[0],'sync',helper.id,{packet:1});assert.equal(v.remaining,0);assert.equal(v.room.members[0].reward,'none');
  await clock(7*86400000);assert.equal((await call(users[0])).remaining,3);
+ // Returning from a raid excludes its duration, but preserves offline time
+ // after the raid. Snapshot adjustment itself must not mutate account state.
+ await db.exec('update ringu_private.auction_release set economy_ready=true');
+ const beforeRaid=v.room.startedAt-1000;
+ await db.query("update ringu_private.accounts set state=jsonb_set(state,'{serverClock}',$2::jsonb) where id=$1",[users[0].id,JSON.stringify(beforeRaid)]);
+ await identity(users[0]);const snapshot=(await db.query('select public.ringu_economy_snapshot() s')).rows[0].s;
+ assert.equal(snapshot.state.serverClock,v.room.endedAt);assert.equal(snapshot.state.serverCombat,null);assert.equal(snapshot.partyBusy,false);
+ assert.equal((await db.query("select (state->>'serverClock')::numeric clock from ringu_private.accounts where id=$1",[users[0].id])).rows[0].clock,String(beforeRaid));
  await db.exec('set role authenticated');await assert.rejects(()=>db.query('select * from ringu_private.wb_rooms'),/permission denied/);await assert.rejects(()=>db.query('select ringu_private.wb_advance($1)',[r.id]),/permission denied/);await db.exec('reset role');
  console.log('PASS WB1 SQL: persistent unlock, solo/10-player rooms, auth/host/readiness, immutable HP, movement validation, 11 patterns, revival once, win receipts, quota-zero help, weekly reset, no raw state access.');
 }catch(e){console.error(e.message,e.where||'',e.position||'',e.stack?.split('\n').slice(0,12).join('\n'));process.exitCode=1;}finally{await db.close();}
