@@ -19,6 +19,7 @@ create schema cron;create function cron.schedule(text,text,text) returns bigint 
 for(const name of ['01-account-storage.sql','02-ranking-party.sql'])await db.exec(await readFile(new URL('fixtures/'+name,import.meta.url),'utf8'));
 for(const name of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql'])await db.exec(await readFile(new URL('../supabase/'+name,import.meta.url),'utf8'));
 await db.exec(await readFile(new URL('../supabase/migrations/20260914092650_world_boss_stage_one.sql',import.meta.url),'utf8'));
+ await db.exec((await readFile(new URL('../supabase/migrations/20260914122035_world_boss_combat_v3.sql',import.meta.url),'utf8')));
 for(const [i,u] of users.entries()){
  await db.query('insert into auth.users values($1)',[u.id]);await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[u.sid,u.id]);
  await db.query("select set_config('test.uid',$1,false),set_config('test.sid',$2,false)",[u.id,u.sid]);await db.query("select public.ringu_account('activate')");
@@ -42,10 +43,10 @@ const server=createServer(async(req,res)=>{try{
   res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));
   if(data.room)for(const [i,s] of streams)if(s.room===data.room.id&&data.room.members.some(m=>m.id===users[i].id&&m.present))s.res.write('data: '+JSON.stringify({room:data.room,serverNow:data.serverNow})+'\n\n');return;
  }
- const path=resolve('.','.'+url.pathname);if(!path.startsWith(resolve('.')+'/'))throw Error('Invalid path');res.setHeader('Content-Type',mime[extname(path)]||'application/octet-stream');res.end(await readFile(path));
+ const path=resolve('.','.'+url.pathname);if(!path.startsWith(resolve('.')+(process.platform==='win32'?'\\':'/')))throw Error('Invalid path');res.setHeader('Content-Type',mime[extname(path)]||'application/octet-stream');res.end(await readFile(path));
 }catch(e){res.statusCode=400;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({error:e.message}));if(req.url.startsWith('/api/'))errors.push(e.message);}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});const pages=[];let roomId;
+const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'msedge'}:{})});const pages=[];let roomId;
 const query=(sql,args=[])=>serial(()=>db.query(sql,args));
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 await mkdir('test-output/world-boss',{recursive:true});
@@ -65,8 +66,8 @@ try{
  assert.ok((await query('select hp from ringu_private.wb_rooms where id=$1',[roomId])).rows[0].hp<4200000);
  const right=p.getByRole('button',{name:'오른손 오른쪽 한 칸 이동',exact:true});const box=await right.boundingBox();
  await p.mouse.move(box.x+box.width/2,box.y+box.height/2);await p.mouse.down();await pause(750);await p.mouse.up();await pause(600);
- let me=(await query('select x,y,seq from ringu_private.wb_members where room_id=$1 and account_id=$2',[roomId,users[0].id])).rows[0];assert.equal(me.x,1);assert.equal(me.seq,1,'holding moves only once');
- await p.keyboard.press('w');await pause(600);me=(await query('select x,y,seq from ringu_private.wb_members where room_id=$1 and account_id=$2',[roomId,users[0].id])).rows[0];assert.equal(me.y,5);assert.equal(me.seq,2);
+ let me=(await query('select x,y,seq from ringu_private.wb_members where room_id=$1 and account_id=$2',[roomId,users[0].id])).rows[0];assert.ok(me.x>=3,'holding repeats movement');const heldSeq=me.seq;
+ await p.keyboard.press('w');await pause(600);me=(await query('select x,y,seq from ringu_private.wb_members where room_id=$1 and account_id=$2',[roomId,users[0].id])).rows[0];assert.equal(me.y,5);assert.equal(me.seq,heldSeq+1);
  await query("update ringu_private.wb_members set hp=0,dead_at=now() where room_id=$1 and account_id=$2",[roomId,users[9].id]);
  await pause(1000);
  for(const [width,height] of [[320,568],[360,800],[390,844],[412,915],[768,1024],[1280,900]]){
@@ -84,6 +85,6 @@ try{
  await p.getByRole('button',{name:'보상 확인',exact:true}).click();await p.locator('#wb-screen').waitFor({state:'hidden'});
  assert.equal((await query('select count(*)::int n from ringu_private.wb_rewards where room_id=$1',[roomId])).rows[0].n,10);
  assert.deepEqual(errors,[]);await writeFile('test-output/world-boss/report.json',JSON.stringify({clients:10,viewports:6,heartbeatCallsIn12s:calls,errors,tests:'shared SQL rooms/start/move/hold/WASD/death/win/receipt/exit/viewport bounds'},null,2));
- console.log('PASS WB1 browser: 10 independent clients sharing PostgreSQL, both pads, no hold repeats, WASD, 6 viewport bounds, low request rate, dead-player reward, result return.');
+ console.log('PASS WB1 browser: 10 independent clients sharing PostgreSQL, both pads, hold repeats, WASD, 6 viewport bounds, low request rate, dead-player reward, result return.');
 }catch(e){await pages[0]?.screenshot({path:'test-output/world-boss/failure.png'}).catch(()=>{});console.error(e);console.error('CLIENT/SERVER ERRORS',errors);process.exitCode=1;}
 finally{await browser.close();for(const s of streams.values())s.res.end();await new Promise(r=>server.close(r));await db.close();}

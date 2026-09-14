@@ -22,6 +22,7 @@ try{
  for(const name of ['06-costume-foundation.sql','07-costume-price-100.sql','08-costume-integration.sql','09-open-costume-shop.sql','10-auction-foundation.sql','11-economy-command-gateway.sql'])await db.exec(await readFile(new URL('../supabase/'+name,import.meta.url),'utf8'));
  await clock(0);
  await db.exec((await readFile(new URL('../supabase/migrations/20260914092650_world_boss_stage_one.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
+ await db.exec((await readFile(new URL('../supabase/migrations/20260914122035_world_boss_combat_v3.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  for(const u of users){await db.query('insert into auth.users values($1)',[u.id]);await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[u.sid,u.id]);await identity(u);await db.query("select public.ringu_account('activate')");await db.query('update ringu_private.accounts set state=$2 where id=$1',[u.id,JSON.stringify({playerName:u.name,playerGender:'male',remodelProfile:{power:50}})]);}
  assert.equal((await call(users[0])).unlockedAt,null);
  await assert.rejects(()=>call(users[0],'create'),/WORLD_BOSS_LOCKED/);
@@ -81,5 +82,16 @@ try{
  assert.equal(snapshot.state.serverClock,v.room.endedAt);assert.equal(snapshot.state.serverCombat,null);assert.equal(snapshot.partyBusy,false);
  assert.equal((await db.query("select (state->>'serverClock')::numeric clock from ringu_private.accounts where id=$1",[users[0].id])).rows[0].clock,String(beforeRaid));
  await db.exec('set role authenticated');await assert.rejects(()=>db.query('select * from ringu_private.wb_rooms'),/permission denied/);await assert.rejects(()=>db.query('select ringu_private.wb_advance($1)',[r.id]),/permission denied/);await db.exec('reset role');
- console.log('PASS WB1 SQL: persistent unlock, solo/10-player rooms, auth/host/readiness, immutable HP, movement validation, 11 patterns, revival once, win receipts, quota-zero help, weekly reset, no raw state access.');
+ // WB3 critical chances freeze from the existing server character stats.
+ await db.query("update ringu_private.accounts set state=jsonb_set(state,'{remodelProfile,equipment}',$2::jsonb) where id=$1",[users[0].id,JSON.stringify([{o:[['critChance',75],['critDamage',50]]}])]);
+ const cr=(await call(users[0],'create')).room;await call(users[0],'start',cr.id);
+ const frozen=(await db.query('select crit_chance,crit_damage from ringu_private.wb_members where room_id=$1',[cr.id])).rows[0];assert.equal(Number(frozen.crit_chance),75);assert.equal(Number(frozen.crit_damage),150);
+ await clock(2000);await call(users[0],'sync',cr.id,{packet:1});
+ // Replace randomness in this isolated test only, to force an actual critical.
+ const def=(await db.query("select pg_get_functiondef('ringu_private.wb_rpc(text,uuid,jsonb)'::regprocedure) body")).rows[0].body;
+ await db.exec(def.replace('random()*100<m.crit_chance','0<m.crit_chance'));
+ await clock(1000);const hit=(await call(users[0],'sync',cr.id,{packet:2})).room;
+ assert.equal(hit.members[0].lastHit.crit,true);assert.equal(hit.members[0].lastHit.damage,5000);assert.equal(hit.members[0].damage,5000);assert.equal(hit.hp,4195000);
+ assert.deepEqual((await call(users[0],'sync',cr.id,{packet:2})).room.members,hit.members,'retry cannot duplicate critical damage');
+ console.log('PASS WB3 SQL: existing room/auth/reward/movement rules, frozen equipment critical stats, real 2.5x damage, hit receipts, retry deduplication.');
 }catch(e){console.error(e.message,e.where||'',e.position||'',e.stack?.split('\n').slice(0,12).join('\n'));process.exitCode=1;}finally{await db.close();}

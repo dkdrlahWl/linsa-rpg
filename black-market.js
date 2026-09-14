@@ -122,7 +122,7 @@
   modal.addEventListener('click',e=>{const b=e.target.closest('[data-bm-slot]');if(b)void buy(Number(b.dataset.bmSlot));});
   modal.addEventListener('change',e=>{const select=e.target.closest('[data-bm-quantity]');if(!select)return;const slot=Number(select.dataset.bmQuantity),row=snapshot?.items.find(r=>r.slot===slot),button=modal.querySelector('[data-bm-slot="'+slot+'"]');if(row&&button)button.querySelector('b').textContent='정수 '+fmt(row.price*Number(select.value))+'개';});
   ['keydown','keyup','pointerdown','pointerup'].forEach(type=>modal.addEventListener(type,e=>e.stopPropagation()));
-  function button(parent,id){if(!parent||$(id))return;const el=document.createElement('button');el.type='button';el.id=id;el.textContent='암시장';el.onclick=e=>{e.preventDefault();e.stopPropagation();open();};parent.append(el);}
+  function button(parent,id){if(!parent||$(id))return;const el=document.createElement('button');el.type='button';el.id=id;el.textContent='암시장';el.dataset.uiIcon='💰';el.onclick=e=>{e.preventDefault();e.stopPropagation();open();};parent.append(el);}
   button(document.querySelector('#auraShopModal .shop-tabs'),'blackMarketShopButton');
   button(document.querySelector('#rmFeatureNav nav'),'blackMarketMenuButton');
   window.addEventListener('ringu:economy-state',()=>{if(modal.open){balance();}});

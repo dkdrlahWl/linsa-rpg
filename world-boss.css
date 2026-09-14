@@ -24,3 +24,6 @@
 .wb-pad [data-key="a"]::before{transform:rotate(-90deg)}.wb-pad [data-key="s"]::before{transform:rotate(180deg)}.wb-pad [data-key="d"]::before{transform:rotate(90deg)}
 .wb-pad button:active::before,.wb-pad button.wb-pressed::before{filter:brightness(1.45)}
 .wb-control-copy,.wb-footer{color:#d5c5ac;text-shadow:0 1px 3px #000}.wb-lobby{background:linear-gradient(#100d09dd,#100d09ee),url('art/world-boss/arena-v2.webp') center/cover}
+
+/* WB3: a shared overlay lets heroes and sword waves cross the arena edge. */
+.wb-battle{position:relative;isolation:isolate}#wb-fx{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}.wb-controls{position:relative;z-index:4}.wb-countdown{z-index:4}.wb-pad button{touch-action:none!important}
