@@ -1,0 +1,32 @@
+name: World boss isolated acceptance
+on:
+  push:
+    branches: [feature/world-boss-WB1]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install pinned test dependencies
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          npx playwright install --with-deps chromium
+      - name: Server rules, input model and existing-game regression
+        run: |
+          node --check world-boss.js
+          node --check cloud-adapter.js
+          node test/world-boss-db.test.mjs
+          node test/world-boss-model.test.cjs
+          node test/inventory-order.test.mjs
+          node --test test/economy.test.mjs test/tower-hp-restored.test.mjs test/gear-sets.test.mjs
+      - name: Ten browser clients against isolated PostgreSQL and six viewports
+        run: timeout 300s node test/world-boss-browser.test.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: world-boss-WB1-browser
+          path: test-output/world-boss/
+          retention-days: 3

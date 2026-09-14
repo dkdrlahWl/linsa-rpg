@@ -90,6 +90,31 @@
    return {account:activated.account,revision:activated.revision,economyReady:!!activated.economyReady};
  }
  window.RinguCloud={enabled:true,base:config.base,transport:'supabase'};
+ // Official Phoenix v1 wire protocol; receive-only private room subscription.
+ // The existing session manager owns token refresh; credentials never enter the scene.
+ window.RinguCloud.subscribeWorldBoss=function(roomId,onSnapshot,onStatus=()=>{}){
+   if(!/^[0-9a-f-]{36}$/i.test(roomId))throw error('잘못된 방 번호입니다.');
+   let socket,closed=false,timer,heartbeat,ref=0,retries=0;
+   const topic='realtime:world-boss:'+roomId;
+   const send=(event,payload={},channel=topic)=>{if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({topic:channel,event,payload,ref:String(++ref)}));};
+   async function connect(){
+     if(closed)return;
+     try{
+       await token();if(closed)return;
+       socket=new WebSocket(config.url.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+encodeURIComponent(config.publishableKey)+'&vsn=1.0.0');
+       socket.onopen=()=>{send('phx_join',{config:{private:true,broadcast:{ack:false,self:false},presence:{enabled:false},postgres_changes:[]},access_token:session.access_token});
+         clearInterval(heartbeat);heartbeat=setInterval(async()=>{try{await token();if(closed)return;send('access_token',{access_token:session.access_token});send('heartbeat',{},'phoenix');}catch{socket?.close();}},25000);};
+       socket.onmessage=event=>{try{const m=JSON.parse(event.data);
+         if(m.topic===topic&&m.event==='broadcast'&&m.payload?.event==='snapshot')onSnapshot(m.payload.payload);
+         if(m.topic===topic&&m.event==='phx_reply'){if(m.payload?.status==='ok'){retries=0;onStatus('connected');}else{onStatus('polling');socket.close();}}
+         if(m.event==='phx_error'||m.event==='phx_close')socket.close();
+       }catch{}};
+       socket.onerror=()=>onStatus('polling');
+       socket.onclose=()=>{clearInterval(heartbeat);if(!closed){onStatus('polling');timer=setTimeout(connect,Math.min(8000,1000*2**Math.min(retries++,3)));}};
+     }catch(e){onStatus(e.status===401?'ended':'polling');if(!closed&&e.status!==401)timer=setTimeout(connect,5000);}
+   }
+   connect();return()=>{closed=true;clearTimeout(timer);clearInterval(heartbeat);send('phx_leave');socket?.close();};
+ };
  window.fetch=async function(input,init={}){
    const url=new URL(typeof input==='string'||input instanceof URL?input:input.url,location.href);
    if(url.origin!==location.origin||!url.pathname.startsWith('/api/'))return nativeFetch(input,init);
@@ -117,6 +142,7 @@
        return response({revision:claimed.revision,stoneAward:claimed.stoneAward});
      }
      if(path==='/api/economy')return response(await remote('/functions/v1/ringu-economy',body,{signal}));
+     if(path==='/api/world-boss')return response(await rpc('ringu_world_boss',{p_action:body.action||'list',p_room:body.room||null,p_args:body.args||{}},signal));
      if(path==='/api/gold-transfer')return response(await rpc('ringu_gold_transfer',{p_action:body.action||'status',p_recipient:body.recipient||null,p_amount:body.amount??null,p_request_id:body.requestId||null},signal));
      if(path==='/api/black-market')return response(await rpc('ringu_black_market',{p_action:body.action||'status',p_rotation:body.rotation??null,p_slot:body.slot??null,p_request_id:body.requestId??null,p_quantity:body.quantity??1},signal));
      if(path==='/api/auction')return response(await rpc('ringu_auction',{p_action:body.action||'status',p_args:body.args||{},p_request_id:body.requestId||null},signal));

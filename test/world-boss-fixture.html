@@ -1,0 +1,17 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WB1 synthetic encounter</title><link rel="stylesheet" href="../world-boss.css"><div class="main-quick"></div><script>
+// In-memory transport fixture only. Never contacts a real API or accepts credentials.
+let fixtureRoom=null,fixtureVersion=0,fixturePacket=0,fixtureRequests=0;
+window.RinguSession={active:true,flush:async()=>{},onEnded:()=>{}};
+window.RinguCore={state:{},fn:{attack:()=>{},toast:console.log}};
+window.RinguCloud={subscribeWorldBoss:()=>()=>{}};
+const members=Array.from({length:10},(_,i)=>({id:'fixture-'+i,name:['나','카엘','루나','제로','세리아','레온','미카','하린','티아','노아'][i],gender:i%2?'female':'male',costume:i%4===2?'kael':i%4===3?'serin':null,maxHp:2000,hp:i===9?0:2000-i*100,damage:i*12000,x:i%8,y:4+Math.floor(i/8),seq:0,packet:0,ready:true,present:true,revived:false,reward:'none',seenAt:Date.now(),stillAt:Date.now(),deadAt:Date.now()}));
+const start=()=>{fixtureRoom={id:'00000000-0000-0000-0000-000000000001',host:'fixture-0',name:'ooo',hp:4200000,maxHp:4200000,status:'running',startedAt:Date.now(),version:++fixtureVersion,pattern:9,waves:[],members:structuredClone(members)};};
+window.fetch=async(url,init)=>{if(url!='/api/world-boss')throw Error('Fixture refuses external requests');fixtureRequests++;const {action,args}=JSON.parse(init.body);
+ if(action==='create')start();if(action==='leave'||action==='ack')fixtureRoom=null;
+ if(fixtureRoom){const m=fixtureRoom.members[0];if(args.packet>fixturePacket){fixturePacket=args.packet;m.packet=args.packet;for(const move of args.moves||[]){m.x=move.x;m.y=move.y;m.seq=move.seq;m.stillAt=move.at+180;}m.damage+=1200;fixtureRoom.hp-=1200;}
+ const t=Date.now();for(const m of fixtureRoom.members)m.seenAt=t;
+ if(!fixtureRoom.waves.length||fixtureRoom.waves.at(-1).hitAt<t-1500){fixtureRoom.waves=Array.from({length:4},(_,i)=>({id:fixtureVersion+':'+i,pattern:9,damage:840,showAt:t+1200+i*550,hitAt:t+1700+i*550,tiles:[1,4,8,11,15,18,22,27,32,34,38,41,45,48,52,54,59,62]}));}
+ fixtureRoom.version=++fixtureVersion;}
+ return new Response(JSON.stringify({room:fixtureRoom,rooms:[],userId:'fixture-0',remaining:3,unlockedAt:'2026-09-14',serverNow:Date.now()}),{headers:{'Content-Type':'application/json'}});
+};
+</script><script src="../world-boss-model.js"></script><script src="../world-boss.js"></script><script>window.dispatchEvent(new Event('ringu-ready'));</script></html>
