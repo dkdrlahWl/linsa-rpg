@@ -170,11 +170,18 @@ window.installRinguRemodel=function(g){
   const im=kind==='tower'?art.frame('tower',index,6,5)?.im:art.monsterFrames[index];
   if(!im)return '';const url=im.toDataURL('image/png');enemyImages.set(key,url);return url;
  }
- let lastPaint=0;
- function draw(time){requestAnimationFrame(draw);if(time-lastPaint<16||document.hidden||window.RinguWorldBoss?.isBattleVisible||!active()||!state())return;lastPaint=time;const s=state(),map=equipMap(),ix=it=>f.itemIndex(it),hc=$('heroCanvas');if(hc?.clientWidth){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);}
+ // Cull offscreen canvases without forcing a layout read every animation frame.
+ const visibleCanvases=new WeakMap(),canvasObserver=new IntersectionObserver(entries=>{for(const entry of entries)visibleCanvases.set(entry.target,entry.isIntersecting);});
+ function visibleCanvas(el){if(!el)return false;if(!visibleCanvases.has(el)){visibleCanvases.set(el,false);canvasObserver.observe(el);}return visibleCanvases.get(el)&&el.clientWidth>0;}
+ const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+ const scene=document.createElement('canvas');let sceneKey='',lastPaint=0;
+ function draw(time){requestAnimationFrame(draw);if(time-lastPaint<1000/30-1||document.hidden||window.RinguWorldBoss?.isBattleVisible||!active()||!state())return;lastPaint=time;const s=state(),hc=$('heroCanvas'),canvas=$('combatCanvas'),heroVisible=visibleCanvas(hc),combatVisible=visibleCanvas(canvas),previewVisible=$('rmAuraPreview')?.classList.contains('show');const map=heroVisible||combatVisible||previewVisible?equipMap():{},ix=it=>f.itemIndex(it);if(heroVisible){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);}
   const preview=$('rmAuraCanvas');if(preview&&$('rmAuraPreview').classList.contains('show')){const c=preview.getContext('2d');c.clearRect(0,0,640,820);art.hero(c,{...s,equippedAura:Number($('rmAuraSelect').value),remodelFx:true},map,ix,time,320,735,620);}
-  const canvas=$('combatCanvas');if(canvas&&canvas.clientWidth){const scale=Math.min(window.devicePixelRatio||1,2),cw=Math.round(canvas.clientWidth*scale),ch=Math.round(canvas.clientHeight*scale);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;c.save();c.filter='saturate(.78) contrast(.9) brightness(.88)';const bg=art.frame('worlds',s.regionIndex,3,2);if(bg){const fit=Math.max(w/bg.w,h/bg.h),sw=w/fit,sh=h/fit;c.drawImage(bg.im,bg.x+(bg.w-sw)/2,bg.y+bg.h-sh,sw,sh,0,0,w,h);}c.restore();const shade=c.createLinearGradient(0,0,0,h);shade.addColorStop(0,'#080c12a8');shade.addColorStop(.45,'#080c1210');shade.addColorStop(1,'#080c12ee');c.fillStyle=shade;c.fillRect(0,0,w,h);
-   const age=attackMotion&&s.autoBattle?time-attackMotion.started:2000,reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(combatVisible){const scale=Math.min(window.devicePixelRatio||1,1.5),cw=Math.round(canvas.clientWidth*scale),ch=Math.round(canvas.clientHeight*scale);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height,key=[w,h,s.regionIndex].join(':');
+   // The expensive filtered landscape and gradient are static until resize/region change.
+   if(sceneKey!==key){scene.width=w;scene.height=h;const bg=art.frame('worlds',s.regionIndex,3,2),back=scene.getContext('2d');back.save();back.filter='saturate(.78) contrast(.9) brightness(.88)';if(bg){const fit=Math.max(w/bg.w,h/bg.h),sw=w/fit,sh=h/fit;back.drawImage(bg.im,bg.x+(bg.w-sw)/2,bg.y+bg.h-sh,sw,sh,0,0,w,h);}back.restore();const shade=back.createLinearGradient(0,0,0,h);shade.addColorStop(0,'#080c12a8');shade.addColorStop(.45,'#080c1210');shade.addColorStop(1,'#080c12ee');back.fillStyle=shade;back.fillRect(0,0,w,h);if(bg)sceneKey=key;}
+   c.clearRect(0,0,w,h);c.drawImage(scene,0,0);
+   const age=attackMotion&&s.autoBattle?time-attackMotion.started:2000,reduced=reducedMotion.matches;
    const pose=age<150?1:age<280?2:age<430?3:age<560?4:age<700?5:age<840?2:age<960?1:0;
    const step=age<280?Math.sin(age/280*Math.PI/2):age<700?1:age<960?Math.cos((age-700)/260*Math.PI/2):0;
    const impact=attackMotion?.hit&&age>=460&&age<650?Math.sin((age-460)/190*Math.PI):0;

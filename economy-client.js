@@ -7,7 +7,7 @@
   const f=g.fn,$=id=>document.getElementById(id),item=id=>g.state.inventory.find(x=>String(x.id)===String(id));
   const messages={INVALID_CUBE_TARGET:'이 큐브를 사용할 수 없는 장비입니다.',INSUFFICIENT_JADECUBE:'비취 큐브가 부족합니다.',INSUFFICIENT_SUNCUBE:'태양 큐브가 부족합니다.',REQUEST_TOO_LARGE:'분해 요청이 너무 큽니다. 게임을 새로고침한 뒤 다시 시도해 주세요.',INSUFFICIENT_GOLD:'골드가 부족합니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',INSUFFICIENT_TRANSCENDSTONE:'초월석이 부족합니다.',INSUFFICIENT_PETSTONE:'펫 스톤이 부족합니다.',INSUFFICIENT_TICKET:'뽑기권이 없습니다.',ALREADY_CLAIMED:'이미 받은 보상입니다.',ALREADY_OWNED:'이미 보유하고 있습니다.',ALL_OWNED:'대상 오라를 모두 보유했습니다. 뽑기권은 유지됩니다.',ALL_PETS_MAX:'보유한 모든 펫이 만렙입니다.',ITEM_NOT_OWNED:'현재 보유한 장비가 아닙니다.',ITEM_LOCKED_OR_EQUIPPED:'장착 또는 잠금 해제 후 이용하세요.',ITEM_IN_ESCROW:'경매장에 등록 중인 장비입니다.',PET_NOT_OWNED:'현재 보유한 펫이 아닙니다.',DUNGEON_LOCKED:'입장 횟수 또는 이전 단계 클리어를 확인하세요.',MONSTER_LOCKED:'이전 몬스터를 먼저 처치하세요.',BATTLE_IN_PROGRESS:'현재 전투를 먼저 종료하세요.',COLLECTION_INCOMPLETE:'도감 달성 수가 부족합니다.',SAVE_CONFLICT:'다른 처리가 진행 중입니다. 잠시 후 다시 시도하세요.',INVALID_ARGUMENTS:'입력값을 확인하세요.',INVALID_ENHANCEMENT:'강화·초월 조건을 확인하세요.',ECONOMY_NOT_READY:'서버 업데이트 중입니다. 잠시 후 접속하세요.'};
   let pending=null,pendingName=null,forgeBusy=false,lastSync=0,backgroundRequested=false,lastLayout=null,lastInventory=null,lastProtection=null;
-  let desiredProtection=null,protectionTask=null;
+  let desiredProtection=null,protectionTask=null,interactiveReserved=false,syncTimer=null;
   const protectionValue=()=>desiredProtection??!!g.state.useProtect;
   function paintProtection(){
    const button=$('protectToggle');if(!button)return;
@@ -38,19 +38,40 @@
   const closed=()=>!session.active;
   function busy(value){document.body.classList.toggle('economy-pending',value);document.body.setAttribute('aria-busy',String(value));let status=$('economyRequestStatus');if(!status){status=document.createElement('div');status.id='economyRequestStatus';status.setAttribute('role','status');status.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:2147483646;background:#101a24ee;color:#edd2a1;border:1px solid #b79657;padding:10px 20px;border-radius:8px;pointer-events:none';document.body.append(status);}status.hidden=!value;status.textContent=value?'처리 중… 잠시만 기다려 주세요.':'';}
   async function command(name,args={}){
-   if(pending&&pendingName==='sync'&&name!=='sync')await pending.catch(()=>{});
-   if(pending||closed())return false;
-   const interactive=name!=='sync';pendingName=name;
-   if(interactive)busy(true);
-   pending=session.economyTransaction(name,args);
+   const interactive=name!=='sync';
+   if(interactiveReserved||pending&&pendingName!=='sync'||closed())return false;
+   if(!interactive&&pending)return false;
+   // Reserve the click before waiting: polling cannot overtake or duplicate it.
+   if(interactive){interactiveReserved=true;busy(true);}
+   if(pending)await pending.catch(()=>{});
+   if(closed()){if(interactive){interactiveReserved=false;busy(false);}return false;}
+   pendingName=name;
+   pending=Promise.resolve().then(()=>session.economyTransaction(name,args));
    try {const result=await pending;return result;}
    catch(e){f.toast(messages[e.message]||'처리 결과를 확인하지 못했습니다. '+e.message);return false;}
-   finally{pending=null;pendingName=null;if(interactive)busy(false);if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
+   finally{pending=null;pendingName=null;if(interactive){interactiveReserved=false;busy(false);}clearTimeout(syncTimer);syncTimer=setTimeout(sync,Math.max(100,syncInterval()-(Date.now()-lastSync)));if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
   }
-  function sync(){if(document.hidden||window.RinguWorldBoss?.isBattleVisible||pending||closed()||Date.now()-lastSync<800)return;lastSync=Date.now();return command('sync');}
+  const syncInterval=()=>g.state.autoBattle||g.state.serverBattle?1000:5000;
+  function sync(){if(document.hidden||window.RinguWorldBoss?.isBattleVisible||pending||interactiveReserved||closed()||Date.now()-lastSync<syncInterval())return;lastSync=Date.now();return command('sync');}
+  let hitQueue=[],hitTimer=null,impactTimer=null,hitScene='';
+  const fieldVisible=()=>session.active&&!document.hidden&&!window.RinguWorldBoss?.isBattleVisible&&g.state.autoBattle&&!g.state.serverBattle;
+  function clearHits(){hitQueue=[];clearTimeout(hitTimer);clearTimeout(impactTimer);hitTimer=impactTimer=null;}
+  function playHit(){
+   if(!fieldVisible()){clearHits();return;}
+   const e=hitQueue.shift();if(!e){hitTimer=null;return;}
+   window.RinguRemodel?.serverHit();
+   impactTimer=setTimeout(()=>{if(fieldVisible()){g.presentation.showDamage(e.damage,e.crit);window.RinguAudio?.effect(e.crit?'critical':'hit');}},460);
+   hitTimer=setTimeout(playHit,650);
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearHits();});
+  session.onEnded?.(clearHits);
   function paint(events=[]){
    if(desiredProtection!==null)g.state.useProtect=desiredProtection;
    const s=g.state,c=s.serverCombat,b=s.serverBattle;
+   const scene=s.regionIndex+':'+s.bossIndex;
+   if(hitScene!==scene||!fieldVisible())clearHits();hitScene=scene;
+   // Replay recent confirmed hits separately; never replay a minute of stale effects.
+   if(fieldVisible()){hitQueue.push(...events.filter(e=>e.type==='hit'&&e.target==='field'));hitQueue=hitQueue.slice(-6);if(hitQueue.length&&hitTimer===null)playHit();}
    Object.assign(g.combat,{hp:c?.hp??f.currentBoss().hp,elapsed:c?.elapsed??0});
    g.activeTower=b?.type==='tower'?{data:g.towerFloors[b.stage-1],hp:b.hp,elapsed:b.elapsed,serverEconomy:true}:null;
    if(!g.activeDungeon?.serverRoom){
@@ -58,10 +79,10 @@
     g.activeDungeon=b&&b.type!=='tower'?{...b,maxHp:data.hp,reward:data.reward,serverEconomy:true}:null;
    }
    // Combat ticks change HP/currency, not thousands of equipment DOM nodes.
-   const layout=JSON.stringify([s.inventory,s.equipped,s.ownedPets,s.equippedPet,s.ownedAuras,s.equippedAura,s.summons,s.regionIndex,s.bossIndex,s.monsterUnlockStep,s.playerGender,s.playerName,s.collectionClaims,s.discovered,s.mailbox,s.dailyRewardClaims,s.petSummonExp,s.discoveredPets,s.claimedPetCollectionRewards]);
-   const layoutChanged=layout!==lastLayout;lastLayout=layout;
    // Equipped IDs also change card badges, toggle labels and attack comparisons.
    const inventory=JSON.stringify([s.inventory,s.equipped]),inventoryChanged=inventory!==lastInventory;lastInventory=inventory;
+   const layout=JSON.stringify([s.ownedPets,s.equippedPet,s.ownedAuras,s.equippedAura,s.summons,s.regionIndex,s.bossIndex,s.monsterUnlockStep,s.playerGender,s.playerName,s.collectionClaims,s.discovered,s.mailbox,s.dailyRewardClaims,s.petSummonExp,s.discoveredPets,s.claimedPetCollectionRewards]);
+   const layoutChanged=inventoryChanged||layout!==lastLayout;lastLayout=layout;
    if(layoutChanged)f.renderAll({inventory:inventoryChanged});else{f.renderTop();f.renderBattle();}
    if($('towerModal')?.classList.contains('show'))f.renderTower();
    if($('dungeonModal')?.classList.contains('show')){if(g.activeDungeon&&!g.activeDungeon.serverRoom){$('dungeonStageList').innerHTML='';$('dungeonBattle').classList.add('show');f.renderDungeonBattle();}else f.renderDungeon();}
@@ -70,7 +91,7 @@
    if(layoutChanged)for(const name of ['refreshPetUI','renderCollectionRewards','renderAuraShop','renderMailbox']){try{(f[name]||window[name])?.();}catch(e){console.warn('Economy presentation:',name,e.message);}}
    for(const e of events){
     if(e.type==='hit'){
-     if(e.target==='field'){window.RinguRemodel?.serverHit();setTimeout(()=>{if(session.active){g.presentation.showDamage(e.damage,e.crit);window.RinguAudio?.effect(e.crit?'critical':'hit');}},460);}
+     if(e.target==='field'){/* Presented by the bounded confirmed-hit queue above. */}
      else if(e.target==='tower')g.presentation.showTowerDamage(e.damage,e.crit);
      else g.presentation.showDungeonDamage(e.damage);
     }else if(e.type==='summon')window.RinguRemodel?.showServerDraw(e.items);
