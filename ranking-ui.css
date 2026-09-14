@@ -161,3 +161,14 @@ body[data-remodel] #profileModal.rk-ready.show{padding:10px!important;padding-to
 .gear-set-row{padding:7px 8px;margin:5px 0;border:1px solid #34454e;border-radius:5px;background:#15212c}.gear-set-row b{display:block;font-size:11px}.gear-set-row b span{float:right;margin-left:5px}.gear-set-row small{display:block;font-size:10px!important;line-height:1.5;color:#9eabb8}.gear-set-row.active{border-color:#6f9c73;background:#1c342c}.gear-set-row.active small{color:#a4e4b0}
 .gear-set-panel summary{cursor:pointer;min-height:32px;align-content:center;font-size:11px;line-height:1.5;overflow-wrap:anywhere}.gear-set-panel details details{padding-left:8px;border-top:1px solid #30434e}.gear-set-panel details p{color:#a9b8c3}
 @media(max-width:600px){.gear-set-panel{padding:9px;margin:4px 0}.gear-set-row{padding:6px}.gear-set-panel>strong{font-size:13px}}
+
+/* RK3: keep the mobile preview body inside the frame; footer never overlays it. */
+@media(max-width:600px){
+ body[data-remodel] #playerEquipModal.modal-bg.show{height:100dvh!important;box-sizing:border-box;overflow:hidden!important;align-items:center!important}
+ #playerEquipModal .modal{box-sizing:border-box!important;display:grid!important;grid-template-rows:auto auto minmax(0,1fr) auto!important;height:min(760px,calc(100dvh - 24px))!important;max-height:calc(100dvh - 24px)!important;min-height:0!important;overflow:hidden!important;gap:8px!important}
+ #playerEquipModal #playerEquipGrid{display:block!important;min-height:0!important;max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;padding:0 2px 8px!important}
+ #playerEquipModal #rmRankHero{display:block;margin:0 0 8px!important}
+ #playerEquipModal .rm-rank-equipment{margin-bottom:8px}
+ #playerEquipModal .modal-actions{position:static!important;inset:auto!important;transform:none!important;width:100%!important;box-sizing:border-box;margin:0!important;padding:6px 0 0!important;background:#111d27;z-index:auto!important}
+ #playerEquipModal .modal-actions button{width:100%;margin:0!important}
+}
