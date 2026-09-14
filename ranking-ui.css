@@ -138,3 +138,21 @@ body[data-remodel] #profileModal.rk-ready.show{padding:10px!important;padding-to
 
 /* RK1 already provides accessible decorative SVG icons for both tabs. */
 #profileModal.rk-ready .ranking-tabs>button[data-ui-icon]::before{content:none!important;display:none!important}
+
+/* RK2: compact all equipped slots in mobile character previews. */
+@media(max-width:600px){
+ body[data-remodel] #playerEquipModal.modal-bg.show{padding:10px!important}
+ #playerEquipModal .modal{padding:16px!important;max-height:94dvh!important;display:flex;flex-direction:column;gap:8px;overflow:auto!important}
+ #playerEquipModal #playerEquipTitle{font-size:18px!important;margin:0!important;line-height:1.35!important}
+ #playerEquipModal #playerEquipStats{font-size:11px!important;line-height:1.4!important;margin:0!important}
+ #playerEquipModal #playerEquipGrid{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:8px;max-height:none;overflow:visible;min-height:0}
+ #playerEquipModal #rmRankHero{position:static;width:100%!important;height:clamp(90px,20dvh,150px)!important;max-height:150px!important;object-fit:contain;border-radius:8px}
+ #playerEquipModal .rm-rank-equipment{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-content:start}
+ #playerEquipModal .rm-rank-item{min-width:0;margin:0;padding:7px 5px;gap:5px;border:1px solid #33434d;border-radius:6px;align-items:center;font-size:11px;line-height:1.35}
+ #playerEquipModal .rm-rank-item>.rm-item-art{width:32px!important;height:32px!important;flex:0 0 32px}
+ #playerEquipModal .rm-rank-item>span:last-child{min-width:0;overflow-wrap:anywhere}
+ #playerEquipModal .rm-rank-item small{font-size:10px!important;line-height:1.35!important;margin-top:3px}
+ #playerEquipModal .rm-rank-equipment>p{grid-column:1/-1;margin:0!important;font-size:10px!important}
+ #playerEquipModal .modal-actions{margin:0!important;flex-shrink:0}
+ #playerEquipModal .modal-actions button{min-height:44px;padding:8px!important}
+}
