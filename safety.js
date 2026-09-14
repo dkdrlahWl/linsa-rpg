@@ -189,10 +189,13 @@
       ['서버 기록 다시 확인', () => location.reload()], ['로그아웃', leaveAccount]
     ]);
   }
-  function save(state) {
+  function save(state, options) {
     if (!active) return false;
     if (!validState(state)) throw new TypeError('저장할 게임 상태는 객체여야 합니다.');
     const prefs=Object.fromEntries(['playerName','playerGender','sfxOn','bgmOn','useProtect','sfxVolume','bgmVolume'].filter(k=>state[k]!==undefined).map(k=>[k,state[k]]));
+    // Economic state is already committed by commands. Periodic preference saves
+    // need no inventory serialization, storage write, or repaint if unchanged.
+    if(options?.preferencesOnly&&window.RinguCloud?.economy&&latest&&Object.entries(prefs).every(([key,value])=>latest[key]===value))return true;
     const raw = JSON.stringify(window.RinguCloud?.economy?{...latest,...prefs}:state);
     if(window.RinguCloud?.economy){
       write(KEY,raw);

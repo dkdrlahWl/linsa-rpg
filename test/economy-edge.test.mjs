@@ -2,12 +2,12 @@
 // reimplementation. Hosted Deno/runtime permissions still need staging QA.
 import {test} from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';
 import {initialState} from '../supabase/functions/_shared/economy.mjs';
-let handler;const user=randomUUID(),sid=randomUUID(),secret='test-server-secret';let mode='ok',commits=0;
+let handler;const user=randomUUID(),sid=randomUUID(),secret='test-server-secret';let mode='ok',commits=0;const rpcCalls=[];
 globalThis.Deno={env:{get:key=>({SUPABASE_URL:'https://test.invalid',SUPABASE_ANON_KEY:'test-public',SUPABASE_SERVICE_ROLE_KEY:secret})[key]},serve:fn=>handler=fn};
 globalThis.fetch=async(url,init)=>{
  if(url.endsWith('/auth/v1/user'))return Response.json({id:user},{status:mode==='unauthorized'?401:200});
- const body=JSON.parse(init.body),name=url.split('/').at(-1);
- if(name==='ringu_economy_snapshot')return Response.json({ready:mode!=='closed',accountId:user,sessionId:sid,state:initialState(Date.now()),revision:1,enrolled:true,now:Date.now(),itemIds:[],adminFloor:0,costumePercent:0});
+ const body=JSON.parse(init.body),name=url.split('/').at(-1);rpcCalls.push(name);
+ if(name==='ringu_economy_snapshot'||name==='ringu_economy_prepare')return Response.json({dailyBoss:{remaining:3,total:0,ranking:[]},ready:mode!=='closed',accountId:user,sessionId:sid,state:initialState(Date.now()),revision:1,enrolled:true,now:Date.now(),itemIds:[],adminFloor:0,costumePercent:0});
  if(name==='ringu_daily_boss'){assert.equal(init.headers.apikey,secret);assert.equal(body.p_user,user);if(body.p_action==='start'){assert.equal(body.p_hits.length,10);assert.deepEqual(body.p_hits.map(h=>h.at),Array.from({length:10},(_,i)=>(i+1)*1000));}return Response.json({remaining:3,total:0,ranking:[],now:Date.now()});}
  if(name==='ringu_economy_commit'){commits++;assert.equal(init.headers.apikey,secret);assert.equal(body.p_user,user);if(mode==='lost')throw Error('transport disconnected after commit');return Response.json({result:{events:[]}});}
  throw Error('Unexpected RPC '+name);
@@ -18,3 +18,5 @@ test('actual HTTP handler verifies origin/auth and only supplies service key to 
 test('closed release and uncertain post-commit transport failure are retryable',async()=>{mode='closed';assert.equal((await handler(request())).status,503);mode='lost';const r=await handler(request());assert.equal(r.status,503);assert.equal((await r.json()).error,'SERVER_RETRY_REQUIRED');});
 test('malformed JSON and injected outcomes rejected before commit',async()=>{mode='ok';const before=commits;assert.equal((await handler(request('{'))).status,400);assert.equal((await handler(request('null'))).status,400);assert.equal((await handler(request({command:'sync',args:{gold:999},requestId:randomUUID()}))).status,400);assert.equal(commits,before);});
 test('daily boss plan is generated only from the server snapshot; injected damage is rejected',async()=>{mode='ok';assert.equal((await handler(request({command:'dailyBossStart',args:{},requestId:randomUUID()}))).status,200);for(const args of [{damage:999999},{hits:[]},{accountId:randomUUID()},{count:0}])assert.equal((await handler(request({command:'dailyBossStart',args,requestId:randomUUID()}))).status,400);});
+
+test('normal hunting uses three database round trips and returns the final authoritative snapshot',async()=>{mode='ok';rpcCalls.length=0;const r=await handler(request());assert.equal(r.status,200);assert.deepEqual(rpcCalls,['ringu_economy_prepare','ringu_economy_commit','ringu_economy_snapshot']);const body=await r.json();assert.equal(body.revision,1);assert.equal(body.result.dailyBoss.remaining,3);});

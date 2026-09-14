@@ -57,6 +57,7 @@ try{
  const a=await player('economyqaA'),b=await player('economyqaB');
  await run(a,'auto',{enabled:false});
  const legacySaveWrites=await a.evaluate(()=>{let count=0;const set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='swordEnhanceRPG_balance_20260617_v5')count++;return set.call(this,k,v);};try{RinguCore.fn.save();}finally{Storage.prototype.setItem=set;}return count;});assert.equal(legacySaveWrites,0);console.log('Authoritative save skips the legacy duplicate save path.');
+ const periodic=await a.evaluate(()=>{let writes=0,paints=0;const set=Storage.prototype.setItem,paint=()=>paints++;Storage.prototype.setItem=function(...args){writes++;return set.apply(this,args);};window.addEventListener('ringu:economy-state',paint);try{for(let i=0;i<20;i++)RinguCore.fn.save(false);}finally{Storage.prototype.setItem=set;window.removeEventListener('ringu:economy-state',paint);}return {writes,paints};});assert.deepEqual(periodic,{writes:0,paints:0});console.log('Unchanged periodic saves',periodic);
  const performanceResult=await a.evaluate(()=>{
   const original=RinguCore.state.inventory;RinguCore.state.inventory=Array.from({length:2400},(_,i)=>({...original[0],id:100000+i}));
   RinguEconomy.paint();let rebuilds=0;const render=RinguCore.fn.renderAll;

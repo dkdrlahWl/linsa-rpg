@@ -25,7 +25,7 @@ window.installRinguRemodel=function(g){
  for(const name of ['initCloudSync','pullCloudState','uploadCloudState','syncMailboxReceipts'])f[name]=noop;
  f.getCloudSession=()=>null;f.checkTargetMail=()=>false;f.scheduleCloudSave=()=>{};
  f.ensureCloudFreshForAction=async()=>active();f.saveChanceAction=()=>f.save(false);
- f.save=()=>{if(!state()||!active())return;if(window.RinguCloud?.economy){window.RinguSession.save(state());return;}state().lastSeen=Date.now();state().savedAt=Date.now();state().remodelProfile=f.ownProfile();try{localStorage.setItem('swordEnhanceRPG_balance_20260617_v5',JSON.stringify(state()))}catch(e){f.toast('브라우저 임시 저장 공간이 부족합니다. 서버 저장 상태를 확인하세요.')}window.RinguSession.save(state());};
+ f.save=(notify)=>{if(!state()||!active())return;if(window.RinguCloud?.economy){window.RinguSession.save(state(),{preferencesOnly:notify===false});return;}state().lastSeen=Date.now();state().savedAt=Date.now();state().remodelProfile=f.ownProfile();try{localStorage.setItem('swordEnhanceRPG_balance_20260617_v5',JSON.stringify(state()))}catch(e){f.toast('브라우저 임시 저장 공간이 부족합니다. 서버 저장 상태를 확인하세요.')}window.RinguSession.save(state());};
  let saveTimer;f.queueSave=()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>f.save(false),150)};
  f.spendGold=cost=>{cost=Number(cost);if(!active()||!Number.isFinite(cost)||cost<0||state().gold<cost)return false;state().gold-=cost;return true};
  f.load=()=>{old.load();const s=state();s.uid=Math.max(Number(s.uid)||1,...s.inventory.map(i=>(Number(i.id)||0)+1));s.regionIndex=Math.max(0,Math.min(g.bossRegions.length-1,s.regionIndex||0));
@@ -174,8 +174,8 @@ window.installRinguRemodel=function(g){
  const visibleCanvases=new WeakMap(),canvasObserver=new IntersectionObserver(entries=>{for(const entry of entries)visibleCanvases.set(entry.target,entry.isIntersecting);});
  function visibleCanvas(el){if(!el)return false;if(!visibleCanvases.has(el)){visibleCanvases.set(el,false);canvasObserver.observe(el);}return visibleCanvases.get(el)&&el.clientWidth>0;}
  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
- const scene=document.createElement('canvas');let sceneKey='',lastPaint=0;
- function draw(time){requestAnimationFrame(draw);if(time-lastPaint<1000/30-1||document.hidden||window.RinguWorldBoss?.isBattleVisible||!active()||!state())return;lastPaint=time;const s=state(),hc=$('heroCanvas'),canvas=$('combatCanvas'),heroVisible=visibleCanvas(hc),combatVisible=visibleCanvas(canvas),previewVisible=$('rmAuraPreview')?.classList.contains('show');const map=heroVisible||combatVisible||previewVisible?equipMap():{},ix=it=>f.itemIndex(it);if(heroVisible){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);}
+ const scene=document.createElement('canvas');let sceneKey='',lastPaint=0,portraitKey='',lastPortrait=0;
+ function draw(time){requestAnimationFrame(draw);if(time-lastPaint<1000/30-1||document.hidden||window.RinguWorldBoss?.isBattleVisible||!active()||!state())return;lastPaint=time;const s=state(),hc=$('heroCanvas'),canvas=$('combatCanvas'),heroVisible=visibleCanvas(hc),combatVisible=visibleCanvas(canvas),previewVisible=$('rmAuraPreview')?.classList.contains('show');const map=heroVisible||combatVisible||previewVisible?equipMap():{},ix=it=>f.itemIndex(it);if(heroVisible){const key=JSON.stringify([hc.width,hc.height,s.playerGender,s.equippedAura,s.remodelFx,s.equippedPet,s.ownedPets,map,window.RinguCostumes?.snapshot,window.RinguCostumeArt?.isReady(window.RinguCostumes?.snapshot?.equipped)]);if(key!==portraitKey||s.equippedAura>=0&&time-lastPortrait>=1000/15){const c=hc.getContext('2d');c.clearRect(0,0,hc.width,hc.height);art.hero(c,s,map,ix,time,320,710,640);portraitKey=key;lastPortrait=time;}}
   const preview=$('rmAuraCanvas');if(preview&&$('rmAuraPreview').classList.contains('show')){const c=preview.getContext('2d');c.clearRect(0,0,640,820);art.hero(c,{...s,equippedAura:Number($('rmAuraSelect').value),remodelFx:true},map,ix,time,320,735,620);}
   if(combatVisible){const scale=Math.min(window.devicePixelRatio||1,1.5),cw=Math.round(canvas.clientWidth*scale),ch=Math.round(canvas.clientHeight*scale);if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height,key=[w,h,s.regionIndex].join(':');
    // The expensive filtered landscape and gradient are static until resize/region change.
@@ -188,7 +188,7 @@ window.installRinguRemodel=function(g){
    const narrow=canvas.clientWidth<520;
    const heroX=w*((narrow?.20:.25)+(reduced?0:step*(narrow?.035:.13))),monsterX=w*((narrow?.74:.735)+impact*.006);
    function contact(x,rx){c.save();c.translate(x,h*.794);c.scale(rx,h*.025);const shadow=c.createRadialGradient(0,0,0,0,0,1);shadow.addColorStop(0,'#05090bd0');shadow.addColorStop(1,'#05090b00');c.fillStyle=shadow;c.fillRect(-1,-1,2,2);c.restore();}
-   contact(heroX,w*.09);contact(monsterX,w*.18);c.save();c.filter='saturate(.86) contrast(.96) brightness(.94)';
+   contact(heroX,w*.09);contact(monsterX,w*.18);c.save();
    const bounds=art.monster(c,s.regionIndex*6+s.bossIndex,monsterX,h*.80,w*(narrow?.48:.44),h*(s.bossIndex>=4?.60:.53));
    if(bounds)canvas.dataset.monsterBounds=JSON.stringify(bounds);
    const grip=art.battleHero(c,s,map,ix,time,heroX,h*.79,Math.min(h*.52,w*(narrow?.43:.65)),{pose:reduced?0:pose});canvas.dataset.pose=String(reduced?0:pose);canvas.dataset.facing='right';canvas.dataset.monsterFacing='left';canvas.dataset.attacking=String(age<960);canvas.dataset.heroCenter=String(heroX);if(grip){canvas.dataset.handX=String(grip.handX);canvas.dataset.handY=String(grip.handY)}c.restore();

@@ -28,13 +28,12 @@ Deno.serve(async request=>{
   const bossCommand=['dailyBossStart','dailyBossStatus','dailyBossAck'].includes(body.command);
   if(bossCommand&&(!body.args||typeof body.args!=='object'||Array.isArray(body.args)||Object.keys(body.args).some(k=>body.command!=='dailyBossAck'||k!=='id')))return respond({error:'INVALID_ARGUMENTS'},400);
   for(let attempt=0;attempt<3;attempt++){
-   let snapshot=await rpc('ringu_economy_snapshot',{p_request_id:body.requestId});
+   let snapshot=await rpc('ringu_economy_prepare',{p_request_id:body.requestId});
    if(!snapshot.ready)return respond({error:'ECONOMY_NOT_READY'},503);
    if(snapshot.accountId!==user.id)return respond({error:'LOGIN_REQUIRED'},401);
-   if(!snapshot.enrolled){const initial=initialState(snapshot.now);initial.playerUid=crypto.randomUUID().replaceAll('-','').slice(0,10).toUpperCase();await rpc('ringu_economy_enroll',{p_user:snapshot.accountId,p_session:snapshot.sessionId,p_initial:initial},true);snapshot=await rpc('ringu_economy_snapshot',{p_request_id:body.requestId});}
-   // Catch up closed days on every login/sync/command, not just while the menu is open.
-   let dailyBoss=await rpc('ringu_daily_boss',{p_user:user.id,p_session:snapshot.sessionId},true);
-   snapshot=await rpc('ringu_economy_snapshot',{p_request_id:body.requestId});
+   if(!snapshot.enrolled){const initial=initialState(snapshot.now);initial.playerUid=crypto.randomUUID().replaceAll('-','').slice(0,10).toUpperCase();await rpc('ringu_economy_enroll',{p_user:snapshot.accountId,p_session:snapshot.sessionId,p_initial:initial},true);snapshot=await rpc('ringu_economy_prepare',{p_request_id:body.requestId});}
+   // Preparation settles daily rewards before reading the authoritative state.
+   let dailyBoss=snapshot.dailyBoss;
    if(bossCommand){
     try{
      if(body.command!=='dailyBossStatus')dailyBoss=await rpc('ringu_daily_boss',{
