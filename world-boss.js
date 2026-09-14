@@ -9,7 +9,7 @@
  const seen=new Map(),reports=new Map(),resolved=new Set(),spriteCache=new Map(),remotePositions=new Map();
  let boardCache=null,boardSize=0,previousFocus=null,activePointers=new Map(),keys=new Set(),lastMove=-Infinity;
  const assetBase=new URL('art/world-boss/',document.currentScript.src).href;
- const assets={heroes:new Image()};assets.heroes.onload=()=>spriteCache.clear();
+ const assets={heroes:new Image(),arena:new Image(),fx:new Image(),tomb:new Image()};assets.heroes.onload=()=>spriteCache.clear();assets.arena.onload=()=>{boardCache=null;};
  const $=id=>document.getElementById(id),now=()=>Date.now()+serverOffset;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const number=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
@@ -50,7 +50,7 @@
   if(root)return;
   root=document.createElement('section');root.id='wb-screen';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','월드보스');
   const pad=side=>`<div class="wb-pad" aria-label="${side} 방향키">${[['w','▲','위'],['a','◀','왼쪽'],['d','▶','오른쪽'],['s','▼','아래']].map(([key,icon,label])=>`<button type="button" data-key="${key}" aria-label="${side} ${label} 한 칸 이동">${icon}</button>`).join('')}</div>`;
-  root.innerHTML=`<div class="wb-shell"><header class="wb-header"><div><small>WORLD BOSS · 1단계</small><h2>월드보스 · ooo</h2></div><time id="wb-time">07:00</time><button id="wb-exit" type="button">나가기</button></header><div id="wb-lobby" class="wb-lobby"></div><div id="wb-battle" class="wb-battle" hidden><div class="wb-boss"><div class="wb-bossbar" role="progressbar" aria-label="보스 체력"><i id="wb-boss-fill"></i><span id="wb-boss-hp"></span></div><div id="wb-party" class="wb-party" aria-label="참가자 체력"></div><div id="wb-pattern" class="wb-pattern-label"></div></div><div class="wb-arena-wrap"><canvas id="wb-arena" class="wb-arena" aria-label="8 곱하기 8 전투 타일, WASD 또는 양쪽 방향키로 이동"></canvas><div id="wb-countdown" class="wb-countdown"></div></div><div class="wb-controls">${pad('왼손')}<div class="wb-control-copy"><strong>정지 시 자동공격</strong>이동 중 공격 중지<br>길게 눌러도 한 칸<br><br>PC · W A S D</div>${pad('오른손')}</div></div><footer id="wb-footer" class="wb-footer" role="status"></footer></div><div id="wb-overlay" class="wb-overlay" hidden></div>`;
+  root.innerHTML=`<div class="wb-shell"><header class="wb-header"><div><small>WORLD BOSS · 1단계</small><h2>멸겁룡 카르가론</h2></div><time id="wb-time">07:00</time><button id="wb-exit" type="button">나가기</button></header><div id="wb-lobby" class="wb-lobby"></div><div id="wb-battle" class="wb-battle" hidden><div class="wb-boss"><div class="wb-bossbar" role="progressbar" aria-label="보스 체력"><i id="wb-boss-fill"></i><span id="wb-boss-hp"></span></div><div id="wb-party" class="wb-party" aria-label="참가자 체력"></div><div id="wb-pattern" class="wb-pattern-label"></div></div><div class="wb-arena-wrap"><canvas id="wb-arena" class="wb-arena" aria-label="8 곱하기 8 전투 타일, WASD 또는 양쪽 방향키로 이동"></canvas><div id="wb-countdown" class="wb-countdown"></div></div><div class="wb-controls">${pad('왼손')}<div class="wb-control-copy"><strong>정지 시 자동공격</strong>이동 중 공격 중지<br>길게 눌러도 한 칸<br><br>PC · W A S D</div>${pad('오른손')}</div></div><footer id="wb-footer" class="wb-footer" role="status"></footer></div><div id="wb-overlay" class="wb-overlay" hidden></div>`;
   document.body.append(root);
   $('wb-exit').onclick=confirmExit;
   root.addEventListener('click',e=>{const button=e.target.closest('[data-action]');if(!button)return;const action=button.dataset.action;
@@ -70,7 +70,7 @@
   else if(room)renderWaiting();else renderLobby();
  }
  function renderLobby(){
-  $('wb-lobby').innerHTML=`<div class="wb-cover"><strong>ooo <small>· 1단계</small></strong></div><p class="wb-copy">거대한 보스를 마주한 8×8 전장. 멈추면 공격하고, 움직여서 살아남으세요.</p><div class="wb-quota">이번 주 보상 가능 <b>${remaining} / 3회</b> · 월요일 00:00 초기화 (한국 시간)<br><small>${remaining?'클리어할 때만 1회 차감 · 보상 내용 준비 중':'보상 없이 참가 가능 · 혼자서도 시작 가능'}</small></div>${unlockedAt?'':'<p class="wb-status">잠김 · 랭킹 플레이어 공격력 합계가 최초 8,000 이상이면 영구 해금됩니다.</p>'}<div class="wb-actions"><button class="wb-primary" data-action="create" ${!unlockedAt||busy?'disabled':''}>방 만들기</button><button data-action="refresh" ${busy?'disabled':''}>새로고침</button></div><div class="wb-room-list">${lobbyRooms.length?lobbyRooms.map(r=>`<div class="wb-room-row"><span>${esc(r.host)}의 방<br><small>${r.count} / 10명</small></span><button data-action="join" data-room="${esc(r.id)}" ${r.count>=10||busy?'disabled':''}>${remaining?'참가':'보상 없이 참가'}</button></div>`).join(''):'<div class="wb-empty">대기 중인 방이 없습니다.<br>방을 만들고 혼자 시작할 수도 있어요.</div>'}</div><details><summary>전투 규칙</summary><ul class="wb-rule-list"><li>최대 체력 = 시작 시 공격력. 보스 피해는 고정 수치입니다.</li><li>정지 시 자동공격, 이동 중 공격 중지. 길게 눌러도 한 칸만 이동합니다.</li><li>PC W 위 · A 왼쪽 · S 아래 · D 오른쪽</li><li>묘비 위에서 3초 대기하면 체력 30%로 부활합니다. 인당 부활 1회.</li><li>부활 돕는 중에도 공격 가능. 맞아도 게이지는 유지됩니다.</li><li>7분 제한 · 전원 사망 시 실패 · 퇴장/실패 횟수 미차감</li><li>보상 횟수 0회도 참가 가능. 클리어 보상은 내용 확정 전까지 지급 대기로 기록됩니다.</li></ul></details>`;
+  $('wb-lobby').innerHTML=`<div class="wb-cover"><strong>카르가론 <small>· 1단계</small></strong></div><p class="wb-copy">거대한 보스를 마주한 8×8 전장. 멈추면 공격하고, 움직여서 살아남으세요.</p><div class="wb-quota">이번 주 보상 가능 <b>${remaining} / 3회</b> · 월요일 00:00 초기화 (한국 시간)<br><small>${remaining?'클리어할 때만 1회 차감 · 보상 내용 준비 중':'보상 없이 참가 가능 · 혼자서도 시작 가능'}</small></div>${unlockedAt?'':'<p class="wb-status">잠김 · 랭킹 플레이어 공격력 합계가 최초 8,000 이상이면 영구 해금됩니다.</p>'}<div class="wb-actions"><button class="wb-primary" data-action="create" ${!unlockedAt||busy?'disabled':''}>방 만들기</button><button data-action="refresh" ${busy?'disabled':''}>새로고침</button></div><div class="wb-room-list">${lobbyRooms.length?lobbyRooms.map(r=>`<div class="wb-room-row"><span>${esc(r.host)}의 방<br><small>${r.count} / 10명</small></span><button data-action="join" data-room="${esc(r.id)}" ${r.count>=10||busy?'disabled':''}>${remaining?'참가':'보상 없이 참가'}</button></div>`).join(''):'<div class="wb-empty">대기 중인 방이 없습니다.<br>방을 만들고 혼자 시작할 수도 있어요.</div>'}</div><details><summary>전투 규칙</summary><ul class="wb-rule-list"><li>최대 체력 = 시작 시 공격력. 보스 피해는 고정 수치입니다.</li><li>정지 시 자동공격, 이동 중 공격 중지. 길게 눌러도 한 칸만 이동합니다.</li><li>PC W 위 · A 왼쪽 · S 아래 · D 오른쪽</li><li>묘비 위에서 3초 대기하면 체력 30%로 부활합니다. 인당 부활 1회.</li><li>부활 돕는 중에도 공격 가능. 맞아도 게이지는 유지됩니다.</li><li>7분 제한 · 전원 사망 시 실패 · 퇴장/실패 횟수 미차감</li><li>보상 횟수 0회도 참가 가능. 클리어 보상은 내용 확정 전까지 지급 대기로 기록됩니다.</li></ul></details>`;
   $('wb-footer').textContent=errorText||'1~10명 · 참가 공격력 제한 없음 · 보스 체력 4,200,000';
  }
  function renderWaiting(){
@@ -111,7 +111,7 @@
   }finally{flight=false;}
  }
  function predictedHp(){const me=mine();if(!me)return 0;let hp=Number(me.hp);for(const r of reports.values())hp-=r.localDamage||0;return Math.max(0,hp);}
- function board(w){if(boardCache&&boardSize===w)return boardCache;boardSize=w;boardCache=document.createElement('canvas');boardCache.width=boardCache.height=w;const c=boardCache.getContext('2d'),s=w/8;
+ function board(w){if(boardCache&&boardSize===w)return boardCache;boardSize=w;boardCache=document.createElement('canvas');boardCache.width=boardCache.height=w;const c=boardCache.getContext('2d'),s=w/8;c.fillStyle='#171615';c.fillRect(0,0,w,w);if(assets.arena.complete&&assets.arena.naturalWidth){c.drawImage(assets.arena,0,0,w,w);return boardCache;}
   for(let y=0;y<8;y++)for(let x=0;x<8;x++){const grad=c.createLinearGradient(x*s,y*s,(x+1)*s,(y+1)*s);grad.addColorStop(0,(x+y)%2?'#243443':'#2b3b49');grad.addColorStop(1,'#101d29');c.fillStyle=grad;c.fillRect(x*s+1,y*s+1,s-2,s-2);c.strokeStyle='#485969';c.lineWidth=1;c.strokeRect(x*s+1.5,y*s+1.5,s-3,s-3);c.strokeStyle='#ffffff08';c.beginPath();c.moveTo(x*s+s*.12,y*s+s*.2);c.lineTo(x*s+s*.6,y*s+s*.5);c.lineTo(x*s+s*.8,y*s+s*.9);c.stroke();}return boardCache;
  }
  // Draw-only silhouette clips retain the reference-backed equipped appearance.
@@ -128,26 +128,30 @@
   frameId=0;if(!open||document.hidden||!room||room.status==='waiting')return;frameId=requestAnimationFrame(paint);
   const budget=matchMedia('(max-width:700px)').matches?33:16;if(time-lastFrame<budget)return;lastFrame=time;
   const canvas=$('wb-arena'),rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,1.5),w=Math.round(rect.width*dpr);if(!w)return;if(canvas.width!==w){canvas.width=canvas.height=w;boardCache=null;}
-  const c=canvas.getContext('2d');c.drawImage(board(w),0,0);const s=w/8,t=now(),me=mine();
+  const c=canvas.getContext('2d');c.clearRect(0,0,w,w);c.fillStyle='#171615';c.fillRect(0,0,w,w);c.drawImage(board(w),0,0);const s=w/8,t=now(),me=mine();
   for(const wave of room.waves||[]){
    if(t<wave.showAt)continue;if(!seen.has(wave.id))seen.set(wave.id,t);
    if(t>=wave.hitAt&&!resolved.has(wave.id)&&!reports.has(wave.id)&&me?.hp>0){const p=M.positionAt(origin,moves,wave.hitAt),seenAt=seen.get(wave.id);reports.set(wave.id,{id:wave.id,seenAt,localDamage:M.hitDamage(wave,p,seenAt)});scheduleSync(80);}
    const impact=t-wave.hitAt;if(impact>220)continue;
    const progress=M.clamp((t-wave.showAt)/(wave.hitAt-wave.showAt),0,1);
-   for(const tile of wave.tiles){const x=(tile%8+.5)*s,y=(Math.floor(tile/8)+.5)*s;c.beginPath();c.arc(x,y,s*.43,0,Math.PI*2);c.fillStyle=impact>=0?'#ff8156b0':'#df283a38';c.fill();c.strokeStyle=impact>=0?'#ffbe8d':'#ff4a5d';c.lineWidth=1.5*dpr;c.stroke();if(impact<0){c.beginPath();c.arc(x,y,s*.37,-Math.PI/2,-Math.PI/2+Math.PI*2*progress);c.strokeStyle='#ff9b82';c.stroke();}}
+   for(const tile of wave.tiles){const x=(tile%8+.5)*s,y=(Math.floor(tile/8)+.5)*s;
+    if(assets.fx.complete&&assets.fx.naturalWidth){c.save();c.globalCompositeOperation='screen';c.globalAlpha=impact>=0?Math.max(0,1-impact/240):.65+.35*progress;const col=impact>=0?1:0,row=impact>=0&&wave.damage>=900?1:0,im=assets.fx,sw=im.width/2,sh=im.height/2;c.drawImage(im,col*sw,row*sh,sw,sh,x-s*.5,y-s*.5,s,s);c.restore();}
+    else{c.beginPath();c.arc(x,y,s*.43,0,Math.PI*2);c.fillStyle='#df283a38';c.fill();c.strokeStyle='#ff4a5d';c.lineWidth=1.5*dpr;c.stroke();}
+   }
   }
   const occupied=new Map();for(const m of room.members.filter(m=>m.present)){const tile=m.x+8*m.y;occupied.set(tile,(occupied.get(tile)||0)+1);}const indexAt=new Map();
   for(const m of room.members.filter(m=>m.present)){
    const local=m.id===userId;let p=local?M.interpolate(origin,moves,t):{x:m.x,y:m.y};if(!local){const remote=remotePositions.get(m.id);if(remote){const a=M.clamp((t-remote.at)/140,0,1);p={x:remote.fromX+(remote.x-remote.fromX)*a,y:remote.fromY+(remote.y-remote.fromY)*a};}}
    const tile=m.x+8*m.y,n=occupied.get(tile),i=indexAt.get(tile)||0;indexAt.set(tile,i+1);const offset=n>1?(i-(n-1)/2)*Math.min(s*.13,s*.7/n):0,x=(p.x+.5)*s+offset,y=(p.y+.86)*s,hp=local?predictedHp():m.hp;
-   if(hp<=0){c.fillStyle=m.revived?'#48444c':'#7e8385';c.strokeStyle='#c1bfb1';c.lineWidth=dpr;c.beginPath();c.roundRect(x-s*.19,y-s*.55,s*.38,s*.52,[s*.12,s*.12,1,1]);c.fill();c.stroke();c.fillStyle='#c9ccb9';c.fillRect(x-s*.025,y-s*.45,s*.05,s*.26);c.fillRect(x-s*.1,y-s*.38,s*.2,s*.05);
+   if(hp<=0){if(assets.tomb.complete&&assets.tomb.naturalWidth){c.save();c.globalAlpha=m.revived?.6:1;c.drawImage(assets.tomb,x-s*.45,y-s*.9,s*.9,s*.9);c.restore();}else{c.fillStyle='#807b70';c.fillRect(x-s*.18,y-s*.5,s*.36,s*.5);}
     const progress=M.reviveProgress(m,room.members,t);if(progress>0){c.fillStyle='#071c25';c.fillRect(x-s*.42,y+2,s*.84,s*.09);c.fillStyle='#63d7ef';c.fillRect(x-s*.42,y+2,s*.84*progress,s*.09);c.fillStyle='#def9ff';c.font=`${Math.max(8,7*dpr)}px sans-serif`;c.textAlign='center';c.fillText((progress*3).toFixed(1)+'/3초',x,y-s*.6);}continue;
    }
    const img=sprite(m,Math.round(s*.77),local);if(img)c.drawImage(img,x-img.width/2,y-img.height);else{c.fillStyle=local?'#61e18a':'#bac6cf';c.fillRect(x-s*.12,y-s*.7,s*.24,s*.65);}
    const hpY=Math.max(1,y-s*1.2);c.fillStyle='#050b12';c.fillRect(x-s*.27,hpY,s*.54,s*.08);c.fillStyle=local?'#75ff93':'#68d680';c.fillRect(x-s*.26,hpY+s*.01,s*.52*M.clamp(hp/m.maxHp,0,1),s*.06);
    const moving=local?t-lastMove<M.MOVE_MS:t<m.stillAt;
    if(!moving&&!m.background&&t>=room.startedAt&&Date.now()-lastGood<2000&&room.status==='running'){
-    const phase=((t+room.members.indexOf(m)*83)%800)/800;const px=x+(w*.5-x)*phase,py=y+(s*.15-y)*phase;c.strokeStyle=local?'#b6e9ff':'#e6c084';c.lineWidth=1.5*dpr;c.beginPath();c.moveTo(px,py+s*.18);c.lineTo(px,py);c.stroke();
+    const phase=((t+room.members.indexOf(m)*83)%800)/800;const px=x+(w*.5-x)*phase,py=y+(s*.15-y)*phase;
+    if(assets.fx.complete&&assets.fx.naturalWidth){c.save();c.globalCompositeOperation='screen';c.translate(px,py);c.rotate(Math.atan2(s*.15-y,w*.5-x)+Math.PI/2);c.drawImage(assets.fx,0,assets.fx.height/2,assets.fx.width/2,assets.fx.height/2,-s*.18,-s*.4,s*.36,s*.8);c.restore();}
    }
   }
   if(Math.floor(time/200)!==Math.floor((time-budget)/200))updateHud();
@@ -161,7 +165,7 @@
   dialog(`<h3>${won?'토벌 성공':'토벌 실패'}</h3><p>${esc(room.reason||'전투 종료')} · ${Math.max(0,Math.floor(((room.endedAt||now())-room.startedAt)/1000))}초<br>보스 남은 체력 ${number(room.hp)}</p><div class="wb-quota">${won?(me?.reward==='pending'?'보상 획득 기록 완료 · 지급 대기<br><small>보상 내용이 확정되면 지급할 수 있도록 보관됩니다.</small>':'보상 없이 참가한 전투입니다.'):'보상 횟수는 차감되지 않았습니다.'}</div><div class="wb-result-list">${[...room.members].sort((a,b)=>b.damage-a.damage).map(m=>`<div><span>${esc(m.name)}${m.present?'':' (퇴장)'}</span><span>${number(m.damage)} · ${M.contribution(m,room).toFixed(1)}%</span></div>`).join('')}</div><div class="wb-actions"><button class="wb-primary" data-action="ack">${won&&me?.reward==='pending'?'보상 확인':'확인'}</button></div>`);
  }
  async function openWorldBoss(){if(open)return;if(!window.RinguSession?.active)return g?.fn.toast?.('로그인이 필요합니다.');if(g.activeDungeon||g.activeTower||g.state?.serverBattle)return g.fn.toast?.('진행 중인 전투를 먼저 종료해 주세요.');
-  shell();if(!assets.heroes.src)assets.heroes.src=assetBase+'heroes-back-v1.png';previousFocus=document.activeElement;open=true;root.hidden=false;document.body.classList.add('wb-open');room=null;pending=null;bestRtt=Infinity;lastGood=0;hideDialog();renderLobby();await doAction('list',{},null);clearInterval(syncTimer);syncTimer=setInterval(sync,1000);$('wb-exit').focus();
+  shell();if(!assets.heroes.src)assets.heroes.src=assetBase+'heroes-back-v1.png';if(!assets.arena.src)assets.arena.src=assetBase+'arena-v2.webp';if(!assets.fx.src)assets.fx.src=assetBase+'fx-v2.webp';if(!assets.tomb.src)assets.tomb.src=assetBase+'tomb-v2.webp';previousFocus=document.activeElement;open=true;root.hidden=false;document.body.classList.add('wb-open');room=null;pending=null;bestRtt=Infinity;lastGood=0;hideDialog();renderLobby();await doAction('list',{},null);clearInterval(syncTimer);syncTimer=setInterval(sync,1000);$('wb-exit').focus();
  }
  function closeLocal(){open=false;clearInterval(syncTimer);clearTimeout(urgentTimer);urgentTimer=null;cancelAnimationFrame(frameId);frameId=0;unsubscribe?.();unsubscribe=null;channelRoom=null;room=null;pending=null;moves=[];reports.clear();seen.clear();resolved.clear();keys.clear();activePointers.clear();if(root){root.hidden=true;$('wb-overlay').dataset.result='';}document.body.classList.remove('wb-open');window.RinguPortrait?.showPage('hunt');previousFocus?.focus();}
  function install(core){if(g)return;g=core;shell();const button=document.createElement('button');button.textContent='월드보스';button.id='worldBossQuick';button.type='button';button.onclick=openWorldBoss;(document.querySelector('#rmFeatureNav nav')||document.querySelector('.main-quick'))?.append(button);

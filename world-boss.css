@@ -9,3 +9,18 @@
 @media(min-width:700px){#wb-screen{--wb-pad:52px}.wb-shell{max-width:700px}.wb-arena-wrap{width:min(540px,calc(100dvh - 465px))}.wb-boss{min-height:200px}.wb-control-copy{font-size:12px}.wb-party{width:130px}.wb-party-row{font-size:11px}.wb-party-name{width:58px}}
 @media(max-width:430px) and (max-height:650px){.wb-header{flex-basis:52px;padding-block:5px}.wb-header h2{font-size:15px;letter-spacing:1px}.wb-header time{font-size:19px}.wb-boss{min-height:124px}.wb-party{gap:0;width:105px}.wb-party-row{font-size:8px;line-height:1;min-height:8px}.wb-party-name{width:49px}.wb-arena-wrap{width:min(calc(100% - 14px),calc(100dvh - 363px))}.wb-footer{min-height:20px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-bottom:4px}}
 @media(max-height:520px) and (min-width:600px){.wb-battle{position:relative;padding-right:190px;align-items:flex-start}.wb-boss{min-height:80px}.wb-arena-wrap{width:calc(100dvh - 185px)}.wb-controls{position:absolute;right:0;top:10px;width:180px;display:flex;flex-direction:column;--wb-pad:45px}.wb-controls .wb-pad:last-child{display:none}.wb-control-copy{display:block}.wb-party-row{font-size:8px}.wb-header{flex-basis:48px}}
+/* WB2: generated material atlas; labels remain accessible live text. */
+#wb-screen{--wb-edge:#776346;background:#100e0b}
+.wb-shell{background:#100f0d;border-color:#6b5538}
+.wb-header,.wb-controls,.wb-footer{background-image:url('art/world-boss/ui-v2.webp');background-size:200% 200%;background-position:100% 100%;border-color:#846844}
+.wb-header h2{color:#f4ddae;font-size:clamp(14px,4.5vw,19px);letter-spacing:0;text-shadow:0 2px 3px #000}
+#wb-screen button,.wb-dialog,.wb-room-row,.wb-quota,.wb-pattern-label{background-image:url('art/world-boss/ui-v2.webp');background-size:200% 200%;background-position:100% 0;border-color:#806342;color:#f0dfc0;border-radius:4px}
+#wb-screen .wb-primary{background-image:url('art/world-boss/ui-v2.webp');background-size:200% 200%;background-position:100% 0;color:#ffe3a4;border-color:#be9757}
+.wb-bossbar{border-color:#b69354;background:#180908}.wb-bossbar i{background-image:url('art/world-boss/ui-v2.webp');background-size:200% 200%;background-position:0 100%}
+.wb-arena-wrap{border-color:#7b6649;box-shadow:0 0 0 3px #292116,0 0 20px #000;background:#171615}
+.wb-party{background:#100e0cdd;border-color:#746044}.wb-party-track{background:#332b22}
+#wb-screen .wb-pad button{position:relative;font-size:0!important;color:transparent;background:none!important;border:0;box-shadow:none;border-radius:4px!important}
+.wb-pad button::before{content:'';position:absolute;inset:0;background:url('art/world-boss/ui-v2.webp') 0 0/200% 200%;border-radius:4px;pointer-events:none}
+.wb-pad [data-key="a"]::before{transform:rotate(-90deg)}.wb-pad [data-key="s"]::before{transform:rotate(180deg)}.wb-pad [data-key="d"]::before{transform:rotate(90deg)}
+.wb-pad button:active::before,.wb-pad button.wb-pressed::before{filter:brightness(1.45)}
+.wb-control-copy,.wb-footer{color:#d5c5ac;text-shadow:0 1px 3px #000}.wb-lobby{background:linear-gradient(#100d09dd,#100d09ee),url('art/world-boss/arena-v2.webp') center/cover}
