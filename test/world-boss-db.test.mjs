@@ -28,6 +28,7 @@ try{
  await db.exec((await readFile(new URL('../supabase/migrations/20260914124948_world_boss_mobile_attacks.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914142815_weekly_boss_stage_one_rewards.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec(await readFile(new URL('../supabase/migrations/20260914151949_weekly_boss_unlimited_revives.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../supabase/migrations/20260914152718_weekly_boss_slower_meteors.sql',import.meta.url),'utf8'));
  for(const u of users){await db.query('insert into auth.users values($1)',[u.id]);await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[u.sid,u.id]);await identity(u);await db.query("select public.ringu_account('activate')");await db.query('update ringu_private.accounts set state=$2 where id=$1',[u.id,JSON.stringify({playerName:u.name,playerGender:'male',remodelProfile:{power:50}})]);}
  assert.equal((await call(users[0])).unlockedAt,null);
  await assert.rejects(()=>call(users[0],'create'),/WORLD_BOSS_LOCKED/);
@@ -56,6 +57,7 @@ try{
  const damages=[360,400,400,560,600,500,600,640,840,960,1300];
  for(let p=1;p<=11;p++){
   const waves=(await db.query('select ringu_private.wb_pattern($1,$2,1,$3) v',[r.id,p,new Date(time).toISOString()])).rows[0].v;
+  if(p===9){assert.equal(waves.length,4);assert.ok(waves.every(w=>w.hitAt-w.showAt===900));assert.ok(waves.slice(1).every((w,i)=>w.hitAt-waves[i].hitAt===1100));}
   assert.ok(waves.length);for(const w of waves){assert.equal(w.damage,damages[p-1]);assert.ok(w.hitAt>w.showAt);assert.ok(w.tiles.every(t=>Number.isInteger(t)&&t>=0&&t<64));
    if(p>=9)assert.ok(64-w.tiles.length>=(p===9?12:8));
    for(const m of v.room.members)assert.ok(Array.from({length:64},(_,t)=>t).some(t=>!w.tiles.includes(t)&&Math.abs(t%8-m.x)+Math.abs(Math.floor(t/8)-m.y)<=1));
