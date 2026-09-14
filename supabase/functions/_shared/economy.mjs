@@ -1,4 +1,5 @@
 import balance from './balance.json' with {type:'json'};
+import './gear-sets.js';
 import {selectGear} from './gear-selection.mjs';
 import pets from './pets.mjs';
 import {CUBES,cubeType,initializeOptions,rollOption} from './cubes.mjs';
@@ -14,10 +15,11 @@ const equipped=(s,it)=>Object.values(s.equipped||{}).includes(it.id);
 export function itemAttack(it){const lv=Math.max(0,Math.min(15,it.enhance||0)),base=canonicalBase(it),raw=base*(lv<=10?1+lv*.05:1.5+(lv-10)*.1),enhanced=lv?Math.max(Math.ceil(raw),Math.floor(base)+lv):Math.floor(base),t=Math.min(3,it.transcend||0),rate=it.slot==='무기'?(it.rarity>=6?.4:.45):(it.rarity>=6?.25:.3);return Math.floor(enhanced*(1+t*rate));}
 export function options(it){const ratio=[.1,.25,.5,.75,1,1.35,1.75][it.rarity],defs={무기:['critChance',20],투구:['atkPercent',20],갑옷:['critDamage',50],바지:['atkPercent',20],신발:['critDamage',50],반지:['goldBonus',10],귀걸이:['goldBonus',12]},[key,value]=defs[it.slot],out=[[key,Number((value*ratio*(it.optionRolls?.[0]||1)).toFixed(1))]],t=it.transcend||0;if(t)out.push(['atkPercent',t*(it.rarity>=6?(it.slot==='무기'?40:25):(it.slot==='무기'?(it.rarity>=5?20:15):10))]);return out;}
 export function stats(s,costumePercent=0){let equipmentAtk=0,atkPercent=0,critChance=0,critDamage=100,goldBonus=0;for(const id of Object.values(s.equipped||{})){const it=s.inventory.find(x=>x.id===id);if(!it)continue;equipmentAtk+=itemAttack(it);for(const [k,v]of options(it)){if(k==='atkPercent')atkPercent+=v;if(k==='critChance')critChance+=v;if(k==='critDamage')critDamage+=v;if(k==='goldBonus')goldBonus+=v;}}
+ const setBonuses=globalThis.RinguGearSets.fromState(s);atkPercent+=setBonuses.atkPercent;critDamage+=setBonuses.critDamage;
  for(const id of new Set(s.ownedAuras||[]))atkPercent+=balance.auras[id]?.attackPercent||0;
  critChance=Math.min(75,critChance);const pet=s.ownedPets?.find(x=>x.uid===s.equippedPet),p=pet?balance.petLevelStats[pet.petId]?.[pet.level-1]||{}:{};
  atkPercent+=(p.attackPercent||0)*100;critChance=Math.min(95,critChance+(p.critRate||0)*100);critDamage+=(p.critDamage||0)*100;const attackSpeed=1+(p.attackSpeed||0),attack=Math.floor((50+equipmentAtk+(p.attack||0))*(1+atkPercent/100)*attackSpeed);
- return {attack:Math.floor(attack*(1+costumePercent/100)),equipmentAtk,atkPercent,critChance,critDamage,goldBonus,attackSpeed};
+ return {attack:Math.floor(attack*(1+costumePercent/100)),equipmentAtk,atkPercent,critChance,critDamage,goldBonus,attackSpeed,setBonuses};
 }
 const summonLevel=exp=>balance.levelReq.reduce((lv,n,i)=>exp>=n?i+1:lv,1);
 const costs=[250,250,250,500,500,500,1000,1000,1000,2500,7500,7500,18000,18000,18000];

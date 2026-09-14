@@ -138,7 +138,6 @@ body[data-remodel] #profileModal.rk-ready.show{padding:10px!important;padding-to
 
 /* RK1 already provides accessible decorative SVG icons for both tabs. */
 #profileModal.rk-ready .ranking-tabs>button[data-ui-icon]::before{content:none!important;display:none!important}
-
 /* RK2: compact all equipped slots in mobile character previews. */
 @media(max-width:600px){
  body[data-remodel] #playerEquipModal.modal-bg.show{padding:10px!important}
@@ -156,3 +155,9 @@ body[data-remodel] #profileModal.rk-ready.show{padding:10px!important;padding-to
  #playerEquipModal .modal-actions{margin:0!important;flex-shrink:0}
  #playerEquipModal .modal-actions button{min-height:44px;padding:8px!important}
 }
+/* SET1: equipped series progress and active bonuses. */
+.gear-set-panel{grid-column:1/-1;min-width:0;padding:12px;margin:8px 0;border:1px solid #78633e;border-radius:8px;background:#101d27;color:#dde5eb;text-align:left}
+.gear-set-panel>strong{font-size:14px;color:#f0d399}.gear-set-panel p{font-size:11px!important;line-height:1.5!important;margin:6px 0!important}.gear-set-panel .gear-set-total{color:#f1d59c;font-weight:700}
+.gear-set-row{padding:7px 8px;margin:5px 0;border:1px solid #34454e;border-radius:5px;background:#15212c}.gear-set-row b{display:block;font-size:11px}.gear-set-row b span{float:right;margin-left:5px}.gear-set-row small{display:block;font-size:10px!important;line-height:1.5;color:#9eabb8}.gear-set-row.active{border-color:#6f9c73;background:#1c342c}.gear-set-row.active small{color:#a4e4b0}
+.gear-set-panel summary{cursor:pointer;min-height:32px;align-content:center;font-size:11px;line-height:1.5;overflow-wrap:anywhere}.gear-set-panel details details{padding-left:8px;border-top:1px solid #30434e}.gear-set-panel details p{color:#a9b8c3}
+@media(max-width:600px){.gear-set-panel{padding:9px;margin:4px 0}.gear-set-row{padding:6px}.gear-set-panel>strong{font-size:13px}}
