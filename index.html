@@ -578,7 +578,7 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 </head>
 <script src="/linsa-rpg/safety.js?v=BM5-CQ3"></script>
 <script src="/linsa-rpg/art-catalog.js?v=menu-boss-2"></script>
-<script src="/linsa-rpg/remodel.js?v=SET1"></script>
+<script src="/linsa-rpg/remodel.js?v=INV2-SET1"></script>
 <script src="/linsa-rpg/social-style.js?v=SET1"></script>
 <script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
@@ -599,7 +599,7 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 <script defer src="/linsa-rpg/shop-controls.js?v=black-market-BM1"></script>
 <script defer src="/linsa-rpg/economy-client.js?v=CQ2"></script>
 <link rel="stylesheet" href="/linsa-rpg/black-market.css?v=icons-BM5">
-<script defer src="/linsa-rpg/black-market.js?v=BM5-CQ3"></script>
+<script defer src="/linsa-rpg/black-market.js?v=BM6"></script>
 <script defer src="/linsa-rpg/ranking-ui.js?v=ranking-RK1"></script>
 <body data-remodel="true">
 <main class="app">
@@ -611,7 +611,7 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
   <div class="panel stats-panel"><div class="panel-title">플레이어 능력치 <small>장착 장비 적용</small></div><div class="player-stats" id="playerStats"></div><div class="stat-formula">최종 공격력 = (기본 공격력 + 장비 공격력) × (1 + 공격력%)</div></div>
 <nav class="quick main-quick"><button class="daily-button daily-reward-quick" onclick="openDailyReward()">일일 보상</button><button onclick="return openDungeon('gold')">특수 던전</button><button onclick="openTower()">시련의 탑</button><button id="auraShopQuick" data-open-aura-shop="1" type="button">상점</button><button onclick="openItemInventory()">가방</button><button onclick="openCollection()">장비 도감</button><button class="tip-button" onclick="openTips()">팁</button></nav>
   <div class="panel summon-panel" id="summonPanel"><div class="panel-title">장비 소환 <button class="rate-btn" onclick="openRates()">레벨별 확률</button></div><div class="summon-level"><div class="level-line"><b id="summonLevel"></b><span id="summonExp"></span></div><div class="expbar"><i id="expFill"></i></div></div><div class="summon-tabs"><button class="summon-tab active" data-group="weapon">무기</button><button class="summon-tab" data-group="armor">방어구</button><button class="summon-tab" data-group="accessory">장신구</button></div><div class="draw-buttons"><button class="draw" onclick="drawItems(1)">1회 소환<span id="drawCost1"></span></button><button class="draw" onclick="drawItems(5)">5회 소환<span id="drawCost5"></span></button><button class="draw" onclick="drawItems(10)">10회 소환<span id="drawCost10"></span></button></div></div>
-  <div class="panel inventory" id="inventoryPanel"><div class="panel-title">인벤토리 <small id="invCount">0개</small></div><div class="inventory-tools"><button class="sell-bulk best" onclick="equipBest()">최적 장착</button><select id="sortSelect"><option value="attack">공격력순</option><option value="rarity">등급순</option></select><button class="sell-bulk" onclick="bulkSell(0)">일반 이하 분해</button><button class="sell-bulk" onclick="bulkSell(1)">희귀 이하 분해</button><button class="sell-bulk" onclick="bulkSell(2)">레어 이하 분해</button><button class="sell-bulk" onclick="bulkSell(3)">에픽 이하 분해</button><button class="sell-bulk" onclick="bulkSell(4)">전설 이하 분해</button><button class="sell-bulk" onclick="bulkSell(5)">신화 이하 분해</button><button class="sell-bulk" onclick="bulkSell(6)">타락 이하 분해</button></div><div class="inventory-list" id="inventoryList"></div></div>
+  <div class="panel inventory" id="inventoryPanel"><div class="panel-title">인벤토리 <small id="invCount">0개</small></div><div class="inventory-tools"><button class="sell-bulk best" onclick="equipBest()">최적 장착</button><select id="sortSelect" aria-label="장비 정렬"><option value="default">기본순</option><option value="attack">공격력순</option><option value="rarity">등급순</option></select><select id="slotFilter" aria-label="장비 부위 필터"><option value="">전체 부위</option><option value="무기">무기</option><option value="투구">투구</option><option value="갑옷">갑옷</option><option value="바지">바지</option><option value="신발">신발</option><option value="반지">반지</option><option value="귀걸이">귀걸이</option></select><button class="sell-bulk" onclick="bulkSell(0)">일반 이하 분해</button><button class="sell-bulk" onclick="bulkSell(1)">희귀 이하 분해</button><button class="sell-bulk" onclick="bulkSell(2)">레어 이하 분해</button><button class="sell-bulk" onclick="bulkSell(3)">에픽 이하 분해</button><button class="sell-bulk" onclick="bulkSell(4)">전설 이하 분해</button><button class="sell-bulk" onclick="bulkSell(5)">신화 이하 분해</button><button class="sell-bulk" onclick="bulkSell(6)">타락 이하 분해</button></div><div class="inventory-list" id="inventoryList"></div></div>
  </section>
 </main>
 <div class="toast-wrap" id="toasts"></div>
@@ -750,7 +750,7 @@ function isEquipped(id){return Object.values(state.equipped).includes(id)}
 function isItemEquipped(it){return !!(it&&state.equipped&&String(state.equipped[it.slot])===String(it.id))}
 function transcendStars(it){const n=Math.max(0,Math.min(3,Number(it&&it.transcend)||0));return n?'★'.repeat(n):''}
 function itemTitleHtml(it){const color=rarityColors[it.rarity]||'#dce8ff',stars=transcendStars(it);return '<span class="cube-item-name">'+escapeHtml((it.locked?'[잠금] ':'')+it.name)+'</span> <span class="ringu-plus">+'+(Number(it.enhance)||0)+'</span>'+(stars?' <span class="transcend-stars" style="--star-color:'+color+';color:'+color+'" aria-label="'+(Number(it.transcend)||0)+'초월">'+stars+'</span>':'')}
-function sortInventoryItems(list){return list.sort((a,b)=>{const ae=isItemEquipped(a)?1:0,be=isItemEquipped(b)?1:0;if(be!==ae)return be-ae;const eh=(Number(b.enhance)||0)-(Number(a.enhance)||0);if(eh)return eh;const tr=(Number(b.transcend)||0)-(Number(a.transcend)||0);if(tr)return tr;const rr=(Number(b.rarity)||0)-(Number(a.rarity)||0);if(rr)return rr;return itemAtk(b)-itemAtk(a)})}
+function sortInventoryItems(list){const mode=$('sortSelect')?.value||'default';return list.sort((a,b)=>{const eq=Number(isItemEquipped(b))-Number(isItemEquipped(a));if(eq)return eq;if(mode==='attack')return itemAtk(b)-itemAtk(a);if(mode==='rarity')return (Number(b.rarity)||0)-(Number(a.rarity)||0)||itemAtk(b)-itemAtk(a);return Number(!!b.locked)-Number(!!a.locked)||(Number(b.enhance)||0)-(Number(a.enhance)||0)||(Number(b.rarity)||0)-(Number(a.rarity)||0)||itemAtk(b)-itemAtk(a)})}
 function refreshEquipmentViews(){renderTop();renderEquipment();renderPlayerStats();renderInventory();decorateTranscendStars();queueSave()}
 function toggleEquipItem(id){const it=state.inventory.find(x=>String(x.id)===String(id));if(!it)return false;if(isItemEquipped(it)){delete state.equipped[it.slot];toast(it.name+' 장착 해제')}else{state.equipped[it.slot]=it.id;toast(it.name+' 장착 완료')}refreshEquipmentViews();return false}
 window.toggleEquipItem=toggleEquipItem;
@@ -941,7 +941,7 @@ const inventoryNodeCache=new Map();
 const INVENTORY_PAGE_SIZE=40;
 let inventoryPage=0,inventorySort=null;
 function inventoryPageRows(all){
- const sort=$('sortSelect')?.value||'';
+ const sort=($('sortSelect')?.value||'default')+'|'+($('slotFilter')?.value||'');
  if(sort!==inventorySort){inventoryPage=0;inventorySort=sort;}
  const pages=Math.max(1,Math.ceil(all.length/INVENTORY_PAGE_SIZE));
  inventoryPage=Math.max(0,Math.min(inventoryPage,pages-1));
@@ -966,10 +966,10 @@ function inventoryPageRows(all){
  return all.slice(inventoryPage*INVENTORY_PAGE_SIZE,(inventoryPage+1)*INVENTORY_PAGE_SIZE);
 }
 function renderInventory(){
- const all=sortInventoryItems([...(state.inventory||[])]),count=$('invCount'),box=$('inventoryList');
- if(count)count.textContent=all.length+'개';if(!box)return;
+ const slot=$('slotFilter')?.value||'',all=sortInventoryItems((state.inventory||[]).filter(it=>!slot||it.slot===slot)),count=$('invCount'),box=$('inventoryList');
+ if(count)count.textContent=slot?all.length+' / '+state.inventory.length+'개':all.length+'개';if(!box)return;
  const list=inventoryPageRows(all);
- if(!list.length){inventoryNodeCache.clear();box.innerHTML='<div class="empty-list">장비가 없습니다.<br>소환으로 첫 장비를 획득하세요.</div>';return;}
+ if(!list.length){inventoryNodeCache.clear();box.innerHTML=slot?'<div class="empty-list">선택한 부위의 장비가 없습니다.</div>':'<div class="empty-list">장비가 없습니다.<br>소환으로 첫 장비를 획득하세요.</div>';return;}
  const ownedById=new Map(state.inventory.map(it=>[String(it.id),it])),ids=new Set(list.map(it=>String(it.id)));
  for(const [id,entry] of inventoryNodeCache)if(!ids.has(id)){entry.node.remove();inventoryNodeCache.delete(id);}
  const build=it=>{const atk=itemAtk(it),eqNow=isItemEquipped(it),eqId=state.equipped[it.slot],eq=ownedById.get(String(eqId)),up=!eqNow&&atk>(eq?itemAtk(eq):0),color=rarityColors[it.rarity]||'#dce8ff';return '<div class="item rarity-'+it.rarity+(eqNow?' equipped':'')+(it.locked?' locked-item':'')+(it.rarity===4?' legendary':'')+(it.rarity===5?' mythic':'')+(it.rarity===6?' fallen':'')+'" data-item-id="'+it.id+'" onclick="openItemDetail('+it.id+')"><div class="gear-row">'+gearIcon(it)+'<div class="item-info"><div class="item-title"><span class="rarity">'+rarityNames[it.rarity]+'</span><strong class="ringu-item-title" style="color:'+color+'">'+itemTitleHtml(it)+'</strong></div><div class="item-sub">'+escapeHtml(it.slot)+' \u00b7 \uacf5\uaca9\ub825 <b>'+itemAttackText(it)+'</b> '+(up?'<span class="up">\u2191 \ucd94\ucc9c</span>':'')+(eqNow?'<span style="color:#6eb8ff"> \u00b7 \uc7a5\ucc29 \uc911</span>':'')+'<div class="sub-options">'+optionText(it)+'</div></div></div></div><div class="item-actions"><button class="equip-toggle '+(eqNow?'unequip':'equip')+'" data-action="equip" data-item-id="'+it.id+'" onclick="return false">'+(eqNow?'해제':'장착')+'</button><button class="enh" onclick="event.stopPropagation();openEnhance('+it.id+')">\uac15\ud654</button><button class="lock '+(it.locked?'on':'')+'" onclick="event.stopPropagation();toggleLock('+it.id+');renderInventory()">'+(it.locked?'\ud574\uc81c':'\uc7a0\uae08')+'</button><button class="sell" '+(eqNow||it.locked?'disabled':'')+' onclick="event.stopPropagation();sellItem('+it.id+')">장비 분해</button></div></div>'};
@@ -987,7 +987,7 @@ function toast(msg){const el=document.createElement('div');el.className='toast';
 function legendEffect(it){$('legendName').textContent=it.name;$('legendOverlay').classList.add('show');document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),500);setTimeout(()=>$('legendOverlay').classList.remove('show'),2200)}
 function scrollToId(id){$(id).scrollIntoView({behavior:'smooth',block:'start'})}
 document.querySelectorAll('.summon-tab').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.summon-tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');drawGroup=btn.dataset.group;renderTop();renderSummon()});
-$('sortSelect').onchange=renderInventory;$('enhanceBtn').onclick=tryEnhance;$('enhanceModal').onclick=e=>{if(e.target===$('enhanceModal'))closeEnhance()};
+$('sortSelect').onchange=renderInventory;$('slotFilter').onchange=renderInventory;$('enhanceBtn').onclick=tryEnhance;$('enhanceModal').onclick=e=>{if(e.target===$('enhanceModal'))closeEnhance()};
 document.addEventListener('pointerup',e=>{const mail=e.target.closest('.mail-button');if(mail){e.preventDefault();e.stopImmediatePropagation();openMailbox()}},true);
 document.addEventListener('click',e=>{const aura=e.target.closest('[data-open-aura-shop]');if(aura){e.preventDefault();e.stopImmediatePropagation();return openAuraShop()}},true);document.addEventListener('pointerup',e=>{const reward=e.target.closest('[data-collection-reward]');if(reward&&!reward.disabled){e.preventDefault();return claimCollectionReward(reward.dataset.collectionReward)}const rank=e.target.closest('[data-rank-index]');if(rank){e.preventDefault();return openRankingCharacter(Number(rank.dataset.rankIndex))}},true);
 
