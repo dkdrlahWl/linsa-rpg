@@ -25,7 +25,7 @@ const hold=async action=>{await p.evaluate(action=>qa.hold=action,action);await 
 const release=()=>p.evaluate(()=>qa.release());
 const calls=action=>p.evaluate(action=>qa.calls.filter(a=>a===action).length,action);
 try{
- await p.goto('http://127.0.0.1:'+server.address().port+'/qa');await p.getByRole('button',{name:'월드보스',exact:true}).click();await p.getByRole('button',{name:'방 만들기',exact:true}).waitFor();
+ await p.goto('http://127.0.0.1:'+server.address().port+'/qa');await p.getByRole('button',{name:'주간보스',exact:true}).click();await p.getByRole('button',{name:'방 만들기',exact:true}).waitFor();
  // A slow automatic lobby refresh must not disable or swallow Create.
  await hold('list');await p.getByRole('button',{name:'방 만들기',exact:true}).click();assert.equal(await p.getByRole('button',{name:'방 만드는 중…',exact:true}).count(),1);assert.equal(await calls('create'),0);await release();await p.getByRole('button',{name:'혼자 시작',exact:true}).waitFor();assert.equal(await calls('create'),1);
  // Keep a pressed button alive if a new waiting-room snapshot arrives.
@@ -34,7 +34,7 @@ try{
  // Result can arrive over realtime while a sync response is pending.
  await hold('sync');await p.evaluate(()=>{qa.room.status='won';qa.room.hp=0;qa.room.endedAt=Date.now();qa.room.version=++qa.version;qa.notify({room:structuredClone(qa.room)});});await p.getByRole('button',{name:'확인',exact:true}).click();assert.equal(await p.getByRole('button',{name:'확인 중…',exact:true}).count(),1);await release();await p.locator('#wb-screen').waitFor({state:'hidden'});assert.equal(await calls('ack'),1);assert.equal(await p.evaluate(()=>qa.maxActive),1,'sync and actions never overlap');
  // An actual failure must stay visible in the result dialog and allow retry.
- await p.getByRole('button',{name:'월드보스',exact:true}).click();await p.getByRole('button',{name:'방 만들기',exact:true}).click();await p.getByRole('button',{name:'혼자 시작',exact:true}).click();await p.locator('#wb-arena').waitFor({state:'visible'});
+ await p.getByRole('button',{name:'주간보스',exact:true}).click();await p.getByRole('button',{name:'방 만들기',exact:true}).click();await p.getByRole('button',{name:'혼자 시작',exact:true}).click();await p.locator('#wb-arena').waitFor({state:'visible'});
  await p.evaluate(()=>{qa.failAck=true;qa.room.status='won';qa.room.version=++qa.version;qa.notify({room:structuredClone(qa.room)});});await p.getByRole('button',{name:'확인',exact:true}).click();await p.locator('#wb-action-status').waitFor();assert.match(await p.locator('#wb-action-status').innerText(),/다시 시도/);await p.getByRole('button',{name:'확인',exact:true}).click();await p.locator('#wb-screen').waitFor({state:'hidden'});assert.equal(await calls('ack'),3);
  assert.deepEqual(errors,[]);console.log('PASS WB4: one-click Create/Start/Ack during slow background requests, button survives realtime refresh while pressed, immediate busy labels, serialized requests, visible errors and retry.');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

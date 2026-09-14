@@ -22,6 +22,7 @@ await db.exec(await readFile(new URL('../supabase/migrations/20260914092650_worl
  await db.exec((await readFile(new URL('../supabase/migrations/20260914122035_world_boss_combat_v3.sql',import.meta.url),'utf8')));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914123914_world_boss_attack_cadence.sql',import.meta.url),'utf8')));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914124948_world_boss_mobile_attacks.sql',import.meta.url),'utf8')));
+ await db.exec((await readFile(new URL('../supabase/migrations/20260914142815_weekly_boss_stage_one_rewards.sql',import.meta.url),'utf8')));
 for(const [i,u] of users.entries()){
  await db.query('insert into auth.users values($1)',[u.id]);await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[u.sid,u.id]);
  await db.query("select set_config('test.uid',$1,false),set_config('test.sid',$2,false)",[u.id,u.sid]);await db.query("select public.ringu_account('activate')");
@@ -55,7 +56,7 @@ await mkdir('test-output/world-boss',{recursive:true});
 try{
  for(let i=0;i<10;i++){
   const ctx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1.5});const p=await ctx.newPage();pages.push(p);p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'/qa?actor='+i);
-  await p.getByRole('button',{name:'월드보스',exact:true}).click();
+  await p.getByRole('button',{name:'주간보스',exact:true}).click();
   if(i===0){await p.getByRole('button',{name:'방 만들기',exact:true}).click();await p.getByRole('button',{name:'혼자 시작',exact:true}).waitFor();roomId=(await query('select id from ringu_private.wb_rooms limit 1')).rows[0].id;}
   else{await p.getByRole('button',{name:'참가',exact:true}).click();await p.getByRole('button',{name:'준비 완료',exact:true}).click();}
  }

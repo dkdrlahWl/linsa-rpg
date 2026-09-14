@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {PGlite} from '@electric-sql/pglite';
+import {execute,initialState} from '../supabase/functions/_shared/economy.mjs';
 const db=new PGlite();
 const users=Array.from({length:12},(_,i)=>({id:randomUUID(),sid:randomUUID(),name:'WB fixture '+i}));
 let time=Date.parse('2026-09-14T01:00:00Z');
@@ -25,6 +26,7 @@ try{
  await db.exec((await readFile(new URL('../supabase/migrations/20260914122035_world_boss_combat_v3.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914123914_world_boss_attack_cadence.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914124948_world_boss_mobile_attacks.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
+ await db.exec((await readFile(new URL('../supabase/migrations/20260914142815_weekly_boss_stage_one_rewards.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  for(const u of users){await db.query('insert into auth.users values($1)',[u.id]);await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[u.sid,u.id]);await identity(u);await db.query("select public.ringu_account('activate')");await db.query('update ringu_private.accounts set state=$2 where id=$1',[u.id,JSON.stringify({playerName:u.name,playerGender:'male',remodelProfile:{power:50}})]);}
  assert.equal((await call(users[0])).unlockedAt,null);
  await assert.rejects(()=>call(users[0],'create'),/WORLD_BOSS_LOCKED/);
@@ -102,5 +104,29 @@ try{
  for(let i=0;i<10;i++){await clock(200);latest=(await call(users[0],'sync',cr.id,{packet:++packet,moves:[{seq:i+1,x:i%2?0:1,y:6,at:time}]})).room;assert.equal(latest.members[0].damage,10000+Math.floor((i+1)/5)*5000,'moving attacks retain one-second cadence');}
  await clock(1100);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,25000,'stopping does not reset the attack timer');
  await clock(80);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,25000,'no accumulated burst after stopping');
- console.log('PASS WB5 SQL: room/auth/reward rules, critical receipts, duplicate and 25Hz spam protection, attacks while moving, one-second shared cadence without catch-up.');
+ await call(users[0],'leave',cr.id);await clock(7*86400000);
+ async function rewardRoom(tied=false){
+  const room=(await call(users[0],'create')).room;for(const user of users.slice(1,10)){await call(user,'join',room.id);await call(user,'ready',room.id,{ready:true});}await call(users[0],'start',room.id);
+  for(let i=0;i<10;i++)await db.query('update ringu_private.wb_members set damage=$3,hp=$4 where room_id=$1 and account_id=$2',[room.id,users[i].id,tied&&i===1?9000:(9-i)*1000,i===9?0:2000]);
+  await db.query('update ringu_private.wb_rooms set hp=0 where id=$1',[room.id]);return (await call(users[0],'sync',room.id,{packet:1})).room;
+ }
+ const paidRoom=await rewardRoom();const expected=Array.from({length:10},(_,i)=>50-3*i);
+ for(let i=0;i<10;i++){const m=paidRoom.members.find(m=>m.id===users[i].id);assert.equal(m.reward,'paid');assert.equal(m.rewardDetail.essence,expected[i]);assert.equal(m.rewardDetail.rank,i+1);assert.equal(m.rewardDetail.jadeCube,2);}
+ const mails=(await db.query("select id,state->'mailbox' mails from ringu_private.accounts where id=any($1::uuid[])",[users.slice(0,10).map(u=>u.id)])).rows;
+ for(const a of mails){const mail=a.mails.filter(m=>m.id.startsWith('weekly-boss:'+paidRoom.id+':'));assert.equal(mail.length,1);const idx=users.findIndex(u=>u.id===a.id);assert.deepEqual(mail[0].reward,{essence:expected[idx],jadeCube:2});}
+ const received=mails[0].mails.find(m=>m.id.startsWith('weekly-boss:'+paidRoom.id+':'));const state=initialState(time);state.autoBattle=false;state.mailbox=[received];
+ const context={now:time,random:()=>.5,itemIds:[],uuid:randomUUID,adminFloor:0,costumePercent:0};const claimed=execute(state,'mail',{id:received.id},context).state;assert.equal(claimed.essence,received.reward.essence);assert.equal(claimed.jadeCube,2);assert.throws(()=>execute(claimed,'mail',{id:received.id},context),/MAIL_NOT_FOUND/);
+ await db.query('select ringu_private.wb_pay_rewards($1)',[paidRoom.id]);await call(users[0],'sync',paidRoom.id,{packet:1});
+ const duplicate=(await db.query("select count(*)::int n from ringu_private.accounts a cross join lateral jsonb_array_elements(a.state->'mailbox') m where m->>'id' like $1",['weekly-boss:'+paidRoom.id+':%'])).rows[0].n;assert.equal(duplicate,10,'settlement and packet retries cannot duplicate mail');
+ const tied=await rewardRoom(true);assert.equal(tied.members.find(m=>m.id===users[0].id).rewardDetail.rank,1);assert.equal(tied.members.find(m=>m.id===users[1].id).rewardDetail.essence,50);assert.equal(tied.members.find(m=>m.id===users[2].id).rewardDetail.essence,44);
+ assert.equal((await db.query('select count(*)::int n from ringu_private.wb_rewards where room_id=$1',[helper.id])).rows[0].n,0,'quota-zero helper gets no extra reward');
+ // Recreate a legacy pending receipt, then run the exact migration backfill twice.
+ const legacyId='weekly-boss:'+paidRoom.id+':'+users[0].id;
+ await db.query("update ringu_private.accounts set state=jsonb_set(state,'{mailbox}',(select coalesce(jsonb_agg(m),'[]') from jsonb_array_elements(state->'mailbox') m where m->>'id'<>$2)) where id=$1",[users[0].id,legacyId]);
+ await db.query("update ringu_private.wb_rewards set status='pending',place=null,essence=null,jade_cubes=null,mail_id=null where room_id=$1 and account_id=$2",[paidRoom.id,users[0].id]);
+ const rewardMigration=await readFile(new URL('../supabase/migrations/20260914142815_weekly_boss_stage_one_rewards.sql',import.meta.url),'utf8');const backfill=rewardMigration.slice(rewardMigration.indexOf('do $backfill$'));
+ await db.exec(backfill);await db.exec(backfill);
+ assert.equal((await db.query("select count(*)::int n from ringu_private.accounts a cross join lateral jsonb_array_elements(a.state->'mailbox') m where a.id=$1 and m->>'id'=$2",[users[0].id,legacyId])).rows[0].n,1,'legacy pending receipt paid exactly once');
+ await db.exec('set role authenticated');await assert.rejects(()=>db.query('select ringu_private.wb_pay_rewards($1)',[paidRoom.id]),/permission denied/);await db.exec('reset role');
+ console.log('PASS weekly rewards: all 10 ranks 50..23, 2 cubes including dead/zero damage, same-rank ties, trusted mail claim, no duplicate settle/claim, three-weekly quota, existing movement/cadence/auth rules.');
 }catch(e){console.error(e.message,e.where||'',e.position||'',e.stack?.split('\n').slice(0,12).join('\n'));process.exitCode=1;}finally{await db.close();}
