@@ -24,6 +24,7 @@ try{
  await db.exec((await readFile(new URL('../supabase/migrations/20260914092650_world_boss_stage_one.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914122035_world_boss_combat_v3.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  await db.exec((await readFile(new URL('../supabase/migrations/20260914123914_world_boss_attack_cadence.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
+ await db.exec((await readFile(new URL('../supabase/migrations/20260914124948_world_boss_mobile_attacks.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
  for(const u of users){await db.query('insert into auth.users values($1)',[u.id]);await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[u.sid,u.id]);await identity(u);await db.query("select public.ringu_account('activate')");await db.query('update ringu_private.accounts set state=$2 where id=$1',[u.id,JSON.stringify({playerName:u.name,playerGender:'male',remodelProfile:{power:50}})]);}
  assert.equal((await call(users[0])).unlockedAt,null);
  await assert.rejects(()=>call(users[0],'create'),/WORLD_BOSS_LOCKED/);
@@ -98,8 +99,8 @@ try{
  let packet=2,latest=hit;
  for(let i=0;i<24;i++){await clock(40);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,5000,'frequent sync cannot accelerate attacks');}
  await clock(40);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,10000,'one attack after one full second');
- for(let i=0;i<10;i++){await clock(200);latest=(await call(users[0],'sync',cr.id,{packet:++packet,moves:[{seq:i+1,x:i%2?0:1,y:6,at:time}]})).room;assert.equal(latest.members[0].damage,10000,'no damage from moving packets');}
- await clock(1100);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,10000,'must finish movement plus attack windup');
- await clock(80);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,15000,'stationary attack resumes without accumulated burst');
- console.log('PASS WB5 SQL: room/auth/reward rules, critical receipts, duplicate and 25Hz spam protection, no attacks during movement, one-second stationary cadence without catch-up.');
+ for(let i=0;i<10;i++){await clock(200);latest=(await call(users[0],'sync',cr.id,{packet:++packet,moves:[{seq:i+1,x:i%2?0:1,y:6,at:time}]})).room;assert.equal(latest.members[0].damage,10000+Math.floor((i+1)/5)*5000,'moving attacks retain one-second cadence');}
+ await clock(1100);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,25000,'stopping does not reset the attack timer');
+ await clock(80);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,25000,'no accumulated burst after stopping');
+ console.log('PASS WB5 SQL: room/auth/reward rules, critical receipts, duplicate and 25Hz spam protection, attacks while moving, one-second shared cadence without catch-up.');
 }catch(e){console.error(e.message,e.where||'',e.position||'',e.stack?.split('\n').slice(0,12).join('\n'));process.exitCode=1;}finally{await db.close();}
