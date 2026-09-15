@@ -60,7 +60,7 @@
   const mount=()=>{const menu=document.querySelector('#rmFeatureNav nav, nav.quick');if(menu&&!menu.contains(button))menu.prepend(button);};
   mount();
   const menuObserver=new MutationObserver(mount);menuObserver.observe(document.body,{childList:true,subtree:true});
-  window.RinguDailyBoss={open:button.onclick};
+  window.RinguDailyBoss={open:button.onclick,get inBattle(){return !!data?.active&&now()<data.active.endsAt;}};
   window.addEventListener('ringu:economy-state',e=>accept(e.detail?.dailyBoss));
   // First sync also restores a running battle or its unacknowledged result.
   void request('dailyBossStatus');

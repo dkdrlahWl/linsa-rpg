@@ -52,9 +52,9 @@
    finally{pending=null;pendingName=null;if(interactive){interactiveReserved=false;busy(false);}clearTimeout(syncTimer);syncTimer=setTimeout(sync,Math.max(100,syncInterval()-(Date.now()-lastSync)));if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
   }
   const syncInterval=()=>g.state.autoBattle||g.state.serverBattle?1000:5000;
-  function sync(){if(document.hidden||window.RinguStoneParty?.inRoom||window.RinguWorldBoss?.isBattleVisible||pending||interactiveReserved||closed()||Date.now()-lastSync<syncInterval())return;lastSync=Date.now();return command('sync');}
+  function sync(){if(document.hidden||window.RinguDailyBoss?.inBattle||window.RinguStoneParty?.inRoom||window.RinguWorldBoss?.isBattleVisible||pending||interactiveReserved||closed()||Date.now()-lastSync<syncInterval())return;lastSync=Date.now();return command('sync');}
   let hitQueue=[],hitTimer=null,impactTimer=null,hitScene='';
-  const fieldVisible=()=>session.active&&!document.hidden&&!window.RinguWorldBoss?.isBattleVisible&&g.state.autoBattle&&!g.state.serverBattle;
+  const fieldVisible=()=>session.active&&!document.hidden&&!window.RinguWorldBoss?.isBattleVisible&&!window.RinguDailyBoss?.inBattle&&!window.RinguStoneParty?.inRoom&&g.state.autoBattle&&!g.state.serverBattle;
   function clearHits(){hitQueue=[];clearTimeout(hitTimer);clearTimeout(impactTimer);hitTimer=impactTimer=null;}
   function playHit(){
    if(!fieldVisible()){clearHits();return;}
@@ -71,6 +71,8 @@
    $('dailyRewardReceivedAmount').textContent='정수 '+Number(amount).toLocaleString('ko-KR')+'개 획득';
    if(!modal.open)modal.showModal();
   }
+  const fieldPaused=()=>!!(g.state.serverBattle||g.activeDungeon||g.activeTower||window.RinguDailyBoss?.inBattle||window.RinguStoneParty?.inRoom||window.RinguWorldBoss?.isBattleVisible);
+  const oldRenderBattle=f.renderBattle;f.renderBattle=(...args)=>{const result=oldRenderBattle(...args);if(fieldPaused()){const toggle=$('battleToggle');if(toggle){toggle.textContent='자동사냥 일시정지';toggle.classList.remove('on');}if($('battleState'))$('battleState').textContent='다른 전투 진행 중 · 종료 후 자동사냥 재개';}return result;};
   function paint(events=[]){
    if(desiredProtection!==null)g.state.useProtect=desiredProtection;
    const s=g.state,c=s.serverCombat,b=s.serverBattle;

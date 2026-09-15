@@ -143,7 +143,7 @@
      }
      if(path==='/api/economy')return response(await remote('/functions/v1/ringu-economy',body,{signal}));
      if(path==='/api/world-boss')return response(await rpc('ringu_world_boss',{p_action:body.action||'list',p_room:body.room||null,p_args:body.args||{}},signal));
-     if(path==='/api/gold-transfer')return response(await rpc('ringu_gold_transfer',{p_action:body.action||'status',p_recipient:body.recipient||null,p_amount:body.amount??null,p_request_id:body.requestId||null},signal));
+     if(path==='/api/gold-transfer')return response(await rpc('ringu_resource_transfer',{p_action:body.action||'status',p_recipient:body.recipient||null,p_amount:body.amount??null,p_request_id:body.requestId||null,p_resource:body.resource||'gold'},signal));
      if(path==='/api/black-market')return response(await rpc('ringu_black_market',{p_action:body.action||'status',p_rotation:body.rotation??null,p_slot:body.slot??null,p_request_id:body.requestId??null,p_quantity:body.quantity??1},signal));
      if(path==='/api/auction')return response(await rpc('ringu_auction',{p_action:body.action||'status',p_args:body.args||{},p_request_id:body.requestId||null},signal));
      if(path==='/api/costume'){

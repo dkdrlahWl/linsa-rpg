@@ -163,7 +163,7 @@ window.installRinguRemodel=function(g){
   nav.addEventListener('click',event=>{const button=event.target.closest('button');if(button)showPage(button.dataset.target)});
   window.scrollToId=id=>showPage(id==='equipGrid'?'character':id==='summonPanel'?'summon':id==='inventoryPanel'?'inventory':'hunt');
   window.RinguPortrait={showPage};showPage('hunt');
-  const previewButton=document.createElement('button');previewButton.textContent='오라 미리보기';previewButton.dataset.uiIcon='✨';previewButton.onclick=openAuraPreview;features.querySelector('nav').append(previewButton);
+
  }
  function openAuraPreview(){
   let modal=$('rmAuraPreview');if(!modal){modal=document.createElement('div');modal.id='rmAuraPreview';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','rmAuraTitle');modal.innerHTML='<section class="modal"><h3 id="rmAuraTitle">캐릭터 오라</h3><p>캐릭터 뒤에서 실시간으로 움직이는 효과입니다. 미리보기는 장비·재화·보유 오라를 변경하지 않습니다.</p><canvas id="rmAuraCanvas" width="640" height="820" aria-label="캐릭터 뒤 오라 애니메이션 미리보기"></canvas><label for="rmAuraSelect">오라 선택</label><select id="rmAuraSelect">'+g.auraShopItems.map(([name],i)=>'<option value="'+i+'">'+esc(name)+'</option>').join('')+'</select><button id="rmAuraClose">닫기</button></section>';document.body.append(modal);$('rmAuraClose').onclick=()=>modal.classList.remove('show');}

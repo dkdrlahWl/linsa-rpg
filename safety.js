@@ -530,7 +530,7 @@
     startupFailed: () => end('게임 화면을 준비하지 못했습니다. 장비와 서버 기록은 지우지 않았습니다. 서버 기록 다시 확인을 눌러 재시도해 주세요.', 'error'),
     economyTransaction:(command,args={})=>serverTransaction('economy',{command,args,requestId:crypto.randomUUID()}),
     blackMarketTransaction:(rotation,slot,quantity=1)=>serverTransaction('black-market',{action:'buy',rotation,slot,quantity,requestId:crypto.randomUUID()}),
-    goldTransferTransaction:(recipient,amount)=>serverTransaction('gold-transfer',{action:'send',recipient,amount,requestId:crypto.randomUUID()}),
+    goldTransferTransaction:(recipient,amount,resource='gold')=>serverTransaction('gold-transfer',{action:'send',recipient,amount,resource,requestId:crypto.randomUUID()}),
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
     subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },
     onEnded(fn) { endHooks.add(fn); if (ended) fn(snapshot()); return () => endHooks.delete(fn); }

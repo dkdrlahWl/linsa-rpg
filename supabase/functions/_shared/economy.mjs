@@ -67,6 +67,8 @@ export function execute(snapshot,command,args,context){
  const power=stats(s,context.costumePercent||0),bosses=balance.bossRegions.flatMap(r=>r.bosses),current=balance.bossRegions[s.regionIndex]?.bosses[s.bossIndex];
  const step=balance.bossRegions.slice(0,s.regionIndex).reduce((n,r)=>n+r.bosses.length,0)+s.bossIndex;
  const paused=!!context.partyBusy;
+ // A special encounter must never leave a field clock that accrues catch-up hits.
+ if(paused||s.serverBattle)s.serverCombat=null;
  const elapsed=Math.max(0,Math.min(43200000,now-(s.serverClock??s.lastSeen??now)));
  if(!paused&&(elapsed>=60000||(s.serverBackgroundAt!=null&&elapsed>=1000))&&s.autoBattle&&!s.serverBattle){
   // OFF2: settle only the selected, unlocked monster with the pre-command
@@ -212,7 +214,7 @@ export function execute(snapshot,command,args,context){
   let data;if(type==='gold'){data=balance.goldDungeons[stage-1];if(!data||stage>s.dungeons.goldUnlocked||s.dungeons.goldEntries<=0)fail('DUNGEON_LOCKED');}
   else if(type==='tower'){data=balance.towerFloors[stage-1];if(!data||stage!==s.towerCleared+1)fail('DUNGEON_LOCKED');}
   else if(type==='pet'){if(stage!==1||s.dungeons.petEntries<=0)fail('DUNGEON_LOCKED');data={hp:2000,reward:10};}
-  else fail('INVALID_ARGUMENTS');s.serverBattle={type,stage,hp:data.hp,elapsed:0,lastTick:now};
+  else fail('INVALID_ARGUMENTS');s.serverCombat=null;s.serverBattle={type,stage,hp:data.hp,elapsed:0,lastTick:now};
  }
  // Browser damage, reward amounts and elapsed seconds are never accepted.
  s.lastSeen=now;s.savedAt=now;
