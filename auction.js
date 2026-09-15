@@ -22,7 +22,7 @@
  function itemSummary(it){
   const color=g.rarityColors[it.rarity]||'#a5adba';
   const options=g.fn.optionText(it,true)||'부옵션 없음';
-  return '<span class="auction-art">'+g.fn.gearIcon(it)+'</span><strong class="auction-item-name" style="color:'+esc(color)+'">'+g.fn.itemTitleHtml(it)+'</strong><small class="auction-grade">'+esc(g.rarityNames[it.rarity])+' · '+esc(it.slot)+'</small><span class="auction-item-stats"><span class="auction-enhance">강화 <b>+'+esc(it.enhance||0)+'</b></span><span class="auction-attack">공격력 <b>'+g.fn.itemAttackText(it)+'</b></span><span class="auction-transcend">초월 <b>'+esc(it.transcend||0)+'단계</b></span></span><span class="auction-options">'+options+'</span>';
+  return '<span class="auction-art">'+g.fn.gearIcon(it)+'</span><strong class="auction-item-name" style="color:'+esc(color)+'">'+g.fn.itemTitleHtml(it,false)+'</strong><small class="auction-grade">'+esc(g.rarityNames[it.rarity])+' · '+esc(it.slot)+'</small><span class="auction-item-stats"><span class="auction-enhance">강화 <b>+'+esc(it.enhance||0)+'</b></span><span class="auction-attack">공격력 <b>'+g.fn.itemAttackText(it)+'</b></span><span class="auction-transcend">초월 <b>'+esc(it.transcend||0)+'단계</b></span></span><span class="auction-options">'+options+'</span>';
  }
  const detail=it=>'<div class="auction-detail-item">'+itemSummary(it)+'</div>';
  const scrollTop=()=>{const viewport=modal.querySelector('.auction-scroll');if(viewport)viewport.scrollTop=0;};
