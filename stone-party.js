@@ -108,7 +108,7 @@ window.installRinguStoneParty = function(g) {
   window.addEventListener('ringu:stone-award',e=>{g.state.transcendStone=(Number(g.state.transcendStone)||0)+e.detail.amount;f.renderTop();f.toast('초월석 +'+e.detail.amount+' · 계정 저장 완료');});
   // Stage 1 is available without the retired legendary-equipment prerequisite.
   for(const name of ['startTower','startGoldDungeon','startPetDungeon']){const before=f[name];f[name]=(...a)=>room&&['waiting','running'].includes(room.status)?f.toast('파티 방에서 나온 뒤 도전하세요.'):before(...a);}
-  timer=setInterval(()=>{const inRoom=window.RinguStoneParty.inRoom, visible=g.dungeonType==='stone'&&$('dungeonModal')?.classList.contains('show');if((inRoom||visible)&&Date.now()-lastPoll>=(inRoom?1800:5000))void poll();},300);
+  timer=setInterval(()=>{const inRoom=window.RinguStoneParty.inRoom, visible=g.dungeonType==='stone'&&$('dungeonModal')?.classList.contains('show');if((inRoom||visible)&&Date.now()-lastPoll>=(room?.status==='running'?1000:inRoom?1800:5000))void poll();},100);
   window.RinguSession.onEnded(()=>{clearInterval(timer);++generation;pollController?.abort();room=null;if(g.activeDungeon?.serverRoom)g.activeDungeon=null;});
   void poll();
 };
