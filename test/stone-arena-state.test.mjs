@@ -1,0 +1,25 @@
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const nodes=new Map();let paints=0,buttons={},closed=0;
+function node(){return {firstChild:null,classList:{contains:()=>true,remove(){},add(){}},querySelectorAll(){buttons={};return [...(this.html||'').matchAll(/data-stone="([^"]+)"/g)].map(m=>buttons[m[1]]={dataset:{stone:m[1]}});},set innerHTML(v){this.html=v;this.firstChild={};paints++;},get innerHTML(){return this.html;}};}
+for(const id of ['dungeonModal','dungeonStageList','dungeonSummary','dungeonBattle','rmStoneStatus'])nodes.set(id,node());
+const room={id:'room-a',host:'host',stage:1,status:'running',hp:50000,maxHp:100000,tick:2,reward:2,members:[{id:'host',name:'host',stats:{attack:100},damage:10},{id:'guest',name:'guest',stats:{attack:100},damage:20}]};
+let held,hold=false,fail=false,saves=0,end;const noop=()=>{};
+const context={console,AbortController,setTimeout,clearTimeout,setInterval:()=>0,clearInterval:noop,document:{getElementById:id=>nodes.get(id)},addEventListener:noop,RinguSession:{active:true,account:{id:'guest'},flush:()=>{throw Error('Unexpected flush');},onEnded:fn=>end=fn},fetch:async(url)=>{const action=url.split('/').pop();if(action==='poll'&&hold)return new Promise(resolve=>held=()=>resolve({ok:true,json:async()=>({room})}));if(action==='leave'&&fail)throw Error('offline');return {ok:true,json:async()=>({room:action==='rooms'?null:room,rooms:[],remaining:2})};}};
+context.window=context;vm.createContext(context);vm.runInContext(readFileSync(new URL('../stone-party.js',import.meta.url),'utf8'),context);
+const g={dungeonType:'stone',state:{},fn:Object.fromEntries(['toast','renderDungeon','renderDungeonBattle','dungeonAttackTick','finishDungeonClearV15','startDungeonBattle','attack','closeDungeon','openDungeon','startTower','startGoldDungeon','startPetDungeon','renderTop'].map(k=>[k,noop]))};g.fn.escapeHtml=String;g.fn.save=()=>saves++;
+let claims=0,failClaim=true;
+g.fn.closeDungeon=()=>closed++;
+context.RinguSession.stoneRewardTransaction=async()=>{claims++;if(failClaim)throw Error('offline');g.state.transcendStone=12;return {stoneAward:2,claimed:true,roomReward:2};};
+context.installRinguStoneParty(g);await context.joinPartyRoom('room-a');
+assert.match(nodes.get('dungeonStageList').html,/stone-arena-v1.webp/);
+const before=paints;for(let i=0;i<100;i++)g.fn.renderDungeon();assert.equal(paints,before);
+const tick=()=>new Promise(r=>setTimeout(r,10));
+room.status='won';room.hp=0;await context.loadPartyRooms();await tick();
+assert.equal(claims,1);assert.match(nodes.get('dungeonStageList').html,/offline/);assert.ok(buttons.reward);assert.ok(!buttons.confirm);assert.equal(closed,0);
+g.fn.closeDungeon();assert.equal(closed,0);
+failClaim=false;buttons.reward.onclick();await tick();
+assert.equal(claims,2);assert.equal(g.state.transcendStone,12);assert.match(nodes.get('dungeonStageList').html,/초월석 \+2개 지급 완료/);assert.match(nodes.get('dungeonStageList').html,/현재 보유 12개/);assert.ok(buttons.confirm);
+buttons.confirm.onclick();await tick();assert.equal(closed,1);assert.equal(context.RinguStoneParty.inRoom,false);assert.doesNotMatch(nodes.get('dungeonStageList').html,/role="dialog"/);assert.equal(saves,0);
+console.log('PASS: arena renders without idle redraw, automatic clear claim, failed claim keeps dialog, retry shows persisted reward, confirmation exits only after success.');
