@@ -462,7 +462,7 @@
       account = Object.freeze({ id: data.account.id, username: data.account.username }); revision = data.revision;
       const serverJournal=read(scoped('server-request'));
       if(serverJournal){
-        const record=JSON.parse(serverJournal);if(!['auction','costume','economy','black-market','gold-transfer','resource-transfer'].includes(record.kind))throw Error('이전 요청 기록을 확인해 주세요.');
+        const record=JSON.parse(serverJournal);if(!['auction','costume','economy','black-market','gold-transfer','resource-transfer','stone-reward'].includes(record.kind))throw Error('이전 요청 기록을 확인해 주세요.');
         if(record.kind==='costume')record.payload.revision=data.revision;
         const replay=await api('/api/'+record.kind,{method:'POST',body:JSON.stringify(record.payload)});
         if(!replay.ok&&replay.status>=500)throw Error('이전 요청 결과를 확인하지 못했습니다. 잠시 후 다시 접속해 주세요.');
@@ -531,6 +531,7 @@
     economyTransaction:(command,args={})=>serverTransaction('economy',{command,args,requestId:crypto.randomUUID()}),
     blackMarketTransaction:(rotation,slot,quantity=1)=>serverTransaction('black-market',{action:'buy',rotation,slot,quantity,requestId:crypto.randomUUID()}),
     goldTransferTransaction:(recipient,amount)=>serverTransaction('gold-transfer',{action:'send',recipient,amount,requestId:crypto.randomUUID()}),
+    stoneRewardTransaction:room=>serverTransaction('stone-reward',{room:room||null}),
     resourceTransferTransaction:(recipient,amount,resource)=>serverTransaction('resource-transfer',{action:'send',recipient,amount,resource,requestId:crypto.randomUUID()}),
     get active() { return active; }, get account() { return account; }, get status() { return snapshot(); },
     subscribe(fn) { listeners.add(fn); try { fn(snapshot()); } catch (error) { console.error(error); } return () => listeners.delete(fn); },

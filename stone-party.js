@@ -1,7 +1,7 @@
 (() => {'use strict';
 window.installRinguStoneParty = function(g) {
   const f = g.fn, $ = id => document.getElementById(id), esc = s => f.escapeHtml(String(s)), fmt = n => Math.floor(n).toLocaleString('ko-KR');
-  let room = null, rooms = [], busy = false, polling = false, timer, pending = 0, remaining = 2, lastStatus = '', generation = 0, pollController = null, lastPoll = 0, renderKey = '', renderNode = null;
+  let room = null, rooms = [], busy = false, polling = false, timer, pending = 0, remaining = 2, lastStatus = '', generation = 0, pollController = null, lastPoll = 0, renderKey = '', renderNode = null, rewardNotice = '';
   const active = () => window.RinguSession.active;
   async function request(action, body, controller = new AbortController()) {
     const timeout = setTimeout(()=>controller.abort(), 10000);
@@ -12,7 +12,7 @@ window.installRinguStoneParty = function(g) {
     finally {clearTimeout(timeout);}
   }
   function update(data) {
-    if ('room' in data) room = data.room;
+    if ('room' in data) {if(data.room?.id!==room?.id)rewardNotice='';room = data.room;}
     if (data.rooms) rooms = data.rooms;
     if (data.remaining != null) remaining = data.remaining;
     pending = data.pending || 0;
@@ -22,11 +22,10 @@ window.installRinguStoneParty = function(g) {
     } else if (g.activeDungeon?.serverRoom) g.activeDungeon = null;
     const signature = room ? room.id + room.status : '';
     if (signature !== lastStatus && room && ['won','lost','canceled'].includes(room.status)) {
-      f.toast(room.status === 'won' ? '파티 클리어! 보상은 서버에 보관되었습니다.' : room.reason || '시간 초과 · 티켓은 유지됩니다.');
+      f.toast(room.status === 'won' ? '파티 클리어! 클리어 보상 확인을 눌러 주세요.' : room.reason || '시간 초과 · 티켓은 유지됩니다.');
       window.RinguAudio?.effect(room.status === 'won' ? 'success' : 'failure');
     }
     lastStatus = signature;
-    if (pending && active()) {f.save(false); void window.RinguSession.flush().catch(()=>{});}
     if (g.dungeonType === 'stone') render();
   }
   async function poll() {
@@ -53,9 +52,21 @@ window.installRinguStoneParty = function(g) {
     } catch(e) {f.toast(e.message);}
     finally {busy=false; if(g.dungeonType==='stone') render();}
   }
+  async function claimReward() {
+    if(busy||!active())return;
+    busy=true;++generation;pollController?.abort();pollController=null;polling=false;render();
+    try {
+      const result=await window.RinguSession.stoneRewardTransaction(room?.status==='won'?room.id:null);
+      pending=0;
+      rewardNotice=Number(result.stoneAward)>0?'초월석 +'+fmt(result.stoneAward)+'개 지급 완료':result.claimed?'이 방 보상 초월석 '+fmt(result.roomReward)+'개 수령 완료':'수령할 보상이 없습니다. 보상은 하루 2회까지 받을 수 있습니다.';
+      rewardNotice+=' · 현재 보유 '+fmt(g.state.transcendStone)+'개';
+      f.renderTop();f.toast(rewardNotice);
+    } catch(e) {rewardNotice=e.message;f.toast(e.message);}
+    finally {busy=false;render();}
+  }
   function render() {
     if (!$('dungeonStageList') || !$('dungeonModal')?.classList.contains('show')) return;
-    const node=$('dungeonStageList'), key=JSON.stringify([room,room?null:rooms,remaining,busy]);
+    const node=$('dungeonStageList'), key=JSON.stringify([room,room?null:rooms,remaining,busy,pending,rewardNotice]);
     if(renderKey===key && renderNode===node.firstChild && node.firstChild)return;
     renderKey=key;
     $('dungeonSummary').textContent = 'HP 1/3 적용 [S3] · 2인 협동 · 혼자 시작 가능 · 오늘 남은 보상 ' + remaining + '/2 · 실패 시 티켓 유지';
@@ -66,8 +77,11 @@ window.installRinguStoneParty = function(g) {
     } else {
       $('dungeonStageList').innerHTML = '<p>방 만들기 → 참가자 입장 → 방장 시작. 최대 2명이 같은 보스를 공격합니다.</p>'+Array.from({length:6},(_,i)=>'<button class="rm-dungeon-entry" data-stone="create" data-stage="'+(i+1)+'">'+(i+1)+'단계 방 만들기　♥ '+fmt(Math.floor(100000*1.5**i))+'　◆ '+(i+2)+'</button>').join('')+'<h3>참가 가능한 방</h3>'+rooms.filter(r=>r.members.length<2).map(r=>'<button class="rm-dungeon-entry" data-stone="join" data-room="'+esc(r.id)+'">'+esc(r.members[0].name)+' · '+r.stage+'단계 · 1/2 · 참가</button>').join('')+'<p id="rmStoneStatus">'+(rooms.length?'목록은 자동 갱신됩니다.':'모집 중인 방이 없습니다.')+'</p>';
     }
+    if(room?.status==='won'||pending>0||rewardNotice){
+      node.innerHTML+='<section class="rm-stone-reward"><p role="status">'+esc(rewardNotice||(room?.status==='won'?'클리어했습니다. 보상을 확인해 주세요.':'미수령 초월석 '+fmt(pending)+'개가 있습니다.'))+'</p><button data-stone="reward">'+(room?.status==='won'?'클리어 보상 확인':'미수령 보상 확인')+'</button></section>';
+    }
     renderNode=node.firstChild;
-    $('dungeonStageList').querySelectorAll('[data-stone]').forEach(b=>{b.disabled=busy;b.onclick=()=>{const a=b.dataset.stone;if(a==='list'){++generation;room=null;void poll();return render();}void act(a,a==='create'?{stage:Number(b.dataset.stage)}:a==='join'?{id:b.dataset.room}:{});};});
+    $('dungeonStageList').querySelectorAll('[data-stone]').forEach(b=>{b.disabled=busy;b.onclick=()=>{const a=b.dataset.stone;if(a==='reward'){void claimReward();return;}if(a==='list'){++generation;room=null;void poll();return render();}void act(a,a==='create'?{stage:Number(b.dataset.stage)}:a==='join'?{id:b.dataset.room}:{});};});
   }
   window.RinguStoneParty={get inRoom(){return !!room&&['waiting','running'].includes(room.status);}};
   const oldRender=f.renderDungeon; f.renderDungeon=()=>g.dungeonType==='stone'?render():oldRender();
