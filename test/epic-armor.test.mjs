@@ -9,7 +9,7 @@ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const starts={투구:66,갑옷:62,바지:65,신발:68};
 const ctx={itemIndex:it=>balance.gear.find(x=>x.name===it.name&&x.slot===it.slot)?.index||0,itemName:(slot,rarity,index)=>balance.gear.find(x=>x.slot===slot&&x.rarity===rarity&&x.index===index)?.name,fmt:n=>String(n),slots:balance.slots};
 const lines=html.split('\n');
-for(const prefix of ['const RINGU_ITEM_BASE_LIMITS_RG1=','function enhanceMultiplier(','function enhancedBaseAtk('])vm.runInNewContext(lines.find(x=>x.startsWith(prefix)),ctx);
+for(const prefix of ['function transcendEquipmentRate(', 'const RINGU_ITEM_BASE_LIMITS_RG1=','function enhanceMultiplier(','function enhancedBaseAtk('])vm.runInNewContext(lines.find(x=>x.startsWith(prefix)),ctx);
 vm.runInNewContext(lines.find(x=>x.startsWith('fixedBaseAtk=function(slot,rarity,idx){rarity=Number(rarity)')),ctx);
 vm.runInNewContext(lines.find(x=>x.startsWith('itemAtk=function(it){if(!it)return 0;const idx=')),ctx);
 vm.runInNewContext(lines.find(x=>x.startsWith('function itemAttackText(')),ctx);

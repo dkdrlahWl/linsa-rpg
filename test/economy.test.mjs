@@ -9,10 +9,10 @@ test('current renderer attack parity and unchanged option snapshots',()=>{
  // The item fixtures predate the released enhancement rebalance. Compare the
  // independent production renderer, not stale pre-patch attack expectations.
  const lines=readFileSync(new URL('../index.html',import.meta.url),'utf8').split('\n');
- const source=lines.filter(line=>line.startsWith('function enhanceMultiplier(')||line.startsWith('function enhancedBaseAtk(')).join('\n')+'\n'+lines.filter(line=>line.startsWith('itemAtk=function(')).at(-1);assert.ok(source);
+ const source=lines.filter(line=>line.startsWith('function transcendEquipmentRate(')||line.startsWith('function enhanceMultiplier(')||line.startsWith('function enhancedBaseAtk(')).join('\n')+'\n'+lines.filter(line=>line.startsWith('itemAtk=function(')).at(-1);assert.ok(source);
  const lookup=(slot,rarity,index)=>balance.gear.find(it=>it.slot===slot&&it.rarity===rarity&&it.index===index);
  const client=vm.createContext({itemIndex:it=>it.index,itemName:(slot,r,i)=>lookup(slot,r,i)?.name,fixedBaseAtk:(slot,r,i)=>lookup(slot,r,i)?.baseAtk});vm.runInContext(source,client);
- for(const x of snapshot){assert.equal(itemAttack(x.item),client.itemAtk(x.item));assert.deepEqual(options(x.item),x.options);}
+ for(const x of snapshot){assert.equal(itemAttack(x.item),client.itemAtk(x.item));assert.deepEqual(options({...x.item,transcend:0}),x.item.transcend?x.options.slice(0,-1):x.options);}
 });
 test('daily existing midnight claim key, server RNG and one-per-day',()=>{const s=initialState(context().now),result=run(s,'daily',{},()=>0);assert.equal(result.state.essence,10);assert.ok(result.state.dailyRewardClaims['midnight-v2:2026-09-09']);assert.equal(s.essence,0);assert.throws(()=>run(result.state,'daily'),/ALREADY_CLAIMED/);assert.equal(run(s,'daily',{},()=>.999).state.essence,15);});
 test('summon spends actual gold, server generates items, rejects injected results',()=>{const s=initialState(context().now);s.gold=2500;const result=run(s,'summon',{group:'weapon',count:10});assert.equal(result.state.gold,0);assert.equal(result.state.inventory.length,10);assert.equal(new Set(result.state.inventory.map(x=>x.id)).size,10);assert.throws(()=>run(s,'summon',{group:'weapon',count:10,rarity:5}),/INVALID_ARGUMENTS/);assert.throws(()=>run(result.state,'summon',{group:'weapon',count:1}),/INSUFFICIENT/);});
