@@ -1,8 +1,10 @@
 // Conditional selection within an already selected rarity and equipment slot.
-// Equal attack values receive equal weight. Rare and below remain uniform.
+// Epic through mythic share one series rank across all seven slots.
+// Rank I has weight 1 and X has weight 10. Other rarities retain their rules.
+import './gear-sets.js';
 export function gearWeights(candidates,rarity){
  const attacks=[...new Set(candidates.map(it=>it.baseAtk))].sort((a,b)=>a-b);
- return candidates.map(it=>rarity>=3?attacks.length-attacks.indexOf(it.baseAtk):1);
+ return candidates.map(it=>globalThis.RinguGearSets.rank(it)?.rank ?? (rarity>=3?attacks.length-attacks.indexOf(it.baseAtk):1));
 }
 export function selectGear(candidates,rarity,roll){
  if(!candidates.length)return undefined;
