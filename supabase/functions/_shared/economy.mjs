@@ -35,13 +35,15 @@ export function execute(snapshot,command,args,context){
  if(!Array.isArray(s.inventory))fail('INVALID_STATE');
  s.equipped??={};s.summons??={};s.ownedAuras??=[];s.mailbox??=[];s.collectionClaims??={};
  for(const group of ['weapon','armor','accessory']){s.summons[group]??={exp:s.summonExp||0};s.summons[group].exp=int(s.summons[group].exp||0);s.summons[group].level=summonLevel(s.summons[group].exp);}
- const missingDiscovery=snapshot.discovered==null;s.discovered??={};
+ s.discovered??={};
  for(const it of s.inventory){
   const template=catalogue.get(itemKey(it));
   if(!template)fail('UNKNOWN_EQUIPMENT');
   if(epicArmor(it))it.baseAtk=template.baseAtk;else it.baseAtk??=template.baseAtk;it.enhance??=0;it.transcend??=0;
   initializeOptions(it);
-  if(missingDiscovery)s.discovered[itemKey(it)]=true;
+  // Every owned item counts, including auction purchases and existing inventory.
+  // Keep historical discoveries and claims when items leave the bag.
+  s.discovered[itemKey(it)]=true;
  }
  if(s.collectionClaims[50]&&!s.aura50TicketGranted){s.aura50TicketGranted=true;s.auraDrawTickets=safeAdd(s.auraDrawTickets||0,1);}
  const spend=(key,n)=>{int(n);if((s[key]||0)<n)fail('INSUFFICIENT_'+key.toUpperCase());s[key]=Math.max(context.adminFloor||0,s[key]-n);};
