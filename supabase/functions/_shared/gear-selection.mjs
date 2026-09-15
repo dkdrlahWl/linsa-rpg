@@ -1,5 +1,5 @@
 // Conditional selection within an already selected rarity and equipment slot.
-// Epic through mythic share one series rank across all seven slots.
+// Epic retains original slot ranks; legendary and mythic share series ranks.
 // Rank I has weight 1 and X has weight 10. Other rarities retain their rules.
 import './gear-sets.js';
 export function gearWeights(candidates,rarity){
