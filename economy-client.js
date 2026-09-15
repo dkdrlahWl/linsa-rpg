@@ -52,7 +52,7 @@
    finally{pending=null;pendingName=null;if(interactive){interactiveReserved=false;busy(false);}clearTimeout(syncTimer);syncTimer=setTimeout(sync,Math.max(100,syncInterval()-(Date.now()-lastSync)));if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
   }
   const syncInterval=()=>g.state.autoBattle||g.state.serverBattle?1000:5000;
-  function sync(){if(document.hidden||window.RinguWorldBoss?.isBattleVisible||pending||interactiveReserved||closed()||Date.now()-lastSync<syncInterval())return;lastSync=Date.now();return command('sync');}
+  function sync(){if(document.hidden||window.RinguStoneParty?.inRoom||window.RinguWorldBoss?.isBattleVisible||pending||interactiveReserved||closed()||Date.now()-lastSync<syncInterval())return;lastSync=Date.now();return command('sync');}
   let hitQueue=[],hitTimer=null,impactTimer=null,hitScene='';
   const fieldVisible=()=>session.active&&!document.hidden&&!window.RinguWorldBoss?.isBattleVisible&&g.state.autoBattle&&!g.state.serverBattle;
   function clearHits(){hitQueue=[];clearTimeout(hitTimer);clearTimeout(impactTimer);hitTimer=impactTimer=null;}

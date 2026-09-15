@@ -1,11 +1,15 @@
 (() => {'use strict';
 window.installRinguStoneParty = function(g) {
   const f = g.fn, $ = id => document.getElementById(id), esc = s => f.escapeHtml(String(s)), fmt = n => Math.floor(n).toLocaleString('ko-KR');
-  let room = null, rooms = [], busy = false, polling = false, timer, pending = 0, remaining = 2, lastStatus = '';
+  let room = null, rooms = [], busy = false, polling = false, timer, pending = 0, remaining = 2, lastStatus = '', generation = 0, pollController = null, lastPoll = 0, renderKey = '', renderNode = null;
   const active = () => window.RinguSession.active;
-  async function request(action, body) {
-    const res = await fetch('/api/stone/' + action, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)} : {});
+  async function request(action, body, controller = new AbortController()) {
+    const timeout = setTimeout(()=>controller.abort(), 10000);
+    try {
+    const res = await fetch('/api/stone/' + action, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body),signal:controller.signal} : {signal:controller.signal});
     const data = await res.json(); if (!res.ok) throw new Error(data.error || '파티 서버에 연결하지 못했습니다.'); return data;
+    } catch(e) {if(e.name==='AbortError')throw new Error('서버 응답이 지연됩니다. 다시 시도해 주세요.');throw e;}
+    finally {clearTimeout(timeout);}
   }
   function update(data) {
     if ('room' in data) room = data.room;
@@ -27,23 +31,33 @@ window.installRinguStoneParty = function(g) {
   }
   async function poll() {
     if (!active() || polling || busy) return;
-    polling = true;
-    try {const data=await request(room && ['waiting','running'].includes(room.status) ? 'poll' : 'rooms', room && ['waiting','running'].includes(room.status) ? {id:room.id} : undefined);if(!busy){if(room&&!['waiting','running'].includes(room.status)&&!data.room)delete data.room;update(data);}}
-    catch(e) {if ($('rmStoneStatus')) $('rmStoneStatus').textContent=e.message;}
-    finally {polling=false;}
+    polling = true; lastPoll = Date.now();
+    const version = generation, controller = new AbortController(); pollController = controller;
+    try {const data=await request(room && ['waiting','running'].includes(room.status) ? 'poll' : 'rooms', room && ['waiting','running'].includes(room.status) ? {id:room.id} : undefined,controller);if(active() && version===generation && !busy){if(room&&!['waiting','running'].includes(room.status)&&!data.room)delete data.room;update(data);}}
+    catch(e) {if (version===generation && $('rmStoneStatus')) $('rmStoneStatus').textContent=e.message;}
+    finally {if(pollController===controller){polling=false;pollController=null;}}
   }
   async function act(action, args={}) {
     if (busy || !active()) return;
     if (['create','join','start'].includes(action) && (g.activeTower || (g.activeDungeon && !g.activeDungeon.serverRoom))) return f.toast('현재 전투를 먼저 종료하세요.');
-    busy = true;
+    busy = true; ++generation; pollController?.abort(); pollController=null; polling=false;
+    render();
     try {
-      f.save(false); await window.RinguSession.flush();
-      update(await request(action, {id:room?.id,...args}));
+      // Party commands use authoritative server state; leaving must not wait on preference saves.
+      const data = await request(action, {id:room?.id,...args});
+      if (!active()) return;
+      // The leave RPC returns the old room, which can still be running for the partner.
+      // It is no longer this player's encounter after a confirmed leave.
+      if(action==='leave') data.room=null;
+      update(data);
     } catch(e) {f.toast(e.message);}
     finally {busy=false; if(g.dungeonType==='stone') render();}
   }
   function render() {
-    if (!$('dungeonStageList')) return;
+    if (!$('dungeonStageList') || !$('dungeonModal')?.classList.contains('show')) return;
+    const node=$('dungeonStageList'), key=JSON.stringify([room,room?null:rooms,remaining,busy]);
+    if(renderKey===key && renderNode===node.firstChild && node.firstChild)return;
+    renderKey=key;
     $('dungeonSummary').textContent = 'HP 1/3 적용 [S3] · 2인 협동 · 혼자 시작 가능 · 오늘 남은 보상 ' + remaining + '/2 · 실패 시 티켓 유지';
     $('dungeonBattle').classList.remove('show');
     if (room) {
@@ -52,8 +66,10 @@ window.installRinguStoneParty = function(g) {
     } else {
       $('dungeonStageList').innerHTML = '<p>방 만들기 → 참가자 입장 → 방장 시작. 최대 2명이 같은 보스를 공격합니다.</p>'+Array.from({length:6},(_,i)=>'<button class="rm-dungeon-entry" data-stone="create" data-stage="'+(i+1)+'">'+(i+1)+'단계 방 만들기　♥ '+fmt(Math.floor(100000*1.5**i))+'　◆ '+(i+2)+'</button>').join('')+'<h3>참가 가능한 방</h3>'+rooms.filter(r=>r.members.length<2).map(r=>'<button class="rm-dungeon-entry" data-stone="join" data-room="'+esc(r.id)+'">'+esc(r.members[0].name)+' · '+r.stage+'단계 · 1/2 · 참가</button>').join('')+'<p id="rmStoneStatus">'+(rooms.length?'목록은 자동 갱신됩니다.':'모집 중인 방이 없습니다.')+'</p>';
     }
-    $('dungeonStageList').querySelectorAll('[data-stone]').forEach(b=>{b.disabled=busy;b.onclick=()=>{const a=b.dataset.stone;if(a==='list'){room=null;void poll();return render();}void act(a,a==='create'?{stage:Number(b.dataset.stage)}:a==='join'?{id:b.dataset.room}:{});};});
+    renderNode=node.firstChild;
+    $('dungeonStageList').querySelectorAll('[data-stone]').forEach(b=>{b.disabled=busy;b.onclick=()=>{const a=b.dataset.stone;if(a==='list'){++generation;room=null;void poll();return render();}void act(a,a==='create'?{stage:Number(b.dataset.stage)}:a==='join'?{id:b.dataset.room}:{});};});
   }
+  window.RinguStoneParty={get inRoom(){return !!room&&['waiting','running'].includes(room.status);}};
   const oldRender=f.renderDungeon; f.renderDungeon=()=>g.dungeonType==='stone'?render():oldRender();
   const oldBattle=f.renderDungeonBattle; f.renderDungeonBattle=()=>g.activeDungeon?.serverRoom?render():oldBattle();
   const oldTick=f.dungeonAttackTick; f.dungeonAttackTick=(...a)=>g.activeDungeon?.serverRoom?false:oldTick(...a);
@@ -68,8 +84,8 @@ window.installRinguStoneParty = function(g) {
   window.addEventListener('ringu:stone-award',e=>{g.state.transcendStone=(Number(g.state.transcendStone)||0)+e.detail.amount;f.renderTop();f.toast('초월석 +'+e.detail.amount+' · 계정 저장 완료');});
   // Stage 1 is available without the retired legendary-equipment prerequisite.
   for(const name of ['startTower','startGoldDungeon','startPetDungeon']){const before=f[name];f[name]=(...a)=>room&&['waiting','running'].includes(room.status)?f.toast('파티 방에서 나온 뒤 도전하세요.'):before(...a);}
-  timer=setInterval(()=>{if(room||$('dungeonModal')?.classList.contains('show'))void poll();},1800);
-  window.RinguSession.onEnded(()=>{clearInterval(timer);if(g.activeDungeon?.serverRoom)g.activeDungeon=null;});
+  timer=setInterval(()=>{const inRoom=window.RinguStoneParty.inRoom, visible=g.dungeonType==='stone'&&$('dungeonModal')?.classList.contains('show');if((inRoom||visible)&&Date.now()-lastPoll>=(inRoom?1800:5000))void poll();},300);
+  window.RinguSession.onEnded(()=>{clearInterval(timer);++generation;pollController?.abort();room=null;if(g.activeDungeon?.serverRoom)g.activeDungeon=null;});
   void poll();
 };
 })();
