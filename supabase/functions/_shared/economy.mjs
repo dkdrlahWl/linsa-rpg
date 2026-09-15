@@ -168,7 +168,7 @@ export function execute(snapshot,command,args,context){
   // The legacy command is an alias, never a way to recover the old gold payout.
   // Production supplies an unbiased integer RNG; one independent draw per item.
   let essence=0;
-  for(const it of items){int(it.rarity,0,6);const roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000);if(roll<5)essence=safeAdd(essence,it.rarity+1);}
+  for(const it of items){int(it.rarity,0,6);const roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000);if(roll<10)essence=safeAdd(essence,it.rarity+1);}
   const ids=new Set(args.ids);s.inventory=s.inventory.filter(it=>!ids.has(it.id));
   if(essence)award('essence',essence);events.push({type:'dismantle',count:items.length,essence});
  }else if(command==='auraBuy'){
@@ -217,3 +217,4 @@ export function execute(snapshot,command,args,context){
  s.remodelProfile={v:4,uid:s.playerUid,name:s.playerName,power:stats(s,context.costumePercent||0).attack,region:balance.bossRegions[s.regionIndex]?.name,boss:balance.bossRegions[s.regionIndex]?.bosses[s.bossIndex]?.name,tower:s.towerCleared||0,gender:s.playerGender,hideHelmet:true,ownedAuras:s.ownedAuras,equippedAura:s.equippedAura,updated:now,equipment:balance.slots.map(slot=>s.inventory.find(it=>it.id===s.equipped[slot])).filter(Boolean).map(it=>({s:it.slot,n:it.name,r:it.rarity,e:it.enhance,t:it.transcend||0,ba:it.baseAtk,a:itemAttack(it),o:options(it)})),pet:pet?{...pet,...petData,s:balance.petLevelStats[pet.petId]?.[pet.level-1]||{}}:null};
  return {state:s,events};
 }
+
