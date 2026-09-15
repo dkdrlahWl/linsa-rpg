@@ -51,7 +51,7 @@
    catch(e){f.toast(messages[e.message]||'처리 결과를 확인하지 못했습니다. '+e.message);return false;}
    finally{pending=null;pendingName=null;if(interactive){interactiveReserved=false;busy(false);}clearTimeout(syncTimer);syncTimer=setTimeout(sync,Math.max(100,syncInterval()-(Date.now()-lastSync)));if(backgroundRequested&&document.hidden&&session.active){backgroundRequested=false;void command('background');}}
   }
-  const syncInterval=()=>g.state.autoBattle||g.state.serverBattle?1000:5000;
+  const syncInterval=()=>g.state.autoBattle&&!g.state.serverBattle?2000:g.state.serverBattle?1000:5000;
   function sync(){if(document.hidden||window.RinguDailyBoss?.inBattle||window.RinguStoneParty?.inRoom||window.RinguWorldBoss?.isBattleVisible||pending||interactiveReserved||closed()||Date.now()-lastSync<syncInterval())return;lastSync=Date.now();return command('sync');}
   let hitQueue=[],hitTimer=null,impactTimer=null,hitScene='';
   const fieldVisible=()=>session.active&&!document.hidden&&!window.RinguWorldBoss?.isBattleVisible&&!window.RinguDailyBoss?.inBattle&&!window.RinguStoneParty?.inRoom&&g.state.autoBattle&&!g.state.serverBattle;
