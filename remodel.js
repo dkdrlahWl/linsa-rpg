@@ -75,9 +75,9 @@ window.installRinguRemodel=function(g){
  window.RinguSession.onEnded?.(stopReveal);
  function drawResults(items){$('drawResultGrid').innerHTML=items.map(it=>'<article class="rm-drop-card" style="--drop-color:'+g.rarityColors[it.rarity]+'">'+f.gearIcon(it)+'<small>'+(it.isNew?'✨ 최초 획득 · ':'')+esc(g.rarityNames[it.rarity])+'</small><strong>'+gearTitle(it)+'</strong><span>⚔ '+f.itemAttackText(it)+'</span></article>').join('');window.__ringuCompactDrawV10?.refresh();$('drawResultModal').style.removeProperty('display');$('drawResultModal').classList.add('show');}
  function firstReveals(items){
-  const fresh=items.filter(it=>it.isNew&&it.rarity>=3).sort((a,b)=>a.rarity-b.rarity);
+  const fresh=items.filter(it=>it.rarity>=4||(it.isNew&&it.rarity>=3)).sort((a,b)=>a.rarity-b.rarity);
   if(!fresh.length){window.RinguAudio?.effect('draw',Math.max(...items.map(it=>it.rarity)));drawResults(items);return;}
-  let modal=$('rmFirstReveal');if(!modal){modal=document.createElement('div');modal.id='rmFirstReveal';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','최초 장비 획득');document.body.append(modal);}
+  let modal=$('rmFirstReveal');if(!modal){modal=document.createElement('div');modal.id='rmFirstReveal';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','장비 획득');document.body.append(modal);}
   const run={owner:state(),account:window.RinguSession.account?.id,timers:[],index:0};revealRun=run;
   const sameOwner=()=>window.RinguCloud?.economy?window.RinguSession.account?.id===run.account:state()===run.owner;
   const later=(fn,ms)=>run.timers.push(setTimeout(()=>{if(revealRun===run&&sameOwner())fn();},ms));
@@ -87,13 +87,14 @@ window.installRinguRemodel=function(g){
    const it=fresh[run.index++];if(!it)return finish();
    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduced?450:it.rarity>=5?3000:it.rarity===4?2100:1200;
    modal.className='modal-bg show';modal.dataset.grade=String(it.rarity);modal.style.setProperty('--drop-color',g.rarityColors[it.rarity]);modal.style.setProperty('--reveal-time',duration+'ms');modal.dataset.duration=String(duration);
-   modal.innerHTML='<section class="rm-reveal-stage"><div class="rm-reveal-rays"></div><div class="rm-reveal-orbit"></div><div class="rm-reveal-sparks">'+Array.from({length:it.rarity>=5?30:it.rarity===4?20:12},(_,i)=>'<i style="--i:'+i+'"></i>').join('')+'</div><small class="rm-reveal-eyebrow">FIRST DISCOVERY · '+run.index+' / '+fresh.length+'</small><h2>'+esc(g.rarityNames[it.rarity])+'</h2><div class="rm-reveal-item">'+f.gearIcon(it)+'</div><strong class="rm-reveal-name">'+gearTitle(it)+'</strong><p class="rm-reveal-status" aria-live="polite">새로운 힘이 깨어납니다…</p><button class="rm-reveal-skip">연출 건너뛰기</button><button class="rm-reveal-next" disabled>계속</button></section>';
-   modal.querySelector('.rm-reveal-skip').onclick=finish;
-   modal.querySelector('.rm-reveal-next').onclick=next;modal.querySelector('.rm-reveal-skip').focus();
+   modal.innerHTML='<section class="rm-reveal-stage"><div class="rm-reveal-rays"></div><div class="rm-reveal-orbit"></div><div class="rm-reveal-sparks">'+Array.from({length:it.rarity>=5?30:it.rarity===4?20:12},(_,i)=>'<i style="--i:'+i+'"></i>').join('')+'</div><small class="rm-reveal-eyebrow">'+(it.isNew?'FIRST DISCOVERY':'EQUIPMENT ACQUIRED')+' · '+run.index+' / '+fresh.length+'</small><h2>'+esc(g.rarityNames[it.rarity])+'</h2><div class="rm-reveal-item">'+f.gearIcon(it)+'</div><strong class="rm-reveal-name">'+gearTitle(it)+'</strong><p class="rm-reveal-status" aria-live="polite">새로운 힘이 깨어납니다…</p><button class="rm-reveal-skip">연출 건너뛰기</button><button class="rm-reveal-next" disabled>확인</button></section>';
+   modal.querySelector('.rm-reveal-skip').hidden=it.rarity>=4;
+   modal.querySelector('.rm-reveal-skip').onclick=()=>{if(it.rarity<4)next();};
+   modal.querySelector('.rm-reveal-next').onclick=next;
    window.RinguAudio?.effect('reveal-charge',it.rarity);
    later(()=>modal.classList.add('charged'),duration*.55);
-   later(()=>{modal.classList.add('revealed');modal.querySelector('.rm-reveal-status').textContent='도감에 새로운 장비가 기록되었습니다';modal.querySelector('.rm-reveal-next').disabled=false;window.RinguAudio?.effect('reveal-impact',it.rarity);},duration);
-   later(next,duration+1600);
+   later(()=>{modal.classList.add('revealed');modal.querySelector('.rm-reveal-status').textContent=it.isNew?'도감에 새로운 장비가 기록되었습니다':'장비를 획득했습니다';modal.querySelector('.rm-reveal-next').disabled=false;modal.querySelector('.rm-reveal-next').focus();window.RinguAudio?.effect('reveal-impact',it.rarity);},duration);
+   if(it.rarity<4)later(next,duration+1600);
   }
   next();
  }
