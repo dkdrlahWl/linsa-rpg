@@ -28,7 +28,7 @@ for(const [slot,start] of Object.entries(starts))test('EA1 '+slot+' order, corre
  assert.deepEqual(result.state.inventory.map(x=>x.baseAtk),pool.map(x=>x.baseAtk));assert.ok(result.state.inventory.every(x=>x.enhance===15&&x.locked));assert.equal(result.state.equipped[slot],1);
 });
 for(const rarity of [3,4,5,6])test('weapon accessory parity '+rarity,()=>{
- const pool=balance.gear.filter(x=>x.rarity===rarity&&x.slot==='무기').sort((a,b)=>a.index-b.index);
+ const pool=balance.gear.filter(x=>x.rarity===rarity&&x.slot==='무기').sort((a,b)=>rarity===5?globalThis.RinguGearSets.rank(b).rank-globalThis.RinguGearSets.rank(a).rank:a.index-b.index);
  const accessories=slot=>balance.gear.filter(x=>x.rarity===rarity&&x.slot===slot).map(x=>x.baseAtk).sort((a,b)=>a-b);
  const rings=accessories('반지'),ears=accessories('귀걸이');
  pool.forEach((it,i)=>{const rank=Math.round(i*(rings.length-1)/(pool.length-1));assert.equal(it.baseAtk,rings[rank]+ears[rank]);if(i)assert.ok(it.baseAtk>pool[i-1].baseAtk);for(const enhance of [0,10,15]){const old={...it,baseAtk:999,enhance};assert.equal(ctx.itemAtk(old),itemAttack(old));assert.ok(ctx.itemAttackText(old).includes('('+ctx.enhancedBaseAtk(pool[0].baseAtk,enhance)+'~'+ctx.enhancedBaseAtk(pool.at(-1).baseAtk,enhance)+')'));}});

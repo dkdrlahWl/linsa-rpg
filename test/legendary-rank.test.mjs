@@ -8,19 +8,19 @@ import {gearWeights} from '../supabase/functions/_shared/gear-selection.mjs';
 const lines=readFileSync(new URL('../index.html',import.meta.url),'utf8').split('\n');
 const ctx={slots:balance.slots,fmt:String,itemIndex:it=>balance.gear.find(x=>x.slot===it.slot&&x.name===it.name)?.index||0,itemName:(slot,rarity,index)=>balance.gear.find(x=>x.slot===slot&&x.rarity===rarity&&x.index===index)?.name};
 for(const prefix of ['function transcendEquipmentRate(','const RINGU_ITEM_BASE_LIMITS_RG1=','function enhanceMultiplier(','function enhancedBaseAtk(','fixedBaseAtk=function(slot,rarity,idx){rarity=Number(rarity)','itemAtk=function(it){if(!it)return 0;const idx=','function itemAttackText(','function rankSnapshotAttack('])vm.runInNewContext(lines.find(s=>s.startsWith(prefix)),ctx);
-for(const slot of balance.slots)test('LR1 '+slot+' rank, probability, stale gear, rendering and migration',()=>{
- const pool=balance.gear.filter(it=>it.rarity===4&&it.slot===slot).sort((a,b)=>a.index-b.index);
+for(const rarity of [4,5])for(const slot of balance.slots)test('rank '+rarity+' '+slot+' rank, probability, stale gear, rendering and migration',()=>{
+ const pool=balance.gear.filter(it=>it.rarity===rarity&&it.slot===slot).sort((a,b)=>globalThis.RinguGearSets.rank(b).rank-globalThis.RinguGearSets.rank(a).rank);
  assert.equal(pool.length,10);
- assert.deepEqual(gearWeights(pool,4),[10,9,8,7,6,5,4,3,2,1]);
+ assert.deepEqual(gearWeights(pool,rarity),[10,9,8,7,6,5,4,3,2,1]);
  for(let i=0;i<10;i++){
   const base=pool[i];assert.equal(globalThis.RinguGearSets.rank(base).rank,10-i);
   if(i)assert.ok(base.baseAtk>pool[i-1].baseAtk);
-  assert.equal(ctx.fixedBaseAtk(slot,4,i),base.baseAtk);
+  assert.equal(ctx.fixedBaseAtk(slot,rarity,base.index),base.baseAtk);
   for(const enhance of [0,1,10,11,15])for(const transcend of [0,1,2,3]){
    const stale={...base,baseAtk:123,enhance,transcend};
    assert.equal(ctx.itemAtk(stale),itemAttack(stale));
    assert.equal(ctx.itemAtk(stale),itemAttack({...base,enhance,transcend}));
-   assert.equal(ctx.rankSnapshotAttack({s:slot,r:4,n:base.name,ba:123,e:enhance,t:transcend}),itemAttack(stale));
+   assert.equal(ctx.rankSnapshotAttack({s:slot,r:rarity,n:base.name,ba:123,e:enhance,t:transcend}),itemAttack(stale));
    assert.ok(ctx.itemAttackText(stale).startsWith(String(itemAttack(stale))+' '));
   }
  }

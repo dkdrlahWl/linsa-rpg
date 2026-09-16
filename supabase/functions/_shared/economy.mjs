@@ -6,8 +6,8 @@ import {CUBES,cubeType,initializeOptions,rollOption} from './cubes.mjs';
 export {balance};
 export const itemKey=it=>it.slot+'|'+it.rarity+'|'+it.name;
 const catalogue=new Map(balance.gear.map(it=>[itemKey(it),it]));
-// Canonicalize legacy legendary gear too, including auction/mail items on their next sync.
-const epicArmor=it=>it.rarity===4||(it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&it.rarity>=3);
+// Canonicalize legacy legendary and mythic gear too, including auction/mail items on their next sync.
+const epicArmor=it=>[4,5].includes(it.rarity)||(it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&it.rarity>=3);
 const canonicalBase=it=>epicArmor(it)?(catalogue.get(itemKey(it))?.baseAtk??it.baseAtk):it.baseAtk;
 const fail=code=>{throw Error(code);};
 const int=(v,min=0,max=Number.MAX_SAFE_INTEGER)=>{if(!Number.isSafeInteger(v)||v<min||v>max)fail('INVALID_ARGUMENTS');return v;};

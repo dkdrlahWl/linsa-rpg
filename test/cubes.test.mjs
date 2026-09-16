@@ -23,7 +23,7 @@ test('server validates targets, balances, spending and refuses client option val
  for(const [type,c] of Object.entries(CUBES)){const s=state();const r=execute(s,'cubeBuy',{type},ctx()).state;assert.equal(r.essence,100-c.price);assert.equal(r[c.key],11);s.essence=0;assert.throws(()=>execute(s,'cubeBuy',{type},ctx()),/INSUFFICIENT_ESSENCE/);}
  const s=state();s.sunCube=0;assert.throws(()=>execute(s,'cubeRoll',{id:1,type:'sun'},ctx()),/INSUFFICIENT_SUNCUBE/);assert.throws(()=>execute(state(),'cubeRoll',{id:2,type:'sun'},ctx()),/ITEM_NOT_OWNED/);assert.throws(()=>execute(state(),'cubeRoll',{id:1,type:'sun',value:999},ctx()),/INVALID_ARGUMENTS/);
 });
-test('new summoned gear starts at minimum and dismantling awards at exactly 5 of 1000 outcomes',()=>{
+test('new summoned gear starts at minimum and dismantling awards at exactly 10 of 1000 outcomes for every rarity',()=>{
  const s=state();s.gold=100000;const r=execute(s,'summon',{group:'weapon',count:5},ctx());for(const it of r.state.inventory.slice(0,5))assert.deepEqual(it.optionRolls,[.8,.8]);
- let wins=0;for(let i=0;i<1000;i++){const r=execute(state(),'dismantle',{ids:[1]},{...ctx(),randomInt:()=>i});if(r.events.find(e=>e.type==='dismantle').essence)wins++;}assert.equal(wins,5);
+ for(let rarity=0;rarity<7;rarity++){let wins=0;for(let i=0;i<1000;i++){const r=execute(state(rarity),'dismantle',{ids:[1]},{...ctx(),randomInt:()=>i});if(r.events.find(e=>e.type==='dismantle').essence)wins++;}assert.equal(wins,10);}
 });
