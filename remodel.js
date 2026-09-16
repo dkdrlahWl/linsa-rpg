@@ -91,8 +91,8 @@ window.installRinguRemodel=function(g){
    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduced?450:it.rarity>=5?3000:it.rarity===4?2100:1200;
    modal.className='modal-bg show';modal.dataset.grade=String(it.rarity);modal.style.setProperty('--drop-color',g.rarityColors[it.rarity]);modal.style.setProperty('--reveal-time',duration+'ms');modal.dataset.duration=String(duration);
    modal.innerHTML='<section class="rm-reveal-stage"><div class="rm-reveal-rays"></div><div class="rm-reveal-orbit"></div><div class="rm-reveal-sparks">'+Array.from({length:it.rarity>=5?30:it.rarity===4?20:12},(_,i)=>'<i style="--i:'+i+'"></i>').join('')+'</div><small class="rm-reveal-eyebrow">'+(it.isNew?'FIRST DISCOVERY':'EQUIPMENT ACQUIRED')+' · '+run.index+' / '+fresh.length+'</small><h2>'+esc(g.rarityNames[it.rarity])+'</h2><div class="rm-reveal-item">'+f.gearIcon(it)+'</div><strong class="rm-reveal-name">'+gearTitle(it)+'</strong><p class="rm-reveal-status" aria-live="polite">새로운 힘이 깨어납니다…</p><button class="rm-reveal-skip">연출 건너뛰기</button><button class="rm-reveal-next" disabled>확인</button></section>';
-   modal.querySelector('.rm-reveal-skip').hidden=it.rarity>=4;
-   modal.querySelector('.rm-reveal-skip').onclick=()=>{if(it.rarity<4)next();};
+   modal.querySelector('.rm-reveal-skip').hidden=it.rarity>=5;
+   modal.querySelector('.rm-reveal-skip').onclick=()=>{if(it.rarity<=4&&revealRun===run&&sameOwner())next();};
    modal.querySelector('.rm-reveal-next').onclick=next;
    window.RinguAudio?.effect('reveal-charge',it.rarity);
    later(()=>modal.classList.add('charged'),duration*.55);
@@ -203,4 +203,3 @@ window.installRinguRemodel=function(g){
  window.RinguRemodel={changed,equipMap,paintPetIcons,showServerDraw:firstReveals,serverHit:()=>{attackMotion={started:performance.now(),hit:true};window.RinguAudio?.effect('swing');}};
 };
 })();
-
