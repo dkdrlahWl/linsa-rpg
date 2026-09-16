@@ -5,3 +5,17 @@ body[data-remodel] #regionTabs{display:flex!important;flex-wrap:nowrap!important
 body[data-remodel] #regionTabs .region-tab{flex:0 0 auto!important;min-width:54px!important;max-width:none!important;min-height:44px!important;white-space:nowrap!important;word-break:keep-all!important;padding:8px 10px!important;display:flex!important;align-items:center!important;gap:6px!important;line-height:1.3!important}
 body[data-remodel] #regionTabs .region-tab span{white-space:nowrap!important;word-break:keep-all!important}
 body[data-remodel] #regionTabs .region-tab img{width:30px!important;height:30px!important;flex:0 0 30px;object-fit:cover}
+
+/* W2-3: separate world navigation from its regions. */
+.hunt-world-tabs{display:flex;gap:8px;margin:10px 10px 4px;padding-bottom:8px;border-bottom:1px solid #b3935830}
+.hunt-world-tab{flex:1;min-height:42px;padding:8px;border:1px solid #39444c;border-radius:7px;background:#0d1720;color:#98a6b0;font-size:13px;font-weight:700;line-height:1.3}
+.hunt-world-tab.active{border-color:#b99a63;color:#eed6a7;background:#b3935814}
+.hunt-world-tab:disabled{color:#78848d;cursor:not-allowed}
+.hunt-world-tab small{display:block;font-size:9px;font-weight:400;margin-top:3px;white-space:nowrap}
+body[data-remodel] #regionTabs[data-world="0"]{gap:0!important}
+body[data-remodel] #regionTabs[data-world="0"] .region-tab{flex:1 0 auto!important;min-width:42px!important;justify-content:center;padding:8px 5px!important}
+body[data-remodel] #regionTabs .region-tab{min-height:40px!important}
+body[data-remodel] #bossList .boss-btn{flex:0 0 128px!important;padding:9px 7px!important}
+body[data-remodel] #bossList .boss-btn strong{display:block;white-space:normal!important;word-break:keep-all;line-height:1.4;min-height:31px}
+body[data-remodel] #bossList .boss-btn>span:not(.ringu-lock-tag){display:block;white-space:normal!important;line-height:1.5}
+body[data-remodel] #bossList .ringu-lock-tag{font-size:8px!important;line-height:1.3!important}
