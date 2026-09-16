@@ -1,4 +1,4 @@
-import {CUBES,TIERS,cubeType,optionBands,optionTier,optionBase} from './supabase/functions/_shared/cubes.mjs?v=LIME1';
+import {CUBES,TIERS,cubeType,optionBands,optionTier,optionBase} from './supabase/functions/_shared/cubes.mjs?v=FALLEN-MIN1';
 const $=id=>document.getElementById(id),art=type=>'/linsa-rpg/art/cube-'+type+'.png',fmt=n=>Number(n||0).toLocaleString('ko-KR');
 function install(){
  const g=window.RinguCore,f=g?.fn;if(!g?.state||!window.RinguEconomy||window.RinguCubes)return;
@@ -13,7 +13,7 @@ function install(){
   let summary=$('cubeBagSummary');if(!summary){summary=document.createElement('div');summary.id='cubeBagSummary';document.querySelector('#inventoryPanel .inventory-tools')?.before(summary);}
   summary.innerHTML=Object.entries(CUBES).map(([type,def])=>'<span><img src="'+art(type)+'" alt="'+def.name+'"><b>'+def.name+'</b> '+fmt(g.state[def.key])+'개</span>').join('');
  }
- f.renderItemInventory=(...args)=>{const r=bag(...args);const grid=$('itemInventoryGrid');if(grid)for(const [type,def] of Object.entries(CUBES)){const card=document.createElement('div');card.className='utility-card cube-bag-card';card.innerHTML='<img src="'+art(type)+'" alt="'+def.name+'"><span><strong>'+def.name+'</strong><small>보유 '+fmt(g.state[def.key])+'개 · '+(type==='jade'?'에픽 이하':'전설·신화')+' 부옵션 재설정</small></span>';grid.append(card);}return r;};
+ f.renderItemInventory=(...args)=>{const r=bag(...args);const grid=$('itemInventoryGrid');if(grid)for(const [type,def] of Object.entries(CUBES)){const card=document.createElement('div');card.className='utility-card cube-bag-card';card.innerHTML='<img src="'+art(type)+'" alt="'+def.name+'"><span><strong>'+def.name+'</strong><small>보유 '+fmt(g.state[def.key])+'개 · '+(type==='jade'?'에픽 이하':'전설·신화·타락')+' 부옵션 재설정</small></span>';grid.append(card);}return r;};
  counts();window.addEventListener('ringu:economy-state',()=>{counts();if($('itemInventoryModal')?.classList.contains('show'))f.renderItemInventory();});
  if(!g.towerRewardVersion){for(const floor of g.towerFloors)if(floor.floor>=6)for(const field of ['gold','essence','stone','protect','petStone'])floor[field]=(floor[field]||0)*2;g.towerRewardVersion='TR2';}
  let busy=false,tab='forge',lastId=null,lastResult=null,audio;
@@ -45,7 +45,7 @@ function install(){
   const type=cubeType(it),def=CUBES[type],bands=optionBands(it),tier=TIERS[it.cubeTier||0];
   $('cubeArt').hidden=!def;if(def)$('cubeArt').src=art(type);
   $('cubeName').textContent=def?.name||'사용 가능한 큐브 없음';
-  $('cubeStock').textContent=def?('보유 '+fmt(g.state[def.key])+'개 · '+(type==='jade'?'에픽 이하':'전설 · 신화')):'타락 장비는 큐브 대상이 아닙니다.';
+  $('cubeStock').textContent=def?('보유 '+fmt(g.state[def.key])+'개 · '+(type==='jade'?'에픽 이하':'전설 · 신화 · 타락')):'이 장비에 사용할 수 있는 큐브가 없습니다.';
   $('cubeBands').innerHTML=bands.map(b=>'<div style="--tier:'+b.color+'"><b>'+b.name+'</b><span>'+b.min+'~'+b.max+'%</span><small>'+b.chance+'%</small></div>').join('');
   $('cubeRoll').disabled=busy||g.enhanceBusy||!def||!g.state[def.key];$('cubeBuy').disabled=busy||!def;
   $('cubeRoll').textContent=busy?'부옵션 재설정 중…':'큐브 사용 · 1개';$('cubeBuy').textContent=def?def.name+' 구매 · 정수 '+def.price+'개':'사용 불가';
@@ -60,7 +60,7 @@ function install(){
  async function buy(type){
   const def=CUBES[type];if(!def||busy)return;
   if(!window.RinguShop)return f.toast('상점을 불러오는 중입니다.');
-  return window.RinguShop.request(()=>({name:def.name,price:def.price,description:(type==='jade'?'일반~에픽':'전설·신화')+' 장비 부옵션 재설정 · 1개',icon:'✦'}),async()=>{const r=await RinguEconomy.command('cubeBuy',{type});if(r){f.toast(def.name+' 1개 구매 완료');render();shop();}return r;});
+  return window.RinguShop.request(()=>({name:def.name,price:def.price,description:(type==='jade'?'일반~에픽':'전설·신화·타락')+' 장비 부옵션 재설정 · 1개',icon:'✦'}),async()=>{const r=await RinguEconomy.command('cubeBuy',{type});if(r){f.toast(def.name+' 1개 구매 완료');render();shop();}return r;});
  }
  $('cubeBuy').onclick=()=>buy(cubeType(current()));
  $('cubeRoll').onclick=async()=>{
@@ -76,7 +76,7 @@ function install(){
   if(event)sound(event.tier);else reveal.textContent='결과를 확인하지 못했습니다. 보유량과 현재 옵션을 확인해 주세요.';
  };
  function shop(){const grid=$('auraShopGrid');if(!grid?.querySelector('[data-consumable]'))return;
-  for(const [type,def]of Object.entries(CUBES)){let card=grid.querySelector('[data-cube-shop="'+type+'"]');if(!card){card=document.createElement('div');card.className='shop-card cube-shop-card';card.dataset.cubeShop=type;card.innerHTML='<img src="'+art(type)+'" alt="'+def.name+'"><span><strong>'+def.name+'</strong><small>'+(type==='jade'?'일반~에픽':'전설·신화')+' 부옵션 재설정</small><small class="cube-owned"></small></span><button>정수 '+def.price+'개</button>';card.querySelector('button').onclick=()=>buy(type);grid.append(card);}const owned=card.querySelector('.cube-owned'),text='보유 '+fmt(g.state[def.key])+'개';if(owned.textContent!==text)owned.textContent=text;}
+  for(const [type,def]of Object.entries(CUBES)){let card=grid.querySelector('[data-cube-shop="'+type+'"]');if(!card){card=document.createElement('div');card.className='shop-card cube-shop-card';card.dataset.cubeShop=type;card.innerHTML='<img src="'+art(type)+'" alt="'+def.name+'"><span><strong>'+def.name+'</strong><small>'+(type==='jade'?'일반~에픽':'전설·신화·타락')+' 부옵션 재설정</small><small class="cube-owned"></small></span><button>정수 '+def.price+'개</button>';card.querySelector('button').onclick=()=>buy(type);grid.append(card);}const owned=card.querySelector('.cube-owned'),text='보유 '+fmt(g.state[def.key])+'개';if(owned.textContent!==text)owned.textContent=text;}
  }
  const grid=$('auraShopGrid');if(grid)new MutationObserver(shop).observe(grid,{childList:true});
  window.addEventListener('ringu:economy-state',()=>{if(!busy&&modal.classList.contains('show'))render();shop();});

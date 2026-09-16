@@ -8,7 +8,7 @@ window.installRinguWorld2=function(g){
  g.bossRegions[5].name='심연';
  g.bossRegions.splice(6,g.bossRegions.length-6,...structuredClone(W.regions));
  g.rates.splice(15,g.rates.length-15,...W.rates.map(x=>[...x]));
- g.rarityNames[1]='고급';g.rarityNames[2]='희귀';g.rarityColors[6]='#8A235F';
+ g.rarityNames[1]='고급';g.rarityNames[2]='희귀';g.rarityColors[6]='#763653';
  const previous={};for(const key of ['itemIndex','itemName','fixedBaseAtk','gearVariantCount','collectionItems','itemAtk','itemAttackText','enhanceCost','transcendCost','summonUnitCost'])previous[key]=f[key];
  f.itemIndex=it=>template(it)?.index??previous.itemIndex(it);
  f.itemName=(slot,r,i)=>Number(r)===6?(W.gear.find(x=>x.slot===slot&&x.index===i)?.name??previous.itemName(slot,r,i)):previous.itemName(slot,r,i);
@@ -30,7 +30,7 @@ window.installRinguWorld2=function(g){
  const oldSets=window.RinguGearSets;
  window.RinguGearSets=Object.freeze({...oldSets,rank:it=>{const t=template(it);return t?{rank:t.rank,roman:t.roman}:oldSets.rank(it);}});
  const oldTitle=f.itemTitleHtml;
- f.itemTitleHtml=(it,progress=true)=>{const t=template(it);if(!t)return oldTitle(it,progress);return '<span class="w2-rank" title="타락 계열 '+t.rank+'위">'+t.roman+'</span> <span class="cube-item-name">'+esc((it.locked?'[잠금] ':'')+it.name)+'</span>'+(progress?' <span class="ringu-plus">+'+(it.enhance||0)+'</span> <span class="transcend-stars">'+(it.transcend?'초월 '+it.transcend:'')+'</span>':'');};
+ f.itemTitleHtml=(it,progress=true)=>{const t=template(it);if(!t)return oldTitle(it,progress);return '<span class="cube-item-name">'+esc((it.locked?'[잠금] ':'')+it.name)+'</span> <span class="w2-rank" title="타락 계열 '+t.rank+'위">'+t.roman+'</span>'+(progress?' <span class="ringu-plus">+'+(it.enhance||0)+'</span> <span class="transcend-stars">'+(it.transcend?'초월 '+it.transcend:'')+'</span>':'');};
  const normal=f.normalizeCharacter;
  f.normalizeCharacter=(...args)=>{const kept=(g.state?.inventory||[]).filter(x=>Number(x.rarity)===6).map(x=>[x,{...x}]);const result=normal(...args);for(const [it,snapshot]of kept){Object.assign(it,snapshot);const t=template(it);if(t)it.baseAtk=t.baseAtk;}return result;};
  function progress(v){if(v.level<15){const lo=g.levelReq[v.level-1],hi=g.levelReq[v.level];return {have:v.exp-lo,need:hi-lo,percent:Math.min(100,(v.exp-lo)/(hi-lo)*100)};}if(v.level===15)return {have:0,need:0,percent:100,note:'심연 최종 보스 처치 시 Lv.16'};if(v.level===18)return {have:0,need:0,percent:100,note:'최대 레벨'};const need=v.level===16?10000:20000,have=Math.max(0,Math.min(need,v.exp-g.levelReq[14]-(v.level===17?10000:0))),gate=v.level===16?42:60;return {have,need,percent:have/need*100,note:(g.state.monsterUnlockStep||0)<gate?(v.level===16?'추락천사 라지엘':'공허포식왕 네비로스')+' 처치 필요'+(have===need?' · 경험치 상한 도달':''):''};}

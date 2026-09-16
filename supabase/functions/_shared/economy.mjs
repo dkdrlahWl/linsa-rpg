@@ -153,7 +153,7 @@ export function execute(snapshot,command,args,context){
    const slots=args.group==='weapon'?['무기']:args.group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이'],slot=slots[Math.floor(random()*slots.length)];
    const table=level>=16?globalThis.RinguWorld2Data.rateWeights[level-16]:balance.rates[level-1];let roll=level>=16?integerRoll(10000):random()*100,rarity=table.length-1;for(let r=0;r<table.length;r++){roll-=table[r];if(roll<0){rarity=r;break;}}
    const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=rarity===6?selectFallen(args.group,integerRoll):selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
-   const seed=s.uid+random();items.push(addItem({...base,slot:base.slot,rarity,name:base.name,baseAtk:base.baseAtk,optionRolls:[seedValue(seed,0),seedValue(seed,1)],...(rarity===6?{cubeVersion:1}: {})}));
+   items.push(addItem({...base,slot:base.slot,rarity,name:base.name,baseAtk:base.baseAtk,optionRolls:[.8,.8],cubeVersion:1,cubeTier:0}));
   }
   grantSummonExperience(s,args.group,items.length,balance.levelReq);events.push({type:'summon',items});
  }else if(command==='enhance'||command==='transcend'){
@@ -233,4 +233,3 @@ export function execute(snapshot,command,args,context){
  s.remodelProfile={v:4,uid:s.playerUid,name:s.playerName,power:stats(s,context.costumePercent||0).attack,region:balance.bossRegions[s.regionIndex]?.name,boss:balance.bossRegions[s.regionIndex]?.bosses[s.bossIndex]?.name,tower:s.towerCleared||0,gender:s.playerGender,hideHelmet:true,ownedAuras:s.ownedAuras,equippedAura:s.equippedAura,updated:now,equipment:balance.slots.map(slot=>s.inventory.find(it=>it.id===s.equipped[slot])).filter(Boolean).map(it=>({s:it.slot,n:it.name,r:it.rarity,e:it.enhance,t:it.transcend||0,ba:it.baseAtk,a:itemAttack(it),o:options(it)})),pet:pet?{...pet,...petData,s:balance.petLevelStats[pet.petId]?.[pet.level-1]||{}}:null};
  return {state:s,events};
 }
-
