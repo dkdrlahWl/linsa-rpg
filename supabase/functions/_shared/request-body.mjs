@@ -24,3 +24,4 @@ export async function readEconomyRequest(request){
  if(equipmentRemoval&&(!Array.isArray(body.args?.ids)||!body.args.ids.length||body.args.ids.length>10000))return {error:'INVALID_ARGUMENTS',status:400};
  return {body};
 }
+

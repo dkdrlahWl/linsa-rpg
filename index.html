@@ -566,6 +566,10 @@ left:var(--fallen-axe-left)!important;
 </style>
 <link rel="stylesheet" href="/linsa-rpg/pet-mobile.css?v=PS2">
 <script src="/linsa-rpg/gear-sets.js?v=SET1"></script>
+<script src="/linsa-rpg/world2-data.js?v=W2-1"></script>
+<script src="/linsa-rpg/world2.js?v=W2-1"></script>
+<script src="/linsa-rpg/world2-reveal.js?v=W2-1"></script>
+<link rel="stylesheet" href="/linsa-rpg/world2.css?v=W2-1">
 <style id="ranking-mobile-RK5">
 /* RK5: reserve footer space; only equipment and sets scroll. */
 body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!important;inset:0!important;height:100vh!important;height:100dvh!important;padding:12px!important;padding-top:max(12px,env(safe-area-inset-top))!important;padding-bottom:max(12px,env(safe-area-inset-bottom))!important;overflow:hidden!important;box-sizing:border-box!important;align-items:center!important}
@@ -578,10 +582,10 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 </head>
 <script src="/linsa-rpg/safety.js?v=BM5-CQ3"></script>
 <script src="/linsa-rpg/art-catalog.js?v=NAME-RANK-FIX2"></script>
-<script src="/linsa-rpg/remodel.js?v=ABYSS-W2-1"></script>
+<script src="/linsa-rpg/remodel.js?v=W2-1"></script>
 <script src="/linsa-rpg/social-style.js?v=NAME-RANK-MARKETS3"></script>
-<script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
-<script src="/linsa-rpg/core-fixes.js?v=ABYSS-W2-1"></script>
+<script src="/linsa-rpg/audio-engine.js?v=W2-1"></script>
+<script src="/linsa-rpg/core-fixes.js?v=W2-1"></script>
 <script src="/linsa-rpg/stone-party.js?v=stone-hp-S3"></script>
 <link rel="stylesheet" href="/linsa-rpg/world-boss.css?v=WB3">
 <script src="/linsa-rpg/world-boss-model.js?v=WB1"></script>
@@ -600,7 +604,7 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 <script defer src="/linsa-rpg/costume-runtime.js?v=costume-live-1"></script>
 <script defer src="/linsa-rpg/costume-preview.js?v=linsa-shop-LS1"></script>
 <script defer src="/linsa-rpg/shop-controls.js?v=black-market-BM1"></script>
-<script defer src="/linsa-rpg/economy-client.js?v=ABYSS-W2-1"></script>
+<script defer src="/linsa-rpg/economy-client.js?v=W2-1"></script>
 <link rel="stylesheet" href="/linsa-rpg/black-market.css?v=icons-BM5">
 <script defer src="/linsa-rpg/black-market.js?v=NAME-RANK-MARKETS3"></script>
 <script defer src="/linsa-rpg/ranking-ui.js?v=ranking-RK1"></script>
@@ -1954,6 +1958,7 @@ window.RinguSession.ready.then(()=>{
  window.installRinguAudio(RinguCore);
  window.installRinguStoneParty?.(RinguCore);
  window.installRinguPetStacks(RinguCore);
+ window.installRinguWorld2(RinguCore);
  load();
  window.dispatchEvent(new Event('ringu-ready'));
  window.addEventListener('pointerdown',()=>{if(window.RinguSession.active)initAudio()},{once:true});
@@ -2987,3 +2992,4 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 <script type="module" src="/linsa-rpg/cube-system.js?v=LIME1"></script>
 </body>
 </html>
+

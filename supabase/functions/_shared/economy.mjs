@@ -1,3 +1,4 @@
+import {normalizeSummons,grantSummonExperience,summonCosts,selectFallen} from './world2-summons.mjs';
 import balance from './balance.json' with {type:'json'};
 import './gear-sets.js';
 import {selectGear} from './gear-selection.mjs';
@@ -7,7 +8,7 @@ export {balance};
 export const itemKey=it=>it.slot+'|'+it.rarity+'|'+it.name;
 const catalogue=new Map(balance.gear.map(it=>[itemKey(it),it]));
 // Canonicalize legacy legendary and mythic gear too, including auction/mail items on their next sync.
-const epicArmor=it=>[4,5].includes(it.rarity)||(it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&it.rarity>=3);
+const epicArmor=it=>globalThis.RinguWorld2Data.gear.some(g=>g.name===it.name&&g.slot===it.slot)||[4,5].includes(it.rarity)||(it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&it.rarity>=3);
 const canonicalBase=it=>epicArmor(it)?(catalogue.get(itemKey(it))?.baseAtk??it.baseAtk):it.baseAtk;
 const fail=code=>{throw Error(code);};
 const int=(v,min=0,max=Number.MAX_SAFE_INTEGER)=>{if(!Number.isSafeInteger(v)||v<min||v>max)fail('INVALID_ARGUMENTS');return v;};
@@ -23,9 +24,6 @@ export function stats(s,costumePercent=0){let equipmentAtk=0,atkPercent=0,critCh
  atkPercent+=(p.attackPercent||0)*100;critChance=Math.min(95,critChance+(p.critRate||0)*100);critDamage+=(p.critDamage||0)*100;const attackSpeed=1+(p.attackSpeed||0),attack=Math.floor((50+equipmentAtk+(p.attack||0))*(1+atkPercent/100)*attackSpeed);
  return {attack:Math.floor(attack*(1+costumePercent/100)),equipmentAtk,atkPercent,critChance,critDamage,goldBonus,attackSpeed,setBonuses};
 }
-const summonLevel=(exp,world2Unlocked=false)=>world2Unlocked&&exp>=balance.levelReq[14]?16:balance.levelReq.reduce((lv,n,i)=>exp>=n?i+1:lv,1);
-const costs=[250,250,250,500,500,500,1000,1000,1000,2500,7500,7500,18000,18000,18000,30000];
-function normalizeSummons(s){for(const group of ['weapon','armor','accessory']){s.summons[group]??={exp:s.summonExp||0};const summon=s.summons[group];summon.exp=Math.min(balance.levelReq[14],int(summon.exp||0));summon.level=summonLevel(summon.exp,s.world2Unlocked);}}
 const kstDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
 const dailyKey=now=>'midnight-v2:'+kstDay(now);
 const seedValue=(seed,n)=>{let h=2166136261;for(const c of String(seed)+'|'+n)h=Math.imul(h^c.charCodeAt(0),16777619);return .8+((h>>>0)%401)/1000;};
@@ -37,7 +35,8 @@ export function execute(snapshot,command,args,context){
  if(!Array.isArray(s.inventory))fail('INVALID_STATE');
  s.equipped??={};s.summons??={};s.ownedAuras??=[];s.mailbox??=[];s.collectionClaims??={};
  s.world2Unlocked=s.world2Unlocked===true;
- normalizeSummons(s);
+ if(s.world2Unlocked)s.monsterUnlockStep=Math.max(36,s.monsterUnlockStep||0);
+ normalizeSummons(s,balance.levelReq);
  // Preserve the remaining fraction of an in-progress Abyss fight on rollout.
  if(s.abyssBalanceVersion!==1){
   if(s.regionIndex===5&&s.serverCombat){const oldHp=[113170,130036,146903,163769,191880,225612][s.bossIndex],newHp=balance.bossRegions[5].bosses[s.bossIndex]?.hp;if(oldHp&&newHp)s.serverCombat.hp=Math.max(1,Math.min(newHp,Math.ceil(s.serverCombat.hp*newHp/oldHp)));}
@@ -67,15 +66,15 @@ export function execute(snapshot,command,args,context){
  if(context.adminFloor>0){
   for(const key of ['gold','essence','transcendStone','downgradeProtect','dungeonTickets','petStone','petTicket'])s[key]=Math.max(s[key],int(context.adminFloor));
   s.rankingHidden=true;
-  for(const group of ['weapon','armor','accessory'])s.summons[group].exp=balance.levelReq[14];
-  normalizeSummons(s);
+  for(const group of ['weapon','armor','accessory'])s.summons[group].exp=Math.max(s.summons[group].exp||0,balance.levelReq[14]);
+  normalizeSummons(s,balance.levelReq);
  }
  const day=kstDay(now);s.dungeons??=initialState(now).dungeons;if(s.dungeons.date!==day)s.dungeons={...s.dungeons,date:day,goldEntries:2,partyFree:2,petEntries:2};
  // Settle elapsed time using the equipment owned BEFORE this command. Equipping
  // a new item must not increase damage retrospectively for an unpolled interval.
  const power=stats(s,context.costumePercent||0),bosses=balance.bossRegions.flatMap(r=>r.bosses),current=balance.bossRegions[s.regionIndex]?.bosses[s.bossIndex];
  const step=balance.bossRegions.slice(0,s.regionIndex).reduce((n,r)=>n+r.bosses.length,0)+s.bossIndex;
- const clearWorld1=()=>{if(s.regionIndex===5&&s.bossIndex===5&&!s.world2Unlocked){s.world2Unlocked=true;s.world1ClearedAt=now;normalizeSummons(s);events.push({type:'world2Unlocked'});}};
+ const clearWorld1=()=>{if(s.regionIndex===5&&s.bossIndex===5&&!s.world2Unlocked){s.world2Unlocked=true;s.world1ClearedAt=now;normalizeSummons(s,balance.levelReq);events.push({type:'world2Unlocked'});}};
  const paused=!!context.partyBusy;
  // A special encounter must never leave a field clock that accrues catch-up hits.
  if(paused||s.serverBattle)s.serverCombat=null;
@@ -100,7 +99,7 @@ export function execute(snapshot,command,args,context){
    if(amount)award('gold',amount);
    if(kills){if(step===s.monsterUnlockStep&&step<bosses.length-1)s.monsterUnlockStep++;clearWorld1();}
    events.push({type:'offline',amount,kills,failures,monster:current.name,seconds:ticks,version:'OFF2'});
-  }else{s.serverCombat=null;events.push({type:'offline',amount:0,kills:0,failures:0,version:'OFF2'});}
+  }else{s.serverCombat=null;events.push({type:'offline',amount:0,kills:0,failures:0,monster:current?.name||'선택한 보스',seconds:Math.floor(elapsed/1000),version:'OFF2'});}
  }else if(!paused){
   const special=s.serverBattle;
   if(special){
@@ -125,6 +124,7 @@ export function execute(snapshot,command,args,context){
    }
   }
  }
+ normalizeSummons(s,balance.levelReq);
  if(paused)s.serverCombat=null;
  s.serverClock=now;
  s.serverBackgroundAt=command==='background'?now:null;
@@ -147,14 +147,15 @@ export function execute(snapshot,command,args,context){
   const key=dailyKey(now);s.dailyRewardClaims??={};if(s.dailyRewardClaims[key])fail('ALREADY_CLAIMED');const amount=10+Math.floor(random()*6);award('essence',amount);s.dailyRewardClaims[key]={essence:amount,claimedAt:now};events.push({type:'daily',amount});
  }else if(command==='summon'){
   if(!['weapon','armor','accessory'].includes(args.group)||![1,5,10,50].includes(args.count))fail('INVALID_ARGUMENTS');
-  const summon=s.summons[args.group],level=summonLevel(summon.exp,s.world2Unlocked);spend('gold',costs[level-1]*args.count);const items=[];
+  const summon=s.summons[args.group],level=summon.level;spend('gold',summonCosts[level-1]*args.count);const items=[];
+  const integerRoll=limit=>context.randomInt?context.randomInt(limit):Math.floor(random()*limit);
   for(let i=0;i<args.count;i++){
    const slots=args.group==='weapon'?['무기']:args.group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이'],slot=slots[Math.floor(random()*slots.length)];
-   let roll=random()*100,rarity=balance.rates[level-1].length-1;for(let r=0;r<balance.rates[level-1].length;r++){roll-=balance.rates[level-1][r];if(roll<0){rarity=r;break;}}
-   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
-   const seed=s.uid+random();items.push(addItem({slot,rarity,name:base.name,baseAtk:base.baseAtk,optionRolls:[seedValue(seed,0),seedValue(seed,1)]}));
+   const table=level>=16?globalThis.RinguWorld2Data.rateWeights[level-16]:balance.rates[level-1];let roll=level>=16?integerRoll(10000):random()*100,rarity=table.length-1;for(let r=0;r<table.length;r++){roll-=table[r];if(roll<0){rarity=r;break;}}
+   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=rarity===6?selectFallen(args.group,integerRoll):selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
+   const seed=s.uid+random();items.push(addItem({...base,slot:base.slot,rarity,name:base.name,baseAtk:base.baseAtk,optionRolls:[seedValue(seed,0),seedValue(seed,1)],...(rarity===6?{cubeVersion:1}: {})}));
   }
-  summon.exp=Math.min(balance.levelReq[14],summon.exp+args.count);summon.level=summonLevel(summon.exp,s.world2Unlocked);events.push({type:'summon',items});
+  grantSummonExperience(s,args.group,items.length,balance.levelReq);events.push({type:'summon',items});
  }else if(command==='enhance'||command==='transcend'){
   const it=gear(args.id),trans=command==='transcend',next=trans?(it.transcend||0)+1:it.enhance+1;
   if(trans?(it.rarity<4||it.enhance!==15||next>3):next>15)fail('INVALID_ENHANCEMENT');
@@ -215,7 +216,7 @@ export function execute(snapshot,command,args,context){
   s.claimedMailReceipts[id]=now;s.mailbox=s.mailbox.filter(m=>String(m.id)!==id);
  }else if(command==='select'){
   const region=int(args.region,0,balance.bossRegions.length-1),boss=int(args.boss,0,balance.bossRegions[region].bosses.length-1),step=balance.bossRegions.slice(0,region).reduce((n,r)=>n+r.bosses.length,0)+boss;
-  if(balance.bossRegions[region].locked||step>(s.monsterUnlockStep||0))fail('MONSTER_LOCKED');s.regionIndex=region;s.bossIndex=boss;s.serverCombat=null;
+  if((region>=6&&!s.world2Unlocked)||balance.bossRegions[region].locked||step>(s.monsterUnlockStep||0))fail('MONSTER_LOCKED');s.regionIndex=region;s.bossIndex=boss;s.serverCombat=null;
  }else if(command==='auto'){
   if(typeof args.enabled!=='boolean')fail('INVALID_ARGUMENTS');s.autoBattle=args.enabled;s.serverCombat=null;
  }else if(command==='cancelBattle')s.serverBattle=null;
@@ -232,3 +233,4 @@ export function execute(snapshot,command,args,context){
  s.remodelProfile={v:4,uid:s.playerUid,name:s.playerName,power:stats(s,context.costumePercent||0).attack,region:balance.bossRegions[s.regionIndex]?.name,boss:balance.bossRegions[s.regionIndex]?.bosses[s.bossIndex]?.name,tower:s.towerCleared||0,gender:s.playerGender,hideHelmet:true,ownedAuras:s.ownedAuras,equippedAura:s.equippedAura,updated:now,equipment:balance.slots.map(slot=>s.inventory.find(it=>it.id===s.equipped[slot])).filter(Boolean).map(it=>({s:it.slot,n:it.name,r:it.rarity,e:it.enhance,t:it.transcend||0,ba:it.baseAtk,a:itemAttack(it),o:options(it)})),pet:pet?{...pet,...petData,s:balance.petLevelStats[pet.petId]?.[pet.level-1]||{}}:null};
  return {state:s,events};
 }
+

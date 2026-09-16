@@ -16,3 +16,4 @@ export function execute(snapshot,command,args,context){
  if(result.state.serverBattle?.type==='tower')result.state.serverBattle.hpVersion=VERSION;
  return result;
 }
+

@@ -24,3 +24,4 @@ export function planBattle(state,costumePercent,random){
  }
  return hits;
 }
+

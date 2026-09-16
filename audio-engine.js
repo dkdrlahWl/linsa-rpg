@@ -8,7 +8,10 @@ window.installRinguAudio=function(g){
  function note(freq,dur,gain,delay=0,bus='sfx',type='sine',end=freq){if(!ac||voices.size>96)return;const t=ac.currentTime+delay,o=ac.createOscillator(),v=ac.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+dur);v.gain.setValueAtTime(.00001,t);v.gain.exponentialRampToValueAtTime(Math.max(.00002,gain),t+Math.min(.035,dur/4));v.gain.exponentialRampToValueAtTime(.00001,t+dur);o.connect(v).connect(bus==='bgm'?music:sfx);voices.add(o);o.onended=()=>{voices.delete(o);o.disconnect();v.disconnect()};o.start(t);o.stop(t+dur+.02)}
  let noiseBuffer;function noise(dur,cutoff,gain,delay=0){if(!ac||voices.size>96)return;if(!noiseBuffer){noiseBuffer=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);const d=noiseBuffer.getChannelData(0);let seed=711;for(let i=0;i<d.length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;d[i]=seed/2147483648-1}}const t=ac.currentTime+delay,n=ac.createBufferSource(),filter=ac.createBiquadFilter(),v=ac.createGain();n.buffer=noiseBuffer;filter.type='bandpass';filter.frequency.value=cutoff;filter.Q.value=.7;v.gain.setValueAtTime(gain,t);v.gain.exponentialRampToValueAtTime(.00001,t+dur);n.connect(filter).connect(v).connect(sfx);voices.add(n);n.onended=()=>{voices.delete(n);n.disconnect();filter.disconnect();v.disconnect()};n.start(t);n.stop(t+dur)}
  function effect(kind,value=0){if(window.RinguSession?.active===false)return;init();if(!ac||!g.state.sfxOn||document.hidden)return;events.push(kind);if(events.length>40)events.shift();
-  if(kind==='raid-swing'){noise(.16,1800,.095);noise(.09,4100,.035,.025);note(780,.13,.035,0,'sfx','triangle',180);}
+  if(kind==='fallen-heartbeat'){for(const d of [0,.23,1,1.2,2])note(48,.24,.13,d,'sfx','sine',30);}
+  else if(kind==='fallen-crack'){noise(.4,2400,.10);[217,563,1109,2231].forEach((f,i)=>note(f,.6,.03/(i+1),i*.025,'sfx','triangle',f*.65));}
+  else if(kind==='fallen-impact'){note(42,1.8,.17,0,'sfx','sine',22);noise(.65,350,.11);noise(.2,1800,.04,.05);}
+  else if(kind==='raid-swing'){noise(.16,1800,.095);noise(.09,4100,.035,.025);note(780,.13,.035,0,'sfx','triangle',180);}
   else if(kind==='raid-hit'||kind==='raid-critical'){const crit=kind==='raid-critical';noise(.055,2600,.13);noise(crit?.23:.14,650,crit?.17:.11);note(crit?100:145,.18,.12,0,'sfx','sine',38);[920,1470,2230].forEach((f,i)=>note(f,crit?.32:.17,.033/(i+1),.01,'sfx','triangle',f*.75));}
   else if(kind==='raid-hurt'){noise(.17,420,.14);noise(.055,1650,.07);note(175,.24,.12,0,'sfx','sine',45);note(76,.18,.05,.025,'sfx','triangle',35);}
   else if(kind==='reveal-charge'){const dur=value>=5?3:value===4?2.1:1.2;note(65.4,dur,.07,0,'sfx','sine',196);for(let i=0;i<(value>=5?12:6);i++){note(196*2**(i/12),.32,.022,i*(dur/14),'sfx','triangle');}noise(.8,500,.04);}
@@ -43,3 +46,4 @@ if(document.documentElement.dataset.ringuAuthAudio==='true'){
  let prefs={};try{prefs=JSON.parse(localStorage.getItem('ringu-audio-preferences')||'{}')||{}}catch{}
  window.installRinguAudio({state:{sfxOn:prefs.sfxOn!==false,sfxVolume:prefs.sfxVolume??.65,bgmOn:false},fn:{}});
 }
+

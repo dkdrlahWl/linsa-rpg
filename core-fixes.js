@@ -42,8 +42,8 @@
         s.summons ||= {};
         for (const group of ['weapon','armor','accessory']) {
           s.summons[group] ||= {};
-          s.summons[group].level = s.world2Unlocked ? 16 : 15;
-          s.summons[group].exp = g.levelReq[14];
+          s.summons[group].level = Math.max(s.summons[group].level||1,s.world2Unlocked ? 16 : 15);
+          s.summons[group].exp = Math.max(s.summons[group].exp||0,g.levelReq[14]);
         }
       }
       for (const key of currencyKeys) s[key] = integer(s[key]);
@@ -249,3 +249,4 @@
     return api;
   };
 })();
+

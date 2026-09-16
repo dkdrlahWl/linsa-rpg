@@ -1,0 +1,261 @@
+{
+  "bosses": [
+    "Gray Wing Guardian: ash feathered giant sentinel with stone mask, long spear, two ragged gray wings",
+    "Fallen Paladin: massive broad armored knight, cracked ivory breastplate, blackened kite shield, heavy mace, exposed grim face",
+    "Black Confessor: tall gaunt hooded priest with hanging censers and chained black scripture, smoky faceless hood",
+    "Blackwing Inquisitor: lean masked judge with swept black wings and hooked execution polearm, layered silver armor",
+    "Sanctuary Destroyer Azael: huge horned cathedral golem, broken columns on shoulders, stone fists and shattered halo embedded in chest",
+    "Fallen Angel Raziel: majestic pale humanoid angel with six charred wings, fractured halo, ornate black sword, ruined celestial armor",
+    "Blood Moon Hound: monstrous low quadruped hound, split antler crown, blood red mane and obsidian claws",
+    "Crimson Armored Soldier: stocky animated suit of crimson layered plate armor, round spiked shield, short serrated axe",
+    "Bloodmist Witch: floating pale witch with long red veil, thorn staff, ribbon-like blood fog and intricate dress",
+    "Eclipse Executioner: tall hooded armored executioner wielding huge crescent axe, eclipsed disc above shoulders",
+    "Calamity Lord Karmon: towering muscular demon with asymmetrical giant horn and molten red armored arm carrying brutal war hammer",
+    "Bloodmoon King Varkas: undead regal vampire monarch, spiked crown, black red mantle, ornate huge crimson greatsword",
+    "Star-Eating Beast: bizarre cosmic quadruped with crystalline jaw and a void filled with tiny dying stars inside its abdomen",
+    "Void Astrologer: floating robed many-handed astronomer, faceless silver mask, small broken astronomical rings orbiting shoulders",
+    "Black Star Knight: slender indigo plate knight, pointed star helmet and needle lance, armored cloak",
+    "Constellation Destroyer: giant four-armed titan of fractured dark crystal gripping broken stellar chains",
+    "Lightless Celestial God: alien humanoid divinity with smooth black orb head, silver skeletal armor and floating riblike arcs",
+    "Black Constellation Astreon: majestic cosmic deity with crown of dead stars, vast celestial winglike mantle and star spear",
+    "Rift Parasite: sinister six-legged chitin parasite with open radial maw, translucent violet sacs and jagged hooked limbs",
+    "Abyss Devouring Beast: hulking eyeless predator with overlapping obsidian jaws, low broad shoulders and long hooked tail",
+    "Void Gatekeeper: colossal hollow armored sentinel with rectangular gateway chest and two stone cleavers",
+    "Soul Glutton: floating spectral monster with chained skull mask, many ghostly grasping hands and empty rib cage",
+    "Dimension Eater Morga: serpentine arthropod monster coiled facing forward with split dragonlike head and blade forelimbs",
+    "Void Devourer King Nebiros: crowned massive abyssal behemoth with circular maw torso, horned head and four imposing arms",
+    "Godslayer Vanguard: angular black gold soldier with jagged spear and broken celestial shield, narrow hawk helm",
+    "Faceless Executioner: broad giant with perfectly smooth black mask, enormous chained sword, heavy black gold pauldrons",
+    "Black Hierophant: regal floating priest, tall black gold mitre, dark orb staff and layered feather robes",
+    "Archangel of Ruin: formidable armored angel with four skeletal black wings, broken gold halo and twin long blades",
+    "Godslayer General Arkaine: colossal battle-scarred warlord, lionlike gold helm, torn cape and oversized halberd",
+    "Fallen God King Belzerion: final majestic king, abyss-black celestial armor, crown of fractured halos, six vast charred wings, colossal dark jeweled sword"
+  ],
+  "equipment": [
+    {
+      "id": "gear-1-0",
+      "style": "Fallen Angel series: burnt celestial silver-black metal, cracked halo crest, black feather filigree, deep wine pink gems",
+      "subject": "long ornate end-of-days sword with feathered guard"
+    },
+    {
+      "id": "gear-1-1",
+      "style": "Fallen Angel series: burnt celestial silver-black metal, cracked halo crest, black feather filigree, deep wine pink gems",
+      "subject": "cracked black floating halo crown"
+    },
+    {
+      "id": "gear-1-2",
+      "style": "Fallen Angel series: burnt celestial silver-black metal, cracked halo crest, black feather filigree, deep wine pink gems",
+      "subject": "celestial plate cuirass with wing-shaped pauldrons"
+    },
+    {
+      "id": "gear-1-3",
+      "style": "Fallen Angel series: burnt celestial silver-black metal, cracked halo crest, black feather filigree, deep wine pink gems",
+      "subject": "pair of judgment armored leg greaves"
+    },
+    {
+      "id": "gear-1-4",
+      "style": "Fallen Angel series: burnt celestial silver-black metal, cracked halo crest, black feather filigree, deep wine pink gems",
+      "subject": "pair of black feather-wing boots"
+    },
+    {
+      "id": "gear-1-5",
+      "style": "Fallen Angel series: burnt celestial silver-black metal, cracked halo crest, black feather filigree, deep wine pink gems",
+      "subject": "fallen seal signet ring"
+    },
+    {
+      "id": "gear-1-6",
+      "style": "Fallen Angel series: burnt celestial silver-black metal, cracked halo crest, black feather filigree, deep wine pink gems",
+      "subject": "single black tear gemstone dangling earring"
+    },
+    {
+      "id": "gear-2-0",
+      "style": "Godslayer series: brutal heavy black iron, faceless seal motif, jagged edges, dark magenta inset gems",
+      "subject": "massive godslayer greatsword"
+    },
+    {
+      "id": "gear-2-1",
+      "style": "Godslayer series: brutal heavy black iron, faceless seal motif, jagged edges, dark magenta inset gems",
+      "subject": "smooth faceless mask helmet"
+    },
+    {
+      "id": "gear-2-2",
+      "style": "Godslayer series: brutal heavy black iron, faceless seal motif, jagged edges, dark magenta inset gems",
+      "subject": "heavy black breastplate"
+    },
+    {
+      "id": "gear-2-3",
+      "style": "Godslayer series: brutal heavy black iron, faceless seal motif, jagged edges, dark magenta inset gems",
+      "subject": "pair of layered destruction armored trousers"
+    },
+    {
+      "id": "gear-2-4",
+      "style": "Godslayer series: brutal heavy black iron, faceless seal motif, jagged edges, dark magenta inset gems",
+      "subject": "pair of heavy godslayer combat boots"
+    },
+    {
+      "id": "gear-2-5",
+      "style": "Godslayer series: brutal heavy black iron, faceless seal motif, jagged edges, dark magenta inset gems",
+      "subject": "godslayer seal ring"
+    },
+    {
+      "id": "gear-2-6",
+      "style": "Godslayer series: brutal heavy black iron, faceless seal motif, jagged edges, dark magenta inset gems",
+      "subject": "godslayer seal dangling earring"
+    },
+    {
+      "id": "gear-3-0",
+      "style": "Black Constellation series: black astral alloy, dead star sigils, thin celestial rings, dark nebula gems",
+      "subject": "starbreaker sword with broken star blade"
+    },
+    {
+      "id": "gear-3-1",
+      "style": "Black Constellation series: black astral alloy, dead star sigils, thin celestial rings, dark nebula gems",
+      "subject": "black celestial crown"
+    },
+    {
+      "id": "gear-3-2",
+      "style": "Black Constellation series: black astral alloy, dead star sigils, thin celestial rings, dark nebula gems",
+      "subject": "astral armored cuirass"
+    },
+    {
+      "id": "gear-3-3",
+      "style": "Black Constellation series: black astral alloy, dead star sigils, thin celestial rings, dark nebula gems",
+      "subject": "pair of constellation armored greaves"
+    },
+    {
+      "id": "gear-3-4",
+      "style": "Black Constellation series: black astral alloy, dead star sigils, thin celestial rings, dark nebula gems",
+      "subject": "pair of black star boots"
+    },
+    {
+      "id": "gear-3-5",
+      "style": "Black Constellation series: black astral alloy, dead star sigils, thin celestial rings, dark nebula gems",
+      "subject": "constellation signet ring"
+    },
+    {
+      "id": "gear-3-6",
+      "style": "Black Constellation series: black astral alloy, dead star sigils, thin celestial rings, dark nebula gems",
+      "subject": "single black star earring"
+    },
+    {
+      "id": "gear-4-0",
+      "style": "Crimson Calamity series: black lacquered steel, blood moon crescents, layered curved blades, very dark crimson-magenta jewels",
+      "subject": "bloodmoon curved saber"
+    },
+    {
+      "id": "gear-4-1",
+      "style": "Crimson Calamity series: black lacquered steel, blood moon crescents, layered curved blades, very dark crimson-magenta jewels",
+      "subject": "bloodmoon crown"
+    },
+    {
+      "id": "gear-4-2",
+      "style": "Crimson Calamity series: black lacquered steel, blood moon crescents, layered curved blades, very dark crimson-magenta jewels",
+      "subject": "crimson layered blood armor cuirass"
+    },
+    {
+      "id": "gear-4-3",
+      "style": "Crimson Calamity series: black lacquered steel, blood moon crescents, layered curved blades, very dark crimson-magenta jewels",
+      "subject": "pair of calamity armored trousers"
+    },
+    {
+      "id": "gear-4-4",
+      "style": "Crimson Calamity series: black lacquered steel, blood moon crescents, layered curved blades, very dark crimson-magenta jewels",
+      "subject": "pair of crimson military boots"
+    },
+    {
+      "id": "gear-4-5",
+      "style": "Crimson Calamity series: black lacquered steel, blood moon crescents, layered curved blades, very dark crimson-magenta jewels",
+      "subject": "bloodmoon rune ring"
+    },
+    {
+      "id": "gear-4-6",
+      "style": "Crimson Calamity series: black lacquered steel, blood moon crescents, layered curved blades, very dark crimson-magenta jewels",
+      "subject": "bloodmoon rune dangling earring"
+    },
+    {
+      "id": "gear-5-0",
+      "style": "Void Devourer series: chitinous obsidian, fanged soul maw crests, organic ribbed edges, smoky dark purple-pink gems",
+      "subject": "large curved soul devouring scythe"
+    },
+    {
+      "id": "gear-5-1",
+      "style": "Void Devourer series: chitinous obsidian, fanged soul maw crests, organic ribbed edges, smoky dark purple-pink gems",
+      "subject": "predator fanged helmet"
+    },
+    {
+      "id": "gear-5-2",
+      "style": "Void Devourer series: chitinous obsidian, fanged soul maw crests, organic ribbed edges, smoky dark purple-pink gems",
+      "subject": "void devourer organic armor cuirass"
+    },
+    {
+      "id": "gear-5-3",
+      "style": "Void Devourer series: chitinous obsidian, fanged soul maw crests, organic ribbed edges, smoky dark purple-pink gems",
+      "subject": "pair of void devourer armored trousers"
+    },
+    {
+      "id": "gear-5-4",
+      "style": "Void Devourer series: chitinous obsidian, fanged soul maw crests, organic ribbed edges, smoky dark purple-pink gems",
+      "subject": "pair of void devourer clawed boots"
+    },
+    {
+      "id": "gear-5-5",
+      "style": "Void Devourer series: chitinous obsidian, fanged soul maw crests, organic ribbed edges, smoky dark purple-pink gems",
+      "subject": "predator soul ring"
+    },
+    {
+      "id": "gear-5-6",
+      "style": "Void Devourer series: chitinous obsidian, fanged soul maw crests, organic ribbed edges, smoky dark purple-pink gems",
+      "subject": "predator soul dangling earring"
+    }
+  ],
+  "effectsAndRegions": [
+    {
+      "id": "region-1",
+      "prompt": "Premium dark fantasy RPG region selection illustration: ruined celestial cathedral with broken halo, ash gray and black and dark magenta. Cinematic bird's eye establishing composition distinct from a battle arena, painterly rich detail and tangible stone texture. Square 1024x1024, no characters, no text or UI, dark dramatic atmosphere with readable central landmark."
+    },
+    {
+      "id": "region-2",
+      "prompt": "Premium dark fantasy RPG region selection illustration: blood moon over ruined red castle and crimson wasteland. Cinematic bird's eye establishing composition distinct from a battle arena, painterly rich detail and tangible stone texture. Square 1024x1024, no characters, no text or UI, dark dramatic atmosphere with readable central landmark."
+    },
+    {
+      "id": "region-3",
+      "prompt": "Premium dark fantasy RPG region selection illustration: cosmic observatory citadel with dead stars, indigo purple. Cinematic bird's eye establishing composition distinct from a battle arena, painterly rich detail and tangible stone texture. Square 1024x1024, no characters, no text or UI, dark dramatic atmosphere with readable central landmark."
+    },
+    {
+      "id": "region-4",
+      "prompt": "Premium dark fantasy RPG region selection illustration: floating ruins amid torn spacetime, blue violet void fissures. Cinematic bird's eye establishing composition distinct from a battle arena, painterly rich detail and tangible stone texture. Square 1024x1024, no characters, no text or UI, dark dramatic atmosphere with readable central landmark."
+    },
+    {
+      "id": "region-5",
+      "prompt": "Premium dark fantasy RPG region selection illustration: ruined celestial throne inside black gold final fortress. Cinematic bird's eye establishing composition distinct from a battle arena, painterly rich detail and tangible stone texture. Square 1024x1024, no characters, no text or UI, dark dramatic atmosphere with readable central landmark."
+    },
+    {
+      "id": "summon-bg",
+      "prompt": "Premium dark fantasy RPG summoning chamber background, portrait 1024x1536. Vast burnt celestial vault, towering black feather carved pillars, shattered celestial ceiling, chasm in center, restrained extremely dark magenta nebula behind. Nearly black #160812 with #54113D and #8A235F details, no hot pink or white flash. Empty center reserved for summoned equipment, no characters no equipment no text no UI. Rich cinematic hand painted game art."
+    },
+    {
+      "id": "fx-halo",
+      "prompt": "Single richly detailed broken celestial black halo ring for dark fantasy RPG summoning effect, front facing circular relic with ornate etched metal, cracks filled with restrained dark magenta #8A235F, burnt black edges, 80% black. Isolated centered on genuinely transparent background, full halo with margins, no text no letters no UI. Premium hand-painted game VFX asset 1024x1024."
+    },
+    {
+      "id": "fx-feather",
+      "prompt": "Single charred black angel feather with intricate barbs and subtle very dark magenta glowing edge, curved elegant silhouette, tangible feather texture, isolated centered transparent background, full object with margins. Premium dark fantasy game particle asset, no text no UI, square 1024x1024."
+    },
+    {
+      "id": "fx-shard",
+      "prompt": "Single shard of shattered ornate black celestial armor with fractured dark magenta gem inside and etched wing carving, jagged fractured metal edges, highly detailed tangible material. Isolated centered genuinely transparent background. Premium dark fantasy summoning particle asset, no text no UI, square 1024x1024."
+    },
+    {
+      "id": "fx-wave",
+      "prompt": "Dark fantasy game VFX asset: broad circular dark shockwave ring expanding outward from empty transparent center, black smoke curls mixed with muted dark magenta glowing fractured energy threads and burnt ash. Genuinely transparent background, soft fading outer edges, circular centered complete composition, no text no white flare no hot pink. Premium detailed hand-painted VFX 1024x1024."
+    },
+    {
+      "id": "fx-wings",
+      "prompt": "Symmetrical pair of immense charred black angel wings spread open, no body, central gap for equipment, individually detailed ragged feather barbs, barely visible dark magenta edge light. Isolated centered on genuinely transparent background, all wing tips fit with margins. Premium dark fantasy game summoning afterimage VFX asset, no text no UI, landscape 1536x1024."
+    },
+    {
+      "id": "fx-rift",
+      "prompt": "Single narrow vertical jagged dimensional crack of dark magenta energy, #54113D with restrained #8A235F and tiny #C03A87 edges, branching thin fissures, smoky black crystalline edges. Isolated on genuinely transparent background, no environment, no text, no UI, no white flash. Premium dark fantasy summoning VFX asset, portrait 1024x1536."
+    }
+  ]
+}

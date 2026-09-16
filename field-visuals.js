@@ -31,3 +31,17 @@
  }
  window.RinguFieldVisual={draw,frame,load};
 })();
+
+/* World 2 uses independent background paintings and full boss cutouts. */
+(()=>{const old=window.RinguFieldVisual.draw,cache=new Map(),base='/linsa-rpg/art/world2/';
+function asset(name){if(cache.has(name))return cache.get(name);const im=new Image();im.decoding='async';im.src=base+name+'.webp';cache.set(name,im);if(cache.size>12){const first=cache.keys().next().value;if(first!==name)cache.delete(first);}return im;}
+window.RinguFieldVisual.draw=function(c,index,w,h,hitAge=Infinity,crit=false,reduced=false){
+ if(index<36)return old(c,index,w,h,hitAge,crit,reduced);
+ const n=index-36,bg=asset('bg-'+(Math.floor(n/6)+1)),boss=asset('boss-'+(n+1));c.clearRect(0,0,w,h);
+ if(bg.complete&&bg.naturalWidth){const scale=Math.max(w/bg.width,h/bg.height),bw=bg.width*scale,bh=bg.height*scale;c.drawImage(bg,(w-bw)/2,(h-bh)/2,bw,bh);}
+ const size=Math.min(w*.88,h*.69),x=(w-size)/2,y=h*.14,on=hitAge>=0&&hitAge<(reduced?130:280),fade=on?1-hitAge/(reduced?130:280):0,bump=on&&!reduced?Math.sin(hitAge*.1)*fade*Math.min(4,w*.008):0;
+ if(boss.complete&&boss.naturalWidth)c.drawImage(boss,x+bump,y,size,size);
+ const hit=asset('../world-boss/fx-v2');
+ if(on&&hit.complete&&hit.naturalWidth){c.save();c.globalCompositeOperation='screen';c.globalAlpha=fade*(crit?.85:.65);const reach=size*(crit?.45:.32);c.drawImage(hit,hit.width/2,0,hit.width/2,hit.height/2,w*.5-reach/2,y+size*.60-reach/2,reach,reach);c.restore();}
+ return {x,y,width:size,height:size,centerX:w*.5,centerY:y+size*.5};
+};})();

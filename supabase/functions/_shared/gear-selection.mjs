@@ -13,3 +13,4 @@ export function selectGear(candidates,rarity,roll){
  for(let i=0;i<candidates.length;i++){remaining-=weights[i];if(remaining<0)return candidates[i];}
  return candidates[candidates.length-1];
 }
+
