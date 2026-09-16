@@ -578,10 +578,10 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 </head>
 <script src="/linsa-rpg/safety.js?v=BM5-CQ3"></script>
 <script src="/linsa-rpg/art-catalog.js?v=NAME-RANK-FIX2"></script>
-<script src="/linsa-rpg/remodel.js?v=REVEAL-CONFIRM1"></script>
+<script src="/linsa-rpg/remodel.js?v=ABYSS-W2-1"></script>
 <script src="/linsa-rpg/social-style.js?v=NAME-RANK-MARKETS3"></script>
 <script src="/linsa-rpg/audio-engine.js?v=presentation-1"></script>
-<script src="/linsa-rpg/core-fixes.js?v=portrait-2"></script>
+<script src="/linsa-rpg/core-fixes.js?v=ABYSS-W2-1"></script>
 <script src="/linsa-rpg/stone-party.js?v=stone-hp-S3"></script>
 <link rel="stylesheet" href="/linsa-rpg/world-boss.css?v=WB3">
 <script src="/linsa-rpg/world-boss-model.js?v=WB1"></script>
@@ -600,7 +600,7 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 <script defer src="/linsa-rpg/costume-runtime.js?v=costume-live-1"></script>
 <script defer src="/linsa-rpg/costume-preview.js?v=linsa-shop-LS1"></script>
 <script defer src="/linsa-rpg/shop-controls.js?v=black-market-BM1"></script>
-<script defer src="/linsa-rpg/economy-client.js?v=ESSENCE-1P"></script>
+<script defer src="/linsa-rpg/economy-client.js?v=ABYSS-W2-1"></script>
 <link rel="stylesheet" href="/linsa-rpg/black-market.css?v=icons-BM5">
 <script defer src="/linsa-rpg/black-market.js?v=NAME-RANK-MARKETS3"></script>
 <script defer src="/linsa-rpg/ranking-ui.js?v=ranking-RK1"></script>
@@ -725,7 +725,7 @@ function load(){try{state=Object.assign({},defaults,JSON.parse(localStorage.getI
 function normalizeCharacter(){state.playerGender=state.playerGender==='female'?'female':'male';state.transcendStone=Math.max(0,Number(state.transcendStone)||0);state.downgradeProtect=Math.max(0,Number(state.downgradeProtect)||0);state.useProtect=!!state.useProtect;state.towerCleared=Math.min(30,Math.max(0,Number(state.towerCleared)||0));state.dungeonTickets=Math.max(0,Number(state.dungeonTickets)||0);state.ownedAuras=Array.isArray(state.ownedAuras)?[...new Set(state.ownedAuras.map(Number).filter(i=>i>=0&&i<auraShopItems.length))]:[];state.equippedAura=state.ownedAuras.includes(Number(state.equippedAura))?Number(state.equippedAura):-1;const today=kstInfo().date;if(!state.dungeons)state.dungeons={date:today,goldEntries:2,goldUnlocked:1,partyFree:2};if(state.dungeons.date!==today){state.dungeons.date=today;state.dungeons.goldEntries=2;state.dungeons.partyFree=2}state.dungeons.partyFree=Math.max(0,Number(state.dungeons.partyFree)||0);state.dungeons.goldUnlocked=Math.min(goldDungeonStages.length,Math.max(1,Math.floor(Number(state.dungeons.goldUnlocked)||1)));state.inventory.forEach(it=>{it.transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(it.rarity===5){const idx=itemIndex(it),oldKey=itemKey(it);it.name=itemName(it.slot,5,idx);state.discovered[itemKey(it)]=state.discovered[oldKey]!==false}if(it.rarity===6){if(!slots.includes(it.slot))it.slot='무기';const idx=itemIndex(it);it.name=itemName(it.slot,6,idx);it.baseAtk=fixedBaseAtk(it.slot,6,idx);state.discovered[itemKey(it)]=true}})}
 function save(markCloudDirty=true){state.lastSeen=Date.now();state.savedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(state));if(markCloudDirty){cloudDirty=true;cloudRevision++;scheduleCloudSave()}}
 function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>save(true),250)}
-function getSummonLevel(exp){let lv=1;for(let i=1;i<levelReq.length;i++)if(exp>=levelReq[i])lv=i+1;return lv}
+function getSummonLevel(exp){let lv=1;for(let i=1;i<levelReq.length;i++)if(exp>=levelReq[i])lv=i+1;return state.world2Unlocked&&lv>=15?16:lv}
 function activeSummon(){return state.summons[drawGroup]}
 const fallenWeaponNames=['타락의 멸망검','타락의 멸망도끼'];
 const fallenArmorNames=['타락의 멸망갑옷'];
@@ -1704,10 +1704,11 @@ rates.splice(0,rates.length,
   [64,22,12.45,1.5,.05,0],
   [57.95,24,13.945,4,.1,.005],
   [52,25,15.842,7,.15,.008],
-  [46,26,17.787,9.8,.4,.013]
+  [46,26,17.787,9.8,.4,.013],
+  [43.96,26,18,11,1,.04]
 );
 function ringuApplyBossBalanceV2(){
-  const hp=[[600,1932,2089,2247,2508,2823],[3114,3472,3830,4187,4784,5500],[7013,7956,8899,9842,11413,13299],[16209,18531,20853,23175,27046,31690],[42922,49252,55581,61910,72459,85118],[113170,130036,146903,163769,191880,225612]];
+  const hp=[[600,1932,2089,2247,2508,2823],[3114,3472,3830,4187,4784,5500],[7013,7956,8899,9842,11413,13299],[16209,18531,20853,23175,27046,31690],[42922,49252,55581,61910,72459,85118],[125000,180000,245000,320000,405000,500000]];
   const gold=[[7,24,26,28,31,35],[38,43,47,52,59,68],[87,99,111,123,142,166],[202,231,260,289,338,396],[536,615,694,773,905,1064],[1414,1625,1836,2047,2398,2820]];
   const names=[['초원 슬라임','초원 늑대','거대 멧돼지','숲의 고블린','초원 수호자','숲 정령'],['모래 전갈','사막 하이에나','고대 미라','모래폭풍 정령','사막의 폭군','사막의 왕'],['얼음 송곳니','설원 트롤','빙결 마녀','혹한의 거인','설원의 군주','서리 군주'],['잿불 와이번','용암 기사','마그마 주술사','흑요석 골렘','화산의 군주','화염 군주'],['새벽빛 수문장','은하의 기사','구름궁 현자','찬란한 세라프','별빛의 심판자','천공의 황제'],['심연 감시자','공허 기사','망각의 사제','검은 균열자','심연의 군주','공허의 지배자']];
   for(let r=0;r<hp.length;r++){
@@ -1732,7 +1733,7 @@ function transcendEquipmentRate(it){const r=Number(it.rarity)||0;if(r<4)return 0
 function enhanceMultiplier(level){level=Math.max(0,Math.min(15,Number(level)||0));return level<=10?1+level*.05:1.5+(level-10)*.20}
 function enhancedBaseAtk(base,level){base=Number(base)||0;level=Math.max(0,Math.min(15,Number(level)||0));const raw=base*enhanceMultiplier(level);return level>0?Math.max(Math.ceil(raw),Math.floor(base)+Math.min(level,10)+Math.max(0,level-10)*2):Math.floor(raw)}
 itemAtk=function(it){if(!it)return 0;const idx=itemIndex(it),isEpicArmor=([4,5].includes(Number(it.rarity))||(Number(it.rarity)===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&Number(it.rarity)>=3))&&it.name===itemName(it.slot,Number(it.rarity),idx),base=isEpicArmor?fixedBaseAtk(it.slot,Number(it.rarity),idx):(Number(it.baseAtk)||0),enhanced=enhancedBaseAtk(base,it.enhance),transcend=Math.min(3,Math.max(0,Number(it.transcend)||0)),rarity=Number(it.rarity)||0,rate=transcendEquipmentRate(it);return Math.floor(enhanced*(1+transcend*rate))};
-summonUnitCost=function(){return[250,250,250,500,500,500,1000,1000,1000,2500,7500,7500,18000,18000,18000][Math.max(1,Math.min(15,activeSummon().level))-1]};
+summonUnitCost=function(){return[250,250,250,500,500,500,1000,1000,1000,2500,7500,7500,18000,18000,18000,30000][Math.max(1,Math.min(16,activeSummon().level))-1]};
 canRollFallen=function(){return false};
 openRates=function(){let rows=rates.map((r,i)=>'<tr class="'+(i+1===activeSummon().level?'current':'')+'"><td>Lv.'+(i+1)+'</td>'+r.map((v,j)=>'<td style="color:'+rarityColors[j]+'">'+v+'%</td>').join('')+'</tr>').join('');$('rateTable').innerHTML='<p class="summon-kind">'+groupName(drawGroup)+' 소환 확률</p><table class="rate-table"><thead><tr><th>레벨</th>'+rarityNames.slice(0,6).map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table>';$('rateModal').classList.add('show')};
 tryEnhance=async function(){if(!await ensureCloudFreshForAction('강화'))return;const it=state.inventory.find(x=>x.id===enhanceId);if(!it||it.enhance>=15||enhanceBusy)return;const cost=enhanceCost(it),target=it.enhance+1;if(!spendGold(cost))return toast('강화 골드가 부족합니다.');enhanceBusy=true;renderTop();renderEnhance();const stage=$('enhanceStage');stage.className='enhance-stage forging';$('enhanceResult').textContent='';playForgeSound();setTimeout(()=>{const success=Math.random()*100<successRate(target);stage.className='enhance-stage '+(success?'success':'fail');if(success){it.enhance++;$('enhanceResult').textContent='강화 성공';toast('강화 성공! +'+it.enhance)}else if(target>=2&&state.useProtect&&state.downgradeProtect>0){state.downgradeProtect--;$('enhanceResult').textContent='하락 방지';toast('하락방지권 1장 사용 · 강화 수치 유지')}else{if(target>=2)it.enhance=Math.max(0,it.enhance-1);$('enhanceResult').textContent='강화 실패';toast(target>=2?'강화 실패 · +'+it.enhance+'로 하락':'강화 실패 · 강화 수치 유지')}enhanceBusy=false;renderAll();renderEnhance();saveChanceAction();setTimeout(()=>{if($('enhanceStage'))$('enhanceStage').className='enhance-stage'},650)},470)};

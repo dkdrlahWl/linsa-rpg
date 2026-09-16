@@ -42,8 +42,8 @@
         s.summons ||= {};
         for (const group of ['weapon','armor','accessory']) {
           s.summons[group] ||= {};
-          s.summons[group].level = 15;
-          s.summons[group].exp = Math.max(integer(s.summons[group].exp),g.levelReq[14]);
+          s.summons[group].level = s.world2Unlocked ? 16 : 15;
+          s.summons[group].exp = g.levelReq[14];
         }
       }
       for (const key of currencyKeys) s[key] = integer(s[key]);

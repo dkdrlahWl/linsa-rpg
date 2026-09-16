@@ -5,6 +5,14 @@
   const g=window.RinguCore,session=window.RinguSession;
   if(!g?.state||!window.RinguCloud?.economy||window.RinguEconomy)return;
   const f=g.fn,$=id=>document.getElementById(id),item=id=>g.state.inventory.find(x=>String(x.id)===String(id));
+  // A world entrance only: no selectable regions, enemies or new battle state.
+  const renderBosses=f.renderBosses;
+  f.renderBosses=(...args)=>{
+   const result=renderBosses(...args);let entrance=$('world2Entrance');
+   if(!entrance){entrance=document.createElement('button');entrance.id='world2Entrance';entrance.className='region-tab';entrance.style.cssText='margin:0 10px 9px;white-space:normal';$('regionTabs').after(entrance);entrance.onclick=()=>f.toast(g.state.world2Unlocked?'2세계 해금 완료 · 신규 지역은 추후 업데이트됩니다.':'심연의 공허의 지배자를 처치하면 2세계가 열립니다.');}
+   entrance.textContent=g.state.world2Unlocked?'2세계 · 해금 완료 · 추후 업데이트':'2세계 · 잠금 · 심연 최종 보스 처치 필요';
+   entrance.classList.toggle('locked',!g.state.world2Unlocked);return result;
+  };
   const messages={INVALID_CUBE_TARGET:'이 큐브를 사용할 수 없는 장비입니다.',INSUFFICIENT_JADECUBE:'비취 큐브가 부족합니다.',INSUFFICIENT_SUNCUBE:'태양 큐브가 부족합니다.',REQUEST_TOO_LARGE:'분해 요청이 너무 큽니다. 게임을 새로고침한 뒤 다시 시도해 주세요.',INSUFFICIENT_GOLD:'골드가 부족합니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',INSUFFICIENT_TRANSCENDSTONE:'초월석이 부족합니다.',INSUFFICIENT_PETSTONE:'펫 스톤이 부족합니다.',INSUFFICIENT_TICKET:'뽑기권이 없습니다.',ALREADY_CLAIMED:'이미 받은 보상입니다.',ALREADY_OWNED:'이미 보유하고 있습니다.',ALL_OWNED:'대상 오라를 모두 보유했습니다. 뽑기권은 유지됩니다.',ALL_PETS_MAX:'보유한 모든 펫이 만렙입니다.',ITEM_NOT_OWNED:'현재 보유한 장비가 아닙니다.',ITEM_LOCKED_OR_EQUIPPED:'장착 또는 잠금 해제 후 이용하세요.',ITEM_IN_ESCROW:'경매장에 등록 중인 장비입니다.',PET_NOT_OWNED:'현재 보유한 펫이 아닙니다.',DUNGEON_LOCKED:'입장 횟수 또는 이전 단계 클리어를 확인하세요.',MONSTER_LOCKED:'이전 몬스터를 먼저 처치하세요.',BATTLE_IN_PROGRESS:'현재 전투를 먼저 종료하세요.',COLLECTION_INCOMPLETE:'도감 달성 수가 부족합니다.',SAVE_CONFLICT:'다른 처리가 진행 중입니다. 잠시 후 다시 시도하세요.',INVALID_ARGUMENTS:'입력값을 확인하세요.',INVALID_ENHANCEMENT:'강화·초월 조건을 확인하세요.',ECONOMY_NOT_READY:'서버 업데이트 중입니다. 잠시 후 접속하세요.'};
   let pending=null,pendingName=null,forgeBusy=false,lastSync=0,backgroundRequested=false,lastLayout=null,lastInventory=null,lastProtection=null;
   let desiredProtection=null,protectionTask=null,interactiveReserved=false,syncTimer=null;
@@ -89,7 +97,7 @@
    // Combat ticks change HP/currency, not thousands of equipment DOM nodes.
    // Equipped IDs also change card badges, toggle labels and attack comparisons.
    const inventory=JSON.stringify([s.inventory,s.equipped]),inventoryChanged=inventory!==lastInventory;lastInventory=inventory;
-   const layout=JSON.stringify([s.ownedPets,s.equippedPet,s.ownedAuras,s.equippedAura,s.summons,s.regionIndex,s.bossIndex,s.monsterUnlockStep,s.playerGender,s.playerName,s.collectionClaims,s.discovered,s.mailbox,s.dailyRewardClaims,s.petSummonExp,s.discoveredPets,s.claimedPetCollectionRewards]);
+   const layout=JSON.stringify([s.ownedPets,s.equippedPet,s.ownedAuras,s.equippedAura,s.summons,s.regionIndex,s.bossIndex,s.monsterUnlockStep,s.world2Unlocked,s.playerGender,s.playerName,s.collectionClaims,s.discovered,s.mailbox,s.dailyRewardClaims,s.petSummonExp,s.discoveredPets,s.claimedPetCollectionRewards]);
    const layoutChanged=inventoryChanged||layout!==lastLayout;lastLayout=layout;
    if(layoutChanged)f.renderAll({inventory:inventoryChanged});else{f.renderTop();f.renderBattle();}
    if($('towerModal')?.classList.contains('show'))f.renderTower();
@@ -103,6 +111,7 @@
      else if(e.target==='tower')g.presentation.showTowerDamage(e.damage,e.crit);
      else g.presentation.showDungeonDamage(e.damage);
     }else if(e.type==='summon')window.RinguRemodel?.showServerDraw(e.items);
+    else if(e.type==='world2Unlocked')f.toast('2세계 해금! 15레벨 소환이 16레벨로 개방되었습니다.');
     else if(e.type==='petSummon')f.renderPetSummonResult(e.results);
     else if(e.type==='daily')showDailyReward(e.amount);
     else if(e.type==='dismantle')f.toast('장비 '+e.count.toLocaleString()+'개 분해 완료 · '+(e.essence?'정수 '+e.essence.toLocaleString()+'개 획득!':'획득한 정수 없음'));

@@ -11,6 +11,8 @@ window.installRinguRemodel=function(g){
  if(!g.rewardBalanceV3){g.rewardBalanceV3=true;g.bossRegions.forEach(r=>r.bosses.forEach(b=>b.reward*=2));g.collectionRewards.forEach(r=>r.gold*=10);g.towerFloors.forEach(r=>r.gold*=10);g.goldDungeonStages.forEach(r=>r.reward*=10);}
  // FG1: linear +4 percentage points per field step; never compound on reinstall.
  if(!g.fieldGoldFG1){g.fieldGoldFG1=true;let step=0;g.bossRegions.forEach(r=>r.bosses.forEach(b=>{b.reward=Math.floor(b.reward*(100+4*step++)/100);}));}
+ // Abyss rewards are final amounts, not inputs to the legacy reward multipliers.
+ g.bossRegions[5].bosses.forEach((b,i)=>{b.reward=[6875,10080,13965,18560,23895,30000][i];});
  function grantAuraMilestone(){const s=state();if(s.collectionClaims?.[50]&&!s.aura50TicketGranted){s.aura50TicketGranted=true;s.auraDrawTickets=Math.max(0,Math.floor(Number(s.auraDrawTickets)||0))+1;return true}return false;}
  const claimCollection=f.claimCollectionReward;f.claimCollectionReward=(count)=>{if(!active())return false;const result=claimCollection(count);if(grantAuraMilestone())changed();return result;};
  window.useAuraDrawTicket=()=>{const s=state();if(!active()||!(s.auraDrawTickets>0))return false;const pool=g.auraShopItems.map((_,i)=>i).filter(i=>i!==8&&!s.ownedAuras?.includes(i));if(!pool.length){f.toast('만화경 제외 모든 오라를 보유하고 있습니다. 뽑기권은 보관됩니다.');return false}const index=pool[Math.floor(Math.random()*pool.length)];s.auraDrawTickets--;s.ownedAuras??=[];s.ownedAuras.push(index);changed();window.RinguAudio?.effect('success');f.toast('✨ '+g.auraShopItems[index][0]+' 오라 획득');return index;};
@@ -200,4 +202,3 @@ window.installRinguRemodel=function(g){
  window.RinguRemodel={changed,equipMap,paintPetIcons,showServerDraw:firstReveals,serverHit:()=>{attackMotion={started:performance.now(),hit:true};window.RinguAudio?.effect('swing');}};
 };
 })();
-
