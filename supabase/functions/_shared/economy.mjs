@@ -6,7 +6,8 @@ import {CUBES,cubeType,initializeOptions,rollOption} from './cubes.mjs';
 export {balance};
 export const itemKey=it=>it.slot+'|'+it.rarity+'|'+it.name;
 const catalogue=new Map(balance.gear.map(it=>[itemKey(it),it]));
-const epicArmor=it=>(it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&it.rarity>=3);
+// Canonicalize legacy legendary gear too, including auction/mail items on their next sync.
+const epicArmor=it=>it.rarity===4||(it.rarity===3&&['투구','갑옷','바지','신발'].includes(it.slot))||(it.slot==='무기'&&it.rarity>=3);
 const canonicalBase=it=>epicArmor(it)?(catalogue.get(itemKey(it))?.baseAtk??it.baseAtk):it.baseAtk;
 const fail=code=>{throw Error(code);};
 const int=(v,min=0,max=Number.MAX_SAFE_INTEGER)=>{if(!Number.isSafeInteger(v)||v<min||v>max)fail('INVALID_ARGUMENTS');return v;};
@@ -222,4 +223,3 @@ export function execute(snapshot,command,args,context){
  s.remodelProfile={v:4,uid:s.playerUid,name:s.playerName,power:stats(s,context.costumePercent||0).attack,region:balance.bossRegions[s.regionIndex]?.name,boss:balance.bossRegions[s.regionIndex]?.bosses[s.bossIndex]?.name,tower:s.towerCleared||0,gender:s.playerGender,hideHelmet:true,ownedAuras:s.ownedAuras,equippedAura:s.equippedAura,updated:now,equipment:balance.slots.map(slot=>s.inventory.find(it=>it.id===s.equipped[slot])).filter(Boolean).map(it=>({s:it.slot,n:it.name,r:it.rarity,e:it.enhance,t:it.transcend||0,ba:it.baseAtk,a:itemAttack(it),o:options(it)})),pet:pet?{...pet,...petData,s:balance.petLevelStats[pet.petId]?.[pet.level-1]||{}}:null};
  return {state:s,events};
 }
-
