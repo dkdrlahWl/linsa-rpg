@@ -1,6 +1,6 @@
 /* Fixed-price equipment marketplace. No local listings or client-side transfers. */
 (()=>{'use strict';
- const errors={AUCTION_LISTING_LIMIT:'판매 중인 물품은 계정당 최대 8개입니다. 내 판매에서 취소하거나 판매 완료 후 등록해 주세요.',AUCTION_NOT_READY:'경매장 서버 연동을 준비 중입니다.',ECONOMY_MIGRATION_REQUIRED:'정수·장비의 서버 검증 전환이 필요합니다. 아직 거래할 수 없습니다.',ACCOUNT_MIGRATION_REQUIRED:'계정 장비 이전이 완료되지 않았습니다.',ALREADY_SOLD:'이미 판매된 상품입니다.',LISTING_CLOSED:'판매가 취소된 상품입니다.',LISTING_NOT_FOUND:'상품을 찾을 수 없습니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',ITEM_NOT_OWNED:'실제로 보유한 장비만 등록할 수 있습니다.',ITEM_EQUIPPED:'장착을 먼저 해제해 주세요.',ITEM_LOCKED:'장비 잠금을 먼저 해제해 주세요.',ITEM_UNTRADABLE:'거래할 수 없는 장비입니다.',SELF_PURCHASE:'자신의 상품은 구매할 수 없습니다.',NOT_SELLER:'판매자만 취소할 수 있습니다.',INVALID_NUMBER:'가격은 1 이상의 안전한 정수로 입력해 주세요.',SELLER_BALANCE_LIMIT:'판매자의 정수 보유 한도로 거래할 수 없습니다.',ITEM_STATE_CONFLICT:'장비 상태가 변경되었습니다. 새로 조회해 주세요.',ECONOMY_COMMAND_REQUIRED:'게임 서버 검증 전환이 필요합니다. 거래를 중단했습니다.'};
+ const errors={INVALID_CURRENCY:'판매 재화를 선택해 주세요.',CURRENCY_CHANGED:'거래 재화가 다릅니다. 새로고침 후 다시 구매해 주세요.',INSUFFICIENT_GOLD:'골드가 부족합니다.',AUCTION_LISTING_LIMIT:'판매 중인 물품은 계정당 최대 8개입니다. 내 판매에서 취소하거나 판매 완료 후 등록해 주세요.',AUCTION_NOT_READY:'경매장 서버 연동을 준비 중입니다.',ECONOMY_MIGRATION_REQUIRED:'정수·장비의 서버 검증 전환이 필요합니다. 아직 거래할 수 없습니다.',ACCOUNT_MIGRATION_REQUIRED:'계정 장비 이전이 완료되지 않았습니다.',ALREADY_SOLD:'이미 판매된 상품입니다.',LISTING_CLOSED:'판매가 취소된 상품입니다.',LISTING_NOT_FOUND:'상품을 찾을 수 없습니다.',INSUFFICIENT_ESSENCE:'정수가 부족합니다.',ITEM_NOT_OWNED:'실제로 보유한 장비만 등록할 수 있습니다.',ITEM_EQUIPPED:'장착을 먼저 해제해 주세요.',ITEM_LOCKED:'장비 잠금을 먼저 해제해 주세요.',ITEM_UNTRADABLE:'거래할 수 없는 장비입니다.',SELF_PURCHASE:'자신의 상품은 구매할 수 없습니다.',NOT_SELLER:'판매자만 취소할 수 있습니다.',INVALID_NUMBER:'가격은 1 이상의 안전한 정수로 입력해 주세요.',SELLER_BALANCE_LIMIT:'판매자의 재화 보유 한도로 거래할 수 없습니다.',ITEM_STATE_CONFLICT:'장비 상태가 변경되었습니다. 새로 조회해 주세요.',ECONOMY_COMMAND_REQUIRED:'게임 서버 검증 전환이 필요합니다. 거래를 중단했습니다.'};
  window.RinguAuctionMessages=errors;
  let g,modal,body,message,tab='search',page=0,rows=[],ready=false,busy=false,requestSequence=0,timer,activeListingCount=null;
  let unreadSales=0,notificationTimer,notificationBusy=false,notificationEpoch=0,markSalesRead=false;
@@ -16,6 +16,7 @@
  }
  function listingNotice(){return activeListingCount===null?'등록 한도를 확인하지 못했습니다. 경매장을 다시 열어 주세요.':errors.AUCTION_LISTING_LIMIT;}
  const esc=s=>g.fn.escapeHtml(String(s??'')),fmt=n=>Number(n).toLocaleString('ko-KR');
+ const currencyName=c=>c==='gold'?'골드':'정수',currencyIcon=c=>c==='gold'?'🪙':'💎';
  const translate=e=>errors[e.message]||(/ringu_auction|PGRST202/.test(e.message)?errors.AUCTION_NOT_READY:'처리하지 못했습니다. 연결 상태를 확인해 주세요.');
  async function rpc(action,args={},requestId=null){const r=await fetch('/api/auction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,args,requestId})});const d=await r.json();if(!r.ok)throw Error(d.error||'SERVER_ERROR');return d;}
  // AU2: every card uses the same per-item calculations as the equipment detail.
@@ -29,12 +30,12 @@
  function note(text){message.textContent=text;}
  function canList(it){return !it.locked&&!g.fn.isItemEquipped(it)&&it.tradable!==false&&it.tradeable!==false&&!it.bound&&!it.soulbound&&!it.boundTo;}
  function controls(){modal.querySelectorAll('[data-tab]').forEach(b=>{b.disabled=busy;b.classList.toggle('primary',b.dataset.tab===tab);});}
- function filters(){return {page,query:modal.querySelector('[name=query]')?.value||'',slot:modal.querySelector('[name=slot]')?.value||'',rarity:modal.querySelector('[name=rarity]')?.value===''?null:Number(modal.querySelector('[name=rarity]')?.value),sort:modal.querySelector('[name=sort]')?.value||'newest',side:modal.querySelector('[name=side]')?.value||'sell'};}
- function form(){return '<form id="auctionFilters"><input name="query" placeholder="장비 이름 검색" maxlength="80" aria-label="장비 이름"><select name="slot" aria-label="장비 부위"><option value="">모든 부위</option>'+g.slots.map(s=>'<option>'+esc(s)+'</option>').join('')+'</select><select name="rarity" aria-label="등급"><option value="">모든 등급</option>'+g.rarityNames.map((s,i)=>'<option value="'+i+'">'+esc(s)+'</option>').join('')+'</select><select name="sort" aria-label="정렬"><option value="newest">최신 등록순</option><option value="priceAsc">낮은 가격순</option><option value="priceDesc">높은 가격순</option></select><button>검색</button></form>';}
+ function filters(){return {page,currency:modal.querySelector('[name=currency]')?.value||'',query:modal.querySelector('[name=query]')?.value||'',slot:modal.querySelector('[name=slot]')?.value||'',rarity:modal.querySelector('[name=rarity]')?.value===''?null:Number(modal.querySelector('[name=rarity]')?.value),sort:modal.querySelector('[name=sort]')?.value||'newest',side:modal.querySelector('[name=side]')?.value||'sell'};}
+ function form(){return '<form id="auctionFilters"><input name="query" placeholder="장비 이름 검색" maxlength="80" aria-label="장비 이름"><select name="slot" aria-label="장비 부위"><option value="">모든 부위</option>'+g.slots.map(s=>'<option>'+esc(s)+'</option>').join('')+'</select><select name="rarity" aria-label="등급"><option value="">모든 등급</option>'+g.rarityNames.map((s,i)=>'<option value="'+i+'">'+esc(s)+'</option>').join('')+'</select><select name="currency" aria-label="거래 재화"><option value="">모든 재화</option><option value="essence">정수</option><option value="gold">골드</option></select><select name="sort" aria-label="정렬"><option value="newest">최신 등록순</option><option value="priceAsc">낮은 가격순</option><option value="priceDesc">높은 가격순</option></select><button>검색</button></form>';}
  async function refresh(){
   if(!modal.classList.contains('show')||busy)return;const seq=++requestSequence;
   try{
-   const status=await rpc('status');if(seq!==requestSequence)return;ready=status.ready;updateListingCount(status);if(!markSalesRead)badges(status.unreadSales);modal.querySelector('#auctionBalance').textContent='💎 정수 '+fmt(status.essence||0);
+   const status=await rpc('status');if(seq!==requestSequence)return;ready=status.ready;updateListingCount(status);if(!markSalesRead)badges(status.unreadSales);modal.querySelector('#auctionBalance').textContent='💎 정수 '+fmt(status.essence||0)+' · 🪙 골드 '+fmt(status.gold||0);
    if(!ready){body.innerHTML='';note(errors[status.reason]||errors.AUCTION_NOT_READY);return;}
    if(tab==='list'){
     if(listingBlocked()){rows=[];body.innerHTML='<p>계정당 판매 중인 물품은 최대 8개입니다. 기존 물품은 유지되며, 판매 완료 또는 취소로 빈자리가 생기면 다시 등록할 수 있습니다.</p>';note(listingNotice());return;}
@@ -43,8 +44,8 @@
    }
    const args=filters();if(args.rarity===null||!Number.isFinite(args.rarity))delete args.rarity;
    const acknowledging=tab==='history'&&markSalesRead;if(acknowledging)args.markSalesRead=true;const result=await rpc(tab,args);if(acknowledging){markSalesRead=false;notificationEpoch++;badges(0);}if(seq!==requestSequence)return;rows=result.rows;
-   const list=body.querySelector('#auctionRows');list.innerHTML=rows.map((r,i)=>'<button class="auction-card" data-row="'+i+'">'+itemSummary(r.item)+'<b class="auction-price">💎 '+fmt(r.price)+' 정수</b><time>'+esc(new Date(r.traded_at||r.created_at).toLocaleString('ko-KR'))+'</time></button>').join('')||'<p>등록된 물품이나 거래 내역이 없습니다.</p>';
-   body.querySelector('#auctionPage').textContent=(page+1)+' / '+Math.max(1,Math.ceil(result.total/20));body.querySelector('[data-auction-page="-1"]').disabled=page===0;body.querySelector('[data-auction-page="1"]').disabled=(page+1)*20>=result.total;note('수수료 0% · 정수로만 거래합니다.');
+   const list=body.querySelector('#auctionRows');list.innerHTML=rows.map((r,i)=>'<button class="auction-card" data-row="'+i+'">'+itemSummary(r.item)+'<b class="auction-price">'+currencyIcon(r.currency)+' '+fmt(r.price)+' '+currencyName(r.currency)+'</b><time>'+esc(new Date(r.traded_at||r.created_at).toLocaleString('ko-KR'))+'</time></button>').join('')||'<p>등록된 물품이나 거래 내역이 없습니다.</p>';
+   body.querySelector('#auctionPage').textContent=(page+1)+' / '+Math.max(1,Math.ceil(result.total/20));body.querySelector('[data-auction-page="-1"]').disabled=page===0;body.querySelector('[data-auction-page="1"]').disabled=(page+1)*20>=result.total;note('수수료 0% · 판매자가 선택한 정수 또는 골드로 거래합니다.');
   }catch(e){if(seq===requestSequence)note(translate(e));}
  }
  function selectTab(value){if(value==='history'){markSalesRead=true;notificationEpoch++;}tab=value;page=0;requestSequence++;modal.querySelector('#auctionDetail').hidden=true;body.hidden=false;scrollTop();controls();body.innerHTML=(tab==='search'?form():tab==='history'?'<label>내역 구분 <select name="side"><option value="sell">판매 내역</option><option value="buy">구매 내역</option></select></label>':'')+(tab==='list'?'':'<div id="auctionRows" class="auction-grid"></div><div class="auction-pages"><button data-auction-page="-1">이전</button><span id="auctionPage"></span><button data-auction-page="1">다음</button></div>');void refresh();}
@@ -52,26 +53,26 @@
   const row=rows[index];if(!row||busy||!ready)return;
   if(tab==='list'&&listingBlocked())return note(listingNotice());
   const it=row.item;
-  const panel=modal.querySelector('#auctionDetail');panel.innerHTML=detail(it)+(tab==='list'?'<label>판매 가격 (정수)<input id="auctionPrice" inputmode="numeric" autocomplete="off" placeholder="1 이상 정수"></label>':'<h3>💎 '+fmt(row.price)+' 정수</h3>')+'<p id="auctionConfirmBalance"></p>'+(tab==='history'?'':'<button id="auctionConfirm" '+(tab==='search'&&row.mine?'disabled':'')+'>'+(tab==='list'?'등록 확인':tab==='mine'?'판매 취소 확인':row.mine?'내가 등록한 상품':'구매 확인')+'</button>')+'<button id="auctionBack">돌아가기</button>';panel.hidden=false;body.hidden=true;scrollTop();
+  const panel=modal.querySelector('#auctionDetail');panel.innerHTML=detail(it)+(tab==='list'?'<label>판매 재화<select id="auctionCurrency"><option value="essence" selected>정수</option><option value="gold">골드</option></select></label><label>판매 가격<input id="auctionPrice" inputmode="numeric" autocomplete="off" placeholder="1 이상 정수"></label>':'<h3>'+currencyIcon(row.currency)+' '+fmt(row.price)+' '+currencyName(row.currency)+'</h3>')+'<p id="auctionConfirmBalance"></p>'+(tab==='history'?'':'<button id="auctionConfirm" '+(tab==='search'&&row.mine?'disabled':'')+'>'+(tab==='list'?'등록 확인':tab==='mine'?'판매 취소 확인':row.mine?'내가 등록한 상품':'구매 확인')+'</button>')+'<button id="auctionBack">돌아가기</button>';panel.hidden=false;body.hidden=true;scrollTop();
   panel.querySelector('#auctionBack').onclick=()=>{panel.hidden=true;body.hidden=false;};
   const balanceRequest=tab==='search'?rpc('status'):null;
   const confirmButton=panel.querySelector('#auctionConfirm');if(!confirmButton)return;
   confirmButton.onclick=async()=>{
    if(busy)return;
    if(tab==='list'&&listingBlocked())return note(listingNotice());
-   let price=row.price;
+   let price=row.price;const currency=tab==='list'?panel.querySelector('#auctionCurrency').value:(row.currency||'essence');
    if(tab==='list'){const raw=panel.querySelector('#auctionPrice').value.trim();price=Number(raw);if(!/^\d+$/.test(raw)||!Number.isSafeInteger(price)||price<1)return note(errors.INVALID_NUMBER);}
    const action=tab==='list'?'list':tab==='mine'?'cancel':'buy';
-   if(!confirm(it.name+' · 강화 +'+(it.enhance||0)+' · 초월 '+(it.transcend||0)+'\n'+(action==='cancel'?'판매를 취소하고 이 장비를 돌려받을까요?':fmt(price)+' 정수에 '+(action==='list'?'등록':'구매')+'할까요?')))return;
-   busy=true;controls();note('서버에서 '+(action==='list'?'등록':action==='buy'?'구매':'취소')+' 처리 중입니다…');panel.querySelectorAll('button,input').forEach(b=>b.disabled=true);
+   if(!confirm(it.name+' · 강화 +'+(it.enhance||0)+' · 초월 '+(it.transcend||0)+'\n'+(action==='cancel'?'판매를 취소하고 이 장비를 돌려받을까요?':fmt(price)+' '+currencyName(currency)+'에 '+(action==='list'?'등록':'구매')+'할까요?')))return;
+   busy=true;controls();note('서버에서 '+(action==='list'?'등록':action==='buy'?'구매':'취소')+' 처리 중입니다…');panel.querySelectorAll('button,input,select').forEach(b=>b.disabled=true);
    try{
     if(typeof RinguSession.auctionTransaction!=='function')throw Error('AUCTION_NOT_READY');
-    await RinguSession.auctionTransaction(action,action==='list'?{itemId:it.id,price}:{listingId:row.id});
+    await RinguSession.auctionTransaction(action,action==='list'?{itemId:it.id,price,currency}:action==='buy'?{listingId:row.id,currency}:{listingId:row.id});
     panel.hidden=true;body.hidden=false;note('처리 완료. 서버 기록을 반영했습니다.');
    }catch(e){if(e.message==='AUCTION_LISTING_LIMIT')activeListingCount=Math.max(LISTING_LIMIT,activeListingCount||0);note(translate(e));}
-   finally{busy=false;controls();panel.querySelectorAll('button,input').forEach(b=>b.disabled=false);if(tab==='list'&&listingBlocked())confirmButton.disabled=true;void refresh();}
+   finally{busy=false;controls();panel.querySelectorAll('button,input,select').forEach(b=>b.disabled=false);if(tab==='list'&&listingBlocked())confirmButton.disabled=true;void refresh();}
   };
-  if(balanceRequest){const label=confirmButton.textContent;confirmButton.disabled=true;confirmButton.textContent='보유 정수 확인 중…';balanceRequest.then(s=>{if(panel.querySelector('#auctionConfirm')!==confirmButton)return;panel.querySelector('#auctionConfirmBalance').textContent='현재 '+fmt(s.essence)+' 정수 → 구매 후 '+fmt(s.essence-row.price)+' 정수';confirmButton.textContent=label;confirmButton.disabled=!!row.mine;}).catch(e=>note(translate(e)));}
+  if(balanceRequest){const label=confirmButton.textContent;confirmButton.disabled=true;confirmButton.textContent='보유 재화 확인 중…';balanceRequest.then(s=>{if(panel.querySelector('#auctionConfirm')!==confirmButton)return;panel.querySelector('#auctionConfirmBalance').textContent='현재 '+fmt(s[row.currency||'essence']||0)+' '+currencyName(row.currency)+' → 구매 후 '+fmt((s[row.currency||'essence']||0)-row.price)+' '+currencyName(row.currency);confirmButton.textContent=label;confirmButton.disabled=!!row.mine||(s[row.currency||'essence']||0)<row.price;}).catch(e=>note(translate(e)));}
  }
  window.addEventListener('ringu-ready',()=>{
   g=RinguCore;modal=document.createElement('div');modal.id='ringuAuction';modal.className='modal-bg';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','경매장');
