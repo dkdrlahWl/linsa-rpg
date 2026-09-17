@@ -132,11 +132,14 @@ export function execute(snapshot,command,args,context){
  if(command==='wheelSpin'){
   if(args.version!==2)fail('INVALID_WHEEL_VERSION');
   const today=kstDay(now);if(s.dailyWheel?.day!==today)s.dailyWheel={day:today,used:0};
-  if(int(s.dailyWheel.used,0,3)>=3)fail('DAILY_WHEEL_LIMIT');
+  const previousUsed=int(s.dailyWheel.used),bonus=int(s.wheelBonusSpins||0);
+  if(previousUsed>=3){if(!bonus)fail('DAILY_WHEEL_LIMIT');s.wheelBonusSpins=bonus-1;}
   const prizes=[{label:'전설 장비 상자 1개',reward:{gold:0,wheelBox:4}},{label:'에픽 장비 상자 1개',reward:{gold:0,wheelBox:3}},{label:'하락방지권 1개',reward:{downgradeProtect:1}},{label:'초월석 2개',reward:{transcendStone:2}},{label:'펫스톤 3개',reward:{petStone:3}},{label:'정수 5개',reward:{essence:5}},{label:'골드 1,000,000',reward:{gold:1000000}},{label:'꽝',reward:{gold:0}},{label:'신화 장비 상자 1개',reward:{gold:0,wheelBox:5}}];
   const weights=[5,25,120,150,150,200,300,49,1];
   let roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000),index=7;
   for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
+  const guarantee=s.wheelOneTimeGuarantee;
+  if(guarantee&&guarantee.day===today&&guarantee.spin===s.dailyWheel.used+1&&!guarantee.claimedAt){index=8;guarantee.claimedAt=now;}
   const used=++s.dailyWheel.used,prize=prizes[index],mailId='daily-wheel:'+today+':'+used+':'+index;
   s.mailbox.unshift({id:mailId,title:'행운의 돌림판 · '+prize.label,message:index===7?'아쉽게도 이번에는 꽝입니다. 다음 행운을 기대해 주세요!':prize.reward.wheelBox?'받기를 누르면 상자가 열리고 장비 1개가 공개됩니다.':'돌림판 당첨 보상입니다. 받기를 눌러 수령해 주세요.',reward:prize.reward,createdAt:now});
   s.dailyWheel.last={index,label:prize.label,mailId,at:now};events.push({type:'wheelSpin',...s.dailyWheel.last,used,day:today});
