@@ -1,6 +1,13 @@
 /* W2-1: presentation/data adapters. Currency, RNG, unlocks and XP remain server-only. */
 (()=>{'use strict';
 const W=window.RinguWorld2Data,base='/linsa-rpg/art/world2/',lookup=new Map(W.gear.map(x=>[x.slot+'|'+x.name,x]));
+// W2_FINAL_HP_V1: same final-boss values as the authoritative server; rewards stay unchanged.
+const world2FinalHp=[925000,2305000,2922000,5770000,8680000];
+world2FinalHp.forEach((hp,i)=>{
+ const boss=W.regions[i]?.bosses[5],id='w2-boss-'+String((i+1)*6).padStart(2,'0');
+ if(boss?.id!==id)throw Error('INVALID_WORLD2_FINAL_BOSS');
+ boss.hp=hp;
+});
 const template=it=>Number(it?.rarity)===6?lookup.get(it.slot+'|'+it.name):null;
 window.installRinguWorld2=function(g){
  if(g.world2Installed)return;g.world2Installed=true;
