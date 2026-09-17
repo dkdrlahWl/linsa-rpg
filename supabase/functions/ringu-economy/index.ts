@@ -59,7 +59,7 @@ Deno.serve(async request=>{
   const message=e instanceof Error?e.message:'SERVER_ERROR';
   // A transport failure can occur after COMMIT. Do not label it a definitive
   // business rejection: the browser must retain and replay the same receipt ID.
-  const business=/^(INVALID_[A-Z_]+|INSUFFICIENT_[A-Z_]+|ITEM_[A-Z_]+|PET_NOT_OWNED|ALREADY_[A-Z_]+|ALL_[A-Z_]+|NOT_OWNED|DUNGEON_LOCKED|MONSTER_LOCKED|BATTLE_IN_PROGRESS|DAILY_BOSS_LIMIT|COLLECTION_INCOMPLETE|MAIL_NOT_FOUND|UNKNOWN_EQUIPMENT|REQUEST_ID_REUSED|REQUEST_ID_REQUIRED)$/.test(message);
+  const business=/^(INVALID_[A-Z_]+|INSUFFICIENT_[A-Z_]+|ITEM_[A-Z_]+|PET_NOT_OWNED|ALREADY_[A-Z_]+|ALL_[A-Z_]+|NOT_OWNED|DUNGEON_LOCKED|MONSTER_LOCKED|BATTLE_IN_PROGRESS|DAILY_BOSS_LIMIT|DAILY_WHEEL_LIMIT|WHEEL_BOX_PENDING|COLLECTION_INCOMPLETE|MAIL_NOT_FOUND|UNKNOWN_EQUIPMENT|REQUEST_ID_REUSED|REQUEST_ID_REQUIRED)$/.test(message);
   return respond({error:business||/^(SESSION_|LOGIN_REQUIRED|SAVE_CONFLICT)/.test(message)?message:'SERVER_RETRY_REQUIRED'},/SESSION_|LOGIN_REQUIRED/.test(message)?401:message==='SAVE_CONFLICT'?409:business?400:503);
  }
 });

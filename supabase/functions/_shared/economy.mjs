@@ -60,7 +60,7 @@ export function execute(snapshot,command,args,context){
  const addItem=template=>{const id=freshId(),it={...template,id,auctionUid:context.uuid(),enhance:template.enhance||0,transcend:template.transcend||0};s.discovered??={};it.isNew=!s.discovered[itemKey(it)];s.discovered[itemKey(it)]=true;initializeOptions(it);s.inventory.unshift(it);s.uid=Math.max(s.uid||1,id+1);return it;};
  if(!args||typeof args!=='object'||Array.isArray(args))fail('INVALID_ARGUMENTS');
  const allowed={sync:[],background:[],daily:[],summon:['group','count'],enhance:['id','protect'],transcend:['id'],equip:['id'],equipBest:[],unequip:['slot'],lock:['id','locked'],dismantle:['ids'],sell:['ids'],auraBuy:['id'],auraEquip:['id'],auraTicket:[],consumable:['type'],collection:['count'],mail:['id'],select:['region','boss'],auto:['enabled'],startDungeon:['type','stage'],cancelBattle:[],petSummon:['count'],petEquip:['uid'],petLock:['uid','locked'],petSell:['uid'],petCollection:['count']};
- allowed.setProtect=['enabled'];allowed.cubeBuy=['type'];allowed.cubeRoll=['id','type'];
+ allowed.wheelSpin=[];allowed.wheelBoxAck=['id'];allowed.setProtect=['enabled'];allowed.cubeBuy=['type'];allowed.cubeRoll=['id','type'];
  if(!allowed[command]||Object.keys(args).some(k=>!allowed[command].includes(k)))fail('INVALID_ARGUMENTS');
  for(const key of ['gold','essence','transcendStone','downgradeProtect','dungeonTickets','petStone','petTicket','jadeCube','sunCube'])s[key]=int(s[key]||0);
  if(context.adminFloor>0){
@@ -129,7 +129,19 @@ export function execute(snapshot,command,args,context){
  s.serverClock=now;
  s.serverBackgroundAt=command==='background'?now:null;
  pets.normalize(s,balance.pets);
- if(command==='setProtect'){
+ if(command==='wheelSpin'){
+  const today=kstDay(now);if(s.dailyWheel?.day!==today)s.dailyWheel={day:today,used:0};
+  if(int(s.dailyWheel.used,0,3)>=3)fail('DAILY_WHEEL_LIMIT');
+  const prizes=[{label:'전설 장비 상자 1개',reward:{gold:0,wheelBox:4}},{label:'에픽 장비 상자 1개',reward:{gold:0,wheelBox:3}},{label:'하락방지권 1개',reward:{downgradeProtect:1}},{label:'초월석 2개',reward:{transcendStone:2}},{label:'펫스톤 3개',reward:{petStone:3}},{label:'정수 5개',reward:{essence:5}},{label:'골드 1,000,000',reward:{gold:1000000}},{label:'꽝',reward:{gold:0}}];
+  const weights=[5,25,120,150,150,200,300,50];
+  let roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000),index=7;
+  for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
+  const used=++s.dailyWheel.used,prize=prizes[index],mailId='daily-wheel:'+today+':'+used+':'+index;
+  s.mailbox.unshift({id:mailId,title:'행운의 돌림판 · '+prize.label,message:index===7?'아쉽게도 이번에는 꽝입니다. 다음 행운을 기대해 주세요!':prize.reward.wheelBox?'받기를 누르면 상자가 열리고 장비 1개가 공개됩니다.':'돌림판 당첨 보상입니다. 받기를 눌러 수령해 주세요.',reward:prize.reward,createdAt:now});
+  s.dailyWheel.last={index,label:prize.label,mailId,at:now};events.push({type:'wheelSpin',...s.dailyWheel.last,used,day:today});
+ }else if(command==='wheelBoxAck'){
+  if(s.wheelBoxReveal?.mailId===args.id)s.wheelBoxReveal=null;
+ }else if(command==='setProtect'){
   if(typeof args.enabled!=='boolean')fail('INVALID_ARGUMENTS');s.useProtect=args.enabled;
  }else if(command==='petSummon'){
   if(![1,10].includes(args.count))fail('INVALID_ARGUMENTS');if(s.petStone<args.count*10)fail('INSUFFICIENT_PETSTONE');
@@ -210,7 +222,15 @@ export function execute(snapshot,command,args,context){
   const id=String(args.id),mail=s.mailbox.find(m=>String(m.id)===id);if(!mail)fail('MAIL_NOT_FOUND');s.claimedMailReceipts??={};if(s.claimedMailReceipts[id])fail('ALREADY_CLAIMED');
   // Mail exists in trusted server state. Browser never submits its reward payload.
   const normalizeReward=value=>{if(!value||typeof value!=='object')return {};const out={...normalizeReward(value.reward),...value};const key={gold:'gold',essence:'essence',stone:'transcendStone',goldDungeonEntry:'goldDungeonEntry'}[value.rewardType];if(key)out[key]=value.amount;if(value.rewardType==='uidGoldProtect'){out.gold=100000000;out.downgradeProtect=3;}return out;};
-  const reward=normalizeReward(mail.reward);for(const key of ['gold','essence','transcendStone','downgradeProtect','petStone','petTicket','auraDrawTickets','jadeCube','sunCube'])if(reward[key])award(key,reward[key]);
+  const reward=normalizeReward(mail.reward);
+  if(reward.wheelBox){
+   if(s.wheelBoxReveal)fail('WHEEL_BOX_PENDING');
+   const rarity=int(reward.wheelBox,3,4),slot=balance.slots[Math.floor(random()*balance.slots.length)],candidates=balance.gear.filter(x=>x.rarity===rarity&&x.slot===slot);
+   const base=selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
+   const item=addItem({...base,optionRolls:[.8,.8],cubeVersion:1,cubeTier:0,enhance:0,transcend:0});
+   s.wheelBoxReveal={mailId:id,rarity,item};events.push({type:'wheelBox',...s.wheelBoxReveal});
+  }
+  for(const key of ['gold','essence','transcendStone','downgradeProtect','petStone','petTicket','auraDrawTickets','jadeCube','sunCube'])if(reward[key])award(key,reward[key]);
   if(reward.stone)award('transcendStone',reward.stone);if(reward.goldDungeonEntry)s.dungeons.goldEntries=safeAdd(s.dungeons.goldEntries,reward.goldDungeonEntry);
   for(const it of [...(reward.items||[]),...(reward.item?[reward.item]:[])]){if(!balance.gear.some(g=>g.slot===it.slot&&g.rarity===it.rarity&&g.name===it.name))fail('UNKNOWN_EQUIPMENT');addItem(it);}
   s.claimedMailReceipts[id]=now;s.mailbox=s.mailbox.filter(m=>String(m.id)!==id);
@@ -233,3 +253,4 @@ export function execute(snapshot,command,args,context){
  s.remodelProfile={v:4,uid:s.playerUid,name:s.playerName,power:stats(s,context.costumePercent||0).attack,region:balance.bossRegions[s.regionIndex]?.name,boss:balance.bossRegions[s.regionIndex]?.bosses[s.bossIndex]?.name,tower:s.towerCleared||0,gender:s.playerGender,hideHelmet:true,ownedAuras:s.ownedAuras,equippedAura:s.equippedAura,updated:now,equipment:balance.slots.map(slot=>s.inventory.find(it=>it.id===s.equipped[slot])).filter(Boolean).map(it=>({s:it.slot,n:it.name,r:it.rarity,e:it.enhance,t:it.transcend||0,ba:it.baseAtk,a:itemAttack(it),o:options(it)})),pet:pet?{...pet,...petData,s:balance.petLevelStats[pet.petId]?.[pet.level-1]||{}}:null};
  return {state:s,events};
 }
+
