@@ -6,6 +6,8 @@ window.installRinguWorld2=function(g){
  if(g.world2Installed)return;g.world2Installed=true;
  const f=g.fn,$=id=>document.getElementById(id),esc=x=>f.escapeHtml(String(x??'')),fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
  g.bossRegions[5].name='심연';
+ // ABYSS_FINAL_HP_680K: matches the authoritative server; reward stays unchanged.
+ g.bossRegions[5].bosses[5].hp=680000;
  g.bossRegions.splice(6,g.bossRegions.length-6,...structuredClone(W.regions));
  g.rates.splice(15,g.rates.length-15,...W.rates.map(x=>[...x]));
  g.rarityNames[1]='고급';g.rarityNames[2]='희귀';g.rarityColors[6]='#763653';
