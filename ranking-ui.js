@@ -60,14 +60,15 @@
    if(previousFocus){const target=[...list.querySelectorAll('.rk-row')].find(r=>r.dataset.rkProfile===previousFocus);target?.focus({preventScroll:true});}
    const mine=myIndex>=0?rows[myIndex].p:null;myRank.disabled=!mine;myRank.replaceChildren(node('span','rk-my-label',mine?'내 순위':g.state.rankingHidden?'랭킹 제외 계정':'내 기록'),node('strong','',mine?String(myIndex+1).padStart(2,'0')+'위':mode==='tower'?'1층 클리어 후 등록':'등록 대기'),node('span','rk-my-score',mine?(mode==='tower'?fmt(mine.tower)+'층':'⚔ '+fmt(mine.power)):'—'));
   }
-  window.switchRanking=category=>{mode=category==='tower'?'tower':'power';list.scrollTop=0;render();return false;};
+  const setMode=category=>{mode=category==='tower'?'tower':'power';list.scrollTop=0;render();return false;};
+  window.switchRanking=setMode;
   // Preserve existing authenticated read and refresh cadence; no new polling loop.
   const sync=f.syncRanking;
   f.syncRanking=function(...args){if(pending)return pending;const top=list.scrollTop,startedMode=mode;list.setAttribute('aria-busy','true');status.textContent='랭킹 기록을 불러오는 중…';pending=(async()=>{try{return await sync.apply(this,args);}finally{if(status.textContent==='랭킹 기록을 불러오는 중…')status.textContent='랭킹 연결을 확인해 주세요. 이전 기록을 표시합니다.';status.classList.toggle('error',/연결/.test(status.textContent));render();if(startedMode===mode)list.scrollTop=top;list.setAttribute('aria-busy','false');pending=null;}})();return pending;};
   const open=f.openProfile,closeProfile=f.closeProfile;
   f.openProfile=function(...args){lastFocus=document.activeElement;const result=open.apply(this,args);list.scrollTop=0;render();close.focus({preventScroll:true});return result;};
   f.closeProfile=function(...args){const result=closeProfile.apply(this,args);if(lastFocus?.isConnected)lastFocus.focus({preventScroll:true});return result;};
-  window.RinguRanking=Object.freeze({version:'RK1',render,get mode(){return mode;}});render();
+  window.RinguRanking=Object.freeze({version:'RK2',render,setMode,get mode(){return mode;}});render();
  }
  window.addEventListener('ringu-ready',()=>queueMicrotask(install),{once:true});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
