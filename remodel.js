@@ -3,6 +3,8 @@
 window.installRinguRemodel=function(g){
  const $=id=>document.getElementById(id),f=g.fn,old=Object.fromEntries(Object.getOwnPropertyNames(f).map(k=>[k,f[k]])),esc=s=>f.escapeHtml(String(s??'')),fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR'),art=window.RinguArt;
  const state=()=>g.state,active=()=>window.RinguSession.active!==false;
+ // Tower: amplify original floor-to-floor HP gaps from floor 18 by 2.5.
+ const towerHp=[7500,12000,18000,27000,37500,51000,67500,87000,105000,127500,157500,187500,217500,247500,285000,322500,360000,472500,585000,697500,810000,922500,1035000,1185000,1335000,1410000,1485000,1560000,1635000,1710000];g.towerFloors.forEach((floor,i)=>{if(i>=17)floor.hp=towerHp[i];});
  // One shared identity for the stage list, battle title and isolated boss artwork.
  g.goldDungeonStages.forEach((stage,i)=>{stage.artIndex=i;stage.name=g.bossRegions[Math.floor(i/6)].bosses[i%6].name;});
  const equipMap=()=>Object.fromEntries(g.slots.map(slot=>[slot,state().inventory.find(it=>String(it.id)===String(state().equipped[slot]))]));
