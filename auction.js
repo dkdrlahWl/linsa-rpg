@@ -16,7 +16,7 @@
  }
  function listingNotice(){return activeListingCount===null?'등록 한도를 확인하지 못했습니다. 경매장을 다시 열어 주세요.':errors.AUCTION_LISTING_LIMIT;}
  const esc=s=>g.fn.escapeHtml(String(s??'')),fmt=n=>Number(n).toLocaleString('ko-KR');
- const currencyName=c=>c==='gold'?'골드':'정수',currencyIcon=c=>c==='gold'?'🪙':'💎';
+ const currencyName=c=>c==='gold'?'골드':'정수',currencyIcon=c=>c==='gold'?'<img class="ru-gold-icon" src="/linsa-rpg/art/ui-royal/gold-v2.png" alt="골드" width="24" height="24">':'💎';
  const translate=e=>errors[e.message]||(/ringu_auction|PGRST202/.test(e.message)?errors.AUCTION_NOT_READY:'처리하지 못했습니다. 연결 상태를 확인해 주세요.');
  async function rpc(action,args={},requestId=null){const r=await fetch('/api/auction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,args,requestId})});const d=await r.json();if(!r.ok)throw Error(d.error||'SERVER_ERROR');return d;}
  // AU2: every card uses the same per-item calculations as the equipment detail.
@@ -35,7 +35,7 @@
  async function refresh(){
   if(!modal.classList.contains('show')||busy)return;const seq=++requestSequence;
   try{
-   const status=await rpc('status');if(seq!==requestSequence)return;ready=status.ready;updateListingCount(status);if(!markSalesRead)badges(status.unreadSales);modal.querySelector('#auctionBalance').textContent='💎 정수 '+fmt(status.essence||0)+' · 🪙 골드 '+fmt(status.gold||0);
+   const status=await rpc('status');if(seq!==requestSequence)return;ready=status.ready;updateListingCount(status);if(!markSalesRead)badges(status.unreadSales);modal.querySelector('#auctionBalance').innerHTML='💎 정수 '+fmt(status.essence||0)+' · '+currencyIcon('gold')+' 골드 '+fmt(status.gold||0);
    if(!ready){body.innerHTML='';note(errors[status.reason]||errors.AUCTION_NOT_READY);return;}
    if(tab==='list'){
     if(listingBlocked()){rows=[];body.innerHTML='<p>계정당 판매 중인 물품은 최대 8개입니다. 기존 물품은 유지되며, 판매 완료 또는 취소로 빈자리가 생기면 다시 등록할 수 있습니다.</p>';note(listingNotice());return;}
@@ -88,5 +88,5 @@
 })();
 
 // RU2: load the shared presentation after the document styles are available.
-(()=>{const load=()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='/linsa-rpg/royal-ui.css?v=PCHEADER2';document.body.append(css);const script=document.createElement('script');script.src='/linsa-rpg/royal-ui.js?v=AN1';document.head.append(script);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();
+(()=>{const load=()=>{const css=document.createElement('link');css.rel='stylesheet';css.href='/linsa-rpg/royal-ui.css?v=GOLD2';document.body.append(css);const script=document.createElement('script');script.src='/linsa-rpg/royal-ui.js?v=GOLD2';document.head.append(script);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();
 
