@@ -42,7 +42,7 @@
   });
   $('blackMarketRetry').disabled=!!fetching||busy;
   $('blackMarketClose').disabled=busy;
-  const rates=snapshot?.nextRates||snapshot?.rates||[29.1,15,4.9,1,15,15,10,10],names=[...g.rarityNames.slice(0,4),'초월석','하락방지권','비취 큐브','태양 큐브'],prices=['3','5','10','15','15~25','6~10','12~20','30~50'];
+  const rates=snapshot?.nextRates||snapshot?.rates||[29,15,4.9,1,15,15,10,10,0.1],names=[...g.rarityNames.slice(0,4),'초월석','하락방지권','비취 큐브','태양 큐브','신화 장비'],prices=['3','5','10','15','15~25','6~10','12~20','30~50','100'];
   $('blackMarketRatesBody').innerHTML=rates.map((n,i)=>'<div><span>'+esc(names[i])+'</span><b>'+n+'%</b><small>정수 '+prices[i]+'개</small></div>').join('');
   $('blackMarketRatesNotice').textContent=snapshot?.ratesApplyNextRotation?'새 확률과 소모품은 다음 진열부터 적용됩니다. 현재 상품과 구매 기록은 유지됩니다.':'계정별 독립 진열 · 소모품은 최대 40% 할인 · 진열 동안 상품과 가격이 유지됩니다.';
  }

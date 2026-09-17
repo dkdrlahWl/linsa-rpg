@@ -60,7 +60,7 @@ export function execute(snapshot,command,args,context){
  const addItem=template=>{const id=freshId(),it={...template,id,auctionUid:context.uuid(),enhance:template.enhance||0,transcend:template.transcend||0};s.discovered??={};it.isNew=!s.discovered[itemKey(it)];s.discovered[itemKey(it)]=true;initializeOptions(it);s.inventory.unshift(it);s.uid=Math.max(s.uid||1,id+1);return it;};
  if(!args||typeof args!=='object'||Array.isArray(args))fail('INVALID_ARGUMENTS');
  const allowed={sync:[],background:[],daily:[],summon:['group','count'],enhance:['id','protect'],transcend:['id'],equip:['id'],equipBest:[],unequip:['slot'],lock:['id','locked'],dismantle:['ids'],sell:['ids'],auraBuy:['id'],auraEquip:['id'],auraTicket:[],consumable:['type'],collection:['count'],mail:['id'],select:['region','boss'],auto:['enabled'],startDungeon:['type','stage'],cancelBattle:[],petSummon:['count'],petEquip:['uid'],petLock:['uid','locked'],petSell:['uid'],petCollection:['count']};
- allowed.wheelSpin=[];allowed.wheelBoxAck=['id'];allowed.setProtect=['enabled'];allowed.cubeBuy=['type'];allowed.cubeRoll=['id','type'];
+ allowed.wheelSpin=['version'];allowed.wheelBoxAck=['id'];allowed.setProtect=['enabled'];allowed.cubeBuy=['type'];allowed.cubeRoll=['id','type'];
  if(!allowed[command]||Object.keys(args).some(k=>!allowed[command].includes(k)))fail('INVALID_ARGUMENTS');
  for(const key of ['gold','essence','transcendStone','downgradeProtect','dungeonTickets','petStone','petTicket','jadeCube','sunCube'])s[key]=int(s[key]||0);
  if(context.adminFloor>0){
@@ -130,10 +130,11 @@ export function execute(snapshot,command,args,context){
  s.serverBackgroundAt=command==='background'?now:null;
  pets.normalize(s,balance.pets);
  if(command==='wheelSpin'){
+  if(args.version!==2)fail('INVALID_WHEEL_VERSION');
   const today=kstDay(now);if(s.dailyWheel?.day!==today)s.dailyWheel={day:today,used:0};
   if(int(s.dailyWheel.used,0,3)>=3)fail('DAILY_WHEEL_LIMIT');
-  const prizes=[{label:'전설 장비 상자 1개',reward:{gold:0,wheelBox:4}},{label:'에픽 장비 상자 1개',reward:{gold:0,wheelBox:3}},{label:'하락방지권 1개',reward:{downgradeProtect:1}},{label:'초월석 2개',reward:{transcendStone:2}},{label:'펫스톤 3개',reward:{petStone:3}},{label:'정수 5개',reward:{essence:5}},{label:'골드 1,000,000',reward:{gold:1000000}},{label:'꽝',reward:{gold:0}}];
-  const weights=[5,25,120,150,150,200,300,50];
+  const prizes=[{label:'전설 장비 상자 1개',reward:{gold:0,wheelBox:4}},{label:'에픽 장비 상자 1개',reward:{gold:0,wheelBox:3}},{label:'하락방지권 1개',reward:{downgradeProtect:1}},{label:'초월석 2개',reward:{transcendStone:2}},{label:'펫스톤 3개',reward:{petStone:3}},{label:'정수 5개',reward:{essence:5}},{label:'골드 1,000,000',reward:{gold:1000000}},{label:'꽝',reward:{gold:0}},{label:'신화 장비 상자 1개',reward:{gold:0,wheelBox:5}}];
+  const weights=[5,25,120,150,150,200,300,49,1];
   let roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000),index=7;
   for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
   const used=++s.dailyWheel.used,prize=prizes[index],mailId='daily-wheel:'+today+':'+used+':'+index;
@@ -225,7 +226,7 @@ export function execute(snapshot,command,args,context){
   const reward=normalizeReward(mail.reward);
   if(reward.wheelBox){
    if(s.wheelBoxReveal)fail('WHEEL_BOX_PENDING');
-   const rarity=int(reward.wheelBox,3,4),slot=balance.slots[Math.floor(random()*balance.slots.length)],candidates=balance.gear.filter(x=>x.rarity===rarity&&x.slot===slot);
+   const rarity=int(reward.wheelBox,3,5),slot=balance.slots[Math.floor(random()*balance.slots.length)],candidates=balance.gear.filter(x=>x.rarity===rarity&&x.slot===slot);
    const base=selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
    const item=addItem({...base,optionRolls:[.8,.8],cubeVersion:1,cubeTier:0,enhance:0,transcend:0});
    s.wheelBoxReveal={mailId:id,rarity,item};events.push({type:'wheelBox',...s.wheelBoxReveal});
