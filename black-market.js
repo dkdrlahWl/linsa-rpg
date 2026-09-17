@@ -42,7 +42,7 @@
   });
   $('blackMarketRetry').disabled=!!fetching||busy;
   $('blackMarketClose').disabled=busy;
-  const rates=snapshot?.nextRates||snapshot?.rates||[29,15,4.9,1,15,15,10,10,0.1],names=[...g.rarityNames.slice(0,4),'초월석','하락방지권','비취 큐브','태양 큐브','신화 장비'],prices=['3','5','10','15','15~25','6~10','12~20','30~50','100'];
+  const rates=snapshot?.nextRates||snapshot?.rates||[24,15,4.9,5,15,15,10,10,0.1,1],names=[...g.rarityNames.slice(0,4),'초월석','하락방지권','비취 큐브','태양 큐브','신화 장비','전설 장비'],prices=['3','5','10','15','15~25','6~10','12~20','30~50','100','50'];
   $('blackMarketRatesBody').innerHTML=rates.map((n,i)=>'<div><span>'+esc(names[i])+'</span><b>'+n+'%</b><small>정수 '+prices[i]+'개</small></div>').join('');
   $('blackMarketRatesNotice').textContent=snapshot?.ratesApplyNextRotation?'새 확률과 소모품은 다음 진열부터 적용됩니다. 현재 상품과 구매 기록은 유지됩니다.':'계정별 독립 진열 · 소모품은 최대 40% 할인 · 진열 동안 상품과 가격이 유지됩니다.';
  }
@@ -110,7 +110,7 @@
   modal.innerHTML='<header class="bm-header"><div><small>아는 사람만 찾는 거래소</small><h2 id="blackMarketTitle">암시장</h2></div><button type="button" id="blackMarketClose" aria-label="암시장 닫기">닫기</button></header>'+
    '<section class="bm-merchant"><img src="/linsa-rpg/art/merchant-seongmin-BM1.webp" alt="테이블 너머에서 물건을 파는 여성 상인 성민" width="448" height="420"><div class="bm-merchant-copy"><span>암시장 상인</span><h3>성민</h3><p>몰래 파는거야<br>빨리 구매해</p></div></section>'+
    '<div class="bm-toolbar"><div><b id="blackMarketBalance"></b><small id="blackMarketCountdown"></small></div><button type="button" id="blackMarketRates" aria-expanded="false" aria-controls="blackMarketRatesPanel">확률 보기</button></div>'+
-   '<section id="blackMarketRatesPanel" hidden><h3>상품별 진열 확률</h3><p id="blackMarketRatesNotice"></p><div id="blackMarketRatesBody"></div><p>첫 진열칸은 위 확률로 추첨합니다. 이후 칸은 이미 등장한 소모품을 제외하고 남은 확률을 비례 조정합니다. 장비 부위는 7종 중 동일 확률이며 같은 부위·등급 안에서 이미 진열한 동일 장비는 제외합니다. 동일 상품은 중복 진열하지 않습니다. 변경 전에 구매한 칸은 구매 기록을 보존합니다. 새 진열의 초월석 가격은 15~25(정가 25), 하락방지권 가격은 6~10(정가 10) 정수의 정수값을 균등 추첨하며, 진열 동안 변하지 않습니다. 비취 큐브는 12~20, 태양 큐브는 30~50 정수이며 최대 할인은 40%입니다. 초월석·하락방지권도 최대 40% 할인됩니다. 변경 전 진열 상품은 기존 가격이 유지됩니다. 큐브·하락방지권은 진열당 5개, 초월석은 10개, 장비는 1개까지 구매할 수 있습니다. 정수는 선택한 수량의 구매가 확정될 때 사용됩니다.</p></section>'+
+   '<section id="blackMarketRatesPanel" hidden><h3>상품별 진열 확률</h3><p id="blackMarketRatesNotice"></p><div id="blackMarketRatesBody"></div><p>각 새 진열칸의 에픽은 5%, 전설은 1%, 신화는 0.1%로 고정 추첨합니다. 나머지 상품은 이미 등장한 소모품을 제외하고 남은 확률을 비례 조정합니다. 장비 부위는 7종 중 동일 확률이며 같은 부위·등급 안에서 이미 진열한 동일 장비는 제외합니다. 동일 상품은 중복 진열하지 않습니다. 변경 전에 구매한 칸은 구매 기록을 보존합니다. 새 진열의 초월석 가격은 15~25(정가 25), 하락방지권 가격은 6~10(정가 10) 정수의 정수값을 균등 추첨하며, 진열 동안 변하지 않습니다. 비취 큐브는 12~20, 태양 큐브는 30~50 정수이며 최대 할인은 40%입니다. 초월석·하락방지권도 최대 40% 할인됩니다. 변경 전 진열 상품은 기존 가격이 유지됩니다. 큐브·하락방지권은 진열당 5개, 초월석은 10개, 장비는 1개까지 구매할 수 있습니다. 정수는 선택한 수량의 구매가 확정될 때 사용됩니다.</p></section>'+
    '<p id="blackMarketStatus" role="status" aria-live="polite"></p><section id="blackMarketItems" aria-label="개인 진열 상품 5개"></section>'+
    '<footer class="bm-footer"><span>한국시간 12시 · 18시 · 24시(00시) 갱신<br>계정별 다른 상품 · 장비 1개 / 큐브·하방권 5개 / 초월석 10개</span><button type="button" id="blackMarketRetry">다시 불러오기</button></footer><small class="bm-version">암시장 BM5</small>';
   document.body.append(modal);
