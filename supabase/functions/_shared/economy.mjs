@@ -229,7 +229,11 @@ export function execute(snapshot,command,args,context){
   const reward=normalizeReward(mail.reward);
   if(reward.wheelBox){
    if(s.wheelBoxReveal)fail('WHEEL_BOX_PENDING');
-   const rarity=int(reward.wheelBox,3,5),slot=balance.slots[Math.floor(random()*balance.slots.length)],candidates=balance.gear.filter(x=>x.rarity===rarity&&x.slot===slot);
+   const rarity=int(reward.wheelBox,3,5);
+   // The one-time September 18 award keeps its slot restriction even when opened later.
+   const noWeapon=rarity===5&&id==='daily-wheel:2026-09-18:3:8'&&s.wheelOneTimeGuarantee?.campaign==='wheel-20260918-third-mythic'&&!!s.wheelOneTimeGuarantee.claimedAt;
+   const slots=noWeapon?balance.slots.filter(slot=>slot!=='무기'):balance.slots;
+   const slot=slots[Math.floor(random()*slots.length)],candidates=balance.gear.filter(x=>x.rarity===rarity&&x.slot===slot);
    const base=selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
    const item=addItem({...base,optionRolls:[.8,.8],cubeVersion:1,cubeTier:0,enhance:0,transcend:0});
    s.wheelBoxReveal={mailId:id,rarity,item};events.push({type:'wheelBox',...s.wheelBoxReveal});
