@@ -4,3 +4,37 @@
 
 /* Generated seraph artwork with a six-second portal / wing / equipment reveal. */
 .angel-cinematic{position:absolute;inset:0;background:url('art/celestial/summon-seraph-v2.png') center 35%/cover no-repeat;opacity:0;transform:scale(1.16);filter:brightness(.3) blur(8px);transition:opacity 2s,transform 6s cubic-bezier(.15,.6,.2,1),filter 3s;z-index:-1}.angel-reveal.opening .angel-cinematic{opacity:1;transform:scale(1);filter:brightness(.85) blur(0)}.angel-reveal.wings .angel-cinematic{filter:brightness(1.08)}.angel-reveal .angel-sky{z-index:-2}.angel-reveal .angel-wing{mix-blend-mode:screen;opacity:0!important}.angel-reveal .angel-content{align-self:end;padding:16px 12px 22px;margin-bottom:2dvh;border-radius:24px;background:linear-gradient(transparent,#06172be8 48%);text-shadow:0 2px 10px #051126}.angel-reveal .angel-object{height:min(24vh,220px)}.angel-reveal .angel-content>small{color:white}.angel-reveal .angel-grade{font-size:clamp(30px,8vw,52px)}.angel-reveal .angel-details p{color:white}.angel-reveal .angel-lightbeam{mix-blend-mode:screen}.angel-reveal .angel-content button{border-radius:28px}.angel-reveal.ready .angel-content button{animation:angelConfirmGlow 2s ease-in-out infinite}@keyframes angelConfirmGlow{50%{box-shadow:0 0 32px #ffffffbb}}
+
+/* ANGELART3: legible illustrated equipment and layered summon choreography. */
+.angel-item-art{filter:drop-shadow(0 1px 2px #e7f3ff66);background:radial-gradient(circle,#b6dcf522,transparent 68%)!important}
+.angel-reveal .angel-object{position:relative;isolation:isolate;filter:none}
+.angel-reveal.manifest .angel-object{filter:drop-shadow(0 0 8px #d0e9ff99)}
+.angel-object img{position:relative;z-index:1;filter:brightness(1)}
+.angel-item-halo{position:absolute;left:50%;top:50%;width:80%;height:80%;max-width:200px;border:1px solid #eddfacbb;border-radius:50%;transform:translate(-50%,-50%) rotateX(30deg);box-shadow:0 0 28px #d9eeff55,inset 0 0 24px #d9eeff33;z-index:0}
+.angel-item-halo:after{content:'';position:absolute;inset:-8px;border:1px dashed #e2f1ff99;border-radius:50%;animation:angelOrbit 16s linear infinite}
+.angel-portal,.angel-rays,.angel-shockwave,.angel-starburst,.angel-vignette{position:absolute;pointer-events:none}
+.angel-portal{width:min(92vw,680px);aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%) rotateX(58deg) scale(.25);opacity:0;transition:opacity 1.5s,transform 2.6s}
+.opening .angel-portal{opacity:.85;transform:translate(-50%,-50%) rotateX(58deg) scale(1)}
+.angel-portal i{position:absolute;inset:0;border:2px solid #fff2c2;border-radius:50%;box-shadow:0 0 16px #c3eaff,inset 0 0 14px #c3eaff}
+.angel-portal i:nth-child(2){inset:8%;border-style:dashed;animation:angelOrbit 12s linear infinite}
+.angel-portal i:nth-child(3){inset:19%;border-width:1px;transform:rotate(45deg);border-radius:20%;animation:angelOrbit 18s linear infinite reverse}
+.gather .angel-portal{transform:translate(-50%,-50%) rotateX(20deg) scale(.6);opacity:1;transition:transform .8s,opacity .8s}
+.manifest .angel-portal{transform:translate(-50%,-50%) rotateX(58deg) scale(1.8);opacity:0;transition:transform 1.8s,opacity 1.8s}
+.angel-rays{inset:-40%;background:repeating-conic-gradient(from 0deg at 50% 50%,transparent 0deg 12deg,#eaf6ff33 13deg 14deg,transparent 16deg 30deg);opacity:0;mix-blend-mode:screen;transform:rotate(-18deg) scale(.8);transition:opacity 2s,transform 6s}
+.wings .angel-rays{opacity:.8;transform:rotate(22deg) scale(1.1)}.details .angel-rays{opacity:.22}
+.angel-shockwave{left:50%;top:54%;width:28px;height:28px;border:3px solid #eafaff;border-radius:50%;opacity:0;box-shadow:0 0 30px #d6efff;transform:translate(-50%,-50%)}
+.manifest .angel-shockwave{animation:angelShock 1.6s cubic-bezier(.1,.6,.2,1) both}
+.angel-starburst{left:50%;top:55%;width:1px;height:1px}
+.angel-starburst i{position:absolute;width:5px;height:12px;background:#ffedbc;border-radius:50%;box-shadow:0 0 8px #fff;opacity:0;transform:rotate(var(--a)) translateY(0)}
+.manifest .angel-starburst i{animation:angelSpark 2s cubic-bezier(.16,.7,.3,1) var(--delay) both}
+.angel-vignette{inset:0;background:radial-gradient(ellipse at 50% 44%,transparent 25%,#061423 100%);opacity:.8;transition:opacity 2s}
+.wings .angel-vignette{opacity:.12}.ready .angel-vignette{opacity:.35}
+.angel-reveal.manifest .angel-content{animation:angelImpact .75s ease-out}
+.angel-reveal.ready .angel-object img{animation:angelFloat 4s ease-in-out infinite}
+.angel-reveal .angel-grade{background:linear-gradient(100deg,#e7f5ff 20%,#fff4bf 48%,#fff 52%,#d8ecff 80%);background-size:220% auto;background-clip:text;-webkit-background-clip:text;color:transparent;text-shadow:0 0 14px #f3f9ff88}
+.manifest .angel-grade{animation:angelShine 2.2s ease-out both}
+@keyframes angelOrbit{to{rotate:360deg}}@keyframes angelShock{0%{opacity:.7;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(30)}}
+@keyframes angelSpark{10%{opacity:.95}80%{opacity:.45}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(-1 * var(--d))) rotate(90deg)}}
+@keyframes angelImpact{0%{transform:translateY(4px)}30%{transform:translateY(-2px)}100%{transform:none}}
+@keyframes angelFloat{50%{transform:translateY(-5px)}}@keyframes angelShine{from{background-position:180% 0}to{background-position:0 0}}
+@media(prefers-reduced-motion:reduce){.angel-reveal *{animation:none!important;transition:opacity .5s!important}.angel-rays,.angel-starburst,.angel-shockwave{display:none}.angel-portal{transform:translate(-50%,-50%)!important}}
