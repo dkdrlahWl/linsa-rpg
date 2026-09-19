@@ -50,3 +50,13 @@
 
 #wb-screen[data-stage="2"] .wb-lobby{background:linear-gradient(#142c43ee,#0b1e32f5)}
 #wb-screen[data-stage="2"] .wb-stage-tabs button[aria-pressed="true"]{background:#4d718a;color:#fff;border-color:#ebffff}
+
+/* Stage-specific illustrated scenery beyond the playable board. */
+#wb-screen{--wb-surround:url('art/world-boss/dragon-surround-v1.png');background-image:linear-gradient(#07050822,#08060955),var(--wb-surround);background-size:cover;background-position:center}
+#wb-screen[data-stage="2"]{--wb-surround:url('art/celestial/angel-surround-v1.png');background-image:linear-gradient(#07182722,#07182755),var(--wb-surround);background-size:cover;background-position:center}
+#wb-screen .wb-shell,#wb-screen[data-stage="2"] .wb-shell{background:linear-gradient(#10101644,#10101699);box-shadow:0 0 45px #0007}
+#wb-screen .wb-battle{background:transparent}
+#wb-screen .wb-lobby,#wb-screen[data-stage="2"] .wb-lobby{background:linear-gradient(#0b1018a6,#0b1018d9),var(--wb-surround) center/cover}
+#wb-screen .wb-controls,#wb-screen .wb-footer{background:linear-gradient(#110c0866,#110c08bb)!important}
+#wb-screen[data-stage="2"] .wb-controls,#wb-screen[data-stage="2"] .wb-footer{background:linear-gradient(#0b203866,#0b2038bb)!important}
+@media(max-width:700px){#wb-screen,#wb-screen[data-stage="2"]{background-position:28% center}#wb-screen .wb-shell,#wb-screen[data-stage="2"] .wb-shell{background:#0b111b33}}

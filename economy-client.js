@@ -109,7 +109,7 @@
      if(e.target==='field'){/* Presented by the bounded confirmed-hit queue above. */}
      else if(e.target==='tower')g.presentation.showTowerDamage(e.damage,e.crit);
      else g.presentation.showDungeonDamage(e.damage);
-    }else if(e.type==='summon'){window.RinguRemodel?.showServerDraw(e.items);for(const it of e.items)g.presentation.addLog('장비 획득 · '+g.rarityNames[it.rarity]+' '+it.name);}
+    }else if(e.type==='summon'){window.RinguRemodel?.showServerDraw(e.items);for(const it of e.items)g.presentation.addLog('장비 획득 · '+g.rarityNames[it.rarity]+' '+(window.RinguAngel?.displayName(it)||it.name));}
     else if(e.type==='world2Unlocked')f.toast('2세계 해금! 15레벨 소환이 16레벨로 개방되었습니다.');
     else if(e.type==='petSummon')f.renderPetSummonResult(e.results);
     else if(e.type==='daily')showDailyReward(e.amount);

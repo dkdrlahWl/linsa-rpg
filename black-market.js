@@ -22,7 +22,7 @@
    return {name:m.name+' 1개',icon:m.icon,art:'<span class="rm-consumable-art bm-material-art" style="background-position:'+m.atlas*100+'% 0%" role="img" aria-label="'+m.name+'"></span>',info:'소모품 · 1개',options:esc(m.description),description:'소모품 · 1개 · '+m.description};
   }
   const info=esc(g.rarityNames[it.rarity])+' · '+esc(it.slot)+' · 공격력 '+g.fn.itemAttackText(it);
-  return {name:it.name,titleHtml:g.fn.itemTitleHtml(it,false),icon:'⚔',art:g.fn.gearIcon(it),info,options:g.fn.optionText(it),description:text(info)+' · '+text(g.fn.optionText(it))};
+  return {name:window.RinguAngel?.displayName(it)||it.name,titleHtml:g.fn.itemTitleHtml(it,false),icon:'⚔',art:g.fn.gearIcon(it),info,options:g.fn.optionText(it),description:text(info)+' · '+text(g.fn.optionText(it))};
  }
  function render(){
   balance();const rows=snapshot?.ready?snapshot.items:[];

@@ -57,7 +57,7 @@ await mkdir('test-output/world-boss',{recursive:true});
 try{
  for(let i=0;i<2;i++){
   const ctx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1});const p=await ctx.newPage();pages.push(p);p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'/qa?actor='+i);await p.getByRole('button',{name:'주간보스',exact:true}).click();
-  if(i===0){await p.locator('[data-action="stage"][data-stage="2"]').click();assert.equal(await p.locator('#wb-screen').getAttribute('data-stage'),'2');await p.getByRole('button',{name:'방 만들기',exact:true}).click();await p.getByRole('button',{name:'혼자 시작',exact:true}).waitFor();roomId=(await query('select id from ringu_private.wb_rooms limit 1')).rows[0].id;}
+  if(i===0){await p.setViewportSize({width:1280,height:844});await pause(700);assert.match(await p.locator('#wb-screen').evaluate(x=>getComputedStyle(x).backgroundImage),/dragon-surround-v1/);await p.screenshot({path:'test-artifacts/dragon-surround-1280.png'});await p.setViewportSize({width:390,height:844});await p.locator('[data-action="stage"][data-stage="2"]').click();assert.equal(await p.locator('#wb-screen').getAttribute('data-stage'),'2');await p.getByRole('button',{name:'방 만들기',exact:true}).click();await p.getByRole('button',{name:'혼자 시작',exact:true}).waitFor();roomId=(await query('select id from ringu_private.wb_rooms limit 1')).rows[0].id;}
   else{await p.getByRole('button',{name:'참가',exact:true}).click();await p.getByRole('button',{name:'준비 완료',exact:true}).click();}
  }
  const p=pages[0];await p.getByRole('button',{name:'전투 시작',exact:true}).click();await p.locator('#wb-arena').waitFor({state:'visible'});await pause(4200);

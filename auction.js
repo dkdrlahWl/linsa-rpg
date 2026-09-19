@@ -63,7 +63,7 @@
    let price=row.price;const currency=tab==='list'?panel.querySelector('#auctionCurrency').value:(row.currency||'essence');
    if(tab==='list'){const raw=panel.querySelector('#auctionPrice').value.trim();price=Number(raw);if(!/^\d+$/.test(raw)||!Number.isSafeInteger(price)||price<1)return note(errors.INVALID_NUMBER);}
    const action=tab==='list'?'list':tab==='mine'?'cancel':'buy';
-   if(!confirm(it.name+' · 강화 +'+(it.enhance||0)+' · 초월 '+(it.transcend||0)+'\n'+(action==='cancel'?'판매를 취소하고 이 장비를 돌려받을까요?':fmt(price)+' '+currencyName(currency)+'에 '+(action==='list'?'등록':'구매')+'할까요?')))return;
+   if(!confirm((window.RinguAngel?.displayName(it)||it.name)+' · 강화 +'+(it.enhance||0)+' · 초월 '+(it.transcend||0)+'\n'+(action==='cancel'?'판매를 취소하고 이 장비를 돌려받을까요?':fmt(price)+' '+currencyName(currency)+'에 '+(action==='list'?'등록':'구매')+'할까요?')))return;
    busy=true;controls();note('서버에서 '+(action==='list'?'등록':action==='buy'?'구매':'취소')+' 처리 중입니다…');panel.querySelectorAll('button,input,select').forEach(b=>b.disabled=true);
    try{
     if(typeof RinguSession.auctionTransaction!=='function')throw Error('AUCTION_NOT_READY');

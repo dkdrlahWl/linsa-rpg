@@ -569,9 +569,9 @@ left:var(--fallen-axe-left)!important;
 <script src="/linsa-rpg/world2-data.js?v=ANGELADMIN2"></script>
 <script src="/linsa-rpg/world2.js?v=STARFLOOR1"></script>
 <script src="/linsa-rpg/world2-reveal.js?v=W2-1"></script>
-<link rel="stylesheet" href="/linsa-rpg/angel.css?v=STARFLOOR1">
+<link rel="stylesheet" href="/linsa-rpg/angel.css?v=SURROUND1">
 <script src="/linsa-rpg/angel-data.js?v=ANGEL1"></script>
-<script src="/linsa-rpg/angel.js?v=STARFLOOR1"></script>
+<script src="/linsa-rpg/angel.js?v=SURROUND1"></script>
 <link rel="stylesheet" href="/linsa-rpg/world2.css?v=W2-3">
 <style id="ranking-mobile-RK5">
 /* RK5: reserve footer space; only equipment and sets scroll. */
@@ -585,18 +585,18 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 </head>
 <script src="/linsa-rpg/safety.js?v=BM5-CQ3"></script>
 <script src="/linsa-rpg/art-catalog.js?v=ANGELART3"></script>
-<script src="/linsa-rpg/remodel.js?v=ANGEL1"></script>
+<script src="/linsa-rpg/remodel.js?v=SURROUND1"></script>
 <script src="/linsa-rpg/social-style.js?v=NAME-RANK-MARKETS3"></script>
 <script src="/linsa-rpg/audio-engine.js?v=ANGELART3"></script>
 <script src="/linsa-rpg/core-fixes.js?v=W2-1"></script>
 <script src="/linsa-rpg/stone-party.js?v=SUMMON1001"></script>
-<link rel="stylesheet" href="/linsa-rpg/world-boss.css?v=ANGEL1">
+<link rel="stylesheet" href="/linsa-rpg/world-boss.css?v=SURROUND1">
 <script src="/linsa-rpg/world-boss-model.js?v=ANGEL1"></script>
 <script src="/linsa-rpg/world-boss.js?v=STARFLOOR1"></script>
 <script src="/linsa-rpg/pet-stack-model.js?v=PS2"></script>
 <script src="/linsa-rpg/pet-stacks.js?v=PS3"></script>
 <link rel="stylesheet" href="/linsa-rpg/auction.css?v=mobile-details-AU2">
-<script src="/linsa-rpg/auction.js?v=NAME-RANK-MARKETS3"></script>
+<script src="/linsa-rpg/auction.js?v=SURROUND1"></script>
 <script defer src="/linsa-rpg/safe-patches-core-v1.js?v=W2-3"></script>
 <script defer src="/linsa-rpg/mobile-draw-fix-v8.js?v=SUMMON1001"></script>
 <script defer src="/linsa-rpg/visual-polish-v3.js?v=presentation-1"></script>
@@ -607,9 +607,9 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 <script defer src="/linsa-rpg/costume-runtime.js?v=costume-live-1"></script>
 <script defer src="/linsa-rpg/costume-preview.js?v=linsa-shop-LS1"></script>
 <script defer src="/linsa-rpg/shop-controls.js?v=black-market-BM1"></script>
-<script defer src="/linsa-rpg/economy-client.js?v=SUMMON1001"></script>
+<script defer src="/linsa-rpg/economy-client.js?v=SURROUND1"></script>
 <link rel="stylesheet" href="/linsa-rpg/black-market.css?v=icons-BM5">
-<script defer src="/linsa-rpg/black-market.js?v=BM6-LEGENDARY"></script>
+<script defer src="/linsa-rpg/black-market.js?v=SURROUND1"></script>
 <script defer src="/linsa-rpg/ranking-ui.js?v=ranking-RK1"></script>
 <body data-remodel="true">
 <main class="app">
@@ -781,9 +781,9 @@ function spendGold(cost){if(isGoldAdmin())return true;if(state.gold<cost)return 
 async function ensureCloudFreshForAction(label='확률 행동'){const session=getCloudSession();if(!session||!cloudPullReady)return true;if(cloudBusy){toast('클라우드 동기화 중입니다. 잠시 후 다시 시도하세요.');return false}try{const row=await fetchCloudRow(session.id);if(!row)return true;const data=await decryptCloudState(row.boss,session);if(data.activeCloudClientId&&data.activeCloudClientId!==getCloudClientId()){setCloudSession(null);cloudDirty=false;renderCloudStatus('다른 브라우저에서 로그인되어 이 브라우저의 확률 행동을 중지했습니다.');toast('다른 브라우저에서 로그인되었습니다. 최신 계정으로 다시 불러오세요.');return false}const remoteTime=Date.parse(row.updated_at||0),localTime=Date.parse(session.cloudUpdatedAt||0);if(remoteTime&&localTime&&remoteTime>localTime+1000){setCloudSession(Object.assign({},session,{cloudUpdatedAt:row.updated_at}));applyCloudData(data);toast('다른 브라우저의 최신 저장을 적용했습니다. 다시 시도하세요.');return false}return true}catch(e){toast('클라우드 최신 저장 확인 실패 · 잠시 후 다시 시도하세요.');return false}}
 function saveChanceAction(){save(true);const session=getCloudSession();if(session&&cloudPullReady)uploadCloudState(session,false)}
 async function drawItems(count){count=Number(count)||1;if(![1,5,10].includes(count))return toast('100회 소환은 제거되었습니다.');if(!await ensureCloudFreshForAction('소환'))return;const cost=count*summonUnitCost();if(!spendGold(cost))return toast('골드가 부족합니다. 필요 골드 '+fmt(cost));let gained=[];for(let i=0;i<count;i++){const it=makeItem(drawGroup),key=itemKey(it);it.isNew=!state.discovered[key];state.discovered[key]=true;gained.push(it)}state.inventory.unshift(...gained);const summon=activeSummon(),old=summon.level;summon.exp+=count;summon.level=getSummonLevel(summon.exp);if(summon.level>old)toast(groupName(drawGroup)+' 소환 Lv.'+summon.level+' 달성!');renderAll();showDrawResults(gained);saveChanceAction()}
-function showDrawResults(items){$('drawResultGrid').classList.add('opening');$('drawResultGrid').innerHTML=items.map((it,i)=>'<div class="draw-card rarity-'+it.rarity+(it.isNew?' first-new':'')+'" style="--gc:'+rarityColors[it.rarity]+';animation-delay:'+(Math.min(i,20)*.07)+'s">'+(it.isNew?'<span class="new-badge">NEW</span>':'')+gearIcon(it)+'<strong>'+escapeHtml(it.name)+'</strong><small>'+rarityNames[it.rarity]+' · '+it.slot+'<br>공격력 '+itemAttackText(it)+'</small></div>').join('');const first=items.find(x=>x.isNew),mythic=items.find(x=>x.rarity===5),legend=items.find(x=>x.rarity===4);const bestRarity=mythic?5:legend?4:Math.max(...items.map(x=>x.rarity));const finish=()=>{$('drawResultModal').classList.add('show');if(first)setTimeout(()=>showCollectionFlash(first),180)};setTimeout(()=>{playBoxOpenSound();setTimeout(()=>playDrawSound(bestRarity),280);if(mythic)showRarityReveal(mythic,'mythic',finish);else if(legend)showRarityReveal(legend,'legend',finish);else finish()},520)}
+function showDrawResults(items){$('drawResultGrid').classList.add('opening');$('drawResultGrid').innerHTML=items.map((it,i)=>'<div class="draw-card rarity-'+it.rarity+(it.isNew?' first-new':'')+'" style="--gc:'+rarityColors[it.rarity]+';animation-delay:'+(Math.min(i,20)*.07)+'s">'+(it.isNew?'<span class="new-badge">NEW</span>':'')+gearIcon(it)+'<strong>'+escapeHtml(window.RinguAngel?.displayName(it)||it.name)+'</strong><small>'+rarityNames[it.rarity]+' · '+it.slot+'<br>공격력 '+itemAttackText(it)+'</small></div>').join('');const first=items.find(x=>x.isNew),mythic=items.find(x=>x.rarity===5),legend=items.find(x=>x.rarity===4);const bestRarity=mythic?5:legend?4:Math.max(...items.map(x=>x.rarity));const finish=()=>{$('drawResultModal').classList.add('show');if(first)setTimeout(()=>showCollectionFlash(first),180)};setTimeout(()=>{playBoxOpenSound();setTimeout(()=>playDrawSound(bestRarity),280);if(mythic)showRarityReveal(mythic,'mythic',finish);else if(legend)showRarityReveal(legend,'legend',finish);else finish()},520)}
 function playMythicBoom(){if(!state.sfxOn)return;initAudio();tone(34,.72,'sawtooth',.26,0);tone(46,.58,'square',.22,.02);tone(24,.9,'sine',.24,.06);tone(110,.34,'sawtooth',.16,.1);tone(720,.38,'triangle',.1,.2)}
-function showRarityReveal(it,type,done){const overlay=$('rarityOverlay');let closed=false,delay=type==='mythic'?2700:0;overlay.className='rarity-overlay show '+type+(type==='mythic'?' charging':'');overlay.dataset.waitTouch='1';$('rarityRevealGear').innerHTML=gearIcon(it);$('rarityRevealGrade').textContent=type==='fallen'?'FALLEN':(type==='mythic'?'MYTHIC':'LEGENDARY');$('rarityRevealTitle').textContent=type==='fallen'?'타락 장비 강림!':(type==='mythic'?'신화 장비 강림!':'전설 장비 획득!');$('rarityRevealName').innerHTML=escapeHtml(it.name)+'<br><small style="letter-spacing:0;color:#c9d4e8">화면을 클릭하면 닫힙니다</small>';const impact=()=>{overlay.classList.remove('charging');if(type==='mythic'||type==='fallen')playMythicBoom();document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),650)};if(delay)setTimeout(impact,delay);else impact();const close=()=>{if(closed)return;closed=true;overlay.className='rarity-overlay';delete overlay.dataset.waitTouch;overlay.onclick=null;done&&done()};setTimeout(()=>{overlay.onclick=close},delay+300)}
+function showRarityReveal(it,type,done){const overlay=$('rarityOverlay');let closed=false,delay=type==='mythic'?2700:0;overlay.className='rarity-overlay show '+type+(type==='mythic'?' charging':'');overlay.dataset.waitTouch='1';$('rarityRevealGear').innerHTML=gearIcon(it);$('rarityRevealGrade').textContent=type==='fallen'?'FALLEN':(type==='mythic'?'MYTHIC':'LEGENDARY');$('rarityRevealTitle').textContent=type==='fallen'?'타락 장비 강림!':(type==='mythic'?'신화 장비 강림!':'전설 장비 획득!');$('rarityRevealName').innerHTML=escapeHtml(window.RinguAngel?.displayName(it)||it.name)+'<br><small style="letter-spacing:0;color:#c9d4e8">화면을 클릭하면 닫힙니다</small>';const impact=()=>{overlay.classList.remove('charging');if(type==='mythic'||type==='fallen')playMythicBoom();document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),650)};if(delay)setTimeout(impact,delay);else impact();const close=()=>{if(closed)return;closed=true;overlay.className='rarity-overlay';delete overlay.dataset.waitTouch;overlay.onclick=null;done&&done()};setTimeout(()=>{overlay.onclick=close},delay+300)}
 function showCollectionFlash(it){$('collectionName').textContent=it.name;$('collectionFlash').classList.add('show');setTimeout(()=>$('collectionFlash').classList.remove('show'),1400)}
 function closeDrawResult(){$('drawResultModal').classList.remove('show')}
 function equip(id,quiet=false){const it=state.inventory.find(x=>x.id===id);if(!it)return;state.equipped[it.slot]=it.id;if(!quiet)toast(it.name+' 장착 완료');refreshEquipmentViews()}
@@ -913,7 +913,7 @@ function renderAuraShop(){normalizeCharacter();$('shopAuraTab').classList.toggle
 function openItemInventory(){$('itemInventoryModal').classList.add('show');renderItemInventory()}
 function closeItemInventory(){$('itemInventoryModal').classList.remove('show')}
 function renderItemInventory(){if(!$('itemInventoryGrid'))return;normalizeCharacter();const auras=state.ownedAuras.map(i=>{const [name,color]=auraShopItems[i],equipped=state.equippedAura===i,cls=auraClass(i);return '<div class="utility-card '+cls+'" style="--aura-color:'+color+'"><span class="aura-sample"></span><span><strong>'+name+'</strong><small>원형 오라 · '+auraEffectText(i)+' · '+(equipped?'장착 중':'보유 중')+'</small></span><button onclick="'+(equipped?'unequipAura()':'equipAura('+i+')')+'">'+(equipped?'해제':'장착')+'</button></div>'}).join(''),items='<div class="utility-card"><span class="utility-icon" style="--ic:#7defff">◆</span><span><strong>초월석</strong><small>전설·신화 +15 장비 초월 재료 · 보유 '+fmt(state.transcendStone)+'개</small></span></div><div class="utility-card"><span class="utility-icon" style="--ic:#ffd35a">◇</span><span><strong>하락방지권</strong><small>보유 '+fmt(state.downgradeProtect)+'장 · 강화 실패 시에만 1장 사용 · '+(state.useProtect?'ON':'OFF')+'</small></span><button onclick="toggleProtectUse();renderItemInventory()">'+(state.useProtect?'자동사용 해제':'자동사용 설정')+'</button></div>';$('itemInventoryGrid').innerHTML=auras+items}
-function renderCollection(){const all=collectionItems(),owned=all.filter(it=>state.discovered[itemKey(it)]).length,slot=$('collectionSlot').value,rarity=$('collectionRarity').value,list=all.filter(it=>(slot==='all'||it.slot===slot)&&(rarity==='all'||it.rarity===Number(rarity)));$('collectionCount').textContent=owned+' / '+all.length;$('collectionPercent').textContent=Math.floor(owned/all.length*100)+'%';$('collectionFill').style.width=(owned/all.length*100)+'%';$('collectionGrid').innerHTML=list.map(it=>{const found=!!state.discovered[itemKey(it)];return '<div class="collection-card rarity-'+it.rarity+(found?'':' unknown')+'">'+gearIcon(it)+'<strong>'+(found?escapeHtml(it.name):'???')+'</strong><small>'+rarityNames[it.rarity]+' · '+it.slot+(found?' · 공격력 '+fmt(it.baseAtk)+' > '+fmt(it.baseAtk):'')+'</small></div>'}).join('')}
+function renderCollection(){const all=collectionItems(),owned=all.filter(it=>state.discovered[itemKey(it)]).length,slot=$('collectionSlot').value,rarity=$('collectionRarity').value,list=all.filter(it=>(slot==='all'||it.slot===slot)&&(rarity==='all'||it.rarity===Number(rarity)));$('collectionCount').textContent=owned+' / '+all.length;$('collectionPercent').textContent=Math.floor(owned/all.length*100)+'%';$('collectionFill').style.width=(owned/all.length*100)+'%';$('collectionGrid').innerHTML=list.map(it=>{const found=!!state.discovered[itemKey(it)];return '<div class="collection-card rarity-'+it.rarity+(found?'':' unknown')+'">'+gearIcon(it)+'<strong>'+(found?escapeHtml(window.RinguAngel?.displayName(it)||it.name):'???')+'</strong><small>'+rarityNames[it.rarity]+' · '+it.slot+(found?' · 공격력 '+fmt(it.baseAtk)+' > '+fmt(it.baseAtk):'')+'</small></div>'}).join('')}
 function toggleAutoBattle(){state.autoBattle=!state.autoBattle;if(!state.autoBattle)addLog('자동사냥을 중지했습니다.');else addLog('자동사냥을 시작했습니다.');renderBattle();queueSave()}
 function selectRegion(i){if(bossRegions[i].locked)return toast(bossRegions[i].name+' 지역은 아직 미개봉입니다.');state.regionIndex=i;state.bossIndex=0;resetCombat();renderBosses();renderBattle();addLog(bossRegions[i].name+' 지역으로 이동했습니다.');queueSave()}
 function selectBoss(i){state.bossIndex=i;resetCombat();renderBosses();renderBattle();addLog(currentBoss().name+' 전투를 시작합니다.');queueSave()}

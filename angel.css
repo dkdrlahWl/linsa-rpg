@@ -43,3 +43,17 @@
 .w2-item-art,.angel-item-art{position:relative!important}
 .gear-transcend-badge{position:absolute!important;right:-2px;bottom:0;z-index:3;display:block!important;width:auto!important;height:auto!important;max-height:none!important;padding:1px 3px!important;border-radius:4px;background:#09101fe8;color:var(--star-color)!important;font-size:clamp(10px,2.7vw,14px)!important;line-height:1.15!important;letter-spacing:1px;white-space:nowrap;text-shadow:0 0 5px var(--star-color);border:1px solid #d9eaff44;pointer-events:none}
 .transcend-stars{display:inline-block!important;color:var(--star-color,#f5ffff)!important;white-space:nowrap!important;flex-shrink:0;overflow:visible!important;text-shadow:0 0 5px var(--star-color,#f5ffff);letter-spacing:1px}
+
+/* Desktop: full portrait artwork on the left, equipment and confirmation on the right. */
+@media(min-width:900px) and (orientation:landscape){
+ .angel-reveal{grid-template-columns:58% 42%;background:radial-gradient(ellipse at 28% 40%,#6385a0,#10253a 64%,#08121f)}
+ .angel-reveal .angel-cinematic{inset:0 42% 0 0;background-size:contain;background-position:center;transform:none!important;filter:brightness(.85);transition:opacity 2s,filter 3s}
+ .angel-reveal .angel-content{grid-column:2;position:relative;align-self:center;justify-self:center;width:90%;max-width:540px;max-height:calc(100dvh - 32px);margin:0;padding:20px;border:1px solid #d7eeff44;background:linear-gradient(#0d24377a,#071422ee);box-shadow:0 16px 60px #0005}
+ .angel-reveal .angel-object{height:clamp(100px,29dvh,300px)}
+ .angel-reveal .angel-details h2{font-size:clamp(22px,2vw,30px)}
+ .angel-reveal .angel-portal,.angel-reveal .angel-shockwave,.angel-reveal .angel-starburst{left:29%}
+ .angel-reveal .angel-vignette{background:linear-gradient(90deg,transparent 30%,#08182744 58%,#08182788)}
+ .angel-reveal .angel-lightbeam{left:20%;right:62%}
+ .angel-reveal .angel-ring{left:29%;margin-left:calc(min(65vw,530px) / -2)}
+}
+@media(min-width:900px) and (max-height:700px){.angel-reveal .angel-content{padding:12px}.angel-reveal .angel-content>small{font-size:9px}.angel-reveal .angel-grade{font-size:32px}.angel-reveal .angel-details p{margin:5px}.angel-reveal .angel-content button{margin-top:12px;padding:11px 22px}.angel-reveal .angel-object{height:24dvh}}
