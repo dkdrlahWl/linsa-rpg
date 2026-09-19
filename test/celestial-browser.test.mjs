@@ -57,7 +57,7 @@ try{
  const a=await player('celestialQA');await a.evaluate(()=>{RinguCore.state.autoBattle=false;});
  const records=await a.evaluate(()=>{const g=RinguCore,f=g.fn;return RinguAngelData.gear.map((t,i)=>{const it={...t,id:100+i,enhance:15,transcend:3,optionRolls:[.8,.8]};return {item:it,attack:f.itemAtk(it),options:f.subOptions(it),icon:f.gearIcon(it),collection:f.collectionItems().filter(x=>x.rarity===7).length};});});
  const economyModule=await import('../supabase/functions/_shared/economy.mjs');for(const r of records){assert.equal(r.attack,economyModule.itemAttack(r.item));assert.deepEqual(r.options,economyModule.options(r.item));assert.equal(r.collection,7);assert.match(r.icon,/celestial/);}
- await a.evaluate(()=>RinguCore.fn.openRates());assert.equal(await a.locator('#rateTable th').filter({hasText:'천사'}).count(),1);await a.evaluate(()=>document.getElementById('rateModal').classList.remove('show'));
+ await a.evaluate(()=>RinguCore.fn.openRates());assert.equal(await a.locator('#rateTable th').filter({hasText:'천사'}).count(),0);await a.evaluate(()=>document.getElementById('rateModal').classList.remove('show'));
  for(const width of [390,320,1280]){
   await a.setViewportSize({width,height:844});await a.evaluate(()=>{window.angelDone=0;RinguAngelReveal({...RinguAngelData.gear[0],enhance:0,transcend:0,optionRolls:[.8,.8]},()=>window.angelDone++);});
   await a.waitForTimeout(4500);assert.equal(await a.locator('#angelReveal button').isDisabled(),true);await a.keyboard.press('Escape');assert.equal(await a.locator('#angelReveal').count(),1);

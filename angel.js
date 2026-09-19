@@ -4,7 +4,6 @@
  const template=it=>it?.rarity===7?A.gear.find(x=>x.slot===it.slot&&x.name===it.name):null;
  window.installRinguAngel=g=>{
   const f=g.fn;g.rarityNames[7]='천사';g.rarityColors[7]='#f5ffff';
-  for(let i=15;i<18;i++){g.rates[i][0]-=A.rates[i-15];g.rates[i][7]=A.rates[i-15];}
   for(const [key,override] of Object.entries({
    itemIndex:(old,it)=>template(it)?0:old(it),
    itemName:(old,slot,r,i)=>r===7?A.gear.find(x=>x.slot===slot)?.name:old(slot,r,i),
@@ -18,7 +17,7 @@
   })){const old=f[key];f[key]=(...args)=>override(old,...args);}
   const icon=window.RinguArt.icon;window.RinguArt.icon=(it,...args)=>{const t=template(it);return t?'<span class="rm-item-art angel-item-art" data-rarity="7"><img src="'+base+t.art+'" alt="'+f.escapeHtml(t.name)+'" loading="lazy"></span>':icon(it,...args);};
   f.gearIcon=it=>window.RinguArt.icon(it,f.itemIndex(it));
-  const rates=f.openRates;f.openRates=()=>{rates();document.getElementById('rateTable').insertAdjacentHTML('beforeend','<p>천사 등급은 소환 Lv.16 / 17 / 18에서 각각 0.001% / 0.002% / 0.003%로 등장합니다. 각 부위 1종 · 방어구와 장신구의 부위 확률은 균등합니다.</p>');};
+  const rates=f.openRates;f.openRates=()=>{rates();document.getElementById('rateTable').insertAdjacentHTML('beforeend','<p>천사 등급은 소환으로 획득할 수 없습니다.</p>');};
   const filter=document.getElementById('rarityFilter');if(filter&&!filter.querySelector('[value="7"]'))filter.add(new Option('천사','7'));
  };
  let run=null;
