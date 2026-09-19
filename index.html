@@ -567,8 +567,11 @@ left:var(--fallen-axe-left)!important;
 <link rel="stylesheet" href="/linsa-rpg/pet-mobile.css?v=PS2">
 <script src="/linsa-rpg/gear-sets.js?v=SET2"></script>
 <script src="/linsa-rpg/world2-data.js?v=W2-1"></script>
-<script src="/linsa-rpg/world2.js?v=W2-3"></script>
+<script src="/linsa-rpg/world2.js?v=ANGEL1"></script>
 <script src="/linsa-rpg/world2-reveal.js?v=W2-1"></script>
+<link rel="stylesheet" href="/linsa-rpg/angel.css?v=ANGEL1">
+<script src="/linsa-rpg/angel-data.js?v=ANGEL1"></script>
+<script src="/linsa-rpg/angel.js?v=ANGEL1"></script>
 <link rel="stylesheet" href="/linsa-rpg/world2.css?v=W2-3">
 <style id="ranking-mobile-RK5">
 /* RK5: reserve footer space; only equipment and sets scroll. */
@@ -581,15 +584,15 @@ body[data-remodel] #playerEquipModal#playerEquipModal.show{position:fixed!import
 </style>
 </head>
 <script src="/linsa-rpg/safety.js?v=BM5-CQ3"></script>
-<script src="/linsa-rpg/art-catalog.js?v=NAME-RANK-FIX2"></script>
-<script src="/linsa-rpg/remodel.js?v=W2-1"></script>
+<script src="/linsa-rpg/art-catalog.js?v=ANGEL1"></script>
+<script src="/linsa-rpg/remodel.js?v=ANGEL1"></script>
 <script src="/linsa-rpg/social-style.js?v=NAME-RANK-MARKETS3"></script>
-<script src="/linsa-rpg/audio-engine.js?v=W2-1"></script>
+<script src="/linsa-rpg/audio-engine.js?v=ANGEL1"></script>
 <script src="/linsa-rpg/core-fixes.js?v=W2-1"></script>
-<script src="/linsa-rpg/stone-party.js?v=stone-hp-S3"></script>
-<link rel="stylesheet" href="/linsa-rpg/world-boss.css?v=WB3">
-<script src="/linsa-rpg/world-boss-model.js?v=WB1"></script>
-<script src="/linsa-rpg/world-boss.js?v=WB3"></script>
+<script src="/linsa-rpg/stone-party.js?v=ANGEL1"></script>
+<link rel="stylesheet" href="/linsa-rpg/world-boss.css?v=ANGEL1">
+<script src="/linsa-rpg/world-boss-model.js?v=ANGEL1"></script>
+<script src="/linsa-rpg/world-boss.js?v=ANGEL1"></script>
 <script src="/linsa-rpg/pet-stack-model.js?v=PS2"></script>
 <script src="/linsa-rpg/pet-stacks.js?v=PS3"></script>
 <link rel="stylesheet" href="/linsa-rpg/auction.css?v=mobile-details-AU2">
@@ -748,7 +751,7 @@ function itemAtk(it){const steps=[3,6.85,14.25,27.5,45,100,180],step=steps[it.ra
 // RG1: actual obtainable equipment bounds from the server catalogue, not theoretical roll bounds.
 const RINGU_ITEM_BASE_LIMITS_RG1={"0|무기":[16,24],"1|무기":[36,52],"2|무기":[100,138],"3|무기":[255,351],"4|무기":[848,962],"5|무기":[2454,2568],"6|무기":[4966,5078],"0|투구":[4,6],"1|투구":[9,14],"2|투구":[25,35],"3|투구":[66,93],"4|투구":[214,242],"5|투구":[616,644],"6|투구":[2456,2512],"0|갑옷":[4,6],"1|갑옷":[9,14],"2|갑옷":[25,36],"3|갑옷":[62,89],"4|갑옷":[210,238],"5|갑옷":[615,644],"6|갑옷":[2462,2518],"0|바지":[4,6],"1|바지":[9,14],"2|바지":[26,36],"3|바지":[65,92],"4|바지":[213,241],"5|바지":[614,643],"6|바지":[2468,2524],"0|신발":[4,6],"1|신발":[9,14],"2|신발":[25,36],"3|신발":[68,95],"4|신발":[211,242],"5|신발":[614,642],"6|신발":[2474,2530],"0|반지":[8,12],"1|반지":[18,27],"2|반지":[50,71],"3|반지":[126,174],"4|반지":[426,483],"5|반지":[1229,1286],"6|반지":[2480,2536],"0|귀걸이":[8,12],"1|귀걸이":[18,27],"2|귀걸이":[51,72],"3|귀걸이":[129,177],"4|귀걸이":[422,479],"5|귀걸이":[1225,1282],"6|귀걸이":[2486,2542]};
 function itemAttackText(it){const values=(RINGU_ITEM_BASE_LIMITS_RG1[it.rarity+'|'+it.slot]||[]).map(baseAtk=>itemAtk({...it,name:undefined,baseAtk}));if(!values.length)return fmt(itemAtk(it));return fmt(itemAtk(it))+' <span class="item-stat-range" title="같은 등급·부위, 동일 강화·초월 단계의 공격력 범위">('+fmt(Math.min(...values))+'~'+fmt(Math.max(...values))+')</span>'}
-function subOptions(it){const ratio=[.1,.25,.5,.75,1,1.35,1.75][it.rarity]||.1,rolls=it.optionRolls||[1,1],defs={무기:[['critChance',20]],투구:[['atkPercent',20]],갑옷:[['critDamage',50]],바지:[['atkPercent',20]],신발:[['critDamage',50]],반지:[['goldBonus',10]],귀걸이:[['goldBonus',12]]}[it.slot]||[],options=defs.map(([key,value],i)=>[key,Number((value*ratio*(rolls[i]||1)).toFixed(1))]),transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(transcend)options.push(['equipmentAtkPercent',transcend*Math.round(transcendEquipmentRate(it)*100)]);return options}
+function subOptions(it){const ratio=[.1,.25,.5,.75,1,1.35,1.75,2.25][it.rarity]||.1,rolls=it.optionRolls||[1,1],defs={무기:[['critChance',20]],투구:[['atkPercent',20]],갑옷:[['critDamage',50]],바지:[['atkPercent',20]],신발:[['critDamage',50]],반지:[['goldBonus',10]],귀걸이:[['goldBonus',12]]}[it.slot]||[],options=defs.map(([key,value],i)=>[key,Number((value*ratio*(rolls[i]||1)).toFixed(1))]),transcend=Math.min(3,Math.max(0,Number(it.transcend)||0));if(transcend)options.push(['equipmentAtkPercent',transcend*Math.round(transcendEquipmentRate(it)*100)]);return options}
 function optionName(key){return{equipmentAtkPercent:'초월 장비 공격력',atkPercent:'공격력',critChance:'치명타 확률',critDamage:'치명타 피해',goldBonus:'골드 획득량'}[key]}
 function optionText(it,compact=false){const options=subOptions(it),low=subOptions({...it,optionRolls:[.8,.8]}),high=subOptions({...it,optionRolls:[1.2,1.2]});return options.map(([key,value],i)=>'<span class="item-option-line">'+(key==='equipmentAtkPercent'?'초월 장비 공격력':compact?({critChance:'치확',critDamage:'치피',atkPercent:'공격력',goldBonus:'골드 획득'}[key]||optionName(key)):optionName(key))+' +'+Number(value.toFixed(1))+'%'+(low[i][1]===high[i][1]?'':' <span class="item-stat-range">('+Number(low[i][1].toFixed(1))+'%~'+Number(high[i][1].toFixed(1))+'%)</span>')+'</span>').join('<br>')}
 function getPlayerStats(){let equipmentAtk=0,atkPercent=0,critChance=0,critDamage=100,goldBonus=0;Object.values(state.equipped||{}).forEach(id=>{const it=state.inventory.find(x=>x.id===id);if(!it)return;equipmentAtk+=itemAtk(it);subOptions(it).forEach(([key,value])=>{if(key==='atkPercent')atkPercent+=value;if(key==='critChance')critChance+=value;if(key==='critDamage')critDamage+=value;if(key==='goldBonus')goldBonus+=value})});const setBonuses=RinguGearSets.fromState(state);atkPercent+=setBonuses.atkPercent;critDamage+=setBonuses.critDamage;atkPercent+=ownedAuraAttackBonus(state.ownedAuras);critChance=Math.min(75,critChance);const attack=Math.floor((50+equipmentAtk)*(1+atkPercent/100));return{baseAttack:50,equipmentAtk,attack,atkPercent,critChance,critDamage,goldBonus,setBonuses}}
@@ -1959,6 +1962,7 @@ window.RinguSession.ready.then(()=>{
  window.installRinguStoneParty?.(RinguCore);
  window.installRinguPetStacks(RinguCore);
  window.installRinguWorld2(RinguCore);
+ window.installRinguAngel(RinguCore);
  load();
  window.dispatchEvent(new Event('ringu-ready'));
  window.addEventListener('pointerdown',()=>{if(window.RinguSession.active)initAudio()},{once:true});
@@ -2989,6 +2993,6 @@ body.weapon-pose-debug .avatar-relics:active{cursor:grabbing}
 <link rel="stylesheet" href="/linsa-rpg/daily-boss.css?v=DB1">
 <script defer src="/linsa-rpg/daily-boss.js?v=DB2"></script>
 <link rel="stylesheet" href="/linsa-rpg/cube-system.css?v=BM5-CQ3">
-<script type="module" src="/linsa-rpg/cube-system.js?v=LIME1"></script>
+<script type="module" src="/linsa-rpg/cube-system.js?v=ANGEL1"></script>
 </body>
 </html>

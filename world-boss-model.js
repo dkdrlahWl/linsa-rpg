@@ -13,5 +13,5 @@
  function contribution(member,room){const total=room.members.reduce((n,m)=>n+Number(m.damage),0);return total?Number(member?.damage||0)/total*100:0;}
  function reviveProgress(target,members,time){if(target.hp>0||!target.present)return 0;let progress=0;
   for(const h of members)if(h.id!==target.id&&h.hp>0&&h.present&&!h.background&&time-h.seenAt<2000&&h.x===target.x&&h.y===target.y)progress=Math.max(progress,clamp((time-Math.max(h.stillAt,target.deadAt))/3000,0,1));return progress;}
- return{MOVE_MS,LIMIT_MS,patterns,directions,clamp,destination,positionAt,interpolate,hitDamage,safeTiles,contribution,reviveProgress};
+ return{MOVE_MS,LIMIT_MS,patterns,stageTwoPatterns:[["백익 사선",720,"쉬움"],["성환 파동",800,"쉬움"],["빛의 봉인",800,"쉬움"],["성창 격자",1120,"보통"],["사방의 심판",1200,"보통"],["공명하는 낙인",1000,"보통"],["쌍익 회랑",1200,"보통"],["광휘의 감옥",1280,"보통"],["유리별 소나기",1680,"어려움"],["쌍성 붕괴",1920,"어려움"],["최후의 성역",2600,"어려움"]],directions,clamp,destination,positionAt,interpolate,hitDamage,safeTiles,contribution,reviveProgress};
 });

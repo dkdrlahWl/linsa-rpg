@@ -89,6 +89,7 @@ window.installRinguRemodel=function(g){
   function next(){
    run.timers.forEach(clearTimeout);run.timers=[];
    const it=fresh[run.index++];if(!it)return finish();
+   if(it.rarity===7&&window.RinguAngelReveal){modal.classList.remove('show');window.RinguAngelReveal(it,next);return;}
    if(it.rarity===6&&window.RinguFallenReveal){modal.classList.remove('show');window.RinguFallenReveal(it,next);return;}
    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduced?450:it.rarity>=5?3000:it.rarity===4?2100:1200;
    modal.className='modal-bg show';modal.dataset.grade=String(it.rarity);modal.style.setProperty('--drop-color',g.rarityColors[it.rarity]);modal.style.setProperty('--reveal-time',duration+'ms');modal.dataset.duration=String(duration);

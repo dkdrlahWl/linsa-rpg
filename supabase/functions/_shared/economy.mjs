@@ -1,5 +1,8 @@
 import {normalizeSummons,grantSummonExperience,summonCosts,selectFallen} from './world2-summons.mjs';
 import balance from './balance.json' with {type:'json'};
+import './angel-data.js';
+const ANGEL=globalThis.RinguAngelData;
+balance.gear.push(...ANGEL.gear);balance.enhanceCosts[7]=ANGEL.enhanceCosts;balance.transcendCosts[7]=ANGEL.transcendCosts;
 import './gear-sets.js';
 import {selectGear} from './gear-selection.mjs';
 import pets from './pets.mjs';
@@ -16,7 +19,7 @@ const safeAdd=(a,b)=>int(int(a)+int(b));
 const equipped=(s,it)=>Object.values(s.equipped||{}).includes(it.id);
 export function transcendEquipmentRate(it){const r=Number(it.rarity)||0;if(r<4)return 0;return it.slot==='무기'?(r>=6?.80:r>=5?.65:.60):(r>=6?.50:.40)}
 export function itemAttack(it){const lv=Math.max(0,Math.min(15,it.enhance||0)),base=canonicalBase(it),raw=base*(lv<=10?1+lv*.05:1.5+(lv-10)*.2),enhanced=lv?Math.max(Math.ceil(raw),Math.floor(base)+Math.min(lv,10)+Math.max(0,lv-10)*2):Math.floor(base),t=Math.min(3,it.transcend||0),rate=transcendEquipmentRate(it);return Math.floor(enhanced*(1+t*rate));}
-export function options(it){const ratio=[.1,.25,.5,.75,1,1.35,1.75][it.rarity],defs={무기:['critChance',20],투구:['atkPercent',20],갑옷:['critDamage',50],바지:['atkPercent',20],신발:['critDamage',50],반지:['goldBonus',10],귀걸이:['goldBonus',12]},[key,value]=defs[it.slot],out=[[key,Number((value*ratio*(it.optionRolls?.[0]||1)).toFixed(1))]],t=it.transcend||0;if(t)out.push(['equipmentAtkPercent',t*Math.round(transcendEquipmentRate(it)*100)]);return out;}
+export function options(it){const ratio=[.1,.25,.5,.75,1,1.35,1.75,2.25][it.rarity],defs={무기:['critChance',20],투구:['atkPercent',20],갑옷:['critDamage',50],바지:['atkPercent',20],신발:['critDamage',50],반지:['goldBonus',10],귀걸이:['goldBonus',12]},[key,value]=defs[it.slot],out=[[key,Number((value*ratio*(it.optionRolls?.[0]||1)).toFixed(1))]],t=it.transcend||0;if(t)out.push(['equipmentAtkPercent',t*Math.round(transcendEquipmentRate(it)*100)]);return out;}
 export function stats(s,costumePercent=0){let equipmentAtk=0,atkPercent=0,critChance=0,critDamage=100,goldBonus=0;for(const id of Object.values(s.equipped||{})){const it=s.inventory.find(x=>x.id===id);if(!it)continue;equipmentAtk+=itemAttack(it);for(const [k,v]of options(it)){if(k==='atkPercent')atkPercent+=v;if(k==='critChance')critChance+=v;if(k==='critDamage')critDamage+=v;if(k==='goldBonus')goldBonus+=v;}}
  const setBonuses=globalThis.RinguGearSets.fromState(s);atkPercent+=setBonuses.atkPercent;critDamage+=setBonuses.critDamage;
  for(const id of new Set(s.ownedAuras||[]))atkPercent+=balance.auras[id]?.attackPercent||0;
@@ -167,8 +170,8 @@ export function execute(snapshot,command,args,context){
   const integerRoll=limit=>context.randomInt?context.randomInt(limit):Math.floor(random()*limit);
   for(let i=0;i<args.count;i++){
    const slots=args.group==='weapon'?['무기']:args.group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이'],slot=slots[Math.floor(random()*slots.length)];
-   const table=level>=16?globalThis.RinguWorld2Data.rateWeights[level-16]:balance.rates[level-1];let roll=level>=16?integerRoll(table.reduce((sum,weight)=>sum+weight,0)):random()*100,rarity=table.length-1;for(let r=0;r<table.length;r++){roll-=table[r];if(roll<0){rarity=r;break;}}
-   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=rarity===6?selectFallen(args.group,integerRoll):selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
+   const table=level>=16?globalThis.RinguWorld2Data.rateWeights[level-16].map(x=>x*5):balance.rates[level-1];if(level>=16){table[0]-=level-15;table.push(level-15);}let roll=level>=16?integerRoll(table.reduce((sum,weight)=>sum+weight,0)):random()*100,rarity=table.length-1;for(let r=0;r<table.length;r++){roll-=table[r];if(roll<0){rarity=r;break;}}
+   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=rarity===7?ANGEL.gear.find(x=>x.slot===slot):rarity===6?selectFallen(args.group,integerRoll):selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
    items.push(addItem({...base,slot:base.slot,rarity,name:base.name,baseAtk:base.baseAtk,optionRolls:[.8,.8],cubeVersion:1,cubeTier:0}));
   }
   grantSummonExperience(s,args.group,items.length,balance.levelReq);events.push({type:'summon',items});
@@ -200,7 +203,7 @@ export function execute(snapshot,command,args,context){
   // The legacy command is an alias, never a way to recover the old gold payout.
   // Production supplies an unbiased integer RNG; one independent draw per item.
   let essence=0;
-  for(const it of items){int(it.rarity,0,6);const roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000);if(roll<10)essence=safeAdd(essence,it.rarity+1);}
+  for(const it of items){int(it.rarity,0,7);const roll=context.randomInt?int(context.randomInt(1000),0,999):Math.floor(random()*1000);if(roll<10)essence=safeAdd(essence,it.rarity+1);}
   const ids=new Set(args.ids);s.inventory=s.inventory.filter(it=>!ids.has(it.id));
   if(essence)award('essence',essence);events.push({type:'dismantle',count:items.length,essence});
  }else if(command==='auraBuy'){

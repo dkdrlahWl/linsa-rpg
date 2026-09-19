@@ -1,4 +1,4 @@
-import {CUBES,TIERS,cubeType,optionBands,optionTier,optionBase} from './supabase/functions/_shared/cubes.mjs?v=FALLEN-MIN1';
+import {CUBES,TIERS,cubeType,optionBands,optionTier,optionBase} from './supabase/functions/_shared/cubes.mjs?v=ANGEL1';
 const $=id=>document.getElementById(id),art=type=>'/linsa-rpg/art/cube-'+type+'.png',fmt=n=>Number(n||0).toLocaleString('ko-KR');
 function install(){
  const g=window.RinguCore,f=g?.fn;if(!g?.state||!window.RinguEconomy||window.RinguCubes)return;
@@ -49,7 +49,7 @@ function install(){
   $('cubeBands').innerHTML=bands.map(b=>'<div style="--tier:'+b.color+'"><b>'+b.name+'</b><span>'+b.min+'~'+b.max+'%</span><small>'+b.chance+'%</small></div>').join('');
   $('cubeRoll').disabled=busy||g.enhanceBusy||!def||!g.state[def.key];$('cubeBuy').disabled=busy||!def;
   $('cubeRoll').textContent=busy?'부옵션 재설정 중…':'큐브 사용 · 1개';$('cubeBuy').textContent=def?def.name+' 구매 · 정수 '+def.price+'개':'사용 불가';
-  if(!busy){const value=Number(((it.optionRolls?.[0]||.8)*({무기:20,투구:20,갑옷:50,바지:20,신발:50,반지:10,귀걸이:12}[it.slot])*[.1,.25,.5,.75,1,1.35,1.75][it.rarity]).toFixed(1));
+  if(!busy){const value=Number(((it.optionRolls?.[0]||.8)*({무기:20,투구:20,갑옷:50,바지:20,신발:50,반지:10,귀걸이:12}[it.slot])*[.1,.25,.5,.75,1,1.35,1.75,2.25][it.rarity]).toFixed(1));
    $('cubeReveal').style.setProperty('--tier',tier.color);
    $('cubeReveal').innerHTML='<small>'+tier.name+'</small><strong>'+(lastResult?lastResult.before+'% → ':'')+value+'%</strong><span>'+(lastResult?(value>lastResult.before?'수치 상승':value<lastResult.before?'수치 하락':'동일 수치'):'현재 부옵션')+'</span>';
   }

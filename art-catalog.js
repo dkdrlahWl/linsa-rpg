@@ -166,7 +166,8 @@
  [[50,119],[29,132],[21,132],[63,113],[41,120],[35,122],[39,124],[35,130],[31,116],[31,129]],
  [[47,120],[33,129],[24,132],[62,110],[39,115],[36,119],[40,123],[34,129],[35,117],[31,128]]
  ];
- function weaponSocket(it,indexOf){const grade=Math.max(0,Math.min(6,Number(it.rarity)||0)),index=Math.max(0,Math.min(9,indexOf(it))),dual=grade<5?index===6:grade===5&&index===7,sourceIndex=grade===6?(index===0?1:0):dual?1:index,key=grade+':'+index;
+ const angelBlade=new Image();angelBlade.src=new URL('art/celestial/gear-0.svg',document.currentScript.src).href;
+ function weaponSocket(it,indexOf){if(it?.rarity===7){if(!angelBlade.complete||!angelBlade.naturalWidth)return null;return {im:angelBlade,x:0,y:0,w:256,h:256,index:0,sourceIndex:0,dual:false,gauntlet:false,u:.5,v:.79,pivotAlpha:255};}const grade=Math.max(0,Math.min(6,Number(it.rarity)||0)),index=Math.max(0,Math.min(9,indexOf(it))),dual=grade<5?index===6:grade===5&&index===7,sourceIndex=grade===6?(index===0?1:0):dual?1:index,key=grade+':'+index;
   if(weaponCache.has(key))return weaponCache.get(key);const f=frame('gear-'+grade,sourceIndex,10,7);if(!f)return null;
   const canvas=document.createElement('canvas');canvas.width=Math.ceil(f.w);canvas.height=Math.ceil(f.h);const c=canvas.getContext('2d',{willReadFrequently:true});
   // Crossed inventory illustrations are not wearable geometry. Dual wield uses

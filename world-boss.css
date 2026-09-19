@@ -39,3 +39,14 @@
 .wb-party-track i{background:#72b8ef}.wb-party-row[data-me="true"] .wb-party-track i{background:#39f576}
 
 .wb-pattern-banner{position:absolute;top:30px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);z-index:5;pointer-events:none;text-align:center;opacity:0;padding:9px 24px;border-radius:8px;background:linear-gradient(90deg,#100d0800,#100d08ed 18%,#100d08ed 82%,#100d0800);color:#ffe0a0;text-shadow:0 2px 4px #000,0 0 10px #000}.wb-pattern-banner strong{display:block;font-size:clamp(24px,5vw,34px);font-weight:900;line-height:1.2}.wb-pattern-banner span{display:block;font-size:12px;color:#fff0d0;margin-top:4px}.wb-pattern-visible{animation:wb-pattern-announce 2.4s ease-out both}@keyframes wb-pattern-announce{0%{opacity:0}10%,75%{opacity:1}100%{opacity:0}}
+
+/* Celestial stage two: different boss, environment and cool marble battlefield. */
+#wb-screen[data-stage="2"]{background:#0d2035;--wb-edge:#b8eaff}
+#wb-screen[data-stage="2"] .wb-shell{background:#142b40;border-color:#c0e7fa}
+#wb-screen[data-stage="2"] .wb-cover,#wb-screen[data-stage="2"] .wb-boss{background-image:linear-gradient(0deg,#0b213bcc,transparent 55%),url('art/celestial/auriel-arena.png')!important;background-size:cover!important;background-position:center 30%!important}
+#wb-screen[data-stage="2"] .wb-header,#wb-screen[data-stage="2"] .wb-controls,#wb-screen[data-stage="2"] .wb-footer{background:#17364c!important;border-color:#7ba8c1}
+#wb-screen[data-stage="2"] .wb-header h2{color:#efffff;text-shadow:0 0 16px #a4e4ff}
+.wb-stage-tabs button{flex:1}.wb-stage-tabs button[aria-pressed="true"]{border-color:#d9f9ff;background:#426579;color:white}
+
+#wb-screen[data-stage="2"] .wb-lobby{background:linear-gradient(#142c43ee,#0b1e32f5)}
+#wb-screen[data-stage="2"] .wb-stage-tabs button[aria-pressed="true"]{background:#4d718a;color:#fff;border-color:#ebffff}
