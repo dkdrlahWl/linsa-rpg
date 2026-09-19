@@ -165,13 +165,15 @@ export function execute(snapshot,command,args,context){
  }else if(command==='daily'){
   const key=dailyKey(now);s.dailyRewardClaims??={};if(s.dailyRewardClaims[key])fail('ALREADY_CLAIMED');const amount=10+Math.floor(random()*6);award('essence',amount);s.dailyRewardClaims[key]={essence:amount,claimedAt:now};events.push({type:'daily',amount});
  }else if(command==='summon'){
-  if(!['weapon','armor','accessory'].includes(args.group)||![1,5,10,50].includes(args.count))fail('INVALID_ARGUMENTS');
+  if(!['weapon','armor','accessory'].includes(args.group)||![1,5,10,50,100].includes(args.count))fail('INVALID_ARGUMENTS');
   const summon=s.summons[args.group],level=summon.level;spend('gold',summonCosts[level-1]*args.count);const items=[];
   const integerRoll=limit=>context.randomInt?context.randomInt(limit):Math.floor(random()*limit);
   for(let i=0;i<args.count;i++){
    const slots=args.group==='weapon'?['무기']:args.group==='armor'?['투구','갑옷','바지','신발']:['반지','귀걸이'],slot=slots[Math.floor(random()*slots.length)];
    const table=level>=16?globalThis.RinguWorld2Data.rateWeights[level-16]:balance.rates[level-1];let roll=level>=16?integerRoll(table.reduce((sum,weight)=>sum+weight,0)):random()*100,rarity=table.length-1;for(let r=0;r<table.length;r++){roll-=table[r];if(roll<0){rarity=r;break;}}
-   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=rarity===6?selectFallen(args.group,integerRoll):selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
+   // adminFloor is supplied by the authenticated database snapshot, never client arguments.
+   if(context.adminFloor>0&&level>=10&&integerRoll(100)===0)rarity=7;
+   const candidates=balance.gear.filter(x=>x.slot===slot&&x.rarity===rarity),base=rarity===7?ANGEL.gear.find(x=>x.slot===slot):rarity===6?selectFallen(args.group,integerRoll):selectGear(candidates,rarity,random());if(!base)fail('UNKNOWN_EQUIPMENT');
    items.push(addItem({...base,slot:base.slot,rarity,name:base.name,baseAtk:base.baseAtk,optionRolls:[.8,.8],cubeVersion:1,cubeTier:0}));
   }
   grantSummonExperience(s,args.group,items.length,balance.levelReq);events.push({type:'summon',items});

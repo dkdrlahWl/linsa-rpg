@@ -161,6 +161,13 @@ try{
  await db.query('update ringu_private.wb_rooms set hp=0 where id=$1',[celestial.id]);await call(users[0],'sync',celestial.id,{packet:4});
  const mail=(await db.query("select state->'mailbox' box from ringu_private.accounts where id=$1",[users[0].id])).rows[0].box.find(x=>x.id.startsWith('weekly-boss:'+celestial.id));assert.match(mail.title,/2단계/);assert.match(mail.message,/아우리엘/);assert.equal((await call(users[0])).remaining,2);
  await call(users[0],'ack',celestial.id);
+ for(const [stage,remaining] of [[1,1],[2,0],[1,0]]){
+  const r=(await call(users[0],'create',null,{stage})).room;await call(users[0],'start',r.id);
+  await db.query('update ringu_private.wb_rooms set hp=0 where id=$1',[r.id]);await call(users[0],'sync',r.id,{packet:1});
+  assert.equal((await call(users[0])).remaining,remaining,'stage '+stage+' shares weekly quota');await call(users[0],'ack',r.id);
+ }
+ assert.equal((await db.query('select count(*)::int n from ringu_private.wb_rewards where account_id=$1 and room_id<>$2',[users[0].id,celestial.id])).rows[0].n>0,true);
+
  for(const stage of [7,8]){await identity(users[1]);const r=(await db.query("select public.ringu_party('create',null,$1) r",[stage])).rows[0].r.room;assert.equal(r.stage,stage);assert.equal(r.maxHp,Math.floor(100000*1.5**(stage-1)));assert.equal(r.reward,stage+1);await db.query("select public.ringu_party('leave',$1)",[r.id]);}
  await db.exec('set role authenticated');await assert.rejects(()=>db.query('select ringu_private.wb_pattern_two($1,1,1,now())',[celestial.id]),/permission denied/);await db.exec('reset role');
  console.log('PASS celestial DB: stage 1 regression, stage 2 HP, all 11 double-damage patterns and escape geometry, room lists, battle, mail, quota, stone 7/8, private permissions.');

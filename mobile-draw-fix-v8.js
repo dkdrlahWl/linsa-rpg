@@ -60,7 +60,7 @@
   }
   #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) {
     display:grid!important;grid-template-columns:minmax(0,1fr)!important;
-    grid-template-rows:64px 22px 26px 16px!important;gap:2px!important;
+    grid-template-rows:96px 24px minmax(38px,auto) minmax(18px,auto)!important;gap:2px!important;
     grid-column:auto!important;grid-row:auto!important;
     position:relative!important;float:none!important;
     width:auto!important;min-width:0!important;max-width:100%!important;
@@ -71,8 +71,8 @@
   }
   #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) .rm-item-art {
     grid-row:1!important;display:block!important;position:relative!important;
-    width:100%!important;max-width:64px!important;min-width:0!important;
-    height:64px!important;max-height:64px!important;
+    width:100%!important;max-width:100px!important;min-width:0!important;
+    height:96px!important;max-height:96px!important;
     margin:0 auto!important;
     background-size:contain!important;background-position:center!important;
     background-repeat:no-repeat!important;
@@ -80,7 +80,7 @@
   }
   #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) :is(img,canvas) {
     display:block!important;width:auto!important;height:auto!important;
-    max-width:100%!important;max-height:64px!important;
+    max-width:100%!important;max-height:96px!important;
     object-fit:contain!important;margin:0 auto!important;
   }
   #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) > small {
@@ -88,16 +88,16 @@
     width:100%!important;min-width:0!important;max-width:100%!important;
     height:auto!important;min-height:0!important;max-height:22px!important;
     margin:0!important;padding:0!important;
-    font-size:8px!important;line-height:11px!important;
+    font-size:11px!important;line-height:12px!important;
     white-space:normal!important;overflow-wrap:anywhere!important;overflow:hidden!important;
   }
   #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) > strong {
-    grid-row:3!important;display:-webkit-box!important;
-    -webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+    grid-row:3!important;display:block!important;
+    -webkit-box-orient:vertical!important;-webkit-line-clamp:unset!important;
     width:100%!important;min-width:0!important;max-width:100%!important;
-    height:auto!important;min-height:0!important;max-height:26px!important;
+    height:auto!important;min-height:0!important;max-height:none!important;
     margin:0!important;padding:0!important;
-    font-size:9px!important;line-height:12px!important;
+    font-size:13px!important;line-height:18px!important;
     white-space:normal!important;word-break:keep-all!important;
     overflow-wrap:anywhere!important;overflow:hidden!important;text-overflow:ellipsis!important;
   }
@@ -106,7 +106,7 @@
     width:100%!important;min-width:0!important;max-width:100%!important;
     margin:0!important;padding:0!important;
     font-size:11px!important;line-height:16px!important;
-    white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+    white-space:normal!important;overflow-wrap:anywhere!important;
   }
   #drawResultModal > .modal > .modal-actions {
     flex:0 0 auto!important;position:static!important;margin:10px 0 0!important;
@@ -118,13 +118,13 @@
 @media (max-width:360px) {
   #drawResultModal #drawResultGrid {column-gap:3px!important;}
   #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) {
-    grid-template-rows:54px 22px 24px 16px!important;
+    grid-template-rows:88px 24px minmax(38px,auto) minmax(18px,auto)!important;
   }
   #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) .rm-item-art {
-    height:54px!important;max-height:54px!important;max-width:54px!important;
+    height:88px!important;max-height:88px!important;max-width:88px!important;
   }
-  #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) :is(img,canvas) {max-height:54px!important;}
-  #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) > strong {font-size:8px!important;line-height:11px!important;}
+  #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) :is(img,canvas) {max-height:88px!important;}
+  #drawResultModal #drawResultGrid > :is(.rm-drop-card,.draw-card) > strong {font-size:12px!important;line-height:18px!important;}
 }
 `;
   document.head.append(style);
@@ -137,7 +137,8 @@
     const cards = Array.from(observedGrid.children).filter(el =>
       el.matches('.rm-drop-card,.draw-card'));
     // An empty/rebuilding grid must not be mistaken for a one-item summon.
-    const columns = cards.length ? Math.min(5, cards.length) : 5;
+    const maxColumns=cards.length>=100?(innerWidth<=768?4:5):(innerWidth<=480?2:innerWidth<=768?3:5);
+    const columns = cards.length ? Math.min(maxColumns, cards.length) : maxColumns;
     const value = String(columns);
     if (observedGrid.style.getPropertyValue('--ringu-result-columns') !== value) {
       observedGrid.style.setProperty('--ringu-result-columns', value);
@@ -168,6 +169,7 @@
   }
   window.__ringuCompactDrawV10 = { refresh:attach };
   window.addEventListener('ringu-ready', attach);
+  window.addEventListener('resize',update);
   window.addEventListener('load', attach, { once:true });
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', attach, { once:true });

@@ -194,14 +194,14 @@ body[data-remodel] #rmCurrencyStats .stat-value{white-space:normal!important;ove
  body[data-remodel] #cubeBagSummary{padding:0 7px 6px;gap:4px;font-size:11px}
  body[data-remodel] #cubeBagSummary>span{padding:3px 5px}
 }
-/* Fifty summons retain readable artwork and a scrollable result grid. */
+/* Large summons keep readable equipment and scroll within the result dialog. */
 body[data-remodel] #summonPanel .draw-buttons{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body[data-remodel] #summonPanel #draw100{grid-column:1 / -1;min-height:56px;border-color:#d9b474!important}
 @media(max-width:768px){
- #drawResultModal #drawResultGrid[data-ringu-result-count="50"]{grid-template-columns:repeat(3,minmax(0,1fr))!important}
- #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card{grid-template-rows:64px 22px minmax(30px,auto) 18px!important}
- #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>strong{font-size:11px!important;line-height:15px!important;display:block!important;max-height:none!important;white-space:normal!important;overflow-wrap:anywhere!important}
- #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>small{font-size:10px!important}
- #drawResultModal #drawResultGrid[data-ringu-result-count="50"]>.rm-drop-card>span{font-size:10px!important}
+ #drawResultModal #drawResultGrid{grid-template-columns:repeat(var(--ringu-result-columns,2),minmax(0,1fr))!important}
+ #drawResultModal #drawResultGrid>.rm-drop-card>strong{font-size:13px!important;line-height:18px!important;display:block!important;max-height:none!important;white-space:normal!important;overflow-wrap:anywhere!important}
+ #drawResultModal #drawResultGrid>.rm-drop-card>small{font-size:11px!important}
+ #drawResultModal #drawResultGrid>.rm-drop-card>span:not(.rm-item-art){font-size:12px!important;white-space:normal!important;overflow-wrap:anywhere!important}
 }
 /* Desktop header: give the four actions their own row within the brand column. */
 @media(min-width:1100px){
@@ -215,3 +215,12 @@ body[data-remodel] #summonPanel .draw-buttons{grid-template-columns:repeat(2,min
 /* Transparent painted gold currency icon. */
 .ru-gold-icon{display:inline-block!important;width:24px!important;height:24px!important;object-fit:contain;vertical-align:middle;flex:none;mix-blend-mode:normal!important}
 .ru-gold .ru-stat-art{mix-blend-mode:normal;filter:drop-shadow(0 1px 2px #0008)}
+
+@media(max-width:768px){
+#drawResultModal #drawResultGrid[data-ringu-result-count="100"]>.rm-drop-card{grid-template-rows:60px 24px minmax(32px,auto) minmax(16px,auto)!important;padding:3px 1px!important}
+#drawResultModal #drawResultGrid[data-ringu-result-count="100"]>.rm-drop-card .rm-item-art{height:60px!important;max-height:60px!important;max-width:60px!important}
+#drawResultModal #drawResultGrid[data-ringu-result-count="100"]>.rm-drop-card :is(img,canvas){max-height:60px!important}
+#drawResultModal #drawResultGrid[data-ringu-result-count="100"]>.rm-drop-card>strong{font-size:10px!important;line-height:14px!important;word-break:normal!important;overflow-wrap:anywhere!important}
+#drawResultModal #drawResultGrid[data-ringu-result-count="100"]>.rm-drop-card>small{font-size:9px!important;line-height:11px!important}
+#drawResultModal #drawResultGrid[data-ringu-result-count="100"]>.rm-drop-card>span:not(.rm-item-art){font-size:9px!important;line-height:13px!important}
+}

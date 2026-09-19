@@ -69,7 +69,7 @@ window.installRinguStoneParty = function(g) {
   }
   function arena() {
     const hit=hitDamage>0;
-    return '<div class="rm-stone-arena '+(room.status==='won'?'is-cleared ':'')+(hit?'is-hit':'')+'"><img src="'+(room.stage>=7?'art/celestial/stone-'+room.stage+'.svg':'art/stone-arena-v1.webp')+'" alt="초월석 던전 전장" width="960" height="640" decoding="async">'+(hit?'<i class="rm-stone-impact" aria-hidden="true"></i><strong class="rm-stone-damage">−'+fmt(hitDamage)+'</strong>':'')+'<span class="rm-stone-arena-label">'+(room.status==='running'?'초월석 파괴 중':room.status==='won'?'초월석 파괴 완료':'초월석의 성소')+'</span></div>';
+    return '<div class="rm-stone-arena '+(room.status==='won'?'is-cleared ':'')+(hit?'is-hit':'')+'"><img src="'+'art/stone-arena-v1.webp'+'" alt="초월석 던전 전장" width="960" height="640" decoding="async">'+(hit?'<i class="rm-stone-impact" aria-hidden="true"></i><strong class="rm-stone-damage">−'+fmt(hitDamage)+'</strong>':'')+'<span class="rm-stone-arena-label">'+(room.status==='running'?'초월석 파괴 중':room.status==='won'?'초월석 파괴 완료':'초월석의 성소')+'</span></div>';
   }
   function render() {
     if (!$('dungeonStageList') || !$('dungeonModal')?.classList.contains('show')) return;

@@ -17,7 +17,7 @@
   })){const old=f[key];f[key]=(...args)=>override(old,...args);}
   const icon=window.RinguArt.icon;window.RinguArt.icon=(it,...args)=>{const t=template(it);return t?'<span class="rm-item-art angel-item-art" data-rarity="7"><img src="'+base+t.art+'" alt="'+f.escapeHtml(t.name)+'" loading="lazy"></span>':icon(it,...args);};
   f.gearIcon=it=>window.RinguArt.icon(it,f.itemIndex(it));
-  const rates=f.openRates;f.openRates=()=>{rates();document.getElementById('rateTable').insertAdjacentHTML('beforeend','<p>천사 등급은 소환으로 획득할 수 없습니다.</p>');};
+  const rates=f.openRates;f.openRates=()=>{rates();document.getElementById('rateTable').insertAdjacentHTML('beforeend','<p>천사: 관리자 계정 전용 · 소환 레벨 10 이상에서 1% (다른 등급은 기존 확률의 99%). 일반 계정은 획득할 수 없습니다.</p>');};
   const filter=document.getElementById('rarityFilter');if(filter&&!filter.querySelector('[value="7"]'))filter.add(new Option('천사','7'));
  };
  let run=null;
@@ -27,7 +27,7 @@
   stop();const t=template(item);if(!t){done();return;}
   const g=window.RinguCore,f=g.fn,owner=window.RinguSession?.account?.id,modal=document.createElement('section');
   modal.id='angelReveal';modal.className='angel-reveal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','angelName');
-  modal.innerHTML='<div class="angel-sky"></div><div class="angel-lightbeam"></div><div class="angel-ring ring-one"></div><div class="angel-ring ring-two"></div>'+wing('left')+wing('right')+'<div class="angel-feathers" aria-hidden="true">'+Array.from({length:24},(_,i)=>'<i style="--i:'+i+';--x:'+((i*43)%100)+'%"></i>').join('')+'</div><div class="angel-content"><small>CELESTIAL AWAKENING</small><div class="angel-grade">천사</div><div class="angel-object"><img src="'+base+t.art+'" alt="'+f.escapeHtml(t.name)+'"></div><div class="angel-details"><p>순백의 축복이 깨어납니다</p><h2 id="angelName">'+f.escapeHtml(t.name)+'</h2><p>'+f.escapeHtml(item.slot)+' · 공격력 '+f.itemAtk(item).toLocaleString('ko-KR')+'</p><div>'+f.optionText(item)+'</div></div><button disabled>천사가 강림하는 중…</button></div>';
+  modal.innerHTML='<div class="angel-sky"></div><div class="angel-cinematic" aria-hidden="true"></div><div class="angel-lightbeam"></div><div class="angel-ring ring-one"></div><div class="angel-ring ring-two"></div>'+wing('left')+wing('right')+'<div class="angel-feathers" aria-hidden="true">'+Array.from({length:24},(_,i)=>'<i style="--i:'+i+';--x:'+((i*43)%100)+'%"></i>').join('')+'</div><div class="angel-content"><small>CELESTIAL AWAKENING</small><div class="angel-grade">천사</div><div class="angel-object"><img src="'+base+t.art+'" alt="'+f.escapeHtml(t.name)+'"></div><div class="angel-details"><p>순백의 축복이 깨어납니다</p><h2 id="angelName">'+f.escapeHtml(t.name)+'</h2><p>'+f.escapeHtml(item.slot)+' · 공격력 '+f.itemAtk(item).toLocaleString('ko-KR')+'</p><div>'+f.optionText(item)+'</div></div><button disabled>천사가 강림하는 중…</button></div>';
   const r={modal,owner,previous:document.activeElement,timers:[]};run=r;document.body.append(modal);
   const valid=()=>run===r&&window.RinguSession?.active!==false&&window.RinguSession?.account?.id===owner;
   const later=(fn,ms)=>r.timers.push(setTimeout(()=>{if(valid())fn();else if(run===r)stop();},ms));

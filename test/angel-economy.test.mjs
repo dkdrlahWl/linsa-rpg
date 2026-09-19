@@ -33,3 +33,17 @@ test('lower summon levels never create angels and forged celestial names are rej
  const s=state();s.world2Unlocked=false;s.summons.weapon={exp:balance.levelReq[14],level:15,world2Version:1};assert.ok(execute(s,'summon',{group:'weapon',count:50},ctx()).state.inventory.every(x=>x.rarity<7));
  s.inventory=[{...A.gear[0],name:'forged',id:3}];assert.throws(()=>execute(s,'sync',{},ctx()),/UNKNOWN_EQUIPMENT/);
 });
+
+test('trusted admin-only angel roll is exactly one of 100 outcomes and cannot be forged',()=>{
+ for(const group of ['weapon','armor','accessory']){let angels=0;
+  for(let outcome=0;outcome<100;outcome++){
+   const s=state();s.summons[group]={level:15,exp:balance.levelReq[14],world2Version:1};
+   const r=execute(s,'summon',{group,count:1},{...ctx(n=>n===100?outcome:n-1),adminFloor:1});
+   if(r.events[0].items?.[0]?.rarity===7)angels++;
+   assert.ok(execute({...s,adminFloor:1,isAdmin:true},'summon',{group,count:1},ctx(()=>0)).state.inventory.every(x=>x.rarity<7));
+  }assert.equal(angels,1);
+ }
+ assert.throws(()=>execute(state(),'summon',{group:'weapon',count:1,adminFloor:1},ctx()),/INVALID_ARGUMENTS/);
+ const s=state();s.inventory=[{...A.gear[0],id:42,enhance:0,optionRolls:[.8,.8]}];
+ const r=execute(s,'summon',{group:'weapon',count:1},{...ctx(()=>0),adminFloor:1});assert.equal(r.events[0].items[0].rarity,7);assert.equal(r.events[0].items[0].isNew,false);
+});

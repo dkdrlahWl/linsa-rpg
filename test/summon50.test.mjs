@@ -10,7 +10,7 @@ for(const group of ['weapon','armor','accessory'])test('50 summons: '+group,()=>
  assert.equal(r.state.gold,37500);assert.equal(r.state.summons[group].exp,50);assert.equal(r.events.find(e=>e.type==='summon').items.length,50);
 });
 test('reject invalid counts and insufficient gold without mutating input',()=>{
- for(const count of [0,49,51,100,1.5,'50'])assert.throws(()=>execute({...initialState(now),gold:50000,autoBattle:false},'summon',{group:'weapon',count},ctx),/INVALID_ARGUMENTS/);
+ for(const count of [0,49,51,99,101,1.5,'50'])assert.throws(()=>execute({...initialState(now),gold:50000,autoBattle:false},'summon',{group:'weapon',count},ctx),/INVALID_ARGUMENTS/);
  const s={...initialState(now),gold:12499,autoBattle:false},before=structuredClone(s);
  assert.throws(()=>execute(s,'summon',{group:'weapon',count:50},ctx),/INSUFFICIENT_GOLD/);assert.deepEqual(s,before);
 });
