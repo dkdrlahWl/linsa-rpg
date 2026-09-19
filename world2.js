@@ -33,13 +33,14 @@ window.installRinguWorld2=function(g){
  f.enhanceCost=it=>Number(it?.rarity)===6?(W.enhanceCosts[it.enhance]||0):previous.enhanceCost(it);
  f.transcendCost=(it,n)=>Number(it?.rarity)===6?(W.transcendCosts[n-1]||0):previous.transcendCost(it,n);
  f.summonUnitCost=()=>f.activeSummon().level>=16?W.costs[Math.min(18,f.activeSummon().level)-16]:previous.summonUnitCost();
+ const starBadge=it=>{const n=Math.max(0,Math.min(3,Number(it.transcend)||0));return n?'<span class="gear-transcend-badge" style="--star-color:'+(Number(it.rarity)===7?'#f5ffff':'#e681b3')+'" aria-label="'+n+'초월">'+'★'.repeat(n)+'</span>':'';};
  const oldIcon=window.RinguArt.icon;
- window.RinguArt.icon=(it,index)=>{const t=template(it);return t?'<span class="rm-item-art w2-item-art" data-rarity="6"><img src="'+base+t.art+'.webp" alt="'+esc(t.name)+'" loading="lazy" decoding="async"></span>':oldIcon(it,index);};
+ window.RinguArt.icon=(it,index)=>{const t=template(it);return t?'<span class="rm-item-art w2-item-art" data-rarity="6"><img src="'+base+t.art+'.webp" alt="'+esc(t.name)+'" loading="lazy" decoding="async">'+starBadge(it)+'</span>':oldIcon(it,index);};
  f.gearIcon=it=>window.RinguArt.icon(it,f.itemIndex(it));
  const oldSets=window.RinguGearSets;
  window.RinguGearSets=Object.freeze({...oldSets,rank:it=>{const t=template(it);return t?{rank:t.rank,roman:t.roman}:oldSets.rank(it);}});
  const oldTitle=f.itemTitleHtml;
- f.itemTitleHtml=(it,progress=true)=>{const t=template(it);if(!t)return oldTitle(it,progress);return '<span class="cube-item-name">'+esc((it.locked?'[잠금] ':'')+it.name)+'</span> <span class="w2-rank" title="타락 계열 '+t.rank+'위">'+t.roman+'</span>'+(progress?' <span class="ringu-plus">+'+(it.enhance||0)+'</span> <span class="transcend-stars">'+(it.transcend?'초월 '+it.transcend:'')+'</span>':'');};
+ f.itemTitleHtml=(it,progress=true)=>{const t=template(it);if(!t)return oldTitle(it,progress);return '<span class="cube-item-name">'+esc((it.locked?'[잠금] ':'')+it.name)+'</span> <span class="w2-rank" title="타락 계열 '+t.rank+'위">'+t.roman+'</span>'+(progress?' <span class="ringu-plus">+'+(it.enhance||0)+'</span> '+(it.transcend?'<span class="transcend-stars" style="--star-color:#e681b3;color:#e681b3" aria-label="'+Math.min(3,it.transcend)+'초월">'+'★'.repeat(Math.max(0,Math.min(3,Number(it.transcend)||0)))+'</span>':'')+'':'');};
  const normal=f.normalizeCharacter;
  f.normalizeCharacter=(...args)=>{const kept=(g.state?.inventory||[]).filter(x=>Number(x.rarity)===6).map(x=>[x,{...x}]);const result=normal(...args);for(const [it,snapshot]of kept){Object.assign(it,snapshot);const t=template(it);if(t)it.baseAtk=t.baseAtk;}return result;};
  function progress(v){if(v.level<15){const lo=g.levelReq[v.level-1],hi=g.levelReq[v.level];return {have:v.exp-lo,need:hi-lo,percent:Math.min(100,(v.exp-lo)/(hi-lo)*100)};}if(v.level===15)return {have:0,need:0,percent:100,note:'심연 최종 보스 처치 시 Lv.16'};if(v.level===18)return {have:0,need:0,percent:100,note:'최대 레벨'};const need=v.level===16?10000:20000,have=Math.max(0,Math.min(need,v.exp-g.levelReq[14]-(v.level===17?10000:0))),gate=v.level===16?42:60;return {have,need,percent:have/need*100,note:(g.state.monsterUnlockStep||0)<gate?(v.level===16?'추락천사 라지엘':'공허포식왕 네비로스')+' 처치 필요'+(have===need?' · 경험치 상한 도달':''):''};}
