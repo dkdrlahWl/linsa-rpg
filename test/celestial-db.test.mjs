@@ -114,8 +114,8 @@ try{
  await clock(1100);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,25000,'stopping does not reset the attack timer');
  await clock(80);latest=(await call(users[0],'sync',cr.id,{packet:++packet})).room;assert.equal(latest.members[0].damage,25000,'no accumulated burst after stopping');
  await call(users[0],'leave',cr.id);await clock(7*86400000);
- async function rewardRoom(tied=false){
-  const room=(await call(users[0],'create')).room;for(const user of users.slice(1,10)){await call(user,'join',room.id);await call(user,'ready',room.id,{ready:true});}await call(users[0],'start',room.id);
+ async function rewardRoom(tied=false,stage=1){
+  const room=(await call(users[0],'create',null,{stage})).room;for(const user of users.slice(1,10)){await call(user,'join',room.id);await call(user,'ready',room.id,{ready:true});}await call(users[0],'start',room.id);
   for(let i=0;i<10;i++)await db.query('update ringu_private.wb_members set damage=$3,hp=$4 where room_id=$1 and account_id=$2',[room.id,users[i].id,tied&&i===1?9000:(9-i)*1000,i===9?0:2000]);
   await db.query('update ringu_private.wb_rooms set hp=0 where id=$1',[room.id]);return (await call(users[0],'sync',room.id,{packet:1})).room;
  }
@@ -140,6 +140,7 @@ try{
  console.log('PASS weekly rewards: all 10 ranks 50..23, 2 cubes including dead/zero damage, same-rank ties, trusted mail claim, no duplicate settle/claim, three-weekly quota, existing movement/cadence/auth rules.');
 
  await db.exec((await readFile(new URL('../supabase/migrations/20260919161257_celestial_expansion.sql',import.meta.url),'utf8')).replaceAll('clock_timestamp()',"current_setting('test.now')::timestamptz"));
+ await db.exec(await readFile(new URL('../supabase/migrations/20260920114501_weekly_boss_stage_two_rewards.sql',import.meta.url),'utf8'));
  await db.exec("update ringu_private.wb_members set active=false,present=false;update ringu_private.wb_rooms set status='closed' where status in ('waiting','running')");
  await clock(7*86400000);
  await assert.rejects(()=>call(users[0],'create',null,{stage:3}),/INVALID_STAGE/);
@@ -167,6 +168,27 @@ try{
   assert.equal((await call(users[0])).remaining,remaining,'stage '+stage+' shares weekly quota');await call(users[0],'ack',r.id);
  }
  assert.equal((await db.query('select count(*)::int n from ringu_private.wb_rewards where account_id=$1 and room_id<>$2',[users[0].id,celestial.id])).rows[0].n>0,true);
+
+
+ await clock(7*86400000);
+ for(const [stage,tied] of [[2,false],[2,true],[1,false]]){
+  const rr=await rewardRoom(tied,stage);
+  for(let i=0;i<10;i++){
+   const rank=tied&&i===1?1:i+1, amount=stage===2?60-5*(rank-1):50-3*(rank-1);
+   const detail=rr.members.find(m=>m.id===users[i].id).rewardDetail;
+   assert.equal(detail.rank,rank);assert.equal(detail.essence,amount);
+   assert.equal(detail.sunCube,stage===2?2:0);assert.equal(detail.jadeCube,stage===2?0:2);
+   const box=(await db.query("select state->'mailbox' box from ringu_private.accounts where id=$1",[users[i].id])).rows[0].box;
+   const earned=box.filter(m=>m.id==='weekly-boss:'+rr.id+':'+users[i].id);assert.equal(earned.length,1);
+   assert.deepEqual(earned[0].reward,{essence:amount,[stage===2?'sunCube':'jadeCube']:2});
+   const fresh=initialState(time);fresh.autoBattle=false;fresh.mailbox=earned;
+   const paid=execute(fresh,'mail',{id:earned[0].id},{...context,now:time}).state;
+   assert.equal(paid.essence,amount);assert.equal(paid[stage===2?'sunCube':'jadeCube'],2);
+  }
+  await db.query('select ringu_private.wb_pay_rewards($1)',[rr.id]);
+  assert.equal((await db.query("select count(*)::int n from ringu_private.accounts a cross join lateral jsonb_array_elements(a.state->'mailbox') m where m->>'id' like $1",['weekly-boss:'+rr.id+':%'])).rows[0].n,10);
+ }
+ console.log('PASS stage two rewards: ten ranks 60..15, ties, dead/zero contribution, sun cube mail claims, retry safety, stage one 50..23 preserved.');
 
  for(const stage of [7,8]){await identity(users[1]);const r=(await db.query("select public.ringu_party('create',null,$1) r",[stage])).rows[0].r.room;assert.equal(r.stage,stage);assert.equal(r.maxHp,Math.floor(100000*1.5**(stage-1)));assert.equal(r.reward,stage+1);await db.query("select public.ringu_party('leave',$1)",[r.id]);}
  await db.exec('set role authenticated');await assert.rejects(()=>db.query('select ringu_private.wb_pattern_two($1,1,1,now())',[celestial.id]),/permission denied/);await db.exec('reset role');
