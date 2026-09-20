@@ -39,9 +39,8 @@
 @keyframes angelFloat{50%{transform:translateY(-5px)}}@keyframes angelShine{from{background-position:180% 0}to{background-position:0 0}}
 @media(prefers-reduced-motion:reduce){.angel-reveal *{animation:none!important;transition:opacity .5s!important}.angel-rays,.angel-starburst,.angel-shockwave{display:none}.angel-portal{transform:translate(-50%,-50%)!important}}
 
-/* Stars stay readable even when a narrow equipment title wraps. */
+/* Transcend stars appear beside equipment names only. */
 .w2-item-art,.angel-item-art{position:relative!important}
-.gear-transcend-badge{position:absolute!important;right:-2px;bottom:0;z-index:3;display:block!important;width:auto!important;height:auto!important;max-height:none!important;padding:1px 3px!important;border-radius:4px;background:#09101fe8;color:var(--star-color)!important;font-size:clamp(10px,2.7vw,14px)!important;line-height:1.15!important;letter-spacing:1px;white-space:nowrap;text-shadow:0 0 5px var(--star-color);border:1px solid #d9eaff44;pointer-events:none}
 .transcend-stars{display:inline-block!important;color:var(--star-color,#f5ffff)!important;white-space:nowrap!important;flex-shrink:0;overflow:visible!important;text-shadow:0 0 5px var(--star-color,#f5ffff);letter-spacing:1px}
 
 /* Desktop: full portrait artwork on the left, equipment and confirmation on the right. */

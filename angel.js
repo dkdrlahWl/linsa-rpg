@@ -2,7 +2,6 @@
 (()=>{'use strict';
  const A=window.RinguAngelData,base=new URL('art/celestial/',document.currentScript.src).href;
  const artFile=t=>'gear-'+A.gear.indexOf(t)+'-v3.png';
- const starBadge=it=>{const n=Math.max(0,Math.min(3,Number(it.transcend)||0));return n?'<span class="gear-transcend-badge" style="--star-color:'+(Number(it.rarity)===7?'#f5ffff':'#e681b3')+'" aria-label="'+n+'초월">'+'★'.repeat(n)+'</span>':'';};
  const template=it=>it?.rarity===7?A.gear.find(x=>x.slot===it.slot&&x.name===it.name):null;
  const displayName=it=>{const t=template(it);return t?'순백의 세라핌 '+['여명검','광륜','갑옷','각반','장화','반지','귀걸이'][A.gear.indexOf(t)]:it?.name||'';};
  window.installRinguAngel=g=>{
@@ -18,7 +17,7 @@
    enhanceCost:(old,it)=>template(it)?A.enhanceCosts[it.enhance]||0:old(it),
    transcendCost:(old,it,n)=>template(it)?A.transcendCosts[n-1]||0:old(it,n)
   })){const old=f[key];f[key]=(...args)=>override(old,...args);}
-  const icon=window.RinguArt.icon;window.RinguArt.icon=(it,...args)=>{const t=template(it);return t?'<span class="rm-item-art angel-item-art" data-rarity="7"><img src="'+base+artFile(t)+'" alt="'+f.escapeHtml(displayName(t))+'" loading="lazy">'+starBadge(it)+'</span>':icon(it,...args);};
+  const icon=window.RinguArt.icon;window.RinguArt.icon=(it,...args)=>{const t=template(it);return t?'<span class="rm-item-art angel-item-art" data-rarity="7"><img src="'+base+artFile(t)+'" alt="'+f.escapeHtml(displayName(t))+'" loading="lazy"></span>':icon(it,...args);};
   f.gearIcon=it=>window.RinguArt.icon(it,f.itemIndex(it));
   const rates=f.openRates;f.openRates=()=>{rates();document.getElementById('rateTable').insertAdjacentHTML('beforeend','<p>천사: 관리자 계정 전용 · 소환 레벨 10 이상에서 1% (다른 등급은 기존 확률의 99%). 일반 계정은 획득할 수 없습니다.</p>');};
   const filter=document.getElementById('rarityFilter');if(filter&&!filter.querySelector('[value="7"]'))filter.add(new Option('천사','7'));

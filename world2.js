@@ -33,9 +33,8 @@ window.installRinguWorld2=function(g){
  f.enhanceCost=it=>Number(it?.rarity)===6?(W.enhanceCosts[it.enhance]||0):previous.enhanceCost(it);
  f.transcendCost=(it,n)=>Number(it?.rarity)===6?(W.transcendCosts[n-1]||0):previous.transcendCost(it,n);
  f.summonUnitCost=()=>f.activeSummon().level>=16?W.costs[Math.min(18,f.activeSummon().level)-16]:previous.summonUnitCost();
- const starBadge=it=>{const n=Math.max(0,Math.min(3,Number(it.transcend)||0));return n?'<span class="gear-transcend-badge" style="--star-color:'+(Number(it.rarity)===7?'#f5ffff':'#e681b3')+'" aria-label="'+n+'초월">'+'★'.repeat(n)+'</span>':'';};
  const oldIcon=window.RinguArt.icon;
- window.RinguArt.icon=(it,index)=>{const t=template(it);return t?'<span class="rm-item-art w2-item-art" data-rarity="6"><img src="'+base+t.art+'.webp" alt="'+esc(t.name)+'" loading="lazy" decoding="async">'+starBadge(it)+'</span>':oldIcon(it,index);};
+ window.RinguArt.icon=(it,index)=>{const t=template(it);return t?'<span class="rm-item-art w2-item-art" data-rarity="6"><img src="'+base+t.art+'.webp" alt="'+esc(t.name)+'" loading="lazy" decoding="async"></span>':oldIcon(it,index);};
  f.gearIcon=it=>window.RinguArt.icon(it,f.itemIndex(it));
  const oldSets=window.RinguGearSets;
  window.RinguGearSets=Object.freeze({...oldSets,rank:it=>{const t=template(it);return t?{rank:t.rank,roman:t.roman}:oldSets.rank(it);}});

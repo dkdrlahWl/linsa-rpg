@@ -56,8 +56,8 @@ async function run(p,command,args={}){await p.waitForFunction(()=>RinguSession.a
 try{
  const a=await player('starQA');await a.setViewportSize({width:390,height:844});
  const rows=await a.evaluate(()=>{const f=RinguCore.fn,rows=[];for(const rarity of [6,7])for(let n=0;n<=3;n++){const t=(rarity===6?RinguWorld2Data:RinguAngelData).gear[0],it={...t,enhance:15,transcend:n};const d=document.createElement('div');d.innerHTML=f.itemTitleHtml(it)+f.gearIcon(it);rows.push({rarity,n,title:d.querySelector('.transcend-stars')?.textContent||'',badge:d.querySelector('.gear-transcend-badge')?.textContent||''});}return rows;});
- for(const r of rows){assert.equal(r.title,'★'.repeat(r.n));assert.equal(r.badge,'★'.repeat(r.n));}
+ for(const r of rows){assert.equal(r.title,'★'.repeat(r.n));assert.equal(r.badge,'');}
  await a.evaluate(()=>{const f=RinguCore.fn;document.querySelector('#drawResultGrid').innerHTML=[6,7].flatMap(rarity=>[1,2,3].map(n=>{const it={...(rarity===6?RinguWorld2Data:RinguAngelData).gear[0],enhance:15,transcend:n};return '<article class="rm-drop-card">'+f.gearIcon(it)+'<small>'+RinguCore.rarityNames[rarity]+'</small><strong>'+f.itemTitleHtml(it)+'</strong><span>⚔ '+f.itemAtk(it).toLocaleString()+'</span></article>';})).join('');__ringuCompactDrawV10.refresh();document.querySelector('#drawResultModal').classList.add('show');});
  await a.waitForTimeout(1200);await a.screenshot({path:'test-artifacts/transcend-stars-390.png'});
- assert.deepEqual(errors,[]);console.log('PASS fallen and angel 0/1/2/3 title stars and icon badges.');
+ assert.deepEqual(errors,[]);console.log('PASS fallen and angel 0/1/2/3 title stars with no icon badges.');
 }finally{await browser.close();server.close();await db.close();}
