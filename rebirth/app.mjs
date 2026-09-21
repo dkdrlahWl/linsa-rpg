@@ -1,4 +1,5 @@
 import * as D from "./data.mjs";
+import { installCurrencyIcons } from "./currency-icons.mjs?v=currency-art-1";
 import { power, huntingRate, battleEnemy } from "./engine.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
@@ -541,7 +542,7 @@ function itemDetail(id) {
                 `<option value="${x.id}">${esc(D.gearName(x))} ${x.stars}성</option>`,
             )
             .join("")}</select>${btn("복구", "restore", id, "", true)}`
-        : `<div class="potential"><h3>스타포스</h3><p class="note">성공 ${pct(o.success)} · 유지 ${pct(o.keep)}<br>하락 ${pct(o.down)} · 파괴 ${pct(o.destroy)}</p>${it.stars === 25 ? '<button class="gold" disabled>25성 · 최대 강화</button>' : btn(fmt(D.starCost(it)) + " G · 강화", "star", id, "gold", true)}</div><div class="potential"><h3 class="purple">${it.lines.length ? D.RARITIES[it.grade] + " 잠재옵션" : "잠재 미개방"}</h3>${it.lines.map((l) => `<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join("")}${Array.from({ length: 3 - it.lines.length }, () => '<p class="muted">미개방</p>').join("")}<div class="actions">${it.lines.length ? btn("일반 큐브 · 300 G", "cube", id, "", true) + btn("상급 큐브 · 1,000 G", "highCube", id, "", true) : btn("잠재 부여 · 500 G", "potential", id, "", true)}</div>${it.lines.length > 0 && it.lines.length < 3 ? btn("줄 확장 · 확장석 " + (it.lines.length === 1 ? 1 : 3) + "개 + 2,000 G", "expand", id, "", true) : ""}</div><div class="actions">${btn("강화 이전", "transfer", id)}${btn("분해", "salvageConfirm", id, "danger")}</div>`
+        : `<div class="potential"><h3>스타포스</h3><p class="note">성공 ${pct(o.success)} · 유지 ${pct(o.keep)}<br>하락 ${pct(o.down)} · 파괴 ${pct(o.destroy)}</p>${it.stars === 25 ? '<button class="gold" disabled>25성 · 최대 강화</button>' : btn(fmt(D.starCost(it)) + " G · 강화", "star", id, "gold", true)}</div><div class="potential"><h3 class="purple">${it.lines.length ? D.RARITIES[it.grade] + " 잠재옵션" : "잠재 미개방"}</h3>${it.lines.map((l) => `<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join("")}${Array.from({ length: 3 - it.lines.length }, () => '<p class="muted">미개방</p>').join("")}<div class="actions">${it.lines.length ? btn("일반 큐브 1개 + 300 G", "cube", id, "", true) + btn("상급 큐브 1개 + 1,000 G", "highCube", id, "", true) : btn("잠재 부여 · 주문서 1개 + 500 G", "potential", id, "", true)}</div>${it.lines.length > 0 && it.lines.length < 3 ? btn("줄 확장 · 확장석 " + (it.lines.length === 1 ? 1 : 3) + "개 + 2,000 G", "expand", id, "", true) : ""}</div><div class="actions">${btn("강화 이전", "transfer", id)}${btn("분해", "salvageConfirm", id, "danger")}</div>`
     }`,
   );
 }
@@ -1013,5 +1014,6 @@ document.addEventListener("visibilitychange", () => {
     if (session) command("sync", {}, true).catch(() => {});
   }
 });
+installCurrencyIcons();
 if (session) command("sync").catch(() => {});
 else login();
