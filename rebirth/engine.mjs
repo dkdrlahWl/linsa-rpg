@@ -17,9 +17,12 @@ import {
   LINE_WEIGHTS,
   EQUIP_DROP,
   CUBE_DROP,
+  FRAGMENT_DROP,
+  SUPPLY_EXCHANGE,
   SCROLL_DROP,
   xpNeeded,
   starCost,
+  gearAttributes,
   starOdds,
   optionPool,
   rollOptionKey,
@@ -32,7 +35,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=raids-skills-2";
+} from "./data.mjs?v=economy-star-4";
 
 const fail = (message) => {
   throw new Error(message);
@@ -133,11 +136,9 @@ export function power(s) {
     const it = s.items.find((x) => x.id === id);
     if (!it || it.broken) continue;
     stars += it.stars;
-    const growth =
-        1 + it.stars * 0.055 + Math.max(0, it.stars - 15) ** 1.4 * 0.025,
-      base = (5 + it.level ** 1.28) * (it.boss ? 1.22 : 1);
-    flat += base * (it.slot === 0 ? 0.9 : 0.11) * growth;
-    const addedStat = Math.floor((2 + it.level * 0.5) * growth);
+    const attributes=gearAttributes(it);
+    flat += attributes.attack;
+    const addedStat=attributes.stat;
     equipmentStat += addedStat;
     primary += addedStat;
     hp += it.level * 4;
@@ -293,8 +294,8 @@ export function settle(s, ctx) {
   s.huntRemainder = remaining;
   s.huntKills = (s.huntKills || 0) + kills;
   const goldExact = kills * huntingRate(s).gold + (s.goldRemainder || 0),
-    gold = Math.floor(goldExact);
-  s.goldRemainder = goldExact - gold;
+    gold = Math.floor(goldExact + 1e-9);
+  s.goldRemainder = Math.max(0,goldExact - gold);
   s.gold += gold;
   const drops = [], loot=[];
   const capacity = Math.max(0, 300 - s.items.length), gearCount = rollCount(kills, EQUIP_DROP, ctx);
@@ -310,7 +311,7 @@ export function settle(s, ctx) {
     drops.push(item.id);loot.push({kind:"gear",item:{...item},quantity:1});
   }
   const fragments =
-      rollCount(kills, 0.035, ctx),
+      rollCount(kills, FRAGMENT_DROP, ctx),
     cubes = rollCount(kills, CUBE_DROP, ctx),
     scrolls = rollCount(kills, SCROLL_DROP, ctx);
   s.materials.fragment += fragments;
@@ -405,20 +406,21 @@ function bossSettle(s, ctx, events) {
   if (won && !b.practice) {
     if (b.kind === "dungeon") {
       s.dungeonClaims[b.dungeon] = b.claimKey;
-      if (b.dungeon === "cube") s.materials.cube += 3;
+      if (b.dungeon === "cube") s.materials.cube += 10;
       else if (b.dungeon === "relic") {
         const it = makeItem(200, pick(CLASSES,ctx).id, Math.floor(ctx.random()*9),false,ctx);
-        addItem(s,it); reward.items.push(it.id); s.gold += 5000; s.materials.fragment += 30;
-      } else s.materials.fragment += 30;
+        addItem(s,it); reward.items.push(it.id); s.gold += 20000; s.materials.fragment += 60;reward.gold=20000;reward.fragment=60;
+      } else s.materials.fragment += 100;
     } else {
     s.bossClaims[boss.id] = b.claimKey;
     if (!s.cleared.includes(boss.id)) s.cleared.push(boss.id);
     s.bossMaterials[boss.region] =
       (s.bossMaterials[boss.region] || 0) + boss.material;
     reward.materials = boss.material;
-    s.materials.cube += boss.weekly ? 3 : 1;
+    s.gold += boss.gold;reward.gold=boss.gold;
+    s.materials.cube += boss.cubes;reward.cube=boss.cubes;
     if (boss.weekly) {
-      s.materials.highCube++;
+      s.materials.highCube+=2;
       if (ctx.random() < 0.2) s.materials.expand++;
     }
     if (ctx.random() < boss.dropChance) {
@@ -491,6 +493,12 @@ export function execute(input, command, args = {}, ctx) {
   }
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "supplyExchange": {
+      const price=Object.hasOwn(SUPPLY_EXCHANGE,args.key)?SUPPLY_EXCHANGE[args.key]:null;
+      check(price&&[1,5,10].includes(args.count),"INVALID_EXCHANGE");
+      spend(s,"fragment",price.fragment*args.count);spend(s,"gold",price.gold*args.count);
+      s.materials[args.key]+=args.count;events.push({type:"exchange",key:args.key,count:args.count});break;
+    }
     case "claimMail": {
       const mail = s.mailbox?.find(x => x.key === args.key);
       check(mail, "MAIL_NOT_FOUND");
@@ -610,6 +618,7 @@ export function execute(input, command, args = {}, ctx) {
         before,
         after: it.stars,
         outcome,
+        gains:outcome==="success"?{attack:gearAttributes(it).attack-gearAttributes(it,before).attack,stat:gearAttributes(it).stat-gearAttributes(it,before).stat}:null,
         cost,
       });
       break;
@@ -717,8 +726,8 @@ export function execute(input, command, args = {}, ctx) {
       break;
     }
     case "craftScroll":
-      spend(s, "fragment", 100);
-      spend(s, "gold", 1000);
+      spend(s, "fragment", SUPPLY_EXCHANGE.scroll.fragment);
+      spend(s, "gold", SUPPLY_EXCHANGE.scroll.gold);
       s.materials.scroll++;
       break;
     case "boss": {
@@ -762,7 +771,7 @@ export function execute(input, command, args = {}, ctx) {
       check(s.dungeonClaims[args.kind] !== dayKey(ctx.now), "DUNGEON_LIMIT");
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s), tier = Math.floor(s.level / 20);
-      const enemy = args.kind === "relic" ? { hp:2100000,attack:560,patternEvery:12,patternMultiplier:3,pattern:"여명의 파동",region:9 } : { hp: Math.round(5000 * 1.6 ** (tier-1)), attack: 30 + tier * 15,
+      const enemy = args.kind === "relic" ? { hp:1250000,attack:160,patternEvery:12,patternMultiplier:3,pattern:"여명의 파동",region:9 } : { hp: Math.round(5000 * 1.6 ** (tier-1)), attack: 30 + tier * 15,
         patternEvery:15, patternMultiplier:2.5, pattern:"수정 폭발", region:Math.min(9,tier-1) };
       s.battle = {kind:"dungeon", dungeon:args.kind, enemy, claimKey:dayKey(ctx.now), started:ctx.now,
         tick:0, hp:p.hp, enemyHp:enemy.hp, power:p, practice:false,

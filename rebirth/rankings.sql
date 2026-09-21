@@ -17,8 +17,8 @@ begin
   ilv:=(it->>'level')::double precision; stars:=coalesce((it->>'stars')::double precision,0);
   growth:=1+stars*.055+power(greatest(0,stars-15),1.4)*.025;
   base:=(5+power(ilv,1.28))*(case when (it->>'boss')::boolean then 1.22 else 1 end);
-  atk:=atk+base*(case when (it->>'slot')::int=0 then .9 else .11 end)*growth;
-  stat:=stat+floor((2+ilv*.5)*growth); hp:=hp+ilv*4; def:=def+ilv*.2;
+  atk:=atk+(base*(case when (it->>'slot')::int=0 then .9 else .11 end)*growth+stars);
+  stat:=stat+floor((2+ilv*.5)*growth)+stars; hp:=hp+ilv*4; def:=def+ilv*.2;
   for ln in select value from jsonb_array_elements(coalesce(it->'lines','[]')) loop
    k:=ln->>'key'; val:=(ln->>'value')::double precision;
    if k='flat'||main then stat:=stat+val;

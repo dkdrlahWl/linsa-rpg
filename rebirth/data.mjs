@@ -1,5 +1,5 @@
-import { equipmentIdentity } from "./equipment.mjs?v=raids-skills-2";
-export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=raids-skills-2";
+import { equipmentIdentity } from "./equipment.mjs?v=economy-star-4";
+export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=economy-star-4";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -71,16 +71,16 @@ export const SECOND_SKILLS = {
  pirate:{name:'전투 지휘',type:'buff',damage:1.04,guard:.95,seconds:6,cooldown:30,description:'6초 피해 +4% · 받는 피해 5% 감소'},
 };
 export const RAID_BOSSES = [
- {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:1500,fragment:12,cube:1,highCubeChance:0,gearLevel:60,dropChance:.05,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
- {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:4500,fragment:30,cube:2,highCubeChance:.10,gearLevel:140,dropChance:.05,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
+ {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
+ {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
 ];
 export const raidBoss = id => RAID_BOSSES.find(b=>b.id===Number(id));
 export const ADVANCEMENTS = {warrior:"가디언",mage:"아크메이지",archer:"레인저",rogue:"나이트워커",pirate:"캡틴"};
 export const EXPEDITION = {name:"여명의 폐허",background:"ui/dawn-ruins.svg"};
 export const DUNGEONS = {
-  relic: {name:"여명의 파수꾼",art:"ui/dawn-sentinel.svg",fullArt:true,seconds:180,reward:"일반 200레벨 장비 1개 · 5,000 G · 파편 30개"},
-  cube: { name: "수정의 시험", art: "bosses-1.svg", spriteX:50, spriteY:0, seconds: 120, reward: "일반 큐브 3개" },
-  material: { name: "고대 제련소", art: "bosses-1.svg", spriteX:0, spriteY:0, seconds: 120, reward: "장비 파편 30개" },
+  relic: {name:"여명의 파수꾼",art:"ui/dawn-sentinel.svg",fullArt:true,seconds:180,reward:"일반 200레벨 장비 1개 · 20,000 G · 파편 60개"},
+  cube: { name: "수정의 시험", art: "bosses-1.svg", spriteX:50, spriteY:0, seconds: 120, reward: "일반 큐브 10개" },
+  material: { name: "고대 제련소", art: "bosses-1.svg", spriteX:0, spriteY:0, seconds: 120, reward: "장비 파편 100개" },
 };
 export const TIERS = [1, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
 export const RARITIES = ["일반", "희귀", "레어", "에픽", "유니크", "레전더리"];
@@ -136,7 +136,7 @@ export const STAGES = REGIONS.flatMap((r) =>
     level: Math.max(1, r.level + j * 6),
     star: j === 2 && r.id >= 2 ? (r.id - 1) * 15 : 0,
     xp: Math.round(12 * 1.53 ** r.id * (1 + j * 0.12)),
-    gold: 2 + r.id * 0.08,
+    gold: 20 + r.id * 35,
     hp: Math.round(70 * 1.8 ** r.id * (1 + j * 0.22)),
     attack: Math.round(3 * 1.6 ** r.id),
     dropLevel: TIERS[r.id],
@@ -156,14 +156,18 @@ const monsterNames = [
 ];
 export const MONSTERS = monsterNames.map((name,id)=>({id,name,stage:Math.floor(id/2),
   art:`monsters-${Math.floor(id/12)}.svg`,x:(id%4)*100/3,y:Math.floor((id%12)/4)*50}));
+const BOSS_BALANCE = [{"id":0,"hp":2093,"attack":8,"target":40,"stars":0,"gear":1,"boss":false,"slots":1,"pot":false},{"id":1,"hp":4185,"attack":7,"target":55,"stars":1,"gear":1,"boss":false,"slots":5,"pot":false},{"id":2,"hp":11063,"attack":8,"target":75,"stars":2,"gear":1,"boss":false,"slots":9,"pot":false},{"id":3,"hp":27005,"attack":38,"target":71,"stars":3,"gear":20,"boss":false,"slots":9,"pot":false},{"id":4,"hp":34929,"attack":37,"target":83,"stars":3,"gear":20,"boss":false,"slots":9,"pot":false},{"id":5,"hp":43824,"attack":35,"target":95,"stars":3,"gear":20,"boss":false,"slots":9,"pot":false},{"id":6,"hp":61684,"attack":67,"target":77,"stars":5,"gear":40,"boss":false,"slots":9,"pot":false},{"id":7,"hp":74900,"attack":66,"target":89,"stars":5,"gear":40,"boss":false,"slots":9,"pot":false},{"id":8,"hp":89087,"attack":58,"target":101,"stars":5,"gear":40,"boss":false,"slots":9,"pot":false},{"id":9,"hp":110609,"attack":104,"target":83,"stars":6,"gear":60,"boss":false,"slots":9,"pot":false},{"id":10,"hp":130754,"attack":101,"target":95,"stars":6,"gear":60,"boss":false,"slots":9,"pot":false},{"id":11,"hp":151948,"attack":88,"target":107,"stars":6,"gear":60,"boss":false,"slots":9,"pot":false},{"id":12,"hp":170027,"attack":134,"target":89,"stars":8,"gear":80,"boss":false,"slots":9,"pot":false},{"id":13,"hp":197368,"attack":126,"target":101,"stars":8,"gear":80,"boss":false,"slots":9,"pot":false},{"id":14,"hp":225758,"attack":114,"target":113,"stars":8,"gear":80,"boss":false,"slots":9,"pot":false},{"id":15,"hp":242888,"attack":156,"target":95,"stars":10,"gear":100,"boss":false,"slots":9,"pot":false},{"id":16,"hp":278246,"attack":154,"target":107,"stars":10,"gear":100,"boss":false,"slots":9,"pot":false},{"id":17,"hp":314654,"attack":140,"target":119,"stars":10,"gear":100,"boss":false,"slots":9,"pot":false},{"id":18,"hp":321784,"attack":184,"target":101,"stars":11,"gear":120,"boss":false,"slots":9,"pot":false},{"id":19,"hp":364956,"attack":175,"target":113,"stars":11,"gear":120,"boss":false,"slots":9,"pot":false},{"id":20,"hp":409177,"attack":157,"target":125,"stars":11,"gear":120,"boss":false,"slots":9,"pot":false},{"id":21,"hp":499608,"attack":202,"target":107,"stars":13,"gear":140,"boss":true,"slots":9,"pot":true},{"id":22,"hp":561491,"attack":201,"target":119,"stars":13,"gear":140,"boss":true,"slots":9,"pot":true},{"id":23,"hp":624556,"attack":181,"target":131,"stars":13,"gear":140,"boss":true,"slots":9,"pot":true},{"id":24,"hp":625999,"attack":228,"target":113,"stars":14,"gear":160,"boss":true,"slots":9,"pot":true},{"id":25,"hp":698625,"attack":220,"target":125,"stars":14,"gear":160,"boss":true,"slots":9,"pot":true},{"id":26,"hp":772431,"attack":204,"target":137,"stars":14,"gear":160,"boss":true,"slots":9,"pot":true},{"id":27,"hp":795328,"attack":253,"target":119,"stars":16,"gear":180,"boss":true,"slots":9,"pot":true},{"id":28,"hp":881972,"attack":245,"target":131,"stars":16,"gear":180,"boss":true,"slots":9,"pot":true},{"id":29,"hp":979174,"attack":220,"target":143,"stars":16,"gear":180,"boss":true,"slots":9,"pot":true}];
 export const BOSSES = bosses.flatMap((list, r) =>
   list.map((name, j) => ({
     id: r * 3 + j,
     name,
     region: r,
     level: r === 9 && j === 2 ? 200 : Math.max(5, r * 20 + j * 6),
-    hp: Math.round(1700 * 1.95 ** r * (1 + j * 0.55)),
-    attack: Math.round((14 + r * 24) * (1 + j * 0.2)),
+    hp: BOSS_BALANCE[r*3+j].hp,
+    recommended: BOSS_BALANCE[r*3+j],
+    gold: Math.round(4000*(r+1)*(j===2?2.5:1)),
+    cubes: j===2?12:4,
+    attack: BOSS_BALANCE[r*3+j].attack,
     seconds: 180,
     weekly: j === 2,
     art: `bosses-${Math.floor(r/2)}.svg`,
@@ -171,7 +175,7 @@ export const BOSSES = bosses.flatMap((list, r) =>
     spriteY: r%2*100,
     gearLevel: TIERS[Math.min(10, r + 1)],
     dropChance: j === 2 ? 0.18 : 0.08,
-    material: j === 2 ? 4 : 1,
+    material: j === 2 ? 12 : 4,
     patternEvery: [15, 12, 20][j],
     patternMultiplier: [3, 2.5, 4][j],
     pattern: ["내려찍기", "연속 포격", "멸절의 파동"][j],
@@ -215,19 +219,26 @@ export const STAR_SUCCESS = [
   0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3,
   0.3, 0.3, 0.27, 0.24, 0.21, 0.18, 0.12, 0.08, 0.05, 0.03, 0.01,
 ];
-export const CUBE_UP = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 0];
-export const HIGH_CUBE_UP = [0.02, 0.002, 0.0002, 0.00002, 0.000002, 0];
+export const CUBE_UP = [0.20, 0.02, 0.002, 0.0002, 0.00002, 0];
+export const HIGH_CUBE_UP = [0.40, 0.04, 0.004, 0.0004, 0.00004, 0];
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
-export const EQUIP_DROP = 0.0008;
-export const CUBE_DROP = 0.00012;
-export const SCROLL_DROP = 0.000025;
+export const EQUIP_DROP = 0.003;
+export const CUBE_DROP = 0.008;
+export const SCROLL_DROP = 0.0015;
+export const FRAGMENT_DROP = 0.08;
+export const SUPPLY_EXCHANGE = {cube:{fragment:10,gold:500},highCube:{fragment:50,gold:2500},scroll:{fragment:20,gold:500},expand:{fragment:150,gold:7500}};
 export const XP_SCALE = 5; // Calibrated by simulation before release, not a client multiplier.
 export function xpNeeded(level) {
   return Math.round((100 + level ** 2.4 * 4) * XP_SCALE);
 }
+export function gearAttributes(item,stars=item.stars) {
+ const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
+ const base=(5+item.level**1.28)*(item.boss?1.22:1);
+ return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth)+stars,hp:item.level*4,defense:item.level*.2};
+}
 export function starCost(item) {
   return Math.round(
-    150 * (1 + item.level / 25) ** 1.3 * (item.stars + 1) ** 1.65,
+    100 * (1 + item.level / 25) ** 1.3 * (item.stars + 1) ** 1.35 * (1 + Math.max(0,item.stars-15)*0.5),
   );
 }
 export function starOdds(stars) {
