@@ -749,7 +749,7 @@ export function execute(input, command, args = {}, ctx) {
     case "boss": {
       check(int(args.id, 0, 29), "INVALID_BOSS");
       const b = BOSSES[args.id];
-      check(s.level >= b.level, "LEVEL_REQUIRED");
+      check(b.weekly || s.level >= b.level, "LEVEL_REQUIRED");
       check(
         b.id === 0 || s.cleared.includes(b.id - 1),
         "PREVIOUS_BOSS_REQUIRED",
