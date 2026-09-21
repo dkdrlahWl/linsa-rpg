@@ -1,5 +1,7 @@
 import {
   VERSION,
+  normalizePotentialState,
+  normalizePotentialItem,
   OFFLINE_SECONDS,
   CLASSES,
   SLOTS,
@@ -20,6 +22,7 @@ import {
   starCost,
   starOdds,
   optionPool,
+  rollOptionKey,
   optionValue,
   dayKey,
   weekKey,
@@ -28,7 +31,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=adventure-3";
+} from "./data.mjs?v=potential-6-1";
 
 const fail = (message) => {
   throw new Error(message);
@@ -58,6 +61,7 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     weaponVariant: selectedVariant,
     stars: 0,
     grade: 0,
+    potentialVersion: 3,
     lines: [],
     locked: false,
     broken: false,
@@ -118,6 +122,8 @@ export function power(s) {
     crit: 0,
     boss: 0,
     defense: 0,
+    goldGain: 0,
+    xpGain: 0,
   };
   const sets = {};
   let stars = 0;
@@ -132,7 +138,10 @@ export function power(s) {
     primary += Math.floor((2 + it.level * 0.5) * growth);
     hp += it.level * 4;
     defense += it.level * 0.2;
-    for (const line of it.lines) pct[line.key] += line.value;
+    for (const line of it.lines) {
+      if (line.key === "flat" + cl.stat) primary += line.value;
+      else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
+    }
     if (it.boss) sets[it.level] = (sets[it.level] || 0) + 1;
   }
   for (const n of Object.values(sets)) {
@@ -163,6 +172,8 @@ export function power(s) {
     cadence,
     boss: 1 + pct.boss / 100,
     stars,
+    goldGain: pct.goldGain,
+    xpGain: pct.xpGain,
     dps: flat * (1 + crit * (critDamage - 1)) * cadence,
   };
 }
@@ -173,10 +184,12 @@ export function huntingRate(s) {
   const incoming = Math.max(1, st.attack - p.defense * 0.25);
   const survives = Math.floor(duration / 3) * incoming < p.hp;
   return { seconds: survives ? duration : Math.max(3, Math.ceil(p.hp / incoming) * 3) + 10,
-    xp: survives ? st.xp : 0, gold: survives ? st.gold : 0, survives };
+    xp: survives ? st.xp * (1 + p.xpGain/100) : 0, gold: survives ? st.gold * (1 + p.goldGain/100) : 0, survives };
 }
 function levelUp(s, xp) {
-  s.xp += xp;
+  const exact = xp + (s.xpRemainder || 0), whole = Math.floor(exact + 1e-9);
+  s.xpRemainder = Math.max(0, exact - whole);
+  s.xp += whole;
   while (s.level < 200 && s.xp >= xpNeeded(s.level)) {
     s.xp -= xpNeeded(s.level++);
     s.points += 5;
@@ -226,14 +239,14 @@ export function settle(s, ctx) {
     let count = Math.floor(remaining / rate.seconds);
     if (!count) break;
     if (!rate.survives) { defeats += count; remaining %= rate.seconds; break; }
-    if (s.level < 200) count = Math.min(count, Math.ceil((xpNeeded(s.level) - s.xp) / rate.xp));
+    if (s.level < 200) count = Math.min(count, Math.ceil((xpNeeded(s.level) - s.xp - (s.xpRemainder || 0)) / rate.xp));
     remaining -= count * rate.seconds;
     kills += count; xp += count * rate.xp;
     levelUp(s, count * rate.xp);
   }
   s.huntRemainder = remaining;
   s.huntKills = (s.huntKills || 0) + kills;
-  const goldExact = kills * STAGES[s.stage].gold + (s.goldRemainder || 0),
+  const goldExact = kills * huntingRate(s).gold + (s.goldRemainder || 0),
     gold = Math.floor(goldExact);
   s.goldRemainder = goldExact - gold;
   s.gold += gold;
@@ -271,10 +284,9 @@ export function settle(s, ctx) {
   };
 }
 function rollLines(it, ctx) {
-  const pool = optionPool(it.slot);
-  return it.lines.map(() => {
-    const key = pick(pool, ctx);
-    return { key, value: optionValue(key, it.grade) };
+  return it.lines.map((line) => {
+    const key = rollOptionKey(ctx.random);
+    return { key, grade: line.grade ?? 0, value: optionValue(key, line.grade ?? 0, ctx.random) };
   });
 }
 function gear(s, id) {
@@ -384,7 +396,7 @@ export function execute(input, command, args = {}, ctx) {
     ctx && Number.isFinite(ctx.now) && typeof ctx.random === "function",
     "INVALID_CONTEXT",
   );
-  const s = structuredClone(input);
+  const s = normalizePotentialState(structuredClone(input));
   check(s.version === VERSION, "VERSION_MISMATCH");
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
@@ -573,8 +585,8 @@ export function execute(input, command, args = {}, ctx) {
       check(it.lines.length > 0 && it.lines.length < 3, "INVALID_LINES");
       spend(s, "expand", it.lines.length === 1 ? 1 : 3);
       spend(s, "gold", 2000);
-      const key = pick(optionPool(it.slot), ctx);
-      it.lines.push({ key, value: optionValue(key, it.grade) });
+      const key = rollOptionKey(ctx.random);
+      it.lines.push({ key, grade: 0, value: optionValue(key, 0, ctx.random) });
       break;
     }
     case "cube": {
@@ -586,14 +598,15 @@ export function execute(input, command, args = {}, ctx) {
       spend(s, high ? "highCube" : "cube", 1);
       spend(s, "gold", high ? 1000 : 300);
       const next = structuredClone(it);
-      const oldGrade = it.grade;
-      if (ctx.random() < (high ? HIGH_CUBE_UP : CUBE_UP)[it.grade])
-        next.grade++;
+      const previousGrades = it.lines.map(line => line.grade);
+      next.lines.forEach(line => {
+        if (ctx.random() < (high ? HIGH_CUBE_UP : CUBE_UP)[line.grade]) line.grade++;
+      });
       next.lines = rollLines(next, ctx);
-      if (high)
-        s.pendingCube = { id: it.id, grade: next.grade, lines: next.lines };
-      else Object.assign(it, { grade: next.grade, lines: next.lines });
-      events.push({ type: "cube", id: it.id, high, up: next.grade > oldGrade });
+      it.lines.forEach((line,i) => line.grade = next.lines[i].grade);
+      normalizePotentialItem(it);
+      s.pendingCube = { id: it.id, grade: it.grade, previousGrades, lines: next.lines, high, potentialVersion: 3 };
+      events.push({ type: "cube", id: it.id, high, up: next.lines.some((line,i)=>line.grade>previousGrades[i]) });
       break;
     }
     case "cubeChoose": {
@@ -601,7 +614,7 @@ export function execute(input, command, args = {}, ctx) {
       const it = s.items.find((x) => x.id === s.pendingCube.id);
       check(it, "ITEM_NOT_FOUND");
       if (args.apply === true) {
-        it.grade = s.pendingCube.grade;
+        it.grade = Math.max(it.grade, s.pendingCube.grade);
         it.lines = s.pendingCube.lines;
       }
       s.pendingCube = null;

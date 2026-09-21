@@ -15,3 +15,15 @@ dialog.enhance-dialog{width:min(94vw,460px);max-height:91dvh;padding:0;border:2p
 .enhance-dialog .actions{position:static;background:transparent;padding:0;box-shadow:none}.enhance-dialog .potential{background:#fffdf6;border-color:#d8cbbb;color:#796952}.enhance-dialog .note{color:#8b7b66}
 @media(max-width:380px){.enhance-content{padding:12px}.star-track{gap:5px}.star-track i{font-size:clamp(8px,2.5vw,10px)}.enhance-stage{gap:20px}.cube-card .enhance-currency{width:27px;height:27px}.cube-card small{font-size:8px}.probability-details{font-size:10px}.probability-details>div{padding:0 5px}.cube-comparison{grid-template-columns:1fr}.cube-comparison .option-line{min-height:34px;padding:6px 0}}
 .enhance-dialog .cube-card.selected{border-color:#a493bf!important}
+
+/* Six permanent potential grades, shared by all equipment. */
+.option-panel.rarity-0{--rarity:#777b83;--rarity-bg:#edf0f3;border-color:#777b83}.bag-slot.grade-0{border-color:#777b83;box-shadow:inset 0 0 8px #777b8333}.grade-color-0{color:#777b83}
+.option-panel.rarity-1{--rarity:#388d53;--rarity-bg:#e5f3e7;border-color:#388d53}.bag-slot.grade-1{border-color:#388d53;box-shadow:inset 0 0 8px #388d5333}.grade-color-1{color:#388d53}
+.option-panel.rarity-2{--rarity:#387fba;--rarity-bg:#e4effb;border-color:#387fba}.bag-slot.grade-2{border-color:#387fba;box-shadow:inset 0 0 8px #387fba33}.grade-color-2{color:#387fba}
+.option-panel.rarity-3{--rarity:#9762ba;--rarity-bg:#f0e5fa;border-color:#9762ba}.bag-slot.grade-3{border-color:#9762ba;box-shadow:inset 0 0 8px #9762ba33}.grade-color-3{color:#9762ba}
+.option-panel.rarity-4{--rarity:#ab7b1c;--rarity-bg:#fff2cf;border-color:#ab7b1c}.bag-slot.grade-4{border-color:#ab7b1c;box-shadow:inset 0 0 8px #ab7b1c33}.grade-color-4{color:#ab7b1c}
+.option-panel.rarity-5{--rarity:#d26c25;--rarity-bg:#ffeadb;border-color:#d26c25}.bag-slot.grade-5{border-color:#d26c25;box-shadow:inset 0 0 8px #d26c2533}.grade-color-5{color:#d26c25}
+
+.option-line strong{color:inherit}.line-grade{display:block;font-size:10px;margin-bottom:4px;font-weight:700}.cube-chance{line-height:1.9}.cube-comparison .option-line{grid-template-columns:minmax(0,1fr) auto;gap:3px}.cube-comparison .option-line strong{font-size:13px}
+
+.enhance-dialog .line-grade{color:inherit}

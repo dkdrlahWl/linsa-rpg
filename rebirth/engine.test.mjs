@@ -19,7 +19,7 @@ assert.throws(()=>E.execute(s,'salvage',{ids:[id]},ctx()),/ITEM_CUBE_PENDING/);
 assert.throws(()=>E.execute(s,'cube',{id},ctx()),/ITEM_CUBE_PENDING/);
 s=E.execute(s,'cubeChoose',{apply:false},ctx()).state;assert.equal(s.pendingCube,null);
 s.items[0].stars=20;s=E.execute(s,'star',{id},ctx(0,()=>.13)).state;assert.equal(s.items[0].broken,true);
-const copy=E.makeItem(1,'rogue',0,false,ctx());s.items.push(copy);
+const copy=E.makeItem(1,'rogue',0,false,ctx(),s.items[0].weaponVariant);s.items.push(copy);
 s=E.execute(s,'restore',{id,materialId:copy.id},ctx()).state;assert.equal(s.items.length,1);assert.equal(s.items[0].stars,12);assert.equal(s.items[0].lines.length,2);
 assert.throws(()=>E.execute(s,'restore',{id,materialId:id},ctx()),/INVALID_RESTORE/);
 s.items[0].locked=true;assert.throws(()=>E.execute(s,'star',{id},ctx()),/ITEM_PROTECTED/);

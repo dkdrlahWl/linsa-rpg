@@ -71,7 +71,8 @@ export const DUNGEONS = {
   material: { name: "고대 제련소", art: "bosses-1.svg", spriteX:0, spriteY:0, seconds: 120, reward: "장비 파편 30개" },
 };
 export const TIERS = [1, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
-export const RARITIES = ["레어", "에픽", "유니크", "레전드리"];
+export const RARITIES = ["일반", "희귀", "레어", "에픽", "유니크", "레전더리"];
+export const POTENTIAL_MAX = [2, 3, 5, 8, 12, 18];
 const names = [
   "초록 들판",
   "달빛 숲",
@@ -181,13 +182,29 @@ export const OPTIONS = {
   crit: "치명타 확률",
   boss: "보스 피해",
   defense: "방어력",
+  flatSTR: "STR", flatDEX: "DEX", flatINT: "INT", flatLUK: "LUK",
+  goldGain: "골드 획득", xpGain: "경험치 획득",
 };
+export const OPTION_WEIGHTS = {STR:8, DEX:8, INT:8, LUK:8, attack:8, hp:4, crit:4, boss:10, defense:4, flatSTR:7, flatDEX:7, flatINT:7, flatLUK:7, goldGain:5, xpGain:5};
+export const FLAT_RANGES = [[1,3],[2,5],[3,8],[5,12],[8,20],[10,30]];
+export const GAIN_MAX = [0.1,0.2,0.3,0.5,0.8,1];
+export function optionRange(key, grade) {
+  if (key.startsWith("flat")) return {min:FLAT_RANGES[grade][0],max:FLAT_RANGES[grade][1],step:1};
+  if (key === "goldGain" || key === "xpGain") return {min:0.1,max:GAIN_MAX[grade],step:0.1};
+  return {min:1,max:POTENTIAL_MAX[grade],step:1};
+}
+export function optionUnit(key) { return key.startsWith("flat") ? "" : key === "crit" ? "%p" : "%"; }
+export function rollOptionKey(random) {
+  let r = random() * 100;
+  for (const [key,weight] of Object.entries(OPTION_WEIGHTS)) { r -= weight; if (r < 0) return key; }
+  return "xpGain";
+}
 export const STAR_SUCCESS = [
   0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3,
   0.3, 0.3, 0.27, 0.24, 0.21, 0.18, 0.12, 0.08, 0.05, 0.03, 0.01,
 ];
-export const CUBE_UP = [0.015, 0.002, 0.0003, 0];
-export const HIGH_CUBE_UP = [0.03, 0.004, 0.0006, 0];
+export const CUBE_UP = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 0];
+export const HIGH_CUBE_UP = [0.02, 0.002, 0.0002, 0.00002, 0.000002, 0];
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
 export const EQUIP_DROP = 0.0008;
 export const CUBE_DROP = 0.00012;
@@ -213,19 +230,43 @@ export function starOdds(stars) {
     destroy,
   };
 }
-export function optionPool(slot) {
-  return slot === 0
-    ? ["STR", "DEX", "INT", "LUK", "attack", "boss"]
-    : slot >= 6
-      ? ["STR", "DEX", "INT", "LUK", "hp", "crit"]
-      : ["STR", "DEX", "INT", "LUK", "hp", "defense"];
+export function optionPool() {
+  return Object.keys(OPTIONS);
 }
-export function optionValue(key, grade) {
-  return ["hp", "defense", "boss"].includes(key)
-    ? [3, 6, 9, 12][grade]
-    : key === "crit"
-      ? [1, 2, 3, 4][grade]
-      : [1, 3, 6, 9][grade];
+export function optionValue(key, grade, random = Math.random) {
+  if (!Object.hasOwn(OPTIONS, key) || !POTENTIAL_MAX[grade]) throw new Error("INVALID_POTENTIAL");
+  const {min,max,step} = optionRange(key, grade), count = Math.round((max-min)/step)+1;
+  return Math.round((min + Math.min(count-1, Math.floor(random()*count))*step)*10)/10;
+}
+// The item grade is a derived sorting hint only; each slot owns its permanent grade.
+export function normalizePotentialItem(item) {
+  if (!item) return item;
+  if (item.potentialVersion !== 3) {
+    const grade = item.potentialVersion === 2 ? (item.grade || 0) : Math.min(5, (item.grade || 0) + 2);
+    item.lines = (item.lines || []).map(line => ({...line, grade:line.grade ?? grade}));
+    item.potentialVersion = 3;
+  }
+  item.grade = Math.max(0, ...item.lines.map(line => line.grade));
+  return item;
+}
+export function normalizePotentialState(state) {
+  if (!state) return state;
+  for (const item of state.items || []) normalizePotentialItem(item);
+  for (const mail of state.mailbox || []) normalizePotentialItem(mail.item);
+  const pending = state.pendingCube;
+  if (pending) {
+    if (pending.potentialVersion !== 3) {
+      pending.high ??= true;
+      normalizePotentialItem(pending);
+    }
+    const item = state.items.find(item => item.id === pending.id);
+    if (item) {
+      pending.previousGrades ??= item.lines.map(line => line.grade);
+      item.lines.forEach((line,i) => line.grade = Math.max(line.grade, pending.lines[i]?.grade ?? line.grade));
+      normalizePotentialItem(item);
+    }
+  }
+  return state;
 }
 export function gearName(item) {
   return equipmentIdentity(item).name;
