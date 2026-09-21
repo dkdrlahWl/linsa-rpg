@@ -16,6 +16,11 @@ import {
   HIGH_CUBE_UP,
   LINE_WEIGHTS,
   EQUIP_DROP,
+  FIELD_BOSS_DROP,
+  QUALITY_COST,
+  itemQuality,
+  rollQuality,
+  salvageYield,
   CUBE_DROP,
   FRAGMENT_DROP,
   SUPPLY_EXCHANGE,
@@ -35,7 +40,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=economy-star-4";
+} from "./data.mjs?v=quality-market-5";
 
 const fail = (message) => {
   throw new Error(message);
@@ -63,6 +68,7 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     slot,
     boss,
     weaponVariant: selectedVariant,
+    quality:ctx.random?rollQuality(ctx.random):50,
     stars: 0,
     grade: 0,
     potentialVersion: 3,
@@ -81,7 +87,7 @@ export function initialState(classId, name, ctx) {
     "INVALID_NAME",
   );
   const starter = makeItem(1, classId, 0, false, ctx, 0);
-  starter.bound = true;
+  starter.bound = true;starter.quality=50;
   return {
     version: VERSION,
     name,
@@ -265,9 +271,10 @@ function addItem(s, item) {
   if (s.items.length < 300) s.items.push(item);
   else {
     s.mailbox ||= [];
-    const stack = s.mailbox.find(x => x.key === key);
+    const mailKey=key+"|q"+itemQuality(item);
+    const stack = s.mailbox.find(x => x.key === mailKey);
     if (stack) stack.quantity++;
-    else { const {id, ...template} = item; s.mailbox.push({key, item: template, quantity: 1}); }
+    else { const {id, ...template} = item; s.mailbox.push({key:mailKey, item: template, quantity: 1}); }
   }
 }
 export function settle(s, ctx) {
@@ -298,13 +305,13 @@ export function settle(s, ctx) {
   s.goldRemainder = Math.max(0,goldExact - gold);
   s.gold += gold;
   const drops = [], loot=[];
-  const capacity = Math.max(0, 300 - s.items.length), gearCount = rollCount(kills, EQUIP_DROP, ctx);
+  const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, EQUIP_DROP, ctx),bossGearCount=rollCount(kills,FIELD_BOSS_DROP,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
     const item = makeItem(
-      STAGES[s.stage].dropLevel,
+      i>=normalGearCount ? TIERS[STAGES[s.stage].region+1] : STAGES[s.stage].dropLevel,
       pick(CLASSES, ctx).id,
       Math.floor(ctx.random() * 9),
-      false,
+      i>=normalGearCount,
       ctx,
     );
     addItem(s, item);
@@ -585,10 +592,17 @@ export function execute(input, command, args = {}, ctx) {
       }
       for (const it of list) {
         s.materials.fragment +=
-          4 + Math.floor(it.level / 20) + (it.boss ? 10 : 0);
+          salvageYield(it);
         removeItem(s, it);
       }
       break;
+    }
+    case "qualityReroll": {
+      const it=gear(s,args.id);writable(s,it);
+      const before=itemQuality(it);check(before<100,"MAX_QUALITY");
+      spend(s,"fragment",QUALITY_COST.fragment);spend(s,"gold",QUALITY_COST.gold);
+      const rolled=rollQuality(ctx.random);it.quality=Math.max(before,rolled);
+      events.push({type:"quality",id:it.id,before,rolled,after:it.quality});break;
     }
     case "star": {
       const it = gear(s, args.id);

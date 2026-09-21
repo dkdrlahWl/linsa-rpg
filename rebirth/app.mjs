@@ -1,7 +1,7 @@
-import * as D from "./data.mjs?v=economy-star-4";
-import { installCurrencyIcons } from "./currency-icons.mjs?v=economy-star-4";
-import equipmentBounds from "./equipment-bounds.mjs?v=economy-star-4";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=economy-star-4";
+import * as D from "./data.mjs?v=quality-market-5";
+import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
+import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=quality-market-5";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -28,6 +28,7 @@ function refreshLevelRequirements() {
   });
 }
 const combatFrames = [];
+let marketKind="all";
 let partyBossId=null, partyPractice=false;
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0;
@@ -156,6 +157,9 @@ const errors = {
   INSUFFICIENT_HIGHCUBE: "상급 큐브가 부족합니다.",
   INSUFFICIENT_SCROLL: "잠재 부여 주문서가 부족합니다.",
   INSUFFICIENT_EXPAND: "잠재 확장석이 부족합니다.",
+  INSUFFICIENT_MATERIAL: "판매할 소모품 수량이 부족합니다.",
+  INVALID_QUANTITY: "남은 수량 안에서 정수로 입력해 주세요.",
+  MAX_QUALITY: "이미 최고 품질입니다.",
   INSUFFICIENT_FRAGMENT: "장비 파편이 부족합니다.",
   INSUFFICIENT_BOSS_MATERIAL: "보스 재료가 부족합니다.",
   ITEM_PROTECTED: "잠금·파괴·장착 상태를 확인해 주세요.",
@@ -313,7 +317,7 @@ function header(title, kicker = "새로운 여정") {
 }
 function shell(content) {
   const c = D.CLASSES.find((c) => c.id === state.classId);
-  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<br><small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><br><small>Lv.${state.level} · ${c.name}</small></div><div class="money">${fmt(state.gold)} G<br><small>전투력 ${fmt(power(state).combatPower)}</small></div>${btn("설정", "settings")}</header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
+  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<br><small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><br><small>Lv.${state.level} · ${c.name}</small></div><div class="money">${fmt(state.gold)} G<br><small>전투력 ${fmt(power(state).combatPower)}</small></div>${btn("랭킹", "ranking", "", "top-ranking")}${btn("설정", "settings")}</header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
     ["hunt", "사냥"],
     ["character", "캐릭터"],
     ["gear", "장비"],
@@ -329,8 +333,8 @@ function render() {
   if (!session) return login();
   if (!state) return createScreen();
   let content;
-  if (state.partyRoom) content = partyPanel();
-  else if (view === "ranking") content = rankings();
+  if (view === "ranking") content = rankings();
+  else if (state.partyRoom) content = partyPanel();
   else if (view === "journal") content = journal();
   else if (view === "regions") content = regions();
   else
@@ -380,7 +384,7 @@ function regions() {
 function character() {
   const c = D.CLASSES.find((x) => x.id === state.classId),
     p = power(state);
-  return `${header("캐릭터", (state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험가 랭킹","ranking")}${btn("모험 수첩","journal")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${state.advancement?D.ADVANCEMENTS[c.id]+" 전직 완료":"다음 전직 · "+D.ADVANCEMENTS[c.id]}</strong><p class="note">${requiredLevel(60)} · 광산왕 크로투스 처치 · 공격력 +8% / HP +10%</p></div>${disabledBtn(state.advancement?"완료":"전직","advance","",!!state.advancement||state.level<60||!state.cleared.includes(8),"gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+  return `${header("캐릭터", (state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${state.advancement?D.ADVANCEMENTS[c.id]+" 전직 완료":"다음 전직 · "+D.ADVANCEMENTS[c.id]}</strong><p class="note">${requiredLevel(60)} · 광산왕 크로투스 처치 · 공격력 +8% / HP +10%</p></div>${disabledBtn(state.advancement?"완료":"전직","advance","",!!state.advancement||state.level<60||!state.cleared.includes(8),"gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
     state.stats,
   )
     .map(
@@ -411,7 +415,8 @@ function characterMetrics(p,c) {
   return `<section class="panel pad character-summary"><div class="combat-power"><span>종합 전투력</span><strong>${fmt(p.combatPower)}</strong><small>현재 장착 장비 · 스타포스 · 잠재 반영</small></div><div class="character-metrics">${rows.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join("")}</div><p class="note">공격력·HP·방어력은 직업과 전직 효과까지 적용한 최종 수치입니다. 보너스 %는 잠재 옵션의 합계입니다.</p><details class="combat-formula"><summary>전투력 계산 기준</summary><p>⌊평균 초당 피해 × 보스 피해 배율 + HP × 0.1 + 방어력 × 5⌋</p><p>평균 초당 피해는 공격력 × [1 + 치명타 확률 × (치명타 피해 배율 − 1)] × 공격 속도입니다. 해적 공격 속도는 1.08배, 나머지는 1배입니다.</p><p>고정 주스탯과 주스탯 %는 최종 공격력에 이미 반영됩니다. 골드·경험치 획득은 전투력에 포함하지 않습니다. 일시적인 전투 스킬은 제외한 비교용 수치입니다.</p></details></section><section class="panel pad stat-breakdown"><h3>스탯 상세</h3><p class="note">(기본 + 성장·장비 + 고정 잠재) × (1 + 스탯 %)<br>현재 직업은 ${c.stat}이 공격력에 반영됩니다.</p><div class="stat-detail-grid">${Object.entries(p.stats).map(([key,v])=>`<div class="stat-detail ${key===c.stat?"primary":""}"><div><strong>${key}</strong><b>${fmt(v.total)}</b></div><dl><dt>기본</dt><dd>${fmt(v.base)}</dd><dt>성장·장비</dt><dd>+${fmt(v.growth)}</dd><dt>고정 잠재</dt><dd>+${fmt(v.fixed)}</dd><dt>스탯 보너스</dt><dd>${bonus(v.percent)}</dd></dl></div>`).join("")}</div></section>`;
 }
 function itemMarkup(it) {
-  return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? it.lines.map(l=>D.RARITIES[l.grade]).join(" · ") : "잠재 미개방"}</span></div>`;
+  if(it.kind==="consumable")return `<div class="consumable-market-icon">◆</div><div class="item-info"><strong>${esc(D.MATERIALS[it.key]||it.key)}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
+  return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">품질 ${D.itemQuality(it)}%</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? it.lines.map(l=>D.RARITIES[l.grade]).join(" · ") : "잠재 미개방"}</span></div>`;
 }
 function inventory() {
   let items = state.items
@@ -440,7 +445,7 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${["consumables","materials"].includes(sub) ? supplies(sub) : sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="inventory-grid bag-grid">${items.length ? items.map((i) => btn(gearMarkup(i)+`<span class="tile-level">${requiredLevel(i.level,String(i.level))}</span><span class="tile-star">${i.stars}★</span><span class="tile-name">${esc(D.gearName(i))}</span><span class="sr-only">${D.equipmentType(i)} ${i.locked?"잠금":""}</span>`, "item", i.id, `bag-slot ${Object.values(state.equipped).includes(i.id)?"equipped":""} ${i.locked?"locked":""}`)).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
+    )}</div>${["consumables","materials"].includes(sub) ? supplies(sub) : sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="inventory-grid bag-grid">${items.length ? items.map((i) => btn(gearMarkup(i)+`<span class="tile-level">${requiredLevel(i.level,String(i.level))}</span><span class="tile-star">${i.stars}★ · 품질 ${D.itemQuality(i)}</span><span class="tile-name">${esc(D.gearName(i))}</span><span class="sr-only">${D.equipmentType(i)} ${i.locked?"잠금":""}</span>`, "item", i.id, `bag-slot ${Object.values(state.equipped).includes(i.id)?"equipped":""} ${i.locked?"locked":""}`)).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -516,7 +521,7 @@ function odds() {
     },
   ).join(
     "",
-  )}</table></div><div class="panel pad"><h3>잠재와 큐브 · 모든 장비 공통</h3><p class="note">각 줄은 독립 등급이며 처음 개방한 줄은 일반입니다. 1줄 70% · 2줄 27% · 3줄 3%.<br>두 큐브 모두 기존/새 옵션 선택 가능. 각 줄은 별도 추첨으로 한 번에 한 단계만 상승하며 절대 하락하지 않습니다. 기존 옵션을 선택해도 상승한 등급은 유지됩니다. 레전더리인 줄은 계속 레전더리 옵션만 나옵니다. 다른 줄은 영향을 받지 않습니다.</p><table><tr><th>등급 상승</th><th>일반 큐브</th><th>상급 큐브</th></tr>${D.CUBE_UP.slice(0,-1).map((p,i)=>`<tr><td>${D.RARITIES[i]} → ${D.RARITIES[i+1]}</td><td>${pct(p)}</td><td>${pct(D.HIGH_CUBE_UP[i])}</td></tr>`).join("")}</table><p class="note">등급 상승 외에는 현재 등급 유지. 레전더리 유지 100%. 상급 큐브는 상승 확률만 2배이고, 같은 등급의 옵션 추첨 확률은 같습니다.</p><h3>옵션 종류 · 각 줄 독립 추첨</h3><p class="note">${Object.entries(D.OPTION_WEIGHTS).map(([k,w])=>D.OPTIONS[k]+(k.startsWith("flat")?" 고정":" %")+" "+w+"%").join(" · ")}<br> 모든 직업·레벨·부위·일반/보스 장비가 동일하며 같은 옵션 중복도 가능합니다. 수치는 아래 범위에서 균등 추첨합니다. 일반 %와 고정 스탯은 1단위, 골드·경험치는 0.1% 단위입니다. 치명타 확률은 %p 증가이며 최종 치명타 확률은 95% 제한입니다.</p><table><tr><th>등급</th><th>전투 옵션 %</th><th>고정 스탯</th><th>골드·경험치</th></tr>${D.RARITIES.map((g,i)=>`<tr><td class="grade-color-${i}">${g}</td><td>1~${D.POTENTIAL_MAX[i]}%</td><td>+${D.FLAT_RANGES[i][0]}~${D.FLAT_RANGES[i][1]}</td><td>0.1~${D.GAIN_MAX[i]}%</td></tr>`).join("")}</table><p class="note">등급 확정 후 종류와 수치를 따로 추첨합니다. 각 수치의 확률은 1 ÷ 가능한 수치 개수. 특정 종류+특정 수치 확률은 종류 확률 ÷ 수치 개수입니다. 골드·경험치 획득은 일반 사냥(접속/오프라인)에 적용하며 소수점 보상은 누적합니다. 기존 옵션 유지 시 수치는 그대로입니다.<br>일반 큐브: 1개 + 300 G · 상급: 1개 + 1,000 G · 개방: 주문서 1개 + 500 G.<br>확장: 1→2줄 확장석 1개 / 2→3줄 3개, 각각 2,000 G. 기존 줄을 보존하고 추가한 줄은 일반 등급으로 시작합니다.</p></div><div class="panel pad"><h3>일반 사냥 드롭</h3><p class="note">처치마다 독립 추첨: 장비 ${pct(D.EQUIP_DROP)}, 일반 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 5종 균등, 부위는 9종 균등입니다. 보스 드롭은 보스 탭에 표시합니다.</p></div>`;
+  )}</table></div><div class="panel pad"><h3>잠재와 큐브 · 모든 장비 공통</h3><p class="note">각 줄은 독립 등급이며 처음 개방한 줄은 일반입니다. 1줄 70% · 2줄 27% · 3줄 3%.<br>두 큐브 모두 기존/새 옵션 선택 가능. 각 줄은 별도 추첨으로 한 번에 한 단계만 상승하며 절대 하락하지 않습니다. 기존 옵션을 선택해도 상승한 등급은 유지됩니다. 레전더리인 줄은 계속 레전더리 옵션만 나옵니다. 다른 줄은 영향을 받지 않습니다.</p><table><tr><th>등급 상승</th><th>일반 큐브</th><th>상급 큐브</th></tr>${D.CUBE_UP.slice(0,-1).map((p,i)=>`<tr><td>${D.RARITIES[i]} → ${D.RARITIES[i+1]}</td><td>${pct(p)}</td><td>${pct(D.HIGH_CUBE_UP[i])}</td></tr>`).join("")}</table><p class="note">등급 상승 외에는 현재 등급 유지. 레전더리 유지 100%. 상급 큐브는 상승 확률만 2배이고, 같은 등급의 옵션 추첨 확률은 같습니다.</p><h3>옵션 종류 · 각 줄 독립 추첨</h3><p class="note">${Object.entries(D.OPTION_WEIGHTS).map(([k,w])=>D.OPTIONS[k]+(k.startsWith("flat")?" 고정":" %")+" "+w+"%").join(" · ")}<br> 모든 직업·레벨·부위·일반/보스 장비가 동일하며 같은 옵션 중복도 가능합니다. 수치는 아래 범위에서 균등 추첨합니다. 일반 %와 고정 스탯은 1단위, 골드·경험치는 0.1% 단위입니다. 치명타 확률은 %p 증가이며 최종 치명타 확률은 95% 제한입니다.</p><table><tr><th>등급</th><th>전투 옵션 %</th><th>고정 스탯</th><th>골드·경험치</th></tr>${D.RARITIES.map((g,i)=>`<tr><td class="grade-color-${i}">${g}</td><td>1~${D.POTENTIAL_MAX[i]}%</td><td>+${D.FLAT_RANGES[i][0]}~${D.FLAT_RANGES[i][1]}</td><td>0.1~${D.GAIN_MAX[i]}%</td></tr>`).join("")}</table><p class="note">등급 확정 후 종류와 수치를 따로 추첨합니다. 각 수치의 확률은 1 ÷ 가능한 수치 개수. 특정 종류+특정 수치 확률은 종류 확률 ÷ 수치 개수입니다. 골드·경험치 획득은 일반 사냥(접속/오프라인)에 적용하며 소수점 보상은 누적합니다. 기존 옵션 유지 시 수치는 그대로입니다.<br>일반 큐브: 1개 + 300 G · 상급: 1개 + 1,000 G · 개방: 주문서 1개 + 500 G.<br>확장: 1→2줄 확장석 1개 / 2→3줄 3개, 각각 2,000 G. 기존 줄을 보존하고 추가한 줄은 일반 등급으로 시작합니다.</p></div><div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 일반 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 5종 균등, 부위는 9종 균등입니다. 무기 부위가 선택되면 직업별 무기 3종도 균등 추첨합니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 지역</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.REGIONS.map(r=>`<tr><td>${r.name} · 3개 사냥터 공통</td><td>${D.TIERS[r.id]} / ${D.TIERS[r.id+1]}</td><td>${pct(D.EQUIP_DROP)} / ${pct(D.FIELD_BOSS_DROP)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 오프라인 최대 6시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 품질별로 보관합니다.</p><h3>품질 확률 · 획득/제작/재감정 공통</h3><table><tr><th>품질</th><th>확률</th></tr>${D.QUALITY_BANDS.map(b=>`<tr><td>${b.min}~${b.max}%</td><td>${pct(b.chance)}</td></tr>`).join('')}</table></div>`;
 }
 function disabledBtn(label,action,arg,blocked=false,cls="") {
   const html=btn(label,action,arg,cls,true);
@@ -591,15 +596,15 @@ function journal() {
   return header("모험 수첩","나의 성장 기록")+btn("돌아가기","back")+`<div class="journal-banner"><h2>다음 이야기는<br>네 모험으로 채워져.</h2></div><div class="goal-grid">${goals.map(([name,value,max,desc])=>`<section class="panel pad"><div class="row spread"><strong>${name}</strong><span class="pill">${value>=max?"달성":Math.min(value,max)+"/"+max}</span></div><p class="note">${desc}</p><div class="exp"><i style="width:${Math.min(100,value/max*100)}%"></i></div></section>`).join("")}</div>`;
 }
 function market() {
-  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine ? "active" : "")}${btn("등록하기", "marketSell")}</div><p class="note">구매·등록 ${requiredLevel(20)}부터 · 판매 수수료 5% · 등록 7일 · 최대 20건<br>만료 장비는 내 판매에서 회수할 수 있습니다.</p><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="stack">${
+  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div><div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(20)}부터 · 판매 수수료 5% · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="stack">${
     marketRows
       .slice(0, 20)
       .map(
         (l) =>
-          `<section class="panel pad"><div class="item">${itemMarkup(l.item)}</div><p class="note">${l.item.lines.map((x) => "[" + D.RARITIES[x.grade] + "] " + D.OPTIONS[x.key] + " +" + x.value + D.optionUnit(x.key)).join(" · ") || "잠재 미개방"}</p><div class="row spread"><strong class="stars">${fmt(l.price)} G</strong>${l.status === "open" ? btn(l.own ? "판매 취소" : "구매", "marketConfirm", l.id, "gold") : esc(l.status === "sold" ? "판매 완료" : "회수 완료")}</div></section>`,
+          `<section class="panel pad"><div class="item">${itemMarkup(l.item)}</div><p class="note">${l.item.kind==="consumable"?"개당 "+fmt(l.price)+" G · 원하는 수량만 구매 가능":l.item.lines.map((x) => "[" + D.RARITIES[x.grade] + "] " + D.OPTIONS[x.key] + " +" + x.value + D.optionUnit(x.key)).join(" · ") || "잠재 미개방"}</p><div class="row spread"><strong class="stars">${fmt(l.price)} G${l.item.kind==="consumable"?" / 개":""}</strong>${l.status === "open" ? btn(l.own ? "판매 취소" : "구매", "marketConfirm", l.id, "gold") : esc(l.status === "sold" ? "판매 완료" : "회수 완료")}</div></section>`,
       )
       .join("") ||
-    '<div class="empty">등록된 장비가 없습니다.<br>보스 장비를 얻어 첫 거래를 시작해 보세요.</div>'
+    '<div class="empty">등록된 상품이 없습니다. 장비와 소모품을 판매할 수 있어요.</div>'
   }</div><div class="actions">${marketPage ? btn("이전", "page", marketPage - 1) : ""}${marketRows.length > 20 ? btn("다음", "page", marketPage + 1) : ""}${btn("새로고침", "marketRefresh")}</div>`;
 }
 async function marketLoad() {
@@ -607,11 +612,11 @@ async function marketLoad() {
   await ensureToken();
   const rows = await request("/rest/v1/rpc/rebirth_market", {
     p_action: "list",
-    p_args: { page: marketPage, mine, slot: filterSlot, classId: filterClass },
+    p_args: { page: marketPage, mine, kind:marketKind, slot: filterSlot, classId: filterClass },
     p_request: crypto.randomUUID(),
   });
   if(version !== marketRequest || tab !== "market") return;
-  marketRows = rows.map(row => ({...row, item: D.normalizePotentialItem(row.item)}));
+  marketRows = rows.map(row => ({...row, item: row.item.kind==="consumable"?row.item:D.normalizePotentialItem(row.item)}));
   render();
 }
 function open(title, html, closable = true) {
@@ -629,7 +634,7 @@ function open(title, html, closable = true) {
 let cubeKind="cube", lastStarResult=null, lastCubeResult=null;
 const enhanceIcon=(key)=>`<img class="enhance-currency" src="currencies/${key}.svg" alt="">`;
 function enhancementBlock(it) {
-  return it.broken?"파괴된 장비를 먼저 복구해 주세요.":it.locked?"장비 잠금을 해제해 주세요.":state.battle?"보스전 종료 후 이용할 수 있어요.":"";
+  return it.broken?"파괴된 장비를 먼저 복구해 주세요.":it.locked?"장비 잠금을 해제해 주세요.":state.battle||state.partyRoom?"보스전 종료 후 이용할 수 있어요.":"";
 }
 function enhancementOptions(item,label="현재 잠재능력") {
   return `<section class="option-panel rarity-0"><div class="option-heading"><span>${label}</span><b>${item.lines.length?"줄별 독립 등급":"미개방"}</b></div><div class="option-lines">${Array.from({length:3},(_,i)=>{const l=item.lines[i];return `<div class="option-line ${l?"grade-color-"+l.grade:"empty-line"}"><span class="line-index">0${i+1}</span><span>${l?`<small class="line-grade">${D.RARITIES[l.grade]}</small>${D.OPTIONS[l.key]}`:"잠재 슬롯 미개방"}</span><strong>${l?"+"+l.value+D.optionUnit(l.key):"—"}</strong></div>`;}).join("")}</div></section>`;
@@ -644,6 +649,8 @@ function starPanel(it) {
   const result=lastStarResult?.id===it.id?lastStarResult:null;
   return `<div class="enhance-intro"><span>STAR FORCE</span><small>성공할 때마다 공격력·주스탯 상승</small></div>${result?`<div class="enhance-result ${result.outcome}" role="status"><strong>${{success:"강화 성공!",keep:"강화 실패 · 별 유지",down:"강화 실패 · 별 하락"}[result.outcome]||"장비 파괴"}</strong><span>${result.before}성 → ${result.after}성${result.gains?` · 장비 공격력 +${result.gains.attack.toFixed(1)} · ${cl.stat} +${result.gains.stat}`:" · 골드 "+fmt(result.cost)+" 소모"}</span></div>`:""}<div class="star-track" role="img" aria-label="최대 25성 중 ${it.stars}성">${Array.from({length:5},(_,g)=>`<span>${Array.from({length:5},(_,i)=>`<i class="${g*5+i<it.stars?"lit":g*5+i===it.stars&&!max?"next":""}">★</i>`).join("")}</span>`).join("")}</div><div class="enhance-stage"><div class="enhance-item-display">${gearMarkup(it,"big-item")}</div><div class="star-transition"><span>${max?"강화 완료":"다음 강화 단계"}</span><div><b>${it.stars}<small>성</small></b>${max?'<em>MAX</em>':`<span class="transition-arrow">→</span><b class="target">${target}<small>성</small></b>`}</div></div></div><p class="note">${Object.values(state.equipped).includes(it.id)?"장착 중 · 강화 수치가 캐릭터에 바로 반영됩니다.":"미장착 · 장비는 강해지지만 캐릭터 수치는 장착 후 반영됩니다."}</p>${max?'':`<div class="enhance-gains"><div><span>기본 공격</span><b>${current.attack.toFixed(1)} <i>→</i> <em>${next.attack.toFixed(1)}</em></b></div><div><span>${cl.stat}</span><b>${current.stat} <i>→</i> <em>${next.stat}</em></b></div></div><section class="enhance-probabilities"><div class="probability-title"><span>성공 확률</span><strong>${pct(o.success)}</strong></div><div class="probability-bar" aria-hidden="true">${[["success",o.success],["keep",o.keep],["down",o.down],["destroy",o.destroy]].map(([k,v])=>`<i class="${k}" style="width:${v*100}%"></i>`).join("")}</div><div class="probability-details">${[["유지",o.keep,"keep"],["하락",o.down,"down"],["파괴",o.destroy,"destroy"]].map(([name,v,k])=>`<div class="${k}"><span>${name}</span><b>${v===0?"0%":pct(v)}</b></div>`).join("")}</div></section>${enhancementWallet(cost)}`}${disabledBtn(max?"최대 25성 달성":`${target}성 강화하기`,"star",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked&&!max?"short":""}">${blocked|| (o.destroy>0?"실패 시 장비가 파괴될 수 있습니다. 흔적과 잠재는 보존됩니다.":o.down>0?"실패 시 별이 1개 내려갈 수 있습니다. 파괴 위험은 없습니다.":"실패해도 현재 별이 유지됩니다. 파괴 위험은 없습니다.")}</p>`;
 }
+let lastQualityResult=null;
+function qualityPanel(it){const q=D.itemQuality(it),a=D.gearAttributes(it),c=D.QUALITY_COST,result=lastQualityResult?.id===it.id?lastQualityResult:null,blocked=enhancementBlock(it)||(q===100?'최고 품질입니다.':state.materials.fragment<c.fragment||state.gold<c.gold?'재감정 재료가 부족합니다.':'');return `<div class="quality-panel"><h3>품질 ${q}% <small>기본 성능 ${Math.round(D.qualityMultiplier(it)*100)}%</small></h3><div class="exp"><i style="width:${q}%"></i></div><p class="note">기존 품질보다 높게 나올 때만 적용됩니다. 별·잠재는 유지됩니다.<br>품질은 기본 공격력·주스탯에 적용됩니다. 50%는 기준 성능, 100%는 기준 대비 +10%입니다.</p>${result?`<p class="quality-result" role="status">추첨 ${result.rolled}% · ${result.before}% → ${result.after}% · ${result.after>result.before?'품질 상승':'기존 품질 유지'}</p>`:''}<div class="enhance-gains"><div><span>현재 장비 공격력</span><b>${a.attack.toFixed(1)}</b></div><div><span>현재 주스탯</span><b>${a.stat}</b></div></div><p class="note">1회 파편 ${c.fragment}개 + ${fmt(c.gold)} G<br>보유 파편 ${fmt(state.materials.fragment)}개 · ${fmt(state.gold)} G</p>${disabledBtn('품질 재감정','qualityReroll',it.id,!!blocked,'enhance-primary')}<p class="note">${blocked||'결과가 유지되어도 재료는 소모됩니다.'}</p><table><tr><th>품질</th><th>확률</th></tr>${D.QUALITY_BANDS.map(b=>`<tr><td>${b.min===b.max?b.min:b.min+'~'+b.max}%</td><td>${pct(b.chance)}</td></tr>`).join('')}</table></div>`;}
 function cubePanel(it) {
   const opened=it.lines.length>0,high=cubeKind==="highCube",cost=opened?(high?1000:300):500,key=opened?cubeKind:"scroll",blocked=enhancementBlock(it)||(state.materials[key]<1?`${D.MATERIALS[key]}가 부족합니다.`:state.gold<cost?"골드가 부족합니다.":"");
   const expandCost=it.lines.length===1?1:3;
@@ -651,7 +658,7 @@ function cubePanel(it) {
 }
 
 function itemDetail(id, section=id===selected?itemSection:"info") {
-  if(selected!==id){lastStarResult=null;lastCubeResult=null;}
+  if(selected!==id){lastStarResult=null;lastCubeResult=null;lastQualityResult=null;}
   selected=id;itemSection=section;
   const it=state.items.find(x=>x.id===id);if(!it)return;
   const p=power(state),next=power({...state,equipped:{...state.equipped,[it.slot]:it.id}}),equipped=Object.values(state.equipped).includes(id),o=D.starOdds(it.stars);
@@ -660,7 +667,8 @@ function itemDetail(id, section=id===selected?itemSection:"info") {
   if(section==="info")body=`<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?"거래 불가":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):"잠재 미개방"}</div>`;
   if(section==="star")body=starPanel(it);
   if(section==="potential")body=cubePanel(it);
-  open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>${requiredLevel(it.level)} · ${D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"}</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
+  if(section==="quality")body=qualityPanel(it);
+  open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":section==="quality"?"품질 재감정":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>${requiredLevel(it.level)} · ${D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"} · 품질 ${D.itemQuality(it)}%</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"],["quality","품질"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
   modal.classList.add("enhance-dialog");
 }
 function cubeChoice() {
@@ -676,6 +684,7 @@ function showEvents(events) {
       open("최적 장착 완료",`<div class="auto-equip-result"><span>${e.changed.length?e.changed.length+"개 부위 교체":"현재 장비 유지"}</span><div><b>${fmt(e.before)}</b><i>→</i><strong>${fmt(e.after)}</strong></div><p>전투력 +${fmt(e.after-e.before)}</p></div><p class="note">${e.changed.length?e.changed.map(slot=>D.SLOTS[slot]).join(" · ")+" 장비를 교체했습니다.":"이번 비교에서 더 높은 전투력 조합을 찾지 못해 현재 장비를 유지했습니다."}</p>`);
     }
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
+    if(e.type==="quality"){lastQualityResult=e;itemDetail(e.id,"quality");}
     if (e.type === "combat") continue;
     if (e.type === "skill") {
       const arena = $(".arena");
@@ -719,7 +728,7 @@ function reward() {
 }
 function clearAccountView() {
   state=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
-  marketRows=[];marketRequest++;marketPage=0;mine=false;selected=null;view="game";tab="hunt";sub="bag";
+  marketKind="all";marketRows=[];marketRequest++;marketPage=0;mine=false;selected=null;view="game";tab="hunt";sub="bag";
   chosenClass="warrior";characterName="";combatFrames.length=0;connectionLost=false;retryAt=0;retryFailures=0;
 }
 function authFailureMessage(err,register) {
@@ -807,11 +816,14 @@ function updateSellPrice() {
   $("#sell-reason").innerHTML=esc(reason||"선택한 장비 1개를 등록합니다. 판매 수수료는 5%입니다.").replace("Lv.20",requiredLevel(20));
   const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
 }
+function consumableSellDialog(){open('소모품 판매 등록',`<label>판매할 소모품<select id="material-sell-key">${Object.entries(D.MATERIALS).map(([key,name])=>`<option value="${key}">${name} · 보유 ${fmt(state.materials[key])}개</option>`).join('')}</select></label><label>등록 수량<input id="material-sell-count" type="number" min="1" max="1000000" step="1" value="1"></label><label>개당 가격 (G)<input id="material-sell-price" type="number" min="1" max="1000000000" step="1" value="100"></label><p id="material-sale-total" class="note"></p><p class="note">구매자가 필요한 수량만 구매합니다. 판매 취소 시 남은 수량을 돌려받습니다.<br>등록 7일 · 수수료 5%는 누적 판매금액 기준으로 정산됩니다.</p>${btn('소모품 등록','sellConsumableConfirm','','gold')}`);updateMaterialSale();}
+function updateMaterialSale(){const key=$('#material-sell-key')?.value;if(!key)return;const count=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value),total=count*price,valid=Number.isSafeInteger(count)&&count>=1&&count<=Math.min(1e6,state.materials[key]||0)&&Number.isSafeInteger(price)&&price>=1&&total<=1e9;$('#material-sale-total').textContent=valid?'전량 판매 시 총 '+fmt(total)+' G · 예상 수령 '+fmt(total-Math.floor(total*.05))+' G':'보유 수량 안에서 정수로 입력하세요. 총 등록 금액은 10억 G 이하입니다.';modal.querySelector('[data-action=sellConsumableConfirm]').disabled=!valid;}
+function updateMaterialBuy(){const input=$('#material-buy-count');if(!input)return;const listing=marketRows.find(l=>l.id===input.dataset.listing),count=Number(input.value),valid=listing&&Number.isSafeInteger(count)&&count>=1&&count<=listing.item.quantity;$('#material-buy-total').textContent=valid?'결제 금액 '+fmt(count*listing.price)+' G':'남은 수량 안에서 정수로 입력하세요.';modal.querySelector('[data-action=buyListing]').disabled=!valid||count*listing.price>state.gold;}
 function marketSellPicker() {
   const scroll=modal.querySelector('.market-inventory-grid')?.scrollTop||0;
   const items=state.items.filter(it=>(marketSellSlot===""||it.slot===Number(marketSellSlot))&&(marketSellClass===""||it.classId===marketSellClass)).sort((a,b)=>Number(!!marketItemBlock(a))-Number(!!marketItemBlock(b))||b.stars-a.stars||b.level-a.level);
   const it=state.items.find(it=>it.id===marketSellId),cl=it&&D.CLASSES.find(c=>c.id===it.classId),growth=it?1+it.stars*.055+Math.max(0,it.stars-15)**1.4*.025:0;
-  const stats=it?[["장비 공격력",D.gearAttributes(it).attack.toFixed(1)],[cl.stat,fmt(D.gearAttributes(it).stat)],["최대 HP",fmt(it.level*4)],["방어력",(it.level*.2).toLocaleString("ko-KR")]]:[];
+  const stats=it?[["품질",D.itemQuality(it)+"%"],["장비 공격력",D.gearAttributes(it).attack.toFixed(1)],[cl.stat,fmt(D.gearAttributes(it).stat)],["최대 HP",fmt(it.level*4)],["방어력",(it.level*.2).toLocaleString("ko-KR")]]:[];
   const canCompare=it&&!it.broken&&it.classId===state.classId&&it.level<=state.level;
   const before=power(state).combatPower,after=canCompare?power({...state,equipped:{...state.equipped,[it.slot]:it.id}}).combatPower:0;
   open("판매할 장비 선택",`<p class="market-picker-intro">가방에서 장비를 고르고, 능력치와 잠재 옵션을 확인하세요.</p><div class="market-picker-layout"><section class="market-picker-bag"><div class="market-picker-filters"><label>부위<select id="market-sell-slot"><option value="">모든 부위</option>${D.SLOTS.map((name,i)=>`<option value="${i}" ${String(i)===marketSellSlot?"selected":""}>${name}</option>`).join("")}</select></label><label>직업<select id="market-sell-class"><option value="">모든 직업</option>${D.CLASSES.map(c=>`<option value="${c.id}" ${c.id===marketSellClass?"selected":""}>${c.name}</option>`).join("")}</select></label></div><p class="market-bag-count">가방 ${state.items.length}/300 · 표시 ${items.length}개 · 판매 가능 ${items.filter(it=>!marketItemBlock(it)).length}개</p><div class="market-inventory-grid" role="group" aria-label="판매 장비 인벤토리">${items.length?items.map(item=>{const reason=marketItemBlock(item);return `<button data-action="marketSellPick" data-arg="${item.id}" aria-pressed="${marketSellId===item.id}" class="market-inventory-item ${marketSellId===item.id?"picked":""} ${reason?"unavailable":""}"><span class="market-tile-meta">${requiredLevel(item.level)}<b>${item.stars}★</b></span>${gearMarkup(item)}<strong>${esc(D.gearName(item))}</strong><small>${reason||D.CLASSES.find(c=>c.id===item.classId).name+" · "+D.SLOTS[item.slot]}</small></button>`;}).join(""):'<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div><p class="note">장착·잠금·파괴·거래 불가·큐브 선택 중인 장비는 상세 확인만 가능합니다.</p></section><section class="market-sell-detail" aria-live="polite">${it?`<div class="market-picked-head">${gearMarkup(it,"big-item")}<div><small>선택한 장비</small><h3>${esc(D.gearName(it))}</h3><p>${requiredLevel(it.level)} · ${cl.name} · ${D.equipmentType(it)}</p><b>${it.stars}성 · ${it.boss?"보스 장비":"일반 장비"}</b></div></div><div class="market-picked-stats">${stats.map(([k,v])=>`<div><span>${k}</span><b>+${v}</b></div>`).join("")}</div><p class="note">스타포스가 반영된 장비 능력치입니다. 잠재 효과는 아래에 별도로 표시합니다.${it.broken?" 파괴된 장비는 현재 능력치가 적용되지 않습니다.":""}</p><div class="market-picked-options"><h4>잠재능력</h4>${it.lines.length?it.lines.map((line,i)=>`<div class="grade-color-${line.grade}"><small>${i+1}줄 · ${D.RARITIES[line.grade]}</small><span>${D.OPTIONS[line.key]}</span><b>+${line.value}${D.optionUnit(line.key)}</b></div>`).join(""):'<p class="note">잠재 미개방</p>'}</div>${canCompare?`<p class="market-equip-compare">장착 시 내 전투력 <strong>${fmt(after)}</strong> <span>(${after-before>=0?"+":""}${fmt(after-before)})</span></p>`:""}`:'<div class="market-pick-empty"><span>◇</span><h3>판매할 장비를 선택하세요</h3><p>장비 이미지를 누르면 강화 수치와<br>줄별 잠재 옵션이 여기에 표시됩니다.</p></div>'}<div class="market-price-box"><label for="sell-price">판매 가격 <small>G</small></label><input id="sell-price" type="number" inputmode="numeric" min="100" max="1000000000" step="1" value="${esc(marketSellPrice)}"><div class="market-net"><span>판매 완료 시 수령액</span><strong id="sell-net">—</strong></div><p id="sell-reason" class="note"></p>${disabledBtn("선택 장비 등록","sellConfirm","",true,"gold market-register")}<p class="note">등록 기간 7일 · 판매 완료 시 수수료 5%</p></div></section></div>`);
@@ -996,6 +1008,7 @@ document.addEventListener("click", async (e) => {
       );
       return itemDetail(arg);
     }
+    if (action === "qualityReroll") return await command("qualityReroll", {id:arg});
     if (["lock", "potential", "expand", "star"].includes(action)) {
       await command(action, { id: arg });
       if (action !== "star") itemDetail(arg);
@@ -1012,7 +1025,7 @@ document.addEventListener("click", async (e) => {
     if (action === "salvageConfirm")
       return open(
         "장비 분해",
-        `<p>선택한 장비가 사라집니다. 강화·잠재는 복구할 수 없습니다.</p><div class="actions">${btn("분해하기", "salvage", arg, "danger", true)}</div>`,
+        `<p>분해 보상: 장비 파편 ${D.salvageYield(state.items.find(it=>it.id===arg))}개.<br>선택한 장비가 사라집니다. 강화·잠재·품질은 복구할 수 없습니다.</p><div class="actions">${btn("분해하기", "salvage", arg, "danger", true)}</div>`,
       );
     if (action === "salvage") {
       await command("salvage", { ids: [arg] });
@@ -1056,6 +1069,9 @@ document.addEventListener("click", async (e) => {
       return await marketLoad();
     }
     if (action === "marketRefresh") return await marketLoad();
+    if(action==='marketKind'){marketKind=arg;filterSlot='';filterClass='';marketPage=0;return await marketLoad();}
+    if(action==='marketSellConsumables')return consumableSellDialog();
+    if(action==='sellConsumableConfirm'){const material=$('#material-sell-key').value,quantity=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>Math.min(1e6,state.materials[material]||0)||!Number.isSafeInteger(price)||price<1||price*quantity>1e9)return toast('수량과 개당 가격을 확인해 주세요.');return await marketWrite('sell',{material,quantity,price});}
     if (action === "marketSell") {marketSellId=null;marketSellSlot="";marketSellClass="";marketSellPrice="10000";return marketSellPicker();}
     if (action === "marketSellPick") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;marketSellId=arg;return marketSellPicker();}
     if (action === "sellConfirm") {
@@ -1066,6 +1082,7 @@ document.addEventListener("click", async (e) => {
     }
     if (action === "marketConfirm") {
       const l = marketRows.find((l) => l.id === arg);
+      if(l.item.kind==="consumable"){open(l.own?"소모품 판매 취소":"소모품 구매",`<div class="item">${itemMarkup(l.item)}</div><p>개당 ${fmt(l.price)} G</p>${l.own?`<p>남은 ${fmt(l.item.quantity)}개를 돌려받습니다.</p>`:`<label>구매 수량<input id="material-buy-count" data-listing="${l.id}" type="number" min="1" max="${l.item.quantity}" step="1" value="1"></label><p id="material-buy-total"></p>`}${btn(l.own?"남은 수량 회수":"구매 확정",l.own?"cancelListing":"buyListing",arg,"gold")}`);if(!l.own)updateMaterialBuy();return;}
       return open(
         l.own ? "판매 취소" : "구매 확인",
         `<div class="item">${itemMarkup(l.item)}</div><p class="note">${fmt(l.price)} 골드</p><div class="actions">${btn(l.own ? "장비 회수" : "구매 확정", l.own ? "cancelListing" : "buyListing", arg, "gold")}</div>`,
@@ -1074,13 +1091,15 @@ document.addEventListener("click", async (e) => {
     if (action === "cancelListing" || action === "buyListing")
       return await marketWrite(action === "cancelListing" ? "cancel" : "buy", {
         id: arg,
+        ...(action==="buyListing"&&marketRows.find(l=>l.id===arg)?.item.kind==="consumable"?{quantity:Number($("#material-buy-count")?.value)}:{}),
       });
   } catch (err) {
     toast(message(err));
   }
 });
-document.addEventListener("input", e=>{if(e.target.id==="sell-price")updateSellPrice();});
+document.addEventListener("input", e=>{if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
+  if(e.target.id==="material-sell-key"){updateMaterialSale();return;}
   if(e.target.id==="market-sell-slot"||e.target.id==="market-sell-class") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;if(e.target.id==="market-sell-slot")marketSellSlot=e.target.value;else marketSellClass=e.target.value;marketSellId=null;marketSellPicker();return;}
   if(e.target.dataset.craftRegion!==undefined) {
     const region=Number(e.target.dataset.craftRegion);

@@ -5,7 +5,7 @@ declare
  cl text:=s->>'classId'; main text; lv double precision:=(s->>'level')::double precision;
  atk double precision:=12+lv*2; stat double precision; hp double precision:=100+lv*22; def double precision:=lv*.5;
  stat_pct double precision:=0; atk_pct double precision:=0; hp_pct double precision:=0; def_pct double precision:=0; crit_pct double precision:=0; boss_pct double precision:=0;
- it jsonb; ln jsonb; eid text; k text; val double precision; growth double precision; base double precision; ilv double precision; stars double precision;
+ it jsonb; ln jsonb; eid text; k text; val double precision; growth double precision; base double precision; ilv double precision; stars double precision; quality double precision;
  crit double precision; crit_damage double precision; cadence double precision;
 begin
  main:=case cl when 'warrior' then 'STR' when 'mage' then 'INT' when 'archer' then 'DEX' when 'rogue' then 'LUK' when 'pirate' then 'DEX' end;
@@ -15,10 +15,11 @@ begin
   select value into it from jsonb_array_elements(coalesce(s->'items','[]')) where value->>'id'=eid limit 1;
   if it is null or coalesce((it->>'broken')::boolean,false) then continue; end if;
   ilv:=(it->>'level')::double precision; stars:=coalesce((it->>'stars')::double precision,0);
+  quality:=.9+coalesce((it->>'quality')::double precision,50)*.002;
   growth:=1+stars*.055+power(greatest(0,stars-15),1.4)*.025;
-  base:=(5+power(ilv,1.28))*(case when (it->>'boss')::boolean then 1.22 else 1 end);
+  base:=(5+power(ilv,1.28))*(case when (it->>'boss')::boolean then 1.22 else 1 end)*quality;
   atk:=atk+(base*(case when (it->>'slot')::int=0 then .9 else .11 end)*growth+stars);
-  stat:=stat+floor((2+ilv*.5)*growth)+stars; hp:=hp+ilv*4; def:=def+ilv*.2;
+  stat:=stat+floor((2+ilv*.5)*growth*quality)+stars; hp:=hp+ilv*4; def:=def+ilv*.2;
   for ln in select value from jsonb_array_elements(coalesce(it->'lines','[]')) loop
    k:=ln->>'key'; val:=(ln->>'value')::double precision;
    if k='flat'||main then stat:=stat+val;

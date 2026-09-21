@@ -1,5 +1,5 @@
-import { equipmentIdentity } from "./equipment.mjs?v=economy-star-4";
-export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=economy-star-4";
+import { equipmentIdentity } from "./equipment.mjs?v=quality-market-5";
+export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=quality-market-5";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -222,7 +222,14 @@ export const STAR_SUCCESS = [
 export const CUBE_UP = [0.20, 0.02, 0.002, 0.0002, 0.00002, 0];
 export const HIGH_CUBE_UP = [0.40, 0.04, 0.004, 0.0004, 0.00004, 0];
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
-export const EQUIP_DROP = 0.003;
+export const EQUIP_DROP = 0.0045;
+export const FIELD_BOSS_DROP = 0.0001;
+export const QUALITY_COST = {fragment:50,gold:1500};
+export const QUALITY_BANDS = [{min:0,max:49,chance:.70},{min:50,max:79,chance:.25},{min:80,max:94,chance:.045},{min:95,max:99,chance:.0049},{min:100,max:100,chance:.0001}];
+export function rollQuality(random=Math.random){let roll=random();for(const band of QUALITY_BANDS){if(roll<band.chance)return band.min+Math.min(band.max-band.min,Math.floor(roll/band.chance*(band.max-band.min+1)));roll-=band.chance;}return 100;}
+export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
+export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
+export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
 export const CUBE_DROP = 0.008;
 export const SCROLL_DROP = 0.0015;
 export const FRAGMENT_DROP = 0.08;
@@ -233,8 +240,8 @@ export function xpNeeded(level) {
 }
 export function gearAttributes(item,stars=item.stars) {
  const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
- const base=(5+item.level**1.28)*(item.boss?1.22:1);
- return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth)+stars,hp:item.level*4,defense:item.level*.2};
+ const base=(5+item.level**1.28)*(item.boss?1.22:1)*qualityMultiplier(item);
+ return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item))+stars,hp:item.level*4,defense:item.level*.2};
 }
 export function starCost(item) {
   return Math.round(
@@ -264,6 +271,7 @@ export function optionValue(key, grade, random = Math.random) {
 // The item grade is a derived sorting hint only; each slot owns its permanent grade.
 export function normalizePotentialItem(item) {
   if (!item) return item;
+  item.quality=itemQuality(item);
   if (item.potentialVersion !== 3) {
     const grade = item.potentialVersion === 2 ? (item.grade || 0) : Math.min(5, (item.grade || 0) + 2);
     item.lines = (item.lines || []).map(line => ({...line, grade:line.grade ?? grade}));

@@ -36,7 +36,7 @@ returns jsonb language plpgsql security definer set search_path='' as $$
 declare p rebirth_private.players%rowtype; r rebirth_private.party_rooms%rowtype; m rebirth_private.party_members%rowtype;
  old rebirth_private.receipts%rowtype; room_id uuid; initial_room text; n integer; t integer; upto integer; dmg bigint; incoming bigint;
  crit numeric; burst numeric; guard numeric; st jsonb; reward jsonb; it jsonb; bag jsonb; mail jsonb; stack jsonb; ck text; cl text; sl int; variant int; event_list jsonb:='[]'; summary jsonb;
- result jsonb; b_id text; won boolean; eligible boolean; claim text; boss_data jsonb; region_id text; sk jsonb; second jsonb; chance numeric; critical_damage numeric; slot integer; hit integer; is_raid boolean; claimed_count integer;
+ result jsonb; b_id text; won boolean; eligible boolean; claim text; boss_data jsonb; region_id text; sk jsonb; second jsonb; chance numeric; critical_damage numeric; slot integer; hit integer; is_raid boolean; claimed_count integer; quality_roll numeric; quality_value integer;
 begin
  perform pg_advisory_xact_lock(71823001);
  if not exists(select 1 from rebirth_private.release where epoch=p_epoch and (enabled or exists(select 1 from rebirth_private.players where id=p_user and preview_access))) then raise exception 'REBIRTH_MAINTENANCE'; end if;
@@ -120,11 +120,14 @@ begin
      end if;
      if random()<(r.boss->>'dropChance')::numeric then
       cl:=(array['warrior','mage','archer','rogue','pirate'])[1+floor(random()*5)::int];sl:=floor(random()*9)::int;variant:=case when sl=0 then floor(random()*3)::int else 0 end;
-      it:=jsonb_build_object('id',gen_random_uuid(),'level',(r.boss->>'gearLevel')::int,'classId',cl,'slot',sl,'boss',true,'weaponVariant',variant,'stars',0,'grade',0,'lines','[]'::jsonb,'locked',false,'broken',false);
+      quality_roll:=random();
+      quality_value:=case when quality_roll<.70 then floor(quality_roll/.70*50)::int when quality_roll<.95 then 50+floor((quality_roll-.70)/.25*30)::int when quality_roll<.995 then 80+floor((quality_roll-.95)/.045*15)::int when quality_roll<.9999 then 95+floor((quality_roll-.995)/.0049*5)::int else 100 end;
+      it:=jsonb_build_object('id',gen_random_uuid(),'level',(r.boss->>'gearLevel')::int,'classId',cl,'slot',sl,'boss',true,'weaponVariant',variant,'quality',quality_value,'stars',0,'grade',0,'lines','[]'::jsonb,'locked',false,'broken',false);
       ck:=concat_ws(':',it->>'level',cl,sl::text,'true')||case when variant>0 then ':'||variant::text else '' end;
       if not coalesce(st->'collection','[]') ? ck then st:=jsonb_set(st,'{collection}',coalesce(st->'collection','[]')||jsonb_build_array(ck)); end if;
       if jsonb_array_length(st->'items')<300 then st:=jsonb_set(st,'{items}',st->'items'||jsonb_build_array(it));
       else
+       ck:=ck||'|q'||(it->>'quality');
        mail:=coalesce(st->'mailbox','[]');
        if exists(select 1 from jsonb_array_elements(mail) e where e->>'key'=ck) then
         select jsonb_agg(case when e->>'key'=ck then jsonb_set(e,'{quantity}',to_jsonb((e->>'quantity')::int+1)) else e end) into mail from jsonb_array_elements(mail) e;
