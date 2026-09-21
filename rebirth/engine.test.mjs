@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import * as E from './engine.mjs';
+import * as D from './data.mjs';
+const ctx=(now=0,random=()=>.5)=>({now,random,uuid:randomUUID});
+let s=E.initialState('rogue','도전자',ctx());
+const a=E.execute(s,'sync',{},ctx(21600000)),b=E.execute(s,'sync',{},ctx(86400000));
+assert.equal(a.state.xp,b.state.xp);assert.equal(a.state.gold,b.state.gold);assert.equal(a.state.items.length,b.state.items.length);assert.deepEqual(a.state.materials,b.state.materials);
+assert.equal(a.events[0].seconds,21600);
+assert.equal(E.execute(a.state,'sync',{},ctx(21600000)).events.length,0);
+assert.throws(()=>E.execute(s,'stats',{key:'LUK',amount:-1},ctx()),/INVALID_STATS/);
+assert.throws(()=>E.execute(s,'stage',{id:29},ctx()),/LEVEL_REQUIRED/);
+for(let n=0;n<25;n++){const o=D.starOdds(n);assert.ok(Math.abs(o.success+o.keep+o.down+o.destroy-1)<1e-9);}
+s.hunting=false;s.gold=1e9;s.materials={cube:100,highCube:100,scroll:10,expand:10,fragment:1000};
+const id=s.items[0].id;s=E.execute(s,'potential',{id},ctx()).state;assert.equal(s.items[0].lines.length,1);
+s=E.execute(s,'expand',{id},ctx()).state;assert.equal(s.items[0].lines.length,2);
+s=E.execute(s,'cube',{id,high:true},ctx()).state;assert.ok(s.pendingCube);
+assert.throws(()=>E.execute(s,'salvage',{ids:[id]},ctx()),/ITEM_CUBE_PENDING/);
+assert.throws(()=>E.execute(s,'cube',{id},ctx()),/ITEM_CUBE_PENDING/);
+s=E.execute(s,'cubeChoose',{apply:false},ctx()).state;assert.equal(s.pendingCube,null);
+s.items[0].stars=20;s=E.execute(s,'star',{id},ctx(0,()=>.13)).state;assert.equal(s.items[0].broken,true);
+const copy=E.makeItem(1,'rogue',0,false,ctx());s.items.push(copy);
+s=E.execute(s,'restore',{id,materialId:copy.id},ctx()).state;assert.equal(s.items.length,1);assert.equal(s.items[0].stars,12);assert.equal(s.items[0].lines.length,2);
+assert.throws(()=>E.execute(s,'restore',{id,materialId:id},ctx()),/INVALID_RESTORE/);
+s.items[0].locked=true;assert.throws(()=>E.execute(s,'star',{id},ctx()),/ITEM_PROTECTED/);
+console.log('PASS: six-hour cap, duplicate settlement, input guards, all star distributions, cube pending lock, destruction/restoration.');
