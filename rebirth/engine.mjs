@@ -127,7 +127,6 @@ export function power(s) {
   };
   const fixedStats = {STR:0, DEX:0, INT:0, LUK:0};
   let equipmentStat = 0;
-  const sets = {};
   let stars = 0;
   for (const id of Object.values(s.equipped)) {
     const it = s.items.find((x) => x.id === id);
@@ -147,12 +146,6 @@ export function power(s) {
       if (line.key === "flat" + cl.stat) primary += line.value;
       else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
     }
-    if (it.boss) sets[it.level] = (sets[it.level] || 0) + 1;
-  }
-  for (const n of Object.values(sets)) {
-    if (n >= 3) pct[cl.stat] += 5;
-    if (n >= 6) pct.attack += 5;
-    if (n >= 9) pct.boss += 10;
   }
   primary *= 1 + pct[cl.stat] / 100;
   flat = (flat + primary * 0.65) * (1 + pct.attack / 100);
@@ -190,6 +183,44 @@ export function power(s) {
     xpGain: pct.xpGain,
     dps,
   };
+}
+// Exact enumeration for small inventories; bounded multi-start search for large bags.
+// Comparisons use final combat power and retain the current loadout on ties.
+export function bestEquipment(s) {
+  const bySlot = Array.from({length:9},()=>[]);
+  for (const it of s.items) if (!it.broken && it.classId===s.classId && it.level<=s.level && int(it.slot,0,8)) bySlot[it.slot].push(it);
+  const current=Array.from({length:9},(_,slot)=>s.items.find(it=>it.id===s.equipped[slot])||null);
+  const score=items=>power({...s,items:items.filter(Boolean),equipped:Object.fromEntries(items.flatMap((it,slot)=>it?[[slot,it.id]]:[]))}).combatPower;
+  const before=power(s).combatPower;
+  let best=current.slice(),bestScore=before;
+  const consider=items=>{const value=score(items);if(value>bestScore){best=items.slice();bestScore=value;}return value;};
+  for(let slot=0;slot<9;slot++) {
+    bySlot[slot].sort((a,b)=>Number(b.id===s.equipped[slot])-Number(a.id===s.equipped[slot])||a.id.localeCompare(b.id));
+    if(!bySlot[slot].length)bySlot[slot]=[null];
+  }
+  const combinations=bySlot.reduce((n,items)=>n*items.length,1);
+  if(combinations<=25000) {
+    const chosen=[];
+    const visit=slot=>{if(slot===9){consider(chosen);return;}for(const it of bySlot[slot]){chosen[slot]=it;visit(slot+1);}};
+    visit(0);
+  } else {
+    const seeds=[current.slice()];
+    let beam=[{items:current.slice(),value:before}];
+    for(let slot=0;slot<9;slot++){
+      const next=[];
+      for(const entry of beam)for(const it of bySlot[slot]){const items=entry.items.slice();items[slot]=it;next.push({items,value:consider(items)});}
+      next.sort((a,b)=>b.value-a.value);beam=next.slice(0,96);
+    }
+    seeds.push(best.slice(),...beam.slice(0,4).map(entry=>entry.items));
+    for(const seed of seeds){let value=consider(seed);for(let pass=0;pass<9;pass++){
+      let changed=false;
+      for(let slot=0;slot<9;slot++){let winner=seed[slot],nextValue=value;for(const it of bySlot[slot]){const trial=seed.slice();trial[slot]=it;const v=score(trial);if(v>nextValue){winner=it;nextValue=v;}}if(nextValue>value){seed[slot]=winner;value=nextValue;changed=true;}}
+      consider(seed);if(!changed)break;
+    }}
+  }
+  const equipped=bestScore>before?Object.fromEntries(best.flatMap((it,slot)=>it?[[slot,it.id]]:[])):{...s.equipped};
+  const changed=Array.from({length:9},(_,slot)=>slot).filter(slot=>equipped[slot]!==s.equipped[slot]);
+  return {equipped,before,after:bestScore,changed};
 }
 export function huntingRate(s) {
   const st = STAGES[s.stage],
@@ -487,6 +518,13 @@ export function execute(input, command, args = {}, ctx) {
       spend(s, "gold", 5000);
       s.stats = { STR: 4, DEX: 4, INT: 4, LUK: 4 };
       s.points = (s.level - 1) * 5;
+      break;
+    }
+    case "autoEquip": {
+      check(!s.pendingCube, "ITEM_CUBE_PENDING");
+      const result=bestEquipment(s);
+      s.equipped=result.equipped;
+      events.push({type:"autoEquip",before:result.before,after:result.after,changed:result.changed});
       break;
     }
     case "equip": {

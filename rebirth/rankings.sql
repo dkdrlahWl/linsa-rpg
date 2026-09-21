@@ -6,7 +6,7 @@ declare
  atk double precision:=12+lv*2; stat double precision; hp double precision:=100+lv*22; def double precision:=lv*.5;
  stat_pct double precision:=0; atk_pct double precision:=0; hp_pct double precision:=0; def_pct double precision:=0; crit_pct double precision:=0; boss_pct double precision:=0;
  it jsonb; ln jsonb; eid text; k text; val double precision; growth double precision; base double precision; ilv double precision; stars double precision;
- sets jsonb:='{}'; n integer; crit double precision; crit_damage double precision; cadence double precision;
+ crit double precision; crit_damage double precision; cadence double precision;
 begin
  main:=case cl when 'warrior' then 'STR' when 'mage' then 'INT' when 'archer' then 'DEX' when 'rogue' then 'LUK' when 'pirate' then 'DEX' end;
  if main is null then return 0; end if;
@@ -29,12 +29,6 @@ begin
    elsif k='crit' then crit_pct:=crit_pct+val;
    elsif k='boss' then boss_pct:=boss_pct+val; end if;
   end loop;
-  if (it->>'boss')::boolean then k:=it->>'level';sets:=jsonb_set(sets,array[k],to_jsonb(coalesce((sets->>k)::int,0)+1));end if;
- end loop;
- for n in select value::int from jsonb_each_text(sets) loop
-  if n>=3 then stat_pct:=stat_pct+5;end if;
-  if n>=6 then atk_pct:=atk_pct+5;end if;
-  if n>=9 then boss_pct:=boss_pct+10;end if;
  end loop;
  stat:=stat*(1+stat_pct/100);atk:=(atk+stat*.65)*(1+atk_pct/100);
  hp:=floor(hp*(1+hp_pct/100));def:=def*(1+def_pct/100);
