@@ -1,6 +1,6 @@
-import * as D from "./data.mjs";
+import * as D from "./data.mjs?v=adventure-3";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=currency-art-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=adventure-3";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -16,6 +16,7 @@ const esc = (v) =>
 const fmt = (n) => Math.floor(n || 0).toLocaleString("ko-KR");
 const pct = (n) => (n * 100).toFixed(n < 0.001 ? 3 : 1) + "%";
 const combatFrames = [];
+let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
 let session,
@@ -158,6 +159,14 @@ const errors = {
   SERVER_RETRY_REQUIRED: "연결을 확인하고 같은 요청을 다시 시도해 주세요.",
   LISTING_UNAVAILABLE: "이미 거래됐거나 만료된 매물입니다.",
   BATTLE_IN_PROGRESS: "보스전이 끝난 뒤 이용해 주세요.",
+  PARTY_IN_PROGRESS: "협동 보스에서 나온 뒤 이용할 수 있어요.",
+  PARTY_FULL: "4명이 모두 찬 파티입니다.",
+  PARTY_MEMBERS_REQUIRED: "2명 이상 모이면 출발할 수 있어요.",
+  PARTY_HOST_REQUIRED: "파티장만 출발할 수 있어요.",
+  PARTY_NOT_JOINABLE: "이미 출발했거나 종료된 파티입니다.",
+  PARTY_DEFEATED: "쓰러진 상태입니다. 부활 가능 여부를 확인해 주세요.",
+  PARTY_REVIVE_UNAVAILABLE: "부활은 쓰러졌을 때 전투당 한 번 사용할 수 있어요.",
+  ALREADY_ADVANCED: "이미 전직을 완료했어요.",
   SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
 };
 function message(e) {
@@ -233,6 +242,8 @@ async function command(command, args = {}, quiet = false) {
     const result = await request("/functions/v1/ringu-rebirth", body);
     localStorage.removeItem(pendingKey());
     state = result.state;
+    if ("room" in result) partyRoom=result.room; else if (!state?.partyRoom) partyRoom=null;
+    if (result.rooms) partyRooms=result.rooms;
     lastSync = Date.now();
     connectionLost = false;
     retryAt = 0;
@@ -240,7 +251,7 @@ async function command(command, args = {}, quiet = false) {
     render();
     for (const event of result.result?.events || []) if(event.type === "combat") combatFrames.push(...event.frames);
     if (combatFrames.length > 6) combatFrames.splice(0, combatFrames.length - 6);
-    if (!quiet || result.result?.events?.some(e=>["boss","dungeon"].includes(e.type))) showEvents(result.result?.events || []);
+    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
     if (e.status === 400) localStorage.removeItem(pendingKey());
@@ -263,7 +274,7 @@ async function command(command, args = {}, quiet = false) {
     busy = false;
     document
       .querySelectorAll("button[data-write]")
-      .forEach((b) => (b.disabled = false));
+      .forEach((b) => (b.disabled = b.hasAttribute("data-unavailable")));
   }
 }
 const icon = (name) => {
@@ -299,7 +310,10 @@ function render() {
   if (!session) return login();
   if (!state) return createScreen();
   let content;
-  if (view === "regions") content = regions();
+  if (state.partyRoom) content = partyPanel();
+  else if (view === "ranking") content = rankings();
+  else if (view === "journal") content = journal();
+  else if (view === "regions") content = regions();
   else
     content = {
       hunt: hunt,
@@ -313,7 +327,7 @@ function render() {
 }
 function hunt() {
   const st = D.STAGES[state.stage],
-    region = D.REGIONS[state.battle ? battleEnemy(state.battle).region : st.region],
+    region = state.battle?.dungeon === "relic" ? D.EXPEDITION : D.REGIONS[state.battle ? battleEnemy(state.battle).region : st.region],
     p = power(state),
     r = huntingRate(state),
     b = state.battle,
@@ -327,10 +341,10 @@ function hunt() {
     )
     .join(
       "",
-    )}</div></div><div class="panel pad"><h3>다음 목표</h3><p class="note">${state.cleared.length < 30 ? D.BOSSES.find((b) => !state.cleared.includes(b.id))?.name + " 처치" : "최종 장비와 잠재옵션 완성"}</p>${btn("보스 확인", "tab", "boss")}</div>${state.tutorial < 6 ? `<div class="quest"><strong>모험 안내 ${state.tutorial + 1}/6</strong><p class="note">${["시작 무기는 장착되어 있어요. 캐릭터 탭에서 확인하세요.", "레벨업 포인트는 내 직업 주스탯에 분배하세요.", "사냥터는 레벨과 선행 보스 조건을 확인하세요.", "보스 장비는 재료 24개로 원하는 부위를 제작할 수 있어요.", "장비 잠재를 열고 큐브로 유효 옵션을 찾으세요.", "강화 확률과 파괴 조건을 확인하고 도전하세요."][state.tutorial]}</p>${btn("확인", "tutorial", "", "", true)}</div>` : ""}</aside></div>`;
+    )}</div></div><div class="panel pad"><h3>다음 목표</h3><p class="note">${state.cleared.length < 30 ? D.BOSSES.find((b) => !state.cleared.includes(b.id))?.name + " 처치" : "최종 장비와 잠재옵션 완성"}</p>${btn("보스 확인", "tab", "boss")}${btn("모험 수첩", "journal")}</div>${state.tutorial < 6 ? `<div class="quest"><strong>모험 안내 ${state.tutorial + 1}/6</strong><p class="note">${["시작 무기는 장착되어 있어요. 캐릭터 탭에서 확인하세요.", "레벨업 포인트는 내 직업 주스탯에 분배하세요.", "사냥터는 레벨과 선행 보스 조건을 확인하세요.", "보스 장비는 재료 24개로 원하는 부위를 제작할 수 있어요.", "장비 잠재를 열고 큐브로 유효 옵션을 찾으세요.", "강화 확률과 파괴 조건을 확인하고 도전하세요."][state.tutorial]}</p>${btn("확인", "tutorial", "", "", true)}</div>` : ""}</aside></div>`;
 }
 function regions() {
-  return `${header("사냥터 선택", "WORLD MAP")}${btn("사냥으로 돌아가기", "back")}<div class="region-list" style="margin-top:12px">${D.REGIONS.map(
+  return `${header("사냥터 선택", "WORLD MAP")}${btn("사냥으로 돌아가기", "back")}<section class="panel pad relic-card"><strong>여명의 폐허 · Lv.200</strong><p class="note">멸신왕 벨제리온 이후 열리는 유적 · 일반 200레벨 장비</p>${disabledBtn("유적 탐사","dungeon","relic",state.level<200||!state.cleared.includes(29),"gold")}</section><div class="region-list" style="margin-top:12px">${D.REGIONS.map(
     (r) =>
       `<section class="panel"><div class="region-banner" style="background-image:url('${r.background}')"><h3>${r.name} <small>Lv.${r.level}</small></h3></div>${D.STAGES.filter(
         (s) => s.region === r.id,
@@ -345,7 +359,7 @@ function regions() {
 function character() {
   const c = D.CLASSES.find((x) => x.id === state.classId),
     p = power(state);
-  return `${header("캐릭터", c.name + " · " + c.stat + " 주스탯")}<div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+  return `${header("캐릭터", (state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("레벨 랭킹","ranking")}${btn("모험 수첩","journal")}</div><section class="panel pad advancement-card"><div><strong>${state.advancement?D.ADVANCEMENTS[c.id]+" 전직 완료":"다음 전직 · "+D.ADVANCEMENTS[c.id]}</strong><p class="note">Lv.60 · 광산왕 크로투스 처치 · 공격력 +8% / HP +10%</p></div>${disabledBtn(state.advancement?"완료":"전직","advance","",!!state.advancement||state.level<60||!state.cleared.includes(8),"gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
     state.stats,
   )
     .map(
@@ -371,7 +385,7 @@ function character() {
   )}</div><p class="note">같은 레벨 보스 장비 3부위: 주스탯 +5%<br>6부위: 공격력 +5% · 9부위: 보스 피해 +10%</p></section></div></div>`;
 }
 function itemMarkup(it) {
-  return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>Lv.${it.level} · ${D.CLASSES.find((c) => c.id === it.classId).name} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="purple">${it.lines.length ? D.RARITIES[it.grade] + " " + it.lines.length + "줄" : "잠재 미개방"}</span></div>`;
+  return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>Lv.${it.level} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="purple">${it.lines.length ? D.RARITIES[it.grade] + " " + it.lines.length + "줄" : "잠재 미개방"}</span></div>`;
 }
 function inventory() {
   let items = state.items
@@ -389,7 +403,9 @@ function inventory() {
         b.level - a.level || b.grade - a.grade,
     );
   return `${header("장비", "EQUIPMENT")}<div class="subnav">${[
-    ["bag", "가방"],
+    ["bag", "장비"],
+    ["consumables", "소비"],
+    ["materials", "재료"],
     ["mail", "보관함"],
     ["collection", "도감"],
     ["craft", "제작"],
@@ -398,7 +414,7 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="inventory-grid stack">${items.length ? items.map((i) => btn(itemMarkup(i), "item", i.id, "item")).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
+    )}</div>${["consumables","materials"].includes(sub) ? supplies(sub) : sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="inventory-grid bag-grid">${items.length ? items.map((i) => btn(gearMarkup(i)+`<span class="tile-level">${i.level}</span><span class="tile-star">${i.stars}★</span><span class="tile-name">${esc(D.gearName(i))}</span><span class="sr-only">${D.equipmentType(i)} ${i.locked?"잠금":""}</span>`, "item", i.id, `bag-slot grade-${i.grade} ${Object.values(state.equipped).includes(i.id)?"equipped":""} ${i.locked?"locked":""}`)).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -410,11 +426,12 @@ function atlasIcon(tier, n, label, size="") {
   return '<svg class="gear-icon '+size+'" role="img" aria-label="'+esc(label)+'" viewBox="'+[x,y,w,h].join(' ')+'" overflow="hidden" preserveAspectRatio="xMidYMid meet"><image href="gear-'+tier+'.svg" width="'+atlas.w+'" height="'+atlas.h+'"/></svg>';
 }
 function gearMarkup(it, size="") {
-  if(!it)return "";
-  const n=it.slot===0?Math.max(0,D.CLASSES.findIndex(c=>c.id===it.classId)):it.slot+4;
-  return atlasIcon(it.level<80?0:it.level<160?1:2,n,D.gearName(it),size);
+  if(!it) return "";
+  const art = D.equipmentIdentity(it);
+  return '<svg class="gear-icon '+size+'" role="img" aria-label="'+esc(art.name)+'" viewBox="'+[art.column*100+3,art.row*100+3,94,94].join(' ')+'" overflow="hidden" preserveAspectRatio="xMidYMid meet"><image href="'+art.art+'" width="'+(art.columns*100)+'" height="'+(art.rows*100)+'" preserveAspectRatio="none"/></svg>';
 }
 function bossMarkup(b, size="") {
+  if(b.fullArt) return `<img class="boss-sprite ${size}" src="${b.art}" alt="${esc(b.name)}" style="object-fit:contain">`;
   return '<div class="boss-sprite '+size+'" role="img" aria-label="'+esc(b.name)+'" style="background-image:url('+b.art+');background-position:'+b.spriteX+'% '+b.spriteY+'%"></div>';
 }
 function monsterMarkup(m) {
@@ -425,10 +442,10 @@ function mailbox() {
 }
 function collection() {
   const keys = state.collection||[];
-  return '<p class="note">발견한 장비 '+keys.length+'종 · 획득 기록은 장비를 판매하거나 분해해도 유지됩니다.</p><div class="inventory-grid stack">'+keys.map(key=>{const [level,classId,slot,boss]=key.split(':');return '<div class="panel pad item">'+itemMarkup({level:Number(level),classId,slot:Number(slot),boss:boss==='true',stars:0,lines:[],grade:0})+'</div>';}).join('')+'</div>';
+  return '<p class="note">발견한 장비 '+keys.length+' / '+D.EQUIPMENT_CATALOG.length+'종 · 획득 기록은 장비를 판매하거나 분해해도 유지됩니다.</p><div class="inventory-grid stack">'+keys.map(key=>{const entry=D.equipmentFromKey(key);return '<div class="panel pad item">'+itemMarkup({...entry,stars:0,lines:[],grade:0})+'</div>';}).join('')+'</div>';
 }
 function craft() {
-  return `<div class="panel pad"><h3>잠재 부여 주문서</h3><p class="note">장비 파편 100개 + 1,000 골드</p>${btn("제작", "craftScroll", "", "", true)}</div><div class="region-list">${D.REGIONS.map((r) => `<section class="panel pad"><h3>${r.name} 세트 · Lv.${D.TIERS[r.id + 1]}</h3><p class="note">보스 재료 ${state.bossMaterials[r.id] || 0}/24 · 장비 파편 60 · 골드 ${fmt(3000 + r.id * 500)}<br>내 직업의 원하는 부위를 제작합니다.</p><div class="row"><select id="craft-${r.id}">${D.SLOTS.map((s, i) => `<option value="${i}">${s}</option>`).join("")}</select>${btn("장비 제작", "craft", r.id, "gold", true)}</div></section>`).join("")}</div>`;
+  return `<div class="panel pad"><h3>잠재 부여 주문서</h3><p class="note">장비 파편 100개 + 1,000 골드</p>${btn("제작", "craftScroll", "", "", true)}</div><div class="region-list">${D.REGIONS.map((r) => `<section class="panel pad"><h3>${r.name} 보스 장비 · Lv.${D.TIERS[r.id + 1]}</h3><p class="note">보스 재료 ${state.bossMaterials[r.id] || 0}/24 · 장비 파편 60 · 골드 ${fmt(3000 + r.id * 500)}<br>내 직업의 무기 종류와 부위를 선택해 제작합니다.</p><div class="row"><select id="craft-${r.id}">${D.WEAPON_TYPES[state.classId].map((name,v)=>`<option value="0:${v}">${name}</option>`).join("")}${D.SLOTS.slice(1).map((name,i)=>`<option value="${i+1}:0">${name}</option>`).join("")}</select>${btn("장비 제작", "craft", r.id, "gold", true)}</div></section>`).join("")}</div>`;
 }
 function odds() {
   return `<div class="panel pad"><h3>스타포스 · 최대 25성</h3><p class="note">10·15성은 하락 방지 지점입니다. 파괴 시 같은 장비로 12성 복구하며 잠재가 보존됩니다.</p><table><tr><th>목표</th><th>성공</th><th>유지</th><th>하락</th><th>파괴</th></tr>${D.STAR_SUCCESS.map(
@@ -470,15 +487,45 @@ function odds() {
       "",
     )}</table></div><div class="panel pad"><h3>일반 사냥 드롭</h3><p class="note">처치마다 독립 추첨: 장비 ${pct(D.EQUIP_DROP)}, 일반 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 3.5%.<br>장비 직업은 5종 균등, 부위는 9종 균등입니다. 보스 드롭은 보스 탭에 표시합니다.</p></div>`;
 }
+function disabledBtn(label,action,arg,blocked=false,cls="") {
+  const html=btn(label,action,arg,cls,true);
+  return blocked ? html.replace("<button ","<button disabled data-unavailable ") : html;
+}
 function bosses() {
-  return `${header("보스", "BOSS CHALLENGE")}<div class="panel pad"><h3>일일 던전 · Lv.20</h3><p class="note">매일 00:00 초기화 · 주간 보스 월요일 00:00 초기화 (한국시간)</p><div class="actions">${btn("큐브 수련 · 3개", "dungeon", "cube", "", true)}${btn("재료 수련 · 파편 30", "dungeon", "material", "", true)}</div></div><div class="region-list">${D.BOSSES.map(
-    (b) => {
-      const claimed =
-        state.bossClaims[b.id] ===
-        (b.weekly ? D.weekKey(Date.now()) : D.dayKey(Date.now()));
-      return `<section class="panel"><div class="boss-banner" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}<div class="label"><small>Lv.${b.level} · ${b.weekly ? "주간" : "일일"} 보스</small><h3>${b.name}</h3></div></div><div class="pad"><p>HP ${fmt(b.hp)} · 제한 ${b.seconds}초</p><p class="note">${state.cleared.includes(b.id) ? "처치 완료" : "미처치"} · 보상 ${claimed ? "수령 완료" : "가능"}<br>Lv.${b.gearLevel} 세트 장비 ${pct(b.dropChance)} · 지역 재료 ${b.material}개<br>${b.weekly ? "큐브 3 · 상급 큐브 1 · 확장석 20%" : "일반 큐브 1"}</p><div class="actions">${btn("도전", "bossStart", b.id, "gold", true)}${btn("연습", "bossPractice", b.id, "", true)}</div></div></section>`;
-    },
-  ).join("")}</div>`;
+  const menu=`<div class="subnav">${[["daily","일일"],["weekly","주간"],["party","협동"],["dungeon","던전·탐사"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  if(bossTab==="party")return header("협동 토벌","2–4인 · 공동 HP")+menu+partyLobby();
+  if(bossTab==="dungeon")return header("던전과 탐사","DAILY ADVENTURE")+menu+dungeonCards();
+  return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">보스별 ${bossTab==="daily"?"하루":"주"} 1회 보상 · 실패는 재도전 무제한 · 연습 무제한<br>${bossTab==="daily"?"매일":"매주 월요일"} 00:00 초기화 (한국시간)</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
+}
+function bossCard(b) {
+  const claimed=state.bossClaims[b.id]===(b.weekly?D.weekKey(Date.now()):D.dayKey(Date.now()));
+  const locked=state.level<b.level||(b.id>0&&!state.cleared.includes(b.id-1));
+  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?"이번 주":"오늘"} 남은 ${claimed?0:1}/1</span></div><small>Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?"보상 완료":locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>입장 조건 · 보상</summary><p class="note">${b.id?D.BOSSES[b.id-1].name+" 처치":"선행 보스 없음"}<br>Lv.${b.gearLevel} 보스 장비 ${pct(b.dropChance)} · 재료 ${b.material}<br>${b.weekly?"큐브 3 · 상급 큐브 1 · 확장석 20%":"일반 큐브 1"}<br>실패 횟수 제한 없음 · 성공 보상 후에는 연습 가능</p></details></div></section>`;
+}
+function dungeonCards() {
+  return `<p class="note compact-note">던전별 하루 1회 클리어 보상 · 실패 시 무제한 재도전 · 매일 00:00 초기화</p><div class="dungeon-cards">${["cube","material","relic"].map(kind=>{
+    const d=D.DUNGEONS[kind],claimed=state.dungeonClaims[kind]===D.dayKey(Date.now()),locked=kind==="relic"?state.level<200||!state.cleared.includes(29):state.level<20;
+    return `<section class="panel dungeon-card ${kind==="relic"?"relic-card":""}"><div class="row spread"><strong>${kind==="relic"?"여명의 폐허":kind==="cube"?"큐브 수련":"재료 수련"}</strong><span class="count-badge">남은 ${claimed?0:1}/1</span></div><small>Lv.${kind==="relic"?200:20}${kind==="relic"?" · 멸신왕 처치 후":""}</small><p>${d.reward}</p>${disabledBtn(claimed?"오늘 완료":locked?"아직 미해금":"도전","dungeon",kind,claimed||locked,"gold")}</section>`;
+  }).join("")}</div>`;
+}
+function partyLobby() {
+  return `<p class="note compact-note">2~4명이 함께 공격 · 전투 3분 · 개인 주간 보스와 보상 횟수 공유<br>공격 자동 · 직업 스킬 직접 사용 · 생존한 동료가 있으면 1회 HP 30% 부활</p><div class="panel pad"><div class="row"><select id="party-boss">${D.BOSSES.filter(b=>b.weekly).map(b=>`<option value="${b.id}">Lv.${b.level} ${b.name}</option>`).join("")}</select>${btn("파티 만들기","partyCreate","","gold",true)}</div><label class="practice-check"><input id="party-practice" type="checkbox">연습 파티 (보상 없음)</label></div><div class="row spread"><h3>모집 중인 파티</h3>${btn("새로고침","partyRefresh")}</div><div class="stack">${partyRooms.length?partyRooms.map(r=>`<section class="panel pad row spread"><div><strong>${esc(r.name)}</strong><br><small>${r.count}/4명 · ${r.practice?"연습":"보상 도전"}</small></div>${disabledBtn("참가","partyJoin",r.id,Number(r.count)>=4)}</section>`).join(""):'<div class="empty">모집 중인 파티가 없어요. 먼저 파티를 만들어 보세요.</div>'}</div>`;
+}
+function partyPanel() {
+  if(!partyRoom)return header("협동 토벌")+`<div class="panel pad">파티 정보를 불러오는 중…${btn("다시 불러오기","partyRefresh")}</div>`;
+  const r=partyRoom,b=D.BOSSES[r.bossId],me=r.members.find(m=>m.mine),total=r.members.reduce((n,m)=>n+Number(m.damage),0),fighting=r.status==="fighting";
+  return `${header(b.name,"CO-OP RAID · "+(r.practice?"연습":"보상 도전"))}<section class="panel"><div class="arena party-arena" data-class="${state.classId}" style="background-image:url('ui/dawn-ruins.svg')"><div class="battle-head"><small>${fighting?"남은 시간 "+Math.max(0,r.seconds-r.tick)+"초":"파티원 모집 중 · "+r.members.filter(m=>!m.departed).length+"/4명"}</small><h3>${b.name}</h3>${fighting?`<div class="hp"><i style="width:${r.hp/r.maxHp*100}%"></i></div><small>${fmt(r.hp)} / ${fmt(r.maxHp)}</small>`:""}</div><div class="monster">${bossMarkup(b)}</div><div class="combat-status"><span class="pill">${fighting?b.pattern+" · "+(b.patternEvery-r.tick%b.patternEvery)+"초 후":"파티장이 출발할 수 있어요"}</span></div></div><div class="pad"><div class="party-members">${r.members.map(m=>`<div class="party-member ${m.hp<=0?"fallen":""}"><div class="row spread"><strong>${esc(m.name)}${m.mine?" · 나":""}</strong><small>${m.departed?"이탈":m.hp<=0?"쓰러짐":D.CLASSES.find(c=>c.id===m.classId)?.name}</small></div><div class="hp"><i style="width:${Math.max(0,m.hp/m.maxHp*100)}%"></i></div><small>${fmt(m.hp)}/${fmt(m.maxHp)} · 기여 ${total?(Number(m.damage)/total*100).toFixed(1):"0.0"}%</small></div>`).join("")}</div><div class="actions">${fighting?disabledBtn(me?.hp<=0?(me.revived?"부활 사용 완료":"부활 · 30% HP"):D.CLASSES.find(c=>c.id===state.classId).skill+(me.skillReady>r.tick?" · "+(me.skillReady-r.tick)+"초":""),me?.hp<=0?"partyRevive":"partySkill","",me?.hp<=0?me.revived:me.skillReady>r.tick,"gold"):r.isHost?disabledBtn("출발","partyStart","",r.members.length<2,"gold"):""}${btn("파티 나가기","partyLeaveConfirm","","danger")}</div><p class="note">전투 중 일반 사냥은 멈춥니다. 종료·퇴장 후 자동사냥이 켜집니다.${!fighting?" · 대기실은 10분 후 종료됩니다.":""}</p></div></section>`;
+}
+function supplies(kind) {
+  const keys=kind==="consumables"?["cube","highCube","scroll","expand"]:["fragment"];
+  return `<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/새 옵션 선택",scroll:"잠재 능력 개방",expand:"잠재 줄 추가",fragment:"장비·주문서 제작"}[k]}</small>${kind==="consumables"?btn("장비 선택","gearSub","bag"):btn("제작소","gearSub","craft")}</section>`).join("")}${kind==="materials"?D.REGIONS.map(r=>`<section class="panel pad"><strong>${r.name} 재료</strong><b>${state.bossMaterials[r.id]||0}개</b><small>보스 장비 제작</small></section>`).join(""):""}</div>`;
+}
+function rankings() {
+  return header("모험가 랭킹","레벨 → 경험치 순")+btn("돌아가기","back")+`<div class="panel pad"><table><thead><tr><th>순위</th><th>모험가</th><th>직업</th><th>레벨</th></tr></thead><tbody>${rankingRows.map(r=>`<tr class="${r.name===state.name?"my-rank":""}"><td>${r.rank}</td><td>${esc(r.name)}</td><td>${r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name}</td><td>${r.level}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function journal() {
+  const goals=[["첫 토벌",state.cleared.length,1,"보스 첫 처치"],["장비 수집가",state.collection.length,50,"서로 다른 장비 50종 발견"],["직업의 길",state.advancement?1:0,1,"Lv.60 · 광산왕 크로투스 처치 후 전직"],["숙련 모험가",state.level,100,"100레벨 달성"],["왕좌를 넘어",state.cleared.length,30,"멸신왕 벨제리온 처치"],["새벽의 탐험가",state.dungeonClaims.relic?1:0,1,"여명의 폐허 클리어"]];
+  return header("모험 수첩","나의 성장 기록")+btn("돌아가기","back")+`<div class="journal-banner"><h2>다음 이야기는<br>네 모험으로 채워져.</h2></div><div class="goal-grid">${goals.map(([name,value,max,desc])=>`<section class="panel pad"><div class="row spread"><strong>${name}</strong><span class="pill">${value>=max?"달성":Math.min(value,max)+"/"+max}</span></div><p class="note">${desc}</p><div class="exp"><i style="width:${Math.min(100,value/max*100)}%"></i></div></section>`).join("")}</div>`;
 }
 function market() {
   return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine ? "active" : "")}${btn("등록하기", "marketSell")}</div><p class="note">판매 수수료 5% · 등록 7일 · 최대 20건<br>만료 장비는 내 판매에서 회수할 수 있습니다.</p><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="stack">${
@@ -514,37 +561,16 @@ function open(title, html, closable = true) {
   }
   modal.dataset.closable = String(closable);
 }
-function itemDetail(id) {
-  selected = id;
-  const it = state.items.find((x) => x.id === id);
-  if (!it) return;
-  const compared = {...state,equipped:{...state.equipped,[it.slot]:it.id}};
-  const currentPower=power(state), nextPower=power(compared);
-  const comparison = it.classId===state.classId && it.level<=state.level && !it.broken ? `<p class="note">장착 시 공격력 ${fmt(nextPower.attack)} (${nextPower.attack-currentPower.attack>=0?"+":""}${nextPower.attack-currentPower.attack}) · HP ${fmt(nextPower.hp)} (${nextPower.hp-currentPower.hp>=0?"+":""}${nextPower.hp-currentPower.hp})</p>` : `<p class="note">내 직업과 장착 레벨을 확인하세요.</p>`;
-  const equipped = Object.values(state.equipped).includes(id),
-    o = D.starOdds(it.stars);
-  open(
-    D.gearName(it),
-    `${gearMarkup(it,"big-item")}${comparison}<div class="row spread"><span>Lv.${it.level} · ${D.CLASSES.find((c) => c.id === it.classId).name}</span><strong class="stars">${it.broken ? "장비 흔적" : it.stars + " / 25성"}</strong></div><p class="note">${it.boss ? "보스 세트" : "일반 장비"} · ${it.locked ? "잠금 상태" : "거래 가능"} ${equipped ? "· 장착 중" : ""}</p><div class="actions">${btn(equipped ? "장착 해제" : "장착", "equip", id, "", true)}${btn(it.locked ? "잠금 해제" : "잠금", "lock", id, "", true)}</div>${
-      it.broken
-        ? `<p class="note">같은 레벨·직업·부위·종류의 장비로 12성 복구합니다.</p><select id="restore-material">${state.items
-            .filter(
-              (x) =>
-                x.id !== id &&
-                !x.broken &&
-                !x.locked &&
-                ["level", "classId", "slot", "boss"].every(
-                  (k) => x[k] === it[k],
-                ),
-            )
-            .map(
-              (x) =>
-                `<option value="${x.id}">${esc(D.gearName(x))} ${x.stars}성</option>`,
-            )
-            .join("")}</select>${btn("복구", "restore", id, "", true)}`
-        : `<div class="potential"><h3>스타포스</h3><p class="note">성공 ${pct(o.success)} · 유지 ${pct(o.keep)}<br>하락 ${pct(o.down)} · 파괴 ${pct(o.destroy)}</p>${it.stars === 25 ? '<button class="gold" disabled>25성 · 최대 강화</button>' : btn(fmt(D.starCost(it)) + " G · 강화", "star", id, "gold", true)}</div><div class="potential"><h3 class="purple">${it.lines.length ? D.RARITIES[it.grade] + " 잠재옵션" : "잠재 미개방"}</h3>${it.lines.map((l) => `<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join("")}${Array.from({ length: 3 - it.lines.length }, () => '<p class="muted">미개방</p>').join("")}<div class="actions">${it.lines.length ? btn("일반 큐브 1개 + 300 G", "cube", id, "", true) + btn("상급 큐브 1개 + 1,000 G", "highCube", id, "", true) : btn("잠재 부여 · 주문서 1개 + 500 G", "potential", id, "", true)}</div>${it.lines.length > 0 && it.lines.length < 3 ? btn("줄 확장 · 확장석 " + (it.lines.length === 1 ? 1 : 3) + "개 + 2,000 G", "expand", id, "", true) : ""}</div><div class="actions">${btn("강화 이전", "transfer", id)}${btn("분해", "salvageConfirm", id, "danger")}</div>`
-    }`,
-  );
+function itemDetail(id, section=id===selected?itemSection:"info") {
+  selected=id;itemSection=section;
+  const it=state.items.find(x=>x.id===id);if(!it)return;
+  const p=power(state),next=power({...state,equipped:{...state.equipped,[it.slot]:it.id}}),equipped=Object.values(state.equipped).includes(id),o=D.starOdds(it.stars);
+  const comparison=it.classId===state.classId&&it.level<=state.level&&!it.broken?`장착 시 공격력 ${fmt(next.attack)} (${next.attack-p.attack>=0?"+":""}${next.attack-p.attack}) · HP ${fmt(next.hp)}`:"직업과 장착 레벨을 확인하세요.";
+  let body="";
+  if(section==="info")body=`<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?"거래 불가":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join(""):"잠재 미개방"}</div>`;
+  if(section==="star")body=it.broken?`<p class="note">같은 장비를 소비해 12성으로 복구합니다.</p><select id="restore-material">${state.items.filter(x=>x.id!==id&&!x.broken&&!x.locked&&!Object.values(state.equipped).includes(x.id)&&D.equipmentKey(x)===D.equipmentKey(it)).map(x=>`<option value="${x.id}">${esc(D.gearName(x))} ${x.stars}성</option>`).join("")}</select>${btn("복구","restore",id,"gold",true)}`:`<div class="forge-stage">${gearMarkup(it,"big-item")}<strong>${it.stars}성 → ${Math.min(25,it.stars+1)}성</strong></div><div class="odds-inline"><span>성공 ${pct(o.success)}</span><span>유지 ${pct(o.keep)}</span><span>하락 ${pct(o.down)}</span><span>파괴 ${pct(o.destroy)}</span></div>${disabledBtn(it.stars===25?"최대 강화":fmt(D.starCost(it))+" G · 강화","star",id,it.stars===25,"gold")}<p class="note">10·15성 하락 방지 · 파괴 시 장비 흔적 보존</p>`;
+  if(section==="potential")body=`<div class="potential"><h3>${it.lines.length?D.RARITIES[it.grade]:"잠재 미개방"}</h3>${it.lines.map(l=>`<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join("")}${Array.from({length:3-it.lines.length},()=>'<p class="muted">미개방</p>').join("")}</div><div class="actions">${it.lines.length?disabledBtn("일반 큐브 · 300 G","cube",id,it.broken)+disabledBtn("상급 큐브 · 1,000 G","highCube",id,it.broken):disabledBtn("주문서 1 · 500 G","potential",id,it.broken,"gold")}${it.lines.length>0&&it.lines.length<3?disabledBtn("줄 확장 · 확장석 "+(it.lines.length===1?1:3)+"개","expand",id,it.broken):""}</div><p class="note">큐브는 옵션을 재설정합니다. 상급 큐브는 기존·새 옵션 중 선택합니다.</p>`;
+  open(D.gearName(it),`<div class="item-modal-head">${gearMarkup(it)}<div>Lv.${it.level} · ${D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)}<br><span class="stars">${it.broken?"파괴된 흔적":it.stars+"성"}</span></div></div><div class="subnav">${[["info","장비 정보"],["star","스타포스"],["potential","잠재·큐브"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}`);
 }
 function cubeChoice() {
   const p = state.pendingCube,
@@ -574,7 +600,8 @@ function showEvents(events) {
         "스타포스",
         `<div class="outcome ${e.outcome}">${{ success: "강화 성공", keep: "별 유지", down: "별 하락", destroy: "장비 파괴" }[e.outcome]}</div><div class="forge-reveal ${e.outcome}" data-outcome="${e.outcome}">${gearMarkup(state.items.find((i) => i.id === e.id),"big-item")}<span class="forge-ring" aria-hidden="true"></span></div><h2 style="text-align:center">${e.before}성 → ${e.outcome === "destroy" ? "흔적" : e.after + "성"}</h2><div class="actions">${btn("장비 확인", "item", e.id, "gold")}</div>`,
       );
-    } else if (["boss", "dungeon", "offline"].includes(e.type)) {
+    } else if(e.type === "advancement") {open("전직 완료",`<div class="advancement-reveal"><h2>${D.ADVANCEMENTS[state.classId]}</h2><p>공격력 +8% · 최대 HP +10%</p></div>`);
+    } else if (["boss", "dungeon", "party", "offline"].includes(e.type)) {
       if (e.type !== "offline" || e.seconds >= 300) reward();
     } else if (e.type === "cube") {
       if (state.pendingCube) cubeChoice();
@@ -587,10 +614,12 @@ function reward() {
   const r = state.lastReward;
   const enemy = r && (r.type === "dungeon" ? D.DUNGEONS[r.dungeon] : r.type === "boss" ? D.BOSSES[r.bossId] : null);
   if (!r) return toast("새로 정산된 보상이 없습니다.");
+  if(r.type==="party") {const b=D.BOSSES[r.bossId],total=(r.members||[]).reduce((n,m)=>n+Number(m.damage),0);return open(r.won?"협동 토벌 완료":"협동전 종료",`${bossMarkup(b,"big-item")}<h3>${b.name}</h3><p>${r.practice?"연습 · 보상 없음":r.rewarded?"지역 재료 "+r.materials+" · 장비 "+r.items.length+" · 큐브 3 · 상급 큐브 1":"보상 횟수 차감 없음"}</p>${r.stored?'<p>장비는 보관함에 지급됐습니다.</p>':""}<div class="stack">${(r.members||[]).map(m=>`<div class="row spread"><span>${esc(m.name)}</span><b>기여 ${total?(m.damage/total*100).toFixed(1):"0.0"}%</b></div>`).join("")}</div><p class="note">자동사냥이 다시 시작됐습니다.</p>${btn("확인","ack","","gold",true)}`);}
+
   open(
     enemy ? (r.won ? "토벌 완료" : "도전 종료") : "사냥 보상",
     enemy
-      ? `${bossMarkup(enemy,"big-item")}<h3>${enemy.name}</h3><p class="note">${r.practice ? "연습 도전 · 보상 없음" : r.won ? r.type === "dungeon" ? enemy.reward : "지역 재료 " + r.materials + "개 · 장비 " + r.items.length + "개" : "보상 횟수는 차감되지 않았습니다."}</p><div class="actions">${btn("확인", "ack", "", "gold", true)}</div>`
+      ? `${bossMarkup(enemy,"big-item")}<h3>${enemy.name}</h3><p class="note">${r.practice ? "연습 도전 · 보상 없음" : r.won ? r.type === "dungeon" ? enemy.reward : "지역 재료 " + r.materials + "개 · 장비 " + r.items.length + "개" : "보상 횟수는 차감되지 않았습니다."}</p><p class="note">자동사냥이 다시 시작됐습니다.</p><div class="actions">${btn("확인", "ack", "", "gold", true)}</div>`
       : `<p>정산 시간 ${fmt(r.seconds / 60)}분 · ${fmt(r.kills)}마리</p><div class="metrics" style="margin-top:12px"><div><small>경험치</small><b>${fmt(r.xp)}</b></div><div><small>골드</small><b>${fmt(r.gold)}</b></div><div><small>장비</small><b>${r.drops.length}개</b></div></div><p class="note">파편 ${r.fragment} · 큐브 ${r.cube} · 주문서 ${r.scroll}<br>${r.stored ? "가방 초과 장비 " + r.stored + "개는 장비 탭 보관함에 보관되었습니다." : ""}${r.defeats ? " 패배 " + r.defeats + "회 · 하위 사냥터에서 성장하세요." : ""}</p><div class="actions">${btn("보상 확인", "ack", "", "gold", true)}</div>`,
   );
 }
@@ -634,7 +663,7 @@ function login() {
             : message(err);
     } finally {
       busy = false;
-      form.querySelectorAll("button").forEach((b) => (b.disabled = false));
+      form.querySelectorAll("button").forEach((b) => (b.disabled = b.hasAttribute("data-unavailable")));
     }
   };
 }
@@ -697,6 +726,16 @@ document.addEventListener("click", async (e) => {
       if (tab === "market") await marketLoad();
       return;
     }
+    if (action === "bossSub") {bossTab=arg;render();if(arg==="party")await command("partyList",{},true);return;}
+    if (action === "partyRefresh") return await command(state.partyRoom?"partySync":"partyList",{},true);
+    if (action === "partyCreate") return await command("partyCreate",{bossId:Number($("#party-boss").value),practice:$("#party-practice").checked});
+    if (action === "partyJoin") return await command("partyJoin",{room:arg});
+    if (["partyStart","partySkill","partyRevive","partyLeave"].includes(action)) {const result=await command(action);if(action==="partyLeave")modal.close();return result;}
+    if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
+    if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
+    if (action === "advance") return await command("advance");
+    if (action === "journal") {view="journal";return render();}
+    if (action === "ranking") {await ensureToken();rankingRows=await request("/rest/v1/rpc/rebirth_rankings",{});view="ranking";return render();}
     if (action === "settings") return settingsDialog();
     if (action === "saveSettings") {
       settings.sound = Number($("#sound").value);
@@ -838,32 +877,11 @@ document.addEventListener("click", async (e) => {
         id: arg,
         materialId: $("#restore-material").value,
       });
-    if (action === "transfer") {
-      const it = state.items.find((i) => i.id === arg),
-        list = state.items.filter(
-          (i) =>
-            i.id !== arg &&
-            i.slot === it.slot &&
-            i.classId === it.classId &&
-            D.TIERS.indexOf(i.level) === D.TIERS.indexOf(it.level) + 1,
-        );
-      return open(
-        "강화 이전",
-        `<p>원본 장비를 소비합니다. 15성 이하만 이전할 수 있으며 별 1개가 감소합니다. 잠재는 최대 에픽으로 이전합니다.</p><p class="note">대상은 0성·잠재 미개방이어야 합니다.</p><select id="transfer-target">${list.map((i) => `<option value="${i.id}">${esc(D.gearName(i))} Lv.${i.level}</option>`).join("")}</select><div class="actions">${btn("원본 소비 후 이전", "doTransfer", arg, "gold", true)}</div>`,
-      );
-    }
-    if (action === "doTransfer") {
-      await command("transfer", {
-        source: arg,
-        target: $("#transfer-target").value,
-      });
-      modal.close();
-      return;
-    }
     if (action === "craft")
       return await command("craft", {
         region: Number(arg),
-        slot: Number($("#craft-" + arg).value),
+        slot: Number($("#craft-" + arg).value.split(":")[0]),
+        weaponVariant: Number($("#craft-" + arg).value.split(":")[1]),
       });
     if (action === "craftScroll") return await command("craftScroll");
     if (action === "bossStart" || action === "bossPractice") {
@@ -954,8 +972,9 @@ window.addEventListener("popstate", () => {
 });
 setInterval(() => {
   if (!session || document.hidden || busy || !state || !navigator.onLine || Date.now() < retryAt) return;
-  const due = state.battle ? 3000 : 30000;
-  if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
+  const partyLobbyOpen = tab === "boss" && bossTab === "party";
+  const due = state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : 30000;
+  if (Date.now() - lastSync > due) command(state.partyRoom?"partySync":partyLobbyOpen?"partyList":"sync", {}, true).catch(() => {});
 }, 1000);
 function strike(arena, frame = null) {
   if (settings.low || arena.querySelectorAll(".slash").length > 2) return;
@@ -975,9 +994,10 @@ function strike(arena, frame = null) {
   sounds.play("hit");
 }
 setInterval(() => {
-  if (!state || tab !== "hunt" || view !== "game" || document.hidden || modal.open) { combatFrames.length=0; return; }
+  if (!state || (!state.partyRoom && tab !== "hunt") || view !== "game" || document.hidden || modal.open) { combatFrames.length=0; return; }
   const arena = $(".arena");
   if (!arena || connectionLost || Date.now()-lastSync>35000) return;
+  if(state.partyRoom && partyRoom?.status==="fighting") {if(Date.now()-lastVisualHit>=1000){lastVisualHit=Date.now();strike(arena);} return;}
   if (!state.battle && state.hunting) {
     const rate=huntingRate(state), elapsed=(Date.now()-lastSync)/1000;
     const progress=(state.huntRemainder+elapsed)%rate.seconds;

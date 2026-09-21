@@ -84,7 +84,7 @@ begin
  select * into p from rebirth_private.players where id=u for update;
  if p.state is null then raise exception 'CHARACTER_REQUIRED'; end if;
  if (p.state->>'level')::integer<20 and p_action<>'cancel' then raise exception 'TRADE_LEVEL_REQUIRED'; end if;
- if p.state->'battle'<>'null'::jsonb then raise exception 'BATTLE_IN_PROGRESS'; end if;
+ if p.state->'battle'<>'null'::jsonb or nullif(p.state->>'partyRoom','') is not null then raise exception 'BATTLE_IN_PROGRESS'; end if;
  if p_action='sell' then
   v_price:=(p_args->>'price')::bigint;item_id:=p_args->>'itemId';
   if v_price is null or v_price<100 or v_price>1000000000 then raise exception 'INVALID_PRICE'; end if;
@@ -109,6 +109,7 @@ begin
    if not found then raise exception 'LISTING_UNAVAILABLE'; end if;
    update rebirth_private.players set state=jsonb_set(jsonb_set(state,'{items}',(state->'items')||jsonb_build_array(l.item)),'{gold}',to_jsonb((state->>'gold')::bigint-l.price)),revision=revision+1,updated_at=now() where id=u;
    collection_key:=concat_ws(':',l.item->>'level',l.item->>'classId',l.item->>'slot',l.item->>'boss');
+   if l.item->>'slot'='0' and coalesce(l.item->>'weaponVariant','0') in ('1','2') then collection_key:=collection_key||':'||(l.item->>'weaponVariant'); end if;
    update rebirth_private.players set state=jsonb_set(state,'{collection}',coalesce(state->'collection','[]'::jsonb)||jsonb_build_array(collection_key)) where id=u and not coalesce(state->'collection','[]'::jsonb) ? collection_key;
    update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::bigint+floor(l.price*.95)::bigint)),revision=revision+1,updated_at=now() where id=l.seller;
    update rebirth_private.listings set status='sold',buyer=u where id=l.id;result:=jsonb_build_object('bought',l.id,'fee',l.price-floor(l.price*.95));
