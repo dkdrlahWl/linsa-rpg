@@ -1,6 +1,6 @@
-import * as D from "./data.mjs?v=equipment-detail-2";
+import * as D from "./data.mjs?v=equipment-alpha-3";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=currency-art-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=equipment-detail-2";
+import equipmentBounds from "./equipment-bounds.mjs?v=equipment-alpha-3";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=adventure-3";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),

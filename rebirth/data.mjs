@@ -1,5 +1,5 @@
-import { equipmentIdentity } from "./equipment.mjs?v=equipment-detail-2";
-export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=equipment-detail-2";
+import { equipmentIdentity } from "./equipment.mjs?v=equipment-alpha-3";
+export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=equipment-alpha-3";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
