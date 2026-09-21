@@ -595,6 +595,7 @@ async function marketLoad() {
   render();
 }
 function open(title, html, closable = true) {
+  modal.classList.remove("enhance-dialog");
   modal.innerHTML = `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`;
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = 0;
@@ -604,25 +605,48 @@ function open(title, html, closable = true) {
   }
   modal.dataset.closable = String(closable);
 }
+let cubeKind="cube", lastStarResult=null, lastCubeResult=null;
+const enhanceIcon=(key)=>`<img class="enhance-currency" src="currencies/${key}.svg" alt="">`;
+function enhancementBlock(it) {
+  return it.broken?"파괴된 장비를 먼저 복구해 주세요.":it.locked?"장비 잠금을 해제해 주세요.":state.battle?"보스전 종료 후 이용할 수 있어요.":"";
+}
+function enhancementOptions(item,label="현재 잠재능력") {
+  return `<section class="option-panel rarity-${item.grade}"><div class="option-heading"><span>${label}</span><b>${item.lines.length?D.RARITIES[item.grade]:"미개방"}</b></div><div class="option-lines">${Array.from({length:3},(_,i)=>{const l=item.lines[i];return `<div class="option-line ${l?"":"empty-line"}"><span class="line-index">0${i+1}</span><span>${l?D.OPTIONS[l.key]:"잠재 슬롯 미개방"}</span><strong>${l?"+"+l.value+"%":"—"}</strong></div>`;}).join("")}</div></section>`;
+}
+function enhancementWallet(cost,key=null,count=1) {
+  return `<div class="enhance-wallet">${key?`<div><span>${enhanceIcon(key)}${D.MATERIALS[key]}</span><strong class="${state.materials[key]<count?"short":""}">${fmt(state.materials[key])}<small> / ${count}개 필요</small></strong></div>`:""}<div><span>${enhanceIcon("gold")}필요 골드</span><strong class="${state.gold<cost?"short":""}">${fmt(cost)}<small> G</small></strong></div><div class="wallet-owned"><span>보유 골드</span><span>${fmt(state.gold)} G</span></div></div>`;
+}
+function starPanel(it) {
+  if(it.broken){const materials=state.items.filter(x=>x.id!==it.id&&!x.broken&&!x.locked&&!Object.values(state.equipped).includes(x.id)&&D.equipmentKey(x)===D.equipmentKey(it));return `<div class="enhance-empty">${gearMarkup(it,"big-item")}<h3>장비의 흔적이 남았어요</h3><p>같은 장비 1개를 사용해 12성으로 복구합니다.<br>잠재능력은 유지됩니다.</p></div><label class="enhance-field" for="restore-material">복구에 사용할 장비</label><select id="restore-material">${materials.length?materials.map(x=>`<option value="${x.id}">${esc(D.gearName(x))} · ${x.stars}성</option>`).join(""):'<option value="">사용 가능한 장비가 없습니다</option>'}</select>${disabledBtn("12성으로 복구","restore",it.id,!materials.length||it.locked||!!state.battle,"enhance-primary")}`;}
+  const max=it.stars>=25,o=D.starOdds(it.stars),cost=D.starCost(it),blocked=enhancementBlock(it)||(max?"최고 단계에 도달했습니다.":state.gold<cost?"골드가 부족합니다.":""),target=Math.min(25,it.stars+1);
+  const growth=s=>1+s*.055+Math.max(0,s-15)**1.4*.025,base=(5+it.level**1.28)*(it.boss?1.22:1)*(it.slot===0?.9:.11),cl=D.CLASSES.find(c=>c.id===it.classId);
+  const result=lastStarResult?.id===it.id?lastStarResult:null;
+  return `<div class="enhance-intro"><span>STAR FORCE</span><small>장비에 별의 힘을 더하세요</small></div>${result?`<div class="enhance-result ${result.outcome}" role="status"><strong>${{success:"강화 성공!",keep:"강화 실패 · 별 유지",down:"강화 실패 · 별 하락"}[result.outcome]||"장비 파괴"}</strong><span>${result.before}성 → ${result.after}성</span></div>`:""}<div class="star-track" role="img" aria-label="최대 25성 중 ${it.stars}성">${Array.from({length:5},(_,g)=>`<span>${Array.from({length:5},(_,i)=>`<i class="${g*5+i<it.stars?"lit":g*5+i===it.stars&&!max?"next":""}">★</i>`).join("")}</span>`).join("")}</div><div class="enhance-stage"><div class="enhance-item-display">${gearMarkup(it,"big-item")}</div><div class="star-transition"><span>${max?"강화 완료":"다음 강화 단계"}</span><div><b>${it.stars}<small>성</small></b>${max?'<em>MAX</em>':`<span class="transition-arrow">→</span><b class="target">${target}<small>성</small></b>`}</div></div></div>${max?'':`<div class="enhance-gains"><div><span>기본 공격</span><b>${(base*growth(it.stars)).toFixed(1)} <i>→</i> <em>${(base*growth(target)).toFixed(1)}</em></b></div><div><span>${cl.stat}</span><b>${Math.floor((2+it.level*.5)*growth(it.stars))} <i>→</i> <em>${Math.floor((2+it.level*.5)*growth(target))}</em></b></div></div><section class="enhance-probabilities"><div class="probability-title"><span>성공 확률</span><strong>${pct(o.success)}</strong></div><div class="probability-bar" aria-hidden="true">${[["success",o.success],["keep",o.keep],["down",o.down],["destroy",o.destroy]].map(([k,v])=>`<i class="${k}" style="width:${v*100}%"></i>`).join("")}</div><div class="probability-details">${[["유지",o.keep,"keep"],["하락",o.down,"down"],["파괴",o.destroy,"destroy"]].map(([name,v,k])=>`<div class="${k}"><span>${name}</span><b>${v===0?"0%":pct(v)}</b></div>`).join("")}</div></section>${enhancementWallet(cost)}`}${disabledBtn(max?"최대 25성 달성":`${target}성 강화하기`,"star",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked&&!max?"short":""}">${blocked|| (o.destroy>0?"실패 시 장비가 파괴될 수 있습니다. 흔적과 잠재는 보존됩니다.":o.down>0?"실패 시 별이 1개 내려갈 수 있습니다. 파괴 위험은 없습니다.":"실패해도 현재 별이 유지됩니다. 파괴 위험은 없습니다.")}</p>`;
+}
+function cubePanel(it) {
+  const opened=it.lines.length>0,high=cubeKind==="highCube",cost=opened?(high?1000:300):500,key=opened?cubeKind:"scroll",blocked=enhancementBlock(it)||(state.materials[key]<1?`${D.MATERIALS[key]}가 부족합니다.`:state.gold<cost?"골드가 부족합니다.":"");
+  const expandCost=it.lines.length===1?1:3;
+  return `<div class="enhance-intro"><span>POTENTIAL</span><small>나만의 장비 옵션을 완성하세요</small></div>${lastCubeResult?.id===it.id?`<div class="enhance-result success" role="status"><strong>${lastCubeResult.up?"잠재 등급 상승!":"잠재능력이 재설정됐어요"}</strong><span>현재 옵션을 확인하세요</span></div>`:""}${enhancementOptions(it)}${opened?`<div class="cube-picker" role="group" aria-label="사용할 큐브 선택">${[["cube","일반 큐브","새 옵션 바로 적용"],["highCube","상급 큐브","기존 · 새 옵션 중 선택"]].map(([k,label,desc])=>`<button data-action="cubeKind" data-arg="${k}" class="cube-card ${cubeKind===k?"selected":""}" aria-pressed="${cubeKind===k}">${enhanceIcon(k)}<span><strong>${label}</strong><small>${desc}</small><b>보유 ${fmt(state.materials[k])}개</b></span><i aria-hidden="true">${cubeKind===k?"✓":"○"}</i></button>`).join("")}</div><p class="cube-chance">${it.grade===3?"레전드리 · 최고 등급":`${D.RARITIES[it.grade]} → ${D.RARITIES[it.grade+1]} 상승 확률 <b>${pct((high?D.HIGH_CUBE_UP:D.CUBE_UP)[it.grade])}</b>`}</p>`:'<p class="enhance-help">주문서를 사용하면 1~3줄의 잠재능력이 열립니다.</p>'}${enhancementWallet(cost,key)}${disabledBtn(opened?(high?"상급 큐브 사용하기":"일반 큐브 사용하기"):"잠재능력 개방하기",opened?cubeKind:"potential",it.id,!!blocked,"enhance-primary cube-primary")}<p class="enhance-help ${blocked?"short":""}">${blocked||(opened?(high?"결과를 확인하고 원하는 옵션을 선택하세요.":"현재 옵션이 새 옵션으로 즉시 바뀝니다."):"1줄 70% · 2줄 27% · 3줄 3%")}</p>${opened&&it.lines.length<3?`<details class="expand-options"><summary>잠재 슬롯 확장 <span>${it.lines.length}/3줄 개방</span></summary><p>${enhanceIcon("expand")}확장석 ${expandCost}개 + 2,000 G<br>보유 확장석 ${fmt(state.materials.expand)}개 · 기존 옵션 유지</p>${disabledBtn(`${it.lines.length+1}번째 슬롯 열기`,"expand",it.id,!!enhancementBlock(it)||state.materials.expand<expandCost||state.gold<2000,"enhance-secondary")}</details>`:""}`;
+}
+
 function itemDetail(id, section=id===selected?itemSection:"info") {
+  if(selected!==id){lastStarResult=null;lastCubeResult=null;}
   selected=id;itemSection=section;
   const it=state.items.find(x=>x.id===id);if(!it)return;
   const p=power(state),next=power({...state,equipped:{...state.equipped,[it.slot]:it.id}}),equipped=Object.values(state.equipped).includes(id),o=D.starOdds(it.stars);
   const comparison=it.classId===state.classId&&it.level<=state.level&&!it.broken?`장착 시 공격력 ${fmt(next.attack)} (${next.attack-p.attack>=0?"+":""}${next.attack-p.attack}) · HP ${fmt(next.hp)}`:"직업과 장착 레벨을 확인하세요.";
   let body="";
   if(section==="info")body=`<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?"거래 불가":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join(""):"잠재 미개방"}</div>`;
-  if(section==="star")body=it.broken?`<p class="note">같은 장비를 소비해 12성으로 복구합니다.</p><select id="restore-material">${state.items.filter(x=>x.id!==id&&!x.broken&&!x.locked&&!Object.values(state.equipped).includes(x.id)&&D.equipmentKey(x)===D.equipmentKey(it)).map(x=>`<option value="${x.id}">${esc(D.gearName(x))} ${x.stars}성</option>`).join("")}</select>${btn("복구","restore",id,"gold",true)}`:`<div class="forge-stage">${gearMarkup(it,"big-item")}<strong>${it.stars}성 → ${Math.min(25,it.stars+1)}성</strong></div><div class="odds-inline"><span>성공 ${pct(o.success)}</span><span>유지 ${pct(o.keep)}</span><span>하락 ${pct(o.down)}</span><span>파괴 ${pct(o.destroy)}</span></div>${disabledBtn(it.stars===25?"최대 강화":fmt(D.starCost(it))+" G · 강화","star",id,it.stars===25,"gold")}<p class="note">10·15성 하락 방지 · 파괴 시 장비 흔적 보존</p>`;
-  if(section==="potential")body=`<div class="potential"><h3>${it.lines.length?D.RARITIES[it.grade]:"잠재 미개방"}</h3>${it.lines.map(l=>`<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join("")}${Array.from({length:3-it.lines.length},()=>'<p class="muted">미개방</p>').join("")}</div><div class="actions">${it.lines.length?disabledBtn("일반 큐브 · 300 G","cube",id,it.broken)+disabledBtn("상급 큐브 · 1,000 G","highCube",id,it.broken):disabledBtn("주문서 1 · 500 G","potential",id,it.broken,"gold")}${it.lines.length>0&&it.lines.length<3?disabledBtn("줄 확장 · 확장석 "+(it.lines.length===1?1:3)+"개","expand",id,it.broken):""}</div><p class="note">큐브는 옵션을 재설정합니다. 상급 큐브는 기존·새 옵션 중 선택합니다.</p>`;
-  open(D.gearName(it),`<div class="item-modal-head">${gearMarkup(it)}<div>Lv.${it.level} · ${D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)}<br><span class="stars">${it.broken?"파괴된 흔적":it.stars+"성"}</span></div></div><div class="subnav">${[["info","장비 정보"],["star","스타포스"],["potential","잠재·큐브"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}`);
+  if(section==="star")body=starPanel(it);
+  if(section==="potential")body=cubePanel(it);
+  open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>Lv.${it.level} · ${D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"}</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
+  modal.classList.add("enhance-dialog");
 }
 function cubeChoice() {
-  const p = state.pendingCube,
-    it = state.items.find((i) => i.id === p.id);
-  open(
-    "상급 큐브 · 결과 선택",
-    `${atlasIcon(2,13,"상급 큐브","big-item")}<div class="two"><div class="potential"><h3>현재 · ${D.RARITIES[it.grade]}</h3>${it.lines.map((l) => `<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join("")}</div><div class="potential cube-reveal"><h3>새 옵션 · ${D.RARITIES[p.grade]}</h3>${p.lines.map((l) => `<p>${D.OPTIONS[l.key]} +${l.value}%</p>`).join("")}</div></div><div class="actions">${btn("기존 유지", "cubeChoose", "no", "", true)}${btn("새 옵션 적용", "cubeChoose", "yes", "gold", true)}</div>`,
-    false,
-  );
+  const p=state.pendingCube,it=state.items.find(i=>i.id===p.id);
+  selected=p.id;itemSection="potential";
+  open("상급 큐브 · 결과 선택",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>유지할 잠재능력을 선택하세요</small></div></div><div class="cube-comparison">${enhancementOptions(it,"기존 옵션") }${enhancementOptions(p,"새로운 옵션")}</div><p class="enhance-help">선택한 옵션이 최종 적용됩니다. 추가 비용은 없어요.</p><div class="enhance-choice-actions">${btn("기존 옵션 유지","cubeChoose","no","enhance-secondary",true)}${btn("새 옵션 적용","cubeChoose","yes","enhance-primary cube-primary",true)}</div></div>`,false);
+  modal.classList.add("enhance-dialog");
 }
 function showEvents(events) {
   for (const e of events) {
@@ -639,18 +663,20 @@ function showEvents(events) {
       }
     }
     if (e.type === "star") {
-      open(
-        "스타포스",
-        `<div class="outcome ${e.outcome}">${{ success: "강화 성공", keep: "별 유지", down: "별 하락", destroy: "장비 파괴" }[e.outcome]}</div><div class="forge-reveal ${e.outcome}" data-outcome="${e.outcome}">${gearMarkup(state.items.find((i) => i.id === e.id),"big-item")}<span class="forge-ring" aria-hidden="true"></span></div><h2 style="text-align:center">${e.before}성 → ${e.outcome === "destroy" ? "흔적" : e.after + "성"}</h2><div class="actions">${btn("장비 확인", "item", e.id, "gold")}</div>`,
-      );
+      lastStarResult=e;
+      itemDetail(e.id,"star");
     } else if(e.type === "advancement") {open("전직 완료",`<div class="advancement-reveal"><h2>${D.ADVANCEMENTS[state.classId]}</h2><p>공격력 +8% · 최대 HP +10%</p></div>`);
     } else if (["boss", "dungeon", "party", "offline"].includes(e.type)) {
       if (e.type !== "offline" || e.seconds >= 300) reward();
     } else if (e.type === "cube") {
+      lastCubeResult=e;
       if (state.pendingCube) cubeChoice();
       else itemDetail(e.id);
-    } else if (["craft", "potential", "restore"].includes(e.type))
+    } else if (["craft", "potential", "restore"].includes(e.type)) {
+      if(e.type==="restore")lastStarResult=null;
+      if(e.type==="potential")lastCubeResult=null;
       itemDetail(e.id);
+    }
   }
 }
 function reward() {
@@ -752,6 +778,7 @@ document.addEventListener("click", async (e) => {
     arg = b.dataset.arg;
   sounds.play("click");
   try {
+    if (action === "cubeKind") {cubeKind=arg==="highCube"?"highCube":"cube";return itemDetail(selected,"potential");}
     if (action === "reconnect") return await command("sync");
     if (action === "craftDetail") return open("제작 장비 상세",craftPreview(Number(arg),true));
     if (action === "close") {
@@ -904,7 +931,8 @@ document.addEventListener("click", async (e) => {
     if (action === "cubeChoose") {
       await command("cubeChoose", { apply: arg === "yes" });
       modal.close();
-      return itemDetail(selected);
+      lastCubeResult=null;
+      return itemDetail(selected,"potential");
     }
     if (action === "salvageConfirm")
       return open(
