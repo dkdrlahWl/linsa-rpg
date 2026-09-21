@@ -16,6 +16,7 @@ const esc = (v) =>
 const fmt = (n) => Math.floor(n || 0).toLocaleString("ko-KR");
 const pct = (n) => (n * 100).toFixed(n < 0.001 ? 3 : 1) + "%";
 const combatFrames = [];
+let partyBossId=null, partyPractice=false;
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
@@ -423,7 +424,7 @@ function atlasIcon(tier, n, label, size="") {
     {w:1448,h:1086,x:[0,365,733,1095,1448],y:[0,293,548,810,1086]},
   ][tier];
   const col=n%4,row=Math.floor(n/4),x=atlas.x[col],y=atlas.y[row],w=atlas.x[col+1]-x,h=atlas.y[row+1]-y;
-  return '<svg class="gear-icon '+size+'" role="img" aria-label="'+esc(label)+'" viewBox="'+[x,y,w,h].join(' ')+'" overflow="hidden" preserveAspectRatio="xMidYMid meet"><image href="gear-'+tier+'.svg" width="'+atlas.w+'" height="'+atlas.h+'"/></svg>';
+  return `<span class="gear-icon ${size}" role="img" aria-label="${esc(art.name)}" style="background-image:url('${art.art}');background-size:${art.columns*100}% ${art.rows*100}%;background-position:${art.column/(art.columns-1)*100}% ${art.row/(art.rows-1)*100}%"></span>`;
 }
 function gearMarkup(it, size="") {
   if(!it) return "";
@@ -508,8 +509,14 @@ function dungeonCards() {
     return `<section class="panel dungeon-card ${kind==="relic"?"relic-card":""}"><div class="row spread"><strong>${kind==="relic"?"여명의 폐허":kind==="cube"?"큐브 수련":"재료 수련"}</strong><span class="count-badge">남은 ${claimed?0:1}/1</span></div><small>Lv.${kind==="relic"?200:20}${kind==="relic"?" · 멸신왕 처치 후":""}</small><p>${d.reward}</p>${disabledBtn(claimed?"오늘 완료":locked?"아직 미해금":"도전","dungeon",kind,claimed||locked,"gold")}</section>`;
   }).join("")}</div>`;
 }
+function partyBossPreview(b) {
+  const claimed=state.bossClaims[b.id]===D.weekKey(Date.now());
+  return `<div class="party-preview" style="background-image:url('${D.REGIONS[b.region].background}')"><div class="party-face">${bossMarkup(b)}</div><div><strong>${b.name}</strong><p>Lv.${b.level} · 2~4인 · 3분</p><span class="count-badge">이번 주 남은 ${claimed?0:1}/1</span></div></div>`;
+}
 function partyLobby() {
-  return `<p class="note compact-note">2~4명이 함께 공격 · 전투 3분 · 개인 주간 보스와 보상 횟수 공유<br>공격 자동 · 직업 스킬 직접 사용 · 생존한 동료가 있으면 1회 HP 30% 부활</p><div class="panel pad"><div class="row"><select id="party-boss">${D.BOSSES.filter(b=>b.weekly).map(b=>`<option value="${b.id}">Lv.${b.level} ${b.name}</option>`).join("")}</select>${btn("파티 만들기","partyCreate","","gold",true)}</div><label class="practice-check"><input id="party-practice" type="checkbox">연습 파티 (보상 없음)</label></div><div class="row spread"><h3>모집 중인 파티</h3>${btn("새로고침","partyRefresh")}</div><div class="stack">${partyRooms.length?partyRooms.map(r=>`<section class="panel pad row spread"><div><strong>${esc(r.name)}</strong><br><small>${r.count}/4명 · ${r.practice?"연습":"보상 도전"}</small></div>${disabledBtn("참가","partyJoin",r.id,Number(r.count)>=4)}</section>`).join(""):'<div class="empty">모집 중인 파티가 없어요. 먼저 파티를 만들어 보세요.</div>'}</div>`;
+  const chosen=D.BOSSES.find(b=>b.id===partyBossId&&b.weekly)||D.BOSSES.find(b=>b.weekly);
+  partyBossId=chosen.id;
+  return `<p class="note compact-note">2~4명이 함께 공격 · 전투 3분 · 개인 주간 보스와 보상 횟수 공유<br>공격 자동 · 직업 스킬 직접 사용 · 생존한 동료가 있으면 1회 HP 30% 부활</p><div class="panel pad"><div id="party-boss-preview">${partyBossPreview(chosen)}</div><div class="row"><select id="party-boss">${D.BOSSES.filter(b=>b.weekly).map(b=>`<option value="${b.id}" ${b.id===partyBossId?"selected":""}>Lv.${b.level} ${b.name}</option>`).join("")}</select>${btn("파티 만들기","partyCreate","","gold",true)}</div><label class="practice-check"><input id="party-practice" type="checkbox" ${partyPractice?"checked":""}>연습 파티 (보상 없음)</label></div><div class="row spread"><h3>모집 중인 파티</h3>${btn("새로고침","partyRefresh")}</div><div class="stack">${partyRooms.length?partyRooms.map(r=>`<section class="panel pad row spread"><div class="room-boss-face">${bossMarkup(D.BOSSES[r.bossId])}</div><div class="room-boss-info"><strong>${esc(r.name)}</strong><br><small>${r.count}/4명 · ${r.practice?"연습":"보상 도전"}</small></div>${disabledBtn("참가","partyJoin",r.id,Number(r.count)>=4)}</section>`).join(""):'<div class="empty">모집 중인 파티가 없어요. 먼저 파티를 만들어 보세요.</div>'}</div>`;
 }
 function partyPanel() {
   if(!partyRoom)return header("협동 토벌")+`<div class="panel pad">파티 정보를 불러오는 중…${btn("다시 불러오기","partyRefresh")}</div>`;
@@ -947,6 +954,8 @@ document.addEventListener("click", async (e) => {
   }
 });
 document.addEventListener("change", async (e) => {
+  if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.BOSSES[partyBossId]);return;}
+  if(e.target.id==="party-practice") {partyPractice=e.target.checked;return;}
   if (!e.target.dataset.filter) return;
   if (e.target.dataset.filter === "slot") filterSlot = e.target.value;
   else filterClass = e.target.value;
