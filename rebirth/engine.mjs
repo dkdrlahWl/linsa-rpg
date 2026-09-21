@@ -20,6 +20,7 @@ import {
   QUALITY_COST,
   itemQuality,
   rollQuality,
+  rollEquipmentLevel,
   salvageYield,
   CUBE_DROP,
   FRAGMENT_DROP,
@@ -40,7 +41,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=quality-market-5";
+} from "./data.mjs?v=potential-balance-6";
 
 const fail = (message) => {
   throw new Error(message);
@@ -77,6 +78,7 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     broken: false,
   };
 }
+export function makeLootItem(base,classId,slot,boss,ctx,variant){return makeItem(rollEquipmentLevel(base,ctx.random),classId,slot,boss,ctx,variant);}
 export function initialState(classId, name, ctx) {
   check(
     CLASSES.some((c) => c.id === classId),
@@ -147,10 +149,11 @@ export function power(s) {
     const addedStat=attributes.stat;
     equipmentStat += addedStat;
     primary += addedStat;
-    hp += it.level * 4;
+    hp += attributes.hp;
     defense += it.level * 0.2;
     for (const line of it.lines) {
       if (line.key.startsWith("flat") && Object.hasOwn(fixedStats, line.key.slice(4))) fixedStats[line.key.slice(4)] += line.value;
+      if (line.key === "flatHP") hp += line.value;
       if (line.key === "flat" + cl.stat) primary += line.value;
       else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
     }
@@ -271,7 +274,7 @@ function addItem(s, item) {
   if (s.items.length < 300) s.items.push(item);
   else {
     s.mailbox ||= [];
-    const mailKey=key+"|q"+itemQuality(item);
+    const mailKey=key+"|lv"+item.level+"|q"+itemQuality(item);
     const stack = s.mailbox.find(x => x.key === mailKey);
     if (stack) stack.quantity++;
     else { const {id, ...template} = item; s.mailbox.push({key:mailKey, item: template, quantity: 1}); }
@@ -307,7 +310,7 @@ export function settle(s, ctx) {
   const drops = [], loot=[];
   const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, EQUIP_DROP, ctx),bossGearCount=rollCount(kills,FIELD_BOSS_DROP,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
-    const item = makeItem(
+    const item = makeLootItem(
       i>=normalGearCount ? TIERS[STAGES[s.stage].region+1] : STAGES[s.stage].dropLevel,
       pick(CLASSES, ctx).id,
       Math.floor(ctx.random() * 9),
@@ -415,7 +418,7 @@ function bossSettle(s, ctx, events) {
       s.dungeonClaims[b.dungeon] = b.claimKey;
       if (b.dungeon === "cube") s.materials.cube += 10;
       else if (b.dungeon === "relic") {
-        const it = makeItem(200, pick(CLASSES,ctx).id, Math.floor(ctx.random()*9),false,ctx);
+        const it = makeLootItem(200, pick(CLASSES,ctx).id, Math.floor(ctx.random()*9),false,ctx);
         addItem(s,it); reward.items.push(it.id); s.gold += 20000; s.materials.fragment += 60;reward.gold=20000;reward.fragment=60;
       } else s.materials.fragment += 100;
     } else {
@@ -431,7 +434,7 @@ function bossSettle(s, ctx, events) {
       if (ctx.random() < 0.2) s.materials.expand++;
     }
     if (ctx.random() < boss.dropChance) {
-        const it = makeItem(
+        const it = makeLootItem(
           boss.gearLevel,
           pick(CLASSES, ctx).id,
           Math.floor(ctx.random() * 9),
@@ -524,7 +527,6 @@ export function execute(input, command, args = {}, ctx) {
     case "stage": {
       check(int(args.id, 0, 29), "INVALID_STAGE");
       const st = STAGES[args.id];
-      check(s.level >= st.level, "LEVEL_REQUIRED");
       check(power(s).stars >= st.star, "STARS_REQUIRED");
       check(
         st.region === 0 || s.cleared.includes(st.region * 3 - 1),
@@ -590,11 +592,13 @@ export function execute(input, command, args = {}, ctx) {
         writable(s, it);
         check(!Object.values(s.equipped).includes(it.id), "ITEM_EQUIPPED");
       }
+      const fragments=list.reduce((sum,it)=>sum+salvageYield(it),0);
       for (const it of list) {
         s.materials.fragment +=
           salvageYield(it);
         removeItem(s, it);
       }
+      events.push({type:"salvage",count:list.length,fragments});
       break;
     }
     case "qualityReroll": {
@@ -632,7 +636,7 @@ export function execute(input, command, args = {}, ctx) {
         before,
         after: it.stars,
         outcome,
-        gains:outcome==="success"?{attack:gearAttributes(it).attack-gearAttributes(it,before).attack,stat:gearAttributes(it).stat-gearAttributes(it,before).stat}:null,
+        gains:outcome==="success"?{attack:gearAttributes(it).attack-gearAttributes(it,before).attack,stat:gearAttributes(it).stat-gearAttributes(it,before).stat,hp:gearAttributes(it).hp-gearAttributes(it,before).hp}:null,
         cost,
       });
       break;
@@ -647,9 +651,7 @@ export function execute(input, command, args = {}, ctx) {
       writable(s, material);
       check(!Object.values(s.equipped).includes(material.id), "ITEM_EQUIPPED");
       check(
-        ["level", "classId", "slot", "boss"].every(
-          (k) => it[k] === material[k],
-        ) && weaponVariant(it) === weaponVariant(material),
+        equipmentKey(it) === equipmentKey(material),
         "ITEM_MISMATCH",
       );
       removeItem(s, material);
@@ -727,7 +729,7 @@ export function execute(input, command, args = {}, ctx) {
       spend(s, "fragment", 60);
       spend(s, "gold", 3000 + args.region * 500);
       s.bossMaterials[args.region] -= 24;
-      const it = makeItem(
+      const it = makeLootItem(
         TIERS[args.region + 1],
         s.classId,
         args.slot,

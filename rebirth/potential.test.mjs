@@ -21,6 +21,12 @@ for(const high of [false,true])for(let grade=0;grade<6;grade++)for(const success
  assert.equal(s.pendingCube.lines[0].grade,grade+(success&&grade<5?1:0));
 }
 assert.equal(Object.values(D.OPTION_WEIGHTS).reduce((a,b)=>a+b),100);
+// Every newly rolled option improves strictly across adjacent ranks.
+for (const key of Object.keys(D.OPTIONS)) {
+ for(let grade=1;grade<6;grade++)assert.ok(D.optionRange(key,grade).min>D.optionRange(key,grade-1).max,`${key}: overlapping ranks ${grade-1}/${grade}`);
+ if(!key.startsWith('flat')&&!['goldGain','xpGain'].includes(key))assert.equal(D.optionRange(key,5).max,12);
+}
+assert.equal(D.OPTION_WEIGHTS.INT+D.OPTION_WEIGHTS.attack+D.OPTION_WEIGHTS.boss,7);
 let cumulative=0;for(const [key,weight] of Object.entries(D.OPTION_WEIGHTS)){
  assert.equal(D.rollOptionKey(()=> (cumulative+.001)/100),key);assert.equal(D.rollOptionKey(()=> (cumulative+weight-.001)/100),key);cumulative+=weight;
  for(let grade=0;grade<6;grade++) {const {min,max,step}=D.optionRange(key,grade),n=Math.round((max-min)/step)+1;for(let i=0;i<n;i++)assert.equal(D.optionValue(key,grade,()=> (i+.5)/n),Math.round((min+i*step)*10)/10);}

@@ -1,5 +1,5 @@
-import { equipmentIdentity } from "./equipment.mjs?v=quality-market-5";
-export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=quality-market-5";
+import { equipmentIdentity } from "./equipment.mjs?v=potential-balance-6";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=potential-balance-6";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -84,7 +84,8 @@ export const DUNGEONS = {
 };
 export const TIERS = [1, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
 export const RARITIES = ["일반", "희귀", "레어", "에픽", "유니크", "레전더리"];
-export const POTENTIAL_MAX = [2, 3, 5, 8, 12, 18];
+export const POTENTIAL_RANGES = [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12]];
+export const POTENTIAL_MAX = POTENTIAL_RANGES.map(([,max])=>max);
 const names = [
   "초록 들판",
   "달빛 숲",
@@ -136,7 +137,7 @@ export const STAGES = REGIONS.flatMap((r) =>
     level: Math.max(1, r.level + j * 6),
     star: j === 2 && r.id >= 2 ? (r.id - 1) * 15 : 0,
     xp: Math.round(12 * 1.53 ** r.id * (1 + j * 0.12)),
-    gold: 20 + r.id * 35,
+    gold: (20 + r.id * 35) * .30,
     hp: Math.round(70 * 1.8 ** r.id * (1 + j * 0.22)),
     attack: Math.round(3 * 1.6 ** r.id),
     dropLevel: TIERS[r.id],
@@ -198,16 +199,20 @@ export const OPTIONS = {
   crit: "치명타 확률",
   boss: "보스 피해",
   defense: "방어력",
+  flatHP: "최대 HP",
   flatSTR: "STR", flatDEX: "DEX", flatINT: "INT", flatLUK: "LUK",
   goldGain: "골드 획득", xpGain: "경험치 획득",
 };
-export const OPTION_WEIGHTS = {STR:8, DEX:8, INT:8, LUK:8, attack:8, hp:4, crit:4, boss:10, defense:4, flatSTR:7, flatDEX:7, flatINT:7, flatLUK:7, goldGain:5, xpGain:5};
-export const FLAT_RANGES = [[1,3],[2,5],[3,8],[5,12],[8,20],[10,30]];
-export const GAIN_MAX = [0.1,0.2,0.3,0.5,0.8,1];
+export const OPTION_WEIGHTS = {STR:2, DEX:2, INT:2, LUK:2, attack:2, hp:14, crit:6, boss:3, defense:15, flatSTR:9, flatDEX:9, flatINT:9, flatLUK:9, flatHP:12, goldGain:2, xpGain:2};
+export const FLAT_RANGES = [[1,5],[6,10],[11,17],[18,26],[27,38],[39,55]];
+export const FLAT_HP_RANGES = [[10,40],[41,90],[91,170],[171,280],[281,420],[421,600]];
+export const GAIN_RANGES = [[0.1,0.1],[0.2,0.2],[0.3,0.4],[0.5,0.6],[0.7,0.8],[0.9,1]];
+export const GAIN_MAX = GAIN_RANGES.map(([,max])=>max);
 export function optionRange(key, grade) {
+  if (key === "flatHP") return {min:FLAT_HP_RANGES[grade][0],max:FLAT_HP_RANGES[grade][1],step:1};
   if (key.startsWith("flat")) return {min:FLAT_RANGES[grade][0],max:FLAT_RANGES[grade][1],step:1};
-  if (key === "goldGain" || key === "xpGain") return {min:0.1,max:GAIN_MAX[grade],step:0.1};
-  return {min:1,max:POTENTIAL_MAX[grade],step:1};
+  if (key === "goldGain" || key === "xpGain") return {min:GAIN_RANGES[grade][0],max:GAIN_RANGES[grade][1],step:0.1};
+  return {min:POTENTIAL_RANGES[grade][0],max:POTENTIAL_RANGES[grade][1],step:1};
 }
 export function optionUnit(key) { return key.startsWith("flat") ? "" : key === "crit" ? "%p" : "%"; }
 export function rollOptionKey(random) {
@@ -220,19 +225,21 @@ export const STAR_SUCCESS = [
   0.3, 0.3, 0.27, 0.24, 0.21, 0.18, 0.12, 0.08, 0.05, 0.03, 0.01,
 ];
 export const CUBE_UP = [0.20, 0.02, 0.002, 0.0002, 0.00002, 0];
-export const HIGH_CUBE_UP = [0.40, 0.04, 0.004, 0.0004, 0.00004, 0];
+export const HIGH_CUBE_UP = CUBE_UP.map(p=>p*2);
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
 export const EQUIP_DROP = 0.0045;
 export const FIELD_BOSS_DROP = 0.0001;
+export function equipmentLevelRange(base){return base>=200?{min:190,max:200}:{min:base,max:base===1?19:base+19};}
+export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min+Math.min(max-min,Math.floor(random()**2*(max-min+1)));}
 export const QUALITY_COST = {fragment:50,gold:1500};
 export const QUALITY_BANDS = [{min:0,max:49,chance:.70},{min:50,max:79,chance:.25},{min:80,max:94,chance:.045},{min:95,max:99,chance:.0049},{min:100,max:100,chance:.0001}];
 export function rollQuality(random=Math.random){let roll=random();for(const band of QUALITY_BANDS){if(roll<band.chance)return band.min+Math.min(band.max-band.min,Math.floor(roll/band.chance*(band.max-band.min+1)));roll-=band.chance;}return 100;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
 export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
-export const CUBE_DROP = 0.008;
-export const SCROLL_DROP = 0.0015;
-export const FRAGMENT_DROP = 0.08;
+export const CUBE_DROP = 0.008/3;
+export const SCROLL_DROP = 0.0007;
+export const FRAGMENT_DROP = 0.035;
 export const SUPPLY_EXCHANGE = {cube:{fragment:10,gold:500},highCube:{fragment:50,gold:2500},scroll:{fragment:20,gold:500},expand:{fragment:150,gold:7500}};
 export const XP_SCALE = 5; // Calibrated by simulation before release, not a client multiplier.
 export function xpNeeded(level) {
@@ -241,7 +248,7 @@ export function xpNeeded(level) {
 export function gearAttributes(item,stars=item.stars) {
  const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  const base=(5+item.level**1.28)*(item.boss?1.22:1)*qualityMultiplier(item);
- return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item))+stars,hp:item.level*4,defense:item.level*.2};
+ return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item))+stars,hp:item.level*4+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2};
 }
 export function starCost(item) {
   return Math.round(

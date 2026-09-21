@@ -9,7 +9,9 @@ assert.equal(a.state.xp,b.state.xp);assert.equal(a.state.gold,b.state.gold);asse
 assert.equal(a.events[0].seconds,21600);
 assert.equal(E.execute(a.state,'sync',{},ctx(21600000)).events.length,0);
 assert.throws(()=>E.execute(s,'stats',{key:'LUK',amount:-1},ctx()),/INVALID_STATS/);
-assert.throws(()=>E.execute(s,'stage',{id:29},ctx()),/LEVEL_REQUIRED/);
+assert.equal(E.execute(s,'stage',{id:1},ctx()).state.stage,1); // Recommended level is not an entry gate.
+assert.throws(()=>E.execute(s,'stage',{id:29},ctx()),/STARS_REQUIRED/);
+assert.throws(()=>E.execute(s,'stage',{id:3},ctx()),/PREVIOUS_BOSS_REQUIRED/);
 for(let n=0;n<25;n++){const o=D.starOdds(n);assert.ok(Math.abs(o.success+o.keep+o.down+o.destroy-1)<1e-9);}
 s.hunting=false;s.gold=1e9;s.materials={cube:100,highCube:100,scroll:10,expand:10,fragment:1000};
 const id=s.items[0].id;s=E.execute(s,'potential',{id},ctx()).state;assert.equal(s.items[0].lines.length,1);

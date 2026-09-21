@@ -8,8 +8,9 @@ const LEVELS = [1,20,40,60,80,100,120,140,160,180,200];
 export function weaponVariant(item) {
   return item.slot === 0 && Number.isInteger(item.weaponVariant) && item.weaponVariant >= 0 && item.weaponVariant < 3 ? item.weaponVariant : 0;
 }
+export const equipmentTierLevel = item => Math.max(1,Math.floor(Math.min(200,item.level)/20)*20);
 export function equipmentKey(item) {
-  const key = [item.level, item.classId, item.slot, !!item.boss].join(":");
+  const key = [equipmentTierLevel(item), item.classId, item.slot, !!item.boss].join(":");
   // Variant zero intentionally retains the original key; no loss of existing discoveries.
   return item.slot === 0 && weaponVariant(item) ? key + ":" + weaponVariant(item) : key;
 }
@@ -22,7 +23,7 @@ export function equipmentType(item) {
 }
 export function equipmentIdentity(item) {
   const column = item.slot === 0 ? weaponVariant(item) : item.slot + 2;
-  const tier = Math.max(0, LEVELS.indexOf(item.level));
+  const tier = Math.max(0, LEVELS.indexOf(equipmentTierLevel(item)));
   const row = Math.max(0, Math.min(9, tier - (item.boss ? 1 : 0)));
   const titles = item.boss ? BOSS_TITLES : ORDINARY_TITLES;
   const title = titles[(tier - (item.boss ? 1 : 0) + column * 3 + titles.length) % titles.length];

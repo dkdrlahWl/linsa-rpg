@@ -19,10 +19,11 @@ begin
   growth:=1+stars*.055+power(greatest(0,stars-15),1.4)*.025;
   base:=(5+power(ilv,1.28))*(case when (it->>'boss')::boolean then 1.22 else 1 end)*quality;
   atk:=atk+(base*(case when (it->>'slot')::int=0 then .9 else .11 end)*growth+stars);
-  stat:=stat+floor((2+ilv*.5)*growth*quality)+stars; hp:=hp+ilv*4; def:=def+ilv*.2;
+  stat:=stat+floor((2+ilv*.5)*growth*quality)+stars; hp:=hp+ilv*4+(case when (it->>'slot')::int between 1 and 5 then stars*greatest(2,ceil(ilv*.35)) else 0 end); def:=def+ilv*.2;
   for ln in select value from jsonb_array_elements(coalesce(it->'lines','[]')) loop
    k:=ln->>'key'; val:=(ln->>'value')::double precision;
-   if k='flat'||main then stat:=stat+val;
+   if k='flatHP' then hp:=hp+val;
+   elsif k='flat'||main then stat:=stat+val;
    elsif k=main then stat_pct:=stat_pct+val;
    elsif k='attack' then atk_pct:=atk_pct+val;
    elsif k='hp' then hp_pct:=hp_pct+val;

@@ -1,0 +1,33 @@
+/* Compact inventory: details are opened only after selecting an item. */
+.material-tile-image{width:48px;height:48px;object-fit:contain}
+.material-sell-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;margin-top:12px}
+.material-picked{display:flex;align-items:center;gap:14px;margin:16px 0}
+.material-picked>img{width:64px;height:64px;object-fit:contain}
+.enhance-dialog .gear-base-stats{background:#e9e1cf;border:1px solid #cfc3a9;margin:12px 0;padding:12px}
+.enhance-dialog .gear-base-stats>div{font-size:13px}
+.enhance-dialog .gear-base-stats span{color:#625742}
+.enhance-dialog .gear-base-stats b{color:#45351c}
+.market-compact-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:start}
+.market-compact-card{display:flex;flex-direction:column;align-items:center;min-width:0;gap:3px;padding:7px 5px;border:1px solid #78633d;border-radius:9px;background:#1d251e;color:#eadcbd;text-align:center;box-shadow:none}
+.market-card-meta{display:flex;justify-content:space-between;width:100%;font-size:11px;line-height:16px}
+.market-card-meta b,.market-card-price{color:#f0cb7c}
+.market-compact-card .gear-frame,.market-compact-card .consumable-market-icon{width:42px;height:42px;min-width:0;min-height:0;margin:0;flex:none}
+.market-card-name{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:17px}
+.market-compact-card small{font-size:11px;line-height:15px;white-space:nowrap;color:#bfb49b}
+.market-card-price{font-size:12px;line-height:17px;max-width:100%;overflow-wrap:anywhere}
+.market-card-status{font-size:10px;line-height:14px;color:#aebc9f}
+.market-compact-grid>.empty{grid-column:1/-1}
+.market-picker-layout{grid-template-columns:1fr}
+.market-picker-layout:not(.show-detail)>.market-sell-detail{display:none}
+.market-picker-layout.show-detail>.market-picker-bag{display:none}
+.market-picker-layout .market-inventory-grid{grid-template-columns:repeat(6,minmax(0,1fr));max-height:60dvh}
+.market-picker-layout .market-inventory-item{gap:3px;padding:7px 4px;min-height:116px}
+.market-picker-layout .market-inventory-item .gear-frame{width:44px;height:44px;margin:1px 0}
+.market-picker-layout .market-inventory-item strong{font-size:12px;line-height:17px}
+.market-picker-layout .market-inventory-item small{font-size:11px;line-height:15px;margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.market-picker-layout .market-tile-meta{font-size:11px}
+.market-picker-dialog .market-picker-intro{margin-bottom:8px;font-size:12px}
+.market-picker-dialog .market-picker-filters label,.market-picker-dialog .market-picker-filters select,.market-picker-dialog .market-bag-count{font-size:12px}
+.market-picker-dialog .market-sell-detail>[data-action=marketSellBack]{margin-bottom:12px;min-height:44px}
+@media(max-width:850px){.market-compact-grid,.market-picker-layout .market-inventory-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:420px){.market-compact-grid{gap:5px}.market-compact-card{padding:6px 3px;gap:2px}.market-compact-card .gear-frame,.market-compact-card .consumable-market-icon{width:38px;height:38px}.market-card-meta,.market-compact-card small{font-size:10px}.market-card-name,.market-card-price{font-size:11px}dialog.market-picker-dialog{padding:12px}.market-picker-layout .market-inventory-grid{max-height:58dvh;gap:5px}}
