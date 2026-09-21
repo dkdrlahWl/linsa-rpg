@@ -33,3 +33,19 @@ dialog{width:min(94vw,440px);max-height:86dvh;padding:14px;border:1px solid #ba9
 .party-preview>div:last-child{padding:8px 8px 8px 0}.party-preview strong{font-size:16px;text-shadow:0 2px 4px #000}.party-preview p{font-size:11px;margin:5px 0}
 .party-face{width:106px;height:120px;display:grid;place-items:center;background:#17130c55}.party-face .boss-sprite{width:106px;height:106px;animation:none;mask-image:none}
 .room-boss-face{width:62px;height:62px;flex:none}.room-boss-face .boss-sprite{width:62px;height:62px;animation:none;mask-image:none}.room-boss-info{flex:1;min-width:0}
+/* Full atlas cells sit inside a padded square so artwork never loses its edges. */
+.gear-frame{display:inline-grid;place-items:center;width:58px;height:58px;flex:none;box-sizing:border-box;padding:4px;overflow:hidden;border-radius:5px}
+.gear-frame>.gear-icon{width:100%!important;height:100%!important;max-width:none!important;margin:0!important;aspect-ratio:1}
+.bag-slot .gear-frame{width:52px;height:52px;max-width:100%;margin:4px auto 3px}
+.gear-cell .gear-frame{width:44px;height:44px;margin:0 auto 3px}
+.gear-frame.big-item{width:110px!important;height:110px!important;margin:8px auto}
+.item-modal-head .gear-frame{width:54px;height:54px}
+.item{min-width:0}.item>div{min-width:0}.item strong{white-space:normal;overflow-wrap:anywhere}
+.material-icon{display:inline-block;width:48px;height:48px;flex:none;border-radius:7px;background-image:url('equipment/boss-materials-v2.png');background-size:500% 200%;background-repeat:no-repeat;border:1px solid #b6995555;vertical-align:middle}
+.craft-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:8px}.craft-list>.panel{min-width:0;content-visibility:visible;contain-intrinsic-size:none}
+.craft-select-label{display:block;font-size:11px;color:var(--muted);margin:6px 0 4px}.craft-list select{width:100%;font-size:12px}
+.craft-preview-head{display:flex;gap:8px;align-items:center;margin:10px 0}.craft-preview-head>div{min-width:0}.craft-preview-head strong{display:block;font-size:13px;overflow-wrap:anywhere}.craft-preview-head small{display:block;font-size:11px;margin-top:3px;color:var(--muted)}
+.craft-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:8px 0}.craft-stats>div{padding:7px 3px;text-align:center;border:1px solid #a68a5433;border-radius:4px;background:#16130d66}.craft-stats dt{font-size:10px;color:var(--muted)}.craft-stats dd{margin:3px 0 0;font-size:12px;color:#f0d7a3}
+.craft-costs{display:flex;align-items:center;gap:8px;margin-top:9px}.craft-costs>div>span{display:block;font-size:11px;line-height:1.6}.cost-short{color:#ffad98}.cost-ready{color:#c6dd9b}.craft-list .actions{flex-wrap:wrap}.craft-list .actions button{flex:1;min-height:34px;font-size:11px;padding:5px}.supply-grid .material-icon{margin-bottom:5px}
+
+.craft-actions{background:transparent!important;position:static!important;padding:0!important;margin-top:8px}.craft-costs .currency-label{display:inline!important}

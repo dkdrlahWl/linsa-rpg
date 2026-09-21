@@ -30,7 +30,7 @@ export function equipmentIdentity(item) {
   return {
     key: equipmentKey(item),
     name: `${title} ${noun}`,
-    art: item.level === 200 && !item.boss ? "equipment/dawn-200.svg" : `equipment/${item.classId}-${item.boss ? "boss" : "normal"}.svg`,
+    art: item.level === 200 && !item.boss ? "equipment/dawn-200-v2.png" : `equipment/${item.classId}-${item.boss ? "boss" : "normal"}${item.classId === "warrior" || (item.boss && ["mage","archer"].includes(item.classId)) ? "-v2.png" : ".webp"}`,
     column: item.classId === "rogue" && !item.boss && item.level !== 200 && column >= 7 ? column+1 : column,
     columns: item.classId === "rogue" && !item.boss && item.level !== 200 ? 12 : 11,
     row: item.level === 200 && !item.boss ? Object.keys(WEAPON_TYPES).indexOf(item.classId) : (row + column * 3) % 10,

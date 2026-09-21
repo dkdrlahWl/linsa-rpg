@@ -1,5 +1,6 @@
-import * as D from "./data.mjs?v=adventure-3";
+import * as D from "./data.mjs?v=equipment-detail-2";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=currency-art-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=equipment-detail-2";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=adventure-3";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
@@ -424,12 +425,16 @@ function atlasIcon(tier, n, label, size="") {
     {w:1448,h:1086,x:[0,365,733,1095,1448],y:[0,293,548,810,1086]},
   ][tier];
   const col=n%4,row=Math.floor(n/4),x=atlas.x[col],y=atlas.y[row],w=atlas.x[col+1]-x,h=atlas.y[row+1]-y;
-  return `<span class="gear-icon ${size}" role="img" aria-label="${esc(art.name)}" style="background-image:url('${art.art}');background-size:${art.columns*100}% ${art.rows*100}%;background-position:${art.column/(art.columns-1)*100}% ${art.row/(art.rows-1)*100}%"></span>`;
+  return `<svg class="gear-icon ${size}" role="img" aria-label="${esc(label)}" viewBox="${x} ${y} ${w} ${h}"><image href="gear-${tier}.svg" width="${atlas.w}" height="${atlas.h}" preserveAspectRatio="none"/></svg>`;
 }
+let gearClipId=0;
 function gearMarkup(it, size="") {
   if(!it) return "";
   const art = D.equipmentIdentity(it);
-  return '<svg class="gear-icon '+size+'" role="img" aria-label="'+esc(art.name)+'" viewBox="'+[art.column*100+3,art.row*100+3,94,94].join(' ')+'" overflow="hidden" preserveAspectRatio="xMidYMid meet"><image href="'+art.art+'" width="'+(art.columns*100)+'" height="'+(art.rows*100)+'" preserveAspectRatio="none"/></svg>';
+  const bounds=equipmentBounds[art.art.split('/').pop()];
+  const ys=bounds.cellY[art.column],cell=bounds.cells?.[art.column]?.[art.row]; const [x,y,w,h]=cell||[bounds.x[art.column],ys[art.row],bounds.x[art.column+1]-bounds.x[art.column],ys[art.row+1]-ys[art.row]];
+  const clipId='gear-clip-'+(++gearClipId),clip=cell?.[4]?`<defs><clipPath id="${clipId}"><polygon points="${cell[4]}"/></clipPath></defs>`:'';
+  return '<span class="gear-frame '+size+'"><svg class="gear-icon" role="img" aria-label="'+esc(art.name)+'" viewBox="'+[x,y,w,h].join(' ')+'" overflow="hidden" preserveAspectRatio="xMidYMid meet"><svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" viewBox="'+[x,y,w,h].join(' ')+'" overflow="hidden"><image href="'+art.art+'" width="'+bounds.width+'" height="'+bounds.height+'" preserveAspectRatio="none" '+(clip?'clip-path="url(#'+clipId+')"':'')+'/>'+clip+'</svg></svg></span>';
 }
 function bossMarkup(b, size="") {
   if(b.fullArt) return `<img class="boss-sprite ${size}" src="${b.art}" alt="${esc(b.name)}" style="object-fit:contain">`;
@@ -445,8 +450,39 @@ function collection() {
   const keys = state.collection||[];
   return '<p class="note">발견한 장비 '+keys.length+' / '+D.EQUIPMENT_CATALOG.length+'종 · 획득 기록은 장비를 판매하거나 분해해도 유지됩니다.</p><div class="inventory-grid stack">'+keys.map(key=>{const entry=D.equipmentFromKey(key);return '<div class="panel pad item">'+itemMarkup({...entry,stars:0,lines:[],grade:0})+'</div>';}).join('')+'</div>';
 }
+const bossMaterialNames = ["생명의 나무 심장", "월광의 뿔", "고대 수정 광석", "용암의 핵", "망령 왕가의 인장", "빙룡의 비늘", "태양의 풍뎅이", "천공의 깃털", "시간의 톱니", "심연의 왕관 파편"];
+const craftSelections = new Map();
+function materialMarkup(region) {
+  return `<span class="material-icon" role="img" aria-label="${bossMaterialNames[region]}" style="background-position:${region%5*25}% ${Math.floor(region/5)*100}%"></span>`;
+}
+function craftItem(region) {
+  const [slot,weaponVariant]=(craftSelections.get(region)||"0:0").split(":").map(Number);
+  return {id:"craft-preview",classId:state.classId,level:D.TIERS[region+1],slot,weaponVariant,boss:true,stars:0,grade:0,lines:[]};
+}
+function craftRequirements(region) {
+  return [
+    {label:bossMaterialNames[region],have:state.bossMaterials[region]||0,need:24},
+    {label:"장비 파편",have:state.materials.fragment,need:60},
+    {label:"골드",have:state.gold,need:3000+region*500},
+  ];
+}
+function craftBlockReason(region) {
+  if(!state.cleared.some(id=>Math.floor(id/3)===region))return "이 지역 보스를 먼저 처치하세요";
+  if(state.items.length>=300)return "가방 공간이 부족합니다";
+  const missing=craftRequirements(region).filter(x=>x.have<x.need);
+  return missing.length?missing.map(x=>`${x.label} ${fmt(x.need-x.have)} 부족`).join(" · "):"";
+}
+function craftPreview(region,detail=false) {
+  const it=craftItem(region),cl=D.CLASSES.find(c=>c.id===state.classId),reason=craftBlockReason(region);
+  const before=power(state),after=power({...state,items:[...state.items,it],equipped:{...state.equipped,[it.slot]:it.id}});
+  return `<div class="craft-preview-head">${gearMarkup(it,detail?"big-item":"")}<div><strong>${esc(D.gearName(it))}</strong><small>Lv.${it.level} · ${cl.name} · ${D.equipmentType(it)}</small><small>보스 장비 · 0성 · 잠재 미개방</small></div></div>
+    <dl class="craft-stats"><div><dt>기본 공격</dt><dd>+${((5+it.level**1.28)*1.22*(it.slot===0?.9:.11)).toFixed(1)}</dd></div><div><dt>${cl.stat}</dt><dd>+${Math.floor(2+it.level*.5)}</dd></div><div><dt>HP</dt><dd>+${it.level*4}</dd></div><div><dt>방어</dt><dd>+${it.level*.2}</dd></div></dl>
+    ${detail?`<p class="note">현재 장비 교체 기준 공격력 ${fmt(after.attack)} (${after.attack-before.attack>=0?"+":""}${fmt(after.attack-before.attack)}) · HP ${fmt(after.hp)}<br>${state.level<it.level?`장착까지 ${it.level-state.level}레벨 필요 · 제작 후 보관 가능`:"현재 레벨에서 장착 가능"}</p><p class="note">같은 레벨 보스 장비 세트: 3부위 ${cl.stat} +5% · 6부위 공격 +5% · 9부위 보스 피해 +10%<br>제작 결과는 선택한 장비 1개로 확정됩니다. 강화와 잠재 부여는 제작 후 가능합니다.</p>`:""}
+    <div class="craft-costs">${materialMarkup(region)}<div>${craftRequirements(region).map(x=>`<span class="${x.have<x.need?"cost-short":"cost-ready"}">${x.label} ${fmt(x.have)} / ${fmt(x.need)}</span>`).join("")}</div></div>
+    <p class="note">${reason||"재료와 제작 조건을 모두 충족했습니다."}</p><div class="actions craft-actions">${detail?"":btn("장비 상세 보기","craftDetail",region)}${disabledBtn("선택 장비 제작","craft",region,!!reason,"gold")}</div>`;
+}
 function craft() {
-  return `<div class="panel pad"><h3>잠재 부여 주문서</h3><p class="note">장비 파편 100개 + 1,000 골드</p>${btn("제작", "craftScroll", "", "", true)}</div><div class="region-list">${D.REGIONS.map((r) => `<section class="panel pad"><h3>${r.name} 보스 장비 · Lv.${D.TIERS[r.id + 1]}</h3><p class="note">보스 재료 ${state.bossMaterials[r.id] || 0}/24 · 장비 파편 60 · 골드 ${fmt(3000 + r.id * 500)}<br>내 직업의 무기 종류와 부위를 선택해 제작합니다.</p><div class="row"><select id="craft-${r.id}">${D.WEAPON_TYPES[state.classId].map((name,v)=>`<option value="0:${v}">${name}</option>`).join("")}${D.SLOTS.slice(1).map((name,i)=>`<option value="${i+1}:0">${name}</option>`).join("")}</select>${btn("장비 제작", "craft", r.id, "gold", true)}</div></section>`).join("")}</div>`;
+  return `<div class="panel pad"><h3>잠재 부여 주문서</h3><p class="note">장비 파편 100개 + 1,000 골드</p>${btn("제작", "craftScroll", "", "", true)}</div><p class="note">부위를 고르면 제작 결과와 필요 재료가 바뀝니다. 상세 보기에서 장착 시 능력치와 세트 효과를 확인하세요.</p><div class="region-list craft-list">${D.REGIONS.map(r=>`<section class="panel pad"><h3>${r.name} · Lv.${D.TIERS[r.id+1]}</h3><label class="craft-select-label" for="craft-${r.id}">제작할 장비</label><select id="craft-${r.id}" data-craft-region="${r.id}">${[...D.WEAPON_TYPES[state.classId].map((name,v)=>["0:"+v,name]),...D.SLOTS.slice(1).map((name,i)=>[(i+1)+":0",name])].map(([value,name])=>`<option value="${value}" ${value===(craftSelections.get(r.id)||"0:0")?"selected":""}>${name}</option>`).join("")}</select><div id="craft-preview-${r.id}">${craftPreview(r.id)}</div></section>`).join("")}</div>`;
 }
 function odds() {
   return `<div class="panel pad"><h3>스타포스 · 최대 25성</h3><p class="note">10·15성은 하락 방지 지점입니다. 파괴 시 같은 장비로 12성 복구하며 잠재가 보존됩니다.</p><table><tr><th>목표</th><th>성공</th><th>유지</th><th>하락</th><th>파괴</th></tr>${D.STAR_SUCCESS.map(
@@ -525,7 +561,7 @@ function partyPanel() {
 }
 function supplies(kind) {
   const keys=kind==="consumables"?["cube","highCube","scroll","expand"]:["fragment"];
-  return `<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/새 옵션 선택",scroll:"잠재 능력 개방",expand:"잠재 줄 추가",fragment:"장비·주문서 제작"}[k]}</small>${kind==="consumables"?btn("장비 선택","gearSub","bag"):btn("제작소","gearSub","craft")}</section>`).join("")}${kind==="materials"?D.REGIONS.map(r=>`<section class="panel pad"><strong>${r.name} 재료</strong><b>${state.bossMaterials[r.id]||0}개</b><small>보스 장비 제작</small></section>`).join(""):""}</div>`;
+  return `<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/새 옵션 선택",scroll:"잠재 능력 개방",expand:"잠재 줄 추가",fragment:"장비·주문서 제작"}[k]}</small>${kind==="consumables"?btn("장비 선택","gearSub","bag"):btn("제작소","gearSub","craft")}</section>`).join("")}${kind==="materials"?D.REGIONS.map(r=>`<section class="panel pad">${materialMarkup(r.id)}<strong>${bossMaterialNames[r.id]}</strong><b>${state.bossMaterials[r.id]||0}개</b><small>${r.name} 보스 드롭 · 장비 제작</small>${btn("제작 장비 보기","gearSub","craft")}</section>`).join(""):""}</div>`;
 }
 function rankings() {
   return header("모험가 랭킹","레벨 → 경험치 순")+btn("돌아가기","back")+`<div class="panel pad"><table><thead><tr><th>순위</th><th>모험가</th><th>직업</th><th>레벨</th></tr></thead><tbody>${rankingRows.map(r=>`<tr class="${r.name===state.name?"my-rank":""}"><td>${r.rank}</td><td>${esc(r.name)}</td><td>${r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name}</td><td>${r.level}</td></tr>`).join("")}</tbody></table></div>`;
@@ -717,6 +753,7 @@ document.addEventListener("click", async (e) => {
   sounds.play("click");
   try {
     if (action === "reconnect") return await command("sync");
+    if (action === "craftDetail") return open("제작 장비 상세",craftPreview(Number(arg),true));
     if (action === "close") {
       modal.close();
       return;
@@ -887,8 +924,8 @@ document.addEventListener("click", async (e) => {
     if (action === "craft")
       return await command("craft", {
         region: Number(arg),
-        slot: Number($("#craft-" + arg).value.split(":")[0]),
-        weaponVariant: Number($("#craft-" + arg).value.split(":")[1]),
+        slot: craftItem(Number(arg)).slot,
+        weaponVariant: craftItem(Number(arg)).weaponVariant,
       });
     if (action === "craftScroll") return await command("craftScroll");
     if (action === "bossStart" || action === "bossPractice") {
@@ -954,6 +991,12 @@ document.addEventListener("click", async (e) => {
   }
 });
 document.addEventListener("change", async (e) => {
+  if(e.target.dataset.craftRegion!==undefined) {
+    const region=Number(e.target.dataset.craftRegion);
+    craftSelections.set(region,e.target.value);
+    $("#craft-preview-"+region).innerHTML=craftPreview(region);
+    return;
+  }
   if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.BOSSES[partyBossId]);return;}
   if(e.target.id==="party-practice") {partyPractice=e.target.checked;return;}
   if (!e.target.dataset.filter) return;
