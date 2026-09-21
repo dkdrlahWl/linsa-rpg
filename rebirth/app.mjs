@@ -18,7 +18,7 @@ const fmt = (n) => Math.floor(n || 0).toLocaleString("ko-KR");
 const pct = (n) => (n * 100).toLocaleString("ko-KR", {maximumFractionDigits: 4}) + "%";
 const combatFrames = [];
 let partyBossId=null, partyPractice=false;
-let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], itemSection="info";
+let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
 let session,
@@ -361,7 +361,7 @@ function regions() {
 function character() {
   const c = D.CLASSES.find((x) => x.id === state.classId),
     p = power(state);
-  return `${header("캐릭터", (state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("레벨 랭킹","ranking")}${btn("모험 수첩","journal")}</div><section class="panel pad advancement-card"><div><strong>${state.advancement?D.ADVANCEMENTS[c.id]+" 전직 완료":"다음 전직 · "+D.ADVANCEMENTS[c.id]}</strong><p class="note">Lv.60 · 광산왕 크로투스 처치 · 공격력 +8% / HP +10%</p></div>${disabledBtn(state.advancement?"완료":"전직","advance","",!!state.advancement||state.level<60||!state.cleared.includes(8),"gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+  return `${header("캐릭터", (state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험가 랭킹","ranking")}${btn("모험 수첩","journal")}</div><section class="panel pad advancement-card"><div><strong>${state.advancement?D.ADVANCEMENTS[c.id]+" 전직 완료":"다음 전직 · "+D.ADVANCEMENTS[c.id]}</strong><p class="note">Lv.60 · 광산왕 크로투스 처치 · 공격력 +8% / HP +10%</p></div>${disabledBtn(state.advancement?"완료":"전직","advance","",!!state.advancement||state.level<60||!state.cleared.includes(8),"gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
     state.stats,
   )
     .map(
@@ -538,8 +538,26 @@ function supplies(kind) {
   const keys=kind==="consumables"?["cube","highCube","scroll","expand"]:["fragment"];
   return `<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/새 옵션 선택",scroll:"잠재 능력 개방",expand:"잠재 줄 추가",fragment:"장비·주문서 제작"}[k]}</small>${kind==="consumables"?btn("장비 선택","gearSub","bag"):btn("제작소","gearSub","craft")}</section>`).join("")}${kind==="materials"?D.REGIONS.map(r=>`<section class="panel pad">${materialMarkup(r.id)}<strong>${bossMaterialNames[r.id]}</strong><b>${state.bossMaterials[r.id]||0}개</b><small>${r.name} 보스 드롭 · 장비 제작</small>${btn("제작 장비 보기","gearSub","craft")}</section>`).join(""):""}</div>`;
 }
+async function loadRankings() {
+  if (rankingLoading) return;
+  const requestId=++rankingRequest;
+  rankingLoading=true;rankingError="";render();
+  try {
+    await ensureToken();
+    const rows=await request("/rest/v1/rpc/rebirth_rankings",{});
+    if(requestId!==rankingRequest)return;
+    rankingRows=rows;rankingUpdated=Date.now();
+  } catch(err) { rankingError=message(err); }
+  finally { if(requestId===rankingRequest){rankingLoading=false;if(view==="ranking")render();} }
+}
 function rankings() {
-  return header("모험가 랭킹","레벨 → 경험치 순")+btn("돌아가기","back")+`<div class="panel pad"><table><thead><tr><th>순위</th><th>모험가</th><th>직업</th><th>레벨</th></tr></thead><tbody>${rankingRows.map(r=>`<tr class="${r.name===state.name?"my-rank":""}"><td>${r.rank}</td><td>${esc(r.name)}</td><td>${r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name}</td><td>${r.level}</td></tr>`).join("")}</tbody></table></div>`;
+  const combat=rankingMode==="combat",rankKey=combat?"combatRank":"levelRank",label=combat?"전투력":"레벨";
+  const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
+  const className=r=>r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name||"모험가";
+  const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
+  const portrait=r=>`<div class="rank-portrait portrait" style="background-position:${Math.max(0,D.CLASSES.findIndex(c=>c.id===r.classId))*25}% 0" aria-hidden="true"></div>`;
+  const podium=rows.slice(0,3).map(r=>`<article class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}">${esc(r.name)}</strong><small>${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
+  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회":"서버 기록 기준"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong>${esc(r.name)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><b class="rank-score">${score(r)}</b></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
 }
 function journal() {
   const goals=[["첫 토벌",state.cleared.length,1,"보스 첫 처치"],["장비 수집가",state.collection.length,50,"서로 다른 장비 50종 발견"],["직업의 길",state.advancement?1:0,1,"Lv.60 · 광산왕 크로투스 처치 후 전직"],["숙련 모험가",state.level,100,"100레벨 달성"],["왕좌를 넘어",state.cleared.length,30,"멸신왕 벨제리온 처치"],["새벽의 탐험가",state.dungeonClaims.relic?1:0,1,"여명의 폐허 클리어"]];
@@ -781,7 +799,9 @@ document.addEventListener("click", async (e) => {
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
     if (action === "advance") return await command("advance");
     if (action === "journal") {view="journal";return render();}
-    if (action === "ranking") {await ensureToken();rankingRows=await request("/rest/v1/rpc/rebirth_rankings",{});view="ranking";return render();}
+    if (action === "ranking") {view="ranking";return await loadRankings();}
+    if (action === "rankingRefresh") return await loadRankings();
+    if (action === "rankingMode") {rankingMode=arg==="combat"?"combat":"level";return render();}
     if (action === "settings") return settingsDialog();
     if (action === "saveSettings") {
       settings.sound = Number($("#sound").value);
