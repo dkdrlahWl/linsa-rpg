@@ -588,7 +588,7 @@ async function marketLoad() {
   render();
 }
 function open(title, html, closable = true) {
-  modal.classList.remove("enhance-dialog");
+  modal.classList.remove("enhance-dialog", "market-picker-dialog");
   modal.innerHTML = `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`;
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = 0;
@@ -740,6 +740,38 @@ function settingsDialog() {
     "설정",
     `<div class="stack"><label>효과음 <input id="sound" type="range" min="0" max="1" step=".05" value="${settings.sound}"></label><label>배경음 <input id="music" type="range" min="0" max="1" step=".05" value="${settings.music}"></label><label><input id="low" type="checkbox" ${settings.low ? "checked" : ""} style="width:auto;min-height:0"> 저사양 · 모션 감소</label><p class="note">자동사냥·오프라인은 서버에서 정산합니다. 소리와 모션은 이 기기에 저장됩니다.</p>${btn("저장", "saveSettings", "", "gold")}${btn("로그아웃", "logout", "", "danger")}</div>`,
   );
+}
+let marketSellId=null,marketSellSlot="",marketSellClass="",marketSellPrice="10000";
+function marketItemBlock(it) {
+  if(!it)return "판매할 장비를 선택해 주세요.";
+  if(it.bound)return "거래 불가";
+  if(it.broken)return "파괴된 장비";
+  if(it.locked)return "잠금 중";
+  if(Object.values(state.equipped).includes(it.id))return "장착 중";
+  if(state.pendingCube?.id===it.id)return "큐브 선택 중";
+  return "";
+}
+function marketSellBlock(it) {
+  return marketItemBlock(it)||(state.level<20?"거래소는 Lv.20부터 이용할 수 있습니다.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 등록할 수 있습니다.":"");
+}
+function updateSellPrice() {
+  const input=$("#sell-price");if(!input)return;
+  marketSellPrice=input.value;
+  const price=Number(marketSellPrice),valid=Number.isSafeInteger(price)&&price>=100&&price<=1e9;
+  $("#sell-net").textContent=valid?fmt(Math.floor(price*.95))+" G":"—";
+  const it=state.items.find(it=>it.id===marketSellId),reason=marketSellBlock(it)||(!valid?"100~1,000,000,000 G 범위의 정수를 입력해 주세요.":"");
+  $("#sell-reason").textContent=reason||"선택한 장비 1개를 등록합니다. 판매 수수료는 5%입니다.";
+  const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
+}
+function marketSellPicker() {
+  const scroll=modal.querySelector('.market-inventory-grid')?.scrollTop||0;
+  const items=state.items.filter(it=>(marketSellSlot===""||it.slot===Number(marketSellSlot))&&(marketSellClass===""||it.classId===marketSellClass)).sort((a,b)=>Number(!!marketItemBlock(a))-Number(!!marketItemBlock(b))||b.stars-a.stars||b.level-a.level);
+  const it=state.items.find(it=>it.id===marketSellId),cl=it&&D.CLASSES.find(c=>c.id===it.classId),growth=it?1+it.stars*.055+Math.max(0,it.stars-15)**1.4*.025:0;
+  const stats=it?[["장비 공격력",((5+it.level**1.28)*(it.boss?1.22:1)*(it.slot===0?.9:.11)*growth).toFixed(1)],[cl.stat,fmt(Math.floor((2+it.level*.5)*growth))],["최대 HP",fmt(it.level*4)],["방어력",(it.level*.2).toLocaleString("ko-KR")]]:[];
+  const canCompare=it&&!it.broken&&it.classId===state.classId&&it.level<=state.level;
+  const before=power(state).combatPower,after=canCompare?power({...state,equipped:{...state.equipped,[it.slot]:it.id}}).combatPower:0;
+  open("판매할 장비 선택",`<p class="market-picker-intro">가방에서 장비를 고르고, 능력치와 잠재 옵션을 확인하세요.</p><div class="market-picker-layout"><section class="market-picker-bag"><div class="market-picker-filters"><label>부위<select id="market-sell-slot"><option value="">모든 부위</option>${D.SLOTS.map((name,i)=>`<option value="${i}" ${String(i)===marketSellSlot?"selected":""}>${name}</option>`).join("")}</select></label><label>직업<select id="market-sell-class"><option value="">모든 직업</option>${D.CLASSES.map(c=>`<option value="${c.id}" ${c.id===marketSellClass?"selected":""}>${c.name}</option>`).join("")}</select></label></div><p class="market-bag-count">가방 ${state.items.length}/300 · 표시 ${items.length}개 · 판매 가능 ${items.filter(it=>!marketItemBlock(it)).length}개</p><div class="market-inventory-grid" role="group" aria-label="판매 장비 인벤토리">${items.length?items.map(item=>{const reason=marketItemBlock(item);return `<button data-action="marketSellPick" data-arg="${item.id}" aria-pressed="${marketSellId===item.id}" class="market-inventory-item ${marketSellId===item.id?"picked":""} ${reason?"unavailable":""}"><span class="market-tile-meta">Lv.${item.level}<b>${item.stars}★</b></span>${gearMarkup(item)}<strong>${esc(D.gearName(item))}</strong><small>${reason||D.CLASSES.find(c=>c.id===item.classId).name+" · "+D.SLOTS[item.slot]}</small></button>`;}).join(""):'<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div><p class="note">장착·잠금·파괴·거래 불가·큐브 선택 중인 장비는 상세 확인만 가능합니다.</p></section><section class="market-sell-detail" aria-live="polite">${it?`<div class="market-picked-head">${gearMarkup(it,"big-item")}<div><small>선택한 장비</small><h3>${esc(D.gearName(it))}</h3><p>Lv.${it.level} · ${cl.name} · ${D.equipmentType(it)}</p><b>${it.stars}성 · ${it.boss?"보스 장비":"일반 장비"}</b></div></div><div class="market-picked-stats">${stats.map(([k,v])=>`<div><span>${k}</span><b>+${v}</b></div>`).join("")}</div><p class="note">스타포스가 반영된 장비 능력치입니다. 잠재 효과는 아래에 별도로 표시합니다.${it.broken?" 파괴된 장비는 현재 능력치가 적용되지 않습니다.":""}</p><div class="market-picked-options"><h4>잠재능력</h4>${it.lines.length?it.lines.map((line,i)=>`<div class="grade-color-${line.grade}"><small>${i+1}줄 · ${D.RARITIES[line.grade]}</small><span>${D.OPTIONS[line.key]}</span><b>+${line.value}${D.optionUnit(line.key)}</b></div>`).join(""):'<p class="note">잠재 미개방</p>'}</div>${canCompare?`<p class="market-equip-compare">장착 시 내 전투력 <strong>${fmt(after)}</strong> <span>(${after-before>=0?"+":""}${fmt(after-before)})</span></p>`:""}`:'<div class="market-pick-empty"><span>◇</span><h3>판매할 장비를 선택하세요</h3><p>장비 이미지를 누르면 강화 수치와<br>줄별 잠재 옵션이 여기에 표시됩니다.</p></div>'}<div class="market-price-box"><label for="sell-price">판매 가격 <small>G</small></label><input id="sell-price" type="number" inputmode="numeric" min="100" max="1000000000" step="1" value="${esc(marketSellPrice)}"><div class="market-net"><span>판매 완료 시 수령액</span><strong id="sell-net">—</strong></div><p id="sell-reason" class="note"></p>${disabledBtn("선택 장비 등록","sellConfirm","",true,"gold market-register")}<p class="note">등록 기간 7일 · 판매 완료 시 수수료 5%</p></div></section></div>`);
+  modal.classList.add("market-picker-dialog");modal.querySelector('.market-inventory-grid').scrollTop=scroll;updateSellPrice();
 }
 async function marketWrite(action, args) {
   if (busy) return;
@@ -979,29 +1011,14 @@ document.addEventListener("click", async (e) => {
       return await marketLoad();
     }
     if (action === "marketRefresh") return await marketLoad();
-    if (action === "marketSell")
-      return open(
-        "장비 판매",
-        `<select id="sell-item">${state.items
-          .filter(
-            (i) =>
-              !i.locked &&
-              !i.broken &&
-              !Object.values(state.equipped).includes(i.id),
-          )
-          .map(
-            (i) =>
-              `<option value="${i.id}">${esc(D.gearName(i))} ${i.stars}성</option>`,
-          )
-          .join(
-            "",
-          )}</select><label>판매 가격<input id="sell-price" type="number" min="100" max="1000000000" value="10000"></label><p class="note">판매 완료 시 5% 수수료가 차감됩니다. 7일 후 회수할 수 있습니다.</p><div class="actions">${btn("등록", "sellConfirm", "", "gold")}</div>`,
-      );
-    if (action === "sellConfirm")
-      return await marketWrite("sell", {
-        itemId: $("#sell-item").value,
-        price: Number($("#sell-price").value),
-      });
+    if (action === "marketSell") {marketSellId=null;marketSellSlot="";marketSellClass="";marketSellPrice="10000";return marketSellPicker();}
+    if (action === "marketSellPick") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;marketSellId=arg;return marketSellPicker();}
+    if (action === "sellConfirm") {
+      const it=state.items.find(it=>it.id===marketSellId),reason=marketSellBlock(it),price=Number($("#sell-price")?.value);
+      if(reason)return toast(reason);
+      if(!Number.isSafeInteger(price)||price<100||price>1e9)return toast("판매 가격은 100~1,000,000,000 G의 정수로 입력해 주세요.");
+      return await marketWrite("sell", {itemId:it.id,price});
+    }
     if (action === "marketConfirm") {
       const l = marketRows.find((l) => l.id === arg);
       return open(
@@ -1017,7 +1034,9 @@ document.addEventListener("click", async (e) => {
     toast(message(err));
   }
 });
+document.addEventListener("input", e=>{if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
+  if(e.target.id==="market-sell-slot"||e.target.id==="market-sell-class") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;if(e.target.id==="market-sell-slot")marketSellSlot=e.target.value;else marketSellClass=e.target.value;marketSellId=null;marketSellPicker();return;}
   if(e.target.dataset.craftRegion!==undefined) {
     const region=Number(e.target.dataset.craftRegion);
     craftSelections.set(region,e.target.value);
