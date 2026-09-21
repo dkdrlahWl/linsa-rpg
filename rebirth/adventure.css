@@ -49,3 +49,6 @@ dialog{width:min(94vw,440px);max-height:86dvh;padding:14px;border:1px solid #ba9
 .craft-costs{display:flex;align-items:center;gap:8px;margin-top:9px}.craft-costs>div>span{display:block;font-size:11px;line-height:1.6}.cost-short{color:#ffad98}.cost-ready{color:#c6dd9b}.craft-list .actions{flex-wrap:wrap}.craft-list .actions button{flex:1;min-height:34px;font-size:11px;padding:5px}.supply-grid .material-icon{margin-bottom:5px}
 
 .craft-actions{background:transparent!important;position:static!important;padding:0!important;margin-top:8px}.craft-costs .currency-label{display:inline!important}
+/* Keep the village visible through the character artwork. */
+.portrait{background-image:url('characters-transparent-v1.png');background-color:transparent}
+.hero .portrait{mask-image:none}
