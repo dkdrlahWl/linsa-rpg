@@ -1,3 +1,5 @@
+import { equipmentIdentity } from "./equipment.mjs";
+export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -223,10 +225,10 @@ export function optionValue(key, grade) {
       : [1, 3, 6, 9][grade];
 }
 export function gearName(item) {
-  return `${REGIONS[Math.min(9, Math.max(0, TIERS.indexOf(item.level) - 1))].name} ${item.boss ? "수호자 " : ""}${item.slot === 0 ? CLASSES.find((c) => c.id === item.classId)?.weapon || "무기" : SLOTS[item.slot]}`;
+  return equipmentIdentity(item).name;
 }
 export function gearArt(item) {
-  return `gear-${item.level<80?0:item.level<160?1:2}.svg`;
+  return equipmentIdentity(item).art;
 }
 export function dayKey(ms) {
   return new Date(ms + 9 * 3600000).toISOString().slice(0, 10);

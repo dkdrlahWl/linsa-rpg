@@ -25,7 +25,10 @@ import {
   weekKey,
   DUNGEONS,
   CLASS_SKILLS,
-} from "./data.mjs";
+  weaponVariant,
+  equipmentKey,
+  WEAPON_TYPES,
+} from "./data.mjs?v=equipment-2";
 
 const fail = (message) => {
   throw new Error(message);
@@ -43,13 +46,16 @@ function spend(s, key, n) {
 function pick(a, ctx) {
   return a[Math.min(a.length - 1, Math.floor(ctx.random() * a.length))];
 }
-export function makeItem(level, classId, slot, boss, ctx) {
+export function makeItem(level, classId, slot, boss, ctx, variant) {
+  const selectedVariant = slot === 0 ? (variant ?? Math.floor(ctx.random() * WEAPON_TYPES[classId].length)) : 0;
+  check(int(selectedVariant, 0, 2), "INVALID_WEAPON_TYPE");
   return {
     id: ctx.uuid(),
     level,
     classId,
     slot,
     boss,
+    weaponVariant: selectedVariant,
     stars: 0,
     grade: 0,
     lines: [],
@@ -66,7 +72,7 @@ export function initialState(classId, name, ctx) {
     typeof name === "string" && /^[가-힣a-zA-Z0-9_]{2,12}$/.test(name),
     "INVALID_NAME",
   );
-  const starter = makeItem(1, classId, 0, false, ctx);
+  const starter = makeItem(1, classId, 0, false, ctx, 0);
   starter.bound = true;
   return {
     version: VERSION,
@@ -193,7 +199,7 @@ function rollCount(n, prob, ctx) {
   return hits;
 }
 function addItem(s, item) {
-  const key = [item.level, item.classId, item.slot, item.boss].join(":");
+  const key = equipmentKey(item);
   if (!s.collection.includes(key)) s.collection.push(key);
   if (s.items.length < 300) s.items.push(item);
   else {
@@ -534,7 +540,7 @@ export function execute(input, command, args = {}, ctx) {
       check(
         ["level", "classId", "slot", "boss"].every(
           (k) => it[k] === material[k],
-        ),
+        ) && weaponVariant(it) === weaponVariant(material),
         "ITEM_MISMATCH",
       );
       removeItem(s, material);
@@ -552,6 +558,7 @@ export function execute(input, command, args = {}, ctx) {
         a.id !== b.id &&
           a.slot === b.slot &&
           a.classId === b.classId &&
+          weaponVariant(a) === weaponVariant(b) &&
           TIERS.indexOf(b.level) === TIERS.indexOf(a.level) + 1,
         "INVALID_TRANSFER",
       );
@@ -624,6 +631,7 @@ export function execute(input, command, args = {}, ctx) {
     }
     case "craft": {
       check(int(args.region, 0, 9) && int(args.slot, 0, 8), "INVALID_CRAFT");
+      check(args.weaponVariant === undefined || (int(args.weaponVariant,0,2) && (args.slot === 0 || args.weaponVariant === 0)), "INVALID_WEAPON_TYPE");
       check(
         s.cleared.some((id) => Math.floor(id / 3) === args.region),
         "BOSS_REQUIRED",
@@ -642,6 +650,7 @@ export function execute(input, command, args = {}, ctx) {
         args.slot,
         true,
         ctx,
+        args.weaponVariant ?? 0,
       );
       addItem(s, it);
       events.push({ type: "craft", id: it.id });

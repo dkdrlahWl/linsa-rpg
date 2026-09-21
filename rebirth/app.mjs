@@ -1,6 +1,6 @@
-import * as D from "./data.mjs";
+import * as D from "./data.mjs?v=equipment-2";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=currency-art-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=equipment-2";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -371,7 +371,7 @@ function character() {
   )}</div><p class="note">같은 레벨 보스 장비 3부위: 주스탯 +5%<br>6부위: 공격력 +5% · 9부위: 보스 피해 +10%</p></section></div></div>`;
 }
 function itemMarkup(it) {
-  return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>Lv.${it.level} · ${D.CLASSES.find((c) => c.id === it.classId).name} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="purple">${it.lines.length ? D.RARITIES[it.grade] + " " + it.lines.length + "줄" : "잠재 미개방"}</span></div>`;
+  return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>Lv.${it.level} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="purple">${it.lines.length ? D.RARITIES[it.grade] + " " + it.lines.length + "줄" : "잠재 미개방"}</span></div>`;
 }
 function inventory() {
   let items = state.items
@@ -398,7 +398,7 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="inventory-grid stack">${items.length ? items.map((i) => btn(itemMarkup(i), "item", i.id, "item")).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
+    )}</div>${sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="inventory-grid stack">${items.length ? items.map((i) => btn(itemMarkup(i), "item", i.id, "item")).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -410,9 +410,9 @@ function atlasIcon(tier, n, label, size="") {
   return '<svg class="gear-icon '+size+'" role="img" aria-label="'+esc(label)+'" viewBox="'+[x,y,w,h].join(' ')+'" overflow="hidden" preserveAspectRatio="xMidYMid meet"><image href="gear-'+tier+'.svg" width="'+atlas.w+'" height="'+atlas.h+'"/></svg>';
 }
 function gearMarkup(it, size="") {
-  if(!it)return "";
-  const n=it.slot===0?Math.max(0,D.CLASSES.findIndex(c=>c.id===it.classId)):it.slot+4;
-  return atlasIcon(it.level<80?0:it.level<160?1:2,n,D.gearName(it),size);
+  if(!it) return "";
+  const art = D.equipmentIdentity(it);
+  return '<svg class="gear-icon '+size+'" role="img" aria-label="'+esc(art.name)+'" viewBox="'+[art.column*100+3,art.row*100+3,94,94].join(' ')+'" overflow="hidden" preserveAspectRatio="xMidYMid meet"><image href="'+art.art+'" width="'+(art.columns*100)+'" height="1000" preserveAspectRatio="none"/></svg>';
 }
 function bossMarkup(b, size="") {
   return '<div class="boss-sprite '+size+'" role="img" aria-label="'+esc(b.name)+'" style="background-image:url('+b.art+');background-position:'+b.spriteX+'% '+b.spriteY+'%"></div>';
@@ -425,10 +425,10 @@ function mailbox() {
 }
 function collection() {
   const keys = state.collection||[];
-  return '<p class="note">발견한 장비 '+keys.length+'종 · 획득 기록은 장비를 판매하거나 분해해도 유지됩니다.</p><div class="inventory-grid stack">'+keys.map(key=>{const [level,classId,slot,boss]=key.split(':');return '<div class="panel pad item">'+itemMarkup({level:Number(level),classId,slot:Number(slot),boss:boss==='true',stars:0,lines:[],grade:0})+'</div>';}).join('')+'</div>';
+  return '<p class="note">발견한 장비 '+keys.length+' / '+D.EQUIPMENT_CATALOG.length+'종 · 획득 기록은 장비를 판매하거나 분해해도 유지됩니다.</p><div class="inventory-grid stack">'+keys.map(key=>{const entry=D.equipmentFromKey(key);return '<div class="panel pad item">'+itemMarkup({...entry,stars:0,lines:[],grade:0})+'</div>';}).join('')+'</div>';
 }
 function craft() {
-  return `<div class="panel pad"><h3>잠재 부여 주문서</h3><p class="note">장비 파편 100개 + 1,000 골드</p>${btn("제작", "craftScroll", "", "", true)}</div><div class="region-list">${D.REGIONS.map((r) => `<section class="panel pad"><h3>${r.name} 세트 · Lv.${D.TIERS[r.id + 1]}</h3><p class="note">보스 재료 ${state.bossMaterials[r.id] || 0}/24 · 장비 파편 60 · 골드 ${fmt(3000 + r.id * 500)}<br>내 직업의 원하는 부위를 제작합니다.</p><div class="row"><select id="craft-${r.id}">${D.SLOTS.map((s, i) => `<option value="${i}">${s}</option>`).join("")}</select>${btn("장비 제작", "craft", r.id, "gold", true)}</div></section>`).join("")}</div>`;
+  return `<div class="panel pad"><h3>잠재 부여 주문서</h3><p class="note">장비 파편 100개 + 1,000 골드</p>${btn("제작", "craftScroll", "", "", true)}</div><div class="region-list">${D.REGIONS.map((r) => `<section class="panel pad"><h3>${r.name} 보스 장비 · Lv.${D.TIERS[r.id + 1]}</h3><p class="note">보스 재료 ${state.bossMaterials[r.id] || 0}/24 · 장비 파편 60 · 골드 ${fmt(3000 + r.id * 500)}<br>내 직업의 무기 종류와 부위를 선택해 제작합니다.</p><div class="row"><select id="craft-${r.id}">${D.WEAPON_TYPES[state.classId].map((name,v)=>`<option value="0:${v}">${name}</option>`).join("")}${D.SLOTS.slice(1).map((name,i)=>`<option value="${i+1}:0">${name}</option>`).join("")}</select>${btn("장비 제작", "craft", r.id, "gold", true)}</div></section>`).join("")}</div>`;
 }
 function odds() {
   return `<div class="panel pad"><h3>스타포스 · 최대 25성</h3><p class="note">10·15성은 하락 방지 지점입니다. 파괴 시 같은 장비로 12성 복구하며 잠재가 보존됩니다.</p><table><tr><th>목표</th><th>성공</th><th>유지</th><th>하락</th><th>파괴</th></tr>${D.STAR_SUCCESS.map(
@@ -535,7 +535,7 @@ function itemDetail(id) {
                 !x.locked &&
                 ["level", "classId", "slot", "boss"].every(
                   (k) => x[k] === it[k],
-                ),
+                ) && D.weaponVariant(x) === D.weaponVariant(it),
             )
             .map(
               (x) =>
@@ -845,6 +845,7 @@ document.addEventListener("click", async (e) => {
             i.id !== arg &&
             i.slot === it.slot &&
             i.classId === it.classId &&
+            D.weaponVariant(i) === D.weaponVariant(it) &&
             D.TIERS.indexOf(i.level) === D.TIERS.indexOf(it.level) + 1,
         );
       return open(
@@ -863,7 +864,8 @@ document.addEventListener("click", async (e) => {
     if (action === "craft")
       return await command("craft", {
         region: Number(arg),
-        slot: Number($("#craft-" + arg).value),
+        slot: Number($("#craft-" + arg).value.split(":")[0]),
+        weaponVariant: Number($("#craft-" + arg).value.split(":")[1]),
       });
     if (action === "craftScroll") return await command("craftScroll");
     if (action === "bossStart" || action === "bossPractice") {
