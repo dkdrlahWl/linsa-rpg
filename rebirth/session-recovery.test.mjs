@@ -19,9 +19,20 @@ for(const body of [{error_code:'refresh_token_not_found',msg:'Invalid Refresh To
  assert.equal(t.run('session'),null);assert.equal(t.run('state'),null);assert.equal(t.logins(),1);assert.equal(t.saved.get('pending'),'keep-me');
 }
 const ok=setup({status:200,body:{access_token:'new',refresh_token:'new-refresh',expires_in:3600}});
+const direct=setup({status:400,body:{error_code:'refresh_token_not_found'}});
+await assert.rejects(direct.run('ensureToken()'),e=>e.status===401);
+assert.equal(direct.run('session'),null);assert.equal(direct.logins(),1);assert.equal(direct.saved.get('pending'),'keep-me');
+await assert.rejects(direct.run('ensureToken()'),e=>e.status===401);assert.equal(direct.requests(),1);
+const malformed=setup({status:200,body:{}});malformed.run('session={access_token:"old"}');
+await assert.rejects(malformed.run('ensureToken()'),e=>e.status===401);assert.equal(malformed.requests(),0);assert.equal(malformed.logins(),1);
 await Promise.all([ok.run('ensureToken()'),ok.run('ensureToken()')]);assert.equal(ok.requests(),1);assert.equal(ok.run('session.refresh_token'),'new-refresh');
 for(const response of [new Error('network down'),{status:503,body:{message:'unavailable'}}]){
  const t=setup(response);await assert.rejects(t.run('ensureToken()'));assert.equal(t.run('session.refresh_token'),'old-refresh');assert.equal(t.logins(),0);
 }
 assert.ok(source.includes('/auth/v1/logout?scope=local'));
+const recovery=readFileSync(new URL('./recover.html',import.meta.url),'utf8');
+const saved=new Map([['ringu_rebirth_session','old'],['ringu.supabase.v1.test.invalid','legacy'],['ringu_rebirth_settings','keep'],['ringu_rebirth_pending_user','keep'],['unrelated','keep']]);
+const button={};let destination='';
+vm.runInNewContext(recovery.match(/<script>([\s\S]*?)<\/script>/)[1],{URL,Date,window:{RinguCloudConfig:{url:'https://test.invalid'}},document:{getElementById:()=>button},localStorage:{removeItem:k=>saved.delete(k)},location:{replace:url=>destination=url}});
+button.onclick();assert.deepEqual([...saved.keys()],['ringu_rebirth_settings','ringu_rebirth_pending_user','unrelated']);assert.ok(destination.startsWith('./?v=session-recovery-9&fresh='));
 console.log('PASS: expired refresh tokens return to login, pending requests preserved, concurrent refresh coalesced, network failures retain session, device-local logout configured.');

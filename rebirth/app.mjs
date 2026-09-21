@@ -204,6 +204,7 @@ function persist() {
   else localStorage.removeItem("ringu_rebirth_session");
 }
 async function request(path, body, auth = true) {
+  if (auth && !session?.access_token) throw endSession();
   const r = await fetch(config.url + path, {
     method: "POST",
     headers: {
@@ -221,6 +222,7 @@ async function request(path, body, auth = true) {
     );
     e.status = r.status;
     e.code = data.error_code || data.code || "";
+    if (["refresh_token_not_found", "refresh_token_already_used", "session_not_found"].includes(e.code) || /invalid refresh token|refresh token.*(not found|already used)/i.test(e.message)) throw endSession();
     const retry = r.headers.get("Retry-After");
     e.retryAfter = retry ? Math.max(0, /^\d+$/.test(retry) ? Number(retry) : Math.ceil((Date.parse(retry)-Date.now())/1000)) : 0;
     throw e;
@@ -228,8 +230,22 @@ async function request(path, body, auth = true) {
   return data;
 }
 let tokenRefresh = null;
+function endSession() {
+  if (session) {
+    session = null;
+    persist();
+    clearAccountView();
+    if (modal.open) modal.close();
+    sounds.pause();
+    login();
+    $("#auth-error").textContent = "로그인 정보가 만료됐습니다. 기존 아이디와 비밀번호로 다시 로그인해 주세요. 저장된 캐릭터는 유지됩니다.";
+  }
+  const error = new Error("SESSION_ENDED");
+  error.status = 401;
+  return error;
+}
 async function ensureToken() {
-  if (!session) throw new Error("LOGIN_REQUIRED");
+  if (!session?.access_token || !session?.refresh_token) throw endSession();
   if (tokenRefresh) return tokenRefresh;
   if (!session.expires_at || session.expires_at * 1000 < Date.now() + 60000) {
     const original = session;
@@ -294,13 +310,7 @@ async function command(command, args = {}, quiet = false) {
   } catch (e) {
     if (e.status === 400) localStorage.removeItem(pendingKey());
     if (e.status === 401) {
-      session = null;
-      clearAccountView();
-      persist();
-      if (modal.open) modal.close();
-      sounds.pause();
-      login();
-      $("#auth-error").textContent = "로그인 정보가 만료됐습니다. 기존 아이디와 비밀번호로 다시 로그인해 주세요. 저장된 캐릭터는 유지됩니다.";
+      endSession();
     }
     if (!e.status || e.status >= 500) {
       connectionLost = true;
