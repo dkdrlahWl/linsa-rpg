@@ -214,6 +214,9 @@ async function request(path, body, auth = true) {
       data.error || data.message || data.msg || "SERVER_RETRY_REQUIRED",
     );
     e.status = r.status;
+    e.code = data.error_code || data.code || "";
+    const retry = r.headers.get("Retry-After");
+    e.retryAfter = retry ? Math.max(0, /^\d+$/.test(retry) ? Number(retry) : Math.ceil((Date.parse(retry)-Date.now())/1000)) : 0;
     throw e;
   }
   return data;
@@ -270,6 +273,7 @@ async function command(command, args = {}, quiet = false) {
     if (e.status === 400) localStorage.removeItem(pendingKey());
     if (e.status === 401) {
       session = null;
+      clearAccountView();
       persist();
       login();
     }
@@ -701,8 +705,25 @@ function reward() {
       : `<p>정산 시간 ${fmt(r.seconds / 60)}분 · ${fmt(r.kills)}마리</p><div class="metrics" style="margin-top:12px"><div><small>경험치</small><b>${fmt(r.xp)}</b></div><div><small>골드</small><b>${fmt(r.gold)}</b></div><div><small>장비</small><b>${r.drops.length}개</b></div></div><p class="note">파편 ${r.fragment} · 큐브 ${r.cube} · 주문서 ${r.scroll}<br>${r.stored ? "가방 초과 장비 " + r.stored + "개는 장비 탭 보관함에 보관되었습니다." : ""}${r.defeats ? " 패배 " + r.defeats + "회 · 하위 사냥터에서 성장하세요." : ""}</p><div class="actions">${btn("보상 확인", "ack", "", "gold", true)}</div>`,
   );
 }
+function clearAccountView() {
+  state=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
+  marketRows=[];marketRequest++;marketPage=0;mine=false;selected=null;view="game";tab="hunt";sub="bag";
+  chosenClass="warrior";characterName="";combatFrames.length=0;connectionLost=false;retryAt=0;retryFailures=0;
+}
+function authFailureMessage(err,register) {
+  const code=err.code||err.message;
+  if(["user_already_exists","email_exists","USER_ALREADY_REGISTERED"].includes(code)||/already (registered|exists)/i.test(err.message))return "이미 사용 중인 계정 이름입니다. 기존 계정이면 ‘로그인’을, 새 계정이면 다른 이름을 입력해 주세요.";
+  if(err.status===429||["over_request_rate_limit","over_email_send_rate_limit"].includes(code))return `잠시 가입·로그인 요청이 제한됐습니다. ${err.retryAfter?Math.ceil(err.retryAfter)+"초 후":"잠시 후"} 다시 시도해 주세요.`;
+  if(code==="invalid_credentials"||/invalid login credentials/i.test(err.message))return "계정 이름 또는 비밀번호가 맞지 않습니다. 기존 계정은 ‘로그인’으로 접속해 주세요.";
+  if(code==="weak_password"||/password.*(least|weak|short)/i.test(err.message))return "비밀번호가 가입 조건에 맞지 않습니다. 8자 이상으로 더 강한 비밀번호를 입력해 주세요.";
+  if(["signup_disabled","email_provider_disabled"].includes(code))return "현재 서버에서 새 계정 가입을 받지 않고 있습니다.";
+  if(code==="email_not_confirmed"||code==="AUTH_CONFIRMATION_REQUIRED")return "계정 확인이 완료되지 않아 접속할 수 없습니다. 관리자에게 가입 설정 확인을 요청해 주세요.";
+  if(code==="email_address_invalid"||code==="validation_failed")return "계정 이름은 영문·숫자·밑줄 3~32자, 비밀번호는 8자 이상으로 입력해 주세요.";
+  if(!err.status)return "서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.";
+  return (register?"계정 생성":"로그인")+"에 실패했습니다. "+(err.code||err.message);
+}
 function login() {
-  app.innerHTML = `<div class="login panel"><div class="brand">링구 RPG<br><small>새로운 여정</small></div><p class="note">모바일로 이어가는 나만의 모험</p><form id="auth"><label>계정 이름<input name="username" autocomplete="username" pattern="[a-zA-Z0-9_]{3,32}" minlength="3" maxlength="32" required placeholder="영문·숫자·밑줄 3~32자"></label><label>비밀번호<input name="password" autocomplete="current-password" type="password" minlength="8" maxlength="256" required placeholder="8자 이상"></label><div class="two"><button type="submit" name="mode" value="login" class="gold">로그인</button><button type="submit" name="mode" value="register">새 계정 만들기</button></div><p id="auth-error" class="error" role="alert"></p></form><p class="footer-note">새 시즌은 모든 모험가가 처음부터 시작합니다.</p></div>`;
+  app.innerHTML = `<div class="login panel"><div class="brand">링구 RPG<br><small>새로운 여정</small></div><p class="note">모바일로 이어가는 나만의 모험</p><form id="auth"><label>계정 이름<input name="username" autocomplete="username" pattern="[a-zA-Z0-9_]{3,32}" minlength="3" maxlength="32" required placeholder="영문·숫자·밑줄 3~32자"></label><label>비밀번호<input name="password" autocomplete="current-password" type="password" minlength="8" maxlength="256" required placeholder="8자 이상"></label><div class="two"><button type="submit" name="mode" value="login" class="gold">로그인</button><button type="submit" name="mode" value="register">새 계정 만들기</button></div><p id="auth-error" class="error" role="alert"></p></form><p class="footer-note">기존 계정은 로그인으로 접속하세요.<br>다른 계정을 만들려면 새로운 계정 이름을 입력하세요.<br>계정 이름은 대소문자를 구분하지 않습니다.</p></div>`;
   $("#auth").onsubmit = async (e) => {
     e.preventDefault();
     if (busy) return;
@@ -710,10 +731,11 @@ function login() {
     const form = e.currentTarget,
       register = e.submitter?.value === "register",
       f = new FormData(form),
-      username = String(f.get("username")).toLowerCase();
+      username = String(f.get("username")).trim().toLowerCase();
+    $("#auth-error").textContent="";
     form.querySelectorAll("button").forEach((b) => (b.disabled = true));
     try {
-      session = await request(
+      const nextSession = await request(
         register ? "/auth/v1/signup" : "/auth/v1/token?grant_type=password",
         {
           email: username + "@players.ringu.example",
@@ -722,12 +744,12 @@ function login() {
         },
         false,
       );
-      if (!session.access_token) {
-        session = null;
-        throw new Error(
-          "가입 확인이 필요합니다. 서버의 가입 설정을 확인해 주세요.",
-        );
+      if (!nextSession.access_token) {
+        const err=new Error((nextSession.user||nextSession).identities?.length===0?"USER_ALREADY_REGISTERED":"AUTH_CONFIRMATION_REQUIRED");
+        err.code=err.message;throw err;
       }
+      clearAccountView();
+      session=nextSession;
       session.expires_at =
         session.expires_at || Date.now() / 1000 + session.expires_in;
       persist();
@@ -735,10 +757,7 @@ function login() {
       await command("sync");
     } catch (err) {
       if ($("#auth-error"))
-        $("#auth-error").textContent =
-          err.status === 400
-            ? "계정 정보 또는 비밀번호를 확인해 주세요."
-            : message(err);
+        $("#auth-error").textContent = authFailureMessage(err,register);
     } finally {
       busy = false;
       form.querySelectorAll("button").forEach((b) => (b.disabled = b.hasAttribute("data-unavailable")));
@@ -746,7 +765,7 @@ function login() {
   };
 }
 function createScreen() {
-  app.innerHTML = `<div class="login panel" style="max-width:650px"><p class="eyebrow">CHOOSE YOUR PATH</p><h2>어떤 모험가가 될까요?</h2><p class="note">직업에 맞는 주스탯과 장비를 성장시키세요.</p><div class="class-choice">${D.CLASSES.map((c, i) => btn(`<div class="portrait" style="background-position:${i * 25}% 0"></div>${c.name}<br><small>${c.stat}</small>`, "chooseClass", c.id, c.id === chosenClass ? "selected" : "")).join("")}</div><p class="note">선택: ${D.CLASSES.find((c) => c.id === chosenClass).name} · 첫 무기와 잠재 주문서를 지급합니다.</p><label>캐릭터 이름<input id="char-name" maxlength="12" placeholder="한글·영문·숫자 2~12자"></label><div class="actions">${btn("모험 시작", "create", "", "gold", true)}</div></div>`;
+  app.innerHTML = `<div class="login panel" style="max-width:650px"><p class="eyebrow">CHOOSE YOUR PATH</p><p class="note">접속 계정: ${esc(session?.user?.email?.split("@")[0]||session?.user?.user_metadata?.username||"현재 계정")}</p><h2>어떤 모험가가 될까요?</h2><p class="note">직업에 맞는 주스탯과 장비를 성장시키세요.</p><div class="class-choice">${D.CLASSES.map((c, i) => btn(`<div class="portrait" style="background-position:${i * 25}% 0"></div>${c.name}<br><small>${c.stat}</small>`, "chooseClass", c.id, c.id === chosenClass ? "selected" : "")).join("")}</div><p class="note">선택: ${D.CLASSES.find((c) => c.id === chosenClass).name} · 첫 무기와 잠재 주문서를 지급합니다.</p><label>캐릭터 이름<input id="char-name" maxlength="12" placeholder="한글·영문·숫자 2~12자"></label><div class="actions">${btn("모험 시작", "create", "", "gold", true)}${btn("다른 계정 만들기 · 로그인", "switchAccount")}</div></div>`;
 }
 function settingsDialog() {
   open(
@@ -862,14 +881,14 @@ document.addEventListener("click", async (e) => {
       modal.close();
       return;
     }
-    if (action === "logout") {
+    if (action === "logout" || action === "switchAccount") {
       try {
         await ensureToken();
         await request("/auth/v1/logout", {});
       } finally {
         session = null;
         persist();
-        state = null;
+        clearAccountView();
         modal.close();
         sounds.pause();
         login();
