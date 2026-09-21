@@ -28,10 +28,11 @@ import {
   weekKey,
   DUNGEONS,
   CLASS_SKILLS,
+  SECOND_SKILLS,
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=potential-6-1";
+} from "./data.mjs?v=raids-skills-2";
 
 const fail = (message) => {
   throw new Error(message);
@@ -295,7 +296,7 @@ export function settle(s, ctx) {
     gold = Math.floor(goldExact);
   s.goldRemainder = goldExact - gold;
   s.gold += gold;
-  const drops = [];
+  const drops = [], loot=[];
   const capacity = Math.max(0, 300 - s.items.length), gearCount = rollCount(kills, EQUIP_DROP, ctx);
   for (let i = 0; i < gearCount; i++) {
     const item = makeItem(
@@ -306,7 +307,7 @@ export function settle(s, ctx) {
       ctx,
     );
     addItem(s, item);
-    drops.push(item.id);
+    drops.push(item.id);loot.push({kind:"gear",item:{...item},quantity:1});
   }
   const fragments =
       rollCount(kills, 0.035, ctx),
@@ -315,6 +316,8 @@ export function settle(s, ctx) {
   s.materials.fragment += fragments;
   s.materials.cube += cubes;
   s.materials.scroll += scrolls;
+  for(const [key,quantity] of [["fragment",fragments],["cube",cubes],["scroll",scrolls]])if(quantity)loot.push({kind:"material",key,quantity});
+  if(loot.length)s.recentLoot=[...loot.reverse().map(x=>({...x,at:ctx.now,stage:s.stage})),...(s.recentLoot||[])].slice(0,5);
   return {
     seconds,
     kills,
@@ -364,9 +367,10 @@ function bossSettle(s, ctx, events) {
   );
   for (let t = b.tick + 1; t <= upto; t++) {
     const active = t <= b.burstUntil;
-    const burst = active ? skill.damage : 1;
-    const crit = ctx.random() < (active && skill.crit ? skill.crit : b.power.crit);
-    const damage = Math.round(b.power.attack * (crit ? b.power.critDamage : 1) * b.power.boss * burst * b.power.cadence);
+    const second = t <= (b.secondUntil||0) ? SECOND_SKILLS[s.classId] : null;
+    const burst = (active ? skill.damage : 1) * (second?.damage||1);
+    const crit = ctx.random() < Math.min(1,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));
+    const damage = Math.round(b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence);
     b.enemyHp = Math.max(0, b.enemyHp - damage);
     b.tick = t;
     const frame = {tick:t, damage, crit, incoming:0, enemyHp:b.enemyHp};
@@ -379,7 +383,7 @@ function bossSettle(s, ctx, events) {
         1,
         Math.floor(
           (boss.attack * (telegraph ? boss.patternMultiplier : 1) - b.power.defense * 0.4) *
-            (guarded ? skill.guard : 1),
+            (guarded ? skill.guard : 1) * (second?.guard||1),
         ),
       );
       b.hp = Math.max(0, b.hp - frame.incoming);
@@ -465,11 +469,24 @@ export function execute(input, command, args = {}, ctx) {
   if (command === "skill") {
     check(s.battle, "NO_BATTLE");
     const b = s.battle;
-    check(ctx.now >= b.skillReady, "SKILL_COOLDOWN");
-    b.skillReady = ctx.now + 30000;
-    b.guardUntil = b.tick + CLASS_SKILLS[s.classId].seconds;
-    b.burstUntil = b.guardUntil;
-    events.push({ type: "skill" });
+    const slot=args.slot===2?2:1;
+    check(slot===1||s.advancement===1,"ADVANCEMENT_REQUIRED");
+    const sk=slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
+    const ready=slot===2?'secondReady':'skillReady';
+    check(ctx.now >= (b[ready]||0),"SKILL_COOLDOWN");
+    b[ready]=ctx.now+sk.cooldown*1000;
+    if(sk.type==='attack'){
+      const frames=[];
+      for(let i=0;i<sk.hits;i++){
+        const crit=ctx.random()<Math.min(1,b.power.crit+(sk.critAdd||0));
+        const damage=Math.round(b.power.attack*sk.damage*b.power.boss*(crit?b.power.critDamage:1));
+        b.enemyHp=Math.max(0,b.enemyHp-damage);frames.push({tick:b.tick,damage,crit,incoming:0,enemyHp:b.enemyHp});
+      }
+      events.push({type:'combat',frames});
+      const reward=bossSettle(s,ctx,events);if(reward)events.push(reward);
+    }else if(slot===2)b.secondUntil=b.tick+sk.seconds;
+    else {b.guardUntil=b.tick+sk.seconds;b.burstUntil=b.guardUntil;}
+    events.push({type:'skill',slot});
     return { state: s, events };
   }
   check(!s.battle, "BATTLE_IN_PROGRESS");

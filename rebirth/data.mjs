@@ -1,5 +1,5 @@
-import { equipmentIdentity } from "./equipment.mjs?v=equipment-alpha-3";
-export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=equipment-alpha-3";
+import { equipmentIdentity } from "./equipment.mjs?v=raids-skills-2";
+export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=raids-skills-2";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -57,12 +57,24 @@ export const SLOTS = [
   "펜던트",
 ];
 export const CLASS_SKILLS = {
-  warrior: { damage: 1.3, guard: 0.18, seconds: 8, description: "8초 동안 받는 피해 82% 감소 · 공격 30% 증가" },
-  mage: { damage: 2.2, guard: 0.7, seconds: 6, description: "6초 동안 공격 120% 증가 · 받는 피해 30% 감소" },
-  archer: { damage: 1.4, guard: 0.55, crit: 1, seconds: 7, description: "7초 동안 확정 치명타 · 공격 40% 증가 · 받는 피해 45% 감소" },
-  rogue: { damage: 1.9, guard: 0.05, seconds: 4, description: "4초 동안 공격 90% 증가 · 받는 피해 95% 감소" },
-  pirate: { damage: 1.65, guard: 0.5, seconds: 8, description: "8초 동안 공격 65% 증가 · 받는 피해 50% 감소" },
+ warrior:{name:'철벽',type:'buff',damage:1.10,guard:.60,seconds:5,cooldown:24,description:'5초 피해 +10% · 받는 피해 40% 감소'},
+ mage:{name:'마력 해방',type:'buff',damage:1.18,guard:.85,seconds:5,cooldown:28,description:'5초 피해 +18% · 받는 피해 15% 감소'},
+ archer:{name:'집중 사격',type:'buff',damage:1.08,guard:.85,critAdd:.10,seconds:5,cooldown:24,description:'5초 피해 +8% · 치명 확률 +10%p · 받는 피해 15% 감소'},
+ rogue:{name:'그림자 습격',type:'buff',damage:1.15,guard:.50,seconds:4,cooldown:22,description:'4초 피해 +15% · 받는 피해 50% 감소'},
+ pirate:{name:'속사',type:'buff',damage:1.12,guard:.80,seconds:5,cooldown:26,description:'5초 피해 +12% · 받는 피해 20% 감소'},
 };
+export const SECOND_SKILLS = {
+ warrior:{name:'대지 분쇄',type:'attack',hits:1,damage:1.5,seconds:0,cooldown:28,description:'즉시 150% 피해 1타 · 치명타·보공 적용'},
+ mage:{name:'마력의 결계',type:'buff',damage:1.05,guard:.95,seconds:6,cooldown:32,description:'6초 피해 +5% · 받는 피해 5% 감소'},
+ archer:{name:'약점 포착',type:'buff',damage:1,guard:1,critAdd:.10,critDamageAdd:.15,seconds:6,cooldown:30,description:'6초 치명 확률 +10%p · 치명 피해 +15%p'},
+ rogue:{name:'그림자 처형',type:'attack',hits:2,damage:.9,critAdd:.10,seconds:0,cooldown:30,description:'즉시 90% 피해 2타 · 이 스킬 치명 확률 +10%p'},
+ pirate:{name:'전투 지휘',type:'buff',damage:1.04,guard:.95,seconds:6,cooldown:30,description:'6초 피해 +4% · 받는 피해 5% 감소'},
+};
+export const RAID_BOSSES = [
+ {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:1500,fragment:12,cube:1,highCubeChance:0,gearLevel:60,dropChance:.05,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
+ {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:4500,fragment:30,cube:2,highCubeChance:.10,gearLevel:140,dropChance:.05,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
+];
+export const raidBoss = id => RAID_BOSSES.find(b=>b.id===Number(id));
 export const ADVANCEMENTS = {warrior:"가디언",mage:"아크메이지",archer:"레인저",rogue:"나이트워커",pirate:"캡틴"};
 export const EXPEDITION = {name:"여명의 폐허",background:"ui/dawn-ruins.svg"};
 export const DUNGEONS = {

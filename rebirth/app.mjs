@@ -1,7 +1,7 @@
-import * as D from "./data.mjs?v=potential-6-1";
-import { installCurrencyIcons } from "./currency-icons.mjs?v=currency-art-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=equipment-alpha-3";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=auto-equip-2";
+import * as D from "./data.mjs?v=raids-skills-2";
+import { installCurrencyIcons } from "./currency-icons.mjs?v=raids-skills-2";
+import equipmentBounds from "./equipment-bounds.mjs?v=raids-skills-2";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=raids-skills-2";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -179,6 +179,8 @@ const errors = {
   PARTY_NOT_JOINABLE: "이미 출발했거나 종료된 파티입니다.",
   PARTY_DEFEATED: "쓰러진 상태입니다. 부활 가능 여부를 확인해 주세요.",
   PARTY_REVIVE_UNAVAILABLE: "부활은 쓰러졌을 때 전투당 한 번 사용할 수 있어요.",
+  RAID_LIMIT:"이 협동 보스는 오늘 2회 클리어했습니다. 연습으로 도전할 수 있어요.",
+  ADVANCEMENT_REQUIRED:"2차 전직 후 사용할 수 있어요.",
   ALREADY_ADVANCED: "이미 전직을 완료했어요.",
   SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
 };
@@ -341,6 +343,7 @@ function render() {
     }[tab]();
   app.innerHTML = shell(content);
   refreshLevelRequirements();
+  if(state?.battle||state?.partyRoom)updateCombatClock();
   if (state.pendingCube && !modal.open) cubeChoice();
 }
 function hunt() {
@@ -350,7 +353,7 @@ function hunt() {
     r = huntingRate(state),
     b = state.battle,
     boss = b && battleEnemy(b);
-  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : requiredLevel(st.level) + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : "다음 처치까지 약 " + r.seconds + "초"}</small></div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : !r.survives ? `<p class="error">생존 불가 · 하위 사냥터를 선택하세요</p>` : ""}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${requiredLevel(st.dropLevel)}</b></div></div><div class="actions">${boss ? btn(D.CLASSES.find((c) => c.id === state.classId).skill + " · 30초", "skill", "", "gold", true) : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">${D.CLASS_SKILLS[state.classId].description}<br>재사용 대기 30초 · 남은 전투 ${boss.seconds-b.tick}초</p>` : ""}</div></section></div><aside><div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">일반 사냥으로 레벨을 올리고 보스에게서 장비와 제작 재료를 얻으세요. 상위 사냥터는 경험치 중심으로 성장합니다.</p><div class="row wrap">${Object.entries(
+  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : requiredLevel(st.level) + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : "다음 처치까지 약 " + r.seconds + "초"}</small></div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : !r.survives ? `<p class="error">생존 불가 · 하위 사냥터를 선택하세요</p>` : ""}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${requiredLevel(st.dropLevel)}</b></div></div><div class="actions">${boss ? combatSkillButtons() : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside><div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">일반 사냥으로 레벨을 올리고 보스에게서 장비와 제작 재료를 얻으세요. 상위 사냥터는 경험치 중심으로 성장합니다.</p><div class="row wrap">${Object.entries(
     D.MATERIALS,
   )
     .map(
@@ -377,7 +380,7 @@ function regions() {
 function character() {
   const c = D.CLASSES.find((x) => x.id === state.classId),
     p = power(state);
-  return `${header("캐릭터", (state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험가 랭킹","ranking")}${btn("모험 수첩","journal")}</div><section class="panel pad advancement-card"><div><strong>${state.advancement?D.ADVANCEMENTS[c.id]+" 전직 완료":"다음 전직 · "+D.ADVANCEMENTS[c.id]}</strong><p class="note">${requiredLevel(60)} · 광산왕 크로투스 처치 · 공격력 +8% / HP +10%</p></div>${disabledBtn(state.advancement?"완료":"전직","advance","",!!state.advancement||state.level<60||!state.cleared.includes(8),"gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+  return `${header("캐릭터", (state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험가 랭킹","ranking")}${btn("모험 수첩","journal")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${state.advancement?D.ADVANCEMENTS[c.id]+" 전직 완료":"다음 전직 · "+D.ADVANCEMENTS[c.id]}</strong><p class="note">${requiredLevel(60)} · 광산왕 크로투스 처치 · 공격력 +8% / HP +10%</p></div>${disabledBtn(state.advancement?"완료":"전직","advance","",!!state.advancement||state.level<60||!state.cleared.includes(8),"gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
     state.stats,
   )
     .map(
@@ -519,9 +522,17 @@ function disabledBtn(label,action,arg,blocked=false,cls="") {
   const html=btn(label,action,arg,cls,true);
   return blocked ? html.replace("<button ","<button disabled data-unavailable ") : html;
 }
+function combatSkillButtons(party=false) {
+ const me=party?partyRoom?.members.find(m=>m.mine):null;
+ return [1,2].map(slot=>{const sk=slot===1?D.CLASS_SKILLS[state.classId]:D.SECOND_SKILLS[state.classId],locked=slot===2&&!state.advancement;
+ return '<button class="gold skill-button" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(locked||me?.hp<=0?'disabled':'')+' title="'+esc(sk.description)+'">'+(locked?'2차 전직 후 · ':slot+'차 · ')+sk.name+'</button>';}).join('');
+}
+function skillGuide(){return '<div class="skill-guide">'+[1,2].map(slot=>{const sk=slot===1?D.CLASS_SKILLS[state.classId]:D.SECOND_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+(slot===2&&!state.advancement?' · 전직 후 해금':'')+'</small></p>';}).join('')+'</div>';}
+function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row">'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">◆</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
+
 function bosses() {
   const menu=`<div class="subnav">${[["daily","일일"],["weekly","주간"],["party","협동"],["dungeon","던전·탐사"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
-  if(bossTab==="party")return header("협동 토벌","2–4인 · 공동 HP")+menu+partyLobby();
+  if(bossTab==="party")return header("협동 토벌","1–4인 입장 · 4인 기준 난이도")+menu+partyLobby();
   if(bossTab==="dungeon")return header("던전과 탐사","DAILY ADVENTURE")+menu+dungeonCards();
   return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">보스별 ${bossTab==="daily"?"하루":"주"} 1회 보상 · 실패는 재도전 무제한 · 연습 무제한<br>${bossTab==="daily"?"매일":"매주 월요일"} 00:00 초기화 (한국시간)</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
 }
@@ -533,22 +544,21 @@ function bossCard(b) {
 function dungeonCards() {
   return `<p class="note compact-note">던전별 하루 1회 클리어 보상 · 실패 시 무제한 재도전 · 매일 00:00 초기화</p><div class="dungeon-cards">${["cube","material","relic"].map(kind=>{
     const d=D.DUNGEONS[kind],claimed=state.dungeonClaims[kind]===D.dayKey(Date.now()),locked=kind==="relic"?state.level<200||!state.cleared.includes(29):state.level<20;
-    return `<section class="panel dungeon-card ${kind==="relic"?"relic-card":""}"><div class="row spread"><strong>${kind==="relic"?"여명의 폐허":kind==="cube"?"큐브 수련":"재료 수련"}</strong><span class="count-badge">남은 ${claimed?0:1}/1</span></div><small>${requiredLevel(kind==="relic"?200:20)}${kind==="relic"?" · 멸신왕 처치 후":""}</small><p>${kind==="relic"?d.reward.replace("200레벨",requiredLevel(200,"200레벨")):d.reward}</p>${disabledBtn(claimed?"오늘 완료":locked?"아직 미해금":"도전","dungeon",kind,claimed||locked,"gold")}</section>`;
+    return `<section class="panel dungeon-card ${kind==="relic"?"relic-card":""}"><div class="row spread"><strong>${kind==="relic"?"여명의 폐허":kind==="cube"?"큐브 수련":"재료 수련"}</strong><span class="count-badge">남은 ${claimed?0:1}/1</span></div><small>${requiredLevel(kind==="relic"?200:20)}${kind==="relic"?" · 멸신왕 처치 후":""} · 전투 제한 ${d.seconds}초</small><p>${kind==="relic"?d.reward.replace("200레벨",requiredLevel(200,"200레벨")):d.reward}</p>${disabledBtn(claimed?"오늘 완료":locked?"아직 미해금":"도전","dungeon",kind,claimed||locked,"gold")}</section>`;
   }).join("")}</div>`;
 }
 function partyBossPreview(b) {
-  const claimed=state.bossClaims[b.id]===D.weekKey(Date.now());
-  return `<div class="party-preview" style="background-image:url('${D.REGIONS[b.region].background}')"><div class="party-face">${bossMarkup(b)}</div><div><strong>${b.name}</strong><p>${requiredLevel(b.level)} · 2~4인 · 3분</p><span class="count-badge">이번 주 남은 ${claimed?0:1}/1</span></div></div>`;
+ const claim=state.raidClaims?.[b.id],used=claim?.day===D.dayKey(Date.now())?claim.count:0;
+ return `<div class="party-preview"><div class="party-face">${bossMarkup(b)}</div><div><strong>${b.name}</strong><p>레벨 제한 없음 · 1~4인 입장<br>전투 제한 ${b.seconds}초 · HP ${fmt(b.hp)}</p><span class="count-badge">오늘 남은 ${Math.max(0,2-used)}/2</span></div></div><p class="note">${b.recommended}<br>인원이 적어도 HP·공격력 동일</p><p class="note">개인 보상: ${fmt(b.gold)} G · 파편 ${b.fragment} · 일반 큐브 ${b.cube}<br>${b.gearLevel}레벨 보스 장비 ${pct(b.dropChance)}${b.highCubeChance?' · 상급 큐브 '+pct(b.highCubeChance):''}</p>`;
 }
 function partyLobby() {
-  const chosen=D.BOSSES.find(b=>b.id===partyBossId&&b.weekly)||D.BOSSES.find(b=>b.weekly);
-  partyBossId=chosen.id;
-  return `<p class="note compact-note">2~4명이 함께 공격 · 전투 3분 · 개인 주간 보스와 보상 횟수 공유<br>공격 자동 · 직업 스킬 직접 사용 · 생존한 동료가 있으면 1회 HP 30% 부활</p><div class="panel pad"><div id="party-boss-preview">${partyBossPreview(chosen)}</div><div class="row"><select id="party-boss" data-required-level="${chosen.level}">${D.BOSSES.filter(b=>b.weekly).map(b=>`<option value="${b.id}" data-required-level="${b.level}" ${b.id===partyBossId?"selected":""}>Lv.${b.level} ${b.name}</option>`).join("")}</select>${btn("파티 만들기","partyCreate","","gold",true)}</div><label class="practice-check"><input id="party-practice" type="checkbox" ${partyPractice?"checked":""}>연습 파티 (보상 없음)</label></div><div class="row spread"><h3>모집 중인 파티</h3>${btn("새로고침","partyRefresh")}</div><div class="stack">${partyRooms.length?partyRooms.map(r=>`<section class="panel pad row spread"><div class="room-boss-face">${bossMarkup(D.BOSSES[r.bossId])}</div><div class="room-boss-info"><strong>${esc(r.name)}</strong><br><small>${requiredLevel(D.BOSSES[r.bossId].level)} · ${r.count}/4명 · ${r.practice?"연습":"보상 도전"}</small></div>${disabledBtn("참가","partyJoin",r.id,Number(r.count)>=4)}</section>`).join(""):'<div class="empty">모집 중인 파티가 없어요. 먼저 파티를 만들어 보세요.</div>'}</div>`;
+ const chosen=D.raidBoss(partyBossId)||D.RAID_BOSSES[0];partyBossId=chosen.id;
+ return `<p class="note compact-note">주간 보스와 별도 콘텐츠 · 보스별 하루 2회 클리어 보상<br>한국시간 매일 00:00 초기화 · 실패·연습 횟수 차감 없음<br>1~4인 입장 · 4인 기준 고정 난이도 · 동료 생존 시 1회 HP 30% 부활</p><div class="panel pad"><div id="party-boss-preview">${partyBossPreview(chosen)}</div><div class="row"><select id="party-boss">${D.RAID_BOSSES.map(b=>`<option value="${b.id}" ${b.id===partyBossId?'selected':''}>${b.name}</option>`).join('')}</select>${btn('파티 만들기','partyCreate','','gold',true)}</div><label class="practice-check"><input id="party-practice" type="checkbox" ${partyPractice?'checked':''}>연습 파티 (보상 없음)</label></div><div class="row spread"><h3>모집 중인 파티</h3>${btn('새로고침','partyRefresh')}</div><div class="stack">${partyRooms.filter(r=>D.raidBoss(r.bossId)).map(r=>`<section class="panel pad row spread"><div class="room-boss-face">${bossMarkup(D.raidBoss(r.bossId))}</div><div class="room-boss-info"><strong>${esc(r.name)}</strong><br><small>레벨 제한 없음 · ${r.count}/4명 · ${r.practice?'연습':'보상 도전'}</small></div>${disabledBtn('참가','partyJoin',r.id,Number(r.count)>=4)}</section>`).join('')||'<div class="empty">모집 중인 파티가 없습니다. 혼자 출발할 수도 있어요.</div>'}</div>`;
 }
 function partyPanel() {
-  if(!partyRoom)return header("협동 토벌")+`<div class="panel pad">파티 정보를 불러오는 중…${btn("다시 불러오기","partyRefresh")}</div>`;
-  const r=partyRoom,b=D.BOSSES[r.bossId],me=r.members.find(m=>m.mine),total=r.members.reduce((n,m)=>n+Number(m.damage),0),fighting=r.status==="fighting";
-  return `${header(b.name,"CO-OP RAID · "+(r.practice?"연습":"보상 도전"))}<section class="panel"><div class="arena party-arena" data-class="${state.classId}" style="background-image:url('ui/dawn-ruins.svg')"><div class="battle-head"><small>${fighting?"남은 시간 "+Math.max(0,r.seconds-r.tick)+"초":"파티원 모집 중 · "+r.members.filter(m=>!m.departed).length+"/4명"}</small><h3>${b.name}</h3>${fighting?`<div class="hp"><i style="width:${r.hp/r.maxHp*100}%"></i></div><small>${fmt(r.hp)} / ${fmt(r.maxHp)}</small>`:""}</div><div class="monster">${bossMarkup(b)}</div><div class="combat-status"><span class="pill">${fighting?b.pattern+" · "+(b.patternEvery-r.tick%b.patternEvery)+"초 후":"파티장이 출발할 수 있어요"}</span></div></div><div class="pad"><div class="party-members">${r.members.map(m=>`<div class="party-member ${m.hp<=0?"fallen":""}"><div class="row spread"><strong>${esc(m.name)}${m.mine?" · 나":""}</strong><small>${m.departed?"이탈":m.hp<=0?"쓰러짐":D.CLASSES.find(c=>c.id===m.classId)?.name}</small></div><div class="hp"><i style="width:${Math.max(0,m.hp/m.maxHp*100)}%"></i></div><small>${fmt(m.hp)}/${fmt(m.maxHp)} · 기여 ${total?(Number(m.damage)/total*100).toFixed(1):"0.0"}%</small></div>`).join("")}</div><div class="actions">${fighting?disabledBtn(me?.hp<=0?(me.revived?"부활 사용 완료":"부활 · 30% HP"):D.CLASSES.find(c=>c.id===state.classId).skill+(me.skillReady>r.tick?" · "+(me.skillReady-r.tick)+"초":""),me?.hp<=0?"partyRevive":"partySkill","",me?.hp<=0?me.revived:me.skillReady>r.tick,"gold"):r.isHost?disabledBtn("출발","partyStart","",r.members.length<2,"gold"):""}${btn("파티 나가기","partyLeaveConfirm","","danger")}</div><p class="note">전투 중 일반 사냥은 멈춥니다. 종료·퇴장 후 자동사냥이 켜집니다.${!fighting?" · 대기실은 10분 후 종료됩니다.":""}</p></div></section>`;
+ if(!partyRoom)return header('협동 토벌')+'<div class="panel pad">파티 정보를 불러오는 중…</div>';
+ const r=partyRoom,b=D.raidBoss(r.bossId)||D.BOSSES[r.bossId],me=r.members.find(m=>m.mine),total=r.members.reduce((n,m)=>n+Number(m.damage),0),fighting=r.status==='fighting';
+ return `${header(b.name,'CO-OP RAID · '+(r.practice?'연습':'보상 도전'))}<section class="panel"><div class="arena party-arena" data-class="${state.classId}" style="background-image:url('ui/dawn-ruins.svg')"><div class="battle-head"><small>전투 제한 ${b.seconds}초 · <b id="battle-timer">${fighting?'남은 '+Math.max(0,r.seconds-r.tick)+'초':'파티원 모집 중'}</b></small><h3>${b.name}</h3>${fighting?`<div class="hp"><i style="width:${r.hp/r.maxHp*100}%"></i></div><small>${fmt(r.hp)} / ${fmt(r.maxHp)}</small>`:''}</div><div class="monster">${bossMarkup(b)}</div><div class="combat-status"><span class="pill">${fighting?b.pattern:'1명부터 출발 가능 · 4인 기준 난이도'}</span></div></div><div class="pad"><div class="party-members">${r.members.map(m=>`<div class="party-member ${m.hp<=0?'fallen':''}"><div class="row spread"><strong>${esc(m.name)}${m.mine?' · 나':''}</strong><small>${m.departed?'이탈':m.hp<=0?'쓰러짐':D.CLASSES.find(c=>c.id===m.classId)?.name}</small></div><div class="hp"><i style="width:${Math.max(0,m.hp/m.maxHp*100)}%"></i></div><small>${fmt(m.hp)}/${fmt(m.maxHp)} · 기여 ${total?(Number(m.damage)/total*100).toFixed(1):'0.0'}%</small></div>`).join('')}</div><div class="actions">${fighting?(me?.hp<=0?disabledBtn(me.revived?'부활 사용 완료':'부활 · HP 30%','partyRevive','',me.revived,'gold'):combatSkillButtons(true)):r.isHost?btn('출발 · '+r.members.filter(m=>!m.departed).length+'명','partyStart','','gold'):''}${btn('파티 나가기','partyLeaveConfirm','','danger')}</div>${skillGuide()}<p class="note">전투 중 일반 사냥 중지 · 종료 후 자동사냥 재개</p></div></section>`;
 }
 function supplies(kind) {
   const keys=kind==="consumables"?["cube","highCube","scroll","expand"]:["fragment"];
@@ -670,7 +680,7 @@ function showEvents(events) {
       if (arena && !settings.low) {
         const flash = document.createElement("div");
         flash.className = "skill-burst " + state.classId;
-        flash.textContent = D.CLASSES.find(c=>c.id===state.classId).skill;
+        flash.textContent = (e.slot===2?D.SECOND_SKILLS:D.CLASS_SKILLS)[state.classId].name;
         arena.append(flash);
         setTimeout(()=>flash.remove(), 900);
       }
@@ -696,7 +706,7 @@ function reward() {
   const r = state.lastReward;
   const enemy = r && (r.type === "dungeon" ? D.DUNGEONS[r.dungeon] : r.type === "boss" ? D.BOSSES[r.bossId] : null);
   if (!r) return toast("새로 정산된 보상이 없습니다.");
-  if(r.type==="party") {const b=D.BOSSES[r.bossId],total=(r.members||[]).reduce((n,m)=>n+Number(m.damage),0);return open(r.won?"협동 토벌 완료":"협동전 종료",`${bossMarkup(b,"big-item")}<h3>${b.name}</h3><p>${r.practice?"연습 · 보상 없음":r.rewarded?"지역 재료 "+r.materials+" · 장비 "+r.items.length+" · 큐브 3 · 상급 큐브 1":"보상 횟수 차감 없음"}</p>${r.stored?'<p>장비는 보관함에 지급됐습니다.</p>':""}<div class="stack">${(r.members||[]).map(m=>`<div class="row spread"><span>${esc(m.name)}</span><b>기여 ${total?(m.damage/total*100).toFixed(1):"0.0"}%</b></div>`).join("")}</div><p class="note">자동사냥이 다시 시작됐습니다.</p>${btn("확인","ack","","gold",true)}`);}
+  if(r.type==="party") {const b=D.raidBoss(r.bossId)||D.BOSSES[r.bossId],total=(r.members||[]).reduce((n,m)=>n+Number(m.damage),0);return open(r.won?"협동 토벌 완료":"협동전 종료",`${bossMarkup(b,"big-item")}<h3>${b.name}</h3><p>${r.practice?"연습 · 보상 없음":r.rewarded?(r.raid?fmt(r.gold)+" G · 파편 "+r.fragment+" · 큐브 "+r.cube+" · 상급 큐브 "+r.highCube:"지역 재료 "+r.materials+" · 큐브 3 · 상급 큐브 1")+" · 장비 "+r.items.length:"보상 횟수 차감 없음"}</p>${r.stored?'<p>장비는 보관함에 지급됐습니다.</p>':""}<div class="stack">${(r.members||[]).map(m=>`<div class="row spread"><span>${esc(m.name)}</span><b>기여 ${total?(m.damage/total*100).toFixed(1):"0.0"}%</b></div>`).join("")}</div><p class="note">자동사냥이 다시 시작됐습니다.</p>${btn("확인","ack","","gold",true)}`);}
 
   open(
     enemy ? (r.won ? "토벌 완료" : "도전 종료") : "사냥 보상",
@@ -861,7 +871,7 @@ document.addEventListener("click", async (e) => {
     if (action === "partyRefresh") return await command(state.partyRoom?"partySync":"partyList",{},true);
     if (action === "partyCreate") return await command("partyCreate",{bossId:Number($("#party-boss").value),practice:$("#party-practice").checked});
     if (action === "partyJoin") return await command("partyJoin",{room:arg});
-    if (["partyStart","partySkill","partyRevive","partyLeave"].includes(action)) {const result=await command(action);if(action==="partyLeave")modal.close();return result;}
+    if (["partyStart","partySkill","partyRevive","partyLeave"].includes(action)) {const result=await command(action,action==="partySkill"?{slot:Number(arg)||1}:{});if(action==="partyLeave")modal.close();return result;}
     if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
     if (action === "advance") return await command("advance");
@@ -923,7 +933,7 @@ document.addEventListener("click", async (e) => {
     }
     if (action === "toggleHunt")
       return await command("hunt", { enabled: !state.hunting });
-    if (action === "skill") return await command("skill");
+    if (action === "skill") return await command("skill",{slot:Number(arg)||1});
     if (action === "reward") return reward();
     if (action === "ack") {
       await command("ack");
@@ -1075,7 +1085,7 @@ document.addEventListener("change", async (e) => {
     $("#craft-preview-"+region).innerHTML=craftPreview(region);
     return;
   }
-  if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.BOSSES[partyBossId]);e.target.dataset.requiredLevel=D.BOSSES[partyBossId].level;refreshLevelRequirements();return;}
+  if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.raidBoss(partyBossId));return;}
   if(e.target.id==="party-practice") {partyPractice=e.target.checked;return;}
   if (!e.target.dataset.filter) return;
   if (e.target.dataset.filter === "slot") filterSlot = e.target.value;
@@ -1103,7 +1113,7 @@ window.addEventListener("popstate", () => {
 setInterval(() => {
   if (!session || document.hidden || busy || !state || !navigator.onLine || Date.now() < retryAt) return;
   const partyLobbyOpen = tab === "boss" && bossTab === "party";
-  const due = state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : 30000;
+  const due = state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;
   if (Date.now() - lastSync > due) command(state.partyRoom?"partySync":partyLobbyOpen?"partyList":"sync", {}, true).catch(() => {});
 }, 1000);
 function strike(arena, frame = null) {
@@ -1127,6 +1137,7 @@ setInterval(() => {
   if (!state || (!state.partyRoom && tab !== "hunt") || view !== "game" || document.hidden || modal.open) { combatFrames.length=0; return; }
   const arena = $(".arena");
   if (!arena || connectionLost || Date.now()-lastSync>35000) return;
+  updateCombatClock();
   if(state.partyRoom && partyRoom?.status==="fighting") {if(Date.now()-lastVisualHit>=1000){lastVisualHit=Date.now();strike(arena);} return;}
   if (!state.battle && state.hunting) {
     const rate=huntingRate(state), elapsed=(Date.now()-lastSync)/1000;
@@ -1144,13 +1155,19 @@ setInterval(() => {
     const pattern=$("#pattern-info");
     if(pattern) { pattern.textContent=enemy.pattern+" · "+remaining+"초 후"; pattern.classList.toggle("pattern-warning",remaining<=3); }
     arena.classList.toggle("danger-pattern",remaining<=3);
-    const button=arena.closest(".panel")?.querySelector('[data-action="skill"]');
-    const cooldown=Math.max(0,Math.ceil((b.skillReady-b.started-b.tick*1000-(Date.now()-lastSync))/1000));
-    if(button) {button.disabled=busy||cooldown>0;button.textContent=D.CLASSES.find(c=>c.id===state.classId).skill+(cooldown ? " · "+cooldown+"초" : " · 사용 가능");}
+
   }
   const frame=combatFrames.shift();
   if(frame) strike(arena,frame);
 }, 500);
+function updateCombatClock(){
+ const party=!!state.partyRoom,r=party?partyRoom:state.battle;if(!r)return;
+ const seconds=party?r.seconds:battleEnemy(r).seconds;
+ const tick=Math.min(seconds,r.tick+Math.max(0,Math.floor((Date.now()-lastSync)/1000)));
+ const timer=$('#battle-timer');if(timer)timer.textContent='남은 '+Math.max(0,seconds-tick)+'초 / '+seconds+'초';
+ const me=party?r.members.find(m=>m.mine):r;
+ document.querySelectorAll('[data-skill-slot]').forEach(button=>{const slot=Number(button.dataset.skillSlot),sk=slot===1?D.CLASS_SKILLS[state.classId]:D.SECOND_SKILLS[state.classId];const ready=slot===1?(party?me?.skillReady:r.skillReady):(party?me?.secondReady:r.secondReady);const remain=party?Math.max(0,(ready||0)-tick):Math.max(0,Math.ceil(((ready||0)-r.started-tick*1000)/1000));const locked=slot===2&&!state.advancement;button.disabled=busy||locked||remain>0||(party&&me?.hp<=0)||tick>=seconds;button.textContent=slot+'차 · '+sk.name+(locked?' · 전직 필요':remain?' · '+remain+'초':' · 사용 가능');});
+}
 function unavailable() {
   app.innerHTML='<div class="login panel"><p class="eyebrow">링구 RPG</p><h2>잠시 연결을 기다리고 있어요</h2><p class="note">연결이 복구되면 저장된 모험을 이어갈 수 있어요.</p><div class="actions">'+btn("다시 연결","reconnect","","gold")+btn("로그아웃","logout")+'</div></div>';
 }

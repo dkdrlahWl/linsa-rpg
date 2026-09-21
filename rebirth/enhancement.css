@@ -38,3 +38,5 @@ dialog.market-picker-dialog{width:min(96vw,940px);max-width:940px;max-height:92d
 
 /* Highlight only requirements above the current character level. */
 .required-level{font:inherit}.level-unmet{color:#ff827b!important}.enhance-dialog .level-unmet{color:#b92d32!important}.level-unmet option:not(.level-unmet){color:#eadcbd}option.level-unmet{color:#d52f36!important}
+
+.skill-guide{font-size:12px;line-height:1.6;color:#d6c9ad}.skill-guide p{margin:8px 0}.skill-button{min-height:44px}.recent-loot{margin-top:14px}.loot-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #79613a55}.loot-row .gear-art,.loot-row img{width:44px;height:44px;object-fit:contain}.loot-row small{display:block;color:#b5a98d;font-size:11px}.loot-icon{width:44px;text-align:center;color:#d9b568}.party-face img{max-width:100%;max-height:150px}
