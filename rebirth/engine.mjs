@@ -125,6 +125,8 @@ export function power(s) {
     goldGain: 0,
     xpGain: 0,
   };
+  const fixedStats = {STR:0, DEX:0, INT:0, LUK:0};
+  let equipmentStat = 0;
   const sets = {};
   let stars = 0;
   for (const id of Object.values(s.equipped)) {
@@ -135,10 +137,13 @@ export function power(s) {
         1 + it.stars * 0.055 + Math.max(0, it.stars - 15) ** 1.4 * 0.025,
       base = (5 + it.level ** 1.28) * (it.boss ? 1.22 : 1);
     flat += base * (it.slot === 0 ? 0.9 : 0.11) * growth;
-    primary += Math.floor((2 + it.level * 0.5) * growth);
+    const addedStat = Math.floor((2 + it.level * 0.5) * growth);
+    equipmentStat += addedStat;
+    primary += addedStat;
     hp += it.level * 4;
     defense += it.level * 0.2;
     for (const line of it.lines) {
+      if (line.key.startsWith("flat") && Object.hasOwn(fixedStats, line.key.slice(4))) fixedStats[line.key.slice(4)] += line.value;
       if (line.key === "flat" + cl.stat) primary += line.value;
       else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
     }
@@ -162,7 +167,16 @@ export function power(s) {
   if (s.classId === "mage") flat *= 1.06;
   const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
   if (s.advancement === 1) { flat *= 1.08; hp = Math.floor(hp * 1.1); }
+  const dps = flat * (1 + crit * (critDamage - 1)) * cadence;
+  const stats = Object.fromEntries(Object.keys(fixedStats).map(key => {
+    const growth = key === cl.stat ? s.level * 2 + equipmentStat : 0;
+    const beforePercent = s.stats[key] + growth + fixedStats[key];
+    return [key, {base:s.stats[key], growth, fixed:fixedStats[key], percent:pct[key], total:Math.floor(beforePercent * (1+pct[key]/100))}];
+  }));
   return {
+    stats,
+    bonuses: {...pct},
+    combatPower: Math.floor(dps * (1+pct.boss/100) + hp * 0.1 + Math.floor(defense) * 5),
     attack: Math.floor(flat),
     primary: Math.floor(primary),
     hp,
@@ -174,7 +188,7 @@ export function power(s) {
     stars,
     goldGain: pct.goldGain,
     xpGain: pct.xpGain,
-    dps: flat * (1 + crit * (critDamage - 1)) * cadence,
+    dps,
   };
 }
 export function huntingRate(s) {

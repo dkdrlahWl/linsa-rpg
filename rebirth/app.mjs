@@ -1,7 +1,7 @@
 import * as D from "./data.mjs?v=potential-6-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=currency-art-1";
 import equipmentBounds from "./equipment-bounds.mjs?v=equipment-alpha-3";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=potential-6-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=character-stats-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -296,7 +296,7 @@ function header(title, kicker = "새로운 여정") {
 }
 function shell(content) {
   const c = D.CLASSES.find((c) => c.id === state.classId);
-  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<br><small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><br><small>Lv.${state.level} · ${c.name}</small></div><div class="money">${fmt(state.gold)} G<br><small>공격력 ${fmt(power(state).attack)}</small></div>${btn("설정", "settings")}</header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
+  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<br><small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><br><small>Lv.${state.level} · ${c.name}</small></div><div class="money">${fmt(state.gold)} G<br><small>전투력 ${fmt(power(state).combatPower)}</small></div>${btn("설정", "settings")}</header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
     ["hunt", "사냥"],
     ["character", "캐릭터"],
     ["gear", "장비"],
@@ -366,11 +366,11 @@ function character() {
   )
     .map(
       (k) =>
-        `<div class="${k === c.stat ? "primary" : ""}"><small>${k}</small><b>${fmt(state.stats[k])}</b></div>`,
+        `<div class="${k === c.stat ? "primary" : ""}"><small>${k}${k===c.stat?" · 주스탯":""}</small><b>${fmt(p.stats[k].total)}</b></div>`,
     )
     .join(
       "",
-    )}</div><p class="note">남은 포인트 ${state.points} · 장비 포함 주스탯 ${fmt(p.primary)}</p><div class="actions">${btn("직접 분배", "stats")}${btn("주스탯 자동 분배", "autoStats", "", "gold", true)}${btn("초기화", "resetStats")}</div></div></section><div><section class="panel pad"><div class="metrics"><div><small>공격력</small><b>${fmt(p.attack)}</b></div><div><small>최대 HP</small><b>${fmt(p.hp)}</b></div><div><small>스타포스</small><b>${p.stars}성</b></div></div><p class="note">치명타 ${pct(p.crit)} · 치명타 피해 ${Math.round(p.critDamage * 100)}% · 보스 피해 +${Math.round((p.boss - 1) * 100)}%</p></section><section class="panel pad"><h3>장착 장비</h3><div class="gear-grid" style="margin-top:12px">${D.SLOTS.map(
+    )}</div><p class="note">장비·잠재를 합산한 최종 스탯 · 남은 포인트 ${state.points}</p><div class="actions">${btn("직접 분배", "stats")}${btn("주스탯 자동 분배", "autoStats", "", "gold", true)}${btn("초기화", "resetStats")}</div></div></section><div>${characterMetrics(p,c)}<section class="panel pad"><h3>장착 장비</h3><div class="gear-grid" style="margin-top:12px">${D.SLOTS.map(
     (name, slot) => {
       const it = state.items.find((x) => x.id === state.equipped[slot]);
       return btn(
@@ -385,6 +385,11 @@ function character() {
   ).join(
     "",
   )}</div><p class="note">같은 레벨 보스 장비 3부위: 주스탯 +5%<br>6부위: 공격력 +5% · 9부위: 보스 피해 +10%</p></section></div></div>`;
+}
+function characterMetrics(p,c) {
+  const bonus = v => "+" + pct(v / 100);
+  const rows = [["최종 공격력",fmt(p.attack)],["공격력 보너스",bonus(p.bonuses.attack)],["보스 피해",bonus(p.bonuses.boss)],["치명타 확률",pct(p.crit)],["치명타 피해",pct(p.critDamage)],["최대 HP",fmt(p.hp)],["HP 보너스",bonus(p.bonuses.hp)],["방어력",fmt(p.defense)],["방어력 보너스",bonus(p.bonuses.defense)],["골드 획득",bonus(p.goldGain)],["경험치 획득",bonus(p.xpGain)],["스타포스",p.stars+"성"]];
+  return `<section class="panel pad character-summary"><div class="combat-power"><span>종합 전투력</span><strong>${fmt(p.combatPower)}</strong><small>현재 장착 장비 · 잠재 · 세트 효과 반영</small></div><div class="character-metrics">${rows.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join("")}</div><p class="note">공격력·HP·방어력은 직업과 전직 효과까지 적용한 최종 수치입니다. 보너스 %는 잠재와 세트 효과의 합계입니다.</p><details class="combat-formula"><summary>전투력 계산 기준</summary><p>⌊평균 초당 피해 × 보스 피해 배율 + HP × 0.1 + 방어력 × 5⌋</p><p>평균 초당 피해는 공격력 × [1 + 치명타 확률 × (치명타 피해 배율 − 1)] × 공격 속도입니다. 해적 공격 속도는 1.08배, 나머지는 1배입니다.</p><p>고정 주스탯과 주스탯 %는 최종 공격력에 이미 반영됩니다. 골드·경험치 획득은 전투력에 포함하지 않습니다. 일시적인 전투 스킬은 제외한 비교용 수치입니다.</p></details></section><section class="panel pad stat-breakdown"><h3>스탯 상세</h3><p class="note">(기본 + 성장·장비 + 고정 잠재) × (1 + 스탯 %)<br>현재 직업은 ${c.stat}이 공격력에 반영됩니다.</p><div class="stat-detail-grid">${Object.entries(p.stats).map(([key,v])=>`<div class="stat-detail ${key===c.stat?"primary":""}"><div><strong>${key}</strong><b>${fmt(v.total)}</b></div><dl><dt>기본</dt><dd>${fmt(v.base)}</dd><dt>성장·장비</dt><dd>+${fmt(v.growth)}</dd><dt>고정 잠재</dt><dd>+${fmt(v.fixed)}</dd><dt>스탯 보너스</dt><dd>${bonus(v.percent)}</dd></dl></div>`).join("")}</div></section>`;
 }
 function itemMarkup(it) {
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>Lv.${it.level} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? it.lines.map(l=>D.RARITIES[l.grade]).join(" · ") : "잠재 미개방"}</span></div>`;
