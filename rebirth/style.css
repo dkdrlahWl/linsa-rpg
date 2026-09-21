@@ -899,3 +899,12 @@ button { touch-action:manipulation; }
   .combat-status { bottom:10px;left:12px;right:12px;font-size:12px; }
   .boss-banner .boss-sprite { width:145px;height:145px; }
 }
+
+/* Original currency artwork; labels remain visible for accessibility. */
+.resource-label { display:inline-flex; align-items:center; gap:4px; vertical-align:middle; line-height:1.25; white-space:nowrap; }
+.resource-label img { width:24px; height:24px; flex:0 0 24px; object-fit:contain; vertical-align:middle; }
+.money .resource-label img { width:26px; height:26px; flex-basis:26px; }
+.note .resource-label img, small .resource-label img { width:20px; height:20px; flex-basis:20px; }
+.currency { display:inline-flex; align-items:center; gap:6px; }
+.resource-hero { display:block; width:112px; height:112px; object-fit:contain; margin:4px auto 16px; }
+@media(max-width:400px) { .resource-label { gap:3px; } .resource-label img { width:21px; height:21px; flex-basis:21px; } }
