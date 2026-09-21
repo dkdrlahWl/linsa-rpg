@@ -20,7 +20,7 @@ begin
  select * into p from rebirth_private.players where id=u for update;
  if p.state is null then raise exception 'CHARACTER_REQUIRED'; end if;
  if (p.state->>'level')::integer<20 and p_action<>'cancel' then raise exception 'TRADE_LEVEL_REQUIRED'; end if;
- if p.state->'battle'<>'null'::jsonb then raise exception 'BATTLE_IN_PROGRESS'; end if;
+ if p.state->'battle'<>'null'::jsonb or nullif(p.state->>'partyRoom','') is not null then raise exception 'BATTLE_IN_PROGRESS'; end if;
  if p_action='sell' then
   v_price:=(p_args->>'price')::bigint;item_id:=p_args->>'itemId';
   if v_price is null or v_price<100 or v_price>1000000000 then raise exception 'INVALID_PRICE'; end if;

@@ -1,5 +1,5 @@
-import { equipmentIdentity } from "./equipment.mjs";
-export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs";
+import { equipmentIdentity } from "./equipment.mjs?v=adventure-3";
+export { WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=adventure-3";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -63,7 +63,10 @@ export const CLASS_SKILLS = {
   rogue: { damage: 1.9, guard: 0.05, seconds: 4, description: "4초 동안 공격 90% 증가 · 받는 피해 95% 감소" },
   pirate: { damage: 1.65, guard: 0.5, seconds: 8, description: "8초 동안 공격 65% 증가 · 받는 피해 50% 감소" },
 };
+export const ADVANCEMENTS = {warrior:"가디언",mage:"아크메이지",archer:"레인저",rogue:"나이트워커",pirate:"캡틴"};
+export const EXPEDITION = {name:"여명의 폐허",background:"ui/dawn-ruins.svg"};
 export const DUNGEONS = {
+  relic: {name:"여명의 파수꾼",art:"ui/dawn-sentinel.svg",fullArt:true,seconds:180,reward:"일반 200레벨 장비 1개 · 5,000 G · 파편 30개"},
   cube: { name: "수정의 시험", art: "bosses-1.svg", spriteX:50, spriteY:0, seconds: 120, reward: "일반 큐브 3개" },
   material: { name: "고대 제련소", art: "bosses-1.svg", spriteX:0, spriteY:0, seconds: 120, reward: "장비 파편 30개" },
 };

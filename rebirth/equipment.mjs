@@ -25,20 +25,21 @@ export function equipmentIdentity(item) {
   const tier = Math.max(0, LEVELS.indexOf(item.level));
   const row = Math.max(0, Math.min(9, tier - (item.boss ? 1 : 0)));
   const titles = item.boss ? BOSS_TITLES : ORDINARY_TITLES;
-  const title = titles[(row + column * 3) % titles.length];
+  const title = titles[(tier - (item.boss ? 1 : 0) + column * 3 + titles.length) % titles.length];
   const noun = NOUNS[item.classId]?.[column] || equipmentType(item);
   return {
     key: equipmentKey(item),
     name: `${title} ${noun}`,
-    art: `equipment/${item.classId}-${item.boss ? "boss" : "normal"}.svg`,
-    column: item.classId === "rogue" && !item.boss && column >= 7 ? column+1 : column,
-    columns: item.classId === "rogue" && !item.boss ? 12 : 11,
-    row: (row + column * 3) % 10,
+    art: item.level === 200 && !item.boss ? "equipment/dawn-200.svg" : `equipment/${item.classId}-${item.boss ? "boss" : "normal"}.svg`,
+    column: item.classId === "rogue" && !item.boss && item.level !== 200 && column >= 7 ? column+1 : column,
+    columns: item.classId === "rogue" && !item.boss && item.level !== 200 ? 12 : 11,
+    row: item.level === 200 && !item.boss ? Object.keys(WEAPON_TYPES).indexOf(item.classId) : (row + column * 3) % 10,
+    rows: item.level === 200 && !item.boss ? 5 : 10,
     type: equipmentType(item),
   };
 }
 export const EQUIPMENT_CATALOG = Object.keys(WEAPON_TYPES).flatMap(classId =>
-  [false,true].flatMap(boss => (boss ? LEVELS.slice(1) : LEVELS.slice(0,10)).flatMap(level =>
+  [false,true].flatMap(boss => (boss ? LEVELS.slice(1) : LEVELS).flatMap(level =>
     Array.from({length:11},(_,column) => ({level,classId,boss,slot:column<3?0:column-2,weaponVariant:column<3?column:0}))
   ))
 );

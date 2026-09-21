@@ -1,4 +1,5 @@
-import { initialState, execute } from "./engine.mjs";
+import { BOSSES, CLASS_SKILLS } from "./data.mjs";
+import { initialState, execute, power } from "./engine.mjs";
 const url = Deno.env.get("SUPABASE_URL")!;
 const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -64,6 +65,20 @@ Deno.serve(async (req) => {
     for (let retry = 0; retry < 3; retry++) {
       const snap = await rpc("rebirth_snapshot", { p_request: body.requestId });
       if (snap.user !== user.id) throw new Error("LOGIN_REQUIRED");
+      if (body.command.startsWith("party") || (body.command === "sync" && snap.state?.partyRoom)) {
+        if (!snap.state) throw new Error("CHARACTER_REQUIRED");
+        const action = body.command === "sync" ? "sync" : body.command.slice(5).toLowerCase();
+        if (!["create","join","start","sync","list","skill","revive","leave"].includes(action)) throw new Error("INVALID_PARTY_ACTION");
+        const ctx = {now:Number(snap.now), random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296, uuid:()=>crypto.randomUUID()};
+        const computed = execute(snap.state,"sync",{},ctx);
+        const boss = action === "create" ? BOSSES[body.args.bossId] : null;
+        if (action === "create" && (!boss || !boss.weekly)) throw new Error("INVALID_BOSS");
+        const args = action === "create" ? {boss,practice:body.args.practice===true} : action === "join" ? {room:body.args.room} : {};
+        try {
+          const result = await rpc("rebirth_party_action",{p_user:user.id,p_session:snap.session,p_epoch:snap.epoch,p_revision:snap.revision,p_state:computed.state,p_action:action,p_args:args,p_power:{...power(computed.state),skill:CLASS_SKILLS[computed.state.classId]},p_request:body.requestId,p_fingerprint:fingerprint},true);
+          return reply({...result,result:{events:[...computed.events,...(result.result?.events||[])]}});
+        } catch(e) {if(e.message === "SAVE_CONFLICT" && retry<2)continue;throw e;}
+      }
       if (snap.receipt) {
         if (
           JSON.stringify(snap.receipt.fingerprint) !==
@@ -136,7 +151,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : "SERVER_RETRY_REQUIRED";
     const business =
-      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_)/.test(
+      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_)/.test(
         message,
       );
     return reply(

@@ -28,7 +28,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=equipment-2";
+} from "./data.mjs?v=adventure-3";
 
 const fail = (message) => {
   throw new Error(message);
@@ -152,6 +152,7 @@ export function power(s) {
   if (s.classId === "warrior") { hp = Math.floor(hp * 1.15); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
   const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
+  if (s.advancement === 1) { flat *= 1.08; hp = Math.floor(hp * 1.1); }
   return {
     attack: Math.floor(flat),
     primary: Math.floor(primary),
@@ -344,7 +345,10 @@ function bossSettle(s, ctx, events) {
     if (b.kind === "dungeon") {
       s.dungeonClaims[b.dungeon] = b.claimKey;
       if (b.dungeon === "cube") s.materials.cube += 3;
-      else s.materials.fragment += 30;
+      else if (b.dungeon === "relic") {
+        const it = makeItem(200, pick(CLASSES,ctx).id, Math.floor(ctx.random()*9),false,ctx);
+        addItem(s,it); reward.items.push(it.id); s.gold += 5000; s.materials.fragment += 30;
+      } else s.materials.fragment += 30;
     } else {
     s.bossClaims[boss.id] = b.claimKey;
     if (!s.cleared.includes(boss.id)) s.cleared.push(boss.id);
@@ -371,7 +375,7 @@ function bossSettle(s, ctx, events) {
   }
   s.battle = null;
   s.lastAt = ctx.now;
-  s.hunting = false;
+  s.hunting = true;
   s.lastReward = reward;
   return reward;
 }
@@ -382,6 +386,7 @@ export function execute(input, command, args = {}, ctx) {
   );
   const s = structuredClone(input);
   check(s.version === VERSION, "VERSION_MISMATCH");
+  check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
   const hunting = settle(s, ctx);
   if (hunting && hunting.seconds >= 60) {
@@ -397,7 +402,7 @@ export function execute(input, command, args = {}, ctx) {
   }
   if (command === "abandon") {
     check(s.battle, "NO_BATTLE");
-    s.battle = null; s.hunting = false; s.lastAt = ctx.now;
+    s.battle = null; s.hunting = true; s.lastAt = ctx.now;
     return {state:s, events:[...events, {type:"abandon"}]};
   }
   if (command === "skill") {
@@ -549,33 +554,6 @@ export function execute(input, command, args = {}, ctx) {
       events.push({ type: "restore", id: it.id });
       break;
     }
-    case "transfer": {
-      const a = gear(s, args.source),
-        b = gear(s, args.target);
-      writable(s, a);
-      writable(s, b);
-      check(
-        a.id !== b.id &&
-          a.slot === b.slot &&
-          a.classId === b.classId &&
-          weaponVariant(a) === weaponVariant(b) &&
-          TIERS.indexOf(b.level) === TIERS.indexOf(a.level) + 1,
-        "INVALID_TRANSFER",
-      );
-      check(
-        a.stars > 0 && a.stars <= 15 && b.stars === 0 && b.lines.length === 0,
-        "INVALID_TRANSFER",
-      );
-      spend(s, "gold", 1000 + b.level * 30);
-      b.stars = a.stars - 1;
-      b.grade = Math.min(1, a.grade);
-      b.lines = a.lines.map((l) => ({
-        key: l.key,
-        value: optionValue(l.key, b.grade),
-      }));
-      removeItem(s, a);
-      break;
-    }
     case "potential": {
       const it = gear(s, args.id);
       writable(s, it);
@@ -696,12 +674,13 @@ export function execute(input, command, args = {}, ctx) {
       break;
     }
     case "dungeon": {
-      check(["cube", "material"].includes(args.kind), "INVALID_DUNGEON");
+      check(["cube", "material", "relic"].includes(args.kind), "INVALID_DUNGEON");
+      if (args.kind === "relic") check(s.level >= 200 && s.cleared.includes(29), "PREVIOUS_BOSS_REQUIRED");
       check(s.level >= 20, "LEVEL_REQUIRED");
       check(s.dungeonClaims[args.kind] !== dayKey(ctx.now), "DUNGEON_LIMIT");
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s), tier = Math.floor(s.level / 20);
-      const enemy = { hp: Math.round(5000 * 1.6 ** (tier-1)), attack: 30 + tier * 15,
+      const enemy = args.kind === "relic" ? { hp:2100000,attack:560,patternEvery:12,patternMultiplier:3,pattern:"여명의 파동",region:9 } : { hp: Math.round(5000 * 1.6 ** (tier-1)), attack: 30 + tier * 15,
         patternEvery:15, patternMultiplier:2.5, pattern:"수정 폭발", region:Math.min(9,tier-1) };
       s.battle = {kind:"dungeon", dungeon:args.kind, enemy, claimKey:dayKey(ctx.now), started:ctx.now,
         tick:0, hp:p.hp, enemyHp:enemy.hp, power:p, practice:false,
@@ -710,6 +689,13 @@ export function execute(input, command, args = {}, ctx) {
       events.push({type:"dungeonStart"});
       break;
     }
+    case "advance":
+      check(!s.battle, "BATTLE_IN_PROGRESS");
+      check(s.level >= 60 && s.cleared.includes(8), "PREVIOUS_BOSS_REQUIRED");
+      check(!s.advancement, "ALREADY_ADVANCED");
+      s.advancement = 1;
+      events.push({type:"advancement"});
+      break;
     case "tutorial":
       s.tutorial = Math.min(6, s.tutorial + 1);
       break;
