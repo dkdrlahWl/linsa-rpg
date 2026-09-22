@@ -389,7 +389,7 @@ function hunt() {
     r = huntingRate(state),
     b = state.battle,
     boss = b && battleEnemy(b);
-  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : "권장 Lv." + st.level + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : "다음 처치까지 약 " + r.seconds + "초"}</small></div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : !r.survives ? `<p class="error">생존 불가 · 하위 사냥터를 선택하세요</p>` : ""}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${gearLevelRange(st.dropLevel)}</b></div></div><div class="actions">${boss ? combatSkillButtons() : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside><div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">권장레벨에 맞는 장비를 강화해야 안정적으로 사냥할 수 있습니다. 생존 불가라면 하위 사냥터에서 재화를 모으세요. 상위 사냥터는 경험치 중심으로 성장합니다.</p><div class="row wrap">${Object.entries(
+  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : "권장 Lv." + st.level + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : state.hunting ? "전투 중" : "사냥 시작을 눌러 도전하세요"}</small></div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill" id="hunt-status">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : `<p id="field-player-hp">내 HP ${fmt(power(state).hp)} / ${fmt(power(state).hp)}</p><div class="hp player-health"><i id="field-player-bar" style="width:100%"></i></div><small id="field-combat-result">${state.hunting?"몬스터와 전투 중":"사냥을 시작하면 자동으로 전투합니다."}</small>`}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${gearLevelRange(st.dropLevel)}</b></div></div><div class="actions">${boss ? combatSkillButtons() : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside><div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">권장레벨에 맞는 장비를 강화해야 안정적으로 사냥할 수 있습니다. 패배하면 10초 후 부활해 재도전합니다. 반복해서 패배한다면 장비를 강화하거나 하위 사냥터에서 재화를 모으세요. 상위 사냥터는 경험치 중심으로 성장합니다.</p><div class="row wrap">${Object.entries(
     D.MATERIALS,
   )
     .map(
@@ -1240,13 +1240,29 @@ setInterval(() => {
   updateCombatClock();
   if(state.partyRoom && partyRoom?.status==="fighting") {if(Date.now()-lastVisualHit>=1000){lastVisualHit=Date.now();strike(arena);} return;}
   if (!state.battle && state.hunting) {
-    const rate=huntingRate(state), elapsed=(Date.now()-lastSync)/1000;
-    const progress=(state.huntRemainder+elapsed)%rate.seconds;
+    const rate=huntingRate(state), p=power(state), st=D.STAGES[state.stage];
+    const elapsed=Math.max(0,(Date.now()-lastSync)/1000);
+    const progress=((state.huntRemainder||0)+elapsed)%rate.seconds;
+    const deathAt=rate.seconds-10;
+    const recovering=!rate.survives&&progress>=deathAt;
+    const fightTime=recovering?deathAt:progress;
+    const incoming=Math.max(1,st.attack-p.defense*.25);
+    const hp=recovering?0:Math.max(0,p.hp-Math.floor(fightTime/3)*incoming);
+    const enemyHp=Math.max(1,st.hp-p.dps*Math.floor(fightTime));
     const bar=$("#enemy-hp");
-    if(bar)bar.style.width=(100*(1-progress/rate.seconds))+"%";
+    if(bar)bar.style.width=(100*enemyHp/st.hp)+"%";
+    const ownBar=$("#field-player-bar");
+    if(ownBar)ownBar.style.width=(100*hp/p.hp)+"%";
+    const ownLabel=$("#field-player-hp");
+    if(ownLabel)ownLabel.textContent="내 HP "+fmt(hp)+" / "+fmt(p.hp);
+    const status=$("#hunt-status");
+    if(status)status.textContent=recovering?"부활 대기":"자동 전투 중";
+    const result=$("#field-combat-result");
+    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":"몬스터와 전투 중 · 3초마다 피격";
     const label=$("#battle-info");
-    if(label)label.textContent=rate.survives ? "다음 처치까지 약 "+Math.ceil(rate.seconds-progress)+"초" : "회복 중 · 보상 없음";
-    if (rate.survives && Date.now()-lastVisualHit>=1000) { lastVisualHit=Date.now(); strike(arena); }
+    if(label)label.textContent="몬스터 HP "+fmt(enemyHp)+" / "+fmt(st.hp);
+    if (!recovering && Date.now()-lastVisualHit>=1000) { lastVisualHit=Date.now(); strike(arena); }
+
   }
   if(state.battle) {
     const b=state.battle, enemy=battleEnemy(b);
