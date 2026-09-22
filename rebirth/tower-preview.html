@@ -1,0 +1,10 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>망각의 탑 · 실제 렌더링</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="adventure.css"><link rel="stylesheet" href="tower.css"><style>body{margin:0;background:#090e14}.capture{width:420px;margin:12px auto}.capture-label{padding:10px 0;color:#c5bb9e;font:12px system-ui;text-align:center}.tower-play{margin:0}.tower-canvas-wrap canvas{max-height:500px}.tower-hud h3{font-size:16px}.tower-controls{padding:12px 14px}.tower-stick{width:100px;height:100px}.tower-button{min-height:52px}</style></head><body><main class="capture"><p class="capture-label">실제 전투 코드 화면 · 능력치는 예시</p><div id="capture-game"></div></main><script type="module">import {newTowerBattle,towerStep} from './tower-model.mjs?v=tower-20';import {towerArena,TowerController} from './tower-client.mjs?v=tower-20';
+const b=newTowerBattle(1,'warrior',{attack:240,hp:2100,defense:100,boss:1.06,crit:.1,critDamage:1.6,cadence:1},Date.now(),'preview',12345);
+b.player.x=420;b.player.y=660;b.enemy.x=520;b.enemy.y=480;
+for(let i=0;i<27;i++)towerStep(b,[0,0,1]);
+const target=document.querySelector('#capture-game');target.innerHTML=towerArena(b);
+const controller=new TowerController(target.querySelector('.tower-play'),b,async()=>null);controller.dispose();
+const previewImages=controller.required.map(src=>{const im=new Image();im.src=src;return im;});
+awaitImages();
+function awaitImages(){if(previewImages.every(im=>im.complete&&im.naturalWidth)){controller.loaded=true;controller.draw(2000);document.body.dataset.ready='true';}else setTimeout(awaitImages,80);}
+</script></body></html>

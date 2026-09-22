@@ -43,8 +43,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=catalog-v3-19";
+} from "./data.mjs?v=tower-20";
 
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=tower-20';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -367,11 +368,12 @@ function removeItem(s, it) {
     if (s.equipped[k] === it.id) delete s.equipped[k];
 }
 export function battleEnemy(b) {
+  if(b.kind==='tower')return {...TOWER_FLOORS[b.floor-1],region:Math.min(9,b.floor-1)};
   return b.kind === "dungeon" ? { ...DUNGEONS[b.dungeon], ...b.enemy } : BOSSES[b.bossId];
 }
 function bossSettle(s, ctx, events) {
   const b = s.battle;
-  if (!b) return null;
+  if (!b || b.kind==='tower') return null;
   const boss = battleEnemy(b);
   const frames = [];
   const skill = CLASS_SKILLS[s.classId];
@@ -455,6 +457,15 @@ function bossSettle(s, ctx, events) {
   s.lastReward = reward;
   return reward;
 }
+function towerFinish(s,ctx,events) {
+ const b=s.battle;if(!b||b.kind!=='tower'||!b.ended)return;
+ const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
+ const first=b.won&&!s.tower.cleared.includes(b.floor);
+ if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
+ const reward={type:'tower',floor:b.floor,won:b.won,first,seconds:b.tick/10,reason:b.reason||'',gold:0,fragment:0,cube:0,highCube:0};
+ if(first){Object.assign(reward,f.reward);s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
+ s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);
+}
 export function execute(input, command, args = {}, ctx) {
   check(
     ctx && Number.isFinite(ctx.now) && typeof ctx.random === "function",
@@ -464,6 +475,21 @@ export function execute(input, command, args = {}, ctx) {
   check(s.version === VERSION, "VERSION_MISMATCH");
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
+  if(s.battle?.kind==='tower'){
+    const b=s.battle;
+    check(['sync','ack','towerInput','towerLeave'].includes(command),'BATTLE_IN_PROGRESS');
+    if(ctx.now-b.started>=TOWER_FLOORS[b.floor-1].seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
+    else if(command==='towerInput'){
+      check(args.runId===b.runId,'INVALID_TOWER_RUN');
+      check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
+      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,15)),'INVALID_TOWER_INPUT');
+      const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
+      for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&!b.ended;i++)towerStep(b,args.frames[i]);
+    }else if(command==='towerLeave'){b.ended=true;b.won=false;b.reason='leave';}
+    towerFinish(s,ctx,events);if(command==='ack')s.lastReward=null;return {state:s,events};
+  }
+  // A retried final input must never grant rewards twice.
+  if(command==='towerInput'||command==='towerLeave')return {state:s,events};
   const hunting = settle(s, ctx);
   if (hunting && hunting.seconds >= 60) {
     s.lastReward = { type: "offline", ...hunting };
@@ -506,6 +532,14 @@ export function execute(input, command, args = {}, ctx) {
   }
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case 'towerStart': {
+      check(int(args.floor,1,10),'INVALID_TOWER_FLOOR');
+      check(!s.pendingCube,'ITEM_CUBE_PENDING');
+      s.tower ||= {cleared:[],best:{}};
+      check(args.floor===1||s.tower.cleared.includes(args.floor-1),'PREVIOUS_FLOOR_REQUIRED');
+      s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296));
+      s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
+    }
     case "supplyExchange": {
       const price=Object.hasOwn(SUPPLY_EXCHANGE,args.key)?SUPPLY_EXCHANGE[args.key]:null;
       check(price&&[1,5,10].includes(args.count),"INVALID_EXCHANGE");

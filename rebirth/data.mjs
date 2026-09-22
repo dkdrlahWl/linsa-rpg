@@ -1,8 +1,9 @@
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=catalog-v3-19";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=catalog-v3-19";
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=tower-20";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=tower-20";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
+export const FIELD_XP_MULTIPLIER = 2.5;
 export const CLASSES = [
   {
     id: "warrior",
@@ -136,7 +137,7 @@ export const STAGES = REGIONS.flatMap((r) =>
     region: r.id,
     level: Math.max(1, r.level + j * 6),
     star: j === 2 && r.id >= 2 ? (r.id - 1) * 15 : 0,
-    xp: Math.round(12 * 1.53 ** r.id * (1 + j * 0.12)),
+    xp: Math.round(12 * 1.53 ** r.id * (1 + j * 0.12)) * FIELD_XP_MULTIPLIER,
     gold: (20 + r.id * 35) * .15,
     hp: r.id===0 ? [90,360,900][j] : Math.round([90,2300,5200,8500,12000,16000,20500,26000,32000,39000][r.id]*(1+j*.20)),
     attack: r.id===0 ? [8,55,180][j] : Math.round([8,520,1050,1600,2150,2750,3350,3950,4650,5300][r.id]*(1+j*.12)),
@@ -290,6 +291,19 @@ export function optionValue(key, grade, random = Math.random) {
 // The item grade is a derived sorting hint only; each slot owns its permanent grade.
 export function normalizePotentialItem(item) {
   if (!item) return item;
+  // Preserve identity, stars, rolls' relative positions, potentials and locks.
+  if (Number.isFinite(item.level)) {
+    const level=Math.max(1,Math.floor(Math.min(200,item.level)/10)*10);
+    if(level!==item.level){
+      const before=item.baseStats?gearStatRanges(item):null;
+      item.level=level;
+      if(before){const after=gearStatRanges(item);for(const key of Object.keys(after)){
+        const fraction=Math.max(0,Math.min(1,(item.baseStats[key]-before[key].min)/(before[key].max-before[key].min||1)));
+        item.baseStats[key]=Math.round(after[key].min+fraction*(after[key].max-after[key].min));
+      }}
+    }
+    item.levelVersion=1;
+  }
   item.quality=itemQuality(item);
   if (item.potentialVersion !== 3) {
     const grade = item.potentialVersion === 2 ? (item.grade || 0) : Math.min(5, (item.grade || 0) + 2);

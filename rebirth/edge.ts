@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
     for (let retry = 0; retry < 3; retry++) {
       const snap = await rpc("rebirth_snapshot", { p_request: body.requestId });
       if (snap.user !== user.id) throw new Error("LOGIN_REQUIRED");
+      if (snap.state?.battle?.kind === "tower" && body.command.startsWith("party")) throw new Error("BATTLE_IN_PROGRESS");
       if (body.command.startsWith("party") || (body.command === "sync" && snap.state?.partyRoom)) {
         if (!snap.state) throw new Error("CHARACTER_REQUIRED");
         const action = body.command === "sync" ? "sync" : body.command.slice(5).toLowerCase();
