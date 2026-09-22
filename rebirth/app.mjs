@@ -714,10 +714,24 @@ function itemDetail(id, section=id===selected?itemSection:"info") {
   open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":section==="quality"?"품질 재감정":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>${requiredLevel(it.level)} · ${D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"} · 품질 ${D.itemQuality(it)}%</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"],["quality","품질"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
   modal.classList.add("enhance-dialog");
 }
+function cubePowerComparison(it,pending) {
+  const equipped=Object.values(state.equipped).includes(it.id);
+  const canEquip=!it.broken&&it.classId===state.classId&&it.level<=state.level;
+  const loadout=equipped||!canEquip?state.equipped:{...state.equipped,[it.slot]:it.id};
+  const evaluate=lines=>power({...state,equipped:loadout,items:state.items.map(item=>item.id===it.id?{...item,lines}:item)}).combatPower;
+  const before=evaluate(it.lines),after=evaluate(pending.lines),delta=after-before;
+  const change=n=>`<strong class="cube-power-${n>0?"up":n<0?"down":"same"}">${n>0?"+":n<0?"−":""}${fmt(Math.abs(n))}</strong>`;
+  const rows=it.lines.map((line,i)=>{
+    const next=pending.lines[i];
+    const single=evaluate(it.lines.map((old,j)=>i===j?next:old));
+    return `<div class="cube-power-line"><span>${i+1}줄 · ${esc(D.OPTIONS[line.key])} +${line.value}${D.optionUnit(line.key)} → ${esc(D.OPTIONS[next.key])} +${next.value}${D.optionUnit(next.key)}</span>${change(single-before)}</div>`;
+  }).join("");
+  return `<section class="cube-power-summary" aria-label="큐브 전투력 비교"><p>${equipped?"내 전투력 비교":canEquip?"이 장비를 장착했을 때 전투력 비교":"현재 장착 불가 · 내 전투력 변화 없음"}</p><div class="cube-power-values"><div><small>기존 옵션 유지</small><b>${fmt(before)}</b></div><span>→</span><div><small>새 옵션 적용</small><b>${fmt(after)}</b></div></div><div class="cube-power-total">전체 변경 ${change(delta)}</div><details><summary>옵션별 전투력 변화</summary>${rows}<p class="note">각 줄만 바꿨을 때의 변화입니다. 옵션 간 영향과 반올림으로 합계는 전체 변경값과 다를 수 있습니다. 골드·경험치 옵션은 전투력에 반영되지 않습니다.</p></details>${!equipped&&canEquip?'<p class="note">현재 착용 중인 같은 부위 장비를 교체한 기준입니다. 큐브 선택만으로 자동 장착되지는 않습니다.</p>':""}</section>`;
+}
 function cubeChoice() {
   const p=state.pendingCube,it=state.items.find(i=>i.id===p.id);
   selected=p.id;itemSection="potential";
-  open((p.high?"상급":"일반")+" 큐브 · 결과 선택",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>유지할 잠재능력을 선택하세요</small></div></div>${p.lines.some((l,i)=>l.grade>p.previousGrades[i])?`<div class="enhance-result success"><strong>${p.lines.map((l,i)=>l.grade>p.previousGrades[i]?`${i+1}줄 ${D.RARITIES[p.previousGrades[i]]} → ${D.RARITIES[l.grade]}`:"").filter(Boolean).join(" · ")}</strong><span>기존 옵션을 골라도 오른 등급은 유지됩니다.</span></div>`:""}<div class="cube-comparison">${enhancementOptions(it,"기존 옵션") }${enhancementOptions(p,"새로운 옵션")}</div><p class="enhance-help">각 줄의 오른 등급은 유지됩니다. 선택은 옵션에만 적용되며 추가 비용은 없어요.</p><div class="enhance-choice-actions">${btn("기존 옵션 유지","cubeChoose","no","enhance-secondary",true)}${btn("새 옵션 적용","cubeChoose","yes","enhance-primary cube-primary",true)}</div></div>`,false);
+  open((p.high?"상급":"일반")+" 큐브 · 결과 선택",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>유지할 잠재능력을 선택하세요</small></div></div>${p.lines.some((l,i)=>l.grade>p.previousGrades[i])?`<div class="enhance-result success"><strong>${p.lines.map((l,i)=>l.grade>p.previousGrades[i]?`${i+1}줄 ${D.RARITIES[p.previousGrades[i]]} → ${D.RARITIES[l.grade]}`:"").filter(Boolean).join(" · ")}</strong><span>기존 옵션을 골라도 오른 등급은 유지됩니다.</span></div>`:""}${cubePowerComparison(it,p)}<div class="cube-comparison">${enhancementOptions(it,"기존 옵션") }${enhancementOptions(p,"새로운 옵션")}</div><p class="enhance-help">각 줄의 오른 등급은 유지됩니다. 선택은 옵션에만 적용되며 추가 비용은 없어요.</p><div class="enhance-choice-actions">${btn("기존 옵션 유지","cubeChoose","no","enhance-secondary",true)}${btn("새 옵션 적용","cubeChoose","yes","enhance-primary cube-primary",true)}</div></div>`,false);
   modal.classList.add("enhance-dialog");
 }
 function showEvents(events) {
