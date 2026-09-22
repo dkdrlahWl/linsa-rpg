@@ -1,10 +1,24 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>망각의 탑 · 실제 렌더링</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="adventure.css"><link rel="stylesheet" href="tower.css"><style>body{margin:0;background:#090e14}.capture{width:420px;margin:12px auto}.capture-label{padding:10px 0;color:#c5bb9e;font:12px system-ui;text-align:center}.tower-play{margin:0}.tower-canvas-wrap canvas{max-height:500px}.tower-hud h3{font-size:16px}.tower-controls{padding:12px 14px}.tower-stick{width:100px;height:100px}.tower-button{min-height:52px}</style></head><body><main class="capture"><p class="capture-label">실제 전투 코드 화면 · 능력치는 예시</p><div id="capture-game"></div></main><script type="module">import {newTowerBattle,towerStep} from './tower-model.mjs?v=tower-20';import {towerArena,TowerController} from './tower-client.mjs?v=tower-20';
-const b=newTowerBattle(1,'warrior',{attack:240,hp:2100,defense:100,boss:1.06,crit:.1,critDamage:1.6,cadence:1},Date.now(),'preview',12345);
-b.player.x=420;b.player.y=660;b.enemy.x=520;b.enemy.y=480;
-for(let i=0;i<27;i++)towerStep(b,[0,0,1]);
-const target=document.querySelector('#capture-game');target.innerHTML=towerArena(b);
-const controller=new TowerController(target.querySelector('.tower-play'),b,async()=>null);controller.dispose();
-const previewImages=controller.required.map(src=>{const im=new Image();im.src=src;return im;});
-awaitImages();
-function awaitImages(){if(previewImages.every(im=>im.complete&&im.naturalWidth)){controller.loaded=true;controller.draw(2000);document.body.dataset.ready='true';}else setTimeout(awaitImages,80);}
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>망각의 탑 · 조작 체험</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="adventure.css"><link rel="stylesheet" href="tower.css?v=tower-smooth-21"><style>
+body{margin:0;background:#090e14;overflow:hidden}.preview-toolbar{height:74px;max-width:980px;margin:auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:5px 12px;background:#101c25}.preview-toolbar p{width:100%;margin:0;font-size:10px;color:#bbcbcc}.preview-toolbar select,.preview-toolbar button{width:auto;min-height:32px;height:32px;font-size:11px;padding:4px 9px;margin:0}.preview-toolbar select{flex:1;min-width:0}.preview-toolbar button{border-color:#bba575;background:#57482c}.tower-play{height:calc(100svh - 74px);height:calc(100dvh - 74px)}
+</style></head><body><header class="preview-toolbar"><p>실제 탑 조작 체험 · 능력치는 예시 · 계정에 저장되지 않습니다</p><select id="preview-floor" aria-label="체험할 층"></select><select id="preview-class" aria-label="체험할 직업"><option value="warrior">전사</option><option value="mage">마법사</option><option value="archer">궁수</option><option value="rogue">도적</option><option value="pirate">해적</option></select><button id="preview-restart">다시 도전</button></header><main id="capture-game"></main><script type="module">
+import {TOWER_FLOORS,newTowerBattle,towerStep} from './tower-model.mjs?v=tower-20';
+import {towerArena,TowerController} from './tower-client.mjs?v=tower-smooth-21';
+const target=document.querySelector('#capture-game'),floorSelect=document.querySelector('#preview-floor'),classSelect=document.querySelector('#preview-class');
+floorSelect.innerHTML=TOWER_FLOORS.map(f=>`<option value="${f.floor}">${f.floor}층 · ${f.name}</option>`).join('');
+let controller;
+function start(){
+ controller?.dispose();const floor=Number(floorSelect.value),f=TOWER_FLOORS[floor-1];
+ const b=newTowerBattle(floor,classSelect.value,{attack:Math.round(f.hp/65),hp:f.attack*20,defense:f.attack*.5,boss:1.06,crit:.1,critDamage:1.6,cadence:1},Date.now(),crypto.randomUUID(),12345);
+ b.player.x=420;b.player.y=730;b.enemy.x=520;b.enemy.y=440;
+ let authoritative=structuredClone(b);
+ target.innerHTML=towerArena(b);
+ controller=new TowerController(target.querySelector('.tower-play'),b,async(_command,args)=>{
+   // Isolated local replay of exactly the input packets used by the game.
+   for(let i=Math.max(0,authoritative.tick-args.from);i<args.frames.length&&!authoritative.ended;i++)towerStep(authoritative,args.frames[i]);
+   return {state:{battle:structuredClone(authoritative)}};
+ },null,{preview:true});
+ target.querySelector('[data-action="towerLeaveConfirm"]').textContent='다시 도전';
+ target.querySelector('[data-action="towerLeaveConfirm"]').addEventListener('click',start);
+}
+document.querySelector('#preview-restart').addEventListener('click',start);floorSelect.addEventListener('change',start);classSelect.addEventListener('change',start);start();
 </script></body></html>
