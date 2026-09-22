@@ -20,6 +20,8 @@ import {
   QUALITY_COST,
   itemQuality,
   rollQuality,
+  rollBaseStats,
+  selectDesign,
   rollEquipmentLevel,
   salvageYield,
   CUBE_DROP,
@@ -41,7 +43,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=field-growth-14";
+} from "./data.mjs?v=catalog-v3-19";
 
 const fail = (message) => {
   throw new Error(message);
@@ -78,7 +80,8 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     broken: false,
   };
 }
-export function makeLootItem(base,classId,slot,boss,ctx,variant){return makeItem(rollEquipmentLevel(base,ctx.random),classId,slot,boss,ctx,variant);}
+export function makeLootItem(base,classId,slot,boss,ctx,variant){const level=rollEquipmentLevel(base,ctx.random),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
+
 export function initialState(classId, name, ctx) {
   check(
     CLASSES.some((c) => c.id === classId),
@@ -150,7 +153,7 @@ export function power(s) {
     equipmentStat += addedStat;
     primary += addedStat;
     hp += attributes.hp;
-    defense += it.level * 0.2;
+    defense += attributes.defense;
     for (const line of it.lines) {
       if (line.key.startsWith("flat") && Object.hasOwn(fixedStats, line.key.slice(4))) fixedStats[line.key.slice(4)] += line.value;
       if (line.key === "flatHP") hp += line.value;
@@ -274,7 +277,7 @@ function addItem(s, item) {
   if (s.items.length < 300) s.items.push(item);
   else {
     s.mailbox ||= [];
-    const mailKey=key+"|lv"+item.level+"|q"+itemQuality(item);
+    const mailKey=key+"|lv"+item.level+"|q"+itemQuality(item)+(item.baseStats?"|s"+JSON.stringify(item.baseStats):"");
     const stack = s.mailbox.find(x => x.key === mailKey);
     if (stack) stack.quantity++;
     else { const {id, ...template} = item; s.mailbox.push({key:mailKey, item: template, quantity: 1}); }
@@ -603,6 +606,7 @@ export function execute(input, command, args = {}, ctx) {
     }
     case "qualityReroll": {
       const it=gear(s,args.id);writable(s,it);
+      check(!it.baseStats,"BASE_STATS_FIXED");
       const before=itemQuality(it);check(before<100,"MAX_QUALITY");
       spend(s,"fragment",QUALITY_COST.fragment);spend(s,"gold",QUALITY_COST.gold);
       const rolled=rollQuality(ctx.random);it.quality=Math.max(before,rolled);
@@ -735,7 +739,7 @@ export function execute(input, command, args = {}, ctx) {
         args.slot,
         true,
         ctx,
-        args.weaponVariant ?? 0,
+        args.weaponVariant,
       );
       addItem(s, it);
       events.push({ type: "craft", id: it.id });

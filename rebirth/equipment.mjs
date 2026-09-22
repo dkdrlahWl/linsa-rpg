@@ -10,11 +10,13 @@ export function weaponVariant(item) {
 }
 export const equipmentTierLevel = item => Math.max(1,Math.floor(Math.min(200,item.level)/10)*10);
 export function equipmentKey(item) {
+  if(Number.isInteger(item.design))return ["v3",equipmentTierLevel(item),item.classId,item.slot,!!item.boss,item.design].join(":");
   const key = [equipmentTierLevel(item), item.classId, item.slot, !!item.boss].join(":");
   // Variant zero intentionally retains the original key; no loss of existing discoveries.
   return item.slot === 0 && weaponVariant(item) ? key + ":" + weaponVariant(item) : key;
 }
 export function equipmentFromKey(key) {
+  if(key.startsWith("v3:")){const [,level,classId,slot,boss,design]=key.split(":");return designItem(Number(level),classId,Number(slot),boss==="true",Number(design));}
   const [level,classId,slot,boss,variant] = key.split(":");
   return {level:Number(level),classId,slot:Number(slot),boss:boss === "true",weaponVariant:Number(variant)||0};
 }
@@ -22,6 +24,7 @@ export function equipmentType(item) {
   return item.slot === 0 ? WEAPON_TYPES[item.classId]?.[weaponVariant(item)] || "무기" : ["무기","투구","갑옷","바지","장갑","신발","반지","귀걸이","펜던트"][item.slot];
 }
 export function equipmentIdentity(item) {
+  if(Number.isInteger(item.design))return designIdentity(item);
   const column = item.slot === 0 ? weaponVariant(item) : item.slot + 2;
   const tier = Math.max(0, LEVELS.indexOf(equipmentTierLevel(item)));
   const artTier = Math.floor(Math.min(200,item.level)/20);
@@ -40,8 +43,15 @@ export function equipmentIdentity(item) {
     type: equipmentType(item),
   };
 }
-export const EQUIPMENT_CATALOG = Object.keys(WEAPON_TYPES).flatMap(classId =>
-  [false,true].flatMap(boss => LEVELS.flatMap(level =>
-    Array.from({length:11},(_,column) => ({level,classId,boss,slot:column<3?0:column-2,weaponVariant:column<3?column:0}))
-  ))
-);
+const CLASSES=Object.keys(WEAPON_TYPES);
+const LEVEL_NAMES=["새싹","개척지","월광","고목","갱도","수정","협곡","화산","망령","왕릉","서리","빙하","사막","태양","천공","성역","시계","균열","심연","멸신","여명"];
+const EPITHETS=["척후병의","수호자의","방랑기사의","정복자의","심판자의","군주의"];
+const PATTERNS=[[0,0,2,1,2,1],[1,1,0,2,0,2],[2,0,2,1,0,1]];
+export const designCount=(level,classId,slot,boss=false)=>4+(LEVELS.indexOf(level)+CLASSES.indexOf(classId)*2+slot+Number(boss))%3;
+export const designWeights=count=>({4:[60,28,11,1],5:[50,28,15,6,1],6:[44,26,16,9,4,1]})[count];
+export function designItem(level,classId,slot,boss,design){const tier=LEVELS.indexOf(level),ci=CLASSES.indexOf(classId);const variant=slot===0?PATTERNS[(tier+ci+Number(boss))%3][design]:0;return {level,classId,slot,boss,design,weaponVariant:variant};}
+export function selectDesign(level,classId,slot,boss,random=Math.random,variant){let list=Array.from({length:designCount(level,classId,slot,boss)},(_,i)=>designItem(level,classId,slot,boss,i));if(slot===0&&variant!==undefined){const filtered=list.filter(it=>it.weaponVariant===variant);if(filtered.length)list=filtered;}const weights=designWeights(designCount(level,classId,slot,boss));let roll=random()*list.reduce((n,it)=>n+weights[it.design],0);for(const it of list){roll-=weights[it.design];if(roll<0)return it;}return list.at(-1);}
+export function designIdentity(item){const tier=LEVELS.indexOf(equipmentTierLevel(item)),ci=CLASSES.indexOf(item.classId);let index=0;for(const boss of [false,true]){for(const level of LEVELS){if(boss===!!item.boss&&level===equipmentTierLevel(item)){index+=item.design;const column=item.slot===0?weaponVariant(item):item.slot+2;return {key:equipmentKey(item),name:`${LEVEL_NAMES[tier]} ${item.boss?"지배자 ":""}${EPITHETS[(item.design+item.slot+ci)%6]} ${NOUNS[item.classId][column]}`,...designArt(item),type:equipmentType(item)};}index+=designCount(level,item.classId,item.slot,boss);}}}
+export const EQUIPMENT_CATALOG=CLASSES.flatMap(classId=>Array.from({length:9},(_,slot)=>[false,true].flatMap(boss=>LEVELS.flatMap(level=>Array.from({length:designCount(level,classId,slot,boss)},(_,design)=>designItem(level,classId,slot,boss,design))))).flat());
+
+function designArt(item){const old={...item,level:item.level===200?190:item.level};delete old.design;const art=equipmentIdentity(old);return {art:art.art,column:art.column,row:(art.row+item.design)%art.rows,columns:art.columns,rows:art.rows};}

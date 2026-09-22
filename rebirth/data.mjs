@@ -1,5 +1,5 @@
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=field-growth-14";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=field-growth-14";
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=catalog-v3-19";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=catalog-v3-19";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -245,10 +245,22 @@ export const XP_SCALE = 5; // Calibrated by simulation before release, not a cli
 export function xpNeeded(level) {
   return Math.round((100 + level ** 2.4 * 4) * XP_SCALE);
 }
+export function gearStatRanges(item) {
+ const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
+ const low=Number.isInteger(item.design)?(item.boss?2.8+item.design*.45:.75+item.design*.3):(item.boss?2:.85),high=Number.isInteger(item.design)?low+.16:(item.boss?2.5:1.4);
+ return Object.fromEntries(Object.entries(base).map(([key,value])=>[key,{min:Math.max(1,Math.floor(value*low)),max:Math.max(1,Math.ceil(value*high))}]));
+}
+export function rollBaseStats(item,random=Math.random) {
+ return Object.fromEntries(Object.entries(gearStatRanges(item)).map(([key,r])=>{
+  const u=random(),fraction=u<.75?u/.75*.5:u<.99?.5+(u-.75)/.24*.4:.9+(u-.99)/.01*.1;
+  return [key,r.min+Math.min(r.max-r.min,Math.floor(fraction*(r.max-r.min+1)))];
+ }));
+}
 export function gearAttributes(item,stars=item.stars) {
  const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
- const base=(5+item.level**1.28)*(item.boss?1.22:1)*qualityMultiplier(item);
- return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item))+stars,hp:item.level*4+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2};
+ if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
+ const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
+ return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};
 }
 export function starCost(item) {
   return Math.round(
