@@ -120,11 +120,11 @@ begin
      end if;
      if random()<(r.boss->>'dropChance')::numeric then
       cl:=(array['warrior','mage','archer','rogue','pirate'])[1+floor(random()*5)::int];sl:=floor(random()*9)::int;variant:=case when sl=0 then floor(random()*3)::int else 0 end;
-      gear_base:=(r.boss->>'gearLevel')::int;gear_level:=case when gear_base>=200 then 190+floor(power(random(),2)*11)::int else gear_base+floor(power(random(),2)*20)::int end;
+      gear_base:=(r.boss->>'gearLevel')::int;gear_level:=case when gear_base>=200 then 200 when random()<sqrt(.5) then gear_base else gear_base+10 end;
       quality_roll:=random();
       quality_value:=case when quality_roll<.70 then floor(quality_roll/.70*50)::int when quality_roll<.95 then 50+floor((quality_roll-.70)/.25*30)::int when quality_roll<.995 then 80+floor((quality_roll-.95)/.045*15)::int when quality_roll<.9999 then 95+floor((quality_roll-.995)/.0049*5)::int else 100 end;
       it:=jsonb_build_object('id',gen_random_uuid(),'level',gear_level,'classId',cl,'slot',sl,'boss',true,'weaponVariant',variant,'quality',quality_value,'stars',0,'grade',0,'lines','[]'::jsonb,'locked',false,'broken',false);
-      ck:=concat_ws(':',greatest(1,(gear_level/20)*20)::text,cl,sl::text,'true')||case when variant>0 then ':'||variant::text else '' end;
+      ck:=concat_ws(':',greatest(1,(gear_level/10)*10)::text,cl,sl::text,'true')||case when variant>0 then ':'||variant::text else '' end;
       if not coalesce(st->'collection','[]') ? ck then st:=jsonb_set(st,'{collection}',coalesce(st->'collection','[]')||jsonb_build_array(ck)); end if;
       if jsonb_array_length(st->'items')<300 then st:=jsonb_set(st,'{items}',st->'items'||jsonb_build_array(it));
       else

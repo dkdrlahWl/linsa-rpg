@@ -1,5 +1,5 @@
-import { equipmentIdentity } from "./equipment.mjs?v=potential-balance-6";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=potential-balance-6";
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=field-growth-14";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG } from "./equipment.mjs?v=field-growth-14";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -138,8 +138,8 @@ export const STAGES = REGIONS.flatMap((r) =>
     star: j === 2 && r.id >= 2 ? (r.id - 1) * 15 : 0,
     xp: Math.round(12 * 1.53 ** r.id * (1 + j * 0.12)),
     gold: (20 + r.id * 35) * .15,
-    hp: Math.round(70 * 1.8 ** r.id * (1 + j * 0.22)),
-    attack: Math.round(3 * 1.6 ** r.id),
+    hp: r.id===0 ? [90,360,900][j] : Math.round([90,2300,5200,8500,12000,16000,20500,26000,32000,39000][r.id]*(1+j*.20)),
+    attack: r.id===0 ? [8,55,180][j] : Math.round([8,520,1050,1600,2150,2750,3350,3950,4650,5300][r.id]*(1+j*.12)),
     dropLevel: TIERS[r.id],
   })),
 );
@@ -229,8 +229,8 @@ export const HIGH_CUBE_UP = CUBE_UP.map(p=>p*2);
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
 export const EQUIP_DROP = 0.0045;
 export const FIELD_BOSS_DROP = 0.0001;
-export function equipmentLevelRange(base){return base>=200?{min:190,max:200}:{min:base,max:base===1?19:base+19};}
-export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min+Math.min(max-min,Math.floor(random()**2*(max-min+1)));}
+export function equipmentLevelRange(base){const min=base>=200?200:Math.max(1,Math.floor(base/10)*10);return {min,max:min===200?200:min===1?10:min+10};}
+export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
 export const QUALITY_COST = {fragment:50,gold:1500};
 export const QUALITY_BANDS = [{min:0,max:49,chance:.70},{min:50,max:79,chance:.25},{min:80,max:94,chance:.045},{min:95,max:99,chance:.0049},{min:100,max:100,chance:.0001}];
 export function rollQuality(random=Math.random){let roll=random();for(const band of QUALITY_BANDS){if(roll<band.chance)return band.min+Math.min(band.max-band.min,Math.floor(roll/band.chance*(band.max-band.min+1)));roll-=band.chance;}return 100;}
@@ -291,6 +291,7 @@ export function normalizePotentialState(state) {
   if (!state) return state;
   for (const item of state.items || []) normalizePotentialItem(item);
   for (const mail of state.mailbox || []) normalizePotentialItem(mail.item);
+  state.collection=[...new Set([...(state.collection||[]),...(state.items||[]).map(equipmentKey),...(state.mailbox||[]).map(mail=>equipmentKey(mail.item))])];
   const pending = state.pendingCube;
   if (pending) {
     if (pending.potentialVersion !== 3) {
