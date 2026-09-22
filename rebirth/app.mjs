@@ -1,7 +1,7 @@
-import * as D from "./data.mjs?v=potential-balance-6";
+import * as D from "./data.mjs?v=field-fixes-13";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=potential-balance-6";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=field-fixes-13";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -29,6 +29,9 @@ function refreshLevelRequirements() {
 }
 const combatFrames = [];
 let marketKind="all";
+let salvageMode=false;
+const salvageSelection=new Set();
+const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id;
 let partyBossId=null, partyPractice=false;
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0;
@@ -405,7 +408,7 @@ function regions() {
       )
         .map(
           (s) =>
-            `<div class="stage-row"><div><strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 레벨 제한 없음 · 필요 스타포스 ${s.star}<br>경험치 ${fmt(s.xp)} / 처치 · ${state.stage === s.id ? "현재 사냥터" : gearLevelRange(s.dropLevel) + " 장비"}</small></div>${btn("입장", "enterStage", s.id, "", true)}</div>`,
+            `<div class="stage-row"><div><strong>${s.name}</strong><br><small>입장 ${requiredLevel(s.level)}부터 · 필요 스타포스 ${s.star}<br>경험치 ${fmt(s.xp)} / 처치 · ${state.stage === s.id ? "현재 사냥터" : gearLevelRange(s.dropLevel) + " 장비"}</small></div>${disabledBtn("입장", "enterStage", s.id, state.level<s.level||power(state).stars<s.star||(s.region>0&&!state.cleared.includes(s.region*3-1)))}</div>`,
         )
         .join("")}</section>`,
   ).join("")}</div>`;
@@ -449,6 +452,7 @@ function itemMarkup(it) {
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">품질 ${D.itemQuality(it)}%</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? it.lines.map(l=>D.RARITIES[l.grade]).join(" · ") : "잠재 미개방"}</span></div>`;
 }
 function inventory() {
+  for(const id of salvageSelection)if(!state.items.some(it=>it.id===id&&canSalvage(it)))salvageSelection.delete(id);
   let items = state.items
     .filter(
       (i) =>
@@ -475,7 +479,7 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${["consumables","materials"].includes(sub) ? supplies(sub) : sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="inventory-grid bag-grid">${items.length ? items.map((i) => btn(gearMarkup(i)+`<span class="tile-meta"><span class="tile-level">${requiredLevel(i.level,"Lv."+i.level)}</span><span class="tile-star">${i.stars}★</span></span><span class="tile-name">${esc(D.gearName(i))}</span><span class="tile-quality">품질 ${D.itemQuality(i)}%</span><span class="sr-only">${D.equipmentType(i)} ${i.locked?"잠금":""}</span>`, "item", i.id, `bag-slot ${Object.values(state.equipped).includes(i.id)?"equipped":""} ${i.locked?"locked":""}`)).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
+    )}</div>${["consumables","materials"].includes(sub) ? supplies(sub) : sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("표시 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="inventory-grid bag-grid">${items.length ? items.map((i) => btn(gearMarkup(i)+`<span class="tile-meta"><span class="tile-level">${requiredLevel(i.level,"Lv."+i.level)}</span><span class="tile-star">${i.stars}★</span></span><span class="tile-name">${esc(D.gearName(i))}</span><span class="tile-quality">품질 ${D.itemQuality(i)}%</span><span class="sr-only">${D.equipmentType(i)} ${i.locked?"잠금":""}</span>`, salvageMode?"salvagePick":"item", i.id, `bag-slot ${salvageMode?(salvageSelection.has(i.id)?"salvage-selected":!canSalvage(i)?"salvage-unavailable":""):""} ${Object.values(state.equipped).includes(i.id)?"equipped":""} ${i.locked?"locked":""}`)).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -551,7 +555,7 @@ function odds() {
     },
   ).join(
     "",
-  )}</table></div><div class="panel pad"><h3>잠재와 큐브 · 모든 장비 공통</h3><p class="note">각 줄은 독립 등급이며 처음 개방한 줄은 일반입니다. 1줄 70% · 2줄 27% · 3줄 3%.<br>두 큐브 모두 기존/새 옵션 선택 가능. 각 줄은 별도 추첨으로 한 번에 한 단계만 상승하며 절대 하락하지 않습니다. 기존 옵션을 선택해도 상승한 등급은 유지됩니다. 레전더리인 줄은 계속 레전더리 옵션만 나옵니다. 다른 줄은 영향을 받지 않습니다.</p><table><tr><th>등급 상승</th><th>일반 큐브</th><th>상급 큐브</th></tr>${D.CUBE_UP.slice(0,-1).map((p,i)=>`<tr><td>${D.RARITIES[i]} → ${D.RARITIES[i+1]}</td><td>${pct(p)}</td><td>${pct(D.HIGH_CUBE_UP[i])}</td></tr>`).join("")}</table><p class="note">등급 상승 외에는 현재 등급 유지. 레전더리 유지 100%. 상급 큐브는 상승 확률만 2배이고, 같은 등급의 옵션 추첨 확률은 같습니다.</p><h3>옵션 종류 · 각 줄 독립 추첨</h3><p class="note">${Object.entries(D.OPTION_WEIGHTS).map(([k,w])=>D.OPTIONS[k]+(k.startsWith("flat")?" 고정":" %")+" "+w+"%").join(" · ")}<br> 모든 직업·레벨·부위·일반/보스 장비가 동일하며 같은 옵션 중복도 가능합니다. 새 옵션의 수치는 아래 범위에서 균등 추첨합니다. 같은 종류는 상위 등급의 최솟값이 하위 등급의 최댓값보다 높습니다. 일반 %와 고정 스탯은 1단위, 골드·경험치는 0.1% 단위입니다. 치명타 확률은 %p 증가이며 최종 치명타 확률은 95% 제한입니다.</p><table><tr><th>등급</th><th>전투 옵션 %</th><th>고정 스탯</th><th>고정 HP</th><th>골드·경험치</th></tr>${D.RARITIES.map((g,i)=>`<tr><td class="grade-color-${i}">${g}</td><td>${D.POTENTIAL_RANGES[i][0]}~${D.POTENTIAL_RANGES[i][1]}%</td><td>+${D.FLAT_RANGES[i][0]}~${D.FLAT_RANGES[i][1]}</td><td>+${D.FLAT_HP_RANGES[i][0]}~${D.FLAT_HP_RANGES[i][1]}</td><td>${D.GAIN_RANGES[i][0]}~${D.GAIN_RANGES[i][1]}%</td></tr>`).join("")}</table><p class="note">등급 확정 후 종류와 수치를 따로 추첨합니다. 각 수치의 확률은 1 ÷ 가능한 수치 개수. 특정 종류+특정 수치 확률은 종류 확률 ÷ 수치 개수입니다. 골드·경험치 획득은 일반 사냥(접속/오프라인)에 적용하며 소수점 보상은 누적합니다. 기존 옵션 유지 시 수치는 그대로입니다.<br>일반 큐브: 1개 + 300 G · 상급: 1개 + 1,000 G · 개방: 주문서 1개 + 500 G.<br>확장: 1→2줄 확장석 1개 / 2→3줄 3개, 각각 2,000 G. 기존 줄을 보존하고 추가한 줄은 일반 등급으로 시작합니다.</p></div><div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 일반 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 5종 균등, 부위는 9종 균등입니다. 무기 부위가 선택되면 직업별 무기 3종도 균등 추첨합니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 지역</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.REGIONS.map(r=>`<tr><td>${r.name} · 3개 사냥터 공통</td><td>${gearLevelRange(D.TIERS[r.id])} / ${gearLevelRange(D.TIERS[r.id+1])}</td><td>${pct(D.EQUIP_DROP)} / ${pct(D.FIELD_BOSS_DROP)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 장비 레벨은 범위 안에서 1단위이며 상단 레벨일수록 드뭅니다. 오프라인 최대 6시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 품질별로 보관합니다.</p><h3>품질 확률 · 획득/제작/재감정 공통</h3><table><tr><th>품질</th><th>확률</th></tr>${D.QUALITY_BANDS.map(b=>`<tr><td>${b.min}~${b.max}%</td><td>${pct(b.chance)}</td></tr>`).join('')}</table></div>`;
+  )}</table></div><div class="panel pad"><h3>잠재와 큐브 · 모든 장비 공통</h3><p class="note">각 줄은 독립 등급이며 처음 개방한 줄은 일반입니다. 1줄 70% · 2줄 27% · 3줄 3%.<br>두 큐브 모두 기존/새 옵션 선택 가능. 각 줄은 별도 추첨으로 한 번에 한 단계만 상승하며 절대 하락하지 않습니다. 기존 옵션을 선택해도 상승한 등급은 유지됩니다. 레전더리인 줄은 계속 레전더리 옵션만 나옵니다. 다른 줄은 영향을 받지 않습니다.</p><table><tr><th>등급 상승</th><th>일반 큐브</th><th>상급 큐브</th></tr>${D.CUBE_UP.slice(0,-1).map((p,i)=>`<tr><td>${D.RARITIES[i]} → ${D.RARITIES[i+1]}</td><td>${pct(p)}</td><td>${pct(D.HIGH_CUBE_UP[i])}</td></tr>`).join("")}</table><p class="note">등급 상승 외에는 현재 등급 유지. 레전더리 유지 100%. 상급 큐브는 상승 확률만 2배이고, 같은 등급의 옵션 추첨 확률은 같습니다.</p><h3>옵션 종류 · 각 줄 독립 추첨</h3><p class="note">${Object.entries(D.OPTION_WEIGHTS).map(([k,w])=>D.OPTIONS[k]+(k.startsWith("flat")?" 고정":" %")+" "+w+"%").join(" · ")}<br> 모든 직업·레벨·부위·일반/보스 장비가 동일하며 같은 옵션 중복도 가능합니다. 새 옵션의 수치는 아래 범위에서 균등 추첨합니다. 같은 종류는 상위 등급의 최솟값이 하위 등급의 최댓값보다 높습니다. 일반 %와 고정 스탯은 1단위, 골드·경험치는 0.1% 단위입니다. 치명타 확률은 %p 증가이며 최종 치명타 확률은 95% 제한입니다.</p><table><tr><th>등급</th><th>전투 옵션 %</th><th>고정 스탯</th><th>고정 HP</th><th>골드·경험치</th></tr>${D.RARITIES.map((g,i)=>`<tr><td class="grade-color-${i}">${g}</td><td>${D.POTENTIAL_RANGES[i][0]}~${D.POTENTIAL_RANGES[i][1]}%</td><td>+${D.FLAT_RANGES[i][0]}~${D.FLAT_RANGES[i][1]}</td><td>+${D.FLAT_HP_RANGES[i][0]}~${D.FLAT_HP_RANGES[i][1]}</td><td>${D.GAIN_RANGES[i][0]}~${D.GAIN_RANGES[i][1]}%</td></tr>`).join("")}</table><p class="note">등급 확정 후 종류와 수치를 따로 추첨합니다. 각 수치의 확률은 1 ÷ 가능한 수치 개수. 특정 종류+특정 수치 확률은 종류 확률 ÷ 수치 개수입니다. 골드·경험치 획득은 일반 사냥(접속/오프라인)에 적용하며 소수점 보상은 누적합니다. 기존 옵션 유지 시 수치는 그대로입니다.<br>일반 큐브: 1개 + 300 G · 상급: 1개 + 1,000 G · 개방: 주문서 1개 + 500 G.<br>확장: 1→2줄 확장석 1개 / 2→3줄 3개, 각각 2,000 G. 기존 줄을 보존하고 추가한 줄은 일반 등급으로 시작합니다.</p></div><div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 일반 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 5종 균등, 부위는 9종 균등입니다. 무기 부위가 선택되면 직업별 무기 3종도 균등 추첨합니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 지역</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.REGIONS.map(r=>`<tr><td>${r.name} · 3개 사냥터 공통</td><td>${gearLevelRange(D.TIERS[r.id])} / ${gearLevelRange(D.TIERS[r.id])}</td><td>${pct(D.EQUIP_DROP)} / ${pct(D.FIELD_BOSS_DROP)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 장비 레벨은 범위 안에서 1단위이며 상단 레벨일수록 드뭅니다. 오프라인 최대 6시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 품질별로 보관합니다.</p><h3>품질 확률 · 획득/제작/재감정 공통</h3><table><tr><th>품질</th><th>확률</th></tr>${D.QUALITY_BANDS.map(b=>`<tr><td>${b.min}~${b.max}%</td><td>${pct(b.chance)}</td></tr>`).join('')}</table></div>`;
 }
 function disabledBtn(label,action,arg,blocked=false,cls="") {
   const html=btn(label,action,arg,cls,true);
@@ -655,7 +659,7 @@ async function marketLoad() {
     p_request: crypto.randomUUID(),
   });
   if(version !== marketRequest || tab !== "market") return;
-  marketRows = rows.map(row => ({...row, item: row.item.kind==="consumable"?row.item:D.normalizePotentialItem(row.item)}));
+  marketRows = rows.filter(row=>row.status!=="cancelled").map(row => ({...row, item: row.item.kind==="consumable"?row.item:D.normalizePotentialItem(row.item)}));
   render();
 }
 function open(title, html, closable = true) {
@@ -1070,6 +1074,28 @@ document.addEventListener("click", async (e) => {
       modal.close();
       lastCubeResult=null;
       return itemDetail(selected,"potential");
+    }
+    if(action==="salvageMode"){salvageMode=!salvageMode;salvageSelection.clear();render();return;}
+    if(action==="salvageClear"){salvageSelection.clear();render();return;}
+    if(action==="salvagePick"){
+      const it=state.items.find(it=>it.id===arg);
+      if(!it||!canSalvage(it))return toast("분해할 수 없는 장비입니다.");
+      if(salvageSelection.has(arg))salvageSelection.delete(arg);
+      else if(salvageSelection.size<50)salvageSelection.add(arg);
+      else return toast("한 번에 최대 50개까지 선택할 수 있습니다.");
+      render();return;
+    }
+    if(action==="salvageSelectVisible"){
+      for(const it of state.items)if(salvageSelection.size<50&&canSalvage(it)&&(filterSlot===""||it.slot===Number(filterSlot))&&(filterClass===""||it.classId===filterClass))salvageSelection.add(it.id);
+      render();return;
+    }
+    if(action==="salvageBatchConfirm"){
+      const items=state.items.filter(it=>salvageSelection.has(it.id)&&canSalvage(it));
+      if(!items.length)return;
+      open("선택 장비 분해",`<p>선택한 장비 ${items.length}개를 분해하고 장비 파편 ${fmt(items.reduce((n,it)=>n+D.salvageYield(it),0))}개를 받습니다.</p><p class="note">분해한 장비는 복구할 수 없습니다.</p>${items.map(it=>`<p>${esc(D.gearName(it))} · Lv.${it.level} · ${it.stars}성</p>`).join("")}${btn("선택 장비 분해하기","salvageBatch","","danger",true)}`);return;
+    }
+    if(action==="salvageBatch"){
+      await command("salvage",{ids:[...salvageSelection]});salvageSelection.clear();render();return;
     }
     if (action === "salvageConfirm")
       return open(

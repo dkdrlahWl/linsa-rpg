@@ -11,7 +11,7 @@ begin
  u:=rebirth_private.session_user();
  if p_action='list' then
   page:=least(1000,greatest(0,coalesce((p_args->>'page')::integer,0)));filter_slot:=nullif(p_args->>'slot','')::integer;filter_class:=nullif(p_args->>'classId','');
-  select coalesce(jsonb_agg(q),'[]') into result from (select id,item,price,expires_at,seller=u as own,status from rebirth_private.listings where (case when coalesce((p_args->>'mine')::boolean,false) then seller=u else status='open' and expires_at>now() end) and (coalesce(p_args->>'kind','all')='all' or (p_args->>'kind'='consumable' and item->>'kind'='consumable') or (p_args->>'kind'='gear' and coalesce(item->>'kind','gear')='gear')) and (filter_slot is null or (item->>'slot')::integer=filter_slot) and (filter_class is null or item->>'classId'=filter_class) order by created_at desc,id limit 21 offset page*20) q;
+  select coalesce(jsonb_agg(q),'[]') into result from (select id,item,price,expires_at,seller=u as own,status from rebirth_private.listings where (case when coalesce((p_args->>'mine')::boolean,false) then seller=u and status<>'cancelled' else status='open' and expires_at>now() end) and (coalesce(p_args->>'kind','all')='all' or (p_args->>'kind'='consumable' and item->>'kind'='consumable') or (p_args->>'kind'='gear' and coalesce(item->>'kind','gear')='gear')) and (filter_slot is null or (item->>'slot')::integer=filter_slot) and (filter_class is null or item->>'classId'=filter_class) order by created_at desc,id limit 21 offset page*20) q;
   return result;
  end if;
  -- Serialize market mutations, lock buyers/sellers consistently; small game transaction.

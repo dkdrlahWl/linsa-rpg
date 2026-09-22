@@ -41,7 +41,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=potential-balance-6";
+} from "./data.mjs?v=field-fixes-13";
 
 const fail = (message) => {
   throw new Error(message);
@@ -288,6 +288,7 @@ export function settle(s, ctx) {
   );
   // Keep sub-second progress; discard only time beyond the offline cap.
   s.lastAt = ctx.now - (elapsed % 1000);
+  if (s.level < STAGES[s.stage].level) { s.hunting = false; s.huntRemainder = 0; }
   if (!s.hunting || s.battle || !seconds) return null;
   let remaining = seconds + s.huntRemainder, kills = 0, xp = 0, defeats = 0;
   // Recalculate at level boundaries so offline and frequent online settlement agree.
@@ -311,7 +312,7 @@ export function settle(s, ctx) {
   const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, EQUIP_DROP, ctx),bossGearCount=rollCount(kills,FIELD_BOSS_DROP,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
     const item = makeLootItem(
-      i>=normalGearCount ? TIERS[STAGES[s.stage].region+1] : STAGES[s.stage].dropLevel,
+      STAGES[s.stage].dropLevel,
       pick(CLASSES, ctx).id,
       Math.floor(ctx.random() * 9),
       i>=normalGearCount,
@@ -521,12 +522,14 @@ export function execute(input, command, args = {}, ctx) {
       break;
     }
     case "hunt":
+      if (args.enabled) check(s.level >= STAGES[s.stage].level, "LEVEL_REQUIRED");
       s.hunting = Boolean(args.enabled);
       s.lastAt = ctx.now;
       break;
     case "stage": {
       check(int(args.id, 0, 29), "INVALID_STAGE");
       const st = STAGES[args.id];
+      check(s.level >= st.level, "LEVEL_REQUIRED");
       check(power(s).stars >= st.star, "STARS_REQUIRED");
       check(
         st.region === 0 || s.cleared.includes(st.region * 3 - 1),

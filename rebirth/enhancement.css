@@ -83,3 +83,5 @@ dialog.market-picker-dialog{width:min(96vw,940px);max-width:940px;max-height:92d
  .rank-podium.rank-place-1 .rank-portrait.portrait{height:110px}
  .rank-list-row .rank-portrait.portrait{height:48px}
 }
+
+.bag-slot.salvage-selected{outline:3px solid #f1bf64;outline-offset:-3px;background:#514126}.bag-slot.salvage-selected:after{content:"선택";position:absolute;right:4px;bottom:4px;background:#f1bf64;color:#17120a;padding:2px 5px;border-radius:4px;font-weight:bold}.bag-slot.salvage-unavailable{opacity:.4}

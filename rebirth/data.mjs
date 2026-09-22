@@ -137,7 +137,7 @@ export const STAGES = REGIONS.flatMap((r) =>
     level: Math.max(1, r.level + j * 6),
     star: j === 2 && r.id >= 2 ? (r.id - 1) * 15 : 0,
     xp: Math.round(12 * 1.53 ** r.id * (1 + j * 0.12)),
-    gold: (20 + r.id * 35) * .30,
+    gold: (20 + r.id * 35) * .15,
     hp: Math.round(70 * 1.8 ** r.id * (1 + j * 0.22)),
     attack: Math.round(3 * 1.6 ** r.id),
     dropLevel: TIERS[r.id],
@@ -237,9 +237,9 @@ export function rollQuality(random=Math.random){let roll=random();for(const band
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
 export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
-export const CUBE_DROP = 0.008/3;
-export const SCROLL_DROP = 0.0007;
-export const FRAGMENT_DROP = 0.035;
+export const CUBE_DROP = 0.004/3;
+export const SCROLL_DROP = 0.00035;
+export const FRAGMENT_DROP = 0.0175;
 export const SUPPLY_EXCHANGE = {cube:{fragment:10,gold:500},highCube:{fragment:50,gold:2500},scroll:{fragment:20,gold:500},expand:{fragment:150,gold:7500}};
 export const XP_SCALE = 5; // Calibrated by simulation before release, not a client multiplier.
 export function xpNeeded(level) {
