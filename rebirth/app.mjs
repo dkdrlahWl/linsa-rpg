@@ -1,9 +1,9 @@
-import {TOWER_FLOORS} from './tower-model.mjs?v=class-skill-25';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=class-skill-25';
+import {TOWER_FLOORS} from './tower-model.mjs?v=tower-motion-26';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower-motion-26';
 import * as D from "./data.mjs?v=attendance-week-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=class-change-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=tower-motion-26";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

@@ -13,18 +13,22 @@ export const TOWER_CLASSES={
 };
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+// Screen coordinates: east, south-east, south, south-west, west, north-west, north, north-east.
+export const towerFacing=(dx,dy,fallback=2)=>Math.hypot(dx,dy)<.001?fallback:(Math.round(Math.atan2(dy,dx)*4/Math.PI)+8)%8;
+export const facingVector=dir=>({x:Math.cos(dir*Math.PI/4),y:Math.sin(dir*Math.PI/4)});
 const lineDistance=(p,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);};
 function random(b){b.seed=(Math.imul(b.seed,1664525)+1013904223)>>>0;return b.seed/4294967296;}
-export function newTowerBattle(floor,classId,power,now,id,seed,advanced=false){const f=TOWER_FLOORS[floor-1];return {kind:'tower',runId:id,floor,classId,advanced,power,started:now,tick:0,seed:seed>>>0,hp:power.hp,enemyHp:f.hp,player:{x:500,y:950,face:1},enemy:{x:500,y:320,face:1},attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,invulnerableUntil:0,guardUntil:0,attackUntil:0,skillUntil:0,enemyCastUntil:0,nextPattern:25,phase:0,hazards:[],projectiles:[],effects:[],numbers:[],serial:0,won:false,ended:false};}
-function fx(b,kind,x,y,size=150,life=6){b.effects.push({id:++b.serial,kind,x,y,size,start:b.tick,end:b.tick+life});}
+export function newTowerBattle(floor,classId,power,now,id,seed,advanced=false){const f=TOWER_FLOORS[floor-1];return {kind:'tower',runId:id,floor,classId,advanced,power,started:now,tick:0,seed:seed>>>0,hp:power.hp,enemyHp:f.hp,player:{x:500,y:950,face:1,dir:6,attackDir:6,walk:0},enemy:{x:500,y:320,face:1,dir:2,castDir:2,walk:0},attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,invulnerableUntil:0,guardUntil:0,attackUntil:0,skillUntil:0,enemyCastUntil:0,nextPattern:25,phase:0,hazards:[],projectiles:[],effects:[],numbers:[],serial:0,won:false,ended:false};}
+function fx(b,kind,x,y,size=150,life=6,angle=0,hostile=false){b.effects.push({id:++b.serial,kind,x,y,size,start:b.tick,end:b.tick+life,angle,hostile});}
 function number(b,value,x,y,kind){b.numbers.push({id:++b.serial,value,x,y,kind,start:b.tick,end:b.tick+9});}
 function enemyDamage(b,scale,skillCrit=0){const first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)?SECOND_SKILLS[b.classId]:null;const crit=random(b)<Math.min(.95,b.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+skillCrit),damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(crit?b.power.critDamage+(second?.critDamageAdd||0):1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
 function playerDamage(b,multiplier){if(b.tick<b.invulnerableUntil||b.tick<(b.hurtUntil||0))return;const f=TOWER_FLOORS[b.floor-1],first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)?SECOND_SKILLS[b.classId]:null;const damage=Math.max(1,Math.round((f.attack*multiplier-b.power.defense*.4)*(first?.guard||1)*(second?.guard||1)));b.hp=Math.max(0,b.hp-damage);b.hurtUntil=b.tick+5;number(b,damage,b.player.x,b.player.y-100,'incoming');fx(b,'impact',b.player.x,b.player.y-40,110);}
-function circle(b,x,y,r,delay=12,multiplier=1.6,duration=3,inner=0){b.hazards.push({id:++b.serial,type:'circle',x:clamp(x,70,930),y:clamp(y,140,1110),r,inner,at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
-function line(b,x,y,tx,ty,width=90,delay=12,multiplier=1.6,duration=3){b.hazards.push({id:++b.serial,type:'line',x,y,tx,ty,width,at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
+function circle(b,x,y,r,delay=12,multiplier=1.6,duration=3,inner=0){const hx=clamp(x,70,930),hy=clamp(y,140,1110);b.hazards.push({id:++b.serial,type:'circle',x:hx,y:hy,r,inner,dir:towerFacing(hx-b.enemy.x,hy-b.enemy.y,b.enemy.dir??2),at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
+function line(b,x,y,tx,ty,width=90,delay=12,multiplier=1.6,duration=3){b.hazards.push({id:++b.serial,type:'line',x,y,tx,ty,width,dir:towerFacing(tx-x,ty-y,b.enemy.dir??2),at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
 function fan(b,count=5){const a=Math.atan2(b.player.y-b.enemy.y,b.player.x-b.enemy.x);for(let i=0;i<count;i++){const angle=a+(i-(count-1)/2)*.23;b.projectiles.push({id:++b.serial,side:'enemy',x:b.enemy.x,y:b.enemy.y,dx:Math.cos(angle)*31,dy:Math.sin(angle)*31,r:24,at:b.tick+10,end:b.tick+65,multiplier:.9});}}
 function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
- b.enemyCastUntil=b.tick+10;b.enemyAttackUntil=b.tick+16;
+ e.castDir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);e.dir=e.castDir;
+ b.enemyCastStart=b.tick;b.enemyCastUntil=b.tick+10;b.enemyAttackStart=b.tick+10;b.enemyAttackUntil=b.tick+16;b.enemyAttackDir=e.castDir;
  if(f===1){circle(b,p.x,p.y,130);circle(b,p.x+(p.x<500?170:-170),p.y-170,120,19);}
  if(f===2){fan(b,5+k%3);if(k%2)circle(b,p.x,p.y,110,16);}
  if(f===3){line(b,p.x,120,p.x,1120,110);line(b,80,p.y,920,p.y,110,16);}
@@ -40,21 +44,26 @@ function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
 export function towerStep(b,input){
  if(b.ended)return b;b.tick++;const f=TOWER_FLOORS[b.floor-1],c=TOWER_CLASSES[b.classId],p=b.player,e=b.enemy;
  b.effects=b.effects.filter(x=>x.end>b.tick).slice(-40);b.numbers=b.numbers.filter(x=>x.end>b.tick).slice(-25);
- let [mx,my,buttons]=input,n=Math.hypot(mx,my);if(n>1){mx/=n;my/=n;}p.moving=!!n;if(mx)p.face=mx<0?-1:1;
- if((buttons&4)&&b.tick>=b.dashReady){b.dashReady=b.tick+35;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx:0;b.dashY=n?my:1;fx(b,'slash',p.x,p.y,170);}
- if(b.tick<(b.dashUntil||0)){mx=b.dashX*3;my=b.dashY*3;}
+ let [mx,my,buttons]=input,n=Math.hypot(mx,my);if(n>1){mx/=n;my/=n;}p.moving=!!n;
+ if(n>.01){p.dir=towerFacing(mx,my,p.dir??6);p.walk=(p.walk||0)+Math.min(1,n);if(mx)p.face=mx<0?-1:1;}
+ if((buttons&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+35;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx:v.x;b.dashY=n?my:v.y;fx(b,'slash',p.x,p.y,170,6,Math.atan2(b.dashY,b.dashX));}
+ if(b.tick<(b.dashUntil||0)){mx=b.dashX*3;my=b.dashY*3;p.dir=towerFacing(mx,my,p.dir??6);}
  p.x=clamp(p.x+mx*25,70,930);p.y=clamp(p.y+my*25,150,1120);
- if((buttons&8)&&b.tick>=b.ultimateReady){const sk=CLASS_SKILLS[b.classId];b.ultimateReady=b.tick+sk.cooldown*10;b.guardUntil=b.tick+sk.seconds*10;b.skillUntil=b.tick+7;fx(b,'rune',p.x,p.y,220,12);}
- if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){b.attackReady=b.tick+c.cooldown;b.attackUntil=b.tick+4;p.face=e.x<p.x?-1:1;if(c.range<300){enemyDamage(b,c.cooldown/10*b.power.cadence);fx(b,'slash',(p.x+e.x)/2,(p.y+e.y)/2-40,200);}else{const a=Math.atan2(e.y-p.y,e.x-p.x);b.projectiles.push({id:++b.serial,side:'player',x:p.x,y:p.y-30,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick,end:b.tick+15,scale:c.cooldown/10*b.power.cadence});}}
- if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillUntil=b.tick+7;if(sk.type==='attack'){for(let i=0;i<sk.hits;i++)enemyDamage(b,sk.damage,sk.critAdd||0);fx(b,'slash',e.x,e.y-50,310,9);}else{b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
+ if((buttons&8)&&b.tick>=b.ultimateReady){const sk=CLASS_SKILLS[b.classId];b.ultimateReady=b.tick+sk.cooldown*10;b.guardUntil=b.tick+sk.seconds*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=p.dir??6;fx(b,'rune',p.x,p.y,220,12);}
+ if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){const a=Math.atan2(e.y-p.y,e.x-p.x),v=facingVector(towerFacing(e.x-p.x,e.y-p.y,p.dir??6));p.dir=p.attackDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=v.x<0?-1:1;b.attackReady=b.tick+c.cooldown;b.attackStart=b.tick;b.attackUntil=b.tick+6;if(c.range<300){b.pendingMelee={at:b.tick+2,scale:c.cooldown/10*b.power.cadence};}else{b.projectiles.push({id:++b.serial,side:'player',x:p.x+v.x*28,y:p.y-30+v.y*15,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick,end:b.tick+15,scale:c.cooldown/10*b.power.cadence});}}
+ if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;if(sk.type==='attack'){const a=Math.atan2(e.y-p.y,e.x-p.x);p.dir=p.attackDir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=Math.cos(a)<0?-1:1;b.pendingSkillHit={at:b.tick+3,hits:sk.hits,damage:sk.damage,critAdd:sk.critAdd||0};}else{p.skillDir=p.dir??6;b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(b.tick>=b.nextPattern)pattern(b);
- if(b.charge&&b.tick>=b.charge.at&&b.tick<=b.charge.end){e.x+=(b.charge.x-e.x)*.48;e.y+=(b.charge.y-e.y)*.48;}
- else if(b.tick>b.enemyAttackUntil&&distance(p,e)>140){const angle=Math.atan2(p.y-e.y,p.x-e.x),speed=b.floor===4?6:2.5;e.x=clamp(e.x+Math.cos(angle)*speed,140,860);e.y=clamp(e.y+Math.sin(angle)*speed,230,970);}
- e.face=p.x<e.x?-1:1;
- for(const h of b.hazards){if(b.tick<h.at||b.tick>=h.end)continue;if(b.tick===h.at)fx(b,'impact',h.type==='line'?(h.x+h.tx)/2:h.x,h.type==='line'?(h.y+h.ty)/2:h.y,h.type==='line'?200:h.r*2,5);const d=h.type==='line'?lineDistance(p,{x:h.x,y:h.y},{x:h.tx,y:h.ty}):Math.hypot(p.x-h.x,p.y-h.y);if(h.type==='line'?d<h.width/2+22:d<h.r+22&&d>=Math.max(0,h.inner-22))playerDamage(b,h.multiplier);}
+ if(b.charge&&b.tick>=b.charge.at&&b.tick<=b.charge.end){if(b.tick===b.charge.at){b.enemyAttackStart=b.tick;b.enemyAttackUntil=b.tick+6;b.enemyAttackDir=towerFacing(b.charge.x-e.x,b.charge.y-e.y,e.dir??2);}e.dir=b.enemyAttackDir;e.x+=(b.charge.x-e.x)*.48;e.y+=(b.charge.y-e.y)*.48;}
+ else if(b.tick>b.enemyAttackUntil&&distance(p,e)>140){const angle=Math.atan2(p.y-e.y,p.x-e.x),speed=b.floor===4?6:2.5;e.x=clamp(e.x+Math.cos(angle)*speed,140,860);e.y=clamp(e.y+Math.sin(angle)*speed,230,970);e.dir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);e.walk=(e.walk||0)+1;}
+ else if(b.tick>b.enemyAttackUntil)e.dir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);
+ e.face=[3,4,5].includes(e.dir)?-1:1;
+ if(b.pendingMelee&&b.tick>=b.pendingMelee.at){if(distance(p,e)<=c.range+30){const a=Math.atan2(e.y-p.y,e.x-p.x);enemyDamage(b,b.pendingMelee.scale);fx(b,'slash',(p.x+e.x)/2,(p.y+e.y)/2-40,220,7,a);}delete b.pendingMelee;}
+ if(b.pendingSkillHit&&b.tick>=b.pendingSkillHit.at){if(distance(p,e)<790){const hit=b.pendingSkillHit,a=Math.atan2(e.y-p.y,e.x-p.x);for(let i=0;i<hit.hits;i++)enemyDamage(b,hit.damage,hit.critAdd);fx(b,'slash',e.x,e.y-50,310,9,a);}delete b.pendingSkillHit;}
+ if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
+ for(const h of b.hazards){if(b.tick<h.at||b.tick>=h.end)continue;if(b.tick===h.at){b.enemyAttackStart=b.tick;b.enemyAttackUntil=b.tick+6;b.enemyAttackDir=h.dir??e.castDir??2;e.dir=b.enemyAttackDir;fx(b,h.type==='line'?'slash':'impact',h.type==='line'?(h.x+h.tx)/2:h.x,h.type==='line'?(h.y+h.ty)/2:h.y,h.type==='line'?240:h.r*2,5,h.type==='line'?Math.atan2(h.ty-h.y,h.tx-h.x):0,true);}const d=h.type==='line'?lineDistance(p,{x:h.x,y:h.y},{x:h.tx,y:h.ty}):Math.hypot(p.x-h.x,p.y-h.y);if(h.type==='line'?d<h.width/2+22:d<h.r+22&&d>=Math.max(0,h.inner-22))playerDamage(b,h.multiplier);}
  b.hazards=b.hazards.filter(x=>x.end>b.tick);
- for(const q of b.projectiles){if(b.tick<q.at||b.tick>=q.end)continue;const old={x:q.x,y:q.y};q.x+=q.dx;q.y+=q.dy;const target=q.side==='player'?e:p;if(lineDistance(target,old,q)<(q.side==='player'?90:25)+q.r){if(q.side==='player')enemyDamage(b,q.scale);else playerDamage(b,q.multiplier);q.end=b.tick;}if(q.x<0||q.x>1000||q.y<50||q.y>1220)q.end=b.tick;}
+ for(const q of b.projectiles){if(b.tick<q.at||b.tick>=q.end)continue;if(q.side==='enemy'&&b.tick===q.at){b.enemyAttackStart=b.tick;b.enemyAttackUntil=b.tick+6;b.enemyAttackDir=e.castDir??towerFacing(q.dx,q.dy,2);e.dir=b.enemyAttackDir;}const old={x:q.x,y:q.y};q.x+=q.dx;q.y+=q.dy;const target=q.side==='player'?e:p;if(lineDistance(target,old,q)<(q.side==='player'?90:25)+q.r){if(q.side==='player')enemyDamage(b,q.scale);else playerDamage(b,q.multiplier);q.end=b.tick;}if(q.x<0||q.x>1000||q.y<50||q.y>1220)q.end=b.tick;}
  b.projectiles=b.projectiles.filter(x=>x.end>b.tick);
  if(b.enemyHp<=0){b.ended=true;b.won=true;}else if(b.hp<=0||b.tick>=f.seconds*10){b.ended=true;b.won=false;}
  return b;

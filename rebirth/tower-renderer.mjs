@@ -1,10 +1,13 @@
-import {TOWER_FLOORS,TOWER_CLASSES} from './tower-model.mjs?v=class-skill-25';
+import {TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=tower-motion-26';
 const cache=new Map();
 export const asset=name=>'tower/'+name+'.webp';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=src;cache.set(src,im);}return cache.get(src);}
 const mix=(a,b,t)=>a+(b-a)*t;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
+// The current artwork is front-facing. These eight projections turn the stance,
+// lunge, trail and effects together without rotating a standing character flat.
+const views=[{flip:1,width:.86,lean:.09},{flip:1,width:.94,lean:.045},{flip:1,width:1,lean:0},{flip:-1,width:.94,lean:-.045},{flip:-1,width:.86,lean:-.09},{flip:-1,width:.82,lean:-.055},{flip:1,width:.80,lean:0},{flip:1,width:.82,lean:.055}];
 
 export class TowerRenderer {
   constructor(canvas){
@@ -12,10 +15,10 @@ export class TowerRenderer {
     this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){canvas.width=1000;canvas.height=Math.round(1000*r.height/r.width);}});this.resize.observe(canvas);
   }
   dispose(){this.resize.disconnect();}
-  sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1){
+  sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
     const g=this.g,sw=im.width/columns,sh=im.height/rows;
-    g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip,1);g.globalAlpha=alpha;
+    g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     g.drawImage(im,(frame%columns)*sw,Math.floor(frame/columns)*sh,sw,sh,-w/2,-h*.84,w,h);g.restore();
   }
   effect(kind,x,y,w,h=w,angle=0,alpha=1){
@@ -72,30 +75,37 @@ export class TowerRenderer {
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
     const casting=b.tick<b.skillUntil||hint.skill>now,attacking=b.tick<b.attackUntil||hint.attack>now;
-    const attackAge=clamp(1-(b.attackUntil-time)/4),skillAge=clamp(1-(b.skillUntil-time)/7);
-    const facing=attacking||casting?b.enemy.x<player.x?-1:1:input[0]?Math.sign(input[0]):b.player.face;
-    const pose=casting?3:attacking?2:moving?1:0;
-    const bob=moving&&!dashing?Math.sin(now/90)*3:Math.sin(now/600)*1.2;
+    const attackAge=clamp((time-(b.attackStart??(b.attackUntil-6)))/6),skillAge=clamp((time-(b.skillStart??(b.skillUntil-8)))/8);
+    const moveDir=towerFacing(input[0],input[1],b.player.dir??6);
+    const dir=attacking?(b.player.attackDir??towerFacing(enemy.x-player.x,enemy.y-player.y,moveDir)):casting?(b.player.skillDir??moveDir):moving?moveDir:(b.player.dir??6);
+    const view=views[dir],forward=facingVector(dir);
+    const pose=casting?3:attacking?2:moving||dashing?1:0;
+    const stride=moving?Math.sin(((b.player.walk||0)+fraction)*2.25):0;
+    const bob=moving&&!dashing?Math.abs(stride)*5:Math.sin(now/600)*1.2;
     this.shadow(enemy.x,enemy.y-4,100);this.shadow(player.x,player.y,58);
     // A small, constant marker makes the player easy to track during effects.
     g.save();g.beginPath();g.ellipse(player.x,player.y,43,19,0,0,Math.PI*2);g.fillStyle='#78ffe823';g.fill();g.lineWidth=3;g.strokeStyle='#a5ffdf';g.stroke();g.restore();
     if((input[2]&1)&&Math.hypot(player.x-b.enemy.x,player.y-b.enemy.y)>c.range){
       g.save();g.beginPath();g.arc(player.x,player.y,c.range,0,Math.PI*2);g.strokeStyle='#fff1bc80';g.lineWidth=2;g.setLineDash([9,12]);g.stroke();g.restore();
     }
-    if(dashing&&(!this.trail.length||now-this.trail.at(-1).at>28))this.trail.push({x:player.x,y:player.y,at:now,face:facing});
+    if(dashing&&(!this.trail.length||now-this.trail.at(-1).at>28))this.trail.push({x:player.x,y:player.y,at:now,dir});
     this.trail=this.trail.filter(p=>now-p.at<180).slice(-6);
-    for(const p of this.trail)this.sprite(asset('hero-'+b.classId),2,2,1,p.x,p.y,220,220,p.face,0,.23*(1-(now-p.at)/180));
+    for(const p of this.trail){const v=views[p.dir];this.sprite(asset('hero-'+b.classId),2,2,1,p.x,p.y,220,220,v.flip,0,.23*(1-(now-p.at)/180),v.width,v.lean);}
     const drawPlayer=()=>{
-      const swing=attacking?Math.sin(attackAge*Math.PI)*.13*facing:casting?Math.sin(skillAge*Math.PI)*.06:0;
-      const lunge=attacking?Math.sin(attackAge*Math.PI)*9*facing:0;
+      const swing=attacking?Math.sin(attackAge*Math.PI)*.12*view.flip:casting?Math.sin(skillAge*Math.PI)*.055*view.flip:stride*.032;
+      const lunge=attacking?Math.sin(attackAge*Math.PI)*16:0;
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
-      this.sprite(asset('hero-'+b.classId),2,2,pose,player.x+lunge,player.y+bob,220,220,facing,swing,alpha);
+      this.sprite(asset('hero-'+b.classId),2,2,pose,player.x+forward.x*lunge,player.y+forward.y*lunge*.7+bob,220,220,view.flip,swing,alpha,view.width,view.lean+stride*.018);
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-30,210,150,-time*.04,.55);
     };
     const drawBoss=()=>{
       const windup=b.tick<b.enemyCastUntil,frame=windup?1:b.tick<b.enemyAttackUntil?2:0;
-      const angle=windup?Math.sin(time*.4)*.025:0;
-      this.sprite(asset('boss-'+f.art),3,1,frame,enemy.x,enemy.y+Math.sin(now/500)*2,345,345,b.enemy.face,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
+      const bossDir=windup?(b.enemy.castDir??b.enemy.dir??2):frame===2?(b.enemyAttackDir??b.enemy.dir??2):(b.enemy.dir??2),v=views[bossDir],toward=facingVector(bossDir);
+      const bossAge=clamp((time-(b.enemyAttackStart??(b.enemyAttackUntil-6)))/6),pulse=frame===2?Math.sin(bossAge*Math.PI):0;
+      const step=Math.sin(((b.enemy.walk||0)+fraction)*1.3),angle=windup?Math.sin(time*.4)*.035:frame===2?Math.sin(bossAge*Math.PI)*.055*v.flip:step*.014;
+      const castPulse=windup?Math.sin(clamp((time-(b.enemyCastStart??(b.enemyCastUntil-10)))/10)*Math.PI):0;
+      this.sprite(asset('boss-'+f.art),3,1,frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,345,345,v.flip,angle,b.tick<(b.enemyHurtUntil||0)?.82:1,v.width,v.lean+step*.012);
+      if(windup)this.effect('rune',enemy.x+toward.x*100,enemy.y-105+toward.y*42,105+castPulse*50,105+castPulse*50,time*.03,.35+castPulse*.28);
     };
     if(player.y<enemy.y){drawPlayer();drawBoss();}else{drawBoss();drawPlayer();}
     for(const q of b.projectiles){
@@ -105,7 +115,7 @@ export class TowerRenderer {
       g.save();if(enemyShot){g.shadowColor='#ff594e';g.shadowBlur=16;g.filter='sepia(1) saturate(5) hue-rotate(320deg)';}
       this.effect('bolt',x,y,enemyShot?100:90,55,Math.atan2(q.dy,q.dx));g.restore();
     }
-    for(const e of b.effects){const age=clamp((time-e.start)/(e.end-e.start));this.effect(e.kind,e.x,e.y,e.size*(.7+Math.sin(age*Math.PI/2)*.55),undefined,e.kind==='slash'?age*.65:0,1-age*.9);}
+    for(const e of b.effects){const age=clamp((time-e.start)/(e.end-e.start));g.save();if(e.hostile)g.filter='sepia(1) saturate(5) hue-rotate(315deg)';this.effect(e.kind,e.x,e.y,e.size*(.7+Math.sin(age*Math.PI/2)*.55),undefined,(e.angle||0)+(e.kind==='slash'?age*.38:0),1-age*.9);g.restore();}
     for(const n of b.numbers){
       const age=time-n.start,fade=clamp((n.end-time)/2),incoming=n.kind==='incoming';
       g.save();g.globalAlpha=fade;g.font=`800 ${n.kind==='critical'?48:incoming?42:36}px system-ui`;g.textAlign='center';g.lineWidth=6;g.strokeStyle='#071017';
