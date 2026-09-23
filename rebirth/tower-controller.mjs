@@ -1,7 +1,7 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=direction-art-28';
+import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=direction-art-29';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-smooth-21';
-import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=direction-art-28';
+import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=direction-art-29';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));

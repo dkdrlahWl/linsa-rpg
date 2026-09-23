@@ -1,4 +1,4 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=direction-art-28';
+import {TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=direction-art-29';
 const cache=new Map();
 export const asset=name=>'tower/'+name+'.webp';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=src;cache.set(src,im);}return cache.get(src);}
@@ -8,6 +8,50 @@ const format=n=>Math.floor(n).toLocaleString('ko-KR');
 // Each new atlas has eight hand-drawn ready poses followed by eight attack poses.
 // Direction order matches towerFacing: E, SE, S, SW, W, NW, N, NE.
 const directional=(name,dir,attack=false)=>[asset(name+'-directions'),4,4,(attack?8:0)+dir];
+const cleanAtlases=new WeakMap();
+// Some painted poses overlap a neighbouring atlas cell. Isolate the actual
+// character in each cell so stray weapon tips and hair never appear beside it.
+function cleanDirectionalAtlas(im){
+  if(cleanAtlases.has(im))return cleanAtlases.get(im);
+  try{
+    const canvas=document.createElement('canvas');canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
+    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
+    const sw=canvas.width/4,sh=canvas.height/4,size=sw*sh;
+    if(!Number.isInteger(sw)||!Number.isInteger(sh))return im;
+    const labels=new Int32Array(size),queue=new Int32Array(size),mask=new Uint8Array(size);
+    for(let cell=0;cell<16;cell++){
+      labels.fill(0);
+      const ox=(cell%4)*sw,oy=Math.floor(cell/4)*sh,groups=[null];
+      for(let y=0;y<sh;y++)for(let x=0;x<sw;x++)mask[y*sw+x]=data[((oy+y)*canvas.width+ox+x)*4+3]>8?1:0;
+      for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
+        const start=y*sw+x;if(labels[start]||!mask[start])continue;
+        const id=groups.length,g={size:0,minX:x,maxX:x,minY:y,maxY:y};groups.push(g);
+        let first=0,last=0;queue[last++]=start;labels[start]=id;
+        while(first<last){
+          const p=queue[first++],px=p%sw,py=Math.floor(p/sw);g.size++;
+          g.minX=Math.min(g.minX,px);g.maxX=Math.max(g.maxX,px);
+          g.minY=Math.min(g.minY,py);g.maxY=Math.max(g.maxY,py);
+          let q=p-1;if(px&&mask[q]&&!labels[q]){labels[q]=id;queue[last++]=q;}
+          q=p+1;if(px<sw-1&&mask[q]&&!labels[q]){labels[q]=id;queue[last++]=q;}
+          q=p-sw;if(py&&mask[q]&&!labels[q]){labels[q]=id;queue[last++]=q;}
+          q=p+sw;if(py<sh-1&&mask[q]&&!labels[q]){labels[q]=id;queue[last++]=q;}
+        }
+      }
+      if(groups.length<3)continue;
+      let main=1;for(let id=2;id<groups.length;id++)if(groups[id].size>groups[main].size)main=id;
+      const keep=groups.map((g,id)=>{
+        if(id===main)return true;if(!g)return false;
+        const border=g.minX<=6||g.maxX>=sw-7||g.minY<=6||g.maxY>=sh-7;
+        return g.size>=groups[main].size*(border?.28:.012);
+      });
+      for(let p=0;p<size;p++)if(labels[p]&&!keep[labels[p]]){
+        data[((oy+Math.floor(p/sw))*canvas.width+ox+p%sw)*4+3]=0;
+      }
+    }
+    ctx.putImageData(pixels,0,0);cleanAtlases.set(im,canvas);return canvas;
+  }catch{cleanAtlases.set(im,im);return im;}
+}
 
 export class TowerRenderer {
   constructor(canvas){
@@ -17,9 +61,9 @@ export class TowerRenderer {
   dispose(){this.resize.disconnect();}
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
-    const g=this.g,sw=im.width/columns,sh=im.height/rows;
+    const g=this.g,source=src.endsWith('-directions.webp')?cleanDirectionalAtlas(im):im,sw=source.width/columns,sh=source.height/rows;
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
-    g.drawImage(im,(frame%columns)*sw,Math.floor(frame/columns)*sh,sw,sh,-w/2,-h*.84,w,h);g.restore();
+    g.drawImage(source,(frame%columns)*sw,Math.floor(frame/columns)*sh,sw,sh,-w/2,-h*.84,w,h);g.restore();
   }
   effect(kind,x,y,w,h=w,angle=0,alpha=1){
     const im=image(asset('effects'));if(!im.complete||!im.naturalWidth)return;

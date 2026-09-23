@@ -1,9 +1,9 @@
-import {TOWER_FLOORS} from './tower-model.mjs?v=direction-art-28';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=direction-art-28';
+import {TOWER_FLOORS} from './tower-model.mjs?v=direction-art-29';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=direction-art-29';
 import * as D from "./data.mjs?v=attendance-week-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=direction-art-28";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=direction-art-29";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
