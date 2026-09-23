@@ -1,0 +1,17 @@
+.top-actions{display:flex;align-items:center;gap:4px}
+.top .attendance-alert{border-color:#dfb95e;color:#ffe6a2;background:linear-gradient(135deg,#56401f,#302720);font-weight:700}
+.attendance-dialog{width:min(620px,calc(100% - 20px))}
+.attendance-lead{margin:0 0 14px;color:#f0ddad;font-weight:700}
+.attendance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.attendance-day{display:flex;flex-direction:column;gap:5px;min-height:78px;padding:10px;border:1px solid #685d4c;border-radius:10px;background:linear-gradient(135deg,#242a30,#171c25)}
+.attendance-day strong{font-size:12px;color:#ead4ae}.attendance-day span{font-size:11px;color:#dbd3c4;line-height:1.45;overflow-wrap:anywhere}
+.attendance-day small{margin-top:auto;color:#fff0aa;font-weight:700}
+.attendance-day.attendance-done{opacity:.58}
+.attendance-day.attendance-next{border-color:#e9c77a;box-shadow:inset 0 0 0 1px #e9c77a50,0 0 15px #e9c77a20;background:linear-gradient(135deg,#493c28,#1c2630)}
+.attendance-day.attendance-grand{grid-column:1/-1;min-height:90px;background:linear-gradient(110deg,#493421,#263137);border-color:#dcb566}
+.attendance-grand strong{color:#ffe7a1;font-size:14px}.attendance-grand span{font-size:13px;color:#fff1d0}
+.attendance-claimed{padding:18px;border:1px solid #dcb566;border-radius:10px;background:#493421;color:#fff0bd;font-size:16px;font-weight:750;line-height:1.5}
+.attendance-dialog .note{margin-top:10px;line-height:1.6}
+.attendance-dialog .actions button{width:100%}
+@media(min-width:600px){.attendance-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.top{flex-wrap:wrap}.top .identity{min-width:50px}.top-actions{margin-left:auto}.top-resources{display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%}.top .attendance-alert{font-size:11px}}

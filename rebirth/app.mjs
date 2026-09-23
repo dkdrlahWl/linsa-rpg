@@ -1,6 +1,6 @@
 import {TOWER_FLOORS} from './tower-model.mjs?v=class-skill-25';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=class-skill-25';
-import * as D from "./data.mjs?v=tower-20";
+import * as D from "./data.mjs?v=attendance-week-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=class-skill-25";
@@ -352,9 +352,19 @@ const btn = (label, action, args = "", cls = "", write = false) =>
 function header(title, kicker = "새로운 여정") {
   return `<div class="page-head"><div><p class="eyebrow">${kicker}</p><h2>${title}</h2></div>${tab === "hunt" ? '<span class="pill">오프라인 최대 6시간</span>' : ""}</div>`;
 }
+function attendanceReady() { return state?.attendance?.lastClaim !== D.dayKey(Date.now()); }
+function attendanceReward(reward) {
+  return Object.entries(reward).map(([key,amount]) => `${key==="gold"?"골드":D.MATERIALS[key]} ${fmt(amount)}${key==="gold"?" G":"개"}`).join(" · ");
+}
+function attendance() {
+  const claimed = !attendanceReady(), day = ((state.attendance?.day || 0) % 7) + 1;
+  const completed = claimed && state.attendance?.day===7 ? 7 : claimed ? state.attendance?.day||0 : day-1;
+  open("7일 출석 보상", `<p class="attendance-lead">${claimed?"오늘 출석 완료! 내일 "+day+"일차 보상을 받을 수 있어요.":"오늘은 "+day+"일차 보상을 받을 수 있어요."}</p><div class="attendance-grid">${D.ATTENDANCE_REWARDS.map((reward,i)=>`<div class="attendance-day ${i===6?"attendance-grand":""} ${i+1===day&&!claimed?"attendance-next":""} ${i+1<=completed?"attendance-done":""}"><strong>${i+1}일차 ${i===6?"★ 특별 보상":""}</strong><span>${attendanceReward(reward)}</span>${i+1===day&&!claimed?"<small>오늘 수령 가능</small>":""}</div>`).join("")}</div><p class="note">매일 오전 0시(한국 시간)에 다음 보상을 받을 수 있어요. 하루를 놓쳐도 진행일은 유지되며 7일차를 받은 뒤 다시 1일차부터 반복됩니다.</p><div class="actions">${claimed?btn("내일 다시 받기","close","","",false):state.battle||state.partyRoom?'<button disabled>전투 종료 후 받기</button>':btn(day+"일차 보상 받기","attendanceClaim","","gold",true)}</div>`);
+  modal.classList.add("attendance-dialog");
+}
 function shell(content) {
   const c = D.CLASSES.find((c) => c.id === state.classId);
-  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn("랭킹", "ranking", "", "top-ranking")}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
+  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn(attendanceReady()?"출석 · 받기":"출석 완료", "attendance", "", attendanceReady()?"attendance-alert":"")}${btn("랭킹", "ranking", "", "top-ranking")}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
     ["hunt", "사냥"],
     ["character", "캐릭터"],
     ["gear", "장비"],
@@ -673,7 +683,7 @@ async function marketLoad() {
   render();
 }
 function open(title, html, closable = true) {
-  modal.classList.remove("enhance-dialog", "market-picker-dialog");
+  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog");
   modal.innerHTML = `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`;
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = 0;
@@ -747,6 +757,11 @@ function cubeChoice() {
 function showEvents(events) {
   for (const e of events) {
     sounds.play(e.outcome || e.type);
+    if (e.type === "attendance") {
+      open(`${e.day}일차 출석 완료`, `<p class="attendance-claimed">${attendanceReward(e.reward)}</p><p class="note">보상이 가방과 재화에 지급됐어요.${e.day===7?" 내일부터 다시 1일차 보상을 받을 수 있어요.":""}</p><div class="actions">${btn("확인","close","","gold")}</div>`);
+      modal.classList.add("attendance-dialog");
+      continue;
+    }
     if(e.type==="autoEquip") {
       open("최적 장착 완료",`<div class="auto-equip-result"><span>${e.changed.length?e.changed.length+"개 부위 교체":"현재 장비 유지"}</span><div><b>${fmt(e.before)}</b><i>→</i><strong>${fmt(e.after)}</strong></div><p>전투력 +${fmt(e.after-e.before)}</p></div><p class="note">${e.changed.length?e.changed.map(slot=>D.SLOTS[slot]).join(" · ")+" 장비를 교체했습니다.":"이번 비교에서 더 높은 전투력 조합을 찾지 못해 현재 장비를 유지했습니다."}</p>`);
     }
@@ -949,6 +964,8 @@ document.addEventListener("click", async (e) => {
     if(action==='towerLeave'){modal.close();return await command('towerLeave');}
     if (action === "cubeKind") {cubeKind=arg==="highCube"?"highCube":"cube";return itemDetail(selected,"potential");}
     if (action === "reconnect") return await command("sync");
+    if (action === "attendance") return attendance();
+    if (action === "attendanceClaim") return await command("attendanceClaim");
     if (action === "craftDetail") return open("제작 장비 상세",craftPreview(Number(arg),true));
     if (action === "close") {
       modal.close();

@@ -40,10 +40,11 @@ import {
   DUNGEONS,
   CLASS_SKILLS,
   SECOND_SKILLS,
+  ATTENDANCE_REWARDS,
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=tower-20";
+} from "./data.mjs?v=attendance-week-1";
 
 import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=class-skill-25';
 const fail = (message) => {
@@ -115,6 +116,7 @@ export function initialState(classId, name, ctx) {
     cleared: [],
     bossClaims: {},
     dungeonClaims: {},
+    attendance: {day:0,lastClaim:null},
     battle: null,
     pendingCube: null,
     lastReward: null,
@@ -533,6 +535,18 @@ export function execute(input, command, args = {}, ctx) {
   }
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "attendanceClaim": {
+      const today = dayKey(ctx.now);
+      const previous = s.attendance || {day:0,lastClaim:null};
+      check(previous.lastClaim !== today, "ALREADY_ATTENDANCE_CLAIMED");
+      const day = (Number.isInteger(previous.day) && previous.day >= 0 && previous.day <= 7 ? previous.day % 7 : 0) + 1;
+      const reward = ATTENDANCE_REWARDS[day-1];
+      s.gold += reward.gold || 0;
+      for (const [key, amount] of Object.entries(reward)) if (key !== "gold") s.materials[key] += amount;
+      s.attendance = {day,lastClaim:today};
+      events.push({type:"attendance",day,reward});
+      break;
+    }
     case 'towerStart': {
       check(int(args.floor,1,10),'INVALID_TOWER_FLOOR');
       check(!s.pendingCube,'ITEM_CUBE_PENDING');

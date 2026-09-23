@@ -190,6 +190,16 @@ export const MATERIALS = {
   cube: "일반 큐브",
   highCube: "상급 큐브",
 };
+// One claim per Korean calendar day. The cycle advances on a successful claim.
+export const ATTENDANCE_REWARDS = [
+  {gold:2000,fragment:10},
+  {cube:3},
+  {gold:3000,fragment:20},
+  {scroll:1,fragment:20},
+  {gold:5000,cube:5},
+  {highCube:1,fragment:30},
+  {gold:20000,fragment:100,highCube:3},
+];
 export const OPTIONS = {
   STR: "STR",
   DEX: "DEX",
