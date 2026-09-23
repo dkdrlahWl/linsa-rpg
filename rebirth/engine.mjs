@@ -45,7 +45,7 @@ import {
   WEAPON_TYPES,
 } from "./data.mjs?v=tower-20";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=tower-20';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=job-tower-23';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -511,7 +511,7 @@ export function execute(input, command, args = {}, ctx) {
     check(s.battle, "NO_BATTLE");
     const b = s.battle;
     const slot=args.slot===2?2:1;
-    check(slot===1||s.advancement===1,"ADVANCEMENT_REQUIRED");
+    check(s.advancement===1,"ADVANCEMENT_REQUIRED");
     const sk=slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
     const ready=slot===2?'secondReady':'skillReady';
     check(ctx.now >= (b[ready]||0),"SKILL_COOLDOWN");
@@ -537,7 +537,7 @@ export function execute(input, command, args = {}, ctx) {
       check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.tower ||= {cleared:[],best:{}};
       check(args.floor===1||s.tower.cleared.includes(args.floor-1),'PREVIOUS_FLOOR_REQUIRED');
-      s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296));
+      s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "supplyExchange": {
@@ -787,11 +787,7 @@ export function execute(input, command, args = {}, ctx) {
     case "boss": {
       check(int(args.id, 0, 29), "INVALID_BOSS");
       const b = BOSSES[args.id];
-      check(b.weekly || s.level >= b.level, "LEVEL_REQUIRED");
-      check(
-        b.id === 0 || s.cleared.includes(b.id - 1),
-        "PREVIOUS_BOSS_REQUIRED",
-      );
+      if (b.weekly) check(b.id === 0 || s.cleared.includes(b.id - 1), "PREVIOUS_BOSS_REQUIRED");
       const practice = args.practice === true;
       check(
         practice ||

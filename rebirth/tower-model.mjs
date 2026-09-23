@@ -17,7 +17,7 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const lineDistance=(p,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);};
 function random(b){b.seed=(Math.imul(b.seed,1664525)+1013904223)>>>0;return b.seed/4294967296;}
-export function newTowerBattle(floor,classId,power,now,id,seed){const f=TOWER_FLOORS[floor-1];return {kind:'tower',runId:id,floor,classId,power,started:now,tick:0,seed:seed>>>0,hp:power.hp,enemyHp:f.hp,player:{x:500,y:950,face:1},enemy:{x:500,y:320,face:1},attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,invulnerableUntil:0,guardUntil:0,attackUntil:0,skillUntil:0,enemyCastUntil:0,enemyAttackUntil:0,nextPattern:25,phase:0,hazards:[],projectiles:[],effects:[],numbers:[],serial:0,won:false,ended:false};}
+export function newTowerBattle(floor,classId,power,now,id,seed,advanced=false){const f=TOWER_FLOORS[floor-1];return {kind:'tower',runId:id,floor,classId,advanced,power,started:now,tick:0,seed:seed>>>0,hp:power.hp,enemyHp:f.hp,player:{x:500,y:950,face:1},enemy:{x:500,y:320,face:1},attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,invulnerableUntil:0,guardUntil:0,attackUntil:0,skillUntil:0,enemyCastUntil:0,nextPattern:25,phase:0,hazards:[],projectiles:[],effects:[],numbers:[],serial:0,won:false,ended:false};}
 function fx(b,kind,x,y,size=150,life=6){b.effects.push({id:++b.serial,kind,x,y,size,start:b.tick,end:b.tick+life});}
 function number(b,value,x,y,kind){b.numbers.push({id:++b.serial,value,x,y,kind,start:b.tick,end:b.tick+9});}
 function enemyDamage(b,scale){const crit=random(b)<b.power.crit,damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(crit?b.power.critDamage:1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
@@ -46,9 +46,9 @@ export function towerStep(b,input){
  if((buttons&4)&&b.tick>=b.dashReady){b.dashReady=b.tick+35;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx:0;b.dashY=n?my:1;fx(b,'slash',p.x,p.y,170);}
  if(b.tick<(b.dashUntil||0)){mx=b.dashX*3;my=b.dashY*3;}
  p.x=clamp(p.x+mx*25,70,930);p.y=clamp(p.y+my*25,150,1120);
- if((buttons&8)&&b.tick>=b.ultimateReady){b.ultimateReady=b.tick+240;b.guardUntil=b.tick+45;const healed=Math.min(b.power.hp-b.hp,Math.round(b.power.hp*.18));b.hp+=healed;number(b,healed,p.x,p.y-100,'heal');fx(b,'rune',p.x,p.y,220,12);}
+ if(b.advanced&&(buttons&8)&&b.tick>=b.ultimateReady){b.ultimateReady=b.tick+240;b.guardUntil=b.tick+45;const healed=Math.min(b.power.hp-b.hp,Math.round(b.power.hp*.18));b.hp+=healed;number(b,healed,p.x,p.y-100,'heal');fx(b,'rune',p.x,p.y,220,12);}
  if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){b.attackReady=b.tick+c.cooldown;b.attackUntil=b.tick+4;p.face=e.x<p.x?-1:1;if(c.range<300){enemyDamage(b,c.cooldown/10*b.power.cadence);fx(b,'slash',(p.x+e.x)/2,(p.y+e.y)/2-40,200);}else{const a=Math.atan2(e.y-p.y,e.x-p.x);b.projectiles.push({id:++b.serial,side:'player',x:p.x,y:p.y-30,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick,end:b.tick+15,scale:c.cooldown/10*b.power.cadence});}}
- if((buttons&2)&&b.tick>=b.skillReady&&distance(p,e)<760){b.skillReady=b.tick+c.skillCooldown;b.skillUntil=b.tick+7;enemyDamage(b,c.skillScale);fx(b,b.classId==='mage'?'impact':'slash',e.x,e.y-50,310,9);if(b.classId==='warrior')b.guardUntil=Math.max(b.guardUntil,b.tick+20);}
+ if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady&&distance(p,e)<760){b.skillReady=b.tick+c.skillCooldown;b.skillUntil=b.tick+7;enemyDamage(b,c.skillScale);fx(b,b.classId==='mage'?'impact':'slash',e.x,e.y-50,310,9);if(b.classId==='warrior')b.guardUntil=Math.max(b.guardUntil,b.tick+20);}
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(b.tick>=b.nextPattern)pattern(b);
  if(b.charge&&b.tick>=b.charge.at&&b.tick<=b.charge.end){e.x+=(b.charge.x-e.x)*.48;e.y+=(b.charge.y-e.y)*.48;}

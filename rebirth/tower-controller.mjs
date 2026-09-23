@@ -1,4 +1,4 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=tower-20';
+import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=job-tower-23';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-smooth-21';
 import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=tower-smooth-21';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:2,Space:4,KeyL:8};
@@ -18,7 +18,7 @@ export class TowerController {
     window.addEventListener('keydown',e=>{
       if(e.target?.closest('input,textarea,select,dialog,[contenteditable="true"]'))return;
       if(e.target?.closest('[data-tower-button]')&&['Space','Enter'].includes(e.code))return;
-      const action=codes[e.code];if(action===undefined||this.paused())return;
+      const action=codes[e.code];if(action===undefined||this.paused()||((action===2||action===8)&&!this.b.advanced))return;
       e.preventDefault();this.advance(performance.now());
       if(!this.keys.has(e.code)&&typeof action==='number')this.press(action);
       this.keys.add(e.code);
@@ -27,9 +27,9 @@ export class TowerController {
     window.addEventListener('blur',()=>this.resetInput(),signal);
     document.addEventListener('visibilitychange',()=>{this.resetInput();this.last=performance.now();if(!document.hidden)this.flush(true);},signal);
     for(const el of this.buttons){
-      el.addEventListener('pointerdown',e=>{if(e.button!==0||this.paused())return;e.preventDefault();this.advance(performance.now());el.setPointerCapture(e.pointerId);const bit=Number(el.dataset.towerButton);this.buttonPointers.set(e.pointerId,bit);this.press(bit);},signal);
+      el.addEventListener('pointerdown',e=>{if(e.button!==0||el.disabled||this.paused())return;e.preventDefault();this.advance(performance.now());el.setPointerCapture(e.pointerId);const bit=Number(el.dataset.towerButton);this.buttonPointers.set(e.pointerId,bit);this.press(bit);},signal);
       for(const type of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(type,e=>{this.advance(performance.now());this.buttonPointers.delete(e.pointerId);},signal);
-      el.addEventListener('keydown',e=>{if(['Enter','Space'].includes(e.code)&&!e.repeat){e.preventDefault();this.advance(performance.now());this.press(Number(el.dataset.towerButton));}},signal);
+      el.addEventListener('keydown',e=>{if(!el.disabled&&['Enter','Space'].includes(e.code)&&!e.repeat){e.preventDefault();this.advance(performance.now());this.press(Number(el.dataset.towerButton));}},signal);
     }
     const stick=host.querySelector('#tower-stick');
     const move=e=>{const r=stick.getBoundingClientRect(),radius=r.width*.38,x=(e.clientX-r.left-r.width/2)/radius,y=(e.clientY-r.top-r.height/2)/radius;this.stick=stickVector(x,y);this.nodes['stick-knob'].style.transform=`translate(${this.stick.x*radius}px,${this.stick.y*radius}px)`;};
@@ -42,7 +42,7 @@ export class TowerController {
   paused(){return document.hidden||!!document.querySelector('dialog[open]');}
   resetInput(){this.keys.clear();this.buttonPointers.clear();this.stickPointer=null;this.stick={x:0,y:0};this.sampler.buttons=0;this.nodes['stick-knob'].style.transform='';for(const el of this.buttons)el.classList.remove('pressed');}
   press(bit){
-    if(!this.loaded||this.b.ended||this.frames.length>=25)return;
+    if(!this.loaded||this.b.ended||this.frames.length>=25||((bit===2||bit===8)&&!this.b.advanced))return;
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range)this.hint.attack=now+110;
     if(bit===2&&b.tick+1>=b.skillReady&&d<760)this.hint.skill=now+110;
@@ -50,7 +50,7 @@ export class TowerController {
   }
   input(){
     let x=this.stick.x,y=this.stick.y,bits=this.autoAttack?1:0;
-    const directions=new Set();for(const code of this.keys){const action=codes[code];if(typeof action==='number')bits|=action;else directions.add(action);}
+    const directions=new Set();for(const code of this.keys){const action=codes[code];if(typeof action==='number'){if((action!==2&&action!==8)||this.b.advanced)bits|=action;}else directions.add(action);}
     x+=Number(directions.has('right'))-Number(directions.has('left'));y+=Number(directions.has('down'))-Number(directions.has('up'));
     const n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}for(const bit of this.buttonPointers.values())bits|=bit;
     return [x,y,bits];

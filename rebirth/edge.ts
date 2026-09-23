@@ -70,13 +70,14 @@ Deno.serve(async (req) => {
         if (!snap.state) throw new Error("CHARACTER_REQUIRED");
         const action = body.command === "sync" ? "sync" : body.command.slice(5).toLowerCase();
         if (!["create","join","start","sync","list","skill","revive","leave"].includes(action)) throw new Error("INVALID_PARTY_ACTION");
+        if (action === "skill" && snap.state.advancement !== 1) throw new Error("ADVANCEMENT_REQUIRED");
         const ctx = {now:Number(snap.now), random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296, uuid:()=>crypto.randomUUID()};
         const computed = execute(snap.state,"sync",{},ctx);
         const boss = action === "create" ? raidBoss(body.args.bossId) : null;
         if (action === "create" && (!boss || !boss.raid)) throw new Error("INVALID_BOSS");
         const args = action === "create" ? {boss,practice:body.args.practice===true} : action === "join" ? {room:body.args.room} : action === "skill" ? {slot:body.args.slot===2?2:1} : {};
         try {
-          const result = await rpc("rebirth_party_action",{p_user:user.id,p_session:snap.session,p_epoch:snap.epoch,p_revision:snap.revision,p_state:computed.state,p_action:action,p_args:args,p_power:{...power(computed.state),skill:CLASS_SKILLS[computed.state.classId],secondSkill:computed.state.advancement===1?SECOND_SKILLS[computed.state.classId]:null},p_request:body.requestId,p_fingerprint:fingerprint},true);
+          const result = await rpc("rebirth_party_action",{p_user:user.id,p_session:snap.session,p_epoch:snap.epoch,p_revision:snap.revision,p_state:computed.state,p_action:action,p_args:args,p_power:{...power(computed.state),skill:computed.state.advancement===1?CLASS_SKILLS[computed.state.classId]:null,secondSkill:computed.state.advancement===1?SECOND_SKILLS[computed.state.classId]:null},p_request:body.requestId,p_fingerprint:fingerprint},true);
           return reply({...result,result:{events:[...computed.events,...(result.result?.events||[])]}});
         } catch(e) {if(e.message === "SAVE_CONFLICT" && retry<2)continue;throw e;}
       }

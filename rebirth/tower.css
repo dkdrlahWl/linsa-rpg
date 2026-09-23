@@ -49,3 +49,34 @@
  .tower-buttons{width:204px;grid-template-columns:1fr 1fr;grid-template-rows:68px 68px}.tower-button{padding-left:34px;padding-right:4px}.tower-button span{font-size:11px}.tower-button small{font-size:8px}.tower-action-art{width:36px;height:36px;top:calc(50% - 18px);left:0}
  .tower-footer{grid-column:1/-1;grid-row:4}
 }
+/* Keep the movement thumb away from the screen edge on narrow phones. */
+.tower-button:disabled{opacity:.52;filter:saturate(.35);cursor:not-allowed}
+@media(max-width:759px){
+ .tower-controls{justify-content:space-between;gap:8px;min-width:0;padding:7px max(14px,env(safe-area-inset-right)) 7px max(24px,env(safe-area-inset-left))}
+ .tower-movement{flex:0 0 43%;max-width:160px;min-width:0}
+ .tower-stick{width:min(124px,100%);height:auto;aspect-ratio:1}
+ .tower-buttons{flex:1 1 0;width:auto;max-width:none;min-width:0;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:repeat(2,minmax(48px,1fr));gap:6px}
+ .tower-button{min-width:0;padding:5px 4px 5px 30px}
+ .tower-button span{font-size:clamp(10px,2.8vw,12px);white-space:normal;line-height:1.2;overflow-wrap:anywhere}
+ .tower-button small{font-size:9px;white-space:normal;line-height:1.1}
+ .tower-action-art{width:30px;height:30px;left:0;top:calc(50% - 15px)}
+}
+@media(max-width:360px){
+ .tower-play{grid-template-rows:auto minmax(0,1fr) 30px 138px 34px}
+ .tower-movement{flex-basis:43%}
+ .tower-stick{width:min(116px,100%)}
+ .tower-button{padding-left:4px;text-align:center;align-items:center}
+ .tower-action-art{display:none}
+ .tower-button small{font-size:8px}
+}
+@media(max-height:680px) and (orientation:portrait) and (max-width:759px){
+ .tower-play{grid-template-rows:auto minmax(0,1fr) 30px 138px 32px}
+ .tower-stick{width:min(116px,100%)}
+ .tower-buttons{grid-template-rows:repeat(2,minmax(48px,1fr))}
+}
+@media(orientation:landscape) and (max-height:600px) and (max-width:759px){
+ .tower-controls{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+ .tower-movement{flex:none;width:130px}
+ .tower-stick{width:112px}
+ .tower-buttons{flex:none;width:196px}
+}
