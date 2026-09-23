@@ -1,7 +1,7 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=tower-motion-26';
+import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=direction-art-27';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-smooth-21';
-import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=tower-motion-26';
+import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=direction-art-27';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -12,7 +12,7 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
     this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
-    this.required=['arena','effects','boss-'+TOWER_FLOORS[b.floor-1].art,'hero-'+b.classId].map(asset);this.required.forEach(image);
+    this.required=['arena','effects','boss-'+TOWER_FLOORS[b.floor-1].art+'-directions','hero-'+b.classId+'-directions'].map(asset);this.required.forEach(image);
     this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
     this.buttons=[...host.querySelectorAll('[data-tower-button]')];
     const signal={signal:this.abort.signal};
