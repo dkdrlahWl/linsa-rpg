@@ -695,7 +695,7 @@ async function marketLoad() {
   render();
 }
 function open(title, html, closable = true) {
-  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog");
+  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog");
   modal.innerHTML = `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`;
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = 0;
