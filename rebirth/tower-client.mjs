@@ -1,6 +1,6 @@
-import {TOWER_FLOORS} from './tower-model.mjs?v=direction-art-27';
+import {TOWER_FLOORS} from './tower-model.mjs?v=direction-art-28';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
-export {TowerController} from './tower-controller.mjs?v=direction-art-27';
+export {TowerController} from './tower-controller.mjs?v=direction-art-28';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

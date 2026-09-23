@@ -1,4 +1,4 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=direction-art-27';
+import {TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=direction-art-28';
 const cache=new Map();
 export const asset=name=>'tower/'+name+'.webp';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=src;cache.set(src,im);}return cache.get(src);}
@@ -81,21 +81,21 @@ export class TowerRenderer {
     const forward=facingVector(dir);
     const stride=moving?Math.sin(((b.player.walk||0)+fraction)*2.25):0;
     const bob=moving&&!dashing?Math.abs(stride)*5:Math.sin(now/600)*1.2;
-    this.shadow(enemy.x,enemy.y-4,100);this.shadow(player.x,player.y,58);
+    this.shadow(enemy.x,enemy.y-4,72);this.shadow(player.x,player.y,38);
     // A small, constant marker makes the player easy to track during effects.
-    g.save();g.beginPath();g.ellipse(player.x,player.y,43,19,0,0,Math.PI*2);g.fillStyle='#78ffe823';g.fill();g.lineWidth=3;g.strokeStyle='#a5ffdf';g.stroke();g.restore();
+    g.save();g.beginPath();g.ellipse(player.x,player.y,31,14,0,0,Math.PI*2);g.fillStyle='#78ffe823';g.fill();g.lineWidth=3;g.strokeStyle='#a5ffdf';g.stroke();g.restore();
     if((input[2]&1)&&Math.hypot(player.x-b.enemy.x,player.y-b.enemy.y)>c.range){
       g.save();g.beginPath();g.arc(player.x,player.y,c.range,0,Math.PI*2);g.strokeStyle='#fff1bc80';g.lineWidth=2;g.setLineDash([9,12]);g.stroke();g.restore();
     }
     if(dashing&&(!this.trail.length||now-this.trail.at(-1).at>28))this.trail.push({x:player.x,y:player.y,at:now,dir});
     this.trail=this.trail.filter(p=>now-p.at<180).slice(-6);
-    for(const p of this.trail)this.sprite(...directional('hero-'+b.classId,p.dir),p.x,p.y,278,278,1,0,.23*(1-(now-p.at)/180));
+    for(const p of this.trail)this.sprite(...directional('hero-'+b.classId,p.dir),p.x,p.y,168,168,1,0,.23*(1-(now-p.at)/180));
     const drawPlayer=()=>{
       const swing=attacking?Math.sin(attackAge*Math.PI)*.055:casting?Math.sin(skillAge*Math.PI)*.035:stride*.015;
       const lunge=attacking?Math.sin(attackAge*Math.PI)*16:0;
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
-      this.sprite(...directional('hero-'+b.classId,dir,attacking||casting),player.x+forward.x*lunge,player.y+forward.y*lunge*.7+bob,278,278,1,swing,alpha);
-      if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-30,210,150,-time*.04,.55);
+      this.sprite(...directional('hero-'+b.classId,dir,attacking||casting),player.x+forward.x*lunge,player.y+forward.y*lunge*.7+bob,168,168,1,swing,alpha);
+      if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,145,105,-time*.04,.55);
     };
     const drawBoss=()=>{
       const windup=b.tick<b.enemyCastUntil,frame=windup?1:b.tick<b.enemyAttackUntil?2:0;
@@ -103,8 +103,8 @@ export class TowerRenderer {
       const bossAge=clamp((time-(b.enemyAttackStart??(b.enemyAttackUntil-6)))/6),pulse=frame===2?Math.sin(bossAge*Math.PI):0;
       const step=Math.sin(((b.enemy.walk||0)+fraction)*1.3),angle=windup?Math.sin(time*.4)*.02:frame===2?Math.sin(bossAge*Math.PI)*.035:step*.012;
       const castPulse=windup?Math.sin(clamp((time-(b.enemyCastStart??(b.enemyCastUntil-10)))/10)*Math.PI):0;
-      this.sprite(...directional('boss-'+f.art,bossDir,frame===2),enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,410,410,1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
-      if(windup)this.effect('rune',enemy.x+toward.x*100,enemy.y-105+toward.y*42,105+castPulse*50,105+castPulse*50,time*.03,.35+castPulse*.28);
+      this.sprite(...directional('boss-'+f.art,bossDir,frame===2),enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,268,268,1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
+      if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
     if(player.y<enemy.y){drawPlayer();drawBoss();}else{drawBoss();drawPlayer();}
     for(const q of b.projectiles){
