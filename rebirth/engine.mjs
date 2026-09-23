@@ -477,6 +477,7 @@ export function execute(input, command, args = {}, ctx) {
   const events = [];
   if(s.battle?.kind==='tower'){
     const b=s.battle;
+    if(b.advanced===undefined)b.advanced=s.advancement===1;
     check(['sync','ack','towerInput','towerLeave'].includes(command),'BATTLE_IN_PROGRESS');
     if(ctx.now-b.started>=TOWER_FLOORS[b.floor-1].seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
     else if(command==='towerInput'){
