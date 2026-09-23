@@ -80,3 +80,19 @@
  .tower-stick{width:112px}
  .tower-buttons{flex:none;width:196px}
 }
+/* Class skills can extend along this strip without moving the attack and dodge buttons. */
+.tower-buttons{display:flex;flex-direction:column;justify-content:center;gap:6px}
+.tower-skill-bar{display:flex;width:100%;min-width:0;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;overscroll-behavior-inline:contain}
+.tower-skill-bar>.tower-button{flex:0 0 calc((100% - 6px)/2);min-width:62px;height:54px}
+.tower-core-actions{display:grid;width:100%;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:6px}
+.tower-core-actions>.tower-button{width:100%;height:60px}
+@media(max-width:759px){
+ .tower-buttons .tower-button{padding-left:4px;align-items:center;text-align:center}
+ .tower-buttons .tower-action-art{display:none}
+ .tower-controls{touch-action:auto}
+ .tower-skill-bar{touch-action:pan-x}
+}
+@media(max-height:680px) and (orientation:portrait) and (max-width:759px){
+ .tower-skill-bar>.tower-button{height:52px}
+ .tower-core-actions>.tower-button{height:58px}
+}

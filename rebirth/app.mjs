@@ -1,5 +1,5 @@
 import {TOWER_FLOORS} from './tower-model.mjs?v=tower-20';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=job-tower-23';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=job-tower-24';
 import * as D from "./data.mjs?v=tower-20";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
