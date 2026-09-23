@@ -1,4 +1,5 @@
 // Shared deterministic combat. Only input vectors/buttons cross the network.
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
 export const TOWER_STEP = 100;
 export const TOWER_SIZE = {width:1000,height:1200};
 const names=['이끼문 파수꾼 그로움','월익 여왕 셀레네','수정 집게 크라그','용암 송곳니 바르칸','참수기사 모르딘','빙결 마녀 이셀라','독침황제 세르케트','추락한 성상 아우리엘','태엽룡 크로가스','공허왕 아자렐'];
@@ -7,11 +8,8 @@ const patterns=['대지 분쇄','달빛 탄막','십자 수정파','화염 돌�
 const guides=['발밑의 문양이 폭발하기 전에 벗어나세요.','부채꼴로 퍼지는 달빛 탄을 비껴가세요.','십자로 갈라지는 수정의 길을 피하세요.','돌진 방향을 확인하고 옆으로 회피하세요.','긴 참격의 경로와 뒤따르는 망령을 피하세요.','연속으로 내려오는 빙창 사이로 이동하세요.','독이 남은 바닥을 피해 전장을 넓게 쓰세요.','안쪽 폭발과 바깥쪽 심판을 구분하세요.','시간차로 회전하는 광선의 빈틈을 찾으세요.','여러 패턴이 겹칩니다. 체력이 낮아지면 광폭화합니다.'];
 export const TOWER_FLOORS=names.map((name,i)=>({floor:i+1,name,art:arts[i],pattern:patterns[i],guide:guides[i],level:(i+1)*20,hp:[18000,38000,76000,130000,210000,320000,470000,660000,900000,1200000][i],attack:[200,340,520,780,1100,1450,1800,2200,2650,3200][i],seconds:180,reward:{gold:Math.round(3000*(i+1)**1.3),fragment:20+(i+1)*10,cube:2*(i+1),highCube:(i+1)%5===0?2:0}}));
 export const TOWER_CLASSES={
- warrior:{range:225,cooldown:9,skill:'대지 분쇄',skillScale:3.8,skillCooldown:90,ultimate:'철벽의 맹세'},
- mage:{range:670,cooldown:10,skill:'유성 폭발',skillScale:4.2,skillCooldown:110,ultimate:'마력 결계'},
- archer:{range:730,cooldown:8,skill:'관통 화살',skillScale:3.5,skillCooldown:85,ultimate:'바람의 가호'},
- rogue:{range:200,cooldown:7,skill:'그림자 난무',skillScale:4.4,skillCooldown:100,ultimate:'그림자 장막'},
- pirate:{range:630,cooldown:8,skill:'포격 명령',skillScale:4.0,skillCooldown:100,ultimate:'해적의 기백'}
+ warrior:{range:225,cooldown:9},mage:{range:670,cooldown:10},
+ archer:{range:730,cooldown:8},rogue:{range:200,cooldown:7},pirate:{range:630,cooldown:8}
 };
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -20,8 +18,8 @@ function random(b){b.seed=(Math.imul(b.seed,1664525)+1013904223)>>>0;return b.se
 export function newTowerBattle(floor,classId,power,now,id,seed,advanced=false){const f=TOWER_FLOORS[floor-1];return {kind:'tower',runId:id,floor,classId,advanced,power,started:now,tick:0,seed:seed>>>0,hp:power.hp,enemyHp:f.hp,player:{x:500,y:950,face:1},enemy:{x:500,y:320,face:1},attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,invulnerableUntil:0,guardUntil:0,attackUntil:0,skillUntil:0,enemyCastUntil:0,nextPattern:25,phase:0,hazards:[],projectiles:[],effects:[],numbers:[],serial:0,won:false,ended:false};}
 function fx(b,kind,x,y,size=150,life=6){b.effects.push({id:++b.serial,kind,x,y,size,start:b.tick,end:b.tick+life});}
 function number(b,value,x,y,kind){b.numbers.push({id:++b.serial,value,x,y,kind,start:b.tick,end:b.tick+9});}
-function enemyDamage(b,scale){const crit=random(b)<b.power.crit,damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(crit?b.power.critDamage:1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
-function playerDamage(b,multiplier){if(b.tick<b.invulnerableUntil||b.tick<(b.hurtUntil||0))return;const f=TOWER_FLOORS[b.floor-1],damage=Math.max(1,Math.round((f.attack*multiplier-b.power.defense*.4)*(b.tick<b.guardUntil?.4:1)));b.hp=Math.max(0,b.hp-damage);b.hurtUntil=b.tick+5;number(b,damage,b.player.x,b.player.y-100,'incoming');fx(b,'impact',b.player.x,b.player.y-40,110);}
+function enemyDamage(b,scale,skillCrit=0){const first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)?SECOND_SKILLS[b.classId]:null;const crit=random(b)<Math.min(.95,b.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+skillCrit),damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(crit?b.power.critDamage+(second?.critDamageAdd||0):1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
+function playerDamage(b,multiplier){if(b.tick<b.invulnerableUntil||b.tick<(b.hurtUntil||0))return;const f=TOWER_FLOORS[b.floor-1],first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)?SECOND_SKILLS[b.classId]:null;const damage=Math.max(1,Math.round((f.attack*multiplier-b.power.defense*.4)*(first?.guard||1)*(second?.guard||1)));b.hp=Math.max(0,b.hp-damage);b.hurtUntil=b.tick+5;number(b,damage,b.player.x,b.player.y-100,'incoming');fx(b,'impact',b.player.x,b.player.y-40,110);}
 function circle(b,x,y,r,delay=12,multiplier=1.6,duration=3,inner=0){b.hazards.push({id:++b.serial,type:'circle',x:clamp(x,70,930),y:clamp(y,140,1110),r,inner,at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
 function line(b,x,y,tx,ty,width=90,delay=12,multiplier=1.6,duration=3){b.hazards.push({id:++b.serial,type:'line',x,y,tx,ty,width,at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
 function fan(b,count=5){const a=Math.atan2(b.player.y-b.enemy.y,b.player.x-b.enemy.x);for(let i=0;i<count;i++){const angle=a+(i-(count-1)/2)*.23;b.projectiles.push({id:++b.serial,side:'enemy',x:b.enemy.x,y:b.enemy.y,dx:Math.cos(angle)*31,dy:Math.sin(angle)*31,r:24,at:b.tick+10,end:b.tick+65,multiplier:.9});}}
@@ -46,9 +44,9 @@ export function towerStep(b,input){
  if((buttons&4)&&b.tick>=b.dashReady){b.dashReady=b.tick+35;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx:0;b.dashY=n?my:1;fx(b,'slash',p.x,p.y,170);}
  if(b.tick<(b.dashUntil||0)){mx=b.dashX*3;my=b.dashY*3;}
  p.x=clamp(p.x+mx*25,70,930);p.y=clamp(p.y+my*25,150,1120);
- if(b.advanced&&(buttons&8)&&b.tick>=b.ultimateReady){b.ultimateReady=b.tick+240;b.guardUntil=b.tick+45;const healed=Math.min(b.power.hp-b.hp,Math.round(b.power.hp*.18));b.hp+=healed;number(b,healed,p.x,p.y-100,'heal');fx(b,'rune',p.x,p.y,220,12);}
+ if((buttons&8)&&b.tick>=b.ultimateReady){const sk=CLASS_SKILLS[b.classId];b.ultimateReady=b.tick+sk.cooldown*10;b.guardUntil=b.tick+sk.seconds*10;b.skillUntil=b.tick+7;fx(b,'rune',p.x,p.y,220,12);}
  if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){b.attackReady=b.tick+c.cooldown;b.attackUntil=b.tick+4;p.face=e.x<p.x?-1:1;if(c.range<300){enemyDamage(b,c.cooldown/10*b.power.cadence);fx(b,'slash',(p.x+e.x)/2,(p.y+e.y)/2-40,200);}else{const a=Math.atan2(e.y-p.y,e.x-p.x);b.projectiles.push({id:++b.serial,side:'player',x:p.x,y:p.y-30,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick,end:b.tick+15,scale:c.cooldown/10*b.power.cadence});}}
- if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady&&distance(p,e)<760){b.skillReady=b.tick+c.skillCooldown;b.skillUntil=b.tick+7;enemyDamage(b,c.skillScale);fx(b,b.classId==='mage'?'impact':'slash',e.x,e.y-50,310,9);if(b.classId==='warrior')b.guardUntil=Math.max(b.guardUntil,b.tick+20);}
+ if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillUntil=b.tick+7;if(sk.type==='attack'){for(let i=0;i<sk.hits;i++)enemyDamage(b,sk.damage,sk.critAdd||0);fx(b,'slash',e.x,e.y-50,310,9);}else{b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(b.tick>=b.nextPattern)pattern(b);
  if(b.charge&&b.tick>=b.charge.at&&b.tick<=b.charge.end){e.x+=(b.charge.x-e.x)*.48;e.y+=(b.charge.y-e.y)*.48;}

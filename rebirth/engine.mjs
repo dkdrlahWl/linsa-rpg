@@ -45,7 +45,7 @@ import {
   WEAPON_TYPES,
 } from "./data.mjs?v=tower-20";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=job-tower-23';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=class-skill-25';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -512,7 +512,7 @@ export function execute(input, command, args = {}, ctx) {
     check(s.battle, "NO_BATTLE");
     const b = s.battle;
     const slot=args.slot===2?2:1;
-    check(s.advancement===1,"ADVANCEMENT_REQUIRED");
+    check(slot===1||s.advancement===1,"ADVANCEMENT_REQUIRED");
     const sk=slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
     const ready=slot===2?'secondReady':'skillReady';
     check(ctx.now >= (b[ready]||0),"SKILL_COOLDOWN");

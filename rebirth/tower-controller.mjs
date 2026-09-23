@@ -1,7 +1,8 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=job-tower-23';
+import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=class-skill-25';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-smooth-21';
-import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=tower-smooth-21';
-const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:2,Space:4,KeyL:8};
+import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=class-skill-25';
+const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const snapshot=b=>({enemy:{...b.enemy},projectiles:b.projectiles.map(q=>({...q}))});
@@ -18,7 +19,7 @@ export class TowerController {
     window.addEventListener('keydown',e=>{
       if(e.target?.closest('input,textarea,select,dialog,[contenteditable="true"]'))return;
       if(e.target?.closest('[data-tower-button]')&&['Space','Enter'].includes(e.code))return;
-      const action=codes[e.code];if(action===undefined||this.paused()||((action===2||action===8)&&!this.b.advanced))return;
+      const action=codes[e.code];if(action===undefined||this.paused()||(action===2&&!this.b.advanced))return;
       e.preventDefault();this.advance(performance.now());
       if(!this.keys.has(e.code)&&typeof action==='number')this.press(action);
       this.keys.add(e.code);
@@ -42,15 +43,16 @@ export class TowerController {
   paused(){return document.hidden||!!document.querySelector('dialog[open]');}
   resetInput(){this.keys.clear();this.buttonPointers.clear();this.stickPointer=null;this.stick={x:0,y:0};this.sampler.buttons=0;this.nodes['stick-knob'].style.transform='';for(const el of this.buttons)el.classList.remove('pressed');}
   press(bit){
-    if(!this.loaded||this.b.ended||this.frames.length>=25||((bit===2||bit===8)&&!this.b.advanced))return;
+    if(!this.loaded||this.b.ended||this.frames.length>=25||(bit===2&&!this.b.advanced))return;
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range)this.hint.attack=now+110;
-    if(bit===2&&b.tick+1>=b.skillReady&&d<760)this.hint.skill=now+110;
+    if(bit===8&&b.tick+1>=b.ultimateReady)this.hint.skill=now+110;
+    if(bit===2&&b.tick+1>=b.skillReady&&(SECOND_SKILLS[b.classId].type!=='attack'||d<760))this.hint.skill=now+110;
     if(bit===4&&b.tick+1>=b.dashReady)this.hint.dash=now+110;
   }
   input(){
     let x=this.stick.x,y=this.stick.y,bits=this.autoAttack?1:0;
-    const directions=new Set();for(const code of this.keys){const action=codes[code];if(typeof action==='number'){if((action!==2&&action!==8)||this.b.advanced)bits|=action;}else directions.add(action);}
+    const directions=new Set();for(const code of this.keys){const action=codes[code];if(typeof action==='number'){if(action!==2||this.b.advanced)bits|=action;}else directions.add(action);}
     x+=Number(directions.has('right'))-Number(directions.has('left'));y+=Number(directions.has('down'))-Number(directions.has('up'));
     const n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}for(const bit of this.buttonPointers.values())bits|=bit;
     return [x,y,bits];
@@ -110,7 +112,7 @@ export class TowerController {
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){
       const bit=Number(el.dataset.towerButton),key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady'}[bit];
-      const duration={1:c.cooldown,2:c.skillCooldown,4:35,8:240}[bit],remaining=Math.max(0,b[key]-b.tick-this.sampler.elapsed/100);
+      const duration={1:c.cooldown,2:SECOND_SKILLS[b.classId].cooldown*10,4:35,8:CLASS_SKILLS[b.classId].cooldown*10}[bit],remaining=Math.max(0,b[key]-b.tick-this.sampler.elapsed/100);
       const label=el.querySelector('b'),value=bit!==1&&remaining>0?(remaining/10).toFixed(1):'';
       if(label.textContent!==value)label.textContent=value;
       el.style.setProperty('--cooldown',Math.min(100,remaining/duration*100)+'%');el.classList.toggle('cooldown',remaining>0&&bit!==1);

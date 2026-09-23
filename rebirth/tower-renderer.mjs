@@ -1,4 +1,4 @@
-import {TOWER_FLOORS,TOWER_CLASSES} from './tower-model.mjs?v=tower-20';
+import {TOWER_FLOORS,TOWER_CLASSES} from './tower-model.mjs?v=class-skill-25';
 const cache=new Map();
 export const asset=name=>'tower/'+name+'.webp';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=src;cache.set(src,im);}return cache.get(src);}
