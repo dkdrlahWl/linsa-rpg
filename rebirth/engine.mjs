@@ -103,6 +103,8 @@ export function initialState(classId, name, ctx) {
     xp: 0,
     points: 0,
     stats: { STR: 4, DEX: 4, INT: 4, LUK: 4 },
+    classBuilds: {},
+    classStarters: [classId],
     gold: 500,
     stage: 0,
     hunting: true,
@@ -535,6 +537,34 @@ export function execute(input, command, args = {}, ctx) {
   }
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "changeClass": {
+      const target = CLASSES.find(c => c.id === args.classId);
+      check(target, "INVALID_CLASS");
+      check(target.id !== s.classId, "ALREADY_CLASS");
+      check(!s.pendingCube, "ITEM_CUBE_PENDING");
+      const previousClass = s.classId;
+      s.classBuilds ||= {};
+      s.classBuilds[previousClass] = {...s.stats};
+      const restored = s.classBuilds[target.id];
+      s.stats = restored ? {...restored} : {STR:4,DEX:4,INT:4,LUK:4};
+      const allocated = Object.values(s.stats).reduce((total,value) => total + Math.max(0,value-4),0);
+      s.points = Math.max(0,(s.level-1)*5-allocated);
+      s.classId = target.id;
+      s.equipped = {};
+      s.hunting = false;
+      s.huntRemainder = 0;
+      s.lastAt = ctx.now;
+      s.classStarters ||= [previousClass];
+      if (!s.classStarters.includes(target.id)) {
+        s.classStarters.push(target.id);
+        const starter = makeItem(1,target.id,0,false,ctx,0);
+        starter.bound = true;
+        starter.quality = 50;
+        addItem(s,starter);
+      }
+      events.push({type:"classChange",from:previousClass,to:target.id});
+      break;
+    }
     case "attendanceClaim": {
       const today = dayKey(ctx.now);
       const previous = s.attendance || {day:0,lastClaim:null};
