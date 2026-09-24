@@ -3,6 +3,7 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=direct
 import * as D from "./data.mjs?v=attendance-week-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
+import { inventoryGroups } from "./inventory-order.mjs?v=bag-groups-2";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=direction-art-29";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
@@ -485,23 +486,21 @@ function itemMarkup(it) {
   if(it.kind==="consumable")return `<div class="consumable-market-icon">◆</div><div class="item-info"><strong>${esc(D.MATERIALS[it.key]||it.key)}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">${gearRollLabel(it)}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? it.lines.map(l=>D.RARITIES[l.grade]).join(" · ") : "잠재 미개방"}</span></div>`;
 }
+function bagTile(item) {
+  const otherClass=item.classId!==state.classId;
+  return btn(gearMarkup(item)+`<span class="tile-meta"><span class="tile-level">${requiredLevel(item.level,"Lv."+item.level)}</span><span class="tile-star">${item.stars}★</span></span><span class="tile-name ${otherClass?"other-class":""}">${esc(D.gearName(item))}</span><span class="tile-class ${otherClass?"other-class":""}">${esc(D.CLASSES.find(c=>c.id===item.classId)?.name||item.classId)} 전용</span><span class="tile-quality">${gearRollLabel(item)}</span><span class="sr-only">${D.equipmentType(item)} ${item.locked?"잠금":""}</span>`, salvageMode?"salvagePick":"item", item.id, `bag-slot ${salvageMode?(salvageSelection.has(item.id)?"salvage-selected":!canSalvage(item)?"salvage-unavailable":""):""} ${Object.values(state.equipped).includes(item.id)?"equipped":""} ${item.locked?"locked":""}`);
+}
+function bagGroupsMarkup(groups) {
+  if (!groups.length) return '<div class="empty">조건에 맞는 장비가 없습니다.</div>';
+  return groups.map((group) => {
+    const className=D.CLASSES.find(c=>c.id===group.classId)?.name||group.classId;
+    const ownClass=group.classId===state.classId;
+    return `<section class="bag-class-group${ownClass?" own-class":""}"><h3 class="bag-class-heading"><span>${ownClass?"내 직업 · ":""}${esc(className)}</span><small>${group.count}개</small></h3>${group.slots.map(({slot,items})=>`<div class="bag-slot-group"><h4 class="bag-slot-heading"><span>${esc(D.SLOTS[slot]||"기타 부위")}</span><small>${items.length}개</small></h4><div class="inventory-grid bag-grid">${items.map(bagTile).join("")}</div></div>`).join("")}</section>`;
+  }).join("");
+}
 function inventory() {
   for(const id of salvageSelection)if(!state.items.some(it=>it.id===id&&canSalvage(it)))salvageSelection.delete(id);
-  let items = state.items
-    .filter(
-      (i) =>
-        (filterSlot === "" || i.slot === Number(filterSlot)) &&
-        (filterClass === "" || i.classId === filterClass),
-    )
-    .sort(
-      (a, b) =>
-        Number(b.classId === state.classId) - Number(a.classId === state.classId) ||
-        Number(Object.values(state.equipped).includes(b.id)) -
-          Number(Object.values(state.equipped).includes(a.id)) ||
-        Number(b.locked) - Number(a.locked) ||
-        b.stars - a.stars ||
-        b.level - a.level || b.grade - a.grade,
-    );
+  const groups=inventoryGroups(state.items,D.CLASSES,state.classId,Object.values(state.equipped),filterClass,filterSlot);
   return `${header("장비", "EQUIPMENT")}<div class="subnav">${[
     ["bag", "장비"],
     ["consumables", "소비"],
@@ -514,7 +513,7 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${["consumables","materials"].includes(sub) ? supplies(sub) : sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 내 직업 → 장착 → 잠금 → 스타포스 → 레벨 순</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("표시 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="inventory-grid bag-grid">${items.length ? items.map((i) => btn(gearMarkup(i)+`<span class="tile-meta"><span class="tile-level">${requiredLevel(i.level,"Lv."+i.level)}</span><span class="tile-star">${i.stars}★</span></span><span class="tile-name ${i.classId===state.classId?"":"other-class"}">${esc(D.gearName(i))}</span><span class="tile-class ${i.classId===state.classId?"":"other-class"}">${esc(D.CLASSES.find(c=>c.id===i.classId)?.name||i.classId)} 전용</span><span class="tile-quality">${gearRollLabel(i)}</span><span class="sr-only">${D.equipmentType(i)} ${i.locked?"잠금":""}</span>`, salvageMode?"salvagePick":"item", i.id, `bag-slot ${salvageMode?(salvageSelection.has(i.id)?"salvage-selected":!canSalvage(i)?"salvage-unavailable":""):""} ${Object.values(state.equipped).includes(i.id)?"equipped":""} ${i.locked?"locked":""}`)).join("") : '<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div>`}`;
+    )}</div>${["consumables","materials"].includes(sub) ? supplies(sub) : sub === "craft" ? craft() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 내 직업 먼저 → 직업별 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("표시 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -1151,7 +1150,8 @@ document.addEventListener("click", async (e) => {
       render();return;
     }
     if(action==="salvageSelectVisible"){
-      for(const it of state.items)if(salvageSelection.size<50&&canSalvage(it)&&(filterSlot===""||it.slot===Number(filterSlot))&&(filterClass===""||it.classId===filterClass))salvageSelection.add(it.id);
+      const visibleGroups=inventoryGroups(state.items,D.CLASSES,state.classId,Object.values(state.equipped),filterClass,filterSlot);
+      for(const group of visibleGroups)for(const slot of group.slots)for(const it of slot.items)if(salvageSelection.size<50&&canSalvage(it))salvageSelection.add(it.id);
       render();return;
     }
     if(action==="salvageBatchConfirm"){
