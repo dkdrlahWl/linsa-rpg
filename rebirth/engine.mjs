@@ -46,7 +46,7 @@ import {
   WEAPON_TYPES,
 } from "./data.mjs?v=attendance-week-1";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=tower-motion-26';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=tower-motion-30';
 const fail = (message) => {
   throw new Error(message);
 };

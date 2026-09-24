@@ -1,4 +1,4 @@
-.tower-intro{min-height:220px;display:flex;align-items:center;padding:28px;margin:14px 0;background:linear-gradient(90deg,#071119ed,#0b182066),url('tower/arena.webp') center 30%/cover;border-color:#8e8059}.tower-intro h2{font-size:32px;margin:4px 0}.tower-intro p{color:#d6c7a8}.tower-guide{margin:12px 0}.tower-floor-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tower-floor{overflow:hidden;display:flex;padding:12px;gap:10px;align-items:center;background:linear-gradient(125deg,#172028,#171512)}.tower-floor.locked{filter:saturate(.5)}.tower-portrait{width:120px;height:120px;flex-shrink:0;background-size:300% 100%;background-position:0 0;background-repeat:no-repeat}.tower-floor-info{min-width:0;flex:1}.tower-floor-info h3{font-size:16px;line-height:1.4;margin:5px 0;color:#efe1bd}.tower-floor-info p{font-size:13px;margin:6px 0}.tower-floor-info small{font-size:11px;display:block;color:#c6bda9}.tower-floor-info button{margin-top:8px;min-height:40px;width:100%;font-size:13px}.tower-floor-info details{font-size:12px;margin-top:8px}
+.tower-intro{min-height:220px;display:flex;align-items:center;padding:28px;margin:14px 0;background:linear-gradient(90deg,#071119ed,#0b182066),url('tower/arena-overhead-v3.png') center 30%/cover;border-color:#8e8059}.tower-intro h2{font-size:32px;margin:4px 0}.tower-intro p{color:#d6c7a8}.tower-guide{margin:12px 0}.tower-floor-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tower-floor{overflow:hidden;display:flex;padding:12px;gap:10px;align-items:center;background:linear-gradient(125deg,#172028,#171512)}.tower-floor.locked{filter:saturate(.5)}.tower-portrait{width:120px;height:120px;flex-shrink:0;background-size:300% 100%;background-position:0 0;background-repeat:no-repeat}.tower-floor-info{min-width:0;flex:1}.tower-floor-info h3{font-size:16px;line-height:1.4;margin:5px 0;color:#efe1bd}.tower-floor-info p{font-size:13px;margin:6px 0}.tower-floor-info small{font-size:11px;display:block;color:#c6bda9}.tower-floor-info button{margin-top:8px;min-height:40px;width:100%;font-size:13px}.tower-floor-info details{font-size:12px;margin-top:8px}
 .tower-mode .top,.tower-mode .bottom{display:none}
 .tower-result{padding:15px;text-align:center}.tower-result h3{color:#e9cf94}.tower-result .tower-portrait{margin:auto;width:180px;height:180px}
 @media(max-width:640px){.tower-floor-list{grid-template-columns:1fr}}
@@ -95,4 +95,76 @@
 @media(max-height:680px) and (orientation:portrait) and (max-width:759px){
  .tower-skill-bar>.tower-button{height:52px}
  .tower-core-actions>.tower-button{height:58px}
+}
+
+/* Thumb-sized mobile controls: more inset space, less travel to full speed. */
+@media(max-width:759px) and (orientation:portrait){
+ .tower-play{grid-template-rows:auto minmax(0,1fr) 34px 184px 40px}
+ .tower-controls{gap:16px;padding:12px 20px;justify-content:space-between}
+ .tower-movement{flex:0 0 144px}.tower-movement>small{display:none}
+ .tower-stick{--stick-travel:26px;width:144px;height:144px}
+ .tower-stick i{width:58px;height:58px;left:calc(50% - 29px);top:calc(50% - 29px)}
+ .tower-stick span{font-size:14px}
+ .tower-buttons{width:auto;min-width:0;max-width:330px;flex:1;grid-template-columns:1fr 1fr;grid-template-rows:76px 76px;gap:8px}
+ .tower-button{min-width:0;padding:12px 5px 7px;align-items:center;text-align:center}
+ .tower-button span{font-size:12px;white-space:normal;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}
+ .tower-button small{font-size:9px;white-space:normal;line-height:1.3}
+ .tower-action-art{inset:auto 0 0 auto;width:40px;height:40px;opacity:.22}
+ .tower-button b,.tower-button.cooldown b{font-size:12px}
+}
+@media(max-width:360px) and (orientation:portrait){
+ .tower-play{grid-template-rows:auto minmax(0,1fr) 30px 168px 36px}
+ .tower-controls{gap:12px;padding:10px 18px}
+ .tower-movement{flex-basis:124px}.tower-stick{--stick-travel:24px;width:124px;height:124px}
+ .tower-buttons{grid-template-rows:70px 70px;gap:8px}
+ .tower-button span{font-size:11px}.tower-button small{font-size:8px}
+}
+@media(orientation:landscape) and (max-height:600px){
+ .tower-controls{padding-left:32px;padding-right:32px;bottom:82px}
+ .tower-stick{--stick-travel:26px;width:132px;height:132px}
+ .tower-stick i{width:56px;height:56px;left:calc(50% - 28px);top:calc(50% - 28px)}
+ .tower-buttons{grid-template-rows:64px 64px;width:224px;gap:8px}
+ .tower-button{padding-left:30px}.tower-button span{font-size:12px}
+}
+
+/* Keep the battlefield dominant, like the combat reference, while retaining usable controls. */
+.tower-play{max-width:1240px;background:#0a1217}
+.tower-hud{background:linear-gradient(105deg,#192830,#2d231c 55%,#171f28);border-bottom-color:#c89d6859}
+.tower-floor-tag{border-color:#edc27b90;background:#ba774d20}
+.tower-boss-health .hp{height:16px;border:1px solid #e8ac8799;background:#170e12;box-shadow:0 0 16px #e1524840,inset 0 0 5px #000}
+.tower-boss-health .hp i{background:linear-gradient(90deg,#a82736,#e54c47 65%,#f5a369)}
+.tower-stage{background:radial-gradient(ellipse at 50% 45%,#3e443b,#09131a 78%)}
+.tower-canvas-wrap{box-shadow:0 0 34px #000a}
+.tower-button.attack{background:linear-gradient(135deg,#996e38,#51361f);box-shadow:inset 0 1px 0 #fff5,0 4px 18px #e9a95025}
+.tower-button.skill{background:linear-gradient(135deg,#46617a,#242e4b)}
+.tower-button.dodge{background:linear-gradient(135deg,#39727e,#1a3c4b)}
+.tower-button.pressed{filter:brightness(1.55);box-shadow:inset 0 0 18px #fff5,0 0 24px var(--accent)}
+@media(min-width:760px) and (min-height:601px){
+ .tower-play{grid-template-columns:minmax(0,1fr) 218px}
+ .tower-controls{background:linear-gradient(165deg,#1d2b31,#111921 55%,#2a241e)}
+}
+@media(max-width:759px) and (orientation:portrait){
+ .tower-play{position:relative;grid-template-rows:auto minmax(0,1fr) 35px}
+ .tower-stage{grid-row:2;grid-column:1}
+ .tower-player-hud{position:absolute;z-index:3;left:8px;right:8px;bottom:204px;height:29px;padding:0 10px;border:1px solid #8fd9bb6e;border-radius:7px;background:#091a20c9;backdrop-filter:blur(5px);box-shadow:0 4px 16px #0008}
+ .tower-controls{position:absolute;z-index:4;left:0;right:0;bottom:45px;height:150px;display:flex;justify-content:space-between;align-items:end;padding:0 16px 5px;gap:8px;background:none;pointer-events:none}
+ .tower-movement,.tower-buttons{pointer-events:auto}
+ .tower-movement{flex:0 0 124px}
+ .tower-stick{--stick-travel:29px;width:122px;height:122px;background:radial-gradient(circle,#4264718c,#102832b8 70%);border-color:#d7c79999;box-shadow:0 0 0 7px #09151b5c,0 8px 28px #0008}
+ .tower-stick i{width:49px;height:49px;left:calc(50% - 24.5px);top:calc(50% - 24.5px)}
+ .tower-buttons{flex:0 0 144px;max-width:144px;min-width:0;grid-template-columns:68px 68px;grid-template-rows:68px 68px;gap:8px}
+ .tower-button{width:68px;height:68px;min-height:0;align-items:center;justify-content:end;padding:5px 3px 9px;border-radius:50%;text-align:center;box-shadow:0 5px 18px #0009,inset 0 1px 0 #fff3}
+ .tower-button span{font-size:10px;line-height:1.1;white-space:normal;word-break:keep-all;text-shadow:0 1px 3px #000}
+ .tower-button small{display:none}
+ .tower-action-art{inset:4px 10px auto;width:45px;height:45px;opacity:.65}
+ .tower-button b,.tower-button.cooldown b{right:1px;top:0;font-size:10px}
+ .tower-footer{grid-row:3;z-index:5}
+ .tower-canvas-wrap #tower-status{top:35px;background:#241b18dd;border-color:#e1ad7e88}
+}
+@media(max-width:360px) and (orientation:portrait){
+ .tower-player-hud{bottom:184px}
+ .tower-controls{height:136px;padding:0 11px 4px}
+ .tower-movement{flex-basis:106px}.tower-stick{width:104px;height:104px}.tower-stick i{width:44px;height:44px;left:calc(50% - 22px);top:calc(50% - 22px)}
+ .tower-buttons{flex-basis:128px;max-width:128px;grid-template-columns:61px 61px;grid-template-rows:61px 61px;gap:6px}
+ .tower-button{width:61px;height:61px}.tower-action-art{width:38px;height:38px}
 }

@@ -1,10 +1,10 @@
-import {TOWER_FLOORS} from './tower-model.mjs?v=direction-art-29';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=direction-art-29';
+import {TOWER_FLOORS} from './tower-model.mjs?v=tower-motion-30';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower-motion-30';
 import * as D from "./data.mjs?v=attendance-week-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-groups-2";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=direction-art-29";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=tower-motion-30";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -102,7 +102,16 @@ const sounds = new (class {
     };
   }
   play(kind) {
-    if (kind === "hit") {
+    if (kind?.startsWith("tower-")) {
+      if (Date.now() - (this.lastTowerSound || 0) < 75) return;
+      this.lastTowerSound = Date.now();
+      if (kind === "tower-swing") { this.tone(420, 0.07, 0.22, "sawtooth"); return; }
+      if (kind === "tower-dash") { this.tone(280, 0.15, 0.28, "triangle"); this.tone(560, 0.09, 0.18, "sine", 0.03); return; }
+      if (kind === "tower-skill") { this.tone(190, 0.22, 0.5, "triangle"); this.tone(680, 0.18, 0.25, "sine", 0.04); return; }
+      const heavy = kind === "tower-crit", hurt = kind === "tower-hurt";
+      this.tone(heavy ? 95 : hurt ? 105 : 145, heavy ? 0.25 : 0.15, heavy ? 0.8 : 0.55, "triangle");
+      this.tone(heavy ? 860 : hurt ? 220 : 620, 0.09, heavy ? 0.55 : 0.28, "sawtooth", 0.01);
+    } else if (kind === "hit") {
       if (Date.now() - this.lastHit < 350) return;
       this.lastHit = Date.now();
       this.tone(130, 0.12, 0.4, "triangle");
