@@ -37,6 +37,7 @@ dialog{width:min(94vw,440px);max-height:86dvh;padding:14px;border:1px solid #ba9
 .gear-frame{display:inline-grid;place-items:center;width:58px;height:58px;flex:none;box-sizing:border-box;padding:4px;overflow:hidden;border-radius:5px}
 .gear-frame>.gear-icon{width:100%!important;height:100%!important;max-width:none!important;margin:0!important;aspect-ratio:1}
 .bag-slot .gear-frame{width:52px;height:52px;max-width:100%;margin:4px auto 3px}
+.bag-groups{display:grid;gap:14px;margin-top:10px}.bag-class-group{padding:9px;border:1px solid #806943;background:#211b12a6;border-radius:7px}.bag-class-group.own-class{border-color:#c3a565;background:#342918a6}.bag-class-heading,.bag-slot-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0}.bag-class-heading{padding:0 1px 7px;color:#f3d99e;font-size:15px;border-bottom:1px solid #9a794a66}.bag-class-heading small,.bag-slot-heading small{font-size:10px;font-weight:400;color:#c5b99f}.bag-slot-group{margin-top:9px}.bag-slot-heading{margin-bottom:5px;padding:0 2px;color:#e1d6bd;font-size:12px}
 .gear-cell .gear-frame{width:44px;height:44px;margin:0 auto 3px}
 .gear-frame.big-item{width:110px!important;height:110px!important;margin:8px auto}
 .item-modal-head .gear-frame{width:54px;height:54px}
