@@ -1,7 +1,7 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP} from './tower-model.mjs?v=direction-art-29';
+import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=tower-motion-30';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-smooth-21';
-import {TowerRenderer,image,asset} from './tower-renderer.mjs?v=direction-art-29';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-motion-30';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=tower-motion-30';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -10,9 +10,11 @@ const snapshot=b=>({enemy:{...b.enemy},projectiles:b.projectiles.map(q=>({...q})
 export class TowerController {
   constructor(host,b,send,sound,options={}){
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
-    this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
+    upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
-    this.required=['arena','effects','boss-'+TOWER_FLOORS[b.floor-1].art+'-directions','hero-'+b.classId+'-directions'].map(asset);this.required.forEach(image);
+    this.required=['effects','boss-'+TOWER_FLOORS[b.floor-1].art+'-directions','hero-'+b.classId+'-directions'].map(asset);
+    this.required.push(...['arena-overhead-v3','hero-'+b.classId+'-walk-v3','hero-'+b.classId+'-motion-v2','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2'].map(motionAsset));
+    this.required.forEach(image);
     this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
     this.buttons=[...host.querySelectorAll('[data-tower-button]')];
     const signal={signal:this.abort.signal};
@@ -33,7 +35,7 @@ export class TowerController {
       el.addEventListener('keydown',e=>{if(!el.disabled&&['Enter','Space'].includes(e.code)&&!e.repeat){e.preventDefault();this.advance(performance.now());this.press(Number(el.dataset.towerButton));}},signal);
     }
     const stick=host.querySelector('#tower-stick');
-    const move=e=>{const r=stick.getBoundingClientRect(),radius=r.width*.38,x=(e.clientX-r.left-r.width/2)/radius,y=(e.clientY-r.top-r.height/2)/radius;this.stick=stickVector(x,y);this.nodes['stick-knob'].style.transform=`translate(${this.stick.x*radius}px,${this.stick.y*radius}px)`;};
+    const move=e=>{const r=stick.getBoundingClientRect(),radius=Number.parseFloat(getComputedStyle(stick).getPropertyValue('--stick-travel'))||r.width*.38,x=(e.clientX-r.left-r.width/2)/radius,y=(e.clientY-r.top-r.height/2)/radius;this.stick=stickVector(x,y);this.nodes['stick-knob'].style.transform=`translate(${this.stick.x*radius}px,${this.stick.y*radius}px)`;};
     stick.addEventListener('pointerdown',e=>{if(this.stickPointer!==null||e.button!==0||this.paused())return;e.preventDefault();this.advance(performance.now());this.stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);move(e);},signal);
     stick.addEventListener('pointermove',e=>{if(e.pointerId!==this.stickPointer)return;this.advance(performance.now());move(e);},signal);
     for(const type of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(type,e=>{if(e.pointerId!==this.stickPointer)return;this.advance(performance.now());this.stickPointer=null;this.stick={x:0,y:0};this.nodes['stick-knob'].style.transform='';},signal);
@@ -45,10 +47,10 @@ export class TowerController {
   press(bit){
     if(!this.loaded||this.b.ended||this.frames.length>=25||(bit===2&&!this.b.advanced))return;
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
-    if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range)this.hint.attack=now+110;
-    if(bit===8&&b.tick+1>=b.ultimateReady)this.hint.skill=now+110;
-    if(bit===2&&b.tick+1>=b.skillReady&&(SECOND_SKILLS[b.classId].type!=='attack'||d<760))this.hint.skill=now+110;
-    if(bit===4&&b.tick+1>=b.dashReady)this.hint.dash=now+110;
+    if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;this.sound?.('tower-swing');}
+    if(bit===8&&b.tick+1>=b.ultimateReady){this.hint.skill=now+110;this.sound?.('tower-skill');}
+    if(bit===2&&b.tick+1>=b.skillReady&&(SECOND_SKILLS[b.classId].type!=='attack'||d<760)){this.hint.skill=now+110;this.sound?.('tower-skill');}
+    if(bit===4&&b.tick+1>=b.dashReady){this.hint.dash=now+110;this.sound?.('tower-dash');}
   }
   input(){
     let x=this.stick.x,y=this.stick.y,bits=this.autoAttack?1:0;
@@ -67,7 +69,7 @@ export class TowerController {
     if(b.runId!==this.b.runId||b.tick<this.serverTick)return;
     const before=projectPlayer(this.b,this.sampler),drop=b.tick-this.serverTick;
     if(drop>this.frames.length){this.frames=[];this.sampler.clear();}else this.frames.splice(0,drop);
-    this.serverTick=b.tick;this.b=structuredClone(b);
+    this.serverTick=b.tick;this.b=upgradeTowerBattle(structuredClone(b));
     for(const input of this.frames)towerStep(this.b,input);
     const after=projectPlayer(this.b,this.sampler);
     this.correction.x=clamp(this.correction.x+before.x-after.x,-100,100);this.correction.y=clamp(this.correction.y+before.y-after.y,-100,100);
@@ -94,7 +96,7 @@ export class TowerController {
   draw(now){
     const point=projectPlayer(this.b,this.sampler);point.x+=this.correction.x;point.y+=this.correction.y;
     this.renderer.draw(this.b,this.previous,point,this.sampler.elapsed/TOWER_STEP,now,this.input(),this.hint);
-    for(const n of this.b.numbers)if(n.id>this.lastSound){this.lastSound=n.id;if(n.kind!=='heal')this.sound?.('hit');}
+    for(const n of this.b.numbers)if(n.id>this.lastSound){this.lastSound=n.id;if(n.kind!=='heal')this.sound?.(n.kind==='critical'?'tower-crit':n.kind==='incoming'?'tower-hurt':'tower-hit');}
     if(now-this.lastHud>=50){this.updateHud();this.lastHud=now;}
   }
   updateHud(){

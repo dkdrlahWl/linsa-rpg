@@ -1,3 +1,4 @@
+import {TOWER_BOUNDS} from './tower-model.mjs?v=tower-motion-30';
 // Integrate input at display/event frequency; send the existing 100 ms protocol.
 export class TowerInput {
   constructor(step=100){this.step=step;this.clear();}
@@ -31,5 +32,5 @@ export function projectPlayer(b,input){
     // The server uses the average direction of this same input interval.
     dx*=3;dy*=3;if(!input.x&&!input.y)dy=3*fraction;
   }else if(next<(b.dashUntil||0)){dx=b.dashX*3*fraction;dy=b.dashY*3*fraction;}
-  return {x:Math.max(70,Math.min(930,b.player.x+dx*25)),y:Math.max(150,Math.min(1120,b.player.y+dy*25))};
+  return {x:Math.max(TOWER_BOUNDS.left,Math.min(TOWER_BOUNDS.right,b.player.x+dx*25)),y:Math.max(TOWER_BOUNDS.top,Math.min(TOWER_BOUNDS.bottom,b.player.y+dy*25))};
 }
