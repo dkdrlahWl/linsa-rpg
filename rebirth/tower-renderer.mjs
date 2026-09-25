@@ -63,6 +63,7 @@ function cleanDirectionalAtlas(im){
 
 export class TowerRenderer {
   constructor(canvas){
+    this.mobileActors=matchMedia('(pointer: coarse)');
     this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.shake=0;this.flash=0;this.zoom=0;
     this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
@@ -70,6 +71,7 @@ export class TowerRenderer {
   dispose(){this.resize.disconnect();}
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
+    const actorScale=this.mobileActors.matches?1.5:1;w*=actorScale;h*=actorScale;
     const g=this.g,source=src.endsWith('-directions.webp')?cleanDirectionalAtlas(im):im,sw=source.width/columns,sh=source.height/rows;
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     g.drawImage(source,(frame%columns)*sw,Math.floor(frame/columns)*sh,sw,sh,-w/2,-h*.84,w,h);g.restore();
@@ -121,7 +123,7 @@ export class TowerRenderer {
     }
     g.restore();
   }
-  shadow(x,y,width){const g=this.g;g.save();g.fillStyle='#0005';g.beginPath();g.ellipse(x,y,width,width*.23,0,0,Math.PI*2);g.fill();g.restore();}
+  shadow(x,y,width){width*=this.mobileActors.matches?1.5:1;const g=this.g;g.save();g.fillStyle='#0005';g.beginPath();g.ellipse(x,y,width,width*.23,0,0,Math.PI*2);g.fill();g.restore();}
   impact(n,now){
     const incoming=n.kind==='incoming',critical=n.kind==='critical',heal=n.kind==='heal';
     const colors=heal?['#a4ffbb','#5ee6cc']:incoming?['#ffdcc6','#ff694e']:critical?['#fff8cc','#ffbe4c']:['#ffffff','#ffdc89'];
