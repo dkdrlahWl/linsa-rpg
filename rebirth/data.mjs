@@ -1,9 +1,9 @@
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=cube-three-1';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=cube-three-1';
-import { CUBES } from './maple-cubes.mjs?v=cube-three-1';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=cube-three-1';
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=cube-three-1";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=cube-three-1";
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=shops-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=shops-1';
+import { CUBES } from './maple-cubes.mjs?v=shops-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=shops-1';
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=shops-1";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=shops-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -250,6 +250,7 @@ export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0)
 export const CUBE_DROP = 0.006;
 export const SCROLL_DROP = 0.0004;
 export const FRAGMENT_DROP = 0.06;
+export const SHOP_OFFERS = {cube:{gold:1500,limit:20,level:1},highCube:{gold:7500,limit:10,level:40},primeCube:{gold:25000,limit:2,level:100},scroll:{gold:750,limit:5,level:1},expand:{gold:10000,limit:3,level:20}};
 export const SUPPLY_EXCHANGE = {primeCube:{fragment:30,gold:2500},cube:{fragment:2,gold:150},highCube:{fragment:10,gold:900},scroll:{fragment:3,gold:150},expand:{fragment:20,gold:1000}};
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {

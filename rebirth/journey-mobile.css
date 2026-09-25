@@ -19,3 +19,15 @@ html{scrollbar-gutter:stable}button{touch-action:manipulation}dialog{overscroll-
 .coop-tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.coop-tiers article{padding:10px;background:#eee1c7;border-radius:14px;min-width:0}.coop-tiers img{width:100%;height:110px;object-fit:cover;object-position:left}.coop-tiers h3{font-size:15px}.coop-tiers p{font-size:12px}@media(max-width:600px){.coop-tiers{grid-template-columns:1fr}.coop-tiers article{display:grid;grid-template-columns:70px 1fr;gap:5px}.coop-tiers img{grid-row:span 3;height:90px;object-fit:contain}.coop-tiers h3,.coop-tiers p{margin:0}}
 
 @media(max-width:700px){.enhance-dialog .enhance-primary{min-height:48px}.enhance-choice-actions{position:sticky;bottom:0;z-index:4;background:#fff8e9;padding:8px 0}.auto-equip-card small{font-size:10px}.bag-grid .bag-slot{min-height:92px}}
+
+/* Independent shops and fixed cooperative boss portraits */
+.bottom{grid-template-columns:repeat(7,minmax(0,1fr))}
+.bottom button{min-width:0;padding-inline:2px}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px}
+.shop-card{padding:16px;border:1px solid #73674766;border-radius:14px;background:#161d24}
+.shop-card h3{margin:8px 0}.shop-card small{display:block;line-height:1.6}
+.shop-symbol{display:block;font-size:36px;color:#e6c781}
+.coop-boss-portrait{width:110px;height:110px;border-radius:50%;border:2px solid #c9ad72;margin:auto;background-size:395% 165%;background-position:4.5% 8%;background-repeat:no-repeat;background-color:#242b26}
+@media(max-width:700px){.bottom button{font-size:10px;gap:3px}.bottom .menu-art{width:25px;height:25px}.shop-grid{grid-template-columns:1fr}.shop-card .actions{display:flex;flex-wrap:wrap}.shop-card .actions button{flex:1;min-height:44px}.coop-boss-portrait{width:76px;height:76px}}
+
+.shop-card{background:#f8eedb;color:#302b23}.shop-symbol{color:#936b2d}@media(max-width:600px){.coop-tiers article{grid-template-columns:80px 1fr}.coop-boss-portrait{grid-row:span 3}}

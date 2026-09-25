@@ -1,14 +1,14 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=cube-three-1';
-import {incomingDamage} from './journey-balance.mjs?v=cube-three-1';
-import {installMenuIcons} from './menu-icons.mjs?v=cube-three-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube-three-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=cube-three-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=cube-three-1';
-import * as D from "./data.mjs?v=cube-three-1";
-import { installCurrencyIcons } from "./currency-icons.mjs?v=cube-three-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=cube-three-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=cube-three-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-three-1";
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=shops-1';
+import {incomingDamage} from './journey-balance.mjs?v=shops-1';
+import {installMenuIcons} from './menu-icons.mjs?v=shops-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=shops-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=shops-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=shops-1';
+import * as D from "./data.mjs?v=shops-1";
+import { installCurrencyIcons } from "./currency-icons.mjs?v=shops-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=shops-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=shops-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=shops-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -178,6 +178,7 @@ const errors = {
   INSUFFICIENT_SCROLL: "잠재 부여 주문서가 부족합니다.",
   INSUFFICIENT_EXPAND: "잠재 확장석이 부족합니다.",
   INSUFFICIENT_MATERIAL: "판매할 소모품 수량이 부족합니다.",
+  SHOP_LIMIT: "오늘 구매 가능한 수량을 초과했습니다.",
   INVALID_QUANTITY: "남은 수량 안에서 정수로 입력해 주세요.",
   BASE_STATS_FIXED: "이 장비의 기본 수치는 획득 시 확정됩니다.",
 
@@ -362,6 +363,8 @@ const icon = (name) => {
     character: "M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M4 21v-3a8 6 0 0 1 16 0v3",
     gear: "M8 3l4 3 4-3 6 5-4 4v9H6v-9L2 8z",
     boss: "M5 4l3 4h8l3-4v9l-3 7H8l-3-7zM8 12h2m4 0h2M10 17h4",
+    shop: "M3 9h18L19 3H5zM5 9v12h14V9M9 21v-7h6v7",
+    exchange: "M3 7h17l-4-4M21 17H4l4 4",
     market: "M12 3v18M4 7h16M5 7L2 15h6L5 7m14 0-3 8h6l-3-8M8 21h8",
   };
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]}"/></svg>`;
@@ -399,6 +402,8 @@ function shell(content) {
     ["character", "캐릭터"],
     ["gear", "장비"],
     ["boss", "보스"],
+    ["shop", "상점"],
+    ["exchange", "교환소"],
     ["market", "거래소"],
   ]
     .map(([k, label]) =>
@@ -431,6 +436,8 @@ function render() {
       character: character,
       gear: inventory,
       boss: bosses,
+      shop: shop,
+      exchange: exchangeShop,
       market: market,
     }[tab]();
   app.innerHTML = shell(content);
@@ -653,10 +660,17 @@ function partyPanel() {
  const r=partyRoom,b=D.raidBoss(r.bossId)||D.BOSSES[r.bossId],me=r.members.find(m=>m.mine),total=r.members.reduce((n,m)=>n+Number(m.damage),0),fighting=r.status==='fighting';
  return `${header(b.name,'CO-OP RAID · '+(r.practice?'연습':'보상 도전'))}<section class="panel"><div class="arena party-arena" data-class="${state.classId}" style="background-image:url('ui/dawn-ruins.svg')"><div class="battle-head"><small>전투 제한 ${b.seconds}초 · <b id="battle-timer">${fighting?'남은 '+Math.max(0,r.seconds-r.tick)+'초':'파티원 모집 중'}</b></small><h3>${b.name}</h3>${fighting?`<div class="hp"><i style="width:${r.hp/r.maxHp*100}%"></i></div><small>${fmt(r.hp)} / ${fmt(r.maxHp)}</small>`:''}</div><div class="monster">${bossMarkup(b)}</div><div class="combat-status"><span class="pill">${fighting?b.pattern:'1명부터 출발 가능 · 4인 기준 난이도'}</span></div></div><div class="pad"><div class="party-members">${r.members.map(m=>`<div class="party-member ${m.hp<=0?'fallen':''}"><div class="row spread"><strong>${esc(m.name)}${m.mine?' · 나':''}</strong><small>${m.departed?'이탈':m.hp<=0?'쓰러짐':D.CLASSES.find(c=>c.id===m.classId)?.name}</small></div><div class="hp"><i style="width:${Math.max(0,m.hp/m.maxHp*100)}%"></i></div><small>${fmt(m.hp)}/${fmt(m.maxHp)} · 기여 ${total?(Number(m.damage)/total*100).toFixed(1):'0.0'}%</small></div>`).join('')}</div><div class="actions">${fighting?(me?.hp<=0?disabledBtn(me.revived?'부활 사용 완료':'부활 · HP 30%','partyRevive','',me.revived,'gold'):combatSkillButtons(true)):r.isHost?btn('출발 · '+r.members.filter(m=>!m.departed).length+'명','partyStart','','gold'):''}${btn('파티 나가기','partyLeaveConfirm','','danger')}</div>${skillGuide()}<p class="note">전투 중 일반 사냥 중지 · 종료 후 자동사냥 재개</p></div></section>`;
 }
-function exchangeShop(){return '<section class="panel pad"><h3>파편 교환소</h3><p class="note">사냥 파편으로 강화 소모품을 마련하세요. 교환 후 보유 수량에 즉시 추가됩니다.</p>'+Object.entries(D.SUPPLY_EXCHANGE).map(([key,cost])=>'<div class="exchange-row"><strong>'+D.MATERIALS[key]+'</strong><small>1개당 파편 '+cost.fragment+' + '+fmt(cost.gold)+' G</small><div class="actions">'+[1,5,10].map(count=>disabledBtn(count+'개 교환','supplyExchange',key+':'+count,state.materials.fragment<cost.fragment*count||state.gold<cost.gold*count||!!state.battle||!!state.partyRoom)).join('')+'</div></div>').join('')+'</section>';}
+function shop(){
+ const today=D.dayKey(Date.now()),counts=state.shopPurchases?.day===today?state.shopPurchases.counts:{};
+ return header("상점","골드로 소모품 구매")+'<section class="panel pad"><p class="note">매일 한국 시간 0시 구매 한도 초기화 · 확정 지급</p><a href="probability-guide.html" target="_blank" rel="noopener">전체 확률·보상표 보기 ↗</a><div class="shop-grid">'+Object.entries(D.SHOP_OFFERS).map(([key,o])=>{
+ const left=Math.max(0,o.limit-(counts[key]||0));
+ return '<article class="shop-card"><span class="shop-symbol" aria-hidden="true">'+({cube:'◇',highCube:'◆',primeCube:'◈',scroll:'▤',expand:'✦'}[key])+'</span><h3>'+D.MATERIALS[key]+'</h3><p>'+fmt(o.gold)+' G / 개</p><small>Lv.'+o.level+' · 오늘 남은 '+left+'/'+o.limit+'개 · 보유 '+fmt(state.materials[key])+'</small><div class="actions">'+[1,5,10].filter(n=>n<=o.limit).map(n=>disabledBtn(n+'개 구매','shopBuy',key+':'+n,left<n||state.gold<o.gold*n||state.level<o.level||!!state.battle||!!state.partyRoom||!!state.coopRoom)).join('')+'</div></article>';
+ }).join('')+'</div></section>';
+}
+function exchangeShop(){return header('교환소','파편으로 소모품 교환')+'<section class="panel pad"><h3>파편 교환소</h3><p class="note">사냥 파편으로 강화 소모품을 마련하세요. 교환 후 보유 수량에 즉시 추가됩니다.</p>'+Object.entries(D.SUPPLY_EXCHANGE).map(([key,cost])=>'<div class="exchange-row"><strong>'+D.MATERIALS[key]+'</strong><small>1개당 파편 '+cost.fragment+' + '+fmt(cost.gold)+' G</small><div class="actions">'+[1,5,10].map(count=>disabledBtn(count+'개 교환','supplyExchange',key+':'+count,state.materials.fragment<cost.fragment*count||state.gold<cost.gold*count||!!state.battle||!!state.partyRoom)).join('')+'</div></div>').join('')+'</section>';}
 function supplies(kind) {
   const keys=kind==="consumables"?[...Object.keys(D.CUBES),"scroll","expand"]:["fragment"];
-  return exchangeShop()+`<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/새 옵션 선택",scroll:"잠재 능력 개방",expand:"잠재 줄 추가",fragment:"장비·주문서 제작"}[k]||(D.CUBES[k]?.prime?"첫 옵션 고정":D.CUBES[k]?.choose?"이전/이후 선택":"새 옵션 즉시 적용")}</small>${kind==="consumables"?btn("장비 선택","gearSub","bag"):btn("제작소","gearSub","craft")}</section>`).join("")}${kind==="materials"?D.REGIONS.map(r=>`<section class="panel pad">${materialMarkup(r.id)}<strong>${bossMaterialNames[r.id]}</strong><b>${state.bossMaterials[r.id]||0}개</b><small>${r.name} 보스 드롭 · 장비 제작</small>${btn("제작 장비 보기","gearSub","craft")}</section>`).join(""):""}</div>`;
+  return '<div class="actions">'+btn("상점","tab","shop")+btn("교환소","tab","exchange")+'</div>'+`<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/새 옵션 선택",scroll:"잠재 능력 개방",expand:"잠재 줄 추가",fragment:"장비·주문서 제작"}[k]||(D.CUBES[k]?.prime?"첫 옵션 고정":D.CUBES[k]?.choose?"이전/이후 선택":"새 옵션 즉시 적용")}</small>${kind==="consumables"?btn("장비 선택","gearSub","bag"):btn("제작소","gearSub","craft")}</section>`).join("")}${kind==="materials"?D.REGIONS.map(r=>`<section class="panel pad">${materialMarkup(r.id)}<strong>${bossMaterialNames[r.id]}</strong><b>${state.bossMaterials[r.id]||0}개</b><small>${r.name} 보스 드롭 · 장비 제작</small>${btn("제작 장비 보기","gearSub","craft")}</section>`).join(""):""}</div>`;
 }
 let rankingAttempt=0, rankingRevision=0;
 async function loadRankings(quiet=false) {
@@ -1000,11 +1014,19 @@ async function marketWrite(action, args) {
 }
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-action]");
-  if (!b) return;
+  if (!b || b.disabled) return;
   const action = b.dataset.action,
     arg = b.dataset.arg;
   sounds.play("click");
   try {
+    if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
+    if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
+    if(action==="battlePotion")return await command("battlePotion");
+    if(action==="shopBuy"){const[key,count]=arg.split(":");return await command("shopBuy",{key,count:Number(count)});}
+    if(action==="coopCreate")return await command("coopCreate",{tier:Number(arg)});
+    if(action==="coopJoin")return await command("coopJoin",{room:arg});
+    if(["coopStart","coopSync","coopList","coopLeave"].includes(action)){modal.close();return await command(action);}
+    if(action==="coopLeaveConfirm")return open("균열에서 나가기",'<p>진행 중인 도전에서 나가면 보상을 받을 수 없습니다.</p>'+btn("나가기","coopLeave","","danger",true));
     if(action==='towerStart'){modal.close();tab='boss';bossTab='tower';view='game';return await command('towerStart',{floor:Number(arg)});}
     if(action==='towerAck'){modal.close();return await command('ack');}
     if(action==='towerLeaveConfirm')return open('탑에서 나가기',`<p>현재 층의 도전을 종료합니다. 획득한 이전 층 보상과 기록은 유지됩니다.</p>${btn('나가기','towerLeave','','danger',true)}`);
