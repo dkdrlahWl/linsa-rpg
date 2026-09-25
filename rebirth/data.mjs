@@ -6,7 +6,7 @@ import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=journey-2";
 export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=journey-2";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
-export const OFFLINE_SECONDS = 86400;
+export const OFFLINE_SECONDS = 21600;
 export const FIELD_XP_MULTIPLIER = 2.5;
 export const CLASSES = [
   {

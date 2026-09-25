@@ -4,11 +4,11 @@ import {installMenuIcons} from './menu-icons.mjs?v=journey-2';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=journey-2';
 import {TOWER_FLOORS} from './tower-model.mjs?v=journey-2';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=journey-2';
-import * as D from "./data.mjs?v=journey-2";
+import * as D from "./data.mjs?v=journey-4";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=journey-2";
 import equipmentBounds from "./equipment-bounds.mjs?v=journey-2";
 import { inventoryGroups } from "./inventory-order.mjs?v=journey-2";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=journey-3";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=journey-4";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -369,7 +369,7 @@ const icon = (name) => {
 const btn = (label, action, args = "", cls = "", write = false) =>
   `<button class="${cls}" data-action="${action}" data-arg="${esc(args)}" ${write ? "data-write" : ""}>${label}</button>`;
 function header(title, kicker = "새로운 여정") {
-  return `<div class="page-head"><div><p class="eyebrow">${kicker}</p><h2>${title}</h2></div>${tab === "hunt" ? '<span class="pill">오프라인 최대 24시간</span>' : ""}</div>`;
+  return `<div class="page-head"><div><p class="eyebrow">${kicker}</p><h2>${title}</h2></div>${tab === "hunt" ? '<span class="pill">오프라인 최대 6시간</span>' : ""}</div>`;
 }
 function attendanceReady() { return state?.attendance?.lastClaim !== D.dayKey(Date.now()); }
 function attendanceReward(reward) {
@@ -618,7 +618,7 @@ function odds() {
     },
   ).join(
     "",
-  )}</table></div>${cubeGuide()}<div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 레드 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 5개 직업 중 각각 20% 확률로 무작위 추첨합니다. 부위는 9종 균등입니다. 부위마다 4~6종의 개별 장비를 추첨합니다. 4종은 약한 순서로 60/28/11/1%, 5종은 50/28/15/6/1%, 6종은 44/26/16/9/4/1%입니다. 무기 종류의 구성은 레벨마다 달라집니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 지역</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.REGIONS.map(r=>`<tr><td>${r.name} · 3개 사냥터 공통</td><td>${gearLevelRange(D.TIERS[r.id])} / ${gearLevelRange(D.TIERS[r.id])}</td><td>${pct(D.EQUIP_DROP)} / ${pct(D.FIELD_BOSS_DROP)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 장비는 1·10·20·30…200레벨만 새로 생성됩니다. 일반 사냥 장비는 사냥터와 캐릭터 레벨 이하로 제한됩니다. 상위 레벨 장비는 상위 콘텐츠에서 획득합니다. 기존 장비도 1·10·20…200레벨로 보정하며 강화·잠재·잠금은 유지합니다. 오프라인 최대 24시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 기본 수치별로 보관합니다.</p><h3>신규 장비 기본 수치</h3><p class="note">각 개별 장비에는 고유 이름과 수치 범위가 있습니다.  장비 종류에 따라 정해진 범위에서 공격력·주스탯·HP·방어력을 각각 추첨합니다. 범위 하위 50% 구간 75%, 다음 40% 구간 24%, 최상위 10% 구간 1%로 추첨한 뒤 정수로 확정합니다. 범위가 좁으면 반올림으로 구간의 수치가 겹칠 수 있습니다. 보스 장비는 더 높은 별도 범위를 사용합니다.</p></div>`;
+  )}</table></div>${cubeGuide()}<div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 레드 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 5개 직업 중 각각 20% 확률로 무작위 추첨합니다. 부위는 9종 균등입니다. 부위마다 4~6종의 개별 장비를 추첨합니다. 4종은 약한 순서로 60/28/11/1%, 5종은 50/28/15/6/1%, 6종은 44/26/16/9/4/1%입니다. 무기 종류의 구성은 레벨마다 달라집니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 지역</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.REGIONS.map(r=>`<tr><td>${r.name} · 3개 사냥터 공통</td><td>${gearLevelRange(D.TIERS[r.id])} / ${gearLevelRange(D.TIERS[r.id])}</td><td>${pct(D.EQUIP_DROP)} / ${pct(D.FIELD_BOSS_DROP)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 장비는 1·10·20·30…200레벨만 새로 생성됩니다. 일반 사냥 장비는 사냥터와 캐릭터 레벨 이하로 제한됩니다. 상위 레벨 장비는 상위 콘텐츠에서 획득합니다. 기존 장비도 1·10·20…200레벨로 보정하며 강화·잠재·잠금은 유지합니다. 오프라인 최대 6시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 기본 수치별로 보관합니다.</p><h3>신규 장비 기본 수치</h3><p class="note">각 개별 장비에는 고유 이름과 수치 범위가 있습니다.  장비 종류에 따라 정해진 범위에서 공격력·주스탯·HP·방어력을 각각 추첨합니다. 범위 하위 50% 구간 75%, 다음 40% 구간 24%, 최상위 10% 구간 1%로 추첨한 뒤 정수로 확정합니다. 범위가 좁으면 반올림으로 구간의 수치가 겹칠 수 있습니다. 보스 장비는 더 높은 별도 범위를 사용합니다.</p></div>`;
 }
 function disabledBtn(label,action,arg,blocked=false,cls="") {
   const html=btn(label,action,arg,cls,true);

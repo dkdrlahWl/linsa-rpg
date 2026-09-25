@@ -38,7 +38,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=journey-2";
+} from "./data.mjs?v=journey-4";
 
 import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=journey-2';
 const fail = (message) => {

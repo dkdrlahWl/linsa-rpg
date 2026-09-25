@@ -1,4 +1,4 @@
-// 45–60 day progression target with regular daily collection (24 h offline storage).
+// 45–60 day progression target with frequent collection (6 h offline storage).
 export const BALANCE_VERSION='journey-20260925';
 export const levelHours=level=>.16+.00035*level*level;
 export const journeyXP=level=>Math.round(120+level**2.1*12);
