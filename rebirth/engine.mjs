@@ -317,7 +317,7 @@ export function settle(s, ctx) {
   for (let i = 0; i < gearCount; i++) {
     const item = makeLootItem(
       Math.min(STAGES[s.stage].dropLevel,Math.max(1,Math.floor(s.level/10)*10)),
-      ctx.random()<.8?s.classId:pick(CLASSES, ctx).id,
+      pick(CLASSES, ctx).id,
       Math.floor(ctx.random() * 9),
       i>=normalGearCount,
       ctx,
