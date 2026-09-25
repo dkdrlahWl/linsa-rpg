@@ -173,9 +173,10 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : "SERVER_RETRY_REQUIRED";
     const business =
-      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_|DAILY_|COOP_|BETA_|SHOP_)/.test(
+      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_|DAILY_|COOP_|BETA_|SHOP_|PRIME_)/.test(
         message,
       );
+    if(!business)console.error("ringu-request-failed",message);
     return reply(
       {
         error:

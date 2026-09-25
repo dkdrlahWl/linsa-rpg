@@ -1,9 +1,9 @@
-import TABLES from './maple-cube-pools.mjs?v=shops-1';
+import TABLES from './maple-cube-pools.mjs?v=prime-recovery-1';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',5,[.060000002444,.018,.003],[1,.1,.01],{pity:[0,0,25,83,500]}),
  highCube:rule('블랙 큐브','black',5,[.150000001275,.035,.014],[1,.2,.05],{choose:true,pity:[0,0,10,42,107]}),
- primeCube:rule('프라임 큐브','black',5,[0,0,0],[1,.2,.05],{prime:true}),
+ primeCube:rule('프라임 큐브','black',5,[1,0,0],[1,.2,.05],{prime:true}),
 };
 export const cubeLineRates=(kind,grade)=>Array.isArray(CUBES[kind].same)?CUBES[kind].same:CUBES[kind].same[grade];
 export function cubeCost(){return 0;}
@@ -34,7 +34,7 @@ export function rollCubeLine(kind,item,grade,index,random){
 const signature=lines=>JSON.stringify(lines.map(l=>[l.key,l.value]));
 export function rerollCube(kind,item,grade,random){
  const rule=CUBES[kind],length=item.lines.length;
- if(rule.prime&&(grade!==5||length<2))throw Error('PRIME_LEGENDARY_REQUIRED');
+ if(rule.prime&&(grade<3||length<2))throw Error('PRIME_EPIC_REQUIRED');
  for(let attempt=0;attempt<256;attempt++){
   const lines=Array.from({length},(_,i)=>rule.prime&&i===0?structuredClone(item.lines[0]):rollCubeLine(kind,item,grade,i,random));
   if(signature(lines)!==signature(item.lines))return lines;
@@ -44,7 +44,7 @@ export function rerollCube(kind,item,grade,random){
 }
 export function cubeUpgrade(state,kind,grade,random){
  const rule=CUBES[kind];if(!rule||grade>rule.maxGrade||grade<2)throw Error('INVALID_CUBE_GRADE');
- if(rule.prime&&grade!==5)throw Error('PRIME_LEGENDARY_REQUIRED');
+ if(rule.prime)return Math.max(3,grade);
  if(grade===rule.maxGrade)return grade;
  state.cubePity??={};
  const key=kind+':'+grade,failures=state.cubePity[key]||0,limit=rule.pity[grade];

@@ -1,9 +1,9 @@
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=shops-1';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=shops-1';
-import { CUBES } from './maple-cubes.mjs?v=shops-1';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=shops-1';
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=shops-1";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=shops-1";
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=prime-recovery-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=prime-recovery-1';
+import { CUBES } from './maple-cubes.mjs?v=prime-recovery-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=prime-recovery-1';
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=prime-recovery-1";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=prime-recovery-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;

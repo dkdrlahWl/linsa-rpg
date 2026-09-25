@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=shops-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=shops-1';
-import {applyBetaTool} from './beta-tools.mjs?v=shops-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=prime-recovery-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=prime-recovery-1';
+import {applyBetaTool} from './beta-tools.mjs?v=prime-recovery-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -39,9 +39,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=shops-1";
+} from "./data.mjs?v=prime-recovery-1";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=shops-1';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=prime-recovery-1';
 const fail = (message) => {
   throw new Error(message);
 };

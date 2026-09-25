@@ -1,6 +1,6 @@
-import * as D from './data.mjs?v=shops-1';
-import {COOP_TIERS} from './coop-model.mjs?v=shops-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=shops-1';
+import * as D from './data.mjs?v=prime-recovery-1';
+import {COOP_TIERS} from './coop-model.mjs?v=prime-recovery-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=prime-recovery-1';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const section=(id,title,body)=>'<section id="'+id+'"><h2>'+title+'</h2>'+body+'</section>';
@@ -29,9 +29,9 @@ table(['강화','성공','유지'],D.STAR_SUCCESS.map((p,i)=>[i+' → '+(i+1)+'�
 table(['항목','확률·비용'],[['잠재 개방','주문서 1 + 500 G · 레어 등급 100%'],['처음 줄 수','1줄 70% / 2줄 27% / 3줄 3%'],['1 → 2줄','확장석 1 + 2,000 G · 성공 100%'],['2 → 3줄','확장석 3 + 2,000 G · 성공 100%'],['장비 제작','지역 보스 재료 24 + 파편 60 + (3,000+지역번호×500) G · 성공 100%'],['옛 파괴 장비 복원','12성으로 복원 · 성공 100%']])+
 '<p>개방 옵션은 레드·레어 표를 사용합니다. 확장은 현재 등급의 레드 표에서 새 줄만 추첨합니다. 제작은 내 직업·선택 부위·제작 레벨 고정, 디자인과 기본 수치는 랜덤입니다. 지역번호는 첫 지역 0부터 마지막 9입니다.</p>');
 html+=section('cube','4. 큐브 등급·모든 옵션',
-table(['큐브','레어→에픽','에픽→유니크','유니크→레전더리','기능'],Object.entries(D.CUBES).map(([k,c])=>[c.name,...[2,3,4].map(g=>pct(c.up[g])),c.prime?'레전더리 전용, 첫 줄 유지, 나머지 재설정':c.choose?'기존/새 등급과 옵션 선택':'전체 옵션 재설정, 즉시 적용']))+
-'<p>1회 큐브 1개, 추가 골드 0. 잠재 줄 수는 유지됩니다. 프라임은 레전더리·2줄 이상 장비에 사용합니다.</p>'+
-table(['큐브','첫 줄 동일 등급','둘째 줄 동일 등급','셋째 줄 동일 등급','보장 시도(연속 실패 후)'],[['레드','100%','10%','1%','레어 26번째 / 에픽 84번째 / 유니크 501번째'],['블랙','100%','20%','5%','레어 11번째 / 에픽 43번째 / 유니크 108번째'],['프라임','기존 첫 줄 유지','20%','5%','등급 상승 없음']])+
+table(['큐브','레어→에픽','에픽→유니크','유니크→레전더리','기능'],Object.entries(D.CUBES).map(([k,c])=>[c.name,...[2,3,4].map(g=>pct(c.prime&&g===2?1:c.up[g])),c.prime?'결과 최소 에픽, 첫 줄 유지, 나머지 재설정':c.choose?'기존/새 등급과 옵션 선택':'전체 옵션 재설정, 즉시 적용']))+
+'<p>1회 큐브 1개, 추가 골드 0. 잠재 줄 수는 유지됩니다. 프라임은 잠재가 개방된 2줄 이상 장비에 사용합니다. 레어 장비는 에픽으로 100% 상승하며, 에픽·유니크·레전더리는 기존 등급을 유지합니다. 고정된 첫 줄은 수치와 줄 등급도 그대로 유지됩니다.</p>'+
+table(['큐브','첫 줄 동일 등급','둘째 줄 동일 등급','셋째 줄 동일 등급','보장 시도(연속 실패 후)'],[['레드','100%','10%','1%','레어 26번째 / 에픽 84번째 / 유니크 501번째'],['블랙','100%','20%','5%','레어 11번째 / 에픽 43번째 / 유니크 108번째'],['프라임','기존 첫 줄 유지','20%','5%','레어→에픽 100%, 이후 등급 유지']])+
 '<p>동일 등급이 아니면 바로 아래 등급입니다. 레어의 아래는 노멀입니다. 보장 횟수는 캐릭터의 큐브 종류·현재 등급별로 누적되며, 등급 상승 결과 생성 시 초기화됩니다. 블랙으로 기존 결과를 선택해도 초기화가 취소되지 않습니다.</p>'+
 '<p class="note">메이플 표에서 이 게임이 지원하지 않는 효과를 제외하고 남은 가중치를 재정규화한 현재 게임 확률입니다. 공식 메이플의 모든 옵션·확률과 동일한 것은 아닙니다. 표가 없는 레벨·부위 조합은 가장 가까운 레벨 표를 사용하고, 거리가 같으면 낮은 레벨을 사용합니다.</p>'+
 '<div class="filters">'+select('cube-kind','큐브',Object.entries(D.CUBES).map(([k,c])=>[k,c.name]))+select('cube-grade','장비 등급',[2,3,4,5].map(g=>[g,D.RARITIES[g]]))+select('cube-level','장비 레벨',levels.map(l=>[l,l]))+select('cube-slot','장비 부위',D.SLOTS.map((s,i)=>[i,s]))+'</div><p id="cube-mapping"></p><div id="cube-rows"></div><button id="cube-csv">전체 큐브 옵션 확률 CSV 다운로드</button>'+
@@ -63,7 +63,7 @@ function cubeRows(kind,grade,level,slot){
  }});return out;
 }
 function drawCube(){
- const kind=value('cube-kind'),prime=D.CUBES[kind].prime,sel=document.getElementById('cube-grade');if(prime)sel.value='5';sel.disabled=prime;
+ const kind=value('cube-kind'),prime=D.CUBES[kind].prime,sel=document.getElementById('cube-grade');for(const o of sel.options)o.disabled=prime&&Number(o.value)<3;if(prime&&Number(sel.value)<3)sel.value='3';sel.disabled=false;
  const grade=+sel.value,level=+value('cube-level'),slot=+value('cube-slot'),rows=cubeRows(kind,grade,level,slot);
  document.getElementById('cube-mapping').textContent='실제 사용 표: Lv.'+D.cubeTable(kind,{grade,level,slot}).level+' · 등급 상승 후 옵션이 궁금하면 상승한 등급을 선택하세요.';
  document.getElementById('cube-rows').innerHTML=table(['줄','옵션 등급','옵션','1회 생성 확률'],rows.map(r=>[r[5],r[6],r[7],pct(r[8])]));
@@ -80,10 +80,9 @@ function drawGear(){
  const n=r.max-r.min+1;return '<h4>'+({attack:'공격력',stat:'주스탯',hp:'HP',defense:'방어력'}[key])+'</h4>'+table(['수치','해당 능력치 추첨 확률'],Array.from({length:n},(_,i)=>[r.min+i,pct(cdf((i+1)/n)-cdf(i/n))]));
  }).join('')+'</details>').join('');
 }
-function csv(name,heads,rows){const data='﻿'+[heads,...rows].map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('
-'),url=URL.createObjectURL(new Blob([data],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
+function csv(name,heads,rows){const data='﻿'+[heads,...rows].map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\r\n'),url=URL.createObjectURL(new Blob([data],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 for(const id of ['cube-kind','cube-grade','cube-level','cube-slot'])document.getElementById(id).addEventListener('change',drawCube);
 for(const id of ['gear-level','gear-class','gear-slot','gear-boss'])document.getElementById(id).addEventListener('change',drawGear);
-document.getElementById('cube-csv').onclick=()=>{const rows=[];for(const kind of Object.keys(D.CUBES))for(const grade of D.CUBES[kind].prime?[5]:[2,3,4,5])for(const level of levels)for(let slot=0;slot<9;slot++)rows.push(...cubeRows(kind,grade,level,slot).map(r=>[...r.slice(0,8),r[8]*100]));csv('링구-전체-큐브-옵션.csv',['큐브','장비등급','장비레벨','매핑레벨','부위','줄','옵션등급','옵션','생성확률(%)'],rows);};
+document.getElementById('cube-csv').onclick=()=>{const rows=[];for(const kind of Object.keys(D.CUBES))for(const grade of D.CUBES[kind].prime?[3,4,5]:[2,3,4,5])for(const level of levels)for(let slot=0;slot<9;slot++)rows.push(...cubeRows(kind,grade,level,slot).map(r=>[...r.slice(0,8),r[8]*100]));csv('링구-전체-큐브-옵션.csv',['큐브','장비등급','장비레벨','매핑레벨','부위','줄','옵션등급','옵션','생성확률(%)'],rows);};
 document.getElementById('gear-csv').onclick=()=>{const rows=[];for(const level of levels)for(const c of D.CLASSES)for(let slot=0;slot<9;slot++)for(const boss of [false,true])for(const {it,w,ranges} of gearRows(level,c.id,slot,boss))rows.push([level,c.name,D.SLOTS[slot],boss?'보스':'일반',D.gearName(it),D.equipmentType(it),w,...Object.values(ranges).flatMap(r=>[r.min,r.max])]);csv('링구-전체-장비.csv',['레벨','직업','부위','종류','장비명','무기종류','디자인확률(%)','공격최소','공격최대','스탯최소','스탯최대','HP최소','HP최대','방어최소','방어최대'],rows);};
 drawCube();drawGear();

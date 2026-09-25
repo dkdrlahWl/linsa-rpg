@@ -1,14 +1,14 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=shops-1';
-import {incomingDamage} from './journey-balance.mjs?v=shops-1';
-import {installMenuIcons} from './menu-icons.mjs?v=shops-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=shops-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=shops-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=shops-1';
-import * as D from "./data.mjs?v=shops-1";
-import { installCurrencyIcons } from "./currency-icons.mjs?v=shops-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=shops-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=shops-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=shops-1";
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=prime-recovery-1';
+import {incomingDamage} from './journey-balance.mjs?v=prime-recovery-1';
+import {installMenuIcons} from './menu-icons.mjs?v=prime-recovery-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=prime-recovery-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=prime-recovery-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=prime-recovery-1';
+import * as D from "./data.mjs?v=prime-recovery-1";
+import { installCurrencyIcons } from "./currency-icons.mjs?v=prime-recovery-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=prime-recovery-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=prime-recovery-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=prime-recovery-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -196,6 +196,8 @@ const errors = {
   INVENTORY_FULL: "가방이 가득 찼습니다. 장비를 정리해 주세요.",
   TRADE_LEVEL_REQUIRED: "거래소 구매·등록은 20레벨부터 이용할 수 있습니다.",
   SAVE_CONFLICT: "상태가 변경됐어요. 다시 시도해 주세요.",
+  PRIME_LEGENDARY_REQUIRED: "프라임 큐브 사용 조건을 충족하지 않습니다.",
+  PRIME_EPIC_REQUIRED: "프라임 큐브에는 잠재가 개방된 2줄 이상 장비가 필요합니다.",
   SERVER_RETRY_REQUIRED: "연결을 확인하고 같은 요청을 다시 시도해 주세요.",
   LISTING_UNAVAILABLE: "이미 거래됐거나 만료된 매물입니다.",
   BATTLE_IN_PROGRESS: "보스전이 끝난 뒤 이용해 주세요.",
@@ -302,7 +304,7 @@ async function command(command, args = {}, quiet = false) {
   document
     .querySelectorAll("button[data-write]")
     .forEach((b) => (b.disabled = true));
-  let body;
+  let body, recoverCharacter = false;
   try {
     await ensureToken();
     body = JSON.parse(localStorage.getItem(pendingKey()) || "null");
@@ -335,7 +337,7 @@ async function command(command, args = {}, quiet = false) {
     if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
-    if (e.status === 400) localStorage.removeItem(pendingKey());
+    if (e.status === 400) {localStorage.removeItem(pendingKey());recoverCharacter=!state&&!!session&&body?.command!=="sync";}
     if (e.status === 401) {
       endSession();
     }
@@ -351,6 +353,7 @@ async function command(command, args = {}, quiet = false) {
     throw e;
   } finally {
     busy = false;
+    if(recoverCharacter)queueMicrotask(()=>command("sync",{},true).catch(()=>{}));
     if(view==="ranking"&&state&&!rankingLoading&&rankingUpdated===0&&!connectionLost)loadRankings(true);
     document
       .querySelectorAll("button[data-write]")
@@ -662,7 +665,7 @@ function partyPanel() {
 }
 function shop(){
  const today=D.dayKey(Date.now()),counts=state.shopPurchases?.day===today?state.shopPurchases.counts:{};
- return header("상점","골드로 소모품 구매")+'<section class="panel pad"><p class="note">매일 한국 시간 0시 구매 한도 초기화 · 확정 지급</p><a href="probability-guide.html" target="_blank" rel="noopener">전체 확률·보상표 보기 ↗</a><div class="shop-grid">'+Object.entries(D.SHOP_OFFERS).map(([key,o])=>{
+ return header("상점","골드로 소모품 구매")+'<section class="panel pad"><p class="note">매일 한국 시간 0시 구매 한도 초기화 · 확정 지급</p><a href="probability-guide.html" target="_blank" rel="noopener">전체 확률·보상표 보기 ↗</a> · <a href="progression-report.html" target="_blank" rel="noopener">하루별 성장 시뮬레이션 ↗</a><div class="shop-grid">'+Object.entries(D.SHOP_OFFERS).map(([key,o])=>{
  const left=Math.max(0,o.limit-(counts[key]||0));
  return '<article class="shop-card"><span class="shop-symbol" aria-hidden="true">'+({cube:'◇',highCube:'◆',primeCube:'◈',scroll:'▤',expand:'✦'}[key])+'</span><h3>'+D.MATERIALS[key]+'</h3><p>'+fmt(o.gold)+' G / 개</p><small>Lv.'+o.level+' · 오늘 남은 '+left+'/'+o.limit+'개 · 보유 '+fmt(state.materials[key])+'</small><div class="actions">'+[1,5,10].filter(n=>n<=o.limit).map(n=>disabledBtn(n+'개 구매','shopBuy',key+':'+n,left<n||state.gold<o.gold*n||state.level<o.level||!!state.battle||!!state.partyRoom||!!state.coopRoom)).join('')+'</div></article>';
  }).join('')+'</div></section>';
