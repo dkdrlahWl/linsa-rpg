@@ -1,7 +1,7 @@
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=combat-catalog-1';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=combat-catalog-1';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=combat-catalog-1';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=combat-catalog-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=combat-catalog-2';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=combat-catalog-2';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=combat-catalog-2';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=combat-catalog-2';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -12,7 +12,7 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
-    this.canvas.addEventListener('click',()=>{if(this.b.chest&&!this.pending)this.send('towerOpen',{runId:this.b.runId});},{signal:this.abort.signal});
+    this.canvas.addEventListener('click',()=>{if(this.b.chest&&!this.pending)this.send('towerOpen',{runId:this.b.runId}).catch(()=>{});},{signal:this.abort.signal});
     this.required=['effects','boss-'+towerEncounter(b).art,'hero-'+b.classId+'-directions'].map(asset);
     this.required.push(...['arena-overhead-v3','hero-'+b.classId+'-walk-v3','hero-'+b.classId+'-motion-v2','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2'].map(motionAsset));
     this.required.forEach(image);

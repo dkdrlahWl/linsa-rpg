@@ -1,14 +1,14 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=combat-catalog-1';
-import {incomingDamage} from './journey-balance.mjs?v=combat-catalog-1';
-import {installMenuIcons} from './menu-icons.mjs?v=combat-catalog-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=combat-catalog-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=combat-catalog-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=combat-catalog-1';
-import * as D from "./data.mjs?v=combat-catalog-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=combat-catalog-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=combat-catalog-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=combat-catalog-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=combat-catalog-1";
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=combat-catalog-2';
+import {incomingDamage} from './journey-balance.mjs?v=combat-catalog-2';
+import {installMenuIcons} from './menu-icons.mjs?v=combat-catalog-2';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=combat-catalog-2';
+import {TOWER_FLOORS} from './tower-model.mjs?v=combat-catalog-2';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=combat-catalog-2';
+import * as D from "./data.mjs?v=combat-catalog-2";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=combat-catalog-2";
+import equipmentBounds from "./equipment-bounds.mjs?v=combat-catalog-2";
+import { inventoryGroups } from "./inventory-order.mjs?v=combat-catalog-2";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=combat-catalog-2";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -786,10 +786,10 @@ function showEvents(events) {
     }
   }
 }
-function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G · 파편 '+r.fragment+'<br>큐브 '+r.cube+(r.highCube?' · 블랙 큐브 '+r.highCube:''):r.won?'보상을 받았습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
+function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G<br>큐브 '+r.cube+(r.highCube?' · 블랙 큐브 '+r.highCube:''):r.won?'보상을 받았습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;
-  if(r?.type==='coop')return open(r.won?'균열 토벌 성공':'균열 도전 종료','<p>'+(r.gold?fmt(r.gold)+' G · 파편 '+r.fragment+' · 레드 '+r.cube+' · 블랙 '+r.highCube:r.won?'실제 피해를 준 참가자에게 보상이 지급됩니다.':'장비를 정비하고 다시 도전해 보세요.')+'</p>'+btn('확인','ack','','gold',true));
+  if(r?.type==='coop')return open(r.won?'균열 토벌 성공':'균열 도전 종료','<p>'+(r.gold?fmt(r.gold)+' G · 레드 '+r.cube+' · 블랙 '+r.highCube:r.won?'실제 피해를 준 참가자에게 보상이 지급됩니다.':'장비를 정비하고 다시 도전해 보세요.')+'</p>'+btn('확인','ack','','gold',true));
   if(r?.type==='tower')return towerReward(r);
   const enemy = r && (r.type === "dungeon" ? D.DUNGEONS[r.dungeon] : r.type === "boss" ? D.BOSSES[r.bossId] : null);
   if (!r) return toast("새로 정산된 보상이 없습니다.");

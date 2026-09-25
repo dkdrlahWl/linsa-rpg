@@ -11,7 +11,7 @@ export function balanceWorld(stages,bosses,raids){
   s.attack=Math.round(fieldAttack[s.region]*(1+offset*.12));
   s.xp=Math.max(1,Math.round(journeyXP(s.level)*8/(levelHours(s.level)*3600)));
   s.gold=4+s.region*2+offset;
-  s.dropLevel=Math.max(1,Math.floor(s.level/10)*10);
+  s.dropLevel=s.id===29?200:Math.max(10,Math.floor(s.level/10)*10);
   s.star=s.region<2?0:Math.max(0,(s.region-1)*9);
  }
  const bossHP=[1800,26000,100000,245000,480000,830000,1350000,2050000,3000000,4400000];
