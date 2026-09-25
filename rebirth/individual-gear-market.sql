@@ -20,11 +20,11 @@ begin
  select * into p from rebirth_private.players where id=u for update;
  if p.state is null then raise exception 'CHARACTER_REQUIRED'; end if;
  if (p.state->>'level')::integer<20 and p_action<>'cancel' then raise exception 'TRADE_LEVEL_REQUIRED'; end if;
- if p.state->'battle'<>'null'::jsonb or nullif(p.state->>'partyRoom','') is not null then raise exception 'BATTLE_IN_PROGRESS'; end if;
+ if p.state->'battle'<>'null'::jsonb or (nullif(p.state->>'partyRoom','') is not null or nullif(p.state->>'coopRoom','') is not null) then raise exception 'BATTLE_IN_PROGRESS'; end if;
  if p_action='sell' then
   if p_args->>'material' is not null then
    material_key:=p_args->>'material';
-   if material_key not in ('cube','highCube','scroll','expand','fragment') then raise exception 'INVALID_MATERIAL';end if;
+   if material_key not in ('strangeCube','masterCube','artisanCube','primeCube','silverCube','goldCube','cube','highCube','scroll','expand','fragment') then raise exception 'INVALID_MATERIAL';end if;
    if coalesce(p_args->>'quantity','')!~'^[0-9]+$' or coalesce(p_args->>'price','')!~'^[0-9]+$' then raise exception 'INVALID_QUANTITY';end if;
    quantity:=(p_args->>'quantity')::bigint;v_price:=(p_args->>'price')::bigint;
    if quantity<1 or quantity>1000000 or v_price<1 or v_price>1000000000 or v_price*quantity>1000000000 then raise exception 'INVALID_PRICE';end if;

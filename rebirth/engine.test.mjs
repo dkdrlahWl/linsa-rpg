@@ -16,7 +16,7 @@ for(let n=0;n<25;n++){const o=D.starOdds(n);assert.ok(Math.abs(o.success+o.keep+
 s.hunting=false;s.gold=1e9;s.materials={cube:100,highCube:100,scroll:10,expand:10,fragment:1000};
 const id=s.items[0].id;s=E.execute(s,'potential',{id},ctx()).state;assert.equal(s.items[0].lines.length,1);
 s=E.execute(s,'expand',{id},ctx()).state;assert.equal(s.items[0].lines.length,2);
-s=E.execute(s,'cube',{id,high:true},ctx()).state;assert.ok(s.pendingCube);
+s=E.execute(s,'cube',{id,high:true},ctx(0,()=>.6)).state;assert.ok(s.pendingCube);
 assert.throws(()=>E.execute(s,'salvage',{ids:[id]},ctx()),/ITEM_CUBE_PENDING/);
 assert.throws(()=>E.execute(s,'cube',{id},ctx()),/ITEM_CUBE_PENDING/);
 s=E.execute(s,'cubeChoose',{apply:false},ctx()).state;assert.equal(s.pendingCube,null);

@@ -1,3 +1,4 @@
+import {normalizePotentialItem} from './data.mjs';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,makeItem,power,bestEquipment,execute} from './engine.mjs';
@@ -10,7 +11,7 @@ for(let n=0;n<20;n++){
  const result=bestEquipment(s);assert.equal(result.after,max);assert.equal(power({...s,equipped:result.equipped}).combatPower,max);
 }
 let s=state();const better=makeItem(100,'warrior',0,true,ctx,0);better.locked=true;s.items.push(better);s.items.push({...makeItem(200,'warrior',0,true,ctx,0),stars:25},{...makeItem(100,'mage',1,true,ctx,0),stars:25},{...makeItem(100,'warrior',2,true,ctx,0),stars:25,broken:true});
-const original=structuredClone(s);const result=execute(s,'autoEquip',{},ctx);assert.equal(result.state.equipped[0],better.id);assert.equal(result.state.equipped[1],undefined);assert.equal(result.state.equipped[2],undefined);assert.deepEqual(result.state.items,s.items);assert.equal(result.state.gold,s.gold);assert.deepEqual(s,original);assert.equal(result.events[0].type,'autoEquip');assert.deepEqual(bestEquipment(result.state).changed,[]);
+const original=structuredClone(s);const result=execute(s,'autoEquip',{},ctx);assert.equal(result.state.equipped[0],better.id);assert.equal(result.state.equipped[1],undefined);assert.equal(result.state.equipped[2],undefined);assert.deepEqual(result.state.items,s.items.map(it=>normalizePotentialItem(structuredClone(it))));assert.equal(result.state.gold,s.gold);assert.deepEqual(s,original);assert.equal(result.events[0].type,'autoEquip');assert.deepEqual(bestEquipment(result.state).changed,[]);
 s.pendingCube={id:better.id,potentialVersion:3,lines:[],previousGrades:[]};assert.throws(()=>execute(s,'autoEquip',{},ctx),/ITEM_CUBE_PENDING/);s.pendingCube=null;s.partyRoom='room';assert.throws(()=>execute(s,'autoEquip',{},ctx),/PARTY_IN_PROGRESS/);
 s=state();s.items=Array.from({length:300},(_,i)=>({...makeItem([60,80,100][i%3],'warrior',i%9,i%2===0,ctx,0),stars:i%26,lines:[{key:['STR','attack','boss','crit','hp'][i%5],value:1+i%18,grade:5}]}));s.equipped=Object.fromEntries(s.items.slice(0,9).map(i=>[i.slot,i.id]));const start=performance.now();const big=bestEquipment(s);assert.ok(big.after>=power(s).combatPower);assert.equal(power({...s,equipped:big.equipped}).combatPower,big.after);console.log('PASS: exhaustive agreement on 20 inventories, eligibility, locked items, idempotence, pending/party guards, inventory and currency preservation.');console.log({bagSize:300,milliseconds:Math.round(performance.now()-start),before:big.before,after:big.after});
 

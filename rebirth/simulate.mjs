@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=journey-2';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=journey-2';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

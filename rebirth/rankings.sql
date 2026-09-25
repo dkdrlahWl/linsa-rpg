@@ -17,12 +17,24 @@ begin
   ilv:=(it->>'level')::double precision; stars:=coalesce((it->>'stars')::double precision,0);
   quality:=.9+coalesce((it->>'quality')::double precision,50)*.002;
   growth:=1+stars*.055+power(greatest(0,stars-15),1.4)*.025;
-  base:=(5+power(ilv,1.28))*(case when (it->>'boss')::boolean then 1.22 else 1 end)*quality;
-  atk:=atk+(base*(case when (it->>'slot')::int=0 then .9 else .11 end)*growth+stars);
-  stat:=stat+floor((2+ilv*.5)*growth*quality)+stars; hp:=hp+ilv*4+(case when (it->>'slot')::int between 1 and 5 then stars*greatest(2,ceil(ilv*.35)) else 0 end); def:=def+ilv*.2;
+  if it ? 'baseStats' then
+   atk:=atk+(it->'baseStats'->>'attack')::float8*growth+stars;
+   stat:=stat+floor((it->'baseStats'->>'stat')::float8*growth)+stars;
+   hp:=hp+(it->'baseStats'->>'hp')::float8;
+   def:=def+(it->'baseStats'->>'defense')::float8;
+  else
+   base:=(5+power(ilv,1.28))*(case when (it->>'boss')::boolean then 1.9 else 1 end)*quality;
+   atk:=atk+base*(case when (it->>'slot')::int=0 then .9 else .11 end)*growth+stars;
+   stat:=stat+floor((2+ilv*.5)*growth*quality*(case when (it->>'boss')::boolean then 1.9 else 1 end))+stars;
+   hp:=hp+floor(ilv*4*(case when (it->>'boss')::boolean then 1.9 else 1 end));
+   def:=def+ilv*.2*(case when (it->>'boss')::boolean then 1.9 else 1 end);
+  end if;
+  hp:=hp+(case when (it->>'slot')::int between 1 and 5 then stars*greatest(2,ceil(ilv*.35)) else 0 end);
   for ln in select value from jsonb_array_elements(coalesce(it->'lines','[]')) loop
    k:=ln->>'key'; val:=(ln->>'value')::double precision;
    if k='flatHP' then hp:=hp+val;
+   elsif k='flatAttack' then atk:=atk+val;
+   elsif k='flatDefense' then def:=def+val;
    elsif k='flat'||main then stat:=stat+val;
    elsif k=main then stat_pct:=stat_pct+val;
    elsif k='attack' then atk_pct:=atk_pct+val;

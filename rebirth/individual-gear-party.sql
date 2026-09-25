@@ -7,7 +7,7 @@ AS $function$
 declare p rebirth_private.players%rowtype; r rebirth_private.party_rooms%rowtype; m rebirth_private.party_members%rowtype;
  old rebirth_private.receipts%rowtype; room_id uuid; initial_room text; n integer; t integer; upto integer; dmg bigint; incoming bigint;
  crit numeric; burst numeric; guard numeric; st jsonb; reward jsonb; it jsonb; bag jsonb; mail jsonb; stack jsonb; ck text; cl text; sl int; variant int; event_list jsonb:='[]'; summary jsonb;
- result jsonb; b_id text; won boolean; eligible boolean; claim text; boss_data jsonb; region_id text; sk jsonb; second jsonb; chance numeric; critical_damage numeric; slot integer; hit integer; is_raid boolean; claimed_count integer; quality_roll numeric; quality_value integer; gear_base integer; gear_level integer;
+ result jsonb; b_id text; won boolean; eligible boolean; claim text; boss_data jsonb; region_id text; sk jsonb; second jsonb; chance numeric; critical_damage numeric; slot integer; hit integer; is_raid boolean; claimed_count integer; gear_base integer; gear_level integer;
 begin
  perform pg_advisory_xact_lock(71823001);
  if not exists(select 1 from rebirth_private.release where epoch=p_epoch and (enabled or exists(select 1 from rebirth_private.players where id=p_user and preview_access))) then raise exception 'REBIRTH_MAINTENANCE'; end if;
@@ -21,6 +21,7 @@ begin
  end if;
  if p.revision<>p_revision then raise exception 'SAVE_CONFLICT'; end if;
  if p_state->>'version'<>'rebirth-1' or octet_length(p_state::text)>524288 then raise exception 'INVALID_STATE'; end if;
+ if p.state ? 'coopRoom' then raise exception 'BATTLE_IN_PROGRESS';end if;
  initial_room:=p.state->>'partyRoom';
  -- Edge computed settlement uses the ordinary server engine, never client power or RNG.
  update rebirth_private.players set state=p_state,revision=revision+1,updated_at=now() where id=p_user;
@@ -49,7 +50,7 @@ begin
      if t%3=0 or t%(r.boss->>'patternEvery')::int=0 then
       for m in select * from rebirth_private.party_members where room=room_id and not departed and hp>0 loop
        guard:=(case when t<=m.burst_until then (m.stats->'skill'->>'guard')::numeric else 1 end)*(case when t<=m.second_until then coalesce((m.stats->'secondSkill'->>'guard')::numeric,1) else 1 end);
-       incoming:=greatest(1,floor(((r.boss->>'attack')::numeric*(case when t%(r.boss->>'patternEvery')::int=0 then (r.boss->>'patternMultiplier')::numeric else 1 end)-(m.stats->>'defense')::numeric*.4)*guard)::bigint);
+       incoming:=greatest(1,floor(((r.boss->>'attack')::numeric*(case when t%(r.boss->>'patternEvery')::int=0 then (r.boss->>'patternMultiplier')::numeric else 1 end))/(1+(m.stats->>'defense')::numeric/650)*guard)::bigint);
        update rebirth_private.party_members set hp=greatest(0,hp-incoming) where room=room_id and player=m.player;
       end loop;
      end if;
@@ -91,10 +92,7 @@ begin
      end if;
      if random()<(r.boss->>'dropChance')::numeric then
       cl:=(array['warrior','mage','archer','rogue','pirate'])[1+floor(random()*5)::int];sl:=floor(random()*9)::int;variant:=case when sl=0 then floor(random()*3)::int else 0 end;
-      gear_base:=(r.boss->>'gearLevel')::int;gear_level:=case when gear_base>=200 then 200 when random()<sqrt(.5) then gear_base else gear_base+10 end;
-      quality_roll:=random();
-      quality_value:=case when quality_roll<.70 then floor(quality_roll/.70*50)::int when quality_roll<.95 then 50+floor((quality_roll-.70)/.25*30)::int when quality_roll<.995 then 80+floor((quality_roll-.95)/.045*15)::int when quality_roll<.9999 then 95+floor((quality_roll-.995)/.0049*5)::int else 100 end;
-      it:=jsonb_build_object('id',gen_random_uuid(),'level',gear_level,'classId',cl,'slot',sl,'boss',true,'weaponVariant',variant,'quality',quality_value,'stars',0,'grade',0,'lines','[]'::jsonb,'locked',false,'broken',false);
+      gear_base:=(r.boss->>'gearLevel')::int;gear_level:=least(200,gear_base);      it:=jsonb_build_object('id',gen_random_uuid(),'level',gear_level,'classId',cl,'slot',sl,'boss',true,'weaponVariant',variant,'potentialVersion',4,'stars',0,'grade',0,'lines','[]'::jsonb,'locked',false,'broken',false);
       it:=it||rebirth_private.roll_individual_gear(gear_level,cl,sl,true);
       ck:=concat_ws(':','v3',gear_level::text,cl,sl::text,'true',it->>'design');
       if not coalesce(st->'collection','[]') ? ck then st:=jsonb_set(st,'{collection}',coalesce(st->'collection','[]')||jsonb_build_array(ck)); end if;

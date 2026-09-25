@@ -1,13 +1,18 @@
-import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {rollQuality,QUALITY_BANDS,gearAttributes,normalizePotentialItem,salvageYield} from './data.mjs';import {initialState,execute,makeItem,settle} from './engine.mjs';
-const counts=QUALITY_BANDS.map(()=>0);for(let i=0;i<1000000;i++){const q=rollQuality(()=>(i+.5)/1000000);counts[QUALITY_BANDS.findIndex(b=>q>=b.min&&q<=b.max)]++;}assert.deepEqual(counts,[700000,250000,45000,4900,100]);
-for(const [r,q]of [[0,0],[.699999,49],[.7,50],[.949999,79],[.95,80],[.994999,94],[.995,95],[.999899,99],[.9999,100],[.9999999,100]])assert.equal(rollQuality(()=>r),q,'roll '+r);
-const ctx=(r=.5,now=0)=>({now,random:()=>r,uuid:randomUUID});let s=initialState('warrior','품질검증',ctx());s.hunting=false;s.materials.fragment=500;s.gold=100000;const it=s.items[0];it.stars=10;it.lines=[{key:'STR',grade:2,value:5}];delete it.quality;assert.equal(normalizePotentialItem({...it}).quality,50);const a=gearAttributes(it),growth=1+10*.055;assert.equal(a.attack,(5+it.level**1.28)*.9*growth+10);assert.equal(a.stat,Math.floor((2+it.level*.5)*growth)+10);
-let r=execute(s,'qualityReroll',{id:it.id},ctx(0));assert.equal(r.state.items[0].quality,50);assert.equal(r.state.materials.fragment,450);assert.equal(r.state.gold,98500);assert.deepEqual(r.state.items[0].lines,it.lines);assert.equal(r.state.items[0].stars,10);r=execute(r.state,'qualityReroll',{id:it.id},ctx(.996));assert.equal(r.state.items[0].quality,96);assert.ok(gearAttributes(r.state.items[0]).attack>a.attack);assert.deepEqual(s.items[0],it);
-for(const key of ['locked','broken']){const t=structuredClone(s);t.items[0][key]=true;assert.throws(()=>execute(t,'qualityReroll',{id:it.id},ctx()),/ITEM_PROTECTED/);}
-const pending=structuredClone(s);pending.pendingCube={id:it.id,lines:it.lines,previousGrades:[2]};assert.throws(()=>execute(pending,'qualityReroll',{id:it.id},ctx()),/ITEM_CUBE_PENDING/);const party=structuredClone(s);party.partyRoom='x';assert.throws(()=>execute(party,'qualityReroll',{id:it.id},ctx()),/PARTY_IN_PROGRESS/);s.items[0].quality=100;assert.throws(()=>execute(s,'qualityReroll',{id:it.id},ctx()),/MAX_QUALITY/);
-for(const boss of [false,true])for(const lv of [1,20,100,200])assert.equal(salvageYield({level:lv,boss}),4+Math.floor(lv/20)+(boss?10:0));
-// Force drops in a full bag, then give otherwise identical gear two qualities.
-let bag=initialState('warrior','보관검증',ctx());bag.items=Array.from({length:300},()=>makeItem(1,'warrior',0,false,ctx(0),0));bag.equipped={};bag.hunting=true;bag.lastAt=0;let loot=settle(bag,ctx(0,10000));assert.ok(loot.drops.length);assert.ok(bag.mailbox.some(m=>m.item.boss));assert.ok(bag.mailbox.every(m=>m.item.quality===0&&m.key.endsWith('|q0')));const originalCount=bag.mailbox.length;bag.lastAt=10000;
-// First two RNGs make exactly one drop each, followed by the item RNGs (class, slot, weapon, quality).
-const seq=[0,.999999,0,.999999,0,0,0,.99995,0,0,0,.99995,.999999,.999999,.999999];settle(bag,{...ctx(0,20000),random:()=>seq.shift()??.999999});assert.ok(bag.mailbox.length>originalCount);assert.ok(bag.mailbox.some(m=>m.item.quality===100));bag.hunting=false;bag.items=[];const mail=bag.mailbox.find(m=>m.item.quality===100);const claimed=execute(bag,'claimMail',{key:mail.key},ctx(.5,20000)).state;assert.ok(claimed.items.every(x=>x.quality===100));
-console.log('PASS quality: million-roll distribution, boundary rarity, unchanged legacy stats, costs/higher-only, protected gear, salvage and separate quality mailbox/claim');
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {gearAttributes,normalizePotentialItem} from './data.mjs';
+import {initialState,execute,makeLootItem} from './engine.mjs';
+const ctx={now:0,random:()=>.5,uuid:randomUUID};
+let checked=0;
+for(let quality=0;quality<=100;quality++)for(const level of [1,10,100,200])for(const boss of [false,true])for(const stars of [0,10,25]){
+ const old={level,quality,boss,stars,slot:0,lines:[],potentialVersion:3};
+ const before=gearAttributes(old),migrated=normalizePotentialItem(structuredClone(old));
+ assert.ok(!Object.hasOwn(migrated,'quality'));
+ for(const k of Object.keys(before))assert.ok(Math.abs(before[k]-gearAttributes(migrated)[k])<1e-9);
+ assert.deepEqual(normalizePotentialItem(structuredClone(migrated)),migrated);checked++;
+}
+const s=initialState('mage','품질검증',ctx);s.hunting=false;
+assert.ok(!Object.hasOwn(s.items[0],'quality'));
+assert.ok(!Object.hasOwn(makeLootItem(100,'mage',0,false,ctx),'quality'));
+assert.throws(()=>execute(s,'qualityReroll',{id:s.items[0].id},ctx),/UNKNOWN_COMMAND/);
+console.log('PASS: quality removed; '+checked+' legacy gear stats preserved; migration idempotent; removed command rejected.');

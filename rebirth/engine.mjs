@@ -1,4 +1,6 @@
-import {applyBetaTool} from './beta-tools.mjs';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=journey-2';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=journey-2';
+import {applyBetaTool} from './beta-tools.mjs?v=journey-2';
 import {
   VERSION,
   normalizePotentialState,
@@ -13,14 +15,8 @@ import {
   MATERIALS,
   OPTIONS,
   STAR_SUCCESS,
-  CUBE_UP,
-  HIGH_CUBE_UP,
-  LINE_WEIGHTS,
   EQUIP_DROP,
   FIELD_BOSS_DROP,
-  QUALITY_COST,
-  itemQuality,
-  rollQuality,
   rollBaseStats,
   selectDesign,
   rollEquipmentLevel,
@@ -33,9 +29,6 @@ import {
   starCost,
   gearAttributes,
   starOdds,
-  optionPool,
-  rollOptionKey,
-  optionValue,
   dayKey,
   weekKey,
   DUNGEONS,
@@ -45,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=attendance-week-1";
+} from "./data.mjs?v=journey-2";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=tower-motion-30';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=journey-2';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -74,10 +67,10 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     slot,
     boss,
     weaponVariant: selectedVariant,
-    quality:ctx.random?rollQuality(ctx.random):50,
+
     stars: 0,
     grade: 0,
-    potentialVersion: 3,
+    potentialVersion: 4,
     lines: [],
     locked: false,
     broken: false,
@@ -95,7 +88,7 @@ export function initialState(classId, name, ctx) {
     "INVALID_NAME",
   );
   const starter = makeItem(1, classId, 0, false, ctx, 0);
-  starter.bound = true;starter.quality=50;
+  starter.bound = true;normalizePotentialItem(starter);
   return {
     version: VERSION,
     name,
@@ -163,6 +156,8 @@ export function power(s) {
     for (const line of it.lines) {
       if (line.key.startsWith("flat") && Object.hasOwn(fixedStats, line.key.slice(4))) fixedStats[line.key.slice(4)] += line.value;
       if (line.key === "flatHP") hp += line.value;
+      if (line.key === "flatAttack") flat += line.value;
+      if (line.key === "flatDefense") defense += line.value;
       if (line.key === "flat" + cl.stat) primary += line.value;
       else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
     }
@@ -245,11 +240,11 @@ export function bestEquipment(s) {
 export function huntingRate(s) {
   const st = STAGES[s.stage],
     p = power(s);
-  const duration = Math.max(2, Math.ceil(st.hp / p.dps));
-  const incoming = Math.max(1, st.attack - p.defense * 0.25);
+  const duration = Math.max(8, Math.ceil(st.hp / p.dps));
+  const incoming = incomingDamage(st.attack,p.defense);
   const survives = Math.floor(duration / 3) * incoming < p.hp;
   return { seconds: survives ? duration : Math.max(3, Math.ceil(p.hp / incoming) * 3) + 10,
-    xp: survives ? st.xp * (1 + p.xpGain/100) : 0, gold: survives ? st.gold * (1 + p.goldGain/100) : 0, survives };
+    xp: survives ? st.xp * Math.min(1,(st.level+15)/s.level)**2 * (1 + p.xpGain/100) : 0, gold: survives ? st.gold * (1 + p.goldGain/100) : 0, survives };
 }
 function levelUp(s, xp) {
   const exact = xp + (s.xpRemainder || 0), whole = Math.floor(exact + 1e-9);
@@ -283,7 +278,7 @@ function addItem(s, item) {
   if (s.items.length < 300) s.items.push(item);
   else {
     s.mailbox ||= [];
-    const mailKey=key+"|lv"+item.level+"|q"+itemQuality(item)+(item.baseStats?"|s"+JSON.stringify(item.baseStats):"");
+    const mailKey=key+"|lv"+item.level+(item.baseStats?"|s"+JSON.stringify(item.baseStats):"");
     const stack = s.mailbox.find(x => x.key === mailKey);
     if (stack) stack.quantity++;
     else { const {id, ...template} = item; s.mailbox.push({key:mailKey, item: template, quantity: 1}); }
@@ -297,7 +292,7 @@ export function settle(s, ctx) {
   );
   // Keep sub-second progress; discard only time beyond the offline cap.
   s.lastAt = ctx.now - (elapsed % 1000);
-  if (!s.hunting || s.battle || !seconds) return null;
+  if (!s.hunting || s.battle || s.coopRoom || !seconds) return null;
   let remaining = seconds + s.huntRemainder, kills = 0, xp = 0, defeats = 0;
   // Recalculate at level boundaries so offline and frequent online settlement agree.
   while (remaining > 0) {
@@ -312,6 +307,7 @@ export function settle(s, ctx) {
   }
   s.huntRemainder = remaining;
   s.huntKills = (s.huntKills || 0) + kills;
+  if(s.daily)s.daily.hunt+=kills;
   const goldExact = kills * huntingRate(s).gold + (s.goldRemainder || 0),
     gold = Math.floor(goldExact + 1e-9);
   s.goldRemainder = Math.max(0,goldExact - gold);
@@ -320,8 +316,8 @@ export function settle(s, ctx) {
   const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, EQUIP_DROP, ctx),bossGearCount=rollCount(kills,FIELD_BOSS_DROP,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
     const item = makeLootItem(
-      STAGES[s.stage].dropLevel,
-      pick(CLASSES, ctx).id,
+      Math.min(STAGES[s.stage].dropLevel,Math.max(1,Math.floor(s.level/10)*10)),
+      ctx.random()<.8?s.classId:pick(CLASSES, ctx).id,
       Math.floor(ctx.random() * 9),
       i>=normalGearCount,
       ctx,
@@ -350,12 +346,6 @@ export function settle(s, ctx) {
     scroll: scrolls,
     stored: Math.max(0, gearCount - capacity),
   };
-}
-function rollLines(it, ctx) {
-  return it.lines.map((line) => {
-    const key = rollOptionKey(ctx.random);
-    return { key, grade: line.grade ?? 0, value: optionValue(key, line.grade ?? 0, ctx.random) };
-  });
 }
 function gear(s, id) {
   const it = s.items.find((x) => x.id === id);
@@ -403,7 +393,7 @@ function bossSettle(s, ctx, events) {
       frame.incoming = Math.max(
         1,
         Math.floor(
-          (boss.attack * (telegraph ? boss.patternMultiplier : 1) - b.power.defense * 0.4) *
+          (incomingDamage(boss.attack,b.power.defense) * (telegraph ? boss.patternMultiplier : 1)) *
             (guarded ? skill.guard : 1) * (second?.guard||1),
         ),
       );
@@ -413,6 +403,7 @@ function bossSettle(s, ctx, events) {
   }
   if (frames.length) events.push({type:"combat", frames});
   if (b.enemyHp > 0 && b.hp > 0 && b.tick < boss.seconds) return null;
+  if(b.enemyHp<=0&&!b.practice)s.daily.boss++;
   const won = b.enemyHp <= 0,
     reward = {
       type: b.kind === "dungeon" ? "dungeon" : "boss",
@@ -426,11 +417,11 @@ function bossSettle(s, ctx, events) {
   if (won && !b.practice) {
     if (b.kind === "dungeon") {
       s.dungeonClaims[b.dungeon] = b.claimKey;
-      if (b.dungeon === "cube") s.materials.cube += 10;
+      if (b.dungeon === "cube") {s.materials.cube += 25;s.materials.highCube+=3;reward.cube=25;reward.highCube=3;}
       else if (b.dungeon === "relic") {
         const it = makeLootItem(200, pick(CLASSES,ctx).id, Math.floor(ctx.random()*9),false,ctx);
         addItem(s,it); reward.items.push(it.id); s.gold += 20000; s.materials.fragment += 60;reward.gold=20000;reward.fragment=60;
-      } else s.materials.fragment += 100;
+      } else {s.materials.fragment += 200;reward.fragment=200;}
     } else {
     s.bossClaims[boss.id] = b.claimKey;
     if (!s.cleared.includes(boss.id)) s.cleared.push(boss.id);
@@ -468,7 +459,8 @@ function towerFinish(s,ctx,events) {
  const first=b.won&&!s.tower.cleared.includes(b.floor);
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
  const reward={type:'tower',floor:b.floor,won:b.won,first,seconds:b.tick/10,reason:b.reason||'',gold:0,fragment:0,cube:0,highCube:0};
- if(first){Object.assign(reward,f.reward);s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
+ if(b.won){s.daily.tower++;}
+ if(first||(b.won&&s.daily.tower<=3)){Object.assign(reward,Object.fromEntries(Object.entries(f.reward).map(([k,v])=>[k,first?v:Math.floor(v*.3)])));s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
  s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);
 }
 export function execute(input, command, args = {}, ctx) {
@@ -478,6 +470,10 @@ export function execute(input, command, args = {}, ctx) {
   );
   const s = normalizePotentialState(structuredClone(input));
   check(s.version === VERSION, "VERSION_MISMATCH");
+  if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
+  const dailyDay=dayKey(ctx.now);
+  if(s.daily?.day!==dailyDay)s.daily={day:dailyDay,hunt:0,boss:0,tower:0,claimed:[]};
+  check(!s.coopRoom || ["sync","ack"].includes(command), "BATTLE_IN_PROGRESS");
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
   if(s.battle?.kind==='tower'){
@@ -536,11 +532,13 @@ export function execute(input, command, args = {}, ctx) {
     events.push({type:'skill',slot});
     return { state: s, events };
   }
+  if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
     case "betaGrant":
     case "betaLevel":
     case "betaBossReset":
+      check(ctx.betaTools===true,"BETA_DISABLED");
       events.push(applyBetaTool(s,command,args,ctx.now));
       break;
     case "changeClass": {
@@ -565,7 +563,7 @@ export function execute(input, command, args = {}, ctx) {
         s.classStarters.push(target.id);
         const starter = makeItem(1,target.id,0,false,ctx,0);
         starter.bound = true;
-        starter.quality = 50;
+        normalizePotentialItem(starter);
         addItem(s,starter);
       }
       events.push({type:"classChange",from:previousClass,to:target.id});
@@ -585,6 +583,7 @@ export function execute(input, command, args = {}, ctx) {
     }
     case 'towerStart': {
       check(int(args.floor,1,10),'INVALID_TOWER_FLOOR');
+      check(s.level>=Math.max(10,args.floor*20-10),'LEVEL_REQUIRED');
       check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.tower ||= {cleared:[],best:{}};
       check(args.floor===1||s.tower.cleared.includes(args.floor-1),'PREVIOUS_FLOOR_REQUIRED');
@@ -689,14 +688,10 @@ export function execute(input, command, args = {}, ctx) {
       events.push({type:"salvage",count:list.length,fragments});
       break;
     }
-    case "qualityReroll": {
-      const it=gear(s,args.id);writable(s,it);
-      check(!it.baseStats,"BASE_STATS_FIXED");
-      const before=itemQuality(it);check(before<100,"MAX_QUALITY");
-      spend(s,"fragment",QUALITY_COST.fragment);spend(s,"gold",QUALITY_COST.gold);
-      const rolled=rollQuality(ctx.random);it.quality=Math.max(before,rolled);
-      events.push({type:"quality",id:it.id,before,rolled,after:it.quality});break;
-    }
+    case "dailyClaim": {
+ const task=DAILY_TASKS[args.key];check(task&&s.daily[args.key]>=task.goal&&!s.daily.claimed.includes(args.key),"DAILY_NOT_READY");
+ s.daily.claimed.push(args.key);s.gold+=task.gold;for(const key of ["fragment","cube","highCube"])s.materials[key]+=task[key];levelUp(s,xpNeeded(s.level)*.05);events.push({type:"daily",name:task.name});break;
+ }
     case "star": {
       const it = gear(s, args.id);
       writable(s, it);
@@ -750,58 +745,38 @@ export function execute(input, command, args = {}, ctx) {
       break;
     }
     case "potential": {
-      const it = gear(s, args.id);
-      writable(s, it);
-      check(!it.lines.length, "ALREADY_OPEN");
-      spend(s, "scroll", 1);
-      spend(s, "gold", 500);
-      const r = ctx.random(),
-        n = r < 0.7 ? 1 : r < 0.97 ? 2 : 3;
-      it.lines = Array.from({ length: n }, () => ({}));
-      it.lines = rollLines(it, ctx);
-      events.push({ type: "potential", id: it.id });
-      break;
+      const it=gear(s,args.id);writable(s,it);check(!it.lines.length,"ALREADY_OPEN");
+      spend(s,"scroll",1);spend(s,"gold",500);
+      it.grade=2;it.potentialVersion=4;
+      const opening=ctx.random(),lineCount=opening<.7?1:opening<.97?2:3;
+      it.lines=Array.from({length:lineCount},(_,i)=>rollCubeLine("cube",it,2,i,ctx.random));
+      events.push({type:"potential",id:it.id});break;
     }
     case "expand": {
-      const it = gear(s, args.id);
-      writable(s, it);
-      check(it.lines.length > 0 && it.lines.length < 3, "INVALID_LINES");
-      spend(s, "expand", it.lines.length === 1 ? 1 : 3);
-      spend(s, "gold", 2000);
-      const key = rollOptionKey(ctx.random);
-      it.lines.push({ key, grade: 0, value: optionValue(key, 0, ctx.random) });
-      break;
+      const it=gear(s,args.id);writable(s,it);
+      check(it.lines.length>0&&it.lines.length<3,"INVALID_LINES");
+      spend(s,"expand",it.lines.length===1?1:3);spend(s,"gold",2000);
+      it.lines.push(rollCubeLine("cube",it,it.grade,it.lines.length,ctx.random));break;
     }
     case "cube": {
-      const it = gear(s, args.id);
-      writable(s, it);
-      check(it.lines.length > 0, "POTENTIAL_REQUIRED");
-      check(!s.pendingCube, "ITEM_CUBE_PENDING");
-      const high = args.high === true;
-      spend(s, high ? "highCube" : "cube", 1);
-      spend(s, "gold", high ? 1000 : 300);
-      const next = structuredClone(it);
-      const previousGrades = it.lines.map(line => line.grade);
-      next.lines.forEach(line => {
-        if (ctx.random() < (high ? HIGH_CUBE_UP : CUBE_UP)[line.grade]) line.grade++;
-      });
-      next.lines = rollLines(next, ctx);
-      it.lines.forEach((line,i) => line.grade = next.lines[i].grade);
-      normalizePotentialItem(it);
-      s.pendingCube = { id: it.id, grade: it.grade, previousGrades, lines: next.lines, high, potentialVersion: 3 };
-      events.push({ type: "cube", id: it.id, high, up: next.lines.some((line,i)=>line.grade>previousGrades[i]) });
-      break;
+      const it=gear(s,args.id);writable(s,it);
+      check(it.lines.length>0,"POTENTIAL_REQUIRED");check(!s.pendingCube,"ITEM_CUBE_PENDING");
+      const kind=args.kind??(args.high===true?"highCube":"cube");
+      check(Object.hasOwn(CUBES,kind),"INVALID_CUBE");
+      const rule=CUBES[kind],previousGrade=it.grade;
+      check(it.grade<=rule.maxGrade,"INVALID_CUBE_GRADE");
+      const grade=cubeUpgrade(s,kind,it.grade,ctx.random);
+      const lines=rerollCube(kind,it,grade,ctx.random);
+      spend(s,kind,1);spend(s,"gold",cubeCost(kind,it));
+      if(rule.choose)s.pendingCube={id:it.id,kind,grade,previousGrade,lines,potentialVersion:4};
+      else {it.grade=grade;it.lines=lines;}
+      events.push({type:"cube",id:it.id,kind,high:rule.choose,up:grade>previousGrade});break;
     }
     case "cubeChoose": {
-      check(s.pendingCube, "NO_PENDING_CUBE");
-      const it = s.items.find((x) => x.id === s.pendingCube.id);
-      check(it, "ITEM_NOT_FOUND");
-      if (args.apply === true) {
-        it.grade = Math.max(it.grade, s.pendingCube.grade);
-        it.lines = s.pendingCube.lines;
-      }
-      s.pendingCube = null;
-      break;
+      check(s.pendingCube,"NO_PENDING_CUBE");check(typeof args.apply==="boolean","INVALID_CHOICE");
+      const it=s.items.find(x=>x.id===s.pendingCube.id);check(it,"ITEM_NOT_FOUND");
+      if(args.apply){it.grade=s.pendingCube.grade;it.lines=s.pendingCube.lines;}
+      s.pendingCube=null;break;
     }
     case "craft": {
       check(int(args.region, 0, 9) && int(args.slot, 0, 8), "INVALID_CRAFT");
@@ -838,7 +813,11 @@ export function execute(input, command, args = {}, ctx) {
     case "boss": {
       check(int(args.id, 0, 29), "INVALID_BOSS");
       const b = BOSSES[args.id];
-      if (b.weekly) check(b.id === 0 || s.cleared.includes(b.id - 1), "PREVIOUS_BOSS_REQUIRED");
+      check(s.level >= b.level, "LEVEL_REQUIRED");
+      check(
+        b.id === 0 || s.cleared.includes(b.id - 1),
+        "PREVIOUS_BOSS_REQUIRED",
+      );
       const practice = args.practice === true;
       check(
         practice ||
@@ -872,7 +851,7 @@ export function execute(input, command, args = {}, ctx) {
       check(s.dungeonClaims[args.kind] !== dayKey(ctx.now), "DUNGEON_LIMIT");
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s), tier = Math.floor(s.level / 20);
-      const enemy = args.kind === "relic" ? { hp:1250000,attack:160,patternEvery:12,patternMultiplier:3,pattern:"여명의 파동",region:9 } : { hp: Math.round(5000 * 1.6 ** (tier-1)), attack: 30 + tier * 15,
+      const enemy = args.kind === "relic" ? { hp:5200000,attack:1600,patternEvery:12,patternMultiplier:3,pattern:"여명의 파동",region:9 } : { hp: Math.round(12000 * 1.7 ** (tier-1)), attack: 35 + tier * tier * 12,
         patternEvery:15, patternMultiplier:2.5, pattern:"수정 폭발", region:Math.min(9,tier-1) };
       s.battle = {kind:"dungeon", dungeon:args.kind, enemy, claimKey:dayKey(ctx.now), started:ctx.now,
         tick:0, hp:p.hp, enemyHp:enemy.hp, power:p, practice:false,

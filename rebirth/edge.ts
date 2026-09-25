@@ -1,3 +1,4 @@
+import {startCoop,advanceCoop} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
 import { initialState, execute, power } from "./engine.mjs";
 const url = Deno.env.get("SUPABASE_URL")!;
@@ -65,6 +66,25 @@ Deno.serve(async (req) => {
     for (let retry = 0; retry < 3; retry++) {
       const snap = await rpc("rebirth_snapshot", { p_request: body.requestId });
       if (snap.user !== user.id) throw new Error("LOGIN_REQUIRED");
+      if(body.command.startsWith('coop')||(body.command==='sync'&&snap.state?.coopRoom)){
+        if(!snap.state)throw new Error('CHARACTER_REQUIRED');
+        const action=body.command==='sync'?'sync':body.command.slice(4).toLowerCase();
+        if(!['create','join','start','input','sync','leave','list'].includes(action))throw new Error('INVALID_COOP_ACTION');
+        const ctx={now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
+        const computed=execute(snap.state,'sync',{},ctx);
+        const base={user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed.state,power:power(computed.state),args:body.args};
+        try{
+          const current=await rpc('rebirth_coop_action',{p:{...base,action:'read'}},true);
+          if(snap.receipt)return reply(current);
+          const room=current.coop;
+          if(!room&&["input","sync"].includes(action))return reply(current);
+          if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
+          const world=action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?body.args.input:null,Number(current.now)):null;
+          const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision}},true);
+          return reply(result);
+        }catch(e){if(e.message==='SAVE_CONFLICT'&&retry<2)continue;throw e;}
+      }
+      if(snap.state?.coopRoom)throw new Error('BATTLE_IN_PROGRESS');
       if (snap.state?.battle?.kind === "tower" && body.command.startsWith("party")) throw new Error("BATTLE_IN_PROGRESS");
       if (body.command.startsWith("party") || (body.command === "sync" && snap.state?.partyRoom)) {
         if (!snap.state) throw new Error("CHARACTER_REQUIRED");
@@ -153,7 +173,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : "SERVER_RETRY_REQUIRED";
     const business =
-      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_)/.test(
+      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_|DAILY_|COOP_|BETA_)/.test(
         message,
       );
     return reply(

@@ -1,8 +1,12 @@
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=tower-20";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=tower-20";
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=journey-2';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=journey-2';
+import { CUBES } from './maple-cubes.mjs?v=journey-2';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=journey-2';
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=journey-2";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=journey-2";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
-export const OFFLINE_SECONDS = 21600;
+export const OFFLINE_SECONDS = 86400;
 export const FIELD_XP_MULTIPLIER = 2.5;
 export const CLASSES = [
   {
@@ -80,11 +84,11 @@ export const ADVANCEMENTS = {warrior:"가디언",mage:"아크메이지",archer:"
 export const EXPEDITION = {name:"여명의 폐허",background:"ui/dawn-ruins.svg"};
 export const DUNGEONS = {
   relic: {name:"여명의 파수꾼",art:"ui/dawn-sentinel.svg",fullArt:true,seconds:180,reward:"일반 200레벨 장비 1개 · 20,000 G · 파편 60개"},
-  cube: { name: "수정의 시험", art: "bosses-1.svg", spriteX:50, spriteY:0, seconds: 120, reward: "일반 큐브 10개" },
-  material: { name: "고대 제련소", art: "bosses-1.svg", spriteX:0, spriteY:0, seconds: 120, reward: "장비 파편 100개" },
+  cube: { name: "수정의 시험", art: "bosses-1.svg", spriteX:50, spriteY:0, seconds: 120, reward: "레드 큐브 25개 · 블랙 큐브 3개" },
+  material: { name: "고대 제련소", art: "bosses-1.svg", spriteX:0, spriteY:0, seconds: 120, reward: "장비 파편 200개" },
 };
 export const TIERS = [1, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
-export const RARITIES = ["일반", "희귀", "레어", "에픽", "유니크", "레전더리"];
+export const RARITIES = ["일반", "노멀", "레어", "에픽", "유니크", "레전더리"];
 export const POTENTIAL_RANGES = [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12]];
 export const POTENTIAL_MAX = POTENTIAL_RANGES.map(([,max])=>max);
 const names = [
@@ -187,8 +191,9 @@ export const MATERIALS = {
   fragment: "장비 파편",
   scroll: "잠재 부여 주문서",
   expand: "잠재 확장석",
-  cube: "일반 큐브",
-  highCube: "상급 큐브",
+  cube: "레드 큐브",
+  highCube: "블랙 큐브",
+  ...Object.fromEntries(Object.entries(CUBES).map(([key,c])=>[key,c.name])),
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
 export const ATTENDANCE_REWARDS = [
@@ -210,7 +215,7 @@ export const OPTIONS = {
   crit: "치명타 확률",
   boss: "보스 피해",
   defense: "방어력",
-  flatHP: "최대 HP",
+  flatHP: "최대 HP", flatAttack:"공격력", flatDefense:"방어력",
   flatSTR: "STR", flatDEX: "DEX", flatINT: "INT", flatLUK: "LUK",
   goldGain: "골드 획득", xpGain: "경험치 획득",
 };
@@ -231,30 +236,24 @@ export function rollOptionKey(random) {
   for (const [key,weight] of Object.entries(OPTION_WEIGHTS)) { r -= weight; if (r < 0) return key; }
   return "xpGain";
 }
-export const STAR_SUCCESS = [
-  0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3,
-  0.3, 0.3, 0.27, 0.24, 0.21, 0.18, 0.12, 0.08, 0.05, 0.03, 0.01,
-];
-export const CUBE_UP = [0.20, 0.02, 0.002, 0.0002, 0.00002, 0];
-export const HIGH_CUBE_UP = CUBE_UP.map(p=>p*2);
+export const STAR_SUCCESS = [.95,.95,.9,.9,.85,.8,.75,.7,.65,.6,.55,.5,.45,.4,.35,.3,.28,.25,.22,.2,.18,.16,.14,.12,.1];
+export const CUBE_UP = CUBES.cube.up;
+export const HIGH_CUBE_UP = CUBES.highCube.up;
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
-export const EQUIP_DROP = 0.0045;
-export const FIELD_BOSS_DROP = 0.0001;
-export function equipmentLevelRange(base){const min=base>=200?200:Math.max(1,Math.floor(base/10)*10);return {min,max:min===200?200:min===1?10:min+10};}
+export const EQUIP_DROP = 0.00065;
+export const FIELD_BOSS_DROP = 0;
+export function equipmentLevelRange(base){const min=base>=200?200:Math.max(1,Math.floor(base/10)*10);return {min,max:min};}
 export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
-export const QUALITY_COST = {fragment:50,gold:1500};
-export const QUALITY_BANDS = [{min:0,max:49,chance:.70},{min:50,max:79,chance:.25},{min:80,max:94,chance:.045},{min:95,max:99,chance:.0049},{min:100,max:100,chance:.0001}];
-export function rollQuality(random=Math.random){let roll=random();for(const band of QUALITY_BANDS){if(roll<band.chance)return band.min+Math.min(band.max-band.min,Math.floor(roll/band.chance*(band.max-band.min+1)));roll-=band.chance;}return 100;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
 export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
-export const CUBE_DROP = 0.004/3;
-export const SCROLL_DROP = 0.00035;
-export const FRAGMENT_DROP = 0.0175;
-export const SUPPLY_EXCHANGE = {cube:{fragment:10,gold:500},highCube:{fragment:50,gold:2500},scroll:{fragment:20,gold:500},expand:{fragment:150,gold:7500}};
-export const XP_SCALE = 5; // Calibrated by simulation before release, not a client multiplier.
+export const CUBE_DROP = 0.006;
+export const SCROLL_DROP = 0.0004;
+export const FRAGMENT_DROP = 0.06;
+export const SUPPLY_EXCHANGE = {strangeCube:{fragment:1,gold:50},masterCube:{fragment:4,gold:300},artisanCube:{fragment:8,gold:600},primeCube:{fragment:30,gold:2500},silverCube:{fragment:6,gold:450},goldCube:{fragment:12,gold:1200},cube:{fragment:2,gold:150},highCube:{fragment:10,gold:900},scroll:{fragment:3,gold:150},expand:{fragment:20,gold:1000}};
+export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
-  return Math.round((100 + level ** 2.4 * 4) * XP_SCALE);
+  return journeyXP(level);
 }
 export function gearStatRanges(item) {
  const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
@@ -275,20 +274,11 @@ export function gearAttributes(item,stars=item.stars) {
 }
 export function starCost(item) {
   return Math.round(
-    100 * (1 + item.level / 25) ** 1.3 * (item.stars + 1) ** 1.35 * (1 + Math.max(0,item.stars-15)*0.5),
+    45 * (1 + item.level / 25) ** 1.3 * (item.stars + 1) ** 1.35 * (1 + Math.max(0,item.stars-15)*0.5),
   );
 }
 export function starOdds(stars) {
-  if (stars >= 25) return { success: 0, keep: 1, down: 0, destroy: 0 };
-  const success = STAR_SUCCESS[stars],
-    destroy = stars >= 20 ? Math.min(0.12, 0.025 + (stars - 20) * 0.018) : 0;
-  const floor = stars < 10 || stars === 10 || stars === 15;
-  return {
-    success,
-    keep: floor ? 1 - success : 0,
-    down: floor ? 0 : 1 - success - destroy,
-    destroy,
-  };
+ const success=stars>=25?0:STAR_SUCCESS[stars];return {success,keep:1-success,down:0,destroy:0};
 }
 export function optionPool() {
   return Object.keys(OPTIONS);
@@ -298,7 +288,7 @@ export function optionValue(key, grade, random = Math.random) {
   const {min,max,step} = optionRange(key, grade), count = Math.round((max-min)/step)+1;
   return Math.round((min + Math.min(count-1, Math.floor(random()*count))*step)*10)/10;
 }
-// The item grade is a derived sorting hint only; each slot owns its permanent grade.
+// Version 4: one equipment rank; legacy options are preserved until rerolled.
 export function normalizePotentialItem(item) {
   if (!item) return item;
   // Preserve identity, stars, rolls' relative positions, potentials and locks.
@@ -314,13 +304,19 @@ export function normalizePotentialItem(item) {
     }
     item.levelVersion=1;
   }
-  item.quality=itemQuality(item);
-  if (item.potentialVersion !== 3) {
+  if(!item.baseStats && Number.isFinite(item.level)) {
+    const q=qualityMultiplier(item),boss=item.boss?1.9:1;
+    item.baseStats={attack:(5+item.level**1.28)*boss*q*(item.slot===0?.9:.11),stat:(2+item.level*.5)*q*boss,hp:Math.floor(item.level*4*boss),defense:item.level*.2*boss};
+    item.legacyBaseStats=true;
+  }
+  delete item.quality;
+  if (item.potentialVersion !== 3 && item.potentialVersion !== 4) {
     const grade = item.potentialVersion === 2 ? (item.grade || 0) : Math.min(5, (item.grade || 0) + 2);
     item.lines = (item.lines || []).map(line => ({...line, grade:line.grade ?? grade}));
     item.potentialVersion = 3;
   }
-  item.grade = Math.max(0, ...item.lines.map(line => line.grade));
+  if(item.potentialVersion!==4){item.grade=item.lines.length?Math.max(2,...item.lines.map(line=>line.grade||0)):0;item.potentialVersion=4;}
+  item.grade=item.lines.length?Math.max(2,Math.min(5,item.grade||2)):0;
   return item;
 }
 export function normalizePotentialState(state) {
@@ -328,18 +324,17 @@ export function normalizePotentialState(state) {
   for (const item of state.items || []) normalizePotentialItem(item);
   for (const mail of state.mailbox || []) normalizePotentialItem(mail.item);
   state.collection=[...new Set([...(state.collection||[]),...(state.items||[]).map(equipmentKey),...(state.mailbox||[]).map(mail=>equipmentKey(mail.item))])];
-  const pending = state.pendingCube;
-  if (pending) {
-    if (pending.potentialVersion !== 3) {
-      pending.high ??= true;
-      normalizePotentialItem(pending);
-    }
-    const item = state.items.find(item => item.id === pending.id);
-    if (item) {
-      pending.previousGrades ??= item.lines.map(line => line.grade);
-      item.lines.forEach((line,i) => line.grade = Math.max(line.grade, pending.lines[i]?.grade ?? line.grade));
-      normalizePotentialItem(item);
-    }
+  state.cubePity??={};
+  for(const key of Object.keys(CUBES))state.materials[key]??=0;
+  const pending=state.pendingCube;
+  if(pending && pending.potentialVersion!==4){
+    const item=state.items.find(x=>x.id===pending.id);
+    pending.kind=pending.high===false?'cube':'highCube';
+    pending.grade=Math.max(2,pending.grade||0,...(pending.lines||[]).map(l=>l.grade||0));
+    pending.previousGrade=item?.grade||pending.grade;
+    pending.potentialVersion=4;
+    pending.legacy=true;
+    if(item)item.grade=Math.max(item.grade,pending.grade);
   }
   return state;
 }
@@ -357,3 +352,5 @@ export function weekKey(ms) {
   d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
   return d.toISOString().slice(0, 10);
 }
+
+balanceWorld(STAGES,BOSSES,RAID_BOSSES);
