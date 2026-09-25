@@ -1,6 +1,6 @@
 import {TOWER_FLOORS} from './tower-model.mjs?v=tower-motion-30';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
-export {TowerController} from './tower-controller.mjs?v=tower-motion-30';
+export {TowerController} from './tower-controller.mjs?v=tower-smooth-31';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){
@@ -17,3 +17,4 @@ export function towerArena(b){
  <div class="tower-buttons"><div class="tower-skill-bar" aria-label="전직 스킬 목록"><button data-tower-button="8" class="tower-button support" title="${first.description}" aria-label="1차 스킬 ${first.name}: K"><i class="tower-action-art"></i><span>1차 · ${first.name}</span><small>K · 1차 스킬</small><b></b></button><button data-tower-button="2" class="tower-button skill" ${b.advanced?'':'disabled title="60레벨 전직 후 사용 가능"'} aria-label="2차 스킬 ${second.name}: L"><i class="tower-action-art"></i><span>2차 · ${second.name}</span><small>${b.advanced?'L · 2차 스킬':'60레벨 전직 후'}</small><b></b></button></div><div class="tower-core-actions"><button data-tower-button="4" class="tower-button dodge" aria-label="회피: Space"><i class="tower-action-art"></i><span>회피</span><small>SPACE</small><b></b></button><button data-tower-button="1" class="tower-button attack" aria-label="공격: J, 길게 누르기"><i class="tower-action-art"></i><span>공격</span><small>J · 길게 누르기</small><b></b></button></div></div></div>
  <footer class="tower-footer"><button id="tower-auto" aria-pressed="false">연속 공격 꺼짐</button><span>이동하며 공격 · 붉은 영역 회피</span><button data-action="towerLeaveConfirm">나가기</button></footer></section>`;
 }
+

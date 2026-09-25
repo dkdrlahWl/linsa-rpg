@@ -10,6 +10,13 @@ const format=n=>Math.floor(n).toLocaleString('ko-KR');
 // Direction order matches towerFacing: E, SE, S, SW, W, NW, N, NE.
 const directional=(name,dir,attack=false)=>[asset(name+'-directions'),4,4,(attack?8:0)+dir];
 const cleanAtlases=new WeakMap();
+const tintedAtlases=new WeakMap();
+function tintedAtlas(im,filter){
+  if(filter==='none')return im;
+  let variants=tintedAtlases.get(im);if(!variants){variants=new Map();tintedAtlases.set(im,variants);}
+  if(!variants.has(filter)){const canvas=document.createElement('canvas');canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;const g=canvas.getContext('2d');g.filter=filter;g.drawImage(im,0,0);variants.set(filter,canvas);}
+  return variants.get(filter);
+}
 // Some painted poses overlap a neighbouring atlas cell. Isolate the actual
 // character in each cell so stray weapon tips and hair never appear beside it.
 function cleanDirectionalAtlas(im){
@@ -58,7 +65,7 @@ export class TowerRenderer {
   constructor(canvas){
     this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.shake=0;this.flash=0;this.zoom=0;
-    this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){canvas.width=1000;canvas.height=Math.round(1000*r.height/r.width);}});this.resize.observe(canvas);
+    this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
   }
   dispose(){this.resize.disconnect();}
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
@@ -69,9 +76,9 @@ export class TowerRenderer {
   }
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
-    const g=this.g,sw=im.width/4;
-    g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=clamp(alpha);g.filter=filter;
-    g.drawImage(im,Math.max(0,Math.min(3,frame))*sw,0,sw,im.height,-w/2,-h/2,w,h);g.restore();
+    const g=this.g,source=tintedAtlas(im,filter),sw=source.width/4;
+    g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=clamp(alpha);
+    g.drawImage(source,Math.max(0,Math.min(3,frame))*sw,0,sw,source.height,-w/2,-h/2,w,h);g.restore();
   }
   effect(kind,x,y,w,h=w,angle=0,alpha=1){
     const im=image(asset('effects'));if(!im.complete||!im.naturalWidth)return;
@@ -135,33 +142,34 @@ export class TowerRenderer {
       p.x+=p.vx*step;p.y+=p.vy*step;p.vx*=.965;p.vy=p.vy*.965+.11*step;
       const fade=1-(now-p.at)/p.life;
       g.save();g.globalAlpha=fade;g.strokeStyle=p.color;g.lineWidth=p.size*fade;g.lineCap='round';
-      g.shadowColor=p.color;g.shadowBlur=12;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x-p.vx*2.5,p.y-p.vy*2.5);g.stroke();g.restore();
+      g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x-p.vx*2.5,p.y-p.vy*2.5);g.stroke();g.restore();
     }
     this.shockwaves=this.shockwaves.filter(r=>now-r.at<380);
     for(const r of this.shockwaves){
       const age=(now-r.at)/380;
       this.effect('impact',r.x,r.y-10,r.size*(.95+age),r.size*(.95+age),age*.3,(1-age)*.7);
-      g.save();g.globalAlpha=(1-age)*.85;g.strokeStyle=r.color;g.lineWidth=(1-age)*9+1;g.shadowColor=r.color;g.shadowBlur=20;
+      g.save();g.globalAlpha=(1-age)*.85;g.strokeStyle=r.color;g.lineWidth=(1-age)*9+1;
       g.beginPath();g.ellipse(r.x,r.y,24+r.size*age,8+r.size*.38*age,0,0,Math.PI*2);g.stroke();g.restore();
     }
   }
   draw(b,previous,player,fraction,now,input,hint){
     const g=this.g,f=TOWER_FLOORS[b.floor-1],c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
+    const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
     for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);this.impact(n,now);}
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
-    const scale=Math.min(.9,Math.max(.58,this.canvas.height/2300)),viewWidth=1000/scale,viewHeight=this.canvas.height/scale;
+    const scale=Math.min(.9,Math.max(.58,height/2300)),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
-    const verticalFocus=mix(pairFocus,player.y-35,clamp((this.canvas.height-1000)/950));
+    const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
     const target={x:limit(mix(player.x,b.enemy.x,.12)-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit(verticalFocus-viewHeight/2,viewHeight,TOWER_SIZE.height)};
     if(!this.camera)this.camera=target;
     const follow=1-Math.exp(-Math.min(100,dt)/135);this.last=now;
     this.camera.x=mix(this.camera.x,target.x,follow);this.camera.y=mix(this.camera.y,target.y,follow);
-    g.fillStyle='#08131c';g.fillRect(0,0,this.canvas.width,this.canvas.height);
+    g.fillStyle='#08131c';g.fillRect(0,0,1000,height);
     this.shake*=Math.exp(-dt/90);this.flash*=Math.exp(-dt/85);this.zoom*=Math.exp(-dt/110);
     const jx=(Math.random()-.5)*this.shake,jy=(Math.random()-.5)*this.shake;
-    g.save();g.translate(this.canvas.width/2+jx,this.canvas.height/2+jy);g.scale(scale*(1+this.zoom),scale*(1+this.zoom));
+    g.save();g.translate(500+jx,height/2+jy);g.scale(scale*(1+this.zoom),scale*(1+this.zoom));
     g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);this.background();
     for(const hazard of b.hazards)this.hazard(hazard,time);
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
@@ -232,7 +240,8 @@ export class TowerRenderer {
       g.strokeText(value,x,y);g.fillText(value,x,y);g.restore();
     }
     g.restore();
-    if(this.flash>.01){g.save();g.fillStyle=`rgba(255,238,204,${this.flash*.38})`;g.fillRect(0,0,this.canvas.width,this.canvas.height);g.restore();}
-    if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a'+(Math.floor(80+Math.sin(now/250)*30).toString(16));g.strokeRect(0,0,this.canvas.width,this.canvas.height);g.restore();}
+    if(this.flash>.01){g.save();g.fillStyle=`rgba(255,238,204,${this.flash*.38})`;g.fillRect(0,0,1000,height);g.restore();}
+    if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a'+(Math.floor(80+Math.sin(now/250)*30).toString(16));g.strokeRect(0,0,1000,height);g.restore();}
   }
 }
+

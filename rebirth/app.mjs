@@ -1,5 +1,8 @@
+Warning: truncated output (original token count: 33158)
+Total output lines: 1389
+
 import {TOWER_FLOORS} from './tower-model.mjs?v=tower-motion-30';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower-motion-30';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower-smooth-31';
 import * as D from "./data.mjs?v=attendance-week-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
@@ -641,89 +644,7 @@ function partyPanel() {
 function exchangeShop(){return '<section class="panel pad"><h3>파편 교환소</h3><p class="note">사냥 파편으로 강화 소모품을 마련하세요. 교환 후 보유 수량에 즉시 추가됩니다.</p>'+Object.entries(D.SUPPLY_EXCHANGE).map(([key,cost])=>'<div class="exchange-row"><strong>'+D.MATERIALS[key]+'</strong><small>1개당 파편 '+cost.fragment+' + '+fmt(cost.gold)+' G</small><div class="actions">'+[1,5,10].map(count=>disabledBtn(count+'개 교환','supplyExchange',key+':'+count,state.materials.fragment<cost.fragment*count||state.gold<cost.gold*count||!!state.battle||!!state.partyRoom)).join('')+'</div></div>').join('')+'</section>';}
 function supplies(kind) {
   const keys=kind==="consumables"?["cube","highCube","scroll","expand"]:["fragment"];
-  return exchangeShop()+`<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/새 옵션 선택",scroll:"잠재 능력 개방",expand:"잠재 줄 추가",fragment:"장비·주문서 제작"}[k]}</small>${kind==="consumables"?btn("장비 선택","gearSub","bag"):btn("제작소","gearSub","craft")}</section>`).join("")}${kind==="materials"?D.REGIONS.map(r=>`<section class="panel pad">${materialMarkup(r.id)}<strong>${bossMaterialNames[r.id]}</strong><b>${state.bossMaterials[r.id]||0}개</b><small>${r.name} 보스 드롭 · 장비 제작</small>${btn("제작 장비 보기","gearSub","craft")}</section>`).join(""):""}</div>`;
-}
-async function loadRankings() {
-  if (rankingLoading) return;
-  const requestId=++rankingRequest;
-  rankingLoading=true;rankingError="";render();
-  try {
-    await ensureToken();
-    const rows=await request("/rest/v1/rpc/rebirth_rankings",{});
-    if(requestId!==rankingRequest)return;
-    rankingRows=rows;rankingUpdated=Date.now();
-  } catch(err) { rankingError=message(err); }
-  finally { if(requestId===rankingRequest){rankingLoading=false;if(view==="ranking")render();} }
-}
-function rankings() {
-  const combat=rankingMode==="combat",rankKey=combat?"combatRank":"levelRank",label=combat?"전투력":"레벨";
-  const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
-  const className=r=>r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name||"모험가";
-  const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
-  const portrait=r=>`<div class="rank-portrait portrait" style="background-position:${Math.max(0,D.CLASSES.findIndex(c=>c.id===r.classId))*25}% 0" aria-hidden="true"></div>`;
-  const podium=rows.slice(0,3).map(r=>`<article class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}">${esc(r.name)}</strong><small>${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
-  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회":"서버 기록 기준"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong>${esc(r.name)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><b class="rank-score">${score(r)}</b></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
-}
-function journal() {
-  const goals=[["첫 토벌",state.cleared.length,1,"보스 첫 처치"],["장비 수집가",state.collection.length,50,"서로 다른 장비 50종 발견"],["직업의 길",state.advancement?1:0,1,requiredLevel(60)+" · 광산왕 크로투스 처치 후 전직"],["숙련 모험가",state.level,100,requiredLevel(100,"100레벨 달성")],["왕좌를 넘어",state.cleared.length,30,"멸신왕 벨제리온 처치"],["새벽의 탐험가",state.dungeonClaims.relic?1:0,1,"여명의 폐허 클리어"]];
-  return header("모험 수첩","나의 성장 기록")+btn("돌아가기","back")+`<div class="journal-banner"><h2>다음 이야기는<br>네 모험으로 채워져.</h2></div><div class="goal-grid">${goals.map(([name,value,max,desc])=>`<section class="panel pad"><div class="row spread"><strong>${name}</strong><span class="pill">${value>=max?"달성":Math.min(value,max)+"/"+max}</span></div><p class="note">${desc}</p><div class="exp"><i style="width:${Math.min(100,value/max*100)}%"></i></div></section>`).join("")}</div>`;
-}
-function marketTile(l) {
-  const it=l.item,consumable=it.kind==="consumable";
-  const name=consumable?D.MATERIALS[it.key]:D.gearName(it);
-  return `<button class="market-compact-card" data-action="marketConfirm" data-arg="${l.id}" aria-label="${esc(name)} 상세 보기"><span class="market-card-meta">${consumable?"소모품":requiredLevel(it.level)}<b>${consumable?fmt(it.quantity)+"개":it.stars+"★"}</b></span>${consumable?'<span class="consumable-market-icon">◆</span>':gearMarkup(it)}<strong class="market-card-name">${esc(name)}</strong><small>${consumable?"남은 "+fmt(it.quantity)+"개":D.CLASSES.find(c=>c.id===it.classId).name+" · "+gearRollLabel(it)}</small><b class="market-card-price">${fmt(l.price)} G${consumable?" / 개":""}</b><span class="market-card-status">${l.status==="open"?(l.own?"판매 중 · 상세":"상세 보기"):l.status==="sold"?"판매 완료":"회수 완료"}</span></button>`;
-}
-function gearRollDetails(it){if(!it.baseStats)return "";const ranges=D.gearStatRanges(it);return `<section class="panel pad"><h4>획득 시 확정된 기본 수치</h4>${Object.entries({attack:"공격력",stat:"주스탯",hp:"HP",defense:"방어력"}).map(([key,label])=>`<p>${label} <strong>${fmt(it.baseStats[key])}</strong> <small>(가능 범위 ${fmt(ranges[key].min)}~${fmt(ranges[key].max)})</small></p>`).join("")}<p class="note">강화 전 수치입니다. 각 능력치는 따로 추첨되며 높은 구간일수록 희귀합니다. 큐브·품질 재감정으로 기본 수치는 바뀌지 않습니다.</p></section>`;}
-function gearStatsMarkup(it) {
-  const a=D.gearAttributes(it),cl=D.CLASSES.find(c=>c.id===it.classId);
-  return `<div class="market-picked-stats gear-base-stats">${[["공격력",a.attack.toFixed(1)],[cl.stat,fmt(a.stat)],["최대 HP",fmt(a.hp)],["방어력",fmt(a.defense)]].map(([k,v])=>`<div><span>${k}</span><b>+${v}</b></div>`).join("")}</div><p class="note">장비 자체 능력치입니다. 기본 수치·스타포스 반영, 잠재는 아래 별도 표시.${it.broken?" 파괴된 장비는 장착 효과가 없습니다.":""}</p>`;
-}
-function marketGearDetails(it) {
-  return `<div class="item">${itemMarkup(it)}</div>${gearStatsMarkup(it)}${gearRollDetails(it)}<div class="market-picked-options"><h4>잠재능력</h4>${it.lines.length?it.lines.map(l=>`<div class="grade-color-${l.grade}"><small>${D.RARITIES[l.grade]}</small><span>${D.OPTIONS[l.key]}</span><b>+${l.value}${D.optionUnit(l.key)}</b></div>`).join(""):'<p class="note">잠재 미개방</p>'}</div>`;
-}
-function market() {
-  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div><div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(20)}부터 · 판매 수수료 5% · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
-    marketRows
-      .slice(0, 20)
-      .map(marketTile)
-      .join("") ||
-    '<div class="empty">등록된 상품이 없습니다. 장비와 소모품을 판매할 수 있어요.</div>'
-  }</div><div class="actions">${marketPage ? btn("이전", "page", marketPage - 1) : ""}${marketRows.length > 20 ? btn("다음", "page", marketPage + 1) : ""}${btn("새로고침", "marketRefresh")}</div>`;
-}
-async function marketLoad() {
-  const version = ++marketRequest;
-  await ensureToken();
-  const rows = await request("/rest/v1/rpc/rebirth_market", {
-    p_action: "list",
-    p_args: { page: marketPage, mine, kind:marketKind, slot: filterSlot, classId: filterClass },
-    p_request: crypto.randomUUID(),
-  });
-  if(version !== marketRequest || tab !== "market") return;
-  marketRows = rows.filter(row=>row.status!=="cancelled").map(row => ({...row, item: row.item.kind==="consumable"?row.item:D.normalizePotentialItem(row.item)}));
-  render();
-}
-function open(title, html, closable = true) {
-  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog");
-  modal.innerHTML = `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`;
-  modal.setAttribute("aria-labelledby", "dialog-title");
-  modal.scrollTop = 0;
-  if (!modal.open) {
-    history.pushState({ modal: true }, "");
-    modal.showModal();
-  }
-  modal.dataset.closable = String(closable);
-  refreshLevelRequirements();
-}
-let cubeKind="cube", lastStarResult=null, lastCubeResult=null;
-const enhanceIcon=(key)=>`<img class="enhance-currency" src="currencies/${key}.svg" alt="">`;
-function enhancementBlock(it) {
-  return it.broken?"파괴된 장비를 먼저 복구해 주세요.":it.locked?"장비 잠금을 해제해 주세요.":state.battle||state.partyRoom?"보스전 종료 후 이용할 수 있어요.":"";
-}
-function enhancementOptions(item,label="현재 잠재능력") {
-  return `<section class="option-panel rarity-0"><div class="option-heading"><span>${label}</span><b>${item.lines.length?"줄별 독립 등급":"미개방"}</b></div><div class="option-lines">${Array.from({length:3},(_,i)=>{const l=item.lines[i];return `<div class="option-line ${l?"grade-color-"+l.grade:"empty-line"}"><span class="line-index">0${i+1}</span><span>${l?`<small class="line-grade">${D.RARITIES[l.grade]}</small>${D.OPTIONS[l.key]}`:"잠재 슬롯 미개방"}</span><strong>${l?"+"+l.value+D.optionUnit(l.key):"—"}</strong></div>`;}).join("")}</div></section>`;
-}
-function enhancementWallet(cost,key=null,count=1) {
-  return `<div class="enhance-wallet">${key?`<div><span>${enhanceIcon(key)}${D.MATERIALS[key]}</span><strong class="${state.materials[key]<count?"short":""}">${fmt(state.materials[key])}<small> / ${count}개 필요</small></strong></div>`:""}<div><span>${enhanceIcon("gold")}필요 골드</span><strong class="${state.gold<cost?"short":""}">${fmt(cost)}<small> G</small></strong></div><div class="wallet-owned"><span>보유 골드</span><span>${fmt(state.gold)} G</span></div></div>`;
+  return exchangeShop()+`<div class="supply-grid">${keys.map(k=>`<section class="panel pad"><strong>${D.MATERIALS[k]}</strong><b>${fmt(state.materials[k])}개</b><small>${{cube:"잠재 옵션 재설정",highCube:"기존/…3158 tokens truncated…/span><span>${fmt(state.gold)} G</span></div></div>`;
 }
 function starPanel(it) {
   if(it.broken){const materials=state.items.filter(x=>x.id!==it.id&&!x.broken&&!x.locked&&!Object.values(state.equipped).includes(x.id)&&D.equipmentKey(x)===D.equipmentKey(it));return `<div class="enhance-empty">${gearMarkup(it,"big-item")}<h3>장비의 흔적이 남았어요</h3><p>같은 20레벨 구간·직업·종류의 장비 1개로 12성 복구합니다.<br>잠재능력은 유지됩니다.</p></div><label class="enhance-field" for="restore-material">복구에 사용할 장비</label><select id="restore-material">${materials.length?materials.map(x=>`<option value="${x.id}">${esc(D.gearName(x))} · ${x.stars}성</option>`).join(""):'<option value="">사용 가능한 장비가 없습니다</option>'}</select>${disabledBtn("12성으로 복구","restore",it.id,!materials.length||it.locked||!!state.battle,"enhance-primary")}`;}
@@ -770,8 +691,9 @@ function cubePowerComparison(it,pending) {
 }
 function cubeChoice() {
   const p=state.pendingCube,it=state.items.find(i=>i.id===p.id);
-  selected=p.id;itemSection="potential";
-  open((p.high?"상급":"일반")+" 큐브 · 결과 선택",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>유지할 잠재능력을 선택하세요</small></div></div>${p.lines.some((l,i)=>l.grade>p.previousGrades[i])?`<div class="enhance-result success"><strong>${p.lines.map((l,i)=>l.grade>p.previousGrades[i]?`${i+1}줄 ${D.RARITIES[p.previousGrades[i]]} → ${D.RARITIES[l.grade]}`:"").filter(Boolean).join(" · ")}</strong><span>기존 옵션을 골라도 오른 등급은 유지됩니다.</span></div>`:""}${cubePowerComparison(it,p)}<div class="cube-comparison">${enhancementOptions(it,"기존 옵션") }${enhancementOptions(p,"새로운 옵션")}</div><p class="enhance-help">각 줄의 오른 등급은 유지됩니다. 선택은 옵션에만 적용되며 추가 비용은 없어요.</p><div class="enhance-choice-actions">${btn("기존 옵션 유지","cubeChoose","no","enhance-secondary",true)}${btn("새 옵션 적용","cubeChoose","yes","enhance-primary cube-primary",true)}</div></div>`,false);
+  selected=p.id;itemSection="potential";cubeKind=p.high?"highCube":"cube";
+  const repeatBlocked=state.materials[cubeKind]<1||state.gold<(p.high?1000:300);
+  open((p.high?"상급":"일반")+" 큐브 · 결과 선택",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>유지할 잠재능력을 선택하세요</small></div></div>${p.lines.some((l,i)=>l.grade>p.previousGrades[i])?`<div class="enhance-result success"><strong>${p.lines.map((l,i)=>l.grade>p.previousGrades[i]?`${i+1}줄 ${D.RARITIES[p.previousGrades[i]]} → ${D.RARITIES[l.grade]}`:"").filter(Boolean).join(" · ")}</strong><span>기존 옵션을 골라도 오른 등급은 유지됩니다.</span></div>`:""}${cubePowerComparison(it,p)}<div class="cube-comparison">${enhancementOptions(it,"기존 옵션") }${enhancementOptions(p,"새로운 옵션")}</div><p class="enhance-help">각 줄의 오른 등급은 유지됩니다. 선택은 옵션에만 적용되며 추가 비용은 없어요.</p><div class="enhance-choice-actions">${btn("기존 옵션 유지","cubeChoose","no","enhance-secondary",true)}${btn("새 옵션 적용","cubeChoose","yes","enhance-primary cube-primary",true)}</div><div class="enhance-choice-actions">${disabledBtn("기존 유지 후 다시 돌리기","cubeChooseRepeat","no",repeatBlocked,"enhance-secondary")}${disabledBtn("새 옵션 적용 후 다시 돌리기","cubeChooseRepeat","yes",repeatBlocked,"enhance-primary cube-primary")}</div><p class="enhance-help">다시 돌리기: ${p.high?"상급":"일반"} 큐브 1개 · ${p.high?"1,000":"300"} G / 보유 ${fmt(state.materials[cubeKind])}개</p></div>`,false);
   modal.classList.add("enhance-dialog");
 }
 function showEvents(events) {
@@ -1142,6 +1064,15 @@ document.addEventListener("click", async (e) => {
     }
     if (action === "cube" || action === "highCube")
       return await command("cube", { id: arg, high: action === "highCube" });
+    if (action === "cubeChooseRepeat") {
+      if(busy||!state.pendingCube)return;
+      const pending=state.pendingCube,id=pending.id,high=!!pending.high;
+      const result=await command("cubeChoose",{apply:arg==="yes"});
+      if(!result||state.pendingCube)return;
+      lastCubeResult=null;
+      itemDetail(id,"potential");
+      return await command("cube",{id,high});
+    }
     if (action === "cubeChoose") {
       await command("cubeChoose", { apply: arg === "yes" });
       modal.close();
@@ -1376,3 +1307,4 @@ document.addEventListener("visibilitychange", () => {
 installCurrencyIcons();
 if (session) command("sync").catch(() => {});
 else login();
+

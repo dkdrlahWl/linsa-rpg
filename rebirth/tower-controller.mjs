@@ -1,7 +1,7 @@
 import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=tower-motion-30';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-motion-30';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=tower-motion-30';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=tower-smooth-31';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -66,11 +66,12 @@ export class TowerController {
     const decay=Math.exp(-dt/65);this.correction.x*=decay;this.correction.y*=decay;
   }
   accept(b){
-    if(b.runId!==this.b.runId||b.tick<this.serverTick)return;
+    if(b.runId!==this.b.runId||b.tick<=this.serverTick)return;
     const before=projectPlayer(this.b,this.sampler),drop=b.tick-this.serverTick;
     if(drop>this.frames.length){this.frames=[];this.sampler.clear();}else this.frames.splice(0,drop);
     this.serverTick=b.tick;this.b=upgradeTowerBattle(structuredClone(b));
-    for(const input of this.frames)towerStep(this.b,input);
+    this.previous=snapshot(this.b);
+    for(const input of this.frames){this.previous=snapshot(this.b);towerStep(this.b,input);}
     const after=projectPlayer(this.b,this.sampler);
     this.correction.x=clamp(this.correction.x+before.x-after.x,-100,100);this.correction.y=clamp(this.correction.y+before.y-after.y,-100,100);
   }
@@ -123,3 +124,4 @@ export class TowerController {
   }
   dispose(){this.disposed=true;cancelAnimationFrame(this.frame);this.abort.abort();this.renderer.dispose();this.resetInput();}
 }
+
