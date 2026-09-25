@@ -625,6 +625,24 @@ function partyPanel() {
 }
 function supplies(){return '<div class="bag-supplies">'+Object.entries(D.MATERIALS).map(([key,name])=>'<div><img src="'+currencyIconURL(key)+'" alt=""><span>'+name+'<b>'+fmt(state.materials[key]||0)+'개</b></span></div>').join('')+'</div><p class="note"><a href="probability-guide.html" target="_blank" rel="noopener">전체 확률표</a> · <a href="boss-equipment.html" target="_blank" rel="noopener">보스 장비 목록</a></p>';}
 
+let rankingAttempt=0, rankingRevision=0;
+async function loadRankings(quiet=false) {
+  if (rankingLoading) return;
+  if(busy){if(view==="ranking")render();return;}
+  rankingAttempt=Date.now();
+  const requestId=++rankingRequest;
+  rankingLoading=true;rankingError="";if(!quiet)render();
+  try {
+    if(!quiet)await command("sync",{},true);
+    await ensureToken();
+    const revision=rankingRevision;
+    const rows=await request("/rest/v1/rpc/rebirth_rankings",{});
+    if(requestId!==rankingRequest)return;
+    if(revision!==rankingRevision){rankingAttempt=0;return;}
+    rankingRows=rows;rankingUpdated=Date.now();
+  } catch(err) { rankingError=message(err); }
+  finally { if(requestId===rankingRequest){rankingLoading=false;if(view==="ranking")render();} }
+}
 function rankings() {
   const combat=rankingMode==="combat",rankKey=combat?"combatRank":"levelRank",label=combat?"전투력":"레벨";
   const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
