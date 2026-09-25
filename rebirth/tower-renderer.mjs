@@ -100,6 +100,7 @@ export class TowerRenderer {
     if(this.backdrop)this.g.drawImage(this.backdrop,0,0);else{this.g.fillStyle='#101921';this.g.fillRect(0,0,TOWER_SIZE.width,TOWER_SIZE.height);}
   }
   hazard(h,time){
+    const bossScale=this.mobileActors.matches?1.5:1;
     const g=this.g,active=time>=h.at,progress=clamp(1-(h.at-time)/12);
     g.save();g.lineWidth=active?7:4;g.strokeStyle=active?'#fff0b9':'#ff8575';
     g.fillStyle=active?'#ff753c99':'#ed3e4248';
@@ -110,14 +111,14 @@ export class TowerRenderer {
       g.fillStyle=active?'#ffe1a873':'#ffaf8052';g.fillRect(0,-h.width/2,len*progress,h.width);
       g.save();g.beginPath();g.rect(0,-h.width/2,len,h.width);g.clip();
       for(let x=h.width/2;x<len;x+=h.width*1.7)this.effect('rune',x,0,h.width,h.width,0,active?.85:.5);
-      if(active)this.strip(motionAsset('attack-beam-v2'),Math.min(3,Math.floor((time-h.at)*1.4)),len/2,0,len,h.width*2.5,0,.78);
+      if(active)this.strip(motionAsset('attack-beam-v2'),Math.min(3,Math.floor((time-h.at)*1.4)),len/2,0,len,h.width*2.5*bossScale,0,.78);
       g.restore();
     }else{
       // Even-odd fill preserves the real safe centre of the ring attacks.
       const shape=()=>{g.beginPath();g.arc(h.x,h.y,h.r,0,Math.PI*2);if(h.inner){g.moveTo(h.x+h.inner,h.y);g.arc(h.x,h.y,h.inner,0,Math.PI*2,true);}};
       shape();g.fill('evenodd');g.stroke();
       g.save();shape();g.clip('evenodd');this.effect('rune',h.x,h.y,h.r*2,h.r*2,time*.014,active?.95:.48);
-      if(active)this.strip(motionAsset('attack-burst-v2'),Math.min(3,Math.floor((time-h.at)*1.4)),h.x,h.y,h.r*2.1,h.r*2.1,0,.72);g.restore();
+      if(active)this.strip(motionAsset('attack-burst-v2'),Math.min(3,Math.floor((time-h.at)*1.4)),h.x,h.y,h.r*2.1*bossScale,h.r*2.1*bossScale,0,.72);g.restore();
       g.beginPath();g.arc(h.x,h.y,h.r,-Math.PI/2,-Math.PI/2+Math.PI*2*progress);g.lineWidth=7;g.strokeStyle='#ffdbac';g.stroke();
       if(h.inner){g.beginPath();g.arc(h.x,h.y,h.inner,0,Math.PI*2);g.lineWidth=4;g.strokeStyle='#c5ffe5';g.stroke();}
     }
@@ -223,7 +224,7 @@ export class TowerRenderer {
       const x=mix(old.x,q.x,fraction),y=mix(old.y,q.y,fraction),enemyShot=q.side==='enemy';
       const cls=b.classId,src=enemyShot?motionAsset('attack-beam-v2'):motionAsset(cls==='pirate'?'attack-beam-v2':'attack-bolt-v2');
       const filter=enemyShot?'hue-rotate(330deg)':cls==='mage'?'hue-rotate(72deg)':cls==='archer'?'hue-rotate(-95deg)':'none';
-      this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125:cls==='pirate'?140:120,enemyShot?60:62,Math.atan2(q.dy,q.dx),.95,filter);
+      this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125*(this.mobileActors.matches?1.5:1):cls==='pirate'?140:120,enemyShot?60*(this.mobileActors.matches?1.5:1):62,Math.atan2(q.dy,q.dx),.95,filter);
     }
     for(const e of b.effects){
       // Hostile impacts are already drawn once by their active hazard.
