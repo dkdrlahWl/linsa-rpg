@@ -18,7 +18,7 @@ export function balanceWorld(stages,bosses,raids){
  const bossAttack=[9,70,155,270,430,650,890,1170,1500,1900];
  for(const b of bosses){
   const n=b.id%3;b.hp=Math.round(bossHP[b.region]*(1+n*.22));
-  b.attack=Math.round(bossAttack[b.region]*(1+n*.12)*(n===2?1.4:1));b.hp=Math.round(b.hp*(n===2?1.35:1));b.seconds=90;
+  b.attack=Math.round(bossAttack[b.region]*(1+n*.12)*(n===2?3.5:1));b.hp=Math.round(b.hp*(n===2?1.35:1));b.seconds=90;
   b.patternEvery=Math.max(9,16-b.region);b.patternMultiplier=2.1+n*.2;
   b.gold=Math.round((1200+900*b.region)*(n===2?4:1));
   b.cubes=n===2?18:6;b.material=0;
@@ -33,6 +33,6 @@ export function incomingDamage(attack,defense){return Math.max(1,attack/(1+Math.
 export const DAILY_TASKS={
  hunt:{name:'사냥 1,200마리',goal:1200,gold:12000,fragment:80,cube:20,highCube:2},
  boss:{name:'보스 1회 승리',goal:1,gold:18000,fragment:100,cube:20,highCube:3},
- tower:{name:'시련의 탑 1회 클리어',goal:1,gold:15000,fragment:80,cube:10,highCube:3},
+ tower:{name:'시련의 탑 새 층 최초 클리어',goal:1,gold:15000,fragment:80,cube:10,highCube:3},
 };
 

@@ -1,6 +1,6 @@
-import {incomingDamage} from './journey-balance.mjs?v=chest-walk-1';
+import {incomingDamage} from './journey-balance.mjs?v=weekly-first-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=chest-walk-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=weekly-first-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
@@ -12,7 +12,7 @@ const names=['이끼문 파수꾼 그로움','월익 여왕 셀레네','수정 �
 const arts=['moss','moth','crab','wolf','knight','witch','scorpion','seraph','clock','king'];
 const patterns=['대지 분쇄','달빛 탄막','십자 수정파','화염 돌진','망령 참격','빙창 감옥','맹독 웅덩이','심판의 고리','시간의 회전침','공허의 종언'];
 const guides=['발밑의 문양이 폭발하기 전에 벗어나세요.','부채꼴로 퍼지는 달빛 탄을 비껴가세요.','십자로 갈라지는 수정의 길을 피하세요.','돌진 방향을 확인하고 옆으로 회피하세요.','긴 참격의 경로와 뒤따르는 망령을 피하세요.','연속으로 내려오는 빙창 사이로 이동하세요.','독이 남은 바닥을 피해 전장을 넓게 쓰세요.','안쪽 폭발과 바깥쪽 심판을 구분하세요.','시간차로 회전하는 광선의 빈틈을 찾으세요.','여러 패턴이 겹칩니다. 체력이 낮아지면 광폭화합니다.'];
-export const TOWER_FLOORS=names.map((name,i)=>({floor:i+1,name,art:arts[i],pattern:patterns[i],guide:guides[i],level:(i+1)*20,hp:[26000,65000,150000,300000,550000,950000,1500000,2250000,3200000,4500000][i],attack:[200,340,520,780,1100,1450,1800,2200,2650,3200][i],seconds:90,reward:{gold:Math.round(3000*(i+1)**1.3),fragment:0,cube:2*(i+1),highCube:(i+1)%5===0?2:0}}));
+export const TOWER_FLOORS=names.map((name,i)=>({floor:i+1,name,art:arts[i],pattern:patterns[i],guide:guides[i],level:(i+1)*20,hp:[26000,65000,150000,300000,550000,950000,1500000,2250000,3200000,4500000][i],attack:[200,340,520,780,1100,1450,1800,2200,2650,3200][i]*2.5,seconds:90,reward:{gold:Math.round(3000*(i+1)**1.3),fragment:0,cube:2*(i+1),highCube:(i+1)%5===0?2:0}}));
 export const towerEncounter=b=>b.encounter||TOWER_FLOORS[b.floor-1];
 export const TOWER_CLASSES={
  warrior:{range:225,cooldown:9},mage:{range:560,cooldown:10},
@@ -62,7 +62,9 @@ function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
   if(k%2===1)circle(b,e.x,e.y,4500,18,2.2,3,520);
   if(distance(p,e)>480){fan(b,7);line(b,e.x,e.y,p.x,p.y,190,10,1.7);}
  }
- b.nextPattern=b.tick+(f===10&&b.enemyHp<towerEncounter(b).hp*.35?28:Math.max(b.weeklyBossId!==undefined?22:32,(b.weeklyBossId!==undefined?40:56)-f*2));
+ // A second marker predicts the current travel direction; changing direction remains a counter.
+ if(k%2===0){const v=facingVector(p.dir??6);circle(b,p.x+v.x*250,p.y+v.y*250,175,18,1.7);}
+ b.nextPattern=b.tick+(f===10&&b.enemyHp<towerEncounter(b).hp*.35?28:Math.max(b.weeklyBossId!==undefined?20:26,(b.weeklyBossId!==undefined?34:44)-f*2));
 }
 export function towerStep(b,input){
  if(b.chest){
@@ -84,7 +86,7 @@ export function towerStep(b,input){
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(b.tick>=b.nextPattern)pattern(b);
  if(b.charge&&b.tick>=b.charge.at&&b.tick<=b.charge.end){if(b.tick===b.charge.at){b.enemyAttackStart=b.tick;b.enemyAttackUntil=b.tick+6;b.enemyAttackDir=towerFacing(b.charge.x-e.x,b.charge.y-e.y,e.dir??2);}e.dir=b.enemyAttackDir;e.x+=(b.charge.x-e.x)*.48;e.y+=(b.charge.y-e.y)*.48;}
- else if(b.tick>b.enemyAttackUntil&&distance(p,e)>140){const angle=Math.atan2(p.y-e.y,p.x-e.x),speed=12+b.floor*.65;e.x=clamp(e.x+Math.cos(angle)*speed,TOWER_BOUNDS.left+80,TOWER_BOUNDS.right-80);e.y=clamp(e.y+Math.sin(angle)*speed,TOWER_BOUNDS.top+80,TOWER_BOUNDS.bottom-80);e.dir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);e.walk=(e.walk||0)+1;}
+ else if(b.tick>b.enemyAttackUntil&&distance(p,e)>140){const angle=Math.atan2(p.y-e.y,p.x-e.x),speed=Math.min(26,19+b.floor*.7);e.x=clamp(e.x+Math.cos(angle)*speed,TOWER_BOUNDS.left+80,TOWER_BOUNDS.right-80);e.y=clamp(e.y+Math.sin(angle)*speed,TOWER_BOUNDS.top+80,TOWER_BOUNDS.bottom-80);e.dir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);e.walk=(e.walk||0)+1;}
  else if(b.tick>b.enemyAttackUntil)e.dir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);
  e.face=[3,4,5].includes(e.dir)?-1:1;
  if(distance(p,e)<105&&b.tick>=(b.contactReady||0)){playerDamage(b,.7);b.contactReady=b.tick+14;}

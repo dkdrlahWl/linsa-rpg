@@ -38,3 +38,5 @@ html{scrollbar-gutter:stable}button{touch-action:manipulation}dialog{overscroll-
 @media(max-width:600px){.coop-tiers article{grid-template-columns:80px minmax(0,1fr)}.coop-tiers h3,.coop-tiers p{margin:0}.coop-tiers button{justify-self:start}.coop-boss-portrait{align-self:center}}
 
 .bag-supplies{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.bag-supplies>div{display:flex;align-items:center;gap:8px;padding:10px;background:#262218;border:1px solid #847047;border-radius:12px;min-width:0}.bag-supplies img{width:40px;height:40px;object-fit:contain}.bag-supplies span{font-size:12px}.bag-supplies b{display:block;color:#ffe2a1;font-size:16px}.bag-stack-count{display:block;color:#ffe0a0;font-size:17px}.stack-equipment{text-align:left;display:grid;grid-template-columns:64px 1fr;gap:10px;padding:12px}.stack-equipment>small{grid-column:1/-1;white-space:normal;line-height:1.6}#tower-chest{background:#e1b966;color:#251b0d;font-weight:800;min-height:50px}#tower-chest[hidden]{display:none}@media(max-width:600px){.bag-supplies{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.bag-stack-count{font-size:12px!important;line-height:1.4}

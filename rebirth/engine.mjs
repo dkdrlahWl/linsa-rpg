@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=chest-walk-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=chest-walk-1';
-import {applyBetaTool} from './beta-tools.mjs?v=chest-walk-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=weekly-first-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=weekly-first-1';
+import {applyBetaTool} from './beta-tools.mjs?v=weekly-first-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -38,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=chest-walk-1";
+} from "./data.mjs?v=weekly-first-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=chest-walk-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=weekly-first-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -461,8 +461,8 @@ function towerFinish(s,ctx,events) {
  const first=b.won&&!s.tower.cleared.includes(b.floor);
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
  const reward={type:'tower',floor:b.floor,won:b.won,first,seconds:b.tick/10,reason:b.reason||'',gold:0,fragment:0,cube:0,highCube:0};
- if(b.won){s.daily.tower++;}
- if(first||b.won){Object.assign(reward,Object.fromEntries(Object.entries(f.reward).map(([k,v])=>[k,first?v:Math.floor(v*.3)])));s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
+ if(first){s.daily.tower++;}
+ if(first){Object.assign(reward,f.reward);s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
  s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);
 }
 export function execute(input, command, args = {}, ctx) {
@@ -487,7 +487,9 @@ export function execute(input, command, args = {}, ctx) {
       check(args.runId===b.runId&&b.chest&&b.won&&b.weeklyBossId!==undefined,'INVALID_CHEST');
       check(canOpenChest(b),'ITEM_CHEST_TOO_FAR');
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
-      if(!b.practice){s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel-(ctx.random()<.5?10:0);const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
+      const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
+      if(!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
+      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel-(ctx.random()<.5?10:0);const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){
@@ -765,7 +767,7 @@ export function execute(input, command, args = {}, ctx) {
       const practice = args.practice === true;
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
-      if(b.weekly){s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);Object.assign(s.battle,{weeklyBossId:b.id,practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
+      if(b.weekly){check(practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
       s.battle = {
         kind: "boss",
         bossId: b.id,

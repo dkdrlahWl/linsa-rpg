@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=chest-walk-1';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=weekly-first-1';
 // Temporary beta switch. Disable on the server before the production release.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){
