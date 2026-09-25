@@ -47,7 +47,7 @@ import {
   WEAPON_TYPES,
 } from "./data.mjs?v=attendance-week-1";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP } from './tower-model.mjs?v=tower-motion-30';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=tower-motion-30';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -481,7 +481,7 @@ export function execute(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
   if(s.battle?.kind==='tower'){
-    const b=s.battle;
+    const b=upgradeTowerBattle(s.battle);
     if(b.advanced===undefined)b.advanced=s.advancement===1;
     check(['sync','ack','towerInput','towerLeave'].includes(command),'BATTLE_IN_PROGRESS');
     if(ctx.now-b.started>=TOWER_FLOORS[b.floor-1].seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}

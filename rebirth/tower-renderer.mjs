@@ -224,6 +224,8 @@ export class TowerRenderer {
       this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125:cls==='pirate'?140:120,enemyShot?60:62,Math.atan2(q.dy,q.dx),.95,filter);
     }
     for(const e of b.effects){
+      // Hostile impacts are already drawn once by their active hazard.
+      if(e.hostile)continue;
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
       if(e.kind==='rune'){this.effect('rune',e.x,e.y,e.size,e.size,-time*.04,1-age);continue;}
       const src=e.hostile?'attack-burst-v2':b.classId==='warrior'?(e.kind==='slash'?'attack-slash-v2':'attack-burst-v2'):b.classId==='mage'?'attack-burst-v2':b.classId==='archer'?'attack-bolt-v2':b.classId==='rogue'?'attack-slash-v2':'attack-beam-v2';

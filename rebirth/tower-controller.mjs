@@ -1,7 +1,7 @@
 import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=tower-motion-30';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=tower-20';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=tower-motion-30';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=tower-smooth-31';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=tower-sync-35';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));

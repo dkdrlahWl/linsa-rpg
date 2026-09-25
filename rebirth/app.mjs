@@ -1,10 +1,10 @@
 import {TOWER_FLOORS} from './tower-model.mjs?v=tower-motion-30';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower-smooth-31';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower-sync-35';
 import * as D from "./data.mjs?v=attendance-week-1";
 import { installCurrencyIcons } from "./currency-icons.mjs?v=quality-market-5";
 import equipmentBounds from "./equipment-bounds.mjs?v=quality-market-5";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-groups-2";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=tower-motion-30";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=tower-sync-35";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
