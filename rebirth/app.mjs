@@ -513,9 +513,6 @@ function itemMarkup(it) {
   if(it.kind==="consumable")return `<div class="consumable-market-icon">◆</div><div class="item-info"><strong>${esc(D.MATERIALS[it.key]||it.key)}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">${gearRollLabel(it)}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? D.RARITIES[it.grade] : "잠재 미개방"}</span></div>`;
 }
-function bagTile(item) {
-  return btn(gearMarkup(item)+`<span class="tile-meta"><span class="tile-level">${requiredLevel(item.level,"Lv."+item.level)}</span><span class="tile-star">${item.stars}★</span></span><span class="tile-name">${esc(D.gearName(item))}</span><span class="tile-quality">${gearRollLabel(item)}</span><span class="sr-only">${D.equipmentType(item)} ${item.locked?"잠금":""}</span>`, salvageMode?"salvagePick":"item", item.id, `bag-slot ${salvageMode?(salvageSelection.has(item.id)?"salvage-selected":!canSalvage(item)?"salvage-unavailable":""):""} ${Object.values(state.equipped).includes(item.id)?"equipped":""} ${item.locked?"locked":""}`);
-}
 function bagGroupsMarkup(groups) {
  const items=groups.flatMap(g=>g.slots.flatMap(v=>v.items)),pageSize=window.matchMedia("(max-width:700px)").matches?12:24,pages=Math.max(1,Math.ceil(items.length/pageSize));bagPage=Math.min(bagPage,pages-1);
  return '<div class="bag-pager">'+disabledBtn('이전','bagPage',bagPage-1,bagPage===0)+'<strong>'+(bagPage+1)+' / '+pages+' · '+items.length+'개</strong>'+disabledBtn('다음','bagPage',bagPage+1,bagPage>=pages-1)+'</div><div class="inventory-grid bag-grid">'+(items.slice(bagPage*pageSize,(bagPage+1)*pageSize).map(bagTile).join('')||'<div class="empty">장비가 없습니다.</div>')+'</div>';
@@ -523,14 +520,6 @@ function bagGroupsMarkup(groups) {
 function bagTile(item) {
   const otherClass=item.classId!==state.classId;
   return btn(gearMarkup(item)+`<span class="tile-meta"><span class="tile-level">${requiredLevel(item.level,"Lv."+item.level)}</span><span class="tile-star">${item.stars}★</span></span><span class="tile-name ${otherClass?"other-class":""}">${esc(D.gearName(item))}</span><span class="tile-class ${otherClass?"other-class":""}">${esc(D.CLASSES.find(c=>c.id===item.classId)?.name||item.classId)} 전용</span><span class="tile-quality">${gearRollLabel(item)}</span><span class="sr-only">${D.equipmentType(item)} ${item.locked?"잠금":""}</span>`, salvageMode?"salvagePick":"item", item.id, `bag-slot ${salvageMode?(salvageSelection.has(item.id)?"salvage-selected":!canSalvage(item)?"salvage-unavailable":""):""} ${Object.values(state.equipped).includes(item.id)?"equipped":""} ${item.locked?"locked":""}`);
-}
-function bagGroupsMarkup(groups) {
-  if (!groups.length) return '<div class="empty">조건에 맞는 장비가 없습니다.</div>';
-  return groups.map((group) => {
-    const className=D.CLASSES.find(c=>c.id===group.classId)?.name||group.classId;
-    const ownClass=group.classId===state.classId;
-    return `<section class="bag-class-group${ownClass?" own-class":""}"><h3 class="bag-class-heading"><span>${ownClass?"내 직업 · ":""}${esc(className)}</span><small>${group.count}개</small></h3>${group.slots.map(({slot,items})=>`<div class="bag-slot-group"><h4 class="bag-slot-heading"><span>${esc(D.SLOTS[slot]||"기타 부위")}</span><small>${items.length}개</small></h4><div class="inventory-grid bag-grid">${items.map(bagTile).join("")}</div></div>`).join("")}</section>`;
-  }).join("");
 }
 function inventory() {
   for(const id of salvageSelection)if(!state.items.some(it=>it.id===id&&canSalvage(it)))salvageSelection.delete(id);
