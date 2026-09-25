@@ -1,14 +1,14 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=combat-catalog-2';
-import {incomingDamage} from './journey-balance.mjs?v=combat-catalog-2';
-import {installMenuIcons} from './menu-icons.mjs?v=combat-catalog-2';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=combat-catalog-2';
-import {TOWER_FLOORS} from './tower-model.mjs?v=combat-catalog-2';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=combat-catalog-2';
-import * as D from "./data.mjs?v=combat-catalog-2";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=combat-catalog-2";
-import equipmentBounds from "./equipment-bounds.mjs?v=combat-catalog-2";
-import { inventoryGroups } from "./inventory-order.mjs?v=combat-catalog-2";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=combat-catalog-2";
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=chest-walk-1';
+import {incomingDamage} from './journey-balance.mjs?v=chest-walk-1';
+import {installMenuIcons} from './menu-icons.mjs?v=chest-walk-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=chest-walk-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=chest-walk-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=chest-walk-1';
+import * as D from "./data.mjs?v=chest-walk-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=chest-walk-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=chest-walk-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=chest-walk-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=chest-walk-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -185,6 +185,7 @@ const errors = {
   INSUFFICIENT_BOSS_MATERIAL: "보스 재료가 부족합니다.",
   ITEM_PROTECTED: "잠금·파괴·장착 상태를 확인해 주세요.",
   ITEM_REQUIREMENT: "장비의 직업 또는 착용 레벨이 맞지 않습니다.",
+  ITEM_CHEST_TOO_FAR: "상자 가까이 이동한 뒤 열어 주세요.",
   PREVIOUS_BOSS_REQUIRED: "이전 보스를 먼저 처치해 주세요.",
   PREVIOUS_FLOOR_REQUIRED: "이전 층을 먼저 클리어해 주세요.",
   LEVEL_REQUIRED: "레벨이 부족합니다.",

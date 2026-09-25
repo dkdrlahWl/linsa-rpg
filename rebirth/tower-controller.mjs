@@ -1,7 +1,7 @@
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=combat-catalog-2';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=combat-catalog-2';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=combat-catalog-2';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=combat-catalog-2';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=chest-walk-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=chest-walk-1';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=chest-walk-1';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=chest-walk-1';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -12,7 +12,7 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
-    this.canvas.addEventListener('click',()=>{if(this.b.chest&&!this.pending)this.send('towerOpen',{runId:this.b.runId}).catch(()=>{});},{signal:this.abort.signal});
+    this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b)&&!this.pending)this.send('towerOpen',{runId:this.b.runId}).catch(()=>{});},{signal:this.abort.signal});
     this.required=['effects','boss-'+towerEncounter(b).art,'hero-'+b.classId+'-directions'].map(asset);
     this.required.push(...['arena-overhead-v3','hero-'+b.classId+'-walk-v3','hero-'+b.classId+'-motion-v2','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2'].map(motionAsset));
     this.required.forEach(image);
@@ -46,7 +46,7 @@ export class TowerController {
   paused(){return document.hidden||!!document.querySelector('dialog[open]');}
   resetInput(){this.keys.clear();this.buttonPointers.clear();this.stickPointer=null;this.stick={x:0,y:0};this.sampler.buttons=0;this.nodes['stick-knob'].style.transform='';for(const el of this.buttons)el.classList.remove('pressed');}
   press(bit){
-    if(!this.loaded||this.b.ended||this.frames.length>=25||(bit===2&&!this.b.advanced))return;
+    if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=25||(bit===2&&!this.b.advanced))return;
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;this.sound?.('tower-swing');}
     if(bit===8&&b.tick+1>=b.ultimateReady){this.hint.skill=now+110;this.sound?.('tower-skill');}
@@ -58,12 +58,12 @@ export class TowerController {
     const directions=new Set();for(const code of this.keys){const action=codes[code];if(typeof action==='number'){if(action!==2||this.b.advanced)bits|=action;}else directions.add(action);}
     x+=Number(directions.has('right'))-Number(directions.has('left'));y+=Number(directions.has('down'))-Number(directions.has('up'));
     const n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}for(const bit of this.buttonPointers.values())bits|=bit;
-    return [x,y,bits];
+    return [x,y,this.b.chest?bits&4:bits];
   }
   advance(now){
     const dt=Math.max(0,Math.min(200,now-this.last));this.last=now;
     if(!this.loaded||this.paused()){this.resetInput();return;}
-    this.sampler.advance(dt,this.input(),input=>{this.previous=snapshot(this.b);this.frames.push(input);towerStep(this.b,input);},()=>this.frames.length<25&&!this.b.ended);
+    this.sampler.advance(dt,this.input(),input=>{this.previous=snapshot(this.b);this.frames.push(input);towerStep(this.b,input);},()=>this.frames.length<25&&(!this.b.ended||this.b.chest));
     const decay=Math.exp(-dt/65);this.correction.x*=decay;this.correction.y*=decay;
   }
   accept(b){
@@ -107,17 +107,17 @@ export class TowerController {
     text('enemy-hp',`${format(b.enemyHp)} / ${format(f.hp)}`);text('player-hp',`${format(b.hp)} / ${format(b.power.hp)}`);
     this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;this.nodes['player-bar'].style.transform=`scaleX(${b.hp/b.power.hp})`;
     this.host.classList.toggle('low-health',b.hp/b.power.hp<.3);
-    const left=Math.max(0,f.seconds-Math.floor(b.tick/10));text('clock',`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`);
-    const chestButton=this.host.querySelector('#tower-chest');if(chestButton)chestButton.hidden=!b.chest;
+    const left=Math.max(0,f.seconds-Math.floor(b.tick/10));text('clock',b.chest?'토벌 완료':`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`);
+    const chestButton=this.host.querySelector('#tower-chest');if(chestButton){chestButton.hidden=!b.chest;chestButton.disabled=!!b.chest&&!canOpenChest(b);chestButton.textContent=canOpenChest(b)?'상자 열고 보상 받기':'상자 가까이 이동하세요';}
     this.host.querySelector('[data-action="towerLeaveConfirm"]').hidden=!!b.chest;
-    const inRange=distance<=c.range;text('range',inRange?'공격 가능':'보스에게 접근');this.nodes.range.classList.toggle('in-range',inRange);
+    const inRange=b.chest?canOpenChest(b):distance<=c.range;text('range',b.chest?(inRange?'상자 열기 가능':'상자에게 접근'):inRange?'공격 가능':'보스에게 접근');this.nodes.range.classList.toggle('in-range',inRange);
     const failed=this.required.some(src=>image(src).complete&&!image(src).naturalWidth),waiting=this.frames.length>=25;
     const casting=b.tick<b.enemyCastUntil;
-    text('status',b.chest?'보스를 쓰러뜨렸습니다. 바닥의 상자를 열어 보상을 받으세요.':failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
+    text('status',b.chest?(canOpenChest(b)?'상자를 열어 보상을 받고 나가세요.':'이동 패드로 상자 가까이 가세요.'):failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
     this.nodes.status.hidden=!this.nodes.status.textContent;this.nodes.status.classList.toggle('danger',casting||b.hazards.length>0);
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){
-      const bit=Number(el.dataset.towerButton),key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady'}[bit];
+      const bit=Number(el.dataset.towerButton);el.disabled=b.chest?bit!==4:(bit===2&&!b.advanced);const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady'}[bit];
       const duration={1:c.cooldown,2:SECOND_SKILLS[b.classId].cooldown*10,4:35,8:CLASS_SKILLS[b.classId].cooldown*10}[bit],remaining=Math.max(0,b[key]-b.tick-this.sampler.elapsed/100);
       const label=el.querySelector('b'),value=bit!==1&&remaining>0?(remaining/10).toFixed(1):'';
       if(label.textContent!==value)label.textContent=value;

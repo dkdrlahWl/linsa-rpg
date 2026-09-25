@@ -1,7 +1,11 @@
-import {incomingDamage} from './journey-balance.mjs?v=combat-catalog-2';
+import {incomingDamage} from './journey-balance.mjs?v=chest-walk-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=combat-catalog-2';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=chest-walk-1';
 export const TOWER_STEP = 100;
+export const CHEST_REACH=150;
+export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
+export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;return b;}
+
 export const TOWER_SIZE = {width:3200,height:3200};
 export const TOWER_BOUNDS = {left:150,right:3050,top:150,bottom:3050};
 const names=['이끼문 파수꾼 그로움','월익 여왕 셀레네','수정 집게 크라그','용암 송곳니 바르칸','참수기사 모르딘','빙결 마녀 이셀라','독침황제 세르케트','추락한 성상 아우리엘','태엽룡 크로가스','공허왕 아자렐'];
@@ -61,6 +65,11 @@ function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
  b.nextPattern=b.tick+(f===10&&b.enemyHp<towerEncounter(b).hp*.35?28:Math.max(b.weeklyBossId!==undefined?22:32,(b.weeklyBossId!==undefined?40:56)-f*2));
 }
 export function towerStep(b,input){
+ if(b.chest){
+  clearVictoryEffects(b);b.tick++;const p=b.player;let [x,y,bits]=input,n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}p.moving=n>.01;if(p.moving){p.dir=towerFacing(x,y,p.dir??6);p.walk=(p.walk||0)+1;}
+  if((bits&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+35;b.dashUntil=b.tick+3;b.dashX=n?x:v.x;b.dashY=n?y:v.y;}
+  if(b.tick<(b.dashUntil||0)){x=b.dashX*3;y=b.dashY*3;}p.x=clamp(p.x+x*25,TOWER_BOUNDS.left,TOWER_BOUNDS.right);p.y=clamp(p.y+y*25,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);return b;
+ }
  if(b.ended)return b;upgradeTowerBattle(b);b.tick++;const f=towerEncounter(b),c=TOWER_CLASSES[b.classId],p=b.player,e=b.enemy;
  b.effects=b.effects.filter(x=>x.end>b.tick).slice(-40);b.numbers=b.numbers.filter(x=>x.end>b.tick).slice(-25);
  let [mx,my,buttons]=input,n=Math.hypot(mx,my);if(n>1){mx/=n;my/=n;}p.moving=!!n;

@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=combat-catalog-2';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=combat-catalog-2';
-export {TowerController} from './tower-controller.mjs?v=combat-catalog-2';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=chest-walk-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=chest-walk-1';
+export {TowerController} from './tower-controller.mjs?v=chest-walk-1';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

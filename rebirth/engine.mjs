@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=combat-catalog-2';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=combat-catalog-2';
-import {applyBetaTool} from './beta-tools.mjs?v=combat-catalog-2';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=chest-walk-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=chest-walk-1';
+import {applyBetaTool} from './beta-tools.mjs?v=chest-walk-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -38,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=combat-catalog-2";
+} from "./data.mjs?v=chest-walk-1";
 
-import { TOWER_FLOORS, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=combat-catalog-2';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=chest-walk-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -454,7 +454,7 @@ function bossSettle(s, ctx, events) {
 function towerFinish(s,ctx,events) {
  const b=s.battle;if(!b||b.kind!=='tower'||!b.ended)return;
  if(b.weeklyBossId!==undefined){
-  if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};b.hazards=[];b.projectiles=[];return;}
+  if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);return;}
   const reward={type:'boss',bossId:b.weeklyBossId,won:false,practice:b.practice,items:[],materials:0};s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);return;
  }
  const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
@@ -485,6 +485,7 @@ export function execute(input, command, args = {}, ctx) {
     if(!b.chest&&ctx.now-b.started>=towerEncounter(b).seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
     else if(command==='towerOpen'){
       check(args.runId===b.runId&&b.chest&&b.won&&b.weeklyBossId!==undefined,'INVALID_CHEST');
+      check(canOpenChest(b),'ITEM_CHEST_TOO_FAR');
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       if(!b.practice){s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel-(ctx.random()<.5?10:0);const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
@@ -494,7 +495,7 @@ export function execute(input, command, args = {}, ctx) {
       check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
       check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,15)),'INVALID_TOWER_INPUT');
       const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
-      for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&!b.ended;i++)towerStep(b,args.frames[i]);
+      for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&(!b.ended||b.chest);i++)towerStep(b,args.frames[i]);
     }else if(command==='towerLeave'){check(!b.chest,'ITEM_CHEST_PENDING');b.ended=true;b.won=false;b.reason='leave';}
     towerFinish(s,ctx,events);if(command==='ack')s.lastReward=null;return {state:s,events};
   }
