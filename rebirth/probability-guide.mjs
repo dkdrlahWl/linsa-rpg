@@ -1,6 +1,6 @@
-import * as D from './data.mjs?v=prime-recovery-1';
-import {COOP_TIERS} from './coop-model.mjs?v=prime-recovery-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=prime-recovery-1';
+import * as D from './data.mjs?v=cube-art-1';
+import {COOP_TIERS} from './coop-model.mjs?v=cube-art-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=cube-art-1';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const section=(id,title,body)=>'<section id="'+id+'"><h2>'+title+'</h2>'+body+'</section>';
@@ -47,11 +47,11 @@ html+=section('fixed','6. 확정 보상·전투 확률',
 table(['층','첫 클리어 보상'],TOWER_FLOORS.map(f=>[f.floor,reward(f.reward)]))+
 '<h3>일일 목표</h3>'+table(['목표','확정 보상'],Object.values(D.DAILY_TASKS).map(t=>[t.name,reward(t)+' + 현재 레벨 필요 XP 5%']))+
 '<h3>출석</h3>'+table(['일차','확정 보상'],D.ATTENDANCE_REWARDS.map((r,i)=>[i+1,reward(r)]))+
-'<p>출석은 받은 날 기준 7회 순환. 상점·교환·출석·목표 보상은 조건 충족 시 100% 지급합니다. 전직과 직업 변경은 조건 충족 시 확정 처리됩니다.</p>'+
+'<p>출석은 받은 날 기준 7회 순환. 교환·출석·목표 보상은 조건 충족 시 100% 지급합니다. 전직과 직업 변경은 조건 충족 시 확정 처리됩니다.</p>'+
 '<p>치명타는 기본 5% + 궁수 5%p + 장비 잠재 확률, 일반 능력치 상한 95%. 전투 스킬 보너스는 각 스킬 설명대로 더해지며 일반 보스·협동 토벌은 최대 100%, 탑은 최대 95%입니다. 협동 균열은 기본 능력치 치명 확률을 사용합니다. 일반 자동사냥은 평균 피해 계산을 사용합니다. 직접 조작 전투의 공격 적중·회피는 거리와 위치 판정이며 별도 명중·회피 확률 추첨은 없습니다.</p>');
-html+=section('shop','7. 상점·교환소',
-table(['품목','상점 G/개','최소 Lv.','상점 하루 한도','교환소 파편+G/개'],Object.entries(D.SHOP_OFFERS).map(([k,o])=>[D.MATERIALS[k],o.gold,o.level,o.limit,D.SUPPLY_EXCHANGE[k].fragment+' + '+D.SUPPLY_EXCHANGE[k].gold]))+
-'<p>상점 하루 한도는 한국 시간 0시에 초기화. 파편 교환소는 일일 횟수 제한 없음. 거래소는 유저 간 거래로 별도 유지됩니다.</p>');
+html+=section('exchange','7. 교환소',
+table(['품목','교환소 파편/개','교환소 G/개'],Object.entries(D.SUPPLY_EXCHANGE).map(([k,o])=>[D.MATERIALS[k],o.fragment,o.gold]))+
+'<p>파편 교환소는 일일 횟수 제한 없음. 거래소는 유저 간 거래로 별도 유지됩니다.</p>');
 document.querySelector('#content').innerHTML=html;
 const value=id=>document.getElementById(id).value;
 function cubeRows(kind,grade,level,slot){

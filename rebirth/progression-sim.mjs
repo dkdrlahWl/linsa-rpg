@@ -1,8 +1,8 @@
 
 import fs from 'node:fs';
-import {initialState,execute,power,huntingRate,bestEquipment} from './engine.mjs?v=prime-recovery-1';
-import * as D from './data.mjs?v=prime-recovery-1';
-import {towerStep,TOWER_CLASSES} from './tower-model.mjs?v=prime-recovery-1';
+import {initialState,execute,power,huntingRate,bestEquipment} from './engine.mjs?v=cube-art-1';
+import * as D from './data.mjs?v=cube-art-1';
+import {towerStep,TOWER_CLASSES} from './tower-model.mjs?v=cube-art-1';
 const classId=process.argv[2]||'warrior',seed=Number(process.argv[3]||1),maxDays=Number(process.argv[4]||365);
 let rng=seed>>>0,id=0,now=Date.parse('2026-09-26T08:00:00+09:00');
 const random=()=>{rng+=0x6D2B79F5;let t=rng;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};

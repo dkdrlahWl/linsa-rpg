@@ -1,4 +1,5 @@
-import * as D from './data.mjs?v=prime-recovery-1';
+import {currencyIconURL} from './currency-icons.mjs?v=cube-art-1';
+import * as D from './data.mjs?v=cube-art-1';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const pct=n=>(n*100).toFixed(6).replace(/\.?0+$/,'')+'%';
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
@@ -18,7 +19,7 @@ export function renderCubePanel(it,state,kind,lastResult,protectedReason=''){
  const blocked=protectedReason||(invalid?(c.prime?'잠재가 개방된 2줄 이상 장비가 필요합니다.':'이 큐브로 재설정할 수 없는 등급입니다.'):(state.materials[key]||0)<1?'재료가 부족합니다.':state.gold<cost?'골드가 부족합니다.':'');
  const limit=c.pity[it.grade],failures=state.cubePity?.[kind+':'+it.grade]||0;
  return `<div class="enhance-intro"><span>POTENTIAL</span><small>장비 등급 · 옵션 재설정</small></div>${lastResult?.id===it.id?`<div class="enhance-result success" role="status"><strong>${lastResult.up?'등급 상승 결과를 확인하세요':'잠재능력을 재설정했습니다'}</strong></div>`:''}${potentialPanel(it)}
- ${opened?`<div class="cube-picker maple-cube-picker" role="group" aria-label="사용할 큐브 선택">${Object.entries(D.CUBES).map(([k,r])=>`<button class="cube-card ${kind===k?'selected':''}" data-action="cubeKind" data-arg="${k}" aria-pressed="${kind===k}"><span class="cube-symbol cube-symbol-${k}">◇</span><span><strong>${r.name}</strong><small>${r.prime?'최소 에픽 · 첫 줄 고정':r.choose?'이전 / 이후 선택':'새 옵션 즉시 적용'}</small><b>보유 ${fmt(state.materials[k])}개</b></span></button>`).join('')}</div>
+ ${opened?`<div class="cube-picker maple-cube-picker" role="group" aria-label="사용할 큐브 선택">${Object.entries(D.CUBES).map(([k,r])=>`<button class="cube-card ${kind===k?'selected':''}" data-action="cubeKind" data-arg="${k}" aria-pressed="${kind===k}"><img class="cube-item-art" src="${currencyIconURL(k)}" alt=""><span><strong>${r.name}</strong><small>${r.prime?'최소 에픽 · 첫 줄 고정':r.choose?'이전 / 이후 선택':'새 옵션 즉시 적용'}</small><b>보유 ${fmt(state.materials[k])}개</b></span></button>`).join('')}</div>
  <p class="cube-chance">장비 전체 등급: <b>${D.RARITIES[it.grade]}</b><br>${invalid?'사용 등급 제한':it.grade===c.maxGrade?'등급 유지':`${D.RARITIES[it.grade]} → ${D.RARITIES[it.grade+1]} <b>${pct(c.up[it.grade])}</b>`}${limit?`<br>등급 상승 연속 실패 ${failures} / ${limit} · ${failures>=limit?'다음 사용은 등급 상승 확정':limit-failures+'회 더 실패하면 다음 사용은 확정'}`:''}</p>
  ${!invalid?`<p class="note">현재 등급 옵션: ${D.cubeLineRates(kind,it.grade).map((r,i)=>`${i+1}줄 ${pct(r)}`).join(' · ')}<br>나머지는 한 단계 낮은 등급의 옵션입니다.</p>`:''}`:'<p class="note">주문서로 레어 잠재능력을 개방합니다. 이 게임의 개방 확률: 1줄 70% · 2줄 27% · 3줄 3%. 확장석으로 최대 3줄까지 열 수 있습니다.</p>'}
  <p class="enhance-wallet">${D.MATERIALS[key]} ${fmt(state.materials[key])}개 · 필요 1개${cost?' + '+fmt(cost)+' G':''}</p>

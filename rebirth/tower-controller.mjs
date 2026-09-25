@@ -1,7 +1,7 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=prime-recovery-1';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=prime-recovery-1';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=prime-recovery-1';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=prime-recovery-1';
+import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=cube-art-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=cube-art-1';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=cube-art-1';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=cube-art-1';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));

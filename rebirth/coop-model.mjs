@@ -1,5 +1,5 @@
-import {TOWER_CLASSES} from './tower-model.mjs?v=prime-recovery-1';
-import {incomingDamage} from './journey-balance.mjs?v=prime-recovery-1';
+import {TOWER_CLASSES} from './tower-model.mjs?v=cube-art-1';
+import {incomingDamage} from './journey-balance.mjs?v=cube-art-1';
 export const COOP_TIERS=[{level:60,name:'숲의 균열',hp:700000,attack:450,art:'moss',gold:18000,cube:20,highCube:3,fragment:120},{level:140,name:'용암의 균열',hp:3500000,attack:1800,art:'wolf',gold:35000,cube:30,highCube:5,fragment:180},{level:200,name:'공허의 균열',hp:10000000,attack:3400,art:'king',gold:60000,cube:40,highCube:8,fragment:260}];
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=prime-recovery-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=prime-recovery-1';
-import {applyBetaTool} from './beta-tools.mjs?v=prime-recovery-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=cube-art-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=cube-art-1';
+import {applyBetaTool} from './beta-tools.mjs?v=cube-art-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -24,7 +24,6 @@ import {
   CUBE_DROP,
   FRAGMENT_DROP,
   SUPPLY_EXCHANGE,
-  SHOP_OFFERS,
   SCROLL_DROP,
   xpNeeded,
   starCost,
@@ -39,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=prime-recovery-1";
+} from "./data.mjs?v=cube-art-1";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=prime-recovery-1';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=cube-art-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -590,19 +589,6 @@ export function execute(input, command, args = {}, ctx) {
       check(args.floor===1||s.tower.cleared.includes(args.floor-1),'PREVIOUS_FLOOR_REQUIRED');
       s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
-    }
-    case "shopBuy": {
-      const offer=Object.hasOwn(SHOP_OFFERS,args.key)?SHOP_OFFERS[args.key]:null;
-      check(offer&&[1,5,10].includes(args.count),"INVALID_QUANTITY");
-      check(s.level>=offer.level,"LEVEL_REQUIRED");
-      const today=dayKey(ctx.now);
-      if(s.shopPurchases?.day!==today)s.shopPurchases={day:today,counts:{}};
-      const used=s.shopPurchases.counts[args.key]||0;
-      check(used+args.count<=offer.limit,"SHOP_LIMIT");
-      spend(s,"gold",offer.gold*args.count);
-      s.materials[args.key]=(s.materials[args.key]||0)+args.count;
-      s.shopPurchases.counts[args.key]=used+args.count;
-      events.push({type:"exchange",key:args.key,count:args.count});break;
     }
     case "supplyExchange": {
       const price=Object.hasOwn(SUPPLY_EXCHANGE,args.key)?SUPPLY_EXCHANGE[args.key]:null;
