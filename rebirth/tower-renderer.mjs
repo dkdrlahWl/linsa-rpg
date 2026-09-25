@@ -1,4 +1,4 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=open-world-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=combat-catalog-1';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -157,7 +157,7 @@ export class TowerRenderer {
     }
   }
   draw(b,previous,player,fraction,now,input,hint){
-    const g=this.g,f=TOWER_FLOORS[b.floor-1],c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
+    const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
     for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);this.impact(n,now);}
@@ -210,20 +210,27 @@ export class TowerRenderer {
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
     const drawBoss=()=>{
+      if(b.chest){const x=b.chest.x,y=b.chest.y;g.save();g.shadowColor='#ffd474';g.shadowBlur=35;g.fillStyle='#bd8537';g.fillRect(x-66,y-72,132,82);g.fillStyle='#644426';g.fillRect(x-58,y-38,116,42);g.strokeStyle='#ffe7a2';g.lineWidth=7;g.strokeRect(x-66,y-72,132,82);g.fillStyle='#fff0bd';g.fillRect(x-10,y-39,20,27);g.font='bold 23px sans-serif';g.textAlign='center';g.fillText('보상 상자',x,y-94);g.restore();return;}
+
       const windup=b.tick<b.enemyCastUntil,frame=windup?1:b.tick<b.enemyAttackUntil?2:0;
       const bossDir=windup?(b.enemy.castDir??b.enemy.dir??2):frame===2?(b.enemyAttackDir??b.enemy.dir??2):(b.enemy.dir??2),toward=facingVector(bossDir);
       const bossAge=clamp((time-(b.enemyAttackStart??(b.enemyAttackUntil-6)))/6),pulse=frame===2?Math.sin(bossAge*Math.PI):0;
       const step=Math.sin(((b.enemy.walk||0)+fraction)*1.3),angle=windup?Math.sin(time*.4)*.02:frame===2?Math.sin(bossAge*Math.PI)*.035:step*.012;
       const castPulse=windup?Math.sin(clamp((time-(b.enemyCastStart??(b.enemyCastUntil-10)))/10)*Math.PI):0;
-      this.sprite(...directional('boss-'+f.art,bossDir,frame===2),enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,245,245,1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
+      this.sprite(asset('boss-'+f.art),3,1,frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,245,245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
-    if(player.y<enemy.y){drawPlayer();drawBoss();}else{drawBoss();drawPlayer();}
+    const actors=[{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
+      const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(attacking?m.attackDir:casting?m.skillDir:m.dir)??6,alpha=m.hp>0?1:.35;
+      this.shadow(m.x,m.y,25);if((dir===0||dir===4)&&(attacking||casting)){const age=(time-(casting?m.skillStart:m.attackStart))/8,frame=(casting?4:0)+Math.min(3,Math.max(0,Math.floor(age*4)));this.sprite(motionAsset('hero-'+m.classId+'-motion-v2'),4,2,frame,m.x,m.y,116,116,dir===4?-1:1,0,alpha);}else if((dir===0||dir===4)&&m.moving)this.sprite(motionAsset('hero-'+m.classId+'-walk-v3'),4,1,Math.floor(now/125)%4,m.x,m.y,92,92,dir===4?-1:1,0,alpha);else this.sprite(...directional('hero-'+m.classId,dir,attacking||casting),m.x,m.y,92,92,1,0,alpha);
+      if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
+      g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,m.y-150);g.fillStyle='#25312d';g.fillRect(m.x-40,m.y-139,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,m.y-139,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
+    }}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
     for(const q of b.projectiles){
       if(b.tick<q.at)continue;
       const old=previous.projectiles.find(p=>p.id===q.id)||{x:q.x-q.dx,y:q.y-q.dy};
       const x=mix(old.x,q.x,fraction),y=mix(old.y,q.y,fraction),enemyShot=q.side==='enemy';
-      const cls=b.classId,src=enemyShot?motionAsset('attack-beam-v2'):motionAsset(cls==='pirate'?'attack-beam-v2':'attack-bolt-v2');
+      const cls=q.classId||b.classId,src=enemyShot?motionAsset('attack-beam-v2'):motionAsset(cls==='pirate'?'attack-beam-v2':'attack-bolt-v2');
       const filter=enemyShot?'hue-rotate(330deg)':cls==='mage'?'hue-rotate(72deg)':cls==='archer'?'hue-rotate(-95deg)':'none';
       this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125*(this.mobileActors.matches?1.5:1):cls==='pirate'?140:120,enemyShot?60*(this.mobileActors.matches?1.5:1):62,Math.atan2(q.dy,q.dx),.95,filter);
     }

@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=open-world-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=open-world-1';
-import {applyBetaTool} from './beta-tools.mjs?v=open-world-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=combat-catalog-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=combat-catalog-1';
+import {applyBetaTool} from './beta-tools.mjs?v=combat-catalog-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -38,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=open-world-1";
+} from "./data.mjs?v=combat-catalog-1";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=open-world-1';
+import { TOWER_FLOORS, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=combat-catalog-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -76,7 +76,7 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     broken: false,
   },ctx.random);
 }
-export function makeLootItem(base,classId,slot,boss,ctx,variant){const level=rollEquipmentLevel(base,ctx.random),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
+export function makeLootItem(base,classId,slot,boss,ctx,variant){const level=Math.max(10,rollEquipmentLevel(base,ctx.random)),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
 
 export function initialState(classId, name, ctx) {
   check(
@@ -425,9 +425,7 @@ function bossSettle(s, ctx, events) {
     } else {
     s.bossClaims[boss.id] = b.claimKey;
     if (!s.cleared.includes(boss.id)) s.cleared.push(boss.id);
-    s.bossMaterials[boss.region] =
-      (s.bossMaterials[boss.region] || 0) + boss.material;
-    reward.materials = boss.material;
+
     s.gold += boss.gold;reward.gold=boss.gold;
     s.materials.cube += boss.cubes;reward.cube=boss.cubes;
     if (boss.weekly) {
@@ -455,6 +453,10 @@ function bossSettle(s, ctx, events) {
 }
 function towerFinish(s,ctx,events) {
  const b=s.battle;if(!b||b.kind!=='tower'||!b.ended)return;
+ if(b.weeklyBossId!==undefined){
+  if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};b.hazards=[];b.projectiles=[];return;}
+  const reward={type:'boss',bossId:b.weeklyBossId,won:false,practice:b.practice,items:[],materials:0};s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);return;
+ }
  const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
  const first=b.won&&!s.tower.cleared.includes(b.floor);
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
@@ -479,19 +481,25 @@ export function execute(input, command, args = {}, ctx) {
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);
     if(b.advanced===undefined)b.advanced=s.advancement===1;
-    check(['sync','ack','towerInput','towerLeave'].includes(command),'BATTLE_IN_PROGRESS');
-    if(ctx.now-b.started>=TOWER_FLOORS[b.floor-1].seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
+    check(['sync','ack','towerInput','towerLeave','towerOpen'].includes(command),'BATTLE_IN_PROGRESS');
+    if(!b.chest&&ctx.now-b.started>=towerEncounter(b).seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
+    else if(command==='towerOpen'){
+      check(args.runId===b.runId&&b.chest&&b.won&&b.weeklyBossId!==undefined,'INVALID_CHEST');
+      const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
+      if(!b.practice){s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel-(ctx.random()<.5?10:0);const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
+      s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
+    }
     else if(command==='towerInput'){
       check(args.runId===b.runId,'INVALID_TOWER_RUN');
       check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
       check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,15)),'INVALID_TOWER_INPUT');
       const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
       for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&!b.ended;i++)towerStep(b,args.frames[i]);
-    }else if(command==='towerLeave'){b.ended=true;b.won=false;b.reason='leave';}
+    }else if(command==='towerLeave'){check(!b.chest,'ITEM_CHEST_PENDING');b.ended=true;b.won=false;b.reason='leave';}
     towerFinish(s,ctx,events);if(command==='ack')s.lastReward=null;return {state:s,events};
   }
   // A retried final input must never grant rewards twice.
-  if(command==='towerInput'||command==='towerLeave')return {state:s,events};
+  if(command==='towerInput'||command==='towerLeave'||command==='towerOpen')return {state:s,events};
   const hunting = settle(s, ctx);
   if (hunting && hunting.seconds >= 60) {
     s.lastReward = { type: "offline", ...hunting };
@@ -750,35 +758,13 @@ export function execute(input, command, args = {}, ctx) {
       if(args.apply){it.grade=s.pendingCube.grade;it.lines=s.pendingCube.lines;}
       s.pendingCube=null;break;
     }
-    case "craft": {
-      check(int(args.region, 0, 9) && int(args.slot, 0, 8), "INVALID_CRAFT");
-      check(args.weaponVariant === undefined || (int(args.weaponVariant,0,2) && (args.slot === 0 || args.weaponVariant === 0)), "INVALID_WEAPON_TYPE");
-      check(
-        (s.bossMaterials[args.region] || 0) >= 24,
-        "INSUFFICIENT_BOSS_MATERIAL",
-      );
-      check(s.items.length < 300, "INVENTORY_FULL");
-      spend(s, "fragment", 60);
-      spend(s, "gold", 3000 + args.region * 500);
-      s.bossMaterials[args.region] -= 24;
-      const it = makeLootItem(
-        TIERS[args.region + 1],
-        s.classId,
-        args.slot,
-        true,
-        ctx,
-        args.weaponVariant,
-      );
-      addItem(s, it);
-      events.push({ type: "craft", id: it.id });
-      break;
-    }
     case "boss": {
       check(int(args.id, 0, 29), "INVALID_BOSS");
       const b = BOSSES[args.id];
       const practice = args.practice === true;
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
+      if(b.weekly){s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);Object.assign(s.battle,{weeklyBossId:b.id,practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
       s.battle = {
         kind: "boss",
         bossId: b.id,
@@ -794,19 +780,6 @@ export function execute(input, command, args = {}, ctx) {
         burstUntil: 0,
       };
       s.hunting = false;
-      break;
-    }
-    case "dungeon": {
-      check(["cube", "material", "relic"].includes(args.kind), "INVALID_DUNGEON");
-      check(!s.pendingCube, "ITEM_CUBE_PENDING");
-      const p = power(s), tier = Math.max(1,Math.floor(s.level / 20));
-      const enemy = args.kind === "relic" ? { hp:5200000,attack:1600,patternEvery:12,patternMultiplier:3,pattern:"여명의 파동",region:9 } : { hp: Math.round(12000 * 1.7 ** (tier-1)), attack: 35 + tier * tier * 12,
-        patternEvery:15, patternMultiplier:2.5, pattern:"수정 폭발", region:Math.min(9,tier-1) };
-      s.battle = {kind:"dungeon", dungeon:args.kind, enemy, claimKey:dayKey(ctx.now), started:ctx.now,
-        tick:0, hp:p.hp, enemyHp:enemy.hp, power:p, practice:false,
-        skillReady:ctx.now, guardUntil:0, burstUntil:0};
-      s.hunting = false;
-      events.push({type:"dungeonStart"});
       break;
     }
     case "advance":

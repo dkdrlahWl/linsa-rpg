@@ -1,7 +1,7 @@
-import {TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=open-world-1';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=open-world-1';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=open-world-1';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=open-world-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=combat-catalog-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=combat-catalog-1';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=combat-catalog-1';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=combat-catalog-1';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -12,7 +12,8 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
-    this.required=['effects','boss-'+TOWER_FLOORS[b.floor-1].art+'-directions','hero-'+b.classId+'-directions'].map(asset);
+    this.canvas.addEventListener('click',()=>{if(this.b.chest&&!this.pending)this.send('towerOpen',{runId:this.b.runId});},{signal:this.abort.signal});
+    this.required=['effects','boss-'+towerEncounter(b).art,'hero-'+b.classId+'-directions'].map(asset);
     this.required.push(...['arena-overhead-v3','hero-'+b.classId+'-walk-v3','hero-'+b.classId+'-motion-v2','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2'].map(motionAsset));
     this.required.forEach(image);
     this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
@@ -66,7 +67,7 @@ export class TowerController {
     const decay=Math.exp(-dt/65);this.correction.x*=decay;this.correction.y*=decay;
   }
   accept(b){
-    if(b.runId!==this.b.runId||b.tick<=this.serverTick)return;
+    if(b.runId!==this.b.runId||b.tick<this.serverTick||(b.tick===this.serverTick&&!!b.chest===!!this.b.chest))return;
     const before=projectPlayer(this.b,this.sampler),drop=b.tick-this.serverTick;
     if(drop>this.frames.length){this.frames=[];this.sampler.clear();}else this.frames.splice(0,drop);
     this.serverTick=b.tick;this.b=upgradeTowerBattle(structuredClone(b));
@@ -101,16 +102,18 @@ export class TowerController {
     if(now-this.lastHud>=50){this.updateHud();this.lastHud=now;}
   }
   updateHud(){
-    const b=this.b,f=TOWER_FLOORS[b.floor-1],c=TOWER_CLASSES[b.classId],input=this.input(),distance=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
+    const b=this.b,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],input=this.input(),distance=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     const text=(id,value)=>{if(this.nodes[id].textContent!==value)this.nodes[id].textContent=value;};
     text('enemy-hp',`${format(b.enemyHp)} / ${format(f.hp)}`);text('player-hp',`${format(b.hp)} / ${format(b.power.hp)}`);
     this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;this.nodes['player-bar'].style.transform=`scaleX(${b.hp/b.power.hp})`;
     this.host.classList.toggle('low-health',b.hp/b.power.hp<.3);
     const left=Math.max(0,f.seconds-Math.floor(b.tick/10));text('clock',`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`);
+    const chestButton=this.host.querySelector('#tower-chest');if(chestButton)chestButton.hidden=!b.chest;
+    this.host.querySelector('[data-action="towerLeaveConfirm"]').hidden=!!b.chest;
     const inRange=distance<=c.range;text('range',inRange?'공격 가능':'보스에게 접근');this.nodes.range.classList.toggle('in-range',inRange);
     const failed=this.required.some(src=>image(src).complete&&!image(src).naturalWidth),waiting=this.frames.length>=25;
     const casting=b.tick<b.enemyCastUntil;
-    text('status',failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
+    text('status',b.chest?'보스를 쓰러뜨렸습니다. 바닥의 상자를 열어 보상을 받으세요.':failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
     this.nodes.status.hidden=!this.nodes.status.textContent;this.nodes.status.classList.toggle('danger',casting||b.hazards.length>0);
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){

@@ -1,9 +1,9 @@
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=open-world-1';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=open-world-1';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=open-world-1';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=open-world-1';
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=open-world-1";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=open-world-1";
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=combat-catalog-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=combat-catalog-1';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=combat-catalog-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=combat-catalog-1';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=combat-catalog-1";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=combat-catalog-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -318,6 +318,7 @@ export function normalizePotentialItem(item) {
     item.legacyBaseStats=true;
   }
   delete item.quality;
+  normalizeEquipment(item);
   if (item.potentialVersion !== 3 && item.potentialVersion !== 4) {
     const grade = item.potentialVersion === 2 ? (item.grade || 0) : Math.min(5, (item.grade || 0) + 2);
     item.lines = (item.lines || []).map(line => ({...line, grade:line.grade ?? grade}));
@@ -331,7 +332,9 @@ export function normalizePotentialState(state) {
   if (!state) return state;
   for (const item of state.items || []) normalizePotentialItem(item);
   for (const mail of state.mailbox || []) normalizePotentialItem(mail.item);
-  state.collection=[...new Set([...(state.collection||[]),...(state.items||[]).map(equipmentKey),...(state.mailbox||[]).map(mail=>equipmentKey(mail.item))])];
+  state.collection=[...new Set([...(state.collection||[]).map(key=>equipmentKey(equipmentFromKey(key))),...(state.items||[]).map(equipmentKey),...(state.mailbox||[]).map(mail=>equipmentKey(mail.item))])];
+  if(Object.values(state.bossMaterials||{}).some(n=>n>0)){state.retiredBossMaterials={...(state.retiredBossMaterials||{}),...state.bossMaterials};}state.bossMaterials={};
+  if(state.battle?.kind==='dungeon'){state.battle=null;state.hunting=false;}
   state.cubePity??={};
   state.materials??={};
   state.materials.fragment=(state.materials.fragment||0)+(state.materials.expand||0)*20+(state.materials.scroll||0)*3;
