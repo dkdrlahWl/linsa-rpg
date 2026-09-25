@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=journey-2';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=journey-2';
-import {applyBetaTool} from './beta-tools.mjs?v=journey-2';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=cube-three-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=cube-three-1';
+import {applyBetaTool} from './beta-tools.mjs?v=cube-three-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -38,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=journey-4";
+} from "./data.mjs?v=cube-three-1";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=journey-2';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=cube-three-1';
 const fail = (message) => {
   throw new Error(message);
 };

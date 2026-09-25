@@ -1,6 +1,6 @@
-import {incomingDamage} from './journey-balance.mjs?v=journey-2';
+import {incomingDamage} from './journey-balance.mjs?v=cube-three-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=journey-2';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=cube-three-1';
 export const TOWER_STEP = 100;
 export const TOWER_SIZE = {width:3200,height:3200};
 export const TOWER_BOUNDS = {left:150,right:3050,top:150,bottom:3050};

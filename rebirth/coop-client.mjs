@@ -1,6 +1,6 @@
-import {COOP_TIERS} from './coop-model.mjs?v=journey-2';
-import {towerArena} from './tower-client.mjs?v=journey-2';
-import {TowerRenderer,motionAsset,asset} from './tower-renderer.mjs?v=journey-2';
+import {COOP_TIERS} from './coop-model.mjs?v=cube-three-1';
+import {towerArena} from './tower-client.mjs?v=cube-three-1';
+import {TowerRenderer,motionAsset,asset} from './tower-renderer.mjs?v=cube-three-1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';

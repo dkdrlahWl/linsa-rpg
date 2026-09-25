@@ -1,15 +1,10 @@
-import TABLES from './maple-cube-pools.mjs?v=journey-2';
+import TABLES from './maple-cube-pools.mjs?v=cube-three-1';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',5,[.060000002444,.018,.003],[1,.1,.01],{pity:[0,0,25,83,500]}),
  highCube:rule('블랙 큐브','black',5,[.150000001275,.035,.014],[1,.2,.05],{choose:true,pity:[0,0,10,42,107]}),
- strangeCube:rule('수상한 큐브','strange',3,[.009901,0,0],{2:[1,.000999,.000999],3:[1,.009901,.009901]}),
- masterCube:rule('장인의 큐브','master',4,[.047619,.011858,0],{2:[1,.166667,.166667],3:[1,.047619,.047619],4:[1,.011858,.011858]}),
- artisanCube:rule('명장의 큐브','artisan',5,[.079994,.016959,.001996],{2:[1,.166667,.166667],3:[1,.079994,.079994],4:[1,.016959,.016959],5:[1,.001996,.001996]}),
  primeCube:rule('프라임 큐브','black',5,[0,0,0],[1,.2,.05],{prime:true}),
 };
-CUBES.silverCube={...CUBES.masterCube,name:'실버 큐브',choose:true};
-CUBES.goldCube={...CUBES.artisanCube,name:'골드 큐브',choose:true};
 export const cubeLineRates=(kind,grade)=>Array.isArray(CUBES[kind].same)?CUBES[kind].same:CUBES[kind].same[grade];
 export function cubeCost(){return 0;}
 export function cubeTable(kind,item,grade=item.grade){

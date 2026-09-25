@@ -1,9 +1,9 @@
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=journey-2';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=journey-2';
-import { CUBES } from './maple-cubes.mjs?v=journey-2';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=journey-2';
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=journey-2";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=journey-2";
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=cube-three-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=cube-three-1';
+import { CUBES } from './maple-cubes.mjs?v=cube-three-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=cube-three-1';
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=cube-three-1";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=cube-three-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -250,7 +250,7 @@ export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0)
 export const CUBE_DROP = 0.006;
 export const SCROLL_DROP = 0.0004;
 export const FRAGMENT_DROP = 0.06;
-export const SUPPLY_EXCHANGE = {strangeCube:{fragment:1,gold:50},masterCube:{fragment:4,gold:300},artisanCube:{fragment:8,gold:600},primeCube:{fragment:30,gold:2500},silverCube:{fragment:6,gold:450},goldCube:{fragment:12,gold:1200},cube:{fragment:2,gold:150},highCube:{fragment:10,gold:900},scroll:{fragment:3,gold:150},expand:{fragment:20,gold:1000}};
+export const SUPPLY_EXCHANGE = {primeCube:{fragment:30,gold:2500},cube:{fragment:2,gold:150},highCube:{fragment:10,gold:900},scroll:{fragment:3,gold:150},expand:{fragment:20,gold:1000}};
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
   return journeyXP(level);
@@ -325,6 +325,9 @@ export function normalizePotentialState(state) {
   for (const mail of state.mailbox || []) normalizePotentialItem(mail.item);
   state.collection=[...new Set([...(state.collection||[]),...(state.items||[]).map(equipmentKey),...(state.mailbox||[]).map(mail=>equipmentKey(mail.item))])];
   state.cubePity??={};
+  state.materials??={};
+  for(const [old,key,ratio] of [["strangeCube","cube",1],["masterCube","cube",2],["artisanCube","highCube",1],["silverCube","highCube",1],["goldCube","highCube",2]]){state.materials[key]=(state.materials[key]||0)+(state.materials[old]||0)*ratio;delete state.materials[old];}
+  if(["silverCube","goldCube"].includes(state.pendingCube?.kind))state.pendingCube.kind="highCube";
   for(const key of Object.keys(CUBES))state.materials[key]??=0;
   const pending=state.pendingCube;
   if(pending && pending.potentialVersion!==4){

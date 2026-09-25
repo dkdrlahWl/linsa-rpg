@@ -1,4 +1,4 @@
-import * as D from './data.mjs?v=journey-2';
+import * as D from './data.mjs?v=cube-three-1';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const pct=n=>(n*100).toFixed(6).replace(/\.?0+$/,'')+'%';
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
@@ -27,6 +27,6 @@ export function renderCubePanel(it,state,kind,lastResult,protectedReason=''){
  ${opened&&it.lines.length<3?`<details class="expand-options"><summary>잠재 슬롯 확장 · ${it.lines.length}/3줄</summary><p>확장석 ${it.lines.length===1?1:3}개 + 2,000 G · 기존 옵션 유지</p>${button('슬롯 확장','expand',it.id,!!protectedReason||state.materials.expand<(it.lines.length===1?1:3)||state.gold<2000,'enhance-secondary')}</details>`:''}`;
 }
 export function cubeGuide(){
- return `<div class="panel pad"><h3>잠재능력 · 메이플식 큐브</h3><p>레어 → 에픽 → 유니크 → 레전더리. 장비 전체 등급은 한 번에 한 단계씩 상승합니다. 옵션의 줄별 등급은 매번 새로 추첨합니다.</p><p>현재 게임에 있는 효과만 사용하며 부위·레벨·큐브별 공식 표에서 제외된 효과의 확률을 재분배합니다. 옵션 수치는 공식 표의 고정값입니다. 장비의 큐브 화면에서 실제 확률을 확인하세요.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.entries(D.CUBES).map(([k,c])=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${c.prime?'—':g<c.maxGrade?pct(c.up[g]):'—'}</td>`).join('')}</tr>`).join('')}</table><p>보유하던 일반/상급 큐브는 각각 레드/블랙 큐브로 이어집니다. 기존 잠재 옵션은 재설정 전까지 보존됩니다. 교환·잠재 부여·슬롯 확장 비용은 이 게임의 재화 기준입니다.</p></div>`;
+ return `<div class="panel pad"><h3>잠재능력 · 큐브 3종</h3><p>레어 → 에픽 → 유니크 → 레전더리. 장비 전체 등급은 한 번에 한 단계씩 상승합니다. 옵션의 줄별 등급은 매번 새로 추첨합니다.</p><p>현재 게임에 있는 효과만 사용하며 부위·레벨·큐브별 공식 표에서 제외된 효과의 확률을 재분배합니다. 옵션 수치는 공식 표의 고정값입니다. 장비의 큐브 화면에서 실제 확률을 확인하세요.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.entries(D.CUBES).map(([k,c])=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${c.prime?'—':g<c.maxGrade?pct(c.up[g]):'—'}</td>`).join('')}</tr>`).join('')}</table><p>레드: 전체 재설정 · 블랙: 이전/이후 선택 · 프라임: 레전더리 첫 줄 고정. 단종 큐브는 레드·블랙으로 자동 전환됩니다. 기존 잠재 옵션은 재설정 전까지 보존됩니다. 교환·잠재 부여·슬롯 확장 비용은 이 게임의 재화 기준입니다.</p></div>`;
 }
 

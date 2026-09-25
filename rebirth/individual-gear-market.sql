@@ -24,7 +24,7 @@ begin
  if p_action='sell' then
   if p_args->>'material' is not null then
    material_key:=p_args->>'material';
-   if material_key not in ('strangeCube','masterCube','artisanCube','primeCube','silverCube','goldCube','cube','highCube','scroll','expand','fragment') then raise exception 'INVALID_MATERIAL';end if;
+   if material_key not in ('primeCube','cube','highCube','scroll','expand','fragment') then raise exception 'INVALID_MATERIAL';end if;
    if coalesce(p_args->>'quantity','')!~'^[0-9]+$' or coalesce(p_args->>'price','')!~'^[0-9]+$' then raise exception 'INVALID_QUANTITY';end if;
    quantity:=(p_args->>'quantity')::bigint;v_price:=(p_args->>'price')::bigint;
    if quantity<1 or quantity>1000000 or v_price<1 or v_price>1000000000 or v_price*quantity>1000000000 then raise exception 'INVALID_PRICE';end if;
