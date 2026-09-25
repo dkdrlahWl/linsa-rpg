@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=cube-art-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=cube-art-1';
-import {applyBetaTool} from './beta-tools.mjs?v=cube-art-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=open-world-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=open-world-1';
+import {applyBetaTool} from './beta-tools.mjs?v=open-world-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -23,7 +23,7 @@ import {
   salvageYield,
   CUBE_DROP,
   FRAGMENT_DROP,
-  SUPPLY_EXCHANGE,
+  fillPotentialLines,
   SCROLL_DROP,
   xpNeeded,
   starCost,
@@ -38,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=cube-art-1";
+} from "./data.mjs?v=open-world-1";
 
-import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=cube-art-1';
+import { TOWER_FLOORS, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=open-world-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -60,7 +60,7 @@ function pick(a, ctx) {
 export function makeItem(level, classId, slot, boss, ctx, variant) {
   const selectedVariant = slot === 0 ? (variant ?? Math.floor(ctx.random() * WEAPON_TYPES[classId].length)) : 0;
   check(int(selectedVariant, 0, 2), "INVALID_WEAPON_TYPE");
-  return {
+  return fillPotentialLines({
     id: ctx.uuid(),
     level,
     classId,
@@ -74,7 +74,7 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     lines: [],
     locked: false,
     broken: false,
-  };
+  },ctx.random);
 }
 export function makeLootItem(base,classId,slot,boss,ctx,variant){const level=rollEquipmentLevel(base,ctx.random),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
 
@@ -104,7 +104,7 @@ export function initialState(classId, name, ctx) {
     hunting: true,
     lastAt: ctx.now,
     huntRemainder: 0,
-    materials: { fragment: 0, scroll: 1, expand: 0, cube: 3, highCube: 0 },
+    materials: { fragment: 3, cube: 3, highCube: 0 },
     bossMaterials: {},
     items: [starter],
     equipped: { 0: starter.id },
@@ -278,7 +278,7 @@ function addItem(s, item) {
   if (s.items.length < 300) s.items.push(item);
   else {
     s.mailbox ||= [];
-    const mailKey=key+"|lv"+item.level+(item.baseStats?"|s"+JSON.stringify(item.baseStats):"");
+    const mailKey=key+"|lv"+item.level+(item.baseStats?"|s"+JSON.stringify(item.baseStats):"")+"|p"+JSON.stringify(item.lines);
     const stack = s.mailbox.find(x => x.key === mailKey);
     if (stack) stack.quantity++;
     else { const {id, ...template} = item; s.mailbox.push({key:mailKey, item: template, quantity: 1}); }
@@ -331,7 +331,7 @@ export function settle(s, ctx) {
     scrolls = rollCount(kills, SCROLL_DROP, ctx);
   s.materials.fragment += fragments;
   s.materials.cube += cubes;
-  s.materials.scroll += scrolls;
+
   for(const [key,quantity] of [["fragment",fragments],["cube",cubes],["scroll",scrolls]])if(quantity)loot.push({kind:"material",key,quantity});
   if(loot.length)s.recentLoot=[...loot.reverse().map(x=>({...x,at:ctx.now,stage:s.stage})),...(s.recentLoot||[])].slice(0,5);
   return {
@@ -432,7 +432,7 @@ function bossSettle(s, ctx, events) {
     s.materials.cube += boss.cubes;reward.cube=boss.cubes;
     if (boss.weekly) {
       s.materials.highCube+=2;
-      if (ctx.random() < 0.2) s.materials.expand++;
+
     }
     if (ctx.random() < boss.dropChance) {
         const it = makeLootItem(
@@ -460,7 +460,7 @@ function towerFinish(s,ctx,events) {
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
  const reward={type:'tower',floor:b.floor,won:b.won,first,seconds:b.tick/10,reason:b.reason||'',gold:0,fragment:0,cube:0,highCube:0};
  if(b.won){s.daily.tower++;}
- if(first||(b.won&&s.daily.tower<=3)){Object.assign(reward,Object.fromEntries(Object.entries(f.reward).map(([k,v])=>[k,first?v:Math.floor(v*.3)])));s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
+ if(first||b.won){Object.assign(reward,Object.fromEntries(Object.entries(f.reward).map(([k,v])=>[k,first?v:Math.floor(v*.3)])));s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
  s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);
 }
 export function execute(input, command, args = {}, ctx) {
@@ -583,18 +583,10 @@ export function execute(input, command, args = {}, ctx) {
     }
     case 'towerStart': {
       check(int(args.floor,1,10),'INVALID_TOWER_FLOOR');
-      check(s.level>=Math.max(10,args.floor*20-10),'LEVEL_REQUIRED');
       check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.tower ||= {cleared:[],best:{}};
-      check(args.floor===1||s.tower.cleared.includes(args.floor-1),'PREVIOUS_FLOOR_REQUIRED');
       s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
-    }
-    case "supplyExchange": {
-      const price=Object.hasOwn(SUPPLY_EXCHANGE,args.key)?SUPPLY_EXCHANGE[args.key]:null;
-      check(price&&[1,5,10].includes(args.count),"INVALID_EXCHANGE");
-      spend(s,"fragment",price.fragment*args.count);spend(s,"gold",price.gold*args.count);
-      s.materials[args.key]+=args.count;events.push({type:"exchange",key:args.key,count:args.count});break;
     }
     case "claimMail": {
       const mail = s.mailbox?.find(x => x.key === args.key);
@@ -613,12 +605,6 @@ export function execute(input, command, args = {}, ctx) {
       break;
     case "stage": {
       check(int(args.id, 0, 29), "INVALID_STAGE");
-      const st = STAGES[args.id];
-      check(power(s).stars >= st.star, "STARS_REQUIRED");
-      check(
-        st.region === 0 || s.cleared.includes(st.region * 3 - 1),
-        "PREVIOUS_BOSS_REQUIRED",
-      );
       s.stage = args.id;
       s.huntRemainder = 0;
       s.lastAt = ctx.now;
@@ -744,20 +730,6 @@ export function execute(input, command, args = {}, ctx) {
       events.push({ type: "restore", id: it.id });
       break;
     }
-    case "potential": {
-      const it=gear(s,args.id);writable(s,it);check(!it.lines.length,"ALREADY_OPEN");
-      spend(s,"scroll",1);spend(s,"gold",500);
-      it.grade=2;it.potentialVersion=4;
-      const opening=ctx.random(),lineCount=opening<.7?1:opening<.97?2:3;
-      it.lines=Array.from({length:lineCount},(_,i)=>rollCubeLine("cube",it,2,i,ctx.random));
-      events.push({type:"potential",id:it.id});break;
-    }
-    case "expand": {
-      const it=gear(s,args.id);writable(s,it);
-      check(it.lines.length>0&&it.lines.length<3,"INVALID_LINES");
-      spend(s,"expand",it.lines.length===1?1:3);spend(s,"gold",2000);
-      it.lines.push(rollCubeLine("cube",it,it.grade,it.lines.length,ctx.random));break;
-    }
     case "cube": {
       const it=gear(s,args.id);writable(s,it);
       check(it.lines.length>0,"POTENTIAL_REQUIRED");check(!s.pendingCube,"ITEM_CUBE_PENDING");
@@ -782,10 +754,6 @@ export function execute(input, command, args = {}, ctx) {
       check(int(args.region, 0, 9) && int(args.slot, 0, 8), "INVALID_CRAFT");
       check(args.weaponVariant === undefined || (int(args.weaponVariant,0,2) && (args.slot === 0 || args.weaponVariant === 0)), "INVALID_WEAPON_TYPE");
       check(
-        s.cleared.some((id) => Math.floor(id / 3) === args.region),
-        "BOSS_REQUIRED",
-      );
-      check(
         (s.bossMaterials[args.region] || 0) >= 24,
         "INSUFFICIENT_BOSS_MATERIAL",
       );
@@ -805,26 +773,10 @@ export function execute(input, command, args = {}, ctx) {
       events.push({ type: "craft", id: it.id });
       break;
     }
-    case "craftScroll":
-      spend(s, "fragment", SUPPLY_EXCHANGE.scroll.fragment);
-      spend(s, "gold", SUPPLY_EXCHANGE.scroll.gold);
-      s.materials.scroll++;
-      break;
     case "boss": {
       check(int(args.id, 0, 29), "INVALID_BOSS");
       const b = BOSSES[args.id];
-      check(s.level >= b.level, "LEVEL_REQUIRED");
-      check(
-        b.id === 0 || s.cleared.includes(b.id - 1),
-        "PREVIOUS_BOSS_REQUIRED",
-      );
       const practice = args.practice === true;
-      check(
-        practice ||
-          s.bossClaims[b.id] !==
-            (b.weekly ? weekKey(ctx.now) : dayKey(ctx.now)),
-        "BOSS_LIMIT",
-      );
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
       s.battle = {
@@ -846,11 +798,8 @@ export function execute(input, command, args = {}, ctx) {
     }
     case "dungeon": {
       check(["cube", "material", "relic"].includes(args.kind), "INVALID_DUNGEON");
-      if (args.kind === "relic") check(s.level >= 200 && s.cleared.includes(29), "PREVIOUS_BOSS_REQUIRED");
-      check(s.level >= 20, "LEVEL_REQUIRED");
-      check(s.dungeonClaims[args.kind] !== dayKey(ctx.now), "DUNGEON_LIMIT");
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
-      const p = power(s), tier = Math.floor(s.level / 20);
+      const p = power(s), tier = Math.max(1,Math.floor(s.level / 20));
       const enemy = args.kind === "relic" ? { hp:5200000,attack:1600,patternEvery:12,patternMultiplier:3,pattern:"여명의 파동",region:9 } : { hp: Math.round(12000 * 1.7 ** (tier-1)), attack: 35 + tier * tier * 12,
         patternEvery:15, patternMultiplier:2.5, pattern:"수정 폭발", region:Math.min(9,tier-1) };
       s.battle = {kind:"dungeon", dungeon:args.kind, enemy, claimKey:dayKey(ctx.now), started:ctx.now,
@@ -862,7 +811,7 @@ export function execute(input, command, args = {}, ctx) {
     }
     case "advance":
       check(!s.battle, "BATTLE_IN_PROGRESS");
-      check(s.level >= 60 && s.cleared.includes(8), "PREVIOUS_BOSS_REQUIRED");
+      check(s.level >= 60, "LEVEL_REQUIRED");
       check(!s.advancement, "ALREADY_ADVANCED");
       s.advancement = 1;
       events.push({type:"advancement"});

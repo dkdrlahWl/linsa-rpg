@@ -3,7 +3,7 @@ create table if not exists rebirth_private.coop_rooms(id uuid primary key defaul
 alter table rebirth_private.coop_rooms enable row level security;
 revoke all on rebirth_private.coop_rooms from public,anon,authenticated;
 create or replace function public.rebirth_coop_action(p jsonb) returns jsonb language plpgsql security definer set search_path='' as $$
-declare u uuid:=(p->>'user')::uuid; sess uuid:=(p->>'session')::uuid; actor rebirth_private.players%rowtype; r rebirth_private.coop_rooms%rowtype; old rebirth_private.receipts%rowtype; action text:=p->>'action'; rid uuid; w jsonb; member jsonb; members jsonb; st jsonb; reward jsonb; claim text:=to_char(now() at time zone 'Asia/Seoul','YYYY-MM-DD'); count_claim int; tier int; list jsonb; events jsonb:='[]'; ms bigint:=floor(extract(epoch from clock_timestamp())*1000); user_id uuid;
+declare u uuid:=(p->>'user')::uuid; sess uuid:=(p->>'session')::uuid; actor rebirth_private.players%rowtype; r rebirth_private.coop_rooms%rowtype; old rebirth_private.receipts%rowtype; action text:=p->>'action'; rid uuid; w jsonb; member jsonb; members jsonb; st jsonb; reward jsonb; claim text:=to_char(now() at time zone 'Asia/Seoul','YYYY-MM-DD'); count_claim int; tier int; list jsonb; events jsonb:='[]'; ms bigint:=floor(extract(epoch from clock_timestamp())*1000); member_user_id uuid;
 begin
  perform pg_advisory_xact_lock(71823001);
  if not exists(select 1 from rebirth_private.release where epoch=(p->>'epoch')::uuid and (enabled or exists(select 1 from rebirth_private.players where id=u and preview_access))) then raise exception 'REBIRTH_MAINTENANCE';end if;
@@ -20,12 +20,11 @@ begin
  if rid is not null then select * into r from rebirth_private.coop_rooms where id=rid for update;w:=r.world;end if;
  if action not in ('read','list') then
   if actor.revision<>(p->>'revision')::bigint then raise exception 'SAVE_CONFLICT';end if;
-  if actor.state->'battle' is not null and actor.state->'battle'<>'null' or actor.state ? 'partyRoom' then raise exception 'BATTLE_IN_PROGRESS';end if;
+  if actor.state->'battle' is not null and actor.state->'battle'<>'null' or nullif(actor.state->>'partyRoom','') is not null then raise exception 'BATTLE_IN_PROGRESS';end if;
   if action in ('create','join') then
-   if actor.state ? 'coopRoom' or actor.state->'pendingCube' is not null and actor.state->'pendingCube'<>'null' then raise exception 'BATTLE_IN_PROGRESS';end if;
+   if nullif(actor.state->>'coopRoom','') is not null or actor.state->'pendingCube' is not null and actor.state->'pendingCube'<>'null' then raise exception 'BATTLE_IN_PROGRESS';end if;
    tier:=case when action='create' then (p->'args'->>'tier')::int else (w->>'tier')::int end;
    if tier is null or tier not between 0 and 2 then raise exception 'INVALID_COOP_TIER';end if;
-   if (actor.state->>'level')::int<(array[60,140,200])[tier+1] then raise exception 'LEVEL_REQUIRED';end if;
    member:=jsonb_build_object('id',u,'name',actor.state->>'name','classId',actor.state->>'classId','power',p->'power','left',false);
    if action='create' then
     w:=jsonb_build_object('status','waiting','owner',u,'tier',tier,'members',jsonb_build_array(member),'created',ms);
@@ -55,19 +54,19 @@ begin
    if w->>'status' in ('won','lost') then
     tier:=(w->>'tier')::int;
     for member in select value from jsonb_array_elements(w->'members') loop
-     user_id:=(member->>'id')::uuid;select state into st from rebirth_private.players where id=user_id for update;
+     member_user_id:=(member->>'id')::uuid;select state into st from rebirth_private.players where id=member_user_id for update;
      if st->>'coopRoom' is distinct from rid::text then continue;end if;
      count_claim:=case when st->'coopClaims'->>'day'=claim then coalesce((st->'coopClaims'->>'count')::int,0) else 0 end;
      reward:=jsonb_build_object('type','coop','won',w->>'status'='won','gold',0,'cube',0,'highCube',0,'fragment',0);
-     if w->>'status'='won' and coalesce((member->>'damage')::bigint,0)>0 and count_claim<3 and not coalesce((member->>'left')::boolean,false) then
+     if w->>'status'='won' and coalesce((member->>'damage')::bigint,0)>0 and not coalesce((member->>'left')::boolean,false) then
       reward:=reward||jsonb_build_object('gold',(array[18000,35000,60000])[tier+1],'cube',(array[20,30,40])[tier+1],'highCube',(array[3,5,8])[tier+1],'fragment',(array[120,180,260])[tier+1]);
       st:=jsonb_set(st,'{gold}',to_jsonb((st->>'gold')::bigint+(reward->>'gold')::int));
       st:=jsonb_set(st,'{materials}',(st->'materials')||jsonb_build_object('cube',(st->'materials'->>'cube')::int+(reward->>'cube')::int,'highCube',(st->'materials'->>'highCube')::int+(reward->>'highCube')::int,'fragment',(st->'materials'->>'fragment')::int+(reward->>'fragment')::int));
       st:=jsonb_set(st,'{coopClaims}',jsonb_build_object('day',claim,'count',count_claim+1));
      end if;
      st:=(st-'coopRoom')||jsonb_build_object('hunting',true,'lastAt',ms,'lastReward',reward);
-     update rebirth_private.players set state=st,revision=revision+1 where id=user_id;
-     if user_id=u then events:=jsonb_build_array(reward);end if;
+     update rebirth_private.players set state=st,revision=revision+1 where id=member_user_id;
+     if member_user_id=u then events:=jsonb_build_array(reward);end if;
     end loop;
    end if;
   end if;

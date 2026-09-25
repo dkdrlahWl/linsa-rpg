@@ -21,7 +21,7 @@ begin
  end if;
  if p.revision<>p_revision then raise exception 'SAVE_CONFLICT'; end if;
  if p_state->>'version'<>'rebirth-1' or octet_length(p_state::text)>524288 then raise exception 'INVALID_STATE'; end if;
- if p.state ? 'coopRoom' then raise exception 'BATTLE_IN_PROGRESS';end if;
+ if nullif(p.state->>'coopRoom','') is not null then raise exception 'BATTLE_IN_PROGRESS';end if;
  initial_room:=p.state->>'partyRoom';
  -- Edge computed settlement uses the ordinary server engine, never client power or RNG.
  update rebirth_private.players set state=p_state,revision=revision+1,updated_at=now() where id=p_user;
@@ -70,7 +70,7 @@ begin
     select state into st from rebirth_private.players where id=m.player for update;
     if st->>'partyRoom' is distinct from room_id::text then continue; end if;
     claimed_count:=case when st->'raidClaims'->b_id->>'day'=claim then coalesce((st->'raidClaims'->b_id->>'count')::int,0) else 0 end;
-    eligible:=won and not r.practice and m.damage>0 and (case when is_raid then claimed_count<2 else st->'bossClaims'->>b_id is distinct from r.claim_key end);
+    eligible:=won and not r.practice and m.damage>0;
     reward:=jsonb_build_object('type','party','bossId',b_id::int,'won',won,'practice',r.practice,'items','[]'::jsonb,'materials',0,'members',summary,'rewarded',eligible,'raid',is_raid,'name',r.boss->>'name');
     if eligible then
      if is_raid then
@@ -87,7 +87,6 @@ begin
      st:=jsonb_set(st,'{bossMaterials}',coalesce(st->'bossMaterials','{}')||jsonb_build_object(region_id,coalesce((st->'bossMaterials'->>region_id)::int,0)+(r.boss->>'material')::int));
      st:=jsonb_set(st,'{materials,cube}',to_jsonb((st->'materials'->>'cube')::int+3));
      st:=jsonb_set(st,'{materials,highCube}',to_jsonb((st->'materials'->>'highCube')::int+1));
-     if random()<.2 then st:=jsonb_set(st,'{materials,expand}',to_jsonb((st->'materials'->>'expand')::int+1)); end if;
      reward:=reward||jsonb_build_object('materials',(r.boss->>'material')::int);
      end if;
      if random()<(r.boss->>'dropChance')::numeric then
@@ -130,7 +129,6 @@ begin
   end if;
   if coalesce((r.boss->>'raid')::boolean,false) is not true then raise exception 'INVALID_BOSS';end if;
   claim:=to_char(now() at time zone 'Asia/Seoul','YYYY-MM-DD');
-  if not r.practice and p.state->'raidClaims'->(r.boss->>'id')->>'day'=claim and coalesce((p.state->'raidClaims'->(r.boss->>'id')->>'count')::int,0)>=2 then raise exception 'RAID_LIMIT';end if;
   select count(*) into n from rebirth_private.party_members where room=r.id and not departed;
   if n>=4 then raise exception 'PARTY_FULL';end if;
   insert into rebirth_private.party_members(room,player,name,class_id,stats,hp,max_hp) values(r.id,p_user,p.state->>'name',p.state->>'classId',p_power,(p_power->>'hp')::bigint,(p_power->>'hp')::bigint);
@@ -140,7 +138,6 @@ begin
   select count(*) into n from rebirth_private.party_members where room=room_id and not departed;
   if n<1 then raise exception 'PARTY_MEMBERS_REQUIRED';end if;
   claim:=to_char(now() at time zone 'Asia/Seoul','YYYY-MM-DD');
-  if not r.practice and exists(select 1 from rebirth_private.party_members pm join rebirth_private.players pp on pp.id=pm.player where pm.room=room_id and not pm.departed and pp.state->'raidClaims'->(r.boss->>'id')->>'day'=claim and coalesce((pp.state->'raidClaims'->(r.boss->>'id')->>'count')::int,0)>=2) then raise exception 'RAID_LIMIT';end if;
   update rebirth_private.party_rooms set status='fighting',started_at=now(),expires_at=now()+make_interval(secs=>(r.boss->>'seconds')::int),claim_key=claim,hp=(r.boss->>'hp')::bigint,max_hp=(r.boss->>'hp')::bigint where id=room_id;
  elsif p_action='skill' and room_id is not null then
   if r.status<>'fighting' then raise exception 'NO_BATTLE';end if;

@@ -1,9 +1,9 @@
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=cube-art-1';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=cube-art-1';
-import { CUBES } from './maple-cubes.mjs?v=cube-art-1';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=cube-art-1';
-import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=cube-art-1";
-export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=cube-art-1";
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=open-world-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=open-world-1';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=open-world-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=open-world-1';
+import { equipmentIdentity, equipmentKey } from "./equipment.mjs?v=open-world-1";
+export { equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=open-world-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -189,8 +189,6 @@ export const BOSSES = bosses.flatMap((list, r) =>
 );
 export const MATERIALS = {
   fragment: "장비 파편",
-  scroll: "잠재 부여 주문서",
-  expand: "잠재 확장석",
   cube: "레드 큐브",
   highCube: "블랙 큐브",
   ...Object.fromEntries(Object.entries(CUBES).map(([key,c])=>[key,c.name])),
@@ -200,7 +198,7 @@ export const ATTENDANCE_REWARDS = [
   {gold:2000,fragment:10},
   {cube:3},
   {gold:3000,fragment:20},
-  {scroll:1,fragment:20},
+  {fragment:23},
   {gold:5000,cube:5},
   {highCube:1,fragment:30},
   {gold:20000,fragment:100,highCube:3},
@@ -247,10 +245,9 @@ export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equi
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
 export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
-export const CUBE_DROP = 0.006;
-export const SCROLL_DROP = 0.0004;
-export const FRAGMENT_DROP = 0.06;
-export const SUPPLY_EXCHANGE = {primeCube:{fragment:30,gold:2500},cube:{fragment:2,gold:150},highCube:{fragment:10,gold:900},scroll:{fragment:3,gold:150},expand:{fragment:20,gold:1000}};
+export const CUBE_DROP = 0.0001;
+export const SCROLL_DROP = 0;
+export const FRAGMENT_DROP = 0.01;
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
   return journeyXP(level);
@@ -289,6 +286,17 @@ export function optionValue(key, grade, random = Math.random) {
   return Math.round((min + Math.min(count-1, Math.floor(random()*count))*step)*10)/10;
 }
 // Version 4: one equipment rank; legacy options are preserved until rerolled.
+export function fillPotentialLines(item, random) {
+  item.lines ||= [];
+  item.grade = item.lines.length ? Math.max(2, Math.min(5, item.grade || 2)) : 2;
+  if (!random) {
+    let seed=2166136261;
+    for(const c of String(item.id||[item.level,item.classId,item.slot].join(':'))) seed=Math.imul(seed^c.charCodeAt(0),16777619);
+    random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+  }
+  while(item.lines.length<3) item.lines.push(rollCubeLine('cube',item,item.grade,item.lines.length,random));
+  return item;
+}
 export function normalizePotentialItem(item) {
   if (!item) return item;
   // Preserve identity, stars, rolls' relative positions, potentials and locks.
@@ -317,7 +325,7 @@ export function normalizePotentialItem(item) {
   }
   if(item.potentialVersion!==4){item.grade=item.lines.length?Math.max(2,...item.lines.map(line=>line.grade||0)):0;item.potentialVersion=4;}
   item.grade=item.lines.length?Math.max(2,Math.min(5,item.grade||2)):0;
-  return item;
+  return fillPotentialLines(item);
 }
 export function normalizePotentialState(state) {
   if (!state) return state;
@@ -326,6 +334,8 @@ export function normalizePotentialState(state) {
   state.collection=[...new Set([...(state.collection||[]),...(state.items||[]).map(equipmentKey),...(state.mailbox||[]).map(mail=>equipmentKey(mail.item))])];
   state.cubePity??={};
   state.materials??={};
+  state.materials.fragment=(state.materials.fragment||0)+(state.materials.expand||0)*20+(state.materials.scroll||0)*3;
+  delete state.materials.expand;delete state.materials.scroll;
   for(const [old,key,ratio] of [["strangeCube","cube",1],["masterCube","cube",2],["artisanCube","highCube",1],["silverCube","highCube",1],["goldCube","highCube",2]]){state.materials[key]=(state.materials[key]||0)+(state.materials[old]||0)*ratio;delete state.materials[old];}
   if(["silverCube","goldCube"].includes(state.pendingCube?.kind))state.pendingCube.kind="highCube";
   for(const key of Object.keys(CUBES))state.materials[key]??=0;
@@ -339,6 +349,7 @@ export function normalizePotentialState(state) {
     pending.legacy=true;
     if(item)item.grade=Math.max(item.grade,pending.grade);
   }
+  if(pending){const item=state.items.find(x=>x.id===pending.id);if(item){const migrated=fillPotentialLines({...item,id:item.id+':pending',grade:pending.grade,lines:pending.lines||[]});pending.grade=migrated.grade;pending.lines=migrated.lines;}}
   return state;
 }
 export function gearName(item) {

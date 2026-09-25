@@ -1,12 +1,12 @@
-import {COOP_TIERS} from './coop-model.mjs?v=cube-art-1';
-import {towerArena} from './tower-client.mjs?v=cube-art-1';
-import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=cube-art-1';
+import {COOP_TIERS} from './coop-model.mjs?v=open-world-1';
+import {towerArena} from './tower-client.mjs?v=open-world-1';
+import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=open-world-1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
 export function coopLobby(state,room,rooms=[]){
  if(room){const tier=COOP_TIERS[room.tier];return '<section class="panel pad"><h2>'+tier.name+' · 준비실</h2><p>1–4인 · 직접 이동하며 공격 · 제한 4분</p>'+room.members.filter(m=>!m.left).map(m=>'<p>● '+esc(m.name)+' · 전투력 '+fmt(m.power.combatPower)+'</p>').join('')+'<div class="actions">'+button('출발','coopStart','',room.owner!==room.me)+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';}
- return '<section class="panel pad"><h2>협동 균열</h2><p class="note">장비를 준비하고 함께 패턴을 피하세요. 1–4인 입장 · 인원에 따라 체력 조정 · 하루 3회 승리 보상 · 실제 피해를 준 참가자에게 지급<br>가호는 가까운 동료의 체력도 회복합니다. 패배·연습은 무제한입니다.</p><div class="coop-tiers">'+COOP_TIERS.map((t,i)=>'<article><div class="coop-boss-portrait" style="background-image:url(tower/boss-'+t.art+'.webp)" role="img" aria-label="'+t.name+'"></div><h3>'+t.name+'</h3><p>Lv.'+t.level+' · 레드 '+t.cube+' / 블랙 '+t.highCube+'</p>'+button('방 만들기','coopCreate',i,state.level<t.level)+'</article>').join('')+'</div><h3>모집 중</h3>'+button('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>'<div class="daily-row"><span>'+esc(r.name)+' · '+COOP_TIERS[r.tier].name+'<small>'+r.count+' / 4명</small></span>'+button('참가','coopJoin',r.id,r.count>=4||state.level<COOP_TIERS[r.tier].level)+'</div>').join(''):'<p class="note">모집 중인 방이 없습니다. 새 방을 만들 수 있습니다.</p>')+'</section>';
+ return '<section class="panel pad"><h2>협동 균열</h2><p class="note">장비를 준비하고 함께 패턴을 피하세요. 1–4인 입장 · 인원에 따라 체력 조정 · 입장·승리 보상 무제한 · 실제 피해를 준 참가자에게 지급<br>가호는 가까운 동료의 체력도 회복합니다. 패배·연습은 무제한입니다.</p><div class="coop-tiers">'+COOP_TIERS.map((t,i)=>'<article><div class="coop-boss-portrait" style="background-image:url(tower/boss-'+t.art+'.webp)" role="img" aria-label="'+t.name+'"></div><h3>'+t.name+'</h3><p>권장 Lv.'+t.level+' · 레드 '+t.cube+' / 블랙 '+t.highCube+'</p>'+button('방 만들기','coopCreate',i,false)+'</article>').join('')+'</div><h3>모집 중</h3>'+button('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>'<div class="daily-row"><span>'+esc(r.name)+' · '+COOP_TIERS[r.tier].name+'<small>'+r.count+' / 4명</small></span>'+button('참가','coopJoin',r.id,r.count>=4)+'</div>').join(''):'<p class="note">모집 중인 방이 없습니다. 새 방을 만들 수 있습니다.</p>')+'</section>';
 }
 export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({floor:[3,7,10][room.tier],classId:me.classId,runId:room.id,advanced:true}).replaceAll('망각의 탑','협동 균열').replace('towerLeaveConfirm','coopLeaveConfirm');}
 function bossPortrait(renderer,src,x,y){
@@ -14,7 +14,7 @@ function bossPortrait(renderer,src,x,y){
  const sw=im.naturalWidth/3,sh=im.naturalHeight;
  g.save();g.beginPath();g.arc(x,y-100,100,0,Math.PI*2);g.clip();
  g.fillStyle='#292d26';g.fillRect(x-100,y-200,200,200);
- g.drawImage(im,sw*.12,sh*.04,sw*.76,sh*.6,x-100,y-200,200,200);g.restore();
+ const scale=Math.min(180/sw,180/sh);g.drawImage(im,0,0,sw,sh,x-sw*scale/2,y-100-sh*scale/2,sw*scale,sh*scale);g.restore();
  g.strokeStyle='#d6b46d';g.lineWidth=4;g.beginPath();g.arc(x,y-100,100,0,Math.PI*2);g.stroke();
 }
 const keyBits={KeyJ:1,KeyK:2,Space:4,KeyL:8};

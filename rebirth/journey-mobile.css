@@ -21,7 +21,7 @@ html{scrollbar-gutter:stable}button{touch-action:manipulation}dialog{overscroll-
 @media(max-width:700px){.enhance-dialog .enhance-primary{min-height:48px}.enhance-choice-actions{position:sticky;bottom:0;z-index:4;background:#fff8e9;padding:8px 0}.auto-equip-card small{font-size:10px}.bag-grid .bag-slot{min-height:92px}}
 
 /* Independent shops and fixed cooperative boss portraits */
-.bottom{grid-template-columns:repeat(6,minmax(0,1fr))}
+.bottom{grid-template-columns:repeat(5,minmax(0,1fr))}
 .bottom button{min-width:0;padding-inline:2px}
 .shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px}
 .shop-card{padding:16px;border:1px solid #73674766;border-radius:14px;background:#161d24}
@@ -33,3 +33,6 @@ html{scrollbar-gutter:stable}button{touch-action:manipulation}dialog{overscroll-
 .shop-card{background:#f8eedb;color:#302b23}.shop-symbol{color:#936b2d}@media(max-width:600px){.coop-tiers article{grid-template-columns:80px 1fr}.coop-boss-portrait{grid-row:span 3}}
 
 .cube-item-art{width:64px;height:64px;object-fit:contain;flex:0 0 64px}.supply-item-art{width:76px;height:76px;object-fit:contain;align-self:center}.exchange-item-art{width:48px;height:48px;object-fit:contain}.cube-card .resource-label img{display:none}.cube-card .menu-art{display:none}
+
+.coop-tiers article{color:#30271c;padding:16px}.coop-tiers h3{color:#2b2218;font-size:17px;margin:10px 0 6px}.coop-tiers p{color:#59472f;font-size:13px;line-height:1.5}.coop-tiers button{background:#302719;color:#fff4da;min-height:44px}.coop-boss-portrait{border-radius:12px;background-size:300% 100%;background-position:left center}.tower-portrait{background-size:300% 100%;background-position:left center}
+@media(max-width:600px){.coop-tiers article{grid-template-columns:80px minmax(0,1fr)}.coop-tiers h3,.coop-tiers p{margin:0}.coop-tiers button{justify-self:start}.coop-boss-portrait{align-self:center}}
