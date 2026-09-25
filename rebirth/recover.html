@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#0b1018">
 <title>링구 RPG · 로그인 복구</title>
 <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1018;color:#eee;font:16px/1.7 system-ui}main{max-width:420px;padding:28px}button{padding:14px 22px;font:inherit;border:0;border-radius:8px;background:#d7b576;color:#17130d}p{color:#c9cbd0}</style>
-<main><h1>로그인 복구</h1><p>이 브라우저에 남은 로그인 정보만 초기화합니다. 계정·캐릭터·장비·재화는 삭제하지 않습니다.</p><button id="recover">로그인 정보 초기화 후 게임 열기</button><p id="status" role="status"></p></main>
+<main><h1>로그인 복구</h1><p>이 브라우저에 남은 로그인 정보만 초기화한 뒤 서버에서 캐릭터를 다시 불러옵니다. 계정·캐릭터·장비·재화는 삭제하지 않습니다.</p><button id="recover">로그인 정보 초기화 후 게임 열기</button><p id="status" role="status"></p></main>
 <script src="../cloud-config.js"></script>
 <script>
 document.getElementById('recover').onclick = () => {
@@ -13,7 +13,7 @@ document.getElementById('recover').onclick = () => {
     localStorage.removeItem('ringu_rebirth_session');
     const url = window.RinguCloudConfig?.url;
     if (url) localStorage.removeItem('ringu.supabase.v1.' + new URL(url).hostname);
-    location.replace('./?v=session-recovery-9&fresh=' + Date.now());
+    location.replace('./?v=request-recovery-2&fresh=' + Date.now());
   } catch {
     document.getElementById('status').textContent = '브라우저의 사이트 저장 공간 사용을 허용한 뒤 다시 눌러 주세요.';
   }

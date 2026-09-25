@@ -297,16 +297,20 @@ async function ensureToken() {
     try { await tokenRefresh; } finally { tokenRefresh = null; }
   }
 }
-async function command(command, args = {}, quiet = false) {
+async function command(command, args = {}, quiet = false, freshSnapshot = false) {
   if (busy) return;
   busy = true;
   document
     .querySelectorAll("button[data-write]")
     .forEach((b) => (b.disabled = true));
   let body, recoverCharacter = false;
+  const recoverySync=command==="sync"&&(!state||freshSnapshot);
   try {
     await ensureToken();
-    body = JSON.parse(localStorage.getItem(pendingKey()) || "null");
+    if(!recoverySync){
+      try{body=JSON.parse(localStorage.getItem(pendingKey())||"null");}catch{body=null;}
+      if(body&&(typeof body.command!=="string"||!body.args||typeof body.args!=="object"||!body.requestId))body=null;
+    }
     if (
       body &&
       (body.command !== command ||
@@ -316,9 +320,10 @@ async function command(command, args = {}, quiet = false) {
     }
     if (!body) {
       body = { command, args, requestId: crypto.randomUUID() };
-      localStorage.setItem(pendingKey(), JSON.stringify(body));
+      if(!recoverySync)localStorage.setItem(pendingKey(), JSON.stringify(body));
     }
     const result = await request("/functions/v1/ringu-rebirth", body);
+    if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
     localStorage.removeItem(pendingKey());
     state = D.normalizePotentialState(result.state);
     if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
@@ -1023,7 +1028,8 @@ document.addEventListener("click", async (e) => {
     if(action==='towerLeaveConfirm')return open('탑에서 나가기',`<p>현재 층의 도전을 종료합니다. 획득한 이전 층 보상과 기록은 유지됩니다.</p>${btn('나가기','towerLeave','','danger',true)}`);
     if(action==='towerLeave'){modal.close();return await command('towerLeave');}
     if (action === "cubeKind") {cubeKind=Object.hasOwn(D.CUBES,arg)?arg:"cube";return itemDetail(selected,"potential");}
-    if (action === "reconnect") return await command("sync");
+    if (action === "reconnect") return await command("sync",{},false,true);
+    if (action === "recoverLogin"){location.href="recover.html?v=request-recovery-2";return;}
     if (action === "attendance") return attendance();
     if (action === "attendanceClaim") return await command("attendanceClaim");
     if (action === "changeClass") return changeClassDialog();
@@ -1431,7 +1437,7 @@ function updateCombatClock(){
  document.querySelectorAll('[data-skill-slot]').forEach(button=>{const slot=Number(button.dataset.skillSlot),sk=slot===1?D.CLASS_SKILLS[state.classId]:D.SECOND_SKILLS[state.classId];const ready=slot===1?(party?me?.skillReady:r.skillReady):(party?me?.secondReady:r.secondReady);const remain=party?Math.max(0,(ready||0)-tick):Math.max(0,Math.ceil(((ready||0)-r.started-tick*1000)/1000));const locked=slot===2&&!state.advancement;button.disabled=busy||locked||remain>0||(party&&me?.hp<=0)||tick>=seconds;button.textContent=slot+'차 · '+sk.name+(locked?' · 전직 필요':remain?' · '+remain+'초':' · 사용 가능');});
 }
 function unavailable() {
-  app.innerHTML='<div class="login panel"><p class="eyebrow">링구 RPG</p><h2>잠시 연결을 기다리고 있어요</h2><p class="note">연결이 복구되면 저장된 모험을 이어갈 수 있어요.</p><div class="actions">'+btn("다시 연결","reconnect","","gold")+btn("로그아웃","logout")+'</div></div>';
+  app.innerHTML='<div class="login panel"><p class="eyebrow">링구 RPG</p><h2>잠시 연결을 기다리고 있어요</h2><p class="note">연결이 복구되면 저장된 모험을 이어갈 수 있어요.</p><div class="actions">'+btn("다시 연결","reconnect","","gold")+btn("로그인 복구","recoverLogin")+'</div></div>';
 }
 window.addEventListener("online",()=>{ if(session) command("sync",{},true).catch(()=>{}); });
 window.addEventListener("offline",()=>{connectionLost=true;const banner=$("#connection-status");if(banner)banner.hidden=false;});
