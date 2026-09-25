@@ -902,7 +902,7 @@ let betaResource="gold",betaAmount=1000;
 function betaTools(){
   const resources=[["gold","골드",state.gold],...Object.entries(D.MATERIALS).map(([key,name])=>[key,name,state.materials[key]]),...D.REGIONS.map(r=>["boss:"+r.id,bossMaterialNames[r.id],state.bossMaterials[r.id]||0])];
   const blocked=!!state.battle||!!state.partyRoom;
-  open("베타 테스트 · 지급 / 레벨",`<p class="note">베타 기간에는 모든 플레이어가 자기 캐릭터에 사용할 수 있어요.</p><section class="panel pad"><h3>재화 · 소모품 받기</h3><label>종류<select id="beta-resource">${resources.map(([key,name,have])=>`<option value="${key}" ${key===betaResource?"selected":""}>${name} · 보유 ${fmt(have)}</option>`).join("")}</select></label><label>받을 수량<input id="beta-amount" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="${betaAmount}"></label><p class="note">입력한 수량만큼 추가 지급 · 한 번에 최대 10억</p>${disabledBtn("선택한 수량 받기","betaGrant","",blocked,"gold")}</section><section class="panel pad"><h3>레벨 조정 · 현재 Lv.${state.level}</h3><label>원하는 레벨<input id="beta-level" type="number" inputmode="numeric" min="1" max="200" step="1" value="${state.level}"></label><p class="note">1~200레벨 · 경험치 0으로 조정<br>직업별 분배 스탯은 초기화하고 해당 레벨의 포인트를 돌려줘요. 착용 레벨이 안 맞는 장비는 가방으로 돌아가며 자동사냥이 멈춰요. 60 미만은 2차 전직도 해제돼요.</p>${disabledBtn("입력한 레벨로 조정","betaLevel","",blocked||!!state.pendingCube,"gold")}</section>${blocked?'<p class="note">전투·파티 종료 후 사용할 수 있어요.</p>':""}`);
+  open("베타 테스트 · 지급 / 레벨 / 보스",`<p class="note">베타 기간에는 모든 플레이어가 자기 캐릭터에 사용할 수 있어요.</p><section class="panel pad"><h3>재화 · 소모품 받기</h3><label>종류<select id="beta-resource">${resources.map(([key,name,have])=>`<option value="${key}" ${key===betaResource?"selected":""}>${name} · 보유 ${fmt(have)}</option>`).join("")}</select></label><label>받을 수량<input id="beta-amount" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="${betaAmount}"></label><p class="note">입력한 수량만큼 추가 지급 · 한 번에 최대 10억</p>${disabledBtn("선택한 수량 받기","betaGrant","",blocked,"gold")}</section><section class="panel pad"><h3>레벨 조정 · 현재 Lv.${state.level}</h3><label>원하는 레벨<input id="beta-level" type="number" inputmode="numeric" min="1" max="200" step="1" value="${state.level}"></label><p class="note">1~200레벨 · 경험치 0으로 조정<br>직업별 분배 스탯은 초기화하고 해당 레벨의 포인트를 돌려줘요. 착용 레벨이 안 맞는 장비는 가방으로 돌아가며 자동사냥이 멈춰요. 60 미만은 2차 전직도 해제돼요.</p>${disabledBtn("입력한 레벨로 조정","betaLevel","",blocked||!!state.pendingCube,"gold")}</section><section class="panel pad"><h3>보스 보상 횟수 초기화</h3><p class="note">내 계정의 보스 보상 횟수를 다시 채워요. 초기화 후 처치하면 보상을 다시 받을 수 있어요.</p><div class="actions">${disabledBtn("일일 보스 초기화","betaBossReset","daily",blocked,"gold")}${disabledBtn("주간 보스 초기화","betaBossReset","weekly",blocked,"gold")}${disabledBtn("일일·주간 모두 초기화","betaBossReset","all",blocked)}</div></section>${blocked?'<p class="note">전투·파티 종료 후 사용할 수 있어요.</p>':""}`);
 }
 function settingsDialog() {
   open(
@@ -1026,6 +1026,11 @@ document.addEventListener("click", async (e) => {
     if (action === "ranking") {view="ranking";return await loadRankings();}
     if (action === "rankingRefresh") return await loadRankings();
     if (action === "rankingMode") {rankingMode=arg==="combat"?"combat":"level";return render();}
+    if(action==="betaBossReset"){
+      if(busy)return;
+      const result=await command("betaBossReset",{kind:arg});
+      if(result){betaTools();toast((arg==="daily"?"일일":arg==="weekly"?"주간":"일일·주간")+" 보스 보상 횟수가 초기화됐어요.");}return;
+    }
     if(action==="betaTools")return betaTools();
     if(action==="betaGrant"){
       if(busy)return;

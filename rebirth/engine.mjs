@@ -540,6 +540,7 @@ export function execute(input, command, args = {}, ctx) {
   switch (command) {
     case "betaGrant":
     case "betaLevel":
+    case "betaBossReset":
       events.push(applyBetaTool(s,command,args,ctx.now));
       break;
     case "changeClass": {

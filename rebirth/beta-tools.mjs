@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES} from './data.mjs';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs';
 // Temporary beta switch. Disable on the server before the production release.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){
@@ -6,6 +6,17 @@ export function applyBetaTool(s,command,args,now){
   check(BETA_TOOLS_ENABLED,'INVALID_BETA_DISABLED');
   check(!s.battle,'BATTLE_IN_PROGRESS');
   check(!s.partyRoom,'PARTY_IN_PROGRESS');
+  if(command==='betaBossReset'){
+    check(['daily','weekly','all'].includes(args.kind),'INVALID_BETA_BOSS_KIND');
+    s.bossClaims ||= {};
+    let count=0;
+    for(const boss of BOSSES){
+      if(args.kind!=='all'&&boss.weekly!==(args.kind==='weekly'))continue;
+      if(Object.hasOwn(s.bossClaims,boss.id))count++;
+      delete s.bossClaims[boss.id];
+    }
+    return {type:'betaBossReset',kind:args.kind,count};
+  }
   if(command==='betaGrant'){
     const {key,amount}=args;
     check(Number.isSafeInteger(amount)&&amount>=1&&amount<=1e9,'INVALID_BETA_AMOUNT');
