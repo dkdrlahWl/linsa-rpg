@@ -1,3 +1,4 @@
+import {applyBetaTool} from './beta-tools.mjs';
 import {
   VERSION,
   normalizePotentialState,
@@ -537,6 +538,10 @@ export function execute(input, command, args = {}, ctx) {
   }
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "betaGrant":
+    case "betaLevel":
+      events.push(applyBetaTool(s,command,args,ctx.now));
+      break;
     case "changeClass": {
       const target = CLASSES.find(c => c.id === args.classId);
       check(target, "INVALID_CLASS");
@@ -894,3 +899,4 @@ export function execute(input, command, args = {}, ctx) {
   );
   return { state: s, events };
 }
+
