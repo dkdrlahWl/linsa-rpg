@@ -247,7 +247,7 @@ export function equipmentLevelRange(base){const min=base>=200?200:Math.max(1,Mat
 export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
-export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
+export const salvageYield = item => Math.floor((4+Math.floor(item.level/20)+(item.boss?10:0))/2);
 export const CUBE_DROP = 0.0002;
 export const SCROLL_DROP = 0;
 export const FRAGMENT_DROP = 0.003;
