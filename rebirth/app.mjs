@@ -1,4 +1,4 @@
-import {GameAudio} from './game-audio.mjs?v=foley-audio-1';
+import {GameAudio} from './game-audio.mjs?v=foley-volume-2';
 import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=foley-audio-1';
 import {incomingDamage} from './journey-balance.mjs?v=foley-audio-1';
 import {installMenuIcons} from './menu-icons.mjs?v=foley-audio-1';

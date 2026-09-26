@@ -28,9 +28,9 @@ export class BattleAudioTracker{
 export class GameAudio{
   constructor(settings,state=()=>null){this.settings=settings;this.state=state;this.ctx=null;this.buffers=new Map();this.active=new Set();this.last=new Map();this.combat=false;this.musicEpoch=0;this.tracker=new BattleAudioTracker(id=>this.play(id));}
   start(){
-    try{if(!this.ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;this.ctx=new AC();this.fx=this.ctx.createGain();this.bg=this.ctx.createGain();this.fx.connect(this.ctx.destination);this.bg.connect(this.ctx.destination);this.warm();}if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});this.volume();}catch{}
+    try{if(!this.ctx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;this.ctx=new AC();this.fx=this.ctx.createGain();this.bg=this.ctx.createGain();this.limiter=this.ctx.createDynamicsCompressor();this.limiter.threshold.value=-2;this.limiter.knee.value=0;this.limiter.ratio.value=20;this.limiter.attack.value=.003;this.limiter.release.value=.12;this.fx.connect(this.limiter);this.bg.connect(this.limiter);this.limiter.connect(this.ctx.destination);this.warm();}if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});this.volume();}catch{}
   }
-  volume(){if(!this.ctx)return;this.fx.gain.setTargetAtTime(Math.max(0,Number(this.settings().sound)||0),this.ctx.currentTime,.025);this.bg.gain.setTargetAtTime(Math.max(0,Number(this.settings().music)||0)*.75,this.ctx.currentTime,.08);}
+  volume(){if(!this.ctx)return;this.fx.gain.setTargetAtTime(Math.max(0,Number(this.settings().sound)||0),this.ctx.currentTime,.025);this.bg.gain.setTargetAtTime(Math.max(0,Number(this.settings().music)||0)*1.5,this.ctx.currentTime,.08);}
   async load(id){
     if(!this.ctx||!AUDIO_IDS.has(id))return null;
     if(!this.buffers.has(id)){const ctx=this.ctx;const pending=fetch(new URL('./audio/'+id+'.mp3',import.meta.url)).then(r=>{if(!r.ok)throw Error('audio');return r.arrayBuffer();}).then(b=>ctx.decodeAudioData(b)).catch(()=>{this.buffers.delete(id);return null;});this.buffers.set(id,pending);}return this.buffers.get(id);
@@ -44,7 +44,7 @@ export class GameAudio{
     if(now-(this.last.get(id)??-Infinity)<gap)return;this.last.set(id,now);
     void this.load(id).then(buffer=>{if(!buffer||document.hidden||!this.settings().sound||performance.now()-now>1000||this.ctx.state!=='running')return;
       if(this.active.size>=10){const quiet=[...this.active].find(v=>v.id.endsWith('-attack')||v.id==='battle-hit');if(quiet)quiet.source.stop();else return;}
-      const source=this.ctx.createBufferSource(),gain=this.ctx.createGain();source.buffer=buffer;gain.gain.value=id==='battle-hit'?.5:1;source.connect(gain).connect(this.fx);const voice={source,gain,id};this.active.add(voice);source.onended=()=>{this.active.delete(voice);source.disconnect();gain.disconnect();};source.start();
+      const source=this.ctx.createBufferSource(),gain=this.ctx.createGain();source.buffer=buffer;gain.gain.value=id.endsWith('-attack')||id.includes('-skill-')?3:id==='battle-hit'?.5:1;source.connect(gain).connect(this.fx);const voice={source,gain,id};this.active.add(voice);source.onended=()=>{this.active.delete(voice);source.disconnect();gain.disconnect();};source.start();
     });
   }
   event(e){if(e.type==='star')for(const v of this.active)if(v.id==='enhance-charge')v.source.stop();const list=eventAudio(e,this.state()?.classId);list.forEach((id,i)=>{if(['battle-victory','battle-defeat'].includes(id)&&performance.now()-(this.last.get(id)??-Infinity)<2000)return;if(i)setTimeout(()=>this.play(id),1100);else this.play(id);});}
