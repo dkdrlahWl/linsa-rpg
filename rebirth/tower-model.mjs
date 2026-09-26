@@ -1,11 +1,12 @@
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=rift-chests-1';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=fourth-rift-1';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=fourth-rift-1';
 import {incomingDamage} from './journey-balance.mjs?v=rift-chests-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=rift-chests-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=fourth-rift-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
-export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;delete b.thirdCast;return b;}
+export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;delete b.thirdCast;delete b.fourthCast;return b;}
 
 export const TOWER_SIZE = {width:3200,height:3200};
 export const TOWER_BOUNDS = {left:150,right:3050,top:150,bottom:3050};
@@ -71,14 +72,14 @@ function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
 export function towerStep(b,input){
  if(b.chest){
   clearVictoryEffects(b);b.tick++;const p=b.player;let [x,y,bits]=input,n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}p.moving=n>.01;if(p.moving){p.dir=towerFacing(x,y,p.dir??6);p.walk=(p.walk||0)+1;}
-  if((bits&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+35;b.dashUntil=b.tick+3;b.dashX=n?x:v.x;b.dashY=n?y:v.y;}
+  if((bits&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+35;b.dashUntil=b.tick+3;b.dashX=n?x/Math.hypot(x,y):v.x;b.dashY=n?y/Math.hypot(x,y):v.y;}
   if(b.tick<(b.dashUntil||0)){x=b.dashX*3;y=b.dashY*3;}p.x=clamp(p.x+x*25,TOWER_BOUNDS.left,TOWER_BOUNDS.right);p.y=clamp(p.y+y*25,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);return b;
  }
  if(b.ended)return b;upgradeTowerBattle(b);b.tick++;const f=towerEncounter(b),c=TOWER_CLASSES[b.classId],p=b.player,e=b.enemy;
  b.effects=b.effects.filter(x=>x.end>b.tick).slice(-40);b.numbers=b.numbers.filter(x=>x.end>b.tick).slice(-25);
  let [mx,my,buttons]=input,n=Math.hypot(mx,my);if(n>1){mx/=n;my/=n;}p.moving=!!n;
  if(n>.01){p.dir=towerFacing(mx,my,p.dir??6);p.walk=(p.walk||0)+Math.min(1,n);if(mx)p.face=mx<0?-1:1;}
- if((buttons&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+35;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx:v.x;b.dashY=n?my:v.y;fx(b,'slash',p.x,p.y,170,6,Math.atan2(b.dashY,b.dashX));}
+ if((buttons&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+35;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx/Math.hypot(mx,my):v.x;b.dashY=n?my/Math.hypot(mx,my):v.y;fx(b,'slash',p.x,p.y,170,6,Math.atan2(b.dashY,b.dashX));}
  if(b.tick<(b.dashUntil||0)){mx=b.dashX*3;my=b.dashY*3;p.dir=towerFacing(mx,my,p.dir??6);}
  const moveSpeed=(buttons&1)&&c.range>300&&!(b.tick<(b.dashUntil||0))?17:25;
  p.x=clamp(p.x+mx*moveSpeed,TOWER_BOUNDS.left,TOWER_BOUNDS.right);p.y=clamp(p.y+my*moveSpeed,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);
@@ -86,6 +87,8 @@ export function towerStep(b,input){
  if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){const a=Math.atan2(e.y-p.y,e.x-p.x),v=facingVector(towerFacing(e.x-p.x,e.y-p.y,p.dir??6));p.dir=p.attackDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=v.x<0?-1:1;b.attackReady=b.tick+c.cooldown;b.attackStart=b.tick;b.attackUntil=b.tick+6;if(c.range<300){b.pendingMelee={at:b.tick+2,scale:c.cooldown/10*b.power.cadence};}else{b.projectiles.push({id:++b.serial,side:'player',x:p.x+v.x*28,y:p.y-30+v.y*15,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick+2,end:b.tick+17,scale:c.cooldown/10*b.power.cadence});}}
  if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;b.effects.push({id:++b.serial,kind:'second',follow:sk.type!=='attack',classId:b.classId,x:sk.type==='attack'?e.x:p.x,y:sk.type==='attack'?e.y:p.y,size:sk.type==='attack'?500:360,start:b.tick,end:b.tick+16});if(sk.type==='attack'){const a=Math.atan2(e.y-p.y,e.x-p.x);p.dir=p.attackDir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=Math.cos(a)<0?-1:1;b.pendingSkillHit={at:b.tick+3,hits:sk.hits,damage:sk.damage,critAdd:sk.critAdd||0};}else{p.skillDir=p.dir??6;b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
  if((buttons&16)){b.x=p.x;b.y=p.y;if(beginThird(b,e,b.tick)){b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir);}}
+ if(buttons&32){b.x=p.x;b.y=p.y;if(beginFourth(b,e,b.tick))p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir);}
+ b.x=p.x;b.y=p.y;stepFourth(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
  b.x=p.x;b.y=p.y;stepThird(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(b.tick>=b.nextPattern)pattern(b);

@@ -51,7 +51,7 @@ begin
  if cl='warrior' then hp:=floor(hp*1.15);def:=def*1.15;end if;
  if cl='mage' then atk:=atk*1.06;end if;
  crit_damage:=case when cl='rogue' then 1.9 else 1.6 end;
- if coalesce((s->>'firstAdvancement')::boolean,false) or coalesce((s->>'advancement')::int,0)>=1 then atk:=atk*power(1.1,1+least(2,coalesce((s->>'advancement')::int,0)));hp:=floor(hp*power(1.1,1+least(2,coalesce((s->>'advancement')::int,0))));end if;
+ if coalesce((s->>'firstAdvancement')::boolean,false) or coalesce((s->>'advancement')::int,0)>=1 then atk:=atk*power(1.1,1+least(3,coalesce((s->>'advancement')::int,0)));hp:=floor(hp*power(1.1,1+least(3,coalesce((s->>'advancement')::int,0))));end if;
  return floor(atk*(1+crit*(crit_damage-1))*cadence*(1+boss_pct/100)+hp*.1+floor(def)*5)::bigint;
 end $$;
 revoke all on function rebirth_private.combat_power(jsonb) from public,anon,authenticated;

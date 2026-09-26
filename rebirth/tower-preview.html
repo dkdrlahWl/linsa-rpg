@@ -1,8 +1,8 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>시련의 탑 · 조작 체험</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="adventure.css"><link rel="stylesheet" href="tower.css?v=rift-chests-1"><style>
 body{margin:0;background:#090e14;overflow:hidden}.preview-toolbar{height:74px;max-width:980px;margin:auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:5px 12px;background:#101c25}.preview-toolbar p{width:100%;margin:0;font-size:10px;color:#bbcbcc}.preview-toolbar select,.preview-toolbar button{width:auto;min-height:32px;height:32px;font-size:11px;padding:4px 9px;margin:0}.preview-toolbar select{flex:1;min-width:0}.preview-toolbar button{border-color:#bba575;background:#57482c}.tower-play{height:calc(100svh - 74px);height:calc(100dvh - 74px)}
 </style></head><body><header class="preview-toolbar"><p>실제 탑 조작 체험 · 능력치는 예시 · 계정에 저장되지 않습니다</p><select id="preview-floor" aria-label="체험할 층"></select><select id="preview-class" aria-label="체험할 직업"><option value="warrior">전사</option><option value="mage">마법사</option><option value="archer">궁수</option><option value="rogue">도적</option><option value="pirate">해적</option></select><button id="preview-restart">다시 도전</button></header><main id="capture-game"></main><script type="module">
-import {TOWER_FLOORS,newTowerBattle,towerStep} from './tower-model.mjs?v=rift-chests-1';
-import {towerArena,TowerController} from './tower-client.mjs?v=rift-chests-1';
+import {TOWER_FLOORS,newTowerBattle,towerStep} from './tower-model.mjs?v=fourth-rift-1';
+import {towerArena,TowerController} from './tower-client.mjs?v=fourth-rift-1';
 const target=document.querySelector('#capture-game'),floorSelect=document.querySelector('#preview-floor'),classSelect=document.querySelector('#preview-class');
 floorSelect.innerHTML=TOWER_FLOORS.map(f=>`<option value="${f.floor}">${f.floor}층 · ${f.name}</option>`).join('');
 let controller;

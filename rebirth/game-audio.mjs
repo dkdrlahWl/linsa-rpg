@@ -1,6 +1,6 @@
 const CLASSES=['warrior','mage','archer','rogue','pirate'];
 const COMMON=['ui-click','ui-tab','ui-back','ui-open','ui-error','enhance-charge','enhance-success','enhance-fail','enhance-break','cube-red','cube-black','cube-prime','cube-rankup','purchase-complete','loot-common','loot-rare','chest-open','level-up','battle-hit','battle-crit','battle-hurt','battle-dash','battle-victory','battle-defeat','boss-warning','lobby-bgm','battle-bgm'];
-export const AUDIO_IDS=new Set([...COMMON,...CLASSES.flatMap(c=>['attack','skill-1','skill-2','skill-3'].map(k=>c+'-'+k))]);
+export const AUDIO_IDS=new Set([...COMMON,...CLASSES.flatMap(c=>['attack','skill-1','skill-2','skill-3','skill-4'].map(k=>c+'-'+k))]);
 export function eventAudio(e,classId){
   if(e.type==='star')return [e.outcome==='success'?'enhance-success':e.outcome==='destroy'?'enhance-break':'enhance-fail'];
   if(e.type==='cube')return [({cube:'cube-red',highCube:'cube-black',primeCube:'cube-prime'})[e.kind]||'cube-red',...(e.up?['cube-rankup']:[])];
@@ -16,7 +16,7 @@ export class BattleAudioTracker{
   constructor(emit){this.emit=emit;this.runs=new Map();}
   observe(b){
     if(!b?.runId)return;let old=this.runs.get(b.runId);
-    const fields={attackReady:b.classId+'-attack',ultimateReady:b.classId+'-skill-1',skillReady:b.classId+'-skill-2',thirdReady:b.classId+'-skill-3',dashReady:'battle-dash',enemyCastStart:'boss-warning'};
+    const fields={attackReady:b.classId+'-attack',ultimateReady:b.classId+'-skill-1',skillReady:b.classId+'-skill-2',thirdReady:b.classId+'-skill-3',fourthReady:b.classId+'-skill-4',dashReady:'battle-dash',enemyCastStart:'boss-warning'};
     if(!old){old={hp:b.hp,won:!!b.won,ended:!!b.ended};for(const k in fields)old[k]=b[k]||0;this.runs.set(b.runId,old);if(this.runs.size>12)this.runs.delete(this.runs.keys().next().value);return;}
     for(const [key,id] of Object.entries(fields)){const value=b[key]||0;if(value>old[key]){if(!b.ended&&(key==='enemyCastStart'||value>b.tick))this.emit(id);old[key]=value;}}
     if(b.hp<old.hp)this.emit('battle-hurt');old.hp=b.hp;
@@ -33,10 +33,10 @@ export class GameAudio{
   volume(){if(!this.ctx)return;this.fx.gain.setTargetAtTime(Math.max(0,Number(this.settings().sound)||0),this.ctx.currentTime,.025);this.bg.gain.setTargetAtTime(Math.max(0,Number(this.settings().music)||0)*1.5,this.ctx.currentTime,.08);}
   async load(id){
     if(!this.ctx||!AUDIO_IDS.has(id))return null;
-    if(!this.buffers.has(id)){const ctx=this.ctx;const pending=fetch(new URL('./audio/'+({"lobby-bgm":"lobby-rebirth-loop","battle-bgm":"battle-whistle-loop"}[id]||id)+'.mp3',import.meta.url)).then(r=>{if(!r.ok)throw Error('audio');return r.arrayBuffer();}).then(b=>ctx.decodeAudioData(b)).catch(()=>{this.buffers.delete(id);return null;});this.buffers.set(id,pending);}return this.buffers.get(id);
+    if(!this.buffers.has(id)){const ctx=this.ctx;const pending=fetch(new URL('./audio/'+({"lobby-bgm":"lobby-green-road","battle-bgm":"battle-wild-oath"}[id]||id)+'.mp3',import.meta.url)).then(r=>{if(!r.ok)throw Error('audio');return r.arrayBuffer();}).then(b=>ctx.decodeAudioData(b)).catch(()=>{this.buffers.delete(id);return null;});this.buffers.set(id,pending);}return this.buffers.get(id);
   }
   warm(){for(const id of ['ui-click','ui-back','ui-tab','ui-error','enhance-charge','enhance-success','enhance-fail','cube-red','cube-black','cube-prime','cube-rankup','chest-open','loot-common'])void this.load(id);this.warmClass();}
-  warmClass(){if(!this.ctx)return;const cls=this.state()?.classId;if(cls&&cls!==this.warmedClass){this.warmedClass=cls;for(const k of ['attack','skill-1','skill-2','skill-3'])void this.load(cls+'-'+k);}}
+  warmClass(){if(!this.ctx)return;const cls=this.state()?.classId;if(cls&&cls!==this.warmedClass){this.warmedClass=cls;for(const k of ['attack','skill-1','skill-2','skill-3','skill-4'])void this.load(cls+'-'+k);}}
   play(kind){
     const aliases={click:'ui-click',hit:this.state()?.classId+'-attack','tower-hit':'battle-hit','tower-crit':'battle-crit','tower-hurt':'battle-hurt','tower-dash':'battle-dash'};
     const id=aliases[kind]||kind;if(!AUDIO_IDS.has(id)||['lobby-bgm','battle-bgm'].includes(id)||!this.settings().sound||document.hidden)return;

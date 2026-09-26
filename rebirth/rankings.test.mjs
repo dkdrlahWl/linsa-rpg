@@ -10,7 +10,7 @@ await db.exec(`create role anon;create role authenticated;create schema auth;cre
 await db.exec(await readFile(new URL('./rankings.sql',import.meta.url),'utf8'));
 let seed=27;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
 for(const cl of CLASSES)for(let n=0;n<40;n++) {
- const s=initialState(cl.id,'순위검증',ctx);s.level=1+Math.floor(random()*200);s.advancement=Math.max(0,n%4-1);s.firstAdvancement=n%4>0;s.stats[cl.stat]=Math.floor(random()*900)+4;
+ const s=initialState(cl.id,'순위검증',ctx);s.level=1+Math.floor(random()*200);s.advancement=Math.max(0,n%5-1);s.firstAdvancement=n%5>0;s.stats[cl.stat]=Math.floor(random()*900)+4;
  s.items=Array.from({length:9},(_,slot)=>({...makeItem(1+Math.floor(random()*200),cl.id,slot,n%3!==0,ctx,0),stars:Math.floor(random()*26),broken:random()<.15,lines:Array.from({length:3},()=>({key:Object.keys(OPTIONS)[Math.floor(random()*Object.keys(OPTIONS).length)],value:Math.ceil(random()*18),grade:5}))}));s.equipped=Object.fromEntries(s.items.map((it,i)=>[i,it.id]));
  const actual=(await db.query('select rebirth_private.combat_power($1) as value',[JSON.stringify(s)])).rows[0].value;
  assert.equal(Number(actual),power(s).combatPower,cl.id+' sample '+n);

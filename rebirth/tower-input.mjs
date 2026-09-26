@@ -1,4 +1,4 @@
-import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=rift-chests-1';
+import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=fourth-rift-1';
 // Integrate input at display/event frequency; send the existing 100 ms protocol.
 export class TowerInput {
   constructor(step=100){this.step=step;this.clear();}
@@ -30,7 +30,7 @@ export function projectPlayer(b,input){
   const next=b.tick+1;
   if((input.buttons&4)&&next>=b.dashReady){
     // The server uses the average direction of this same input interval.
-    dx*=3;dy*=3;if(!input.x&&!input.y){const v=facingVector(b.player.dir??6);dx=v.x*3*fraction;dy=v.y*3*fraction;}
+    const n=Math.hypot(input.x,input.y);dx=n?input.x/n*3*fraction:0;dy=n?input.y/n*3*fraction:0;if(!input.x&&!input.y){const v=facingVector(b.player.dir??6);dx=v.x*3*fraction;dy=v.y*3*fraction;}
   }else if(next<(b.dashUntil||0)){dx=b.dashX*3*fraction;dy=b.dashY*3*fraction;}
   const speed=(input.buttons&1)&&TOWER_CLASSES[b.classId].range>300&&!(next<(b.dashUntil||0))&&!((input.buttons&4)&&next>=b.dashReady)?17:25;
   return {x:Math.max(TOWER_BOUNDS.left,Math.min(TOWER_BOUNDS.right,b.player.x+dx*speed)),y:Math.max(TOWER_BOUNDS.top,Math.min(TOWER_BOUNDS.bottom,b.player.y+dy*speed))};

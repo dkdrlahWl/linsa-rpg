@@ -5,7 +5,7 @@ revoke all on rebirth_private.coop_rooms from public,anon,authenticated;
 create or replace function public.rebirth_coop_action(p jsonb) returns jsonb language plpgsql security definer set search_path='' as $$
 declare u uuid:=(p->>'user')::uuid; sess uuid:=(p->>'session')::uuid; actor rebirth_private.players%rowtype; r rebirth_private.coop_rooms%rowtype; old rebirth_private.receipts%rowtype; action text:=p->>'action'; rid uuid; w jsonb; member jsonb; members jsonb; st jsonb; reward jsonb; claim text:=to_char(now() at time zone 'Asia/Seoul','YYYY-MM-DD'); count_claim int; tier int; list jsonb; events jsonb:='[]'; ms bigint:=floor(extract(epoch from clock_timestamp())*1000); member_user_id uuid;
 begin
- perform pg_advisory_xact_lock(71823001);
+ perform pg_advisory_xact_lock(hashtextextended(coalesce((select state->>'coopRoom' from rebirth_private.players where id=u),p->'args'->>'room',u::text),71823001));
  if not exists(select 1 from rebirth_private.release where epoch=(p->>'epoch')::uuid and (enabled or exists(select 1 from rebirth_private.players where id=u and preview_access))) then raise exception 'REBIRTH_MAINTENANCE';end if;
  select * into actor from rebirth_private.players where id=u for update;
  if not found or actor.active_session is distinct from sess or not exists(select 1 from auth.sessions where id=sess and user_id=u) then raise exception 'SESSION_ENDED';end if;

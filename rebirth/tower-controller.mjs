@@ -1,8 +1,8 @@
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=rift-chests-1';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS} from './data.mjs?v=rift-chests-1';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=rift-chests-1';
-import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=rift-smooth-2';
-const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16};
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=fourth-rift-1';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=fourth-rift-1';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=fourth-rift-1';
+import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=fourth-rift-1';
+const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const snapshot=b=>({enemy:{...b.enemy},projectiles:b.projectiles.map(q=>({...q}))});
@@ -26,7 +26,7 @@ export class TowerController {
     window.addEventListener('keydown',e=>{
       if(e.target?.closest('input,textarea,select,dialog,[contenteditable="true"]'))return;
       if(e.target?.closest('[data-tower-button]')&&['Space','Enter'].includes(e.code))return;
-      const action=codes[e.code];if(action===undefined||this.paused()||(action===8&&this.b.power.firstJob===false||action===2&&!this.b.advanced||action===16&&(this.b.power.advancement||0)<2))return;
+      const action=codes[e.code];if(action===undefined||this.paused()||(action===8&&this.b.power.firstJob===false||action===2&&!this.b.advanced||action===16&&(this.b.power.advancement||0)<2||action===32&&(this.b.power.advancement||0)<3))return;
       e.preventDefault();this.advance(performance.now());
       if(!this.keys.has(e.code)&&typeof action==='number')this.press(action);
       this.keys.add(e.code);
@@ -50,7 +50,7 @@ export class TowerController {
   paused(){return document.hidden||!!document.querySelector('dialog[open]');}
   resetInput(){this.keys.clear();this.buttonPointers.clear();this.stickPointer=null;this.stick={x:0,y:0};this.sampler.buttons=0;this.nodes['stick-knob'].style.transform='';for(const el of this.buttons)el.classList.remove('pressed');}
   press(bit){
-    if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=25||(bit===8&&this.b.power.firstJob===false||bit===2&&!this.b.advanced||bit===16&&(this.b.power.advancement||0)<2))return;
+    if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=25||(bit===8&&this.b.power.firstJob===false||bit===2&&!this.b.advanced||bit===16&&(this.b.power.advancement||0)<2||bit===32&&(this.b.power.advancement||0)<3))return;
     if(bit===1&&this.b.chest){if(canOpenChest(this.b)){this.chestQueued=true;this.openChest();}return;}
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;}
@@ -130,8 +130,8 @@ export class TowerController {
     this.nodes.status.hidden=!this.nodes.status.textContent;this.nodes.status.classList.toggle('danger',casting||b.hazards.length>0);
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){
-      const bit=Number(el.dataset.towerButton);el.disabled=b.chest?(bit!==4&&bit!==1):(bit===8&&b.power.firstJob===false||bit===2&&!b.advanced||bit===16&&(b.power.advancement||0)<2);const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady'}[bit];
-      const duration={1:c.cooldown,2:SECOND_SKILLS[b.classId].cooldown*10,4:35,8:CLASS_SKILLS[b.classId].cooldown*10,16:THIRD_SKILLS[b.classId].cooldown*10}[bit],remaining=Math.max(0,(b[key]||0)-b.tick-this.sampler.elapsed/100);
+      const bit=Number(el.dataset.towerButton);el.disabled=b.chest?(bit!==4&&bit!==1):(bit===8&&b.power.firstJob===false||bit===2&&!b.advanced||bit===16&&(b.power.advancement||0)<2||bit===32&&(b.power.advancement||0)<3);const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady'}[bit];
+      const duration={1:c.cooldown,2:SECOND_SKILLS[b.classId].cooldown*10,4:35,8:CLASS_SKILLS[b.classId].cooldown*10,16:THIRD_SKILLS[b.classId].cooldown*10,32:FOURTH_SKILLS[b.classId].cooldown*10}[bit],remaining=Math.max(0,(b[key]||0)-b.tick-this.sampler.elapsed/100);
       const label=el.querySelector('b'),value=bit!==1&&remaining>0?(remaining/10).toFixed(1):'';
       if(label.textContent!==value)label.textContent=value;
       el.style.setProperty('--cooldown',Math.min(100,remaining/duration*100)+'%');el.classList.toggle('cooldown',remaining>0&&bit!==1);

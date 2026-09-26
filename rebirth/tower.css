@@ -180,3 +180,14 @@
 @media(max-width:759px) and (orientation:portrait){.tower-buttons{flex:0 0 168px;max-width:168px}.tower-controls{padding-left:10px;padding-right:10px;gap:6px}.tower-skill-bar>.tower-button{width:auto;flex:1 1 0;border-radius:12px;height:62px;justify-content:center}.tower-core-actions>.tower-button{flex:1;width:auto}.tower-skill-bar .tower-button span{font-size:10px;word-break:keep-all}}
 .skill-burst.second-burst{width:min(80%,400px);height:260px;left:10%;top:15%;background-image:url('tower/second-job-atlas.webp');background-size:500% 400%;background-position:calc(var(--third-col)*25%) 0;font-size:18px;text-shadow:0 2px 4px #000;animation:second-vfx 1.2s steps(3) forwards}
 @keyframes second-vfx{to{background-position:calc(var(--third-col)*25%) 100%;opacity:.1}}
+
+.fourth-skill-art{display:grid;place-items:center;width:32px;height:32px;color:var(--fourth-color);font-size:28px;filter:drop-shadow(0 0 5px var(--fourth-color))}.tower-button.fourth-skill{border-color:#b7a16a;background:linear-gradient(135deg,#393028,#19262b)}
+
+/* Four readable skills, separate from attack and dodge. */
+.tower-skill-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.fourth-skill-art{position:absolute;right:4px;top:3px;opacity:.45;pointer-events:none}
+@media(max-width:759px) and (orientation:portrait){.tower-controls{height:210px;align-items:end}.tower-skill-bar>.tower-button{height:48px;border-radius:10px}.tower-buttons{max-width:180px;flex-basis:180px}.tower-player-hud{bottom:250px}.tower-core-actions>.tower-button{height:64px}.tower-skill-bar .tower-button span{font-size:11px}}
+
+.fourth-skill-art{width:44px;height:42px;inset:0 0 auto auto;opacity:.65;background:url(tower/fourth-job-atlas.webp) no-repeat;background-size:220px 88px;background-position:0 center;color:transparent}.tower-play:has(.fourth-skill[title*=메테오]) .fourth-skill-art{background-position:-40px center}.tower-play:has(.fourth-skill[title*=화살]) .fourth-skill-art{background-position:-92px center}.tower-play:has(.fourth-skill[title*=초승달]) .fourth-skill-art{background-position:-135px center}.tower-play:has(.fourth-skill[title*=함포]) .fourth-skill-art{background-position:-177px center}
+
+.skill-burst.fourth-burst{width:85%;height:240px;left:8%;top:8%;background:url(tower/fourth-job-atlas.webp) no-repeat;background-size:500% 100%;font-size:17px;text-shadow:0 2px 4px #000;animation:fourth-field 1s ease-in-out 6}.fourth-burst.mage{background-position:25% 0}.fourth-burst.archer{background-position:50% 0}.fourth-burst.rogue{background-position:75% 0}.fourth-burst.pirate{background-position:100% 0}@keyframes fourth-field{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.7;transform:scale(1)}}

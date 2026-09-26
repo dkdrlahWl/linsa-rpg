@@ -1,4 +1,5 @@
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=rift-chests-1';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fourth-rift-1';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fourth-rift-1';
 import {balanceWorld,journeyXP} from './journey-balance.mjs?v=rift-chests-1';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=rift-chests-1';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=rift-chests-1';

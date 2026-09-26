@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=rift-chests-1';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=fourth-rift-1';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){
@@ -36,6 +36,7 @@ export function applyBetaTool(s,command,args,now){
   const before=s.level;s.level=args.level;s.xp=0;s.xpRemainder=0;
   s.stats={STR:4,DEX:4,INT:4,LUK:4};s.points=(s.level-1)*5;s.classBuilds={};
   if(s.advancement>=1)s.firstAdvancement=true;if(s.level<30)s.firstAdvancement=false;if(s.level<60)s.advancement=0;else if(s.level<100&&s.advancement>=2)s.advancement=1;
+  if(s.level<150&&s.advancement>=3)s.advancement=2;
   for(const [slot,id] of Object.entries(s.equipped)){
     const item=s.items.find(it=>it.id===id);
     if(!item||item.level>s.level)delete s.equipped[slot];

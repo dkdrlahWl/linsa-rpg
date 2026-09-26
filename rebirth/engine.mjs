@@ -1,8 +1,9 @@
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=fourth-rift-1';
 import {rollRiftReward} from './rift-rewards.mjs?v=rift-chests-1';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rift-chests-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=fourth-rift-1';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=rift-chests-1';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=rift-chests-1';
-import {applyBetaTool} from './beta-tools.mjs?v=admin-dohyun1-1';
+import {applyBetaTool} from './beta-tools.mjs?v=fourth-rift-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -40,9 +41,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=rift-chests-1";
+} from "./data.mjs?v=fourth-rift-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=rift-chests-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fourth-rift-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -388,6 +389,7 @@ function bossSettle(s, ctx, events) {
     const burst = (active ? skill.damage : 1) * (second?.damage||1);
     const crit = ctx.random() < Math.min(1,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));
     if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});
+    if(b.fourthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepFourth(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});
     const damage = Math.round(b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence);
     b.enemyHp = Math.max(0, b.enemyHp - damage);
     b.tick = t;
@@ -505,7 +507,7 @@ export function execute(input, command, args = {}, ctx) {
     else if(command==='towerInput'){
       check(args.runId===b.runId,'INVALID_TOWER_RUN');
       check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
-      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,31)),'INVALID_TOWER_INPUT');
+      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,63)),'INVALID_TOWER_INPUT');
       const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
       for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&(!b.ended||b.chest);i++)towerStep(b,args.frames[i]);
     }else if(command==='towerLeave'){check(!b.chest,'ITEM_CHEST_PENDING');b.ended=true;b.won=false;b.reason='leave';}
@@ -533,13 +535,14 @@ export function execute(input, command, args = {}, ctx) {
   if (command === "skill") {
     check(s.battle, "NO_BATTLE");
     const b = s.battle;
-    const slot=args.slot===3?3:args.slot===2?2:1;
+    const slot=args.slot===4?4:args.slot===3?3:args.slot===2?2:1;
     check(slot===1?firstJobUnlocked(s):(s.advancement||0)>=slot-1,"ADVANCEMENT_REQUIRED");
-    const sk=slot===3?THIRD_SKILLS[s.classId]:slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
-    const ready=slot===3?'thirdReadyAt':slot===2?'secondReady':'skillReady';
+    const sk=slot===4?FOURTH_SKILLS[s.classId]:slot===3?THIRD_SKILLS[s.classId]:slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
+    const ready=slot===4?'fourthReadyAt':slot===3?'thirdReadyAt':slot===2?'secondReady':'skillReady';
     check(ctx.now >= (b[ready]||0),"SKILL_COOLDOWN");
     b[ready]=ctx.now+sk.cooldown*1000;
-    if(slot===3){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginThird(b,{x:0,y:0},b.tick*10);}
+    if(slot===4){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginFourth(b,{x:0,y:0},b.tick*10);}
+    else if(slot===3){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginThird(b,{x:0,y:0},b.tick*10);}
     else if(sk.type==='attack'){
       const frames=[];
       for(let i=0;i<sk.hits;i++){
@@ -819,7 +822,7 @@ export function execute(input, command, args = {}, ctx) {
     }
     case "advance":
     case "advancementStart": {
-      const next=nextTrialStage(s),stage=args.stage===undefined?next:args.stage;check(Number.isInteger(stage)&&stage>=0&&stage<=2,stage===3?'ALREADY_ADVANCED':'INVALID_TRIAL');const trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);check(stage<=next,'ADVANCEMENT_REQUIRED');const practice=stage<next;check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
+      const next=nextTrialStage(s),stage=args.stage===undefined?next:args.stage;check(Number.isInteger(stage)&&stage>=0&&stage<=3,stage===4?'ALREADY_ADVANCED':'INVALID_TRIAL');const trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);check(stage<=next,'ADVANCEMENT_REQUIRED');const practice=stage<next;check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.battle=newTowerBattle(trial.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{advancementStage:stage,advancementPractice:practice,encounter:trial,enemyHp:trial.hp});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "tutorial":
