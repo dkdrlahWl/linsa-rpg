@@ -8,17 +8,17 @@ Dash direction is normalized, including a short touch or partial-frame press: a 
 
 ## Fourth job
 
-Level 150, previous jobs required, 60-second dedicated trial. Aureon has 2,050,000 HP and 1,000 attack. Each job adds 10% attack and HP, preserving the existing progression rule. Practice remains available after completion.
+Level 150, previous jobs required, 120-second dedicated trial. Aureon has 2,050,000 HP and 1,000 attack. Each job adds 10% attack and HP, preserving the existing progression rule. Practice remains available after completion.
 
 All five fourth skills total 1800% base attack before existing combat modifiers, with a 30-second cooldown. More projectiles/ornaments do not create more damage rolls beyond the fixed pulse count.
 
 | Class | Skill | Hits | Damage per hit | Duration between first/last hit |
 |---|---|---:|---:|---:|
-| Warrior | 천검 만화진 | 24 | 75% | 6.9 s |
-| Mage | 성운의 종말 | 30 | 60% | 5.8 s |
-| Archer | 천풍 화살비 | 36 | 50% | 7.0 s |
-| Rogue | 월영 윤무 | 40 | 45% | 7.8 s |
-| Pirate | 대해의 포화 | 20 | 90% | 7.6 s |
+| Warrior | 천검 만화진 | 12 | 150% | 6.6 s |
+| Mage | 성운의 종말 | 15 | 120% | 5.6 s |
+| Archer | 천풍 화살비 | 18 | 100% | 6.8 s |
+| Rogue | 월영 윤무 | 20 | 90% | 7.6 s |
+| Pirate | 대해의 포화 | 10 | 180% | 7.2 s |
 
 Warrior/rogue fields follow the caster; other fields stay at their cast location. Targets outside the visible field take no pulse damage. Keyboard: O; mobile: fourth skill button.
 
@@ -34,3 +34,5 @@ New music: original acoustic sample arrangements, lobby `lobby-green-road.mp3` a
 Art: built-in ImageGen, transparent full-body ivory/bronze lion knight with teal cloth and crescent halberd; generated source preserved, runtime asset `tower/boss-aureon.webp`. Full-body frame is treated as one sprite to prevent cropping.
 
 Fourth skill atlas: built-in ImageGen, five transparent painted components: ivory celestial sword, burning meteor, emerald arrow, violet crescent blade, sea-spray cannonball. Saved as `tower/fourth-job-atlas.webp`; source image preserved. Components are animated through `fourth-effects.mjs`.
+
+Follow-up balance and melee movement: see FIELD-BALANCE.md.

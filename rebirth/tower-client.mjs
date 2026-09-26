@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=fourth-rift-1';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=fourth-rift-1';
-export {TowerController} from './tower-controller.mjs?v=fourth-rift-1';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=field-melee-1';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=field-melee-1';
+export {TowerController} from './tower-controller.mjs?v=field-melee-1';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){
@@ -10,7 +10,7 @@ export function towerLobby(state){
 export function towerArena(b){
  const f=towerEncounter(b),first=CLASS_SKILLS[b.classId],second=SECOND_SKILLS[b.classId],third=THIRD_SKILLS[b.classId],fourth=FOURTH_SKILLS[b.classId],fourthReady=(b.power?.advancement||0)>=3,thirdReady=(b.power?.advancement||0)>=2||b.third;
  return `<section class="tower-play panel" data-tower-run="${b.runId}">
- <header class="tower-hud"><div class="tower-title-row"><span class="tower-floor-tag">${b.advancementStage!==undefined?(b.advancementStage+1)+'차':String(b.floor).padStart(2,'0')+'F'}</span><div><small>${b.advancementStage!==undefined?"전직 보스 · "+(b.advancementStage+1)+"차":b.weeklyBossId!==undefined?"주간 보스":"시련의 탑"}</small><h3>${f.name}</h3></div><b id="tower-clock">${f.seconds===60?'1:00':'1:30'}</b></div><div class="tower-boss-health"><div class="hp"><i id="tower-enemy-bar"></i></div><small id="tower-enemy-hp"></small></div></header>
+ <header class="tower-hud"><div class="tower-title-row"><span class="tower-floor-tag">${b.advancementStage!==undefined?(b.advancementStage+1)+'차':String(b.floor).padStart(2,'0')+'F'}</span><div><small>${b.advancementStage!==undefined?"전직 보스 · "+(b.advancementStage+1)+"차":b.weeklyBossId!==undefined?"주간 보스":"시련의 탑"}</small><h3>${f.name}</h3></div><b id="tower-clock">${Math.floor(f.seconds/60)+':'+String(f.seconds%60).padStart(2,'0')}</b></div><div class="tower-boss-health"><div class="hp"><i id="tower-enemy-bar"></i></div><small id="tower-enemy-hp"></small></div></header>
  <div class="tower-stage"><div class="tower-canvas-wrap"><canvas id="tower-canvas" width="1000" height="1200" tabindex="0" aria-label="탑 전투장. WASD 또는 방향키 이동, J 공격, K 1차 스킬, L 2차 스킬 · I 3차 스킬, 스페이스 회피"></canvas><p id="tower-status" role="status">전투 준비 중…</p><small id="tower-connection" hidden></small></div></div>
  <div class="tower-player-hud"><span class="tower-player-label">내 체력</span><div class="hp player-health"><i id="tower-player-bar"></i></div><strong id="tower-player-hp"></strong><span id="tower-range">보스에게 접근</span></div>
  <div class="tower-controls"><div class="tower-movement"><div class="tower-stick" id="tower-stick" aria-label="드래그해서 이동"><span>이동</span><i id="tower-stick-knob"></i></div><small>WASD / 방향키</small></div>

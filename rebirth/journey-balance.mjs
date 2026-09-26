@@ -4,13 +4,13 @@ export const levelHours=level=>.16+.00035*level*level;
 export const journeyXP=level=>Math.round(120+level**2.1*12);
 export function balanceWorld(stages,bosses,raids){
  const fieldHP=[260,1800,5000,11000,20000,32000,48000,65000,90000,120000];
- const fieldAttack=[8,55,125,210,320,470,650,850,1100,1450];
+ const fieldAttack=[30,480,1050,1850,2400,3000,3300,3700,4600,5300];
  for(const s of stages){
   const offset=s.id%3;s.level=Math.max(1,s.region*20+offset*6);
   s.hp=Math.round(fieldHP[s.region]*(1+offset*.2));
   s.attack=Math.round(fieldAttack[s.region]*(1+offset*.12));
-  s.xp=Math.max(1,Math.round(journeyXP(s.level)*8/(levelHours(s.level)*3600)));
-  s.gold=4+s.region*2+offset;
+  s.xp=Math.max(1,Math.ceil((journeyXP(s.level)*8/(levelHours(s.level)*3600)+s.hp*.002)*(1+s.region*.06)));
+  s.gold=Math.round((4+s.level*.3+s.hp*.001)*(1+s.region*.1));
   s.dropLevel=s.id===29?200:Math.max(10,Math.floor(s.level/10)*10);
   s.star=s.region<2?0:Math.max(0,(s.region-1)*9);
  }

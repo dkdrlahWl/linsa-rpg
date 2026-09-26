@@ -17,7 +17,7 @@ for(const classId of Object.keys(FOURTH_SKILLS)){
  let room=startCoop({id:'fourth',me:'me',tier:9,status:'waiting',members:[{id:'me',classId,power:p,advanced:true}]},0);room=predictCoopStep(room,'me',[0,0,32]);assert.ok(room.members[0].fourthCast);
 }
 const ctx={now:1e6,uuid:randomUUID,random:()=>.5};let s=initialState('warrior','전직검증',ctx);Object.assign(s,{hunting:false,level:149,firstAdvancement:true,advancement:2});
-assert.throws(()=>execute(s,'advancementStart',{stage:3},ctx),/LEVEL_REQUIRED/);s.level=150;const before=power(s);s=execute(s,'advancementStart',{stage:3},ctx).state;assert.equal(s.battle.encounter.seconds,60);
+assert.throws(()=>execute(s,'advancementStart',{stage:3},ctx),/LEVEL_REQUIRED/);s.level=150;const before=power(s);s=execute(s,'advancementStart',{stage:3},ctx).state;assert.equal(s.battle.encounter.seconds,120);
 s.battle.won=true;s.battle.ended=true;s=execute(s,'sync',{},ctx).state;assert.equal(s.advancement,3);assert.ok(Math.abs(power(s).attack/before.attack-1.1)<.02);
 s=execute(s,'advancementStart',{stage:3},ctx).state;assert.equal(s.battle.advancementPractice,true);
 console.log('PASS five fourth-job skills: total 1800%, 30s cooldown, pulse counts and range, solo/co-op activation, level 150 gate, victory unlock, +10% stats, repeat practice');

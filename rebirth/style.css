@@ -908,3 +908,7 @@ button { touch-action:manipulation; }
 .currency { display:inline-flex; align-items:center; gap:6px; }
 .resource-hero { display:block; width:112px; height:112px; object-fit:contain; margin:4px auto 16px; }
 @media(max-width:400px) { .resource-label { gap:3px; } .resource-label img { width:21px; height:21px; flex-basis:21px; } }
+
+/* A square atlas cell cannot stretch into its neighbouring cell. */
+.monster-sprite { flex:none; width:auto; height:auto; block-size:100%; aspect-ratio:1; max-inline-size:100%; overflow:hidden; }
+.damage { top:calc(74% - var(--damage-row,0)*23px); font-size:18px; animation:none; transition:top .08s linear; }

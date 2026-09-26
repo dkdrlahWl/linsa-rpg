@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=fourth-rift-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fourth-rift-2';
-import {incomingDamage} from './journey-balance.mjs?v=rift-chests-1';
-import {installMenuIcons} from './menu-icons.mjs?v=rift-chests-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=rift-chests-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=fourth-rift-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fourth-rift-1';
-import * as D from "./data.mjs?v=fourth-rift-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=rift-chests-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=rift-chests-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=rift-chests-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fourth-rift-1";
+import {GameAudio} from './game-audio.mjs?v=field-melee-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=field-melee-1';
+import {incomingDamage} from './journey-balance.mjs?v=field-melee-1';
+import {installMenuIcons} from './menu-icons.mjs?v=field-melee-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=field-melee-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=field-melee-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=field-melee-1';
+import * as D from "./data.mjs?v=field-melee-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-melee-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=field-melee-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=field-melee-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=field-melee-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -397,7 +397,7 @@ function hunt() {
     r = huntingRate(state),
     b = state.battle,
     boss = b && battleEnemy(b);
-  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : "권장 Lv." + st.level + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : state.hunting ? "전투 중" : "사냥 시작을 눌러 도전하세요"}</small></div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill" id="hunt-status">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : `<p id="field-player-hp">내 HP ${fmt(power(state).hp)} / ${fmt(power(state).hp)}</p><div class="hp player-health"><i id="field-player-bar" style="width:100%"></i></div><small id="field-combat-result">${state.hunting?"몬스터와 전투 중":"사냥을 시작하면 자동으로 전투합니다."}</small>`}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${gearLevelRange(Math.max(10,st.dropLevel))}</b></div></div><div class="actions">${boss ? combatSkillButtons()+disabledBtn("회복 "+(3-(b.potions||0))+"/3","battlePotion","",(b.potions||0)>=3||Date.now()<(b.potionReady||0)) : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside>${dailyCard()}<div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">권장레벨에 맞는 장비를 강화해야 안정적으로 사냥할 수 있습니다. 패배하면 10초 후 부활해 재도전합니다. 반복해서 패배한다면 장비를 강화하거나 하위 사냥터에서 재화를 모으세요. 상위 사냥터로 이동하며 성장하세요. 자신의 레벨보다 15레벨 이상 낮은 사냥터에서는 경험치가 줄어듭니다.</p><div class="row wrap">${Object.entries(
+  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : "권장 Lv." + st.level + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : state.hunting ? "전투 중" : "사냥 시작을 눌러 도전하세요"}</small></div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill" id="hunt-status">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : `<p id="field-player-hp">내 HP ${fmt(power(state).hp)} / ${fmt(power(state).hp)}</p><div class="hp player-health"><i id="field-player-bar" style="width:100%"></i></div><small id="field-combat-result">${state.hunting?"몬스터와 전투 중":"사냥을 시작하면 자동으로 전투합니다."}</small>`}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${gearLevelRange(Math.max(10,st.dropLevel))}</b></div></div><div class="actions">${boss ? combatSkillButtons()+disabledBtn("회복 "+(3-(b.potions||0))+"/3","battlePotion","",(b.potions||0)>=3||Date.now()<(b.potionReady||0)) : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside>${dailyCard()}<div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">권장레벨에 맞는 장비를 강화해야 안정적으로 사냥할 수 있습니다. 패배하면 10초 후 부활해 재도전합니다. 반복해서 패배한다면 장비를 강화하거나 하위 사냥터에서 재화를 모으세요. 상위 사냥터로 이동하며 성장하세요. 자신의 레벨보다 15레벨 이상 낮은 사냥터에서는 경험치와 골드가 함께 줄어듭니다.</p><div class="row wrap">${Object.entries(
     D.MATERIALS,
   )
     .map(
@@ -545,7 +545,7 @@ function combatSkillButtons(party=false) {
 function skillGuide(){return '<div class="skill-guide">'+[1,2,3,4].map(slot=>{const sk=slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
 function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row">'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">◆</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
 
-function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨. 전용 보스를 직접 처치하면 즉시 전직합니다.</p><p class="note">60초 제한 · 완료한 전직 보스도 연습 가능 · 연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (4회 누적 46.41%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 60초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'연습 입장':locked?'레벨·이전 전직 필요':'전직 보스 도전','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
+function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨. 전용 보스를 직접 처치하면 즉시 전직합니다.</p><p class="note">120초 제한 · 완료한 전직 보스도 연습 가능 · 연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (4회 누적 46.41%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'연습 입장':locked?'레벨·이전 전직 필요':'전직 보스 도전','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
 function bosses() {
   const menu=`<div class="subnav">${[["daily","일일"],["weekly","주간"],["coop","협동 균열"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="coop")return menu+coopLobby(state,coopRoom,coopRooms);
@@ -1275,7 +1275,9 @@ function strike(arena, frame = null) {
     const n=document.createElement("span");
     n.className="damage"+(frame.crit?" critical":"");
     n.textContent=(frame.crit?"CRITICAL ":"")+fmt(frame.damage);
-    arena.append(n); setTimeout(()=>n.remove(),850);
+    arena.append(n);
+    const restack=()=>{const rows=[...arena.querySelectorAll('.damage')];while(rows.length>10)rows.shift().remove();rows.forEach((row,i)=>row.style.setProperty('--damage-row',String(rows.length-1-i)));};
+    restack();setTimeout(()=>{n.remove();restack();},2400);
   }
   setTimeout(()=>slash.remove(),450);
 
@@ -1293,10 +1295,11 @@ setInterval(() => {
     const progress=((state.huntRemainder||0)+elapsed)%rate.seconds;
     const deathAt=rate.seconds-10;
     const recovering=!rate.survives&&progress>=deathAt;
-    const fightTime=recovering?deathAt:progress;
-    const incoming=incomingDamage(st.attack,p.defense);
+    const defeated=rate.survives&&progress>=rate.fightSeconds;
+    const fightTime=recovering?deathAt:Math.min(progress,rate.fightSeconds-.001);
+    const incoming=rate.incoming;
     const hp=recovering?0:Math.max(0,p.hp-Math.floor(fightTime/3)*incoming);
-    const enemyHp=Math.max(1,st.hp-p.dps*Math.floor(fightTime));
+    const enemyHp=defeated?0:Math.max(1,st.hp-p.dps*Math.floor(fightTime));
     const bar=$("#enemy-hp");
     if(bar)bar.style.width=(100*enemyHp/st.hp)+"%";
     const ownBar=$("#field-player-bar");
@@ -1304,12 +1307,12 @@ setInterval(() => {
     const ownLabel=$("#field-player-hp");
     if(ownLabel)ownLabel.textContent="내 HP "+fmt(hp)+" / "+fmt(p.hp);
     const status=$("#hunt-status");
-    if(status)status.textContent=recovering?"부활 대기":"자동 전투 중";
+    if(status)status.textContent=recovering?"부활 대기":defeated?"다음 몬스터 등장 대기":"자동 전투 중";
     const result=$("#field-combat-result");
-    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":"몬스터와 전투 중 · 3초마다 피격";
+    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":defeated?"처치 완료 · 다음 전투 준비":"시간제한 없음 · 3초마다 피격 · HP가 0이면 패배";
     const label=$("#battle-info");
     if(label)label.textContent="몬스터 HP "+fmt(enemyHp)+" / "+fmt(st.hp);
-    if (!recovering && Date.now()-lastVisualHit>=1000) { lastVisualHit=Date.now(); strike(arena); }
+    if (!recovering && !defeated && Date.now()-lastVisualHit>=1000) { lastVisualHit=Date.now(); strike(arena); }
 
   }
   if(state.battle) {

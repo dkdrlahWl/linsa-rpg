@@ -1,6 +1,7 @@
-import {drawFourth} from './fourth-effects.mjs?v=fourth-rift-1';
-import MOTION_LAYOUT from './motion-layout.mjs?v=rift-chests-1';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=fourth-rift-1';
+import {damageRows} from './damage-stack.mjs?v=field-melee-1';
+import {drawFourth} from './fourth-effects.mjs?v=field-melee-1';
+import MOTION_LAYOUT from './motion-layout.mjs?v=field-melee-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=field-melee-1';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -254,11 +255,15 @@ export class TowerRenderer {
       this.strip(motionAsset(src),frame,e.x,e.y,e.size*1.8,e.size*1.3,(e.angle||0)+(e.kind==='slash'?age*.45:0),1-age*.75,filter);
     }
     this.drawImpacts(now,dt);
-    for(const n of b.numbers){
+    const rows=damageRows(b.numbers,time),personal=b.numbers.filter(n=>n.end>time&&(n.kind==='incoming'||n.kind==='heal')).slice(-3);
+    const rowHeight=this.mobileActors.matches?58:42,rowFont=this.mobileActors.matches?52:36;
+    const stackTop=Math.max(this.camera.y+65,b.enemy.y-155-(rows.length-1)*rowHeight);
+    for(const n of [...rows,...personal]){
       const age=time-n.start,fade=clamp((n.end-time)/2),incoming=n.kind==='incoming';
-      g.save();g.globalAlpha=fade;g.font=`900 ${Math.round((n.kind==='critical'?52:incoming?43:38)*(1+Math.max(0,1-age/3)*.25))}px system-ui`;g.textAlign='center';g.lineWidth=7;g.strokeStyle='#071017';
+      const row=rows.indexOf(n);
+      g.save();g.globalAlpha=fade;g.font=`900 ${row>=0?rowFont:43}px system-ui`;g.textAlign='center';g.lineWidth=7;g.strokeStyle='#071017';
       g.fillStyle=incoming?'#ff9994':n.kind==='heal'?'#8cffbb':n.kind==='critical'?'#ffe092':'#fff';
-      const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=n.y-age*8,x=n.x+((n.id%3)-1)*22;
+      const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=row>=0?stackTop+row*rowHeight:n.y-age*8,x=row>=0?b.enemy.x:n.x;
       g.shadowColor=n.kind==='critical'?'#ffae34':incoming?'#f74c4c':'#ffffff';g.shadowBlur=12;
       g.strokeText(value,x,y);g.fillText(value,x,y);g.restore();
     }

@@ -1,9 +1,9 @@
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=fourth-rift-1';
-import {rollRiftReward} from './rift-rewards.mjs?v=rift-chests-1';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=fourth-rift-1';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=rift-chests-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=rift-chests-1';
-import {applyBetaTool} from './beta-tools.mjs?v=fourth-rift-1';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=field-melee-1';
+import {rollRiftReward} from './rift-rewards.mjs?v=field-melee-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=field-melee-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=field-melee-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=field-melee-1';
+import {applyBetaTool} from './beta-tools.mjs?v=field-melee-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -41,9 +41,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=fourth-rift-1";
+} from "./data.mjs?v=field-melee-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fourth-rift-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=field-melee-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -175,7 +175,7 @@ export function power(s) {
     0.05 + pct.crit / 100 + (s.classId === "archer" ? 0.05 : 0),
   );
   const cadence = s.classId === "pirate" ? 1.08 : 1;
-  if (s.classId === "warrior") { hp = Math.floor(hp * 1.15); defense *= 1.15; }
+  if (s.classId === "warrior") { hp = Math.floor(hp * 1.30); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
   const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
   if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
@@ -247,11 +247,16 @@ export function bestEquipment(s) {
 export function huntingRate(s) {
   const st = STAGES[s.stage],
     p = power(s);
-  const duration = Math.max(8, Math.ceil(st.hp / p.dps));
+  const fightSeconds = Math.max(1, Math.ceil(st.hp / p.dps));
   const incoming = incomingDamage(st.attack,p.defense);
-  const survives = Math.floor(duration / 3) * incoming < p.hp;
-  return { seconds: survives ? duration : Math.max(3, Math.ceil(p.hp / incoming) * 3) + 10,
-    xp: survives ? st.xp * Math.min(1,(st.level+15)/s.level)**2 * (1 + p.xpGain/100) : 0, gold: survives ? st.gold * (1 + p.goldGain/100) : 0, survives };
+  const deathSeconds = Math.max(3, Math.ceil(p.hp / incoming) * 3);
+  // Attacks resolve before a monster's simultaneous retaliation. No field time limit.
+  const survives = fightSeconds <= deathSeconds;
+  const levelReward = Math.min(1,(st.level+15)/s.level)**2;
+  return { seconds: survives ? Math.max(8,fightSeconds) : deathSeconds + 10,
+    fightSeconds,deathSeconds,incoming,
+    xp: survives ? st.xp * levelReward * (1 + p.xpGain/100) : 0,
+    gold: survives ? st.gold * levelReward * (1 + p.goldGain/100) : 0, survives };
 }
 function levelUp(s, xp) {
   const exact = xp + (s.xpRemainder || 0), whole = Math.floor(exact + 1e-9);
@@ -300,7 +305,7 @@ export function settle(s, ctx) {
   // Keep sub-second progress; discard only time beyond the offline cap.
   s.lastAt = ctx.now - (elapsed % 1000);
   if (!s.hunting || s.battle || s.coopRoom || !seconds) return null;
-  let remaining = seconds + s.huntRemainder, kills = 0, xp = 0, defeats = 0;
+  let remaining = seconds + s.huntRemainder, kills = 0, xp = 0, earnedGold = 0, defeats = 0;
   // Recalculate at level boundaries so offline and frequent online settlement agree.
   while (remaining > 0) {
     const rate = huntingRate(s);
@@ -309,13 +314,13 @@ export function settle(s, ctx) {
     if (!rate.survives) { defeats += count; remaining %= rate.seconds; break; }
     if (s.level < 200) count = Math.min(count, Math.ceil((xpNeeded(s.level) - s.xp - (s.xpRemainder || 0)) / rate.xp));
     remaining -= count * rate.seconds;
-    kills += count; xp += count * rate.xp;
+    kills += count; xp += count * rate.xp; earnedGold += count * rate.gold;
     levelUp(s, count * rate.xp);
   }
   s.huntRemainder = remaining;
   s.huntKills = (s.huntKills || 0) + kills;
   if(s.daily)s.daily.hunt+=kills;
-  const goldExact = kills * huntingRate(s).gold + (s.goldRemainder || 0),
+  const goldExact = earnedGold + (s.goldRemainder || 0),
     gold = Math.floor(goldExact + 1e-9);
   s.goldRemainder = Math.max(0,goldExact - gold);
   s.gold += gold;

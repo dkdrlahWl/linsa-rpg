@@ -48,7 +48,7 @@ begin
  hp:=floor(hp*(1+hp_pct/100));def:=def*(1+def_pct/100);
  crit:=least(.95,.05+crit_pct/100+(case when cl='archer' then .05 else 0 end));
  cadence:=case when cl='pirate' then 1.08 else 1 end;
- if cl='warrior' then hp:=floor(hp*1.15);def:=def*1.15;end if;
+ if cl='warrior' then hp:=floor(hp*1.30);def:=def*1.15;end if;
  if cl='mage' then atk:=atk*1.06;end if;
  crit_damage:=case when cl='rogue' then 1.9 else 1.6 end;
  if coalesce((s->>'firstAdvancement')::boolean,false) or coalesce((s->>'advancement')::int,0)>=1 then atk:=atk*power(1.1,1+least(3,coalesce((s->>'advancement')::int,0)));hp:=floor(hp*power(1.1,1+least(3,coalesce((s->>'advancement')::int,0))));end if;

@@ -1,11 +1,11 @@
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fourth-rift-1';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fourth-rift-1';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=rift-chests-1';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=rift-chests-1';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=rift-chests-1';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=rift-chests-1';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=rift-chests-1";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=rift-chests-1";
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=field-melee-1';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=field-melee-1';
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=field-melee-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=field-melee-1';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=field-melee-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=field-melee-1';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=field-melee-1";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=field-melee-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -163,7 +163,7 @@ const monsterNames = [
   "공허 슬라임", "심연 새끼용", "검은 갑옷", "보라 가오리", "눈알 촉수", "일식 여우",
 ];
 export const MONSTERS = monsterNames.map((name,id)=>({id,name,stage:Math.floor(id/2),
-  art:`monsters-${Math.floor(id/12)}.svg`,x:(id%4)*100/3,y:Math.floor((id%12)/4)*50}));
+  art:`monsters-clean-${Math.floor(id/12)}.webp`,x:(id%4)*100/3,y:Math.floor((id%12)/4)*50}));
 const BOSS_BALANCE = [{"id":0,"hp":2093,"attack":8,"target":40,"stars":0,"gear":1,"boss":false,"slots":1,"pot":false},{"id":1,"hp":4185,"attack":7,"target":55,"stars":1,"gear":1,"boss":false,"slots":5,"pot":false},{"id":2,"hp":11063,"attack":8,"target":75,"stars":2,"gear":1,"boss":false,"slots":9,"pot":false},{"id":3,"hp":27005,"attack":38,"target":71,"stars":3,"gear":20,"boss":false,"slots":9,"pot":false},{"id":4,"hp":34929,"attack":37,"target":83,"stars":3,"gear":20,"boss":false,"slots":9,"pot":false},{"id":5,"hp":43824,"attack":35,"target":95,"stars":3,"gear":20,"boss":false,"slots":9,"pot":false},{"id":6,"hp":61684,"attack":67,"target":77,"stars":5,"gear":40,"boss":false,"slots":9,"pot":false},{"id":7,"hp":74900,"attack":66,"target":89,"stars":5,"gear":40,"boss":false,"slots":9,"pot":false},{"id":8,"hp":89087,"attack":58,"target":101,"stars":5,"gear":40,"boss":false,"slots":9,"pot":false},{"id":9,"hp":110609,"attack":104,"target":83,"stars":6,"gear":60,"boss":false,"slots":9,"pot":false},{"id":10,"hp":130754,"attack":101,"target":95,"stars":6,"gear":60,"boss":false,"slots":9,"pot":false},{"id":11,"hp":151948,"attack":88,"target":107,"stars":6,"gear":60,"boss":false,"slots":9,"pot":false},{"id":12,"hp":170027,"attack":134,"target":89,"stars":8,"gear":80,"boss":false,"slots":9,"pot":false},{"id":13,"hp":197368,"attack":126,"target":101,"stars":8,"gear":80,"boss":false,"slots":9,"pot":false},{"id":14,"hp":225758,"attack":114,"target":113,"stars":8,"gear":80,"boss":false,"slots":9,"pot":false},{"id":15,"hp":242888,"attack":156,"target":95,"stars":10,"gear":100,"boss":false,"slots":9,"pot":false},{"id":16,"hp":278246,"attack":154,"target":107,"stars":10,"gear":100,"boss":false,"slots":9,"pot":false},{"id":17,"hp":314654,"attack":140,"target":119,"stars":10,"gear":100,"boss":false,"slots":9,"pot":false},{"id":18,"hp":321784,"attack":184,"target":101,"stars":11,"gear":120,"boss":false,"slots":9,"pot":false},{"id":19,"hp":364956,"attack":175,"target":113,"stars":11,"gear":120,"boss":false,"slots":9,"pot":false},{"id":20,"hp":409177,"attack":157,"target":125,"stars":11,"gear":120,"boss":false,"slots":9,"pot":false},{"id":21,"hp":499608,"attack":202,"target":107,"stars":13,"gear":140,"boss":true,"slots":9,"pot":true},{"id":22,"hp":561491,"attack":201,"target":119,"stars":13,"gear":140,"boss":true,"slots":9,"pot":true},{"id":23,"hp":624556,"attack":181,"target":131,"stars":13,"gear":140,"boss":true,"slots":9,"pot":true},{"id":24,"hp":625999,"attack":228,"target":113,"stars":14,"gear":160,"boss":true,"slots":9,"pot":true},{"id":25,"hp":698625,"attack":220,"target":125,"stars":14,"gear":160,"boss":true,"slots":9,"pot":true},{"id":26,"hp":772431,"attack":204,"target":137,"stars":14,"gear":160,"boss":true,"slots":9,"pot":true},{"id":27,"hp":795328,"attack":253,"target":119,"stars":16,"gear":180,"boss":true,"slots":9,"pot":true},{"id":28,"hp":881972,"attack":245,"target":131,"stars":16,"gear":180,"boss":true,"slots":9,"pot":true},{"id":29,"hp":979174,"attack":220,"target":143,"stars":16,"gear":180,"boss":true,"slots":9,"pot":true}];
 export const BOSSES = bosses.flatMap((list, r) =>
   list.map((name, j) => ({
