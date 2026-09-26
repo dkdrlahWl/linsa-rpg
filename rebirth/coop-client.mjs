@@ -1,12 +1,12 @@
-import {prepareWaveCreature} from './wave-motion.mjs?v=wave-meadow-1';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-meadow-1';
-import {waveLobby,waveHud} from './wave-ui.mjs?v=wave-meadow-1';
-import {CoopMotion} from './coop-motion.mjs?v=wave-meadow-1';
-import {TowerInput,projectPlayer} from './tower-input.mjs?v=wave-meadow-1';
-import {predictCoopStep} from './coop-model.mjs?v=wave-meadow-1';
-import {COOP_TIERS} from './coop-model.mjs?v=wave-meadow-1';
-import {towerArena} from './tower-client.mjs?v=wave-meadow-1';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=wave-meadow-1';
+import {prepareWaveCreature} from './wave-motion.mjs?v=wave-clear-2';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-clear-2';
+import {waveLobby,waveHud} from './wave-ui.mjs?v=wave-clear-2';
+import {CoopMotion} from './coop-motion.mjs?v=wave-clear-2';
+import {TowerInput,projectPlayer} from './tower-input.mjs?v=wave-clear-2';
+import {predictCoopStep} from './coop-model.mjs?v=wave-clear-2';
+import {COOP_TIERS} from './coop-model.mjs?v=wave-clear-2';
+import {towerArena} from './tower-client.mjs?v=wave-clear-2';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=wave-clear-2';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -30,7 +30,7 @@ export class CoopController{
   const chestButton=host.querySelector('#tower-chest');delete chestButton.dataset.action;chestButton.addEventListener('click',()=>{this.pendingBits|=1;this.flush();},opt);
   host.querySelector('#tower-auto').addEventListener('click',e=>{this.auto=!this.auto;e.currentTarget.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');},opt);
   for(const cls of new Set(room.members.map(m=>m.classId))){image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+COOP_TIERS[room.tier].art));image(asset('effects'));image(asset('reward-chest'));
-  this.artReady=false;Promise.all([prepareCombatArt(room.members.map(m=>m.classId),COOP_TIERS[room.tier].art),...(room.mode==='wave'?[image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].art).decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].eliteArt).decode().catch(()=>{})]:[])]).then(()=>{this.artReady=true;});
+  this.artReady=false;Promise.all([prepareCombatArt(room.members.map(m=>m.classId),COOP_TIERS[room.tier].art),...(room.mode==='wave'?[image('wave/meadow-painted-v2.webp').decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].art).decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].eliteArt).decode().catch(()=>{})]:[])]).then(()=>{this.artReady=true;});
   this.accept(room);this.timer=setInterval(()=>this.flush(),100);this.frame=requestAnimationFrame(t=>this.draw(t));
  }
  input(){if(this.predicted?.mode==='wave'&&this.predicted.members.find(m=>m.id===this.room.me)?.hp<=0)return [0,0,0];if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=this.auto?1:0;for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,bits];}

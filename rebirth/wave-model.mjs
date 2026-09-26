@@ -1,8 +1,8 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=wave-meadow-1';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=wave-meadow-1';
-import {incomingDamage} from './journey-balance.mjs?v=wave-meadow-1';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=wave-clear-2';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=wave-clear-2';
+import {incomingDamage} from './journey-balance.mjs?v=wave-clear-2';
 
-export const WAVE_SECONDS=30, WAVE_LIMIT=50;
+export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const bound=x=>Math.max(120,Math.min(3080,x));
 function random(w){w.seed=(Math.imul(w.seed,1664525)+1013904223)>>>0;return w.seed/4294967296;}
@@ -15,13 +15,13 @@ function emitWaveSpawn(w){
  const plan=w.spawnPlan;if(!plan)return;const s=waveStats(w.wave),age=w.tick-plan.at;
  const spawn=(side,elite)=>{const p=200+random(w)*2800,x=side===1?3040:side===3?160:p,y=side===0?160:side===2?3040:p;w.monsters.push({id:++w.serial,x,y,side,elite,species:s.species,level:s.level,hp:s.hp*(elite?4:1),maxHp:s.hp*(elite?4:1),attack:s.attack*(elite?1.7:1),speed:elite?23:s.speed,ready:w.tick+10,walk:0,face:1});};
  // Reinforcements arrive during the first ten seconds, so later waves do not
- // automatically lose merely because their total spawn budget exceeds 50.
- for(let side=0;side<4;side++){const due=Math.min(w.spawnCounts[side],1+Math.floor(age/10));while(plan.regular[side]<due&&w.monsters.length<50){spawn(side,false);plan.regular[side]++;}}
- const elitesDue=Math.min(s.eliteCount,1+Math.floor(age*s.eliteCount/100));while(plan.elites<elitesDue&&w.monsters.length<50){spawn(Math.floor(random(w)*4),true);plan.elites++;}
+ // automatically lose merely because their total spawn budget exceeds the arena limit.
+ for(let side=0;side<4;side++){const due=Math.min(w.spawnCounts[side],1+Math.floor(age/10));while(plan.regular[side]<due&&w.monsters.length<WAVE_LIMIT){spawn(side,false);plan.regular[side]++;}}
+ const elitesDue=Math.min(s.eliteCount,1+Math.floor(age*s.eliteCount/100));while(plan.elites<elitesDue&&w.monsters.length<WAVE_LIMIT){spawn(Math.floor(random(w)*4),true);plan.elites++;}
  if(w.monsters.length>=WAVE_LIMIT){w.status='lost';w.reason='overrun';w.endedTick=w.tick;}
 }
 export function spawnWave(w){
- w.wave++;w.nextWave=w.wave*300;w.spawnCounts=Array.from({length:4},()=>5+Math.floor(random(w)*6));w.spawnPlan={at:w.tick,regular:[0,0,0,0],elites:0};emitWaveSpawn(w);
+ w.wave++;w.nextWave=w.tick+WAVE_SECONDS*10;w.spawnCounts=Array.from({length:4},()=>5+Math.floor(random(w)*6));w.spawnPlan={at:w.tick,regular:[0,0,0,0],elites:0};emitWaveSpawn(w);
 }
 export function initializeWave(w){
  Object.assign(w,{wave:0,nextWave:0,monsters:[],kills:0,seed:(w.started>>>0)||1});
@@ -70,6 +70,9 @@ export function advanceWaveRaw(room,user,input,now,frames=[]){
    }
   }
   w.monsters=w.monsters.filter(e=>e.hp>0);
+  // A cleared full spawn budget advances immediately, without waiting for the clock.
+  const plan=w.spawnPlan;
+  if(!w.monsters.length&&plan&&plan.regular.every((n,i)=>n>=w.spawnCounts[i])&&plan.elites>=waveStats(w.wave).eliteCount)spawnWave(w);
   for(const e of w.monsters){
    alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length)break;
    const target=alive.reduce((a,b)=>distance(a,e)<distance(b,e)?a:b),d=distance(target,e);

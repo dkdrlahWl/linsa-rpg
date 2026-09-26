@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=wave-meadow-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-meadow-1';
-import {incomingDamage} from './journey-balance.mjs?v=wave-meadow-1';
-import {installMenuIcons} from './menu-icons.mjs?v=wave-meadow-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=wave-meadow-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=wave-meadow-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-meadow-1';
-import * as D from "./data.mjs?v=wave-meadow-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=wave-meadow-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=wave-meadow-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=wave-meadow-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-meadow-1";
+import {GameAudio} from './game-audio.mjs?v=wave-clear-2';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-clear-2';
+import {incomingDamage} from './journey-balance.mjs?v=wave-clear-2';
+import {installMenuIcons} from './menu-icons.mjs?v=wave-clear-2';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=wave-clear-2';
+import {TOWER_FLOORS} from './tower-model.mjs?v=wave-clear-2';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-clear-2';
+import * as D from "./data.mjs?v=wave-clear-2";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=wave-clear-2";
+import equipmentBounds from "./equipment-bounds.mjs?v=wave-clear-2";
+import { inventoryGroups } from "./inventory-order.mjs?v=wave-clear-2";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-clear-2";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -757,7 +757,7 @@ function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.s
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G<br>큐브 '+r.cube+(r.highCube?' · 블랙 큐브 '+r.highCube:''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;
-  if(r?.type==='coop'&&r.mode==='wave')return open('협동 웨이브 종료','<h3>'+fmt(r.wave)+'웨이브 도달 · '+fmt(r.cleared)+'웨이브 생존</h3><p>처치 '+fmt(r.kills)+'마리 · '+(r.reason==='overrun'?'몬스터 50마리 누적':r.reason==='leave'?'도전 종료':'전원 사망')+'</p><p>'+fmt(r.gold)+' G · 레드 큐브 '+fmt(r.cube)+'개 · 잠재 해금 주문서 '+fmt(r.scroll)+'개</p><p>재도전은 항상 1웨이브부터 시작합니다.</p>'+btn('확인','ack','','gold',true));
+  if(r?.type==='coop'&&r.mode==='wave')return open('협동 웨이브 종료','<h3>'+fmt(r.wave)+'웨이브 도달 · '+fmt(r.cleared)+'웨이브 생존</h3><p>처치 '+fmt(r.kills)+'마리 · '+(r.reason==='overrun'?'몬스터 100마리 누적':r.reason==='leave'?'도전 종료':'전원 사망')+'</p><p>'+fmt(r.gold)+' G · 레드 큐브 '+fmt(r.cube)+'개 · 잠재 해금 주문서 '+fmt(r.scroll)+'개</p><p>재도전은 항상 1웨이브부터 시작합니다.</p>'+btn('확인','ack','','gold',true));
   if(r?.type==='coop')return open(r.won?'개인 상자 획득':'균열 도전 종료','<p>'+(r.won?fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join(''):'장비를 정비하고 다시 도전해 보세요.')+'</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · 잠재 3줄 잠금 (가방이 가득 차면 보관함)</p>').join('')+btn('확인','ack','','gold',true));
   if(r?.type==='advancementTrial')return advancementResult(r);
   if(r?.type==='tower')return towerReward(r);

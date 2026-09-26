@@ -1,9 +1,9 @@
-import {drawWaveCreature} from './wave-motion.mjs?v=wave-meadow-1';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-meadow-1';
-import {damageRows} from './damage-stack.mjs?v=wave-meadow-1';
-import {drawFourth} from './fourth-effects.mjs?v=wave-meadow-1';
-import MOTION_LAYOUT from './motion-layout.mjs?v=wave-meadow-1';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=wave-meadow-1';
+import {drawWaveCreature} from './wave-motion.mjs?v=wave-clear-2';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-clear-2';
+import {damageRows} from './damage-stack.mjs?v=wave-clear-2';
+import {drawFourth} from './fourth-effects.mjs?v=wave-clear-2';
+import MOTION_LAYOUT from './motion-layout.mjs?v=wave-clear-2';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=wave-clear-2';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -106,15 +106,11 @@ export class TowerRenderer {
     g.drawImage(im,frame%2*sw,Math.floor(frame/2)*sh,sw,sh,-w/2,-h/2,w,h);g.restore();
   }
   meadow(){
-    if(!this.meadowCanvas){
-      const c=document.createElement('canvas');c.width=3200;c.height=3200;const g=c.getContext('2d');
-      g.fillStyle='#547a40';g.fillRect(0,0,3200,3200);let seed=71023;const rand=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
-      for(let i=0;i<1400;i++){const x=rand()*3200,y=rand()*3200,r=20+rand()*90;g.fillStyle=['#77915318','#385b351a','#a2ab5920'][i%3];g.beginPath();g.ellipse(x,y,r,r*.6,rand(),0,Math.PI*2);g.fill();}
-      for(let i=0;i<13000;i++){const x=rand()*3200,y=rand()*3200;g.strokeStyle=['#9bb56b60','#314f3960','#c2c98248'][i%3];g.lineWidth=1+rand();g.beginPath();g.moveTo(x,y);g.lineTo(x+rand()*7-3,y-3-rand()*9);g.stroke();}
-      for(let i=0;i<190;i++){const x=rand()*3200,y=rand()*3200;g.fillStyle=i%3?'#e6d7a1aa':'#a9b9e3aa';g.beginPath();g.arc(x,y,2+rand()*2,0,7);g.fill();}
-      g.strokeStyle='#bacd8190';g.lineWidth=9;g.strokeRect(105,105,2990,2990);g.setLineDash([18,28]);g.lineWidth=3;g.strokeStyle='#e3edbb80';g.strokeRect(130,130,2940,2940);g.setLineDash([]);
-      this.meadowCanvas=c;
-    }this.g.drawImage(this.meadowCanvas,0,0);
+    const g=this.g,bg=image('wave/meadow-painted-v2.webp');
+    if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);
+    else{g.fillStyle='#617448';g.fillRect(0,0,3200,3200);}
+    // Subtle playable boundary, without the bright geometric lawn pattern.
+    g.save();g.strokeStyle='#d7cd9870';g.lineWidth=3;g.strokeRect(110,110,2980,2980);g.restore();
   }
   waveMonster(e,time){
     const g=this.g,size=e.elite?150:105,bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;

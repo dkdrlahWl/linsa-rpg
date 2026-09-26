@@ -1,7 +1,7 @@
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=wave-meadow-1';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=wave-meadow-1';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=wave-meadow-1';
-import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=wave-meadow-1';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=wave-clear-2';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=wave-clear-2';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=wave-clear-2';
+import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=wave-clear-2';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));

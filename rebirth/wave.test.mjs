@@ -7,7 +7,7 @@ const step=(w,inputs={})=>advanceWaveRaw(w,null,null,w.started+(w.tick+1)*100,Ob
 let w=fresh();assert.equal(w.wave,1);assert.equal(w.nextWave,300);assert.equal(w.monsters.filter(e=>e.elite).length,1);assert.ok(w.spawnCounts.every(n=>n>=5&&n<=10));
 assert.equal(waveStats(1).level,2);assert.equal(waveStats(300).species,29);assert.equal(waveStats(301).species,0);assert.equal(waveStats(10).species,0);assert.equal(waveStats(11).species,1);assert.equal(waveStats(20).eliteCount,2);assert.equal(waveStats(21).eliteCount,3);assert.equal(waveStats(201).level,402);
 w.tick=299;w.monsters=[];w=step(w);assert.equal(w.wave,1);w=step(w);assert.equal(w.wave,2);
-w=fresh();w.monsters=Array.from({length:49},()=>({...w.monsters[0]}));spawnWave(w);assert.equal(w.status,'lost');assert.equal(w.reason,'overrun');
+w=fresh();w.monsters=Array.from({length:99},()=>({...w.monsters[0]}));spawnWave(w);assert.equal(w.status,'lost');assert.equal(w.reason,'overrun');
 w=fresh();w.members.forEach(m=>m.hp=0);assert.equal(step(w).reason,'dead');
 w=fresh(2);w.monsters=[];Object.assign(w.members[1],{hp:0,x:w.members[0].x,y:w.members[0].y});
 for(let i=0;i<49;i++)w=step(w,{'p0':[0,0,0]});assert.equal(w.members[1].hp,0);assert.equal(w.members[1].reviveProgress,49);
@@ -25,4 +25,14 @@ server=advanceCoop(server,'p0',{frames:trace.slice(55)},8000);delete server._net
 assert.throws(()=>advanceCoop(fresh(),'p0',{frames:[{tick:0,input:[9,0,1]}]},100),/INVALID/);
 // AOE damages multiple monsters without multiplying a single target's damage.
 w=fresh();w.monsters=w.monsters.slice(0,3);w.monsters.forEach(e=>{e.x=w.members[0].x;e.y=w.members[0].y-70;e.hp=e.maxHp=1000;});w=step(w,{'p0':[0,0,1]});assert.equal(w.monsters.filter(e=>e.hp<1000).length,3);
-console.log('PASS wave boundaries, 4-side spawn, elite scaling, no time/level cap, reset, 50-monster failure, all-dead, exact 5s revival/reset, 30% HP, delayed input replay, AOE.');
+console.log('PASS wave boundaries, 4-side spawn, elite scaling, no time/level cap, reset, 100-monster failure, all-dead, exact 5s revival/reset, 30% HP, delayed input replay, AOE.');
+
+// Clearing all spawned monsters advances once and restarts the relative timer.
+w=fresh();w.tick=123;w.spawnPlan.regular=[...w.spawnCounts];w.spawnPlan.elites=1;w.monsters=[];
+w=step(w);assert.equal(w.wave,2);assert.equal(w.nextWave,423);assert.equal(w.monsters.length,5);
+w=step(w);assert.equal(w.wave,2);
+// Empty arena with pending reinforcements is not a completed wave.
+w=fresh();w.monsters=[];w=step(w);assert.equal(w.wave,1);
+// 50 and 99 living monsters remain playable; 100 triggers failure.
+for(const count of [50,99]){w=fresh();w.spawnPlan.regular=[...w.spawnCounts];w.spawnPlan.elites=1;w.monsters=Array.from({length:count},(_,i)=>({...w.monsters[0],id:100+i}));w=step(w);assert.equal(w.status,'fighting');}
+console.log('PASS fast clear, relative timer, pending spawns and 50/99 survival');
