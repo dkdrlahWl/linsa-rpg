@@ -1,4 +1,4 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=weekly-first-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-smooth-2';
 import {incomingDamage} from './journey-balance.mjs?v=weekly-first-1';
 import {installMenuIcons} from './menu-icons.mjs?v=weekly-first-1';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=weekly-first-1';
