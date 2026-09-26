@@ -12,7 +12,7 @@ export function advanceCoop(room,user,input,now){
  if(input&&(!Array.isArray(input)||input.length!==3||!input.every(Number.isFinite)||Math.abs(input[0])>1||Math.abs(input[1])>1||!Number.isInteger(input[2])||input[2]<0||input[2]>31))throw Error('INVALID_COOP_INPUT');
  if(w.status==='won'){
   const dt=Math.max(0,Math.min(1000,now-(w.lootAt??now)))/1000;w.lootAt=now;w.tick+=dt*10;
-  for(const m of w.members){if(m.left)continue;let [x,y]=now-m.inputAt<1000?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y));m.x=clamp(m.x+x/n*250*dt);m.y=clamp(m.y+y/n*250*dt);m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?dt*10:0);if(x)m.face=x<0?-1:1;}
+  for(const m of w.members){if(m.left)continue;let [x,y]=now-m.inputAt<1500?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y));m.x=clamp(m.x+x/n*250*dt);m.y=clamp(m.y+y/n*250*dt);m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?dt*10:0);if(x)m.face=x<0?-1:1;}
   const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=[input[0],input[1],0];me.inputAt=now;}return w;
  }
  if(w.status!=='fighting')return w;
@@ -26,7 +26,7 @@ export function advanceCoop(room,user,input,now){
   const target=alive.reduce((a,b)=>dist(a,w.enemy)<dist(b,w.enemy)?a:b),e=w.enemy;
   if(dist(e,target)>115){const a=Math.atan2(target.y-e.y,target.x-e.x);e.dir=towerFacing(target.x-e.x,target.y-e.y,e.dir??2);e.walk=(e.walk||0)+1;e.x=clamp(e.x+Math.cos(a)*15);e.y=clamp(e.y+Math.sin(a)*15);if(Math.abs(target.x-e.x)>45)e.face=target.x<e.x?-1:1;}
   if(t>=w.nextPattern){w.enemyCastStart=t;w.enemyCastUntil=t+15;w.enemyAttackStart=t+15;w.enemyAttackUntil=t+21;e.castDir=e.dir;w.enemyAttackDir=e.dir;const phase=w.phase++;for(const m of alive)w.hazards.push({x:m.x,y:m.y,r:170,inner:0,at:t+15,end:t+19,multiplier:1.6});if(phase%3===2)w.hazards.push({x:e.x,y:e.y,r:4500,inner:520,at:t+25,end:t+29,multiplier:2});if(phase%3===1)w.hazards.push({x:e.x,y:e.y,r:330,inner:0,at:t+20,end:t+24,multiplier:2});w.nextPattern=t+(w.hp<w.maxHp*.35?32:45);}
-  for(const m of alive){const c={...TOWER_CLASSES[m.classId],skillScale:{warrior:3.8,mage:4.2,archer:3.5,rogue:4.4,pirate:4}[m.classId],skillCooldown:{warrior:90,mage:110,archer:85,rogue:100,pirate:100}[m.classId]};let [x,y,bits]=now-m.inputAt<1000?m.input:[0,0,0],n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}m.dir=towerFacing(x,y,m.dir??6);m.moving=n>.01;if(m.moving)m.walk=(m.walk||0)+1;let speed=(bits&1)&&c.range>300?17:25;
+  for(const m of alive){const c={...TOWER_CLASSES[m.classId],skillScale:{warrior:3.8,mage:4.2,archer:3.5,rogue:4.4,pirate:4}[m.classId],skillCooldown:{warrior:90,mage:110,archer:85,rogue:100,pirate:100}[m.classId]};let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0],n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}m.dir=towerFacing(x,y,m.dir??6);m.moving=n>.01;if(m.moving)m.walk=(m.walk||0)+1;let speed=(bits&1)&&c.range>300?17:25;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+35;m.immune=t+5;m.dashUntil=t+3;m.dx=x;m.dy=y||(!x?facingVector(m.dir??6).y:0);if(!n)m.dx=facingVector(m.dir??6).x;}
    if(t<(m.dashUntil||0)){x=m.dx;y=m.dy;speed=75;}
    m.x=clamp(m.x+x*speed);m.y=clamp(m.y+y*speed);if(x)m.face=x<0?-1:1;

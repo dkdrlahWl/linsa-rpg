@@ -1,7 +1,7 @@
 import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=rift-chests-1';
 import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS} from './data.mjs?v=rift-chests-1';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=rift-chests-1';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=rift-chests-1';
+import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=rift-smooth-2';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -12,6 +12,7 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
     this.options.audio?.(this.b);
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
+    this.artReady=false;prepareCombatArt([b.classId],towerEncounter(b).art).then(()=>{this.artReady=true;});
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
     this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
     this.required=['effects','boss-'+towerEncounter(b).art,'hero-'+b.classId+'-directions','hero-'+b.classId+'-motion-v4','second-job-atlas','reward-chest'].map(asset);
@@ -99,7 +100,7 @@ export class TowerController {
   }
   loop(now){
     if(this.disposed)return;
-    const ready=this.required.every(src=>image(src).complete&&image(src).naturalWidth);
+    const ready=this.artReady&&this.required.every(src=>image(src).complete&&image(src).naturalWidth);
     if(ready&&!this.loaded)this.last=now;this.loaded=ready;
     this.advance(now);this.options.audio?.(this.b);
     if(!this.openingRequest&&now-this.lastSend>350&&(this.frames.length||now-this.lastSend>2000))this.flush(true);
@@ -107,6 +108,7 @@ export class TowerController {
     this.draw(now);this.frame=requestAnimationFrame(t=>this.loop(t));
   }
   draw(now){
+    if(!this.artReady){this.updateHud();return;}
     const point=projectPlayer(this.b,this.sampler);point.x+=this.correction.x;point.y+=this.correction.y;
     this.renderer.draw(this.b,this.previous,point,this.sampler.elapsed/TOWER_STEP,now,this.input(),this.hint);
     for(const n of this.b.numbers)if(n.id>this.lastSound){this.lastSound=n.id;if(n.kind!=='heal'&&n.kind!=='incoming')this.sound?.(n.kind==='critical'?'tower-crit':n.kind==='incoming'?'tower-hurt':'tower-hit');}

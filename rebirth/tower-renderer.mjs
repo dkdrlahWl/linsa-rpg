@@ -61,6 +61,16 @@ function cleanDirectionalAtlas(im,layout=null){
   }catch{cleanAtlases.set(im,im);return im;}
 }
 
+const preparations=new Map();
+export function prepareCombatArt(classes,boss){
+ const tasks=[...new Set(classes)].flatMap(cls=>[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
+ tasks.push([asset('boss-'+boss),null]);
+ return Promise.all(tasks.map(([src,layout])=>{
+  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>setTimeout(resolve,0));if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,3,1);}catch{preparations.delete(src);}})());
+  return preparations.get(src);
+ }));
+}
+
 export class TowerRenderer {
   constructor(canvas){
     this.mobileActors=matchMedia('(pointer: coarse)');

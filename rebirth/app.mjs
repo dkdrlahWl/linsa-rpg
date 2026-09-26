@@ -1,5 +1,5 @@
 import {GameAudio} from './game-audio.mjs?v=rift-chests-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-chests-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-smooth-2';
 import {incomingDamage} from './journey-balance.mjs?v=rift-chests-1';
 import {installMenuIcons} from './menu-icons.mjs?v=rift-chests-1';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=rift-chests-1';
@@ -246,7 +246,9 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
       body = { command, args, requestId: crypto.randomUUID() };
       if(!recoverySync)localStorage.setItem(pendingKey(), JSON.stringify(body));
     }
+    const sentAt=performance.now();
     const result = await request("/functions/v1/ringu-rebirth", body);
+    if(result.coop)result.coop._rtt=performance.now()-sentAt;
     if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
     localStorage.removeItem(pendingKey());
     const audioPrevious=state;

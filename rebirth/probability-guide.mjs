@@ -1,5 +1,5 @@
 import * as D from './data.mjs?v=rift-chests-1';
-import {COOP_TIERS} from './coop-model.mjs?v=rift-chests-1';
+import {COOP_TIERS} from './coop-model.mjs?v=rift-smooth-2';
 import {TOWER_FLOORS} from './tower-model.mjs?v=rift-chests-1';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
