@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=cube-up-1';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=monster-portrait-1';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

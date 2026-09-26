@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=cube-up-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=cube-up-1';
-import {incomingDamage} from './journey-balance.mjs?v=cube-up-1';
-import {installMenuIcons} from './menu-icons.mjs?v=cube-up-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube-up-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=cube-up-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=cube-up-1';
-import * as D from "./data.mjs?v=cube-up-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=cube-up-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=cube-up-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=cube-up-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-up-1";
+import {GameAudio} from './game-audio.mjs?v=monster-portrait-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=monster-portrait-1';
+import {incomingDamage} from './journey-balance.mjs?v=monster-portrait-1';
+import {installMenuIcons} from './menu-icons.mjs?v=monster-portrait-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=monster-portrait-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=monster-portrait-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=monster-portrait-1';
+import * as D from "./data.mjs?v=monster-portrait-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=monster-portrait-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=monster-portrait-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=monster-portrait-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=monster-portrait-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -465,7 +465,7 @@ function bagGroupsMarkup(groups){
  const stacks=[...stackMap.values()],pageSize=window.matchMedia('(max-width:700px)').matches?12:24,pages=Math.max(1,Math.ceil(stacks.length/pageSize));bagPage=Math.min(bagPage,pages-1);
  return '<div class="bag-pager">'+disabledBtn('이전','bagPage',bagPage-1,bagPage===0)+'<strong>'+(bagPage+1)+' / '+pages+' · '+stacks.length+'종 / '+items.length+'개</strong>'+disabledBtn('다음','bagPage',bagPage+1,bagPage>=pages-1)+'</div><div class="inventory-grid bag-grid">'+(stacks.slice(bagPage*pageSize,(bagPage+1)*pageSize).map(stack=>{let tile=bagTile(stack[0]);if(!salvageMode)tile=tile.replace('data-action="item"','data-action="itemGroup"').replace('</button>','<b class="bag-stack-count">보유 '+stack.length+'개</b></button>');if(!salvageMode&&stack.length>1){const stars=stack.map(x=>x.stars),lo=Math.min(...stars),hi=Math.max(...stars);tile=tile.replace(/<span class="tile-star">[^<]*<\/span>/,'<span class="tile-star">'+(lo===hi?lo:lo+'~'+hi)+'★</span>');}return tile;}).join('')||'<div class="empty">장비가 없습니다.</div>')+'</div>';
 }
-function itemGroup(id){const first=state.items.find(x=>x.id===id);if(!first)return;const items=state.items.filter(x=>D.equipmentKey(x)===D.equipmentKey(first));if(items.length===1)return itemDetail(id);open(D.gearName(first)+' · '+items.length+'개','<p class="note">강화·잠재는 각각 유지됩니다. 사용할 장비를 고르세요.</p><div class="stack">'+items.map(it=>'<button data-action="item" data-arg="'+it.id+'" class="stack-equipment">'+itemMarkup(it)+'<small>'+it.lines.map(l=>D.OPTIONS[l.key]+' +'+l.value+D.optionUnit(l.key)).join(' · ')+'</small></button>').join('')+'</div>');}
+function itemGroup(id){const first=state.items.find(x=>x.id===id);if(!first)return;const equipped=new Set(Object.values(state.equipped));const items=state.items.filter(x=>D.equipmentKey(x)===D.equipmentKey(first)).sort((a,b)=>Number(equipped.has(b.id))-Number(equipped.has(a.id)));if(items.length===1)return itemDetail(id);open(D.gearName(first)+' · '+items.length+'개','<p class="note">강화·잠재는 각각 유지됩니다. 사용할 장비를 고르세요.</p><div class="stack">'+items.map(it=>'<button data-action="item" data-arg="'+it.id+'" class="stack-equipment">'+itemMarkup(it)+'<small>'+it.lines.map(l=>D.OPTIONS[l.key]+' +'+l.value+D.optionUnit(l.key)).join(' · ')+'</small></button>').join('')+'</div>');}
 
 function bagTile(item) {
   const otherClass=item.classId!==state.classId;
@@ -483,7 +483,7 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 내 직업 먼저 → 직업별 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
+    )}</div>${sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -510,7 +510,7 @@ function bossMarkup(b, size="") {
   return '<div class="boss-sprite '+size+'" role="img" aria-label="'+esc(b.name)+'" style="background-image:url('+b.art+');background-position:'+b.spriteX+'% '+b.spriteY+'%"></div>';
 }
 function monsterMarkup(m) {
-  return '<div class="monster-sprite" role="img" aria-label="'+esc(m.name)+'" style="background-image:url('+m.art+');background-position:'+m.x+'% '+m.y+'%"></div>';
+  return '<img class="monster-sprite" src="'+m.art+'" alt="'+esc(m.name)+'" draggable="false">';
 }
 function mailbox() {
   return '<p class="note">가방이 가득 찼을 때 얻은 장비를 보관합니다. 보관 기한은 없으며 한 번에 최대 50개를 꺼낼 수 있어요.</p><div class="stack">'+((state.mailbox||[]).map(m=>'<div class="panel pad"><div class="item">'+itemMarkup(m.item)+'</div><p>'+m.quantity+'개 보관</p>'+btn('가방으로 받기','claimMail',m.key,'gold',true)+'</div>').join('')||'<div class="empty">보관 중인 장비가 없습니다.</div>')+'</div>';
@@ -1353,3 +1353,4 @@ if (session) command("sync").catch(() => {});
 else login();
 
 installMenuIcons();
+

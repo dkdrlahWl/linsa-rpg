@@ -7,10 +7,10 @@ export function inventoryGroups(items, classes, ownClassId, equippedIds, filterC
     (filterSlot === "" || item.slot === Number(filterSlot))
   );
   visible.sort((a, b) =>
+    Number(equipped.has(b.id)) - Number(equipped.has(a.id)) ||
     Number(b.classId === ownClassId) - Number(a.classId === ownClassId) ||
     (classOrder.get(a.classId) ?? Infinity) - (classOrder.get(b.classId) ?? Infinity) ||
     a.slot - b.slot ||
-    Number(equipped.has(b.id)) - Number(equipped.has(a.id)) ||
     Number(b.locked) - Number(a.locked) ||
     b.stars - a.stars ||
     b.level - a.level ||
