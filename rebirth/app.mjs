@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=second-attack-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=second-attack-1';
-import {incomingDamage} from './journey-balance.mjs?v=second-attack-1';
-import {installMenuIcons} from './menu-icons.mjs?v=second-attack-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=second-attack-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=second-attack-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=second-attack-1';
-import * as D from "./data.mjs?v=second-attack-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=second-attack-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=second-attack-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=second-attack-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=second-attack-1";
+import {GameAudio} from './game-audio.mjs?v=gear-exchange-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=gear-exchange-1';
+import {incomingDamage} from './journey-balance.mjs?v=gear-exchange-1';
+import {installMenuIcons} from './menu-icons.mjs?v=gear-exchange-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=gear-exchange-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=gear-exchange-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=gear-exchange-1';
+import * as D from "./data.mjs?v=gear-exchange-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=gear-exchange-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=gear-exchange-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=gear-exchange-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=gear-exchange-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -37,7 +37,7 @@ function refreshLevelRequirements() {
 }
 const combatFrames = [];
 let towerController=null,bagPage=0,coopController=null,coopRoom=null,coopRooms=[],dialogScroll=new Map();
-let marketKind="all";
+let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
 const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id;
@@ -476,6 +476,7 @@ function inventory() {
   const groups = inventoryGroups(state.items, D.CLASSES, state.classId, Object.values(state.equipped), filterClass, filterSlot);
   return `${header("가방", "INVENTORY")}<div class="subnav">${[
     ["bag", "가방"],
+    ["exchange", "교환소"],
     ["mail", "보관함"],
     ["collection", "도감"],
     ["odds", "확률표"],
@@ -483,7 +484,11 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
+    )}</div>${sub === "exchange" ? gearExchange() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
+}
+function gearExchange(){
+ const classId=exchangeClass||state.classId;
+ return `<section class="panel pad gear-exchange"><h3>장비 파편 교환소</h3><p class="note">직업과 레벨을 선택하면 일반 장비 1개를 받습니다. 보스 장비는 나오지 않습니다.</p><label for="exchange-class">장비 직업</label><select id="exchange-class">${D.CLASSES.map(c=>`<option value="${c.id}" ${c.id===classId?'selected':''}>${c.name}</option>`).join('')}</select><label for="exchange-level">장비 레벨 · 파편 비용</label><select id="exchange-level">${Array.from({length:18},(_,i)=>(i+1)*10).map(level=>`<option value="${level}" ${level===exchangeLevel?'selected':''}>Lv.${level} 장비 · 파편 ${level}개</option>`).join('')}</select><p>보유 장비 파편 <strong>${fmt(state.materials.fragment)}개</strong></p>${disabledBtn(gearMarkup({level:exchangeLevel,classId,slot:0,boss:false,design:0,weaponVariant:0})+`<strong>Lv.${exchangeLevel} 랜덤 장비 교환</strong><small>파편 ${exchangeLevel}개 사용 · 장비 1개 획득</small>`,"exchangeGear",exchangeLevel,state.materials.fragment<exchangeLevel||!!state.battle||!!state.coopRoom,"exchange-card")}<p class="note">이미지는 무기 예시입니다. 9부위는 각각 1/9 확률, 각 부위의 일반 장비 2종은 각각 50% 확률입니다. 기본 능력치는 무작위이며 잠재는 잠긴 상태로 지급됩니다. 가방이 가득 차면 보관함으로 받습니다.</p></section>`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -713,6 +718,7 @@ function showEvents(events) {
     }
     if(e.type==="daily")toast(e.name+" 보상을 받았습니다.");
     if(e.type==="coop"){tab="boss";bossTab="coop";view="game";render();reward();continue;}
+    if(e.type==="exchangeGear")open("장비 교환 완료",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
     if(e.type==="salvage")open("장비 분해 완료",`<p>장비 ${e.count}개를 분해했습니다.</p><p class="salvage-reward"><strong>장비 파편 ${fmt(e.fragments)}개 획득</strong></p><p class="note">현재 보유 ${fmt(state.materials.fragment)}개</p>${btn("확인","close","","gold")}`);
 
@@ -1094,6 +1100,7 @@ document.addEventListener("click", async (e) => {
       sub = arg;
       return render();
     }
+    if(action==="exchangeGear")return await command("exchangeGear",{level:Number(arg),classId:exchangeClass||state.classId});
     if (action === "item")
       return arg ? itemDetail(arg) : toast("아직 장착된 장비가 없습니다.");
     if (action === "equip") {
@@ -1225,6 +1232,8 @@ document.addEventListener("click", async (e) => {
 });
 document.addEventListener("input", e=>{if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
+  if(e.target.id==="exchange-class"){exchangeClass=e.target.value;render();return;}
+  if(e.target.id==="exchange-level"){exchangeLevel=Number(e.target.value);render();return;}
   if(e.target.id==="material-sell-key"){updateMaterialSale();return;}
   if(e.target.id==="market-sell-slot"||e.target.id==="market-sell-class") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;if(e.target.id==="market-sell-slot")marketSellSlot=e.target.value;else marketSellClass=e.target.value;marketSellId=null;marketSellPicker();return;}
 
@@ -1298,8 +1307,8 @@ setInterval(() => {
     const defeated=rate.survives&&progress>=rate.fightSeconds;
     const fightTime=recovering?deathAt:Math.min(progress,rate.fightSeconds-.001);
     const incoming=rate.incoming;
-    const hp=recovering?0:Math.max(0,p.hp-Math.floor(fightTime/3)*incoming);
-    const enemyHp=defeated?0:Math.max(1,st.hp-p.dps*Math.floor(fightTime));
+    const hp=recovering?0:Math.max(0,p.hp-Math.floor(fightTime/rate.enemyInterval)*incoming);
+    const enemyHp=defeated?0:Math.max(1,st.hp-rate.damagePerHit*Math.floor(fightTime/rate.attackInterval));
     const bar=$("#enemy-hp");
     if(bar)bar.style.width=(100*enemyHp/st.hp)+"%";
     const ownBar=$("#field-player-bar");
@@ -1309,10 +1318,10 @@ setInterval(() => {
     const status=$("#hunt-status");
     if(status)status.textContent=recovering?"부활 대기":defeated?"다음 몬스터 등장 대기":"자동 전투 중";
     const result=$("#field-combat-result");
-    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":defeated?"처치 완료 · 다음 전투 준비":"시간제한 없음 · 3초마다 피격 · HP가 0이면 패배";
+    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":defeated?"처치 완료 · 다음 전투 준비":"공격 0.5초 · 피격 3초 · HP가 0이면 패배";
     const label=$("#battle-info");
     if(label)label.textContent="몬스터 HP "+fmt(enemyHp)+" / "+fmt(st.hp);
-    if (!recovering && !defeated && Date.now()-lastVisualHit>=1000) { lastVisualHit=Date.now(); strike(arena); }
+    if (!recovering && !defeated && Date.now()-lastVisualHit>=rate.attackInterval*1000) { lastVisualHit=Date.now(); strike(arena); }
 
   }
   if(state.battle) {

@@ -1,4 +1,4 @@
-import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=second-attack-1';
+import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=gear-exchange-1';
 // Integrate input at display/event frequency; send the existing 100 ms protocol.
 export class TowerInput {
   constructor(step=100){this.step=step;this.clear();}

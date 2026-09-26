@@ -1,9 +1,9 @@
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=second-attack-1';
-import {rollRiftReward} from './rift-rewards.mjs?v=second-attack-1';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=second-attack-1';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=second-attack-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=second-attack-1';
-import {applyBetaTool} from './beta-tools.mjs?v=second-attack-1';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=gear-exchange-1';
+import {rollRiftReward} from './rift-rewards.mjs?v=gear-exchange-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=gear-exchange-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=gear-exchange-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=gear-exchange-1';
+import {applyBetaTool} from './beta-tools.mjs?v=gear-exchange-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -41,9 +41,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=second-attack-1";
+} from "./data.mjs?v=gear-exchange-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=second-attack-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=gear-exchange-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -247,14 +247,14 @@ export function bestEquipment(s) {
 export function huntingRate(s) {
   const st = STAGES[s.stage],
     p = power(s);
-  const fightSeconds = Math.max(1, Math.ceil(st.hp / p.dps));
+  const fightSeconds = Math.max(1, Math.ceil(st.hp / p.dps))*FIELD_ATTACK_SECONDS;
   const incoming = incomingDamage(st.attack,p.defense);
-  const deathSeconds = Math.max(3, Math.ceil(p.hp / incoming) * 3);
+  const deathSeconds = Math.max(FIELD_MONSTER_SECONDS, Math.ceil(p.hp / incoming) * FIELD_MONSTER_SECONDS);
   // Attacks resolve before a monster's simultaneous retaliation. No field time limit.
   const survives = fightSeconds <= deathSeconds;
   const levelReward = Math.min(1,(st.level+15)/s.level)**2;
-  return { seconds: survives ? Math.max(8,fightSeconds) : deathSeconds + 10,
-    fightSeconds,deathSeconds,incoming,
+  return { seconds: survives ? Math.max(4,fightSeconds) : deathSeconds + 10,
+    fightSeconds,deathSeconds,incoming,attackInterval:FIELD_ATTACK_SECONDS,enemyInterval:FIELD_MONSTER_SECONDS,damagePerHit:p.dps,
     xp: survives ? st.xp * levelReward * (1 + p.xpGain/100) : 0,
     gold: survives ? st.gold * levelReward * (1 + p.goldGain/100) : 0, survives };
 }
@@ -565,6 +565,15 @@ export function execute(input, command, args = {}, ctx) {
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "exchangeGear": {
+      check(int(args.level,10,180)&&args.level%10===0,"INVALID_GEAR_LEVEL");
+      check(CLASSES.some(c=>c.id===args.classId),"INVALID_CLASS");
+      spend(s,"fragment",args.level);
+      const slot=Math.floor(ctx.random()*9),design=selectDesign(args.level,args.classId,slot,false,ctx.random);
+      const item={...makeItem(args.level,args.classId,slot,false,ctx,design.weaponVariant),...design};
+      item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);
+      events.push({type:"exchangeGear",item,cost:args.level,stored:!s.items.some(it=>it.id===item.id)});break;
+    }
     case "adminSkip": {
       check(ctx.admin===true,"BETA_DISABLED");
       check(int(args.hours,1,12),"INVALID_SKIP_HOURS");

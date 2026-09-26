@@ -906,3 +906,6 @@ button { touch-action:manipulation; }
 
 .monster-sprite { flex:none; width:auto; height:100%; max-width:100%; object-fit:contain; }
 .damage { top:calc(74% - var(--damage-row,0)*23px); font-size:18px; animation:none; transition:top .08s linear; }
+.gear-exchange>select{display:block;width:100%;max-width:360px;margin:8px 0 12px;min-height:44px}
+.exchange-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%;max-width:360px;min-height:116px;padding:10px 5px;background:#231f16;color:#f1dfb8}
+.exchange-card .gear-icon{width:48px;height:48px}.exchange-card strong{font-size:14px}.exchange-card small{font-size:12px;color:#d5bd8e}.exchange-card:disabled{opacity:.5}

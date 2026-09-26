@@ -1,5 +1,7 @@
 // 45–60 day progression target with frequent collection (6 h offline storage).
 export const BALANCE_VERSION='journey-20260925';
+export const FIELD_ATTACK_SECONDS=.5;
+export const FIELD_MONSTER_SECONDS=3;
 export const levelHours=level=>.16+.00035*level*level;
 export const journeyXP=level=>Math.round(120+level**2.1*12);
 export function balanceWorld(stages,bosses,raids){
@@ -9,6 +11,8 @@ export function balanceWorld(stages,bosses,raids){
   const offset=s.id%3;s.level=Math.max(1,s.region*20+offset*6);
   s.hp=Math.round(fieldHP[s.region]*(1+offset*.2));
   s.attack=Math.round(fieldAttack[s.region]*(1+offset*.12));
+  if(s.region===0){s.hp=[260,800,2000][offset];s.attack=[30,90,200][offset];}
+  else s.hp=Math.round(s.hp*(s.region===1?1.6:s.region>=8?1.9:1.8));
   s.xp=Math.max(1,Math.ceil((journeyXP(s.level)*8/(levelHours(s.level)*3600)+s.hp*.002)*(1+s.region*.06)));
   s.gold=Math.round((4+s.level*.3+s.hp*.001)*(1+s.region*.1));
   s.dropLevel=s.id===29?200:Math.max(10,Math.floor(s.level/10)*10);
@@ -35,4 +39,3 @@ export const DAILY_TASKS={
  boss:{name:'보스 1회 승리',goal:1,gold:18000,fragment:100,cube:4,highCube:1},
  tower:{name:'시련의 탑 새 층 최초 클리어',goal:1,gold:15000,fragment:80,cube:2,highCube:0},
 };
-
