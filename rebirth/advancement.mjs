@@ -6,7 +6,7 @@ export const THIRD_SKILLS={
  mage:skill('아스트라 폴',10,1.8,5,950,480,'area',1,'지정 위치에 4.5초 마력 폭풍 · 180% × 10 · 지속 범위'),
  archer:skill('실피드 레인',9,2,2,1000,180,'volley',2,'추적 마력 화살 9연사 · 200% × 9 · 긴 사거리'),
  rogue:skill('팬텀 블레이드',12,1.5,1,650,360,'area',3,'그림자 칼날 12연격 · 150% × 12 · 빠른 집중 공격'),
- pirate:skill('오비탈 캐논',6,3,4,900,520,'area',4,'목표 지역에 6연속 포격 · 300% × 6 · 대형 폭발'),
+ pirate:skill('오비탈 캐논',6,3.6,4,900,520,'area',4,'목표 지역에 6연속 포격 · 360% × 6 · 대형 폭발'),
 };
 export const firstJobUnlocked=s=>s.firstAdvancement===true||(s.advancement||0)>=1;
 export const jobStage=s=>firstJobUnlocked(s)?Math.min(4,(s.advancement||0)+1):0;
@@ -20,4 +20,3 @@ export const ADVANCEMENT_BOSSES=[
 export const thirdUnlocked=a=>(a.advancement||a.power?.advancement||0)>=2||a.third===true;
 export function beginThird(a,target,tick){const sk=THIRD_SKILLS[a.classId];if(!thirdUnlocked(a)||tick<(a.thirdReady||0)||Math.hypot(a.x-target.x,a.y-target.y)>sk.range)return false;a.thirdReady=tick+sk.cooldown*10;a.thirdCast={x:target.x,y:target.y,start:tick,next:tick+3,left:sk.hits};a.skillStart=tick;a.skillUntil=tick+8;return true;}
 export function stepThird(a,target,tick,hit,emit=()=>{}){const cast=a.thirdCast;if(!cast)return;const sk=THIRD_SKILLS[a.classId];while(cast.left>0&&tick>=cast.next){const aim=sk.mode==='volley'?target:cast;if(sk.mode==='volley'?Math.hypot(a.x-target.x,a.y-target.y)<=sk.range+150:Math.hypot(cast.x-target.x,cast.y-target.y)<=sk.radius)hit(sk.damage);emit({kind:'third',classId:a.classId,x:aim.x,y:aim.y,size:sk.radius*2,angle:(sk.hits-cast.left)*.24,start:cast.next,end:cast.next+10,fromX:a.x,fromY:a.y,volley:sk.mode==='volley'});cast.left--;cast.next+=sk.interval;}if(!cast.left)delete a.thirdCast;}
-

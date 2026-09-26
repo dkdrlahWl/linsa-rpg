@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=fourth-impact-2';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=fourth-impact-2';
-export {TowerController} from './tower-controller.mjs?v=fourth-impact-2';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=pirate-skill-1';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=pirate-skill-1';
+export {TowerController} from './tower-controller.mjs?v=pirate-skill-1';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

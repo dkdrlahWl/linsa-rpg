@@ -1,8 +1,8 @@
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=fourth-impact-2';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=fourth-impact-2';
-import {incomingDamage} from './journey-balance.mjs?v=fourth-impact-2';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=pirate-skill-1';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=pirate-skill-1';
+import {incomingDamage} from './journey-balance.mjs?v=pirate-skill-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=fourth-impact-2';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=pirate-skill-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
