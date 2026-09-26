@@ -1,0 +1,16 @@
+/* Boss drops keep the same gold-violet frame across the bag, equipment, details, and trade. */
+.gear-frame.boss-gear{
+  position:relative;
+  border:2px solid #f2c975;
+  background:linear-gradient(135deg,#58366d,#241b33 62%,#684325);
+  box-shadow:inset 0 0 0 1px #2b173f,0 0 0 1px #925fbb,0 0 9px #dfa74b88;
+}
+.gear-frame.boss-gear>.gear-icon{border-radius:2px}
+.bag-grid .bag-slot.boss-gear,.gear-cell.boss-gear,.market-compact-card.boss-gear,.market-picker-layout .market-inventory-item.boss-gear{
+  border:2px solid #e8b95d;
+  background:linear-gradient(145deg,#4b315a,#281d30 58%,#382819);
+  box-shadow:inset 0 0 0 1px #b17cdf77,0 0 0 1px #714b9b,0 0 10px #d8a35466;
+}
+.bag-grid .bag-slot.boss-gear{padding:4px 1px 2px}
+.gear-cell.boss-gear:focus-visible,.bag-grid .bag-slot.boss-gear:focus-visible,.market-compact-card.boss-gear:focus-visible,.market-picker-layout .market-inventory-item.boss-gear:focus-visible{outline:3px solid #fff0b2;outline-offset:2px}
+.enhance-item-head>.gear-frame.boss-gear,.market-picked-head>.gear-frame.boss-gear{border:2px solid #f2c975;background:linear-gradient(135deg,#58366d,#241b33 62%,#684325)}
