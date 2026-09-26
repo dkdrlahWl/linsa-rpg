@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=fourth-fall-5';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=tower-reward-3x-6';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

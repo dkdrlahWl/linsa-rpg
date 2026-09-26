@@ -1,6 +1,6 @@
-import * as D from './data.mjs?v=fourth-fall-5';
-import {COOP_TIERS} from './coop-model.mjs?v=fourth-fall-5';
-import {TOWER_FLOORS} from './tower-model.mjs?v=fourth-fall-5';
+import * as D from './data.mjs?v=tower-reward-3x-6';
+import {COOP_TIERS} from './coop-model.mjs?v=tower-reward-3x-6';
+import {TOWER_FLOORS} from './tower-model.mjs?v=tower-reward-3x-6';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const section=(id,title,body)=>'<section id="'+id+'"><h2>'+title+'</h2>'+body+'</section>';

@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=fourth-fall-5';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=fourth-fall-5';
-export {TowerController} from './tower-controller.mjs?v=fourth-fall-5';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=tower-reward-3x-6';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=tower-reward-3x-6';
+export {TowerController} from './tower-controller.mjs?v=tower-reward-3x-6';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){
