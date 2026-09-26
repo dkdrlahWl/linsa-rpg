@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=pirate-skill-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=pirate-skill-1';
-import {incomingDamage} from './journey-balance.mjs?v=pirate-skill-1';
-import {installMenuIcons} from './menu-icons.mjs?v=pirate-skill-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=pirate-skill-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=pirate-skill-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=pirate-skill-1';
-import * as D from "./data.mjs?v=pirate-skill-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=pirate-skill-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=pirate-skill-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=pirate-skill-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=pirate-skill-1";
+import {GameAudio} from './game-audio.mjs?v=second-attack-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=second-attack-1';
+import {incomingDamage} from './journey-balance.mjs?v=second-attack-1';
+import {installMenuIcons} from './menu-icons.mjs?v=second-attack-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=second-attack-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=second-attack-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=second-attack-1';
+import * as D from "./data.mjs?v=second-attack-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=second-attack-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=second-attack-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=second-attack-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=second-attack-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

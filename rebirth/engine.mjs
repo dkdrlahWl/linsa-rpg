@@ -1,9 +1,9 @@
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=pirate-skill-1';
-import {rollRiftReward} from './rift-rewards.mjs?v=pirate-skill-1';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=pirate-skill-1';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=pirate-skill-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=pirate-skill-1';
-import {applyBetaTool} from './beta-tools.mjs?v=pirate-skill-1';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=second-attack-1';
+import {rollRiftReward} from './rift-rewards.mjs?v=second-attack-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=second-attack-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=second-attack-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=second-attack-1';
+import {applyBetaTool} from './beta-tools.mjs?v=second-attack-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -41,9 +41,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=pirate-skill-1";
+} from "./data.mjs?v=second-attack-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=pirate-skill-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=second-attack-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -390,7 +390,7 @@ function bossSettle(s, ctx, events) {
   );
   for (let t = b.tick + 1; t <= upto; t++) {
     const active = t <= b.burstUntil;
-    const second = t <= (b.secondUntil||0) ? SECOND_SKILLS[s.classId] : null;
+    const second = t <= (b.secondUntil||0) && SECOND_SKILLS[s.classId].type==='buff' ? SECOND_SKILLS[s.classId] : null;
     const burst = (active ? skill.damage : 1) * (second?.damage||1);
     const crit = ctx.random() < Math.min(1,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));
     if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});

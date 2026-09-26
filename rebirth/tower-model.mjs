@@ -1,8 +1,8 @@
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=pirate-skill-1';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=pirate-skill-1';
-import {incomingDamage} from './journey-balance.mjs?v=pirate-skill-1';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=second-attack-1';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=second-attack-1';
+import {incomingDamage} from './journey-balance.mjs?v=second-attack-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=pirate-skill-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=second-attack-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
@@ -39,8 +39,8 @@ export function upgradeTowerBattle(b){
 }
 function fx(b,kind,x,y,size=150,life=6,angle=0,hostile=false){b.effects.push({id:++b.serial,kind,x,y,size,start:b.tick,end:b.tick+life,angle,hostile});}
 function number(b,value,x,y,kind){b.numbers.push({id:++b.serial,value,x,y,kind,start:b.tick,end:b.tick+(kind==='incoming'||kind==='heal'?9:24)});}
-function enemyDamage(b,scale,skillCrit=0){const first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)?SECOND_SKILLS[b.classId]:null;const crit=random(b)<Math.min(.95,b.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+skillCrit),damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(crit?b.power.critDamage+(second?.critDamageAdd||0):1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
-function playerDamage(b,multiplier){if(b.tick<b.invulnerableUntil||b.tick<(b.hurtUntil||0))return;const f=towerEncounter(b),first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)?SECOND_SKILLS[b.classId]:null;const damage=Math.max(1,Math.round((incomingDamage(f.attack,b.power.defense)*multiplier)*(first?.guard||1)*(second?.guard||1)));b.hp=Math.max(0,b.hp-damage);b.hurtUntil=b.tick+5;number(b,damage,b.player.x,b.player.y-100,'incoming');fx(b,'impact',b.player.x,b.player.y-40,110);}
+function enemyDamage(b,scale,skillCrit=0){const first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)&&SECOND_SKILLS[b.classId].type==='buff'?SECOND_SKILLS[b.classId]:null;const crit=random(b)<Math.min(.95,b.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+skillCrit),damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(crit?b.power.critDamage+(second?.critDamageAdd||0):1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
+function playerDamage(b,multiplier){if(b.tick<b.invulnerableUntil||b.tick<(b.hurtUntil||0))return;const f=towerEncounter(b),first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)&&SECOND_SKILLS[b.classId].type==='buff'?SECOND_SKILLS[b.classId]:null;const damage=Math.max(1,Math.round((incomingDamage(f.attack,b.power.defense)*multiplier)*(first?.guard||1)*(second?.guard||1)));b.hp=Math.max(0,b.hp-damage);b.hurtUntil=b.tick+5;number(b,damage,b.player.x,b.player.y-100,'incoming');fx(b,'impact',b.player.x,b.player.y-40,110);}
 function circle(b,x,y,r,delay=12,multiplier=1.6,duration=3,inner=0){const hx=clamp(x,TOWER_BOUNDS.left,TOWER_BOUNDS.right),hy=clamp(y,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);b.hazards.push({id:++b.serial,type:'circle',x:hx,y:hy,r,inner,dir:towerFacing(hx-b.enemy.x,hy-b.enemy.y,b.enemy.dir??2),at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
 function line(b,x,y,tx,ty,width=90,delay=12,multiplier=1.6,duration=3){b.hazards.push({id:++b.serial,type:'line',x,y,tx,ty,width,dir:towerFacing(tx-x,ty-y,b.enemy.dir??2),at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
 function fan(b,count=5){const a=Math.atan2(b.player.y-b.enemy.y,b.player.x-b.enemy.x);for(let i=0;i<count;i++){const angle=a+(i-(count-1)/2)*.23;b.projectiles.push({id:++b.serial,side:'enemy',x:b.enemy.x,y:b.enemy.y,dx:Math.cos(angle)*31,dy:Math.sin(angle)*31,r:24,at:b.tick+10,end:b.tick+65,multiplier:.9});}}

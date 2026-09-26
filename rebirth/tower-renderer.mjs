@@ -1,7 +1,7 @@
-import {damageRows} from './damage-stack.mjs?v=pirate-skill-1';
-import {drawFourth} from './fourth-effects.mjs?v=pirate-skill-1';
-import MOTION_LAYOUT from './motion-layout.mjs?v=pirate-skill-1';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=pirate-skill-1';
+import {damageRows} from './damage-stack.mjs?v=second-attack-1';
+import {drawFourth} from './fourth-effects.mjs?v=second-attack-1';
+import MOTION_LAYOUT from './motion-layout.mjs?v=second-attack-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=second-attack-1';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -67,10 +67,11 @@ const preparations=new Map();
 export function prepareCombatArt(classes,boss){
  const tasks=[...new Set(classes)].flatMap(cls=>[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
  tasks.push([asset('boss-'+boss),null]);image(asset('fourth-job-atlas'));
- return Promise.all(tasks.map(([src,layout])=>{
+ const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
+ return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
   if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>setTimeout(resolve,0));if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,boss==='aureon'?1:3,1);}catch{preparations.delete(src);}})());
   return preparations.get(src);
- }));
+ })]);
 }
 
 export class TowerRenderer {
@@ -247,7 +248,10 @@ export class TowerRenderer {
       if(e.hostile)continue;
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
       if(e.kind==='fourth'){if(e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')));continue;}
-      if(e.kind==='second'){const col={warrior:0,mage:1,archer:2,rogue:3,pirate:4}[e.classId]??0,im=image(asset('second-job-atlas'));if(im.complete&&im.naturalWidth){const sw=im.width/5,sh=im.height/4,owner=e.follow?(e.owner?(b.allies||[]).find(a=>a.id===e.owner)||player:player):e;g.save();g.globalAlpha=.75;g.drawImage(im,col*sw,frame*sh,sw,sh,owner.x-e.size/2,owner.y-e.size*.4,e.size,e.size*.8);g.restore();}continue;}
+      if(e.kind==='second'){
+        if(['mage','archer','pirate'].includes(e.classId)){const im=image(asset('second-'+e.classId+'-attack-v1'));if(im.complete&&im.naturalWidth){const cuts={mage:[0,525/2172,1060/2172,1665/2172,1],archer:[0,.25,.5,.75,1],pirate:[0,455/2172,935/2172,1600/2172,1]}[e.classId],sx=Math.round(cuts[frame]*im.width),sw=Math.round(cuts[frame+1]*im.width)-sx,h=e.size*.75;g.save();g.globalAlpha=.92;g.drawImage(im,sx,0,sw,im.height,e.x-e.size/2,e.y-h*.76,e.size,h);g.restore();}continue;}
+        const col={warrior:0,rogue:3}[e.classId]??0,im=image(asset('second-job-atlas'));if(im.complete&&im.naturalWidth){const sw=im.width/5,sh=im.height/4;g.save();g.globalAlpha=.75;g.drawImage(im,col*sw,frame*sh,sw,sh,e.x-e.size/2,e.y-e.size*.4,e.size,e.size*.8);g.restore();}continue;
+      }
       if(e.kind==='third'){const col={warrior:0,mage:1,archer:2,rogue:3,pirate:4}[e.classId]??0;const size=Math.min(900,e.size);if(e.volley){const x=mix(e.fromX,e.x,Math.min(1,age*2)),y=mix(e.fromY,e.y,Math.min(1,age*2));this.thirdSprite(col,frame,x,y,280,220,Math.atan2(e.y-e.fromY,e.x-e.fromX),.85);}else this.thirdSprite(col,frame,e.x,e.y,size,size*.8,e.classId==='rogue'?e.angle:0,.65);continue;}
       if(e.kind==='rune'){this.effect('rune',e.x,e.y,e.size,e.size,-time*.04,1-age);continue;}
       const src=e.hostile?'attack-burst-v2':b.classId==='warrior'?(e.kind==='slash'?'attack-slash-v2':'attack-burst-v2'):b.classId==='mage'?'attack-burst-v2':b.classId==='archer'?'attack-bolt-v2':b.classId==='rogue'?'attack-slash-v2':'attack-beam-v2';

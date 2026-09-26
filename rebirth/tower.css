@@ -181,6 +181,12 @@
 @media(max-width:759px) and (orientation:portrait){.tower-buttons{flex:0 0 168px;max-width:168px}.tower-controls{padding-left:10px;padding-right:10px;gap:6px}.tower-skill-bar>.tower-button{width:auto;flex:1 1 0;border-radius:12px;height:62px;justify-content:center}.tower-core-actions>.tower-button{flex:1;width:auto}.tower-skill-bar .tower-button span{font-size:10px;word-break:keep-all}}
 .skill-burst.second-burst{width:min(80%,400px);height:260px;left:10%;top:15%;background-image:url('tower/second-job-atlas.webp');background-size:500% 400%;background-position:calc(var(--third-col)*25%) 0;font-size:18px;text-shadow:0 2px 4px #000;animation:second-vfx 1.2s steps(3) forwards}
 @keyframes second-vfx{to{background-position:calc(var(--third-col)*25%) 100%;opacity:.1}}
+.tower-play[data-class="mage"] .skill .tower-action-art,.second-burst.mage{background-image:url('tower/second-mage-attack-v1.webp')}
+.tower-play[data-class="archer"] .skill .tower-action-art,.second-burst.archer{background-image:url('tower/second-archer-attack-v1.webp')}
+.tower-play[data-class="pirate"] .skill .tower-action-art,.second-burst.pirate{background-image:url('tower/second-pirate-attack-v1.webp')}
+.tower-play:is([data-class="mage"],[data-class="archer"],[data-class="pirate"]) .skill .tower-action-art{background-size:400% 100%;background-position:66.6667% 0}
+.skill-burst.second-burst:is(.mage,.archer,.pirate){background-size:400% 100%;background-position:0 0;animation:second-attack-v1 1.2s steps(3) forwards}
+@keyframes second-attack-v1{to{background-position:100% 0;opacity:.1}}
 
 .fourth-skill-art{display:grid;place-items:center;width:32px;height:32px;color:var(--fourth-color);font-size:28px;filter:drop-shadow(0 0 5px var(--fourth-color))}.tower-button.fourth-skill{border-color:#b7a16a;background:linear-gradient(135deg,#393028,#19262b)}
 
