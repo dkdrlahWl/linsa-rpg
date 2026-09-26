@@ -1,5 +1,5 @@
-import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=wave-clear-2';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-clear-2';
+import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=wave-fourth-fix-3';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-fourth-fix-3';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;

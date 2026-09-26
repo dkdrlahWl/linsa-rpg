@@ -1,4 +1,4 @@
-import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=wave-clear-2';
+import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=wave-fourth-fix-3';
 // Integrate input at display/event frequency; send the existing 100 ms protocol.
 export class TowerInput {
   constructor(step=100){this.step=step;this.clear();}

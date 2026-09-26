@@ -23,7 +23,7 @@ export function drawFourth(g,e,time,player,allies=[],atlas){
    if(!landed){const drop=(1-fall*fall)*340;g.globalAlpha=.88;
     const textured=sprite(e.classId==='archer'?2:e.classId==='mage'?1:4,-drop*.3,-drop,e.classId==='archer'?55:180,e.classId==='archer'?210:250,0,e.classId==='mage'?.65:.5,e.classId==='archer'?.96:e.classId==='mage'?.8:.78);
     if(!textured){g.lineWidth=e.classId==='archer'?5:16;g.beginPath();g.moveTo(-drop*.3-25,-drop-90);g.lineTo(-drop*.3,-drop);g.stroke();}
-   }else{const fade=Math.max(0,1-impactAge/4),spread=impactAge/4,wide=e.classId==='archer'?65:125;
+   }else{const fade=Math.max(0,1-impactAge/4),spread=Math.min(1,impactAge/4),wide=e.classId==='archer'?65:125;
     g.globalAlpha=.8*fade;g.lineWidth=7;g.beginPath();g.ellipse(0,0,18+spread*wide,9+spread*wide*.48,0,0,Math.PI*2);g.stroke();
     g.globalAlpha=.55*fade;g.fillStyle=light;g.beginPath();g.ellipse(0,0,45*(1-spread)+8,22*(1-spread)+4,0,0,Math.PI*2);g.fill();
     if(e.classId==='archer'){g.globalAlpha=.8*fade;sprite(2,0,0,40,125,0,.5,.96);}

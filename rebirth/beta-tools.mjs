@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=wave-clear-2';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=wave-fourth-fix-3';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

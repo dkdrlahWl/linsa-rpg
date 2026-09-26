@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=wave-clear-2';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-clear-2';
-import {incomingDamage} from './journey-balance.mjs?v=wave-clear-2';
-import {installMenuIcons} from './menu-icons.mjs?v=wave-clear-2';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=wave-clear-2';
-import {TOWER_FLOORS} from './tower-model.mjs?v=wave-clear-2';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-clear-2';
-import * as D from "./data.mjs?v=wave-clear-2";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=wave-clear-2";
-import equipmentBounds from "./equipment-bounds.mjs?v=wave-clear-2";
-import { inventoryGroups } from "./inventory-order.mjs?v=wave-clear-2";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-clear-2";
+import {GameAudio} from './game-audio.mjs?v=wave-fourth-fix-3';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-fourth-fix-3';
+import {incomingDamage} from './journey-balance.mjs?v=wave-fourth-fix-3';
+import {installMenuIcons} from './menu-icons.mjs?v=wave-fourth-fix-3';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=wave-fourth-fix-3';
+import {TOWER_FLOORS} from './tower-model.mjs?v=wave-fourth-fix-3';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-fourth-fix-3';
+import * as D from "./data.mjs?v=wave-fourth-fix-3";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=wave-fourth-fix-3";
+import equipmentBounds from "./equipment-bounds.mjs?v=wave-fourth-fix-3";
+import { inventoryGroups } from "./inventory-order.mjs?v=wave-fourth-fix-3";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-fourth-fix-3";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
