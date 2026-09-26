@@ -1,6 +1,6 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=damage-thirty-10';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=damage-thirty-10';
-import {incomingDamage} from './journey-balance.mjs?v=damage-thirty-10';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=skills-half-11';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=skills-half-11';
+import {incomingDamage} from './journey-balance.mjs?v=skills-half-11';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -56,7 +56,7 @@ export function advanceWaveRaw(room,user,input,now,frames=[]){
    const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0];const n=Math.max(1,Math.hypot(x,y));x/=n;y/=n;m.dir=towerFacing(x,y,m.dir);m.moving=Math.hypot(x,y)>.01;if(m.moving)m.walk++;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}
    const dashing=t<(m.dashUntil||0),speed=c.speed;m.x=bound(m.x+(dashing?m.dx*3:x)*speed);m.y=bound(m.y+(dashing?m.dy*3:y)*speed);if(x)m.face=x<0?-1:1;
-   if(m.power.firstJob!==false&&(bits&8)&&t>=m.ultimateReady){const sk=CLASS_SKILLS[m.classId];m.ultimateReady=t+sk.cooldown*10;m.guardUntil=t+sk.seconds*10;m.hp=Math.min(m.power.hp,m.hp+m.power.hp*.12);m.skillStart=t;m.skillUntil=t+8;m.skillDir=m.dir;}
+   if(m.power.firstJob!==false&&(bits&8)&&t>=m.ultimateReady){const sk=CLASS_SKILLS[m.classId];m.ultimateReady=t+sk.cooldown*10;m.guardUntil=t+sk.seconds*10;m.hp=Math.min(m.power.hp,m.hp+m.power.hp*.06);m.skillStart=t;m.skillUntil=t+8;m.skillDir=m.dir;}
    const targets=w.monsters.filter(e=>e.hp>0).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
    if(target&&(bits&1)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
     // Small cleave keeps all five starter classes viable against a crowd.

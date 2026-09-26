@@ -1,5 +1,5 @@
-import {currencyIconURL} from './currency-icons.mjs?v=damage-thirty-10';
-import * as D from './data.mjs?v=damage-thirty-10';
+import {currencyIconURL} from './currency-icons.mjs?v=skills-half-11';
+import * as D from './data.mjs?v=skills-half-11';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const pct=n=>(n*100).toFixed(6).replace(/\.?0+$/,'')+'%';
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;

@@ -1,12 +1,12 @@
 // Third-job skills share a deterministic pulse scheduler across solo and co-op combat.
 export const THIRD_NAMES={warrior:'소드 엠페러',mage:'엘리멘탈 로드',archer:'윈드 마스터',rogue:'섀도 팬텀',pirate:'스톰 커맨더'};
-const skill=(name,hits,damage,interval,range,radius,mode,art,description)=>({name,type:'attack',hits,damage,interval,range,radius,mode,art,cooldown:24,description});
+const skill=(name,hits,damage,interval,range,radius,mode,art,description)=>({name,type:'attack',hits,damage,interval,range,radius,mode,art,cooldown:12,description});
 export const THIRD_SKILLS={
- warrior:skill('천공 참렬',6,3,2,650,430,'area',0,'거대한 검기를 6회 연속 폭발 · 300% × 6 · 넓은 범위'),
- mage:skill('아스트라 폴',10,1.8,5,950,480,'area',1,'지정 위치에 4.5초 마력 폭풍 · 180% × 10 · 지속 범위'),
- archer:skill('실피드 레인',9,2,2,1000,180,'volley',2,'추적 마력 화살 9연사 · 200% × 9 · 긴 사거리'),
- rogue:skill('팬텀 블레이드',12,1.5,1,650,360,'area',3,'그림자 칼날 12연격 · 150% × 12 · 빠른 집중 공격'),
- pirate:skill('오비탈 캐논',6,20/6,4,900,520,'area',4,'목표 지역에 6연속 포격 · 총 2000% · 대형 폭발'),
+ warrior:skill('천공 참렬',6,1.5,2,650,430,'area',0,'거대한 검기를 6회 연속 폭발 · 150% × 6 · 넓은 범위'),
+ mage:skill('아스트라 폴',10,.9,5,950,480,'area',1,'지정 위치에 4.5초 마력 폭풍 · 90% × 10 · 지속 범위'),
+ archer:skill('실피드 레인',9,1,2,1000,180,'volley',2,'추적 마력 화살 9연사 · 100% × 9 · 긴 사거리'),
+ rogue:skill('팬텀 블레이드',12,.75,1,650,360,'area',3,'그림자 칼날 12연격 · 75% × 12 · 빠른 집중 공격'),
+ pirate:skill('오비탈 캐논',6,10/6,4,900,520,'area',4,'목표 지역에 6연속 포격 · 총 1000% · 대형 폭발'),
 };
 export const firstJobUnlocked=s=>s.firstAdvancement===true||(s.advancement||0)>=1;
 export const jobStage=s=>firstJobUnlocked(s)?Math.min(4,(s.advancement||0)+1):0;

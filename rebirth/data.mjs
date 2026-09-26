@@ -1,11 +1,11 @@
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=damage-thirty-10';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=damage-thirty-10';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=damage-thirty-10';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=damage-thirty-10';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=damage-thirty-10';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=damage-thirty-10';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=damage-thirty-10";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=damage-thirty-10";
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=skills-half-11';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=skills-half-11';
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=skills-half-11';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=skills-half-11';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=skills-half-11';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=skills-half-11';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=skills-half-11";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=skills-half-11";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -64,18 +64,18 @@ export const SLOTS = [
   "펜던트",
 ];
 export const CLASS_SKILLS = {
- warrior:{name:'철벽',type:'buff',damage:1.10,guard:.60,seconds:5,cooldown:24,description:'5초 피해 +10% · 받는 피해 40% 감소'},
- mage:{name:'마력 해방',type:'buff',damage:1.18,guard:.85,seconds:5,cooldown:28,description:'5초 피해 +18% · 받는 피해 15% 감소'},
- archer:{name:'집중 사격',type:'buff',damage:1.08,guard:.85,critAdd:.10,seconds:5,cooldown:24,description:'5초 피해 +8% · 치명 확률 +10%p · 받는 피해 15% 감소'},
- rogue:{name:'그림자 습격',type:'buff',damage:1.15,guard:.50,seconds:4,cooldown:22,description:'4초 피해 +15% · 받는 피해 50% 감소'},
- pirate:{name:'속사',type:'buff',damage:1.12,guard:.80,seconds:5,cooldown:26,description:'5초 피해 +12% · 받는 피해 20% 감소'},
+ warrior:{name:'철벽',type:'buff',damage:1.05,guard:.80,seconds:5,cooldown:12,description:'5초 피해 +5% · 받는 피해 20% 감소'},
+ mage:{name:'마력 해방',type:'buff',damage:1.09,guard:.925,seconds:5,cooldown:14,description:'5초 피해 +9% · 받는 피해 7.5% 감소'},
+ archer:{name:'집중 사격',type:'buff',damage:1.04,guard:.925,critAdd:.05,seconds:5,cooldown:12,description:'5초 피해 +4% · 치명 확률 +5%p · 받는 피해 7.5% 감소'},
+ rogue:{name:'그림자 습격',type:'buff',damage:1.075,guard:.75,seconds:4,cooldown:11,description:'4초 피해 +7.5% · 받는 피해 25% 감소'},
+ pirate:{name:'속사',type:'buff',damage:1.06,guard:.90,seconds:5,cooldown:13,description:'5초 피해 +6% · 받는 피해 10% 감소'},
 };
 export const SECOND_SKILLS = {
- warrior:{name:'대지 분쇄',type:'attack',hits:1,damage:1.5,seconds:0,cooldown:28,description:'즉시 150% 피해 1타 · 치명타·보공 적용'},
- mage:{name:'빙결 폭쇄',type:'attack',hits:3,damage:.6,seconds:0,cooldown:32,description:'얼음 결정 폭발 · 60% × 3타 · 총 180%'},
- archer:{name:'질풍 관통',type:'attack',hits:5,damage:.36,seconds:0,cooldown:30,description:'바람 화살 연격 · 36% × 5타 · 총 180%'},
- rogue:{name:'그림자 처형',type:'attack',hits:2,damage:.9,critAdd:.10,seconds:0,cooldown:30,description:'즉시 90% 피해 2타 · 이 스킬 치명 확률 +10%p'},
- pirate:{name:'파쇄 포격',type:'attack',hits:2,damage:.9,seconds:0,cooldown:30,description:'포탄 연속 폭발 · 90% × 2타 · 총 180%'},
+ warrior:{name:'대지 분쇄',type:'attack',hits:1,damage:.75,seconds:0,cooldown:14,description:'즉시 75% 피해 1타 · 치명타·보공 적용'},
+ mage:{name:'빙결 폭쇄',type:'attack',hits:3,damage:.3,seconds:0,cooldown:16,description:'얼음 결정 폭발 · 30% × 3타 · 총 90%'},
+ archer:{name:'질풍 관통',type:'attack',hits:5,damage:.18,seconds:0,cooldown:15,description:'바람 화살 연격 · 18% × 5타 · 총 90%'},
+ rogue:{name:'그림자 처형',type:'attack',hits:2,damage:.45,critAdd:.05,seconds:0,cooldown:15,description:'즉시 45% 피해 2타 · 이 스킬 치명 확률 +5%p'},
+ pirate:{name:'파쇄 포격',type:'attack',hits:2,damage:.45,seconds:0,cooldown:15,description:'포탄 연속 폭발 · 45% × 2타 · 총 90%'},
 };
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
