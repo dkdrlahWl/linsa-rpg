@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       if(body.command.startsWith('coop')||(body.command==='sync'&&snap.state?.coopRoom)){
         if(!snap.state)throw new Error('CHARACTER_REQUIRED');
         const action=body.command==='sync'?'sync':body.command.slice(4).toLowerCase();
-        if(!['create','join','start','input','sync','leave','list','open'].includes(action))throw new Error('INVALID_COOP_ACTION');
+        if(!['create','join','start','ready','input','sync','leave','list','open'].includes(action))throw new Error('INVALID_COOP_ACTION');
         const ctx={admin:user.app_metadata?.ringu_admin===true,now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
         const computed=execute(snap.state,'sync',{},ctx);
         const base={user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed.state,power:power(computed.state),args:body.args};

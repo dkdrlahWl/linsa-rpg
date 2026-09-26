@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=coop-ready-7';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-ready-7';
-import {incomingDamage} from './journey-balance.mjs?v=coop-ready-7';
-import {installMenuIcons} from './menu-icons.mjs?v=coop-ready-7';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=coop-ready-7';
-import {TOWER_FLOORS} from './tower-model.mjs?v=coop-ready-7';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=coop-ready-7';
-import * as D from "./data.mjs?v=coop-ready-7";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=coop-ready-7";
-import equipmentBounds from "./equipment-bounds.mjs?v=coop-ready-7";
-import { inventoryGroups } from "./inventory-order.mjs?v=coop-ready-7";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=coop-ready-7";
+import {GameAudio} from './game-audio.mjs?v=coop-party-ready-8';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-party-ready-8';
+import {incomingDamage} from './journey-balance.mjs?v=coop-party-ready-8';
+import {installMenuIcons} from './menu-icons.mjs?v=coop-party-ready-8';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=coop-party-ready-8';
+import {TOWER_FLOORS} from './tower-model.mjs?v=coop-party-ready-8';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=coop-party-ready-8';
+import * as D from "./data.mjs?v=coop-party-ready-8";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=coop-party-ready-8";
+import equipmentBounds from "./equipment-bounds.mjs?v=coop-party-ready-8";
+import { inventoryGroups } from "./inventory-order.mjs?v=coop-party-ready-8";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=coop-party-ready-8";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -240,6 +240,7 @@ async function exitDungeon(action){
   })();
   try{return await pendingDungeonExit;}finally{pendingDungeonExit=null;}
 }
+function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
 async function command(command, args = {}, quiet = false, freshSnapshot = false) {
   if (busy || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
   busy = true;
@@ -305,6 +306,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
   } finally {
     busy = false;
     commandIdleWaiters.splice(0).forEach(resolve=>resolve());
+    if(command!=='coopReady'&&coopRoom?.status==='waiting'&&coopRoom.members.some(m=>m.id===coopRoom.me&&!m.ready))
+      queueMicrotask(sendCoopReady);
     if(autoHuntPending)queueMicrotask(flushAutoHunt);
     if(recoverCharacter)queueMicrotask(()=>command("sync",{},true).catch(()=>{}));
     if(view==="ranking"&&state&&!rankingLoading&&rankingUpdated===0&&!connectionLost)loadRankings(true);
@@ -1284,7 +1287,7 @@ setInterval(() => {
   if(state.battle?.kind==='tower')return;
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
   const partyLobbyOpen = false;
-  const due = state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;
+  const due = state.coopRoom&&coopRoom?.status==='waiting'?2000:state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;
   if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
 }, 1000);
 function strike(arena, frame = null) {

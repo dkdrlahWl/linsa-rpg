@@ -1,10 +1,10 @@
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=coop-ready-7';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=coop-ready-7';
-import {beginThird,stepThird} from './advancement.mjs?v=coop-ready-7';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=coop-ready-7';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=coop-ready-7';
-import {incomingDamage} from './journey-balance.mjs?v=coop-ready-7';
-import {COOP_TIERS} from './rift-rewards.mjs?v=coop-ready-7';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=coop-party-ready-8';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=coop-party-ready-8';
+import {beginThird,stepThird} from './advancement.mjs?v=coop-party-ready-8';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=coop-party-ready-8';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=coop-party-ready-8';
+import {incomingDamage} from './journey-balance.mjs?v=coop-party-ready-8';
+import {COOP_TIERS} from './rift-rewards.mjs?v=coop-party-ready-8';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

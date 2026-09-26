@@ -25,7 +25,7 @@ begin
    if nullif(actor.state->>'coopRoom','') is not null or actor.state->'pendingCube' is not null and actor.state->'pendingCube'<>'null' then raise exception 'BATTLE_IN_PROGRESS';end if;
    tier:=case when action='create' then (p->'args'->>'tier')::int else (w->>'tier')::int end;
    if tier is null or tier not between 0 and 9 then raise exception 'INVALID_COOP_TIER';end if;
-   member:=jsonb_build_object('id',u,'name',actor.state->>'name','classId',actor.state->>'classId','power',p->'power','advanced',coalesce((actor.state->>'advancement')::int,0)>=1,'left',false);
+   member:=jsonb_build_object('id',u,'name',actor.state->>'name','classId',actor.state->>'classId','power',p->'power','advanced',coalesce((actor.state->>'advancement')::int,0)>=1,'left',false,'ready',false);
    if action='create' then
     w:=jsonb_build_object('mode',case when p->'args'->>'mode'='wave' then 'wave' else 'rift' end,'riftVersion',2,'status','waiting','owner',u,'tier',tier,'members',jsonb_build_array(member),'created',ms);
     insert into rebirth_private.coop_rooms(world) values(w) returning * into r;rid:=r.id;
@@ -60,6 +60,11 @@ begin
     if not exists(select 1 from jsonb_array_elements(members) where not coalesce((value->>'left')::boolean,false)) then w:=jsonb_set(w,'{status}','"lost"');end if;
    end if;
    update rebirth_private.players set state=(state-'coopRoom')||jsonb_build_object('hunting',true,'lastAt',ms),revision=revision+1 where id=u;
+  elsif action='ready' then
+   if w is null or w->>'status'<>'waiting' or r.revision<>(p->>'roomRevision')::bigint then raise exception 'PARTY_NOT_FOUND';end if;
+   if not exists(select 1 from jsonb_array_elements(w->'members') where value->>'id'=u::text and not coalesce((value->>'left')::boolean,false)) then raise exception 'PARTY_NOT_FOUND';end if;
+   select jsonb_agg(case when value->>'id'=u::text then value||'{"ready":true}'::jsonb else value end) into members from jsonb_array_elements(w->'members');
+   w:=jsonb_set(w,'{members}',members);
   elsif action='open' then
    if w is null or w->>'status'<>'won' then raise exception 'COOP_CHEST_NOT_READY';end if;
    if r.revision<>(p->>'roomRevision')::bigint then raise exception 'SAVE_CONFLICT';end if;
@@ -78,6 +83,7 @@ begin
    if w is null or not exists(select 1 from jsonb_array_elements(w->'members') where value->>'id'=u::text and not coalesce((value->>'left')::boolean,false)) then raise exception 'PARTY_NOT_FOUND';end if;
    if r.revision<>(p->>'roomRevision')::bigint then raise exception 'SAVE_CONFLICT';end if;
    if action='start' and (w->>'owner'<>u::text or w->>'status'<>'waiting') then raise exception 'INVALID_COOP_START';end if;
+   if action='start' and exists(select 1 from jsonb_array_elements(w->'members') where not coalesce((value->>'ready')::boolean,false)) then raise exception 'COOP_NOT_READY';end if;
    if w->>'status' in ('fighting','won') or action='start' then w:=p->'world';end if;
   else raise exception 'INVALID_COOP_ACTION';end if;
   if rid is not null and w is not null then

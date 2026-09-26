@@ -1,19 +1,19 @@
-import {prepareWaveCreature} from './wave-motion.mjs?v=coop-ready-7';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=coop-ready-7';
-import {waveLobby,waveHud} from './wave-ui.mjs?v=coop-ready-7';
-import {CoopMotion} from './coop-motion.mjs?v=coop-ready-7';
-import {TowerInput,projectPlayer} from './tower-input.mjs?v=coop-ready-7';
-import {predictCoopStep} from './coop-model.mjs?v=coop-ready-7';
-import {COOP_TIERS} from './coop-model.mjs?v=coop-ready-7';
-import {towerArena} from './tower-client.mjs?v=coop-ready-7';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=coop-ready-7';
+import {prepareWaveCreature} from './wave-motion.mjs?v=coop-party-ready-8';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=coop-party-ready-8';
+import {waveLobby,waveHud} from './wave-ui.mjs?v=coop-party-ready-8';
+import {CoopMotion} from './coop-motion.mjs?v=coop-party-ready-8';
+import {TowerInput,projectPlayer} from './tower-input.mjs?v=coop-party-ready-8';
+import {predictCoopStep} from './coop-model.mjs?v=coop-party-ready-8';
+import {COOP_TIERS} from './coop-model.mjs?v=coop-party-ready-8';
+import {towerArena} from './tower-client.mjs?v=coop-party-ready-8';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=coop-party-ready-8';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
 export function coopLobby(state,room,rooms=[],mode="rift"){
  if(room?.mode==="wave"||(!room&&mode==="wave")){void prepareWaveCreature(image(WAVE_MONSTERS[0].art),0);void prepareWaveCreature(image(WAVE_MONSTERS[0].eliteArt),0);if(room)void prepareCombatArt(room.members.map(m=>m.classId),COOP_TIERS[0].art);return waveLobby(state,room,rooms);}
  rooms=rooms.filter(r=>r.mode!=="wave");
- if(room){const tier=COOP_TIERS[room.tier];void prepareCombatArt(room.members.map(m=>m.classId),tier.art);return '<section class="panel pad"><h2>'+tier.name+' · 준비실</h2><p>3인 기준 · 최대 4인 · 제한 90초</p>'+room.members.filter(m=>!m.left).map(m=>'<p>● '+esc(m.name)+' · 전투력 '+fmt(m.power.combatPower)+'</p>').join('')+'<div class="actions">'+button('출발','coopStart','',room.owner!==room.me)+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';}
+ if(room){const tier=COOP_TIERS[room.tier];void prepareCombatArt(room.members.map(m=>m.classId),tier.art);return '<section class="panel pad"><h2>'+tier.name+' · 준비실</h2><p>3인 기준 · 최대 4인 · 제한 90초</p>'+room.members.filter(m=>!m.left).map(m=>'<p>● '+esc(m.name)+' · '+(m.ready?'준비 완료':'접속 대기')+' · 전투력 '+fmt(m.power.combatPower)+'</p>').join('')+'<div class="actions">'+button(room.members.every(m=>m.ready)?'출발':'모두 준비 후 출발','coopStart','',room.owner!==room.me||!room.members.every(m=>m.ready))+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';}
  const names={cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',fragment:'파편',scroll:'잠재 해금 주문서'};
  return '<section class="panel pad coop-lobby"><h2>협동 균열</h2><p class="note">3인 기준 · 최대 4인 · 90초 · 도전·보상 무제한<br>보스에게 피해를 준 뒤 각자 개인 상자를 열고 나갑니다.</p><div class="coop-tiers">'+COOP_TIERS.map((t,i)=>'<article><div class="coop-boss-portrait" style="background-image:url(tower/boss-'+t.art+'.webp)" role="img" aria-label="'+t.name+'"></div><div class="coop-meta"><h3>'+t.name+'</h3><p>기본 '+fmt(t.gold)+' G · 개인 상자</p></div>'+button('입장 준비','coopCreate',i)+'<details><summary>보상 확률 보기</summary><p>장비 '+(t.gearChance*100)+'% · Lv.'+t.level+' / 무작위 직업</p>'+Object.entries(t.chances).filter(([,p])=>p>0).map(([k,p])=>'<p>'+names[k]+' '+(p*100)+'% · '+(k==='fragment'?t.fragmentCount:1)+'개</p>').join('')+'<small>각 항목 독립 추첨 · 새 장비 잠재 잠금</small></details></article>').join('')+'</div><h3>모집 중</h3>'+button('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>'<div class="daily-row"><span>'+esc(r.name)+' · '+COOP_TIERS[r.tier].name+'<small>'+r.count+' / 4명</small></span>'+button('참가','coopJoin',r.id,r.count>=4)+'</div>').join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';
 }
