@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=wave-fourth-fix-3';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-fourth-fix-3';
-import {incomingDamage} from './journey-balance.mjs?v=wave-fourth-fix-3';
-import {installMenuIcons} from './menu-icons.mjs?v=wave-fourth-fix-3';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=wave-fourth-fix-3';
-import {TOWER_FLOORS} from './tower-model.mjs?v=wave-fourth-fix-3';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-fourth-fix-3';
-import * as D from "./data.mjs?v=wave-fourth-fix-3";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=wave-fourth-fix-3";
-import equipmentBounds from "./equipment-bounds.mjs?v=wave-fourth-fix-3";
-import { inventoryGroups } from "./inventory-order.mjs?v=wave-fourth-fix-3";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-fourth-fix-3";
+import {GameAudio} from './game-audio.mjs?v=dungeon-exit-fix-4';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=dungeon-exit-fix-4';
+import {incomingDamage} from './journey-balance.mjs?v=dungeon-exit-fix-4';
+import {installMenuIcons} from './menu-icons.mjs?v=dungeon-exit-fix-4';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=dungeon-exit-fix-4';
+import {TOWER_FLOORS} from './tower-model.mjs?v=dungeon-exit-fix-4';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=dungeon-exit-fix-4';
+import * as D from "./data.mjs?v=dungeon-exit-fix-4";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=dungeon-exit-fix-4";
+import equipmentBounds from "./equipment-bounds.mjs?v=dungeon-exit-fix-4";
+import { inventoryGroups } from "./inventory-order.mjs?v=dungeon-exit-fix-4";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=dungeon-exit-fix-4";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -229,12 +229,23 @@ function flushAutoHunt(){
   if(!session||!state||view!=="game"||tab!=="hunt"||state.hunting||state.battle||state.coopRoom||state.partyRoom||connectionLost)return;
   command("hunt",{enabled:true},true).catch(()=>{});
 }
+const dungeonExitActions=new Set(['coopLeave','towerLeave','partyLeave','abandon']);
+let pendingDungeonExit=null;
+const commandIdleWaiters=[];
+async function exitDungeon(action){
+  if(pendingDungeonExit)return pendingDungeonExit;
+  pendingDungeonExit=(async()=>{
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    return command(action);
+  })();
+  try{return await pendingDungeonExit;}finally{pendingDungeonExit=null;}
+}
 async function command(command, args = {}, quiet = false, freshSnapshot = false) {
-  if (busy) return;
+  if (busy || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
   busy = true;
   document
     .querySelectorAll("button[data-write]")
-    .forEach((b) => (b.disabled = true));
+    .forEach((b) => {if(!dungeonExitActions.has(b.dataset.action))b.disabled=true;});
   let body, recoverCharacter = false;
   const recoverySync=command==="sync"&&(!state||freshSnapshot);
   try {
@@ -293,6 +304,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     throw e;
   } finally {
     busy = false;
+    commandIdleWaiters.splice(0).forEach(resolve=>resolve());
     if(autoHuntPending)queueMicrotask(flushAutoHunt);
     if(recoverCharacter)queueMicrotask(()=>command("sync",{},true).catch(()=>{}));
     if(view==="ranking"&&state&&!rankingLoading&&rankingUpdated===0&&!connectionLost)loadRankings(true);
@@ -928,6 +940,7 @@ document.addEventListener("click", async (e) => {
   sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage'].includes(action)?'ui-tab':'ui-click');
   if(action==='star')sounds.play('enhance-charge');
   try {
+    if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
     if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
     if(action==="battlePotion")return await command("battlePotion");

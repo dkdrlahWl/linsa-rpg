@@ -1,10 +1,10 @@
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=wave-fourth-fix-3';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=wave-fourth-fix-3';
-import {beginThird,stepThird} from './advancement.mjs?v=wave-fourth-fix-3';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=wave-fourth-fix-3';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=wave-fourth-fix-3';
-import {incomingDamage} from './journey-balance.mjs?v=wave-fourth-fix-3';
-import {COOP_TIERS} from './rift-rewards.mjs?v=wave-fourth-fix-3';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=dungeon-exit-fix-4';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=dungeon-exit-fix-4';
+import {beginThird,stepThird} from './advancement.mjs?v=dungeon-exit-fix-4';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=dungeon-exit-fix-4';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=dungeon-exit-fix-4';
+import {incomingDamage} from './journey-balance.mjs?v=dungeon-exit-fix-4';
+import {COOP_TIERS} from './rift-rewards.mjs?v=dungeon-exit-fix-4';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

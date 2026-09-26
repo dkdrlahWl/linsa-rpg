@@ -1,8 +1,8 @@
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=wave-fourth-fix-3';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=wave-fourth-fix-3';
-import {incomingDamage} from './journey-balance.mjs?v=wave-fourth-fix-3';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=dungeon-exit-fix-4';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=dungeon-exit-fix-4';
+import {incomingDamage} from './journey-balance.mjs?v=dungeon-exit-fix-4';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=wave-fourth-fix-3';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=dungeon-exit-fix-4';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

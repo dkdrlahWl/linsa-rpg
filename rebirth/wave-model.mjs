@@ -1,6 +1,6 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=wave-fourth-fix-3';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=wave-fourth-fix-3';
-import {incomingDamage} from './journey-balance.mjs?v=wave-fourth-fix-3';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=dungeon-exit-fix-4';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=dungeon-exit-fix-4';
+import {incomingDamage} from './journey-balance.mjs?v=dungeon-exit-fix-4';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
