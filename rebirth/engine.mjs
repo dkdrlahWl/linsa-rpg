@@ -2,7 +2,7 @@ import {rollRiftReward} from './rift-rewards.mjs?v=rift-chests-1';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rift-chests-1';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=rift-chests-1';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=rift-chests-1';
-import {applyBetaTool} from './beta-tools.mjs?v=rift-chests-1';
+import {applyBetaTool} from './beta-tools.mjs?v=admin-dohyun1-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -54,7 +54,7 @@ function spend(s, key, n) {
   check(Number.isSafeInteger(n) && n >= 0, "INVALID_COST");
   const bag = key === "gold" ? s : s.materials;
   check((bag[key] || 0) >= n, "INSUFFICIENT_" + key.toUpperCase());
-  bag[key] -= n;
+  if (!s.isAdmin) bag[key] -= n;
 }
 function pick(a, ctx) {
   return a[Math.min(a.length - 1, Math.floor(ctx.random() * a.length))];
@@ -479,6 +479,8 @@ export function execute(input, command, args = {}, ctx) {
     "INVALID_CONTEXT",
   );
   const s = normalizePotentialState(structuredClone(input));
+  s.isAdmin = ctx.admin === true;
+  if(s.isAdmin){s.gold=8e12;for(const key of Object.keys(MATERIALS))s.materials[key]=1e9;}
   check(s.version === VERSION, "VERSION_MISMATCH");
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
   const dailyDay=dayKey(ctx.now);
@@ -496,7 +498,7 @@ export function execute(input, command, args = {}, ctx) {
       check(canOpenChest(b),'ITEM_CHEST_TOO_FAR');
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
-      if(!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
+      if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
       if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel-(ctx.random()<.5?10:0);const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
@@ -555,10 +557,24 @@ export function execute(input, command, args = {}, ctx) {
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "adminSkip": {
+      check(ctx.admin===true,"BETA_DISABLED");
+      check(int(args.hours,1,12),"INVALID_SKIP_HOURS");
+      const reward={type:"offline",adminSkip:true,hours:args.hours,seconds:0,kills:0,defeats:0,xp:0,gold:0,drops:[],fragment:0,cube:0,scroll:0,stored:0};
+      const hunting=s.hunting;s.hunting=true;
+      // Use the real hunting calculation without advancing the saved wall clock.
+      for(let hour=0;hour<args.hours;hour++){
+        s.lastAt=ctx.now-3600000;
+        const part=settle(s,ctx);
+        if(part){for(const key of ["seconds","kills","defeats","xp","gold","fragment","cube","scroll","stored"])reward[key]+=Number(part[key]||0);reward.drops.push(...part.drops);}
+      }
+      s.hunting=hunting;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);
+      break;
+    }
     case "betaGrant":
     case "betaLevel":
     case "betaBossReset":
-      check(ctx.betaTools===true,"BETA_DISABLED");
+      check(ctx.admin===true,"BETA_DISABLED");
       events.push(applyBetaTool(s,command,args,ctx.now));
       break;
     case "changeClass": {
@@ -782,8 +798,8 @@ export function execute(input, command, args = {}, ctx) {
       const practice = args.practice === true;
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
-      if(b.weekly){check(practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
-      if(!practice){const today=dayKey(ctx.now);s.bossAttempts||={};check(s.bossAttempts[b.id]!==today&&s.bossClaims?.[b.id]!==today,"BOSS_LIMIT");s.bossAttempts[b.id]=today;}
+      if(b.weekly){check(s.isAdmin||practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
+      if(!practice){const today=dayKey(ctx.now);s.bossAttempts||={};check(s.isAdmin||(s.bossAttempts[b.id]!==today&&s.bossClaims?.[b.id]!==today),"BOSS_LIMIT");s.bossAttempts[b.id]=today;}
       s.battle = {
         kind: "boss",
         bossId: b.id,

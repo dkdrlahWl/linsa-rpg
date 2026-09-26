@@ -65,7 +65,8 @@ begin
   select id,state->>'name' as name,state->>'classId' as "classId",(state->>'level')::int as level,
    (state->>'xp')::bigint as xp,coalesce((state->>'advancement')::int,0) as advancement,
    rebirth_private.combat_power(state) as "combatPower"
-  from rebirth_private.players where state->>'version'='rebirth-1'
+  from rebirth_private.players p where state->>'version'='rebirth-1'
+   and not exists(select 1 from auth.users u where u.id=p.id and u.raw_app_meta_data->>'ringu_admin'='true')
  ), ranked as (
   select *,row_number() over(order by level desc,xp desc,id) as "levelRank",
    row_number() over(order by "combatPower" desc,level desc,xp desc,id) as "combatRank",count(*) over() as total from scores

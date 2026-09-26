@@ -1,5 +1,5 @@
 import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=rift-chests-1';
-// Temporary beta switch. Disable on the server before the production release.
+// Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){
   const check=(ok,error)=>{if(!ok)throw new Error(error);};
@@ -14,6 +14,7 @@ export function applyBetaTool(s,command,args,now){
       if(args.kind!=='all'&&boss.weekly!==(args.kind==='weekly'))continue;
       if(Object.hasOwn(s.bossClaims,boss.id))count++;
       delete s.bossClaims[boss.id];
+      if(s.bossAttempts)delete s.bossAttempts[boss.id];
     }
     return {type:'betaBossReset',kind:args.kind,count};
   }

@@ -6,7 +6,7 @@ import {initialState,makeItem,power} from './engine.mjs';
 import {CLASSES,OPTIONS} from './data.mjs';
 const db=new PGlite();const ctx={now:0,uuid:randomUUID,random:()=>.5};
 try {
-await db.exec(`create role anon;create role authenticated;create schema rebirth_private;create table rebirth_private.players(id uuid primary key,state jsonb);create function rebirth_private.session_user() returns uuid language plpgsql as $$begin if nullif(current_setting('test.actor',true),'') is null then raise exception 'LOGIN_REQUIRED';end if;return current_setting('test.actor')::uuid;end $$;`);
+await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key,raw_app_meta_data jsonb);create schema rebirth_private;create table rebirth_private.players(id uuid primary key,state jsonb);create function rebirth_private.session_user() returns uuid language plpgsql as $$begin if nullif(current_setting('test.actor',true),'') is null then raise exception 'LOGIN_REQUIRED';end if;return current_setting('test.actor')::uuid;end $$;`);
 await db.exec(await readFile(new URL('./rankings.sql',import.meta.url),'utf8'));
 let seed=27;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
 for(const cl of CLASSES)for(let n=0;n<40;n++) {
@@ -20,6 +20,9 @@ await assert.rejects(()=>db.query('select public.rebirth_rankings()'),/LOGIN_REQ
 await db.query("select set_config('test.actor',$1,false)",[ids[124]]);
 const rows=(await db.query('select public.rebirth_rankings() as rows')).rows[0].rows;
 assert.equal(rows.filter(r=>r.levelRank<=100).length,100);assert.equal(rows.filter(r=>r.combatRank<=100).length,100);assert.equal(rows.find(r=>r.isMe).levelRank,125);assert.equal(rows.find(r=>r.isMe).combatRank,1);assert.equal(rows[0].total,125);assert.ok(rows.every(r=>!('id' in r)&&!('state' in r)));
+await db.query("insert into auth.users values($1,'{\"ringu_admin\":true}')",[ids[124]]);
+const hidden=(await db.query('select public.rebirth_rankings() as rows')).rows[0].rows;
+assert.equal(hidden[0].total,124);assert.ok(hidden.every(r=>!r.isMe));assert.equal(Math.min(...hidden.map(r=>r.combatRank)),1);
 await db.exec('set role anon');await assert.rejects(()=>db.query('select public.rebirth_rankings()'),/permission denied/);await db.exec('reset role');
 console.log('PASS: 200 server/character combat-power comparisons across five classes, independent top-100 ranks, own rank outside top-100, privacy and login guards.');
 } finally {await db.close();}
