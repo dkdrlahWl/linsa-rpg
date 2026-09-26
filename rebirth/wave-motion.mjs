@@ -9,6 +9,19 @@ function triangle(g,im,s,d){
  const x=solve(p.x,q.x,r.x),y=solve(p.y,q.y,r.y);
  g.save();g.beginPath();g.moveTo(p.x,p.y);g.lineTo(q.x,q.y);g.lineTo(r.x,r.y);g.closePath();g.clip();g.transform(x[0],y[0],x[1],y[1],x[2],y[2]);g.drawImage(im,0,0);g.restore();
 }
+
+function outlinedCreature(source){
+ const result=document.createElement('canvas');result.width=256;result.height=256;
+ const mask=document.createElement('canvas');mask.width=256;mask.height=256;
+ const m=mask.getContext('2d'),g=result.getContext('2d');
+ m.drawImage(source,0,0);m.globalCompositeOperation='source-in';
+ for(const [radius,color] of [[6,'#25170f'],[3,'#ffe6ad']]){
+  m.fillStyle=color;m.fillRect(0,0,256,256);
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;g.drawImage(mask,Math.cos(a)*radius,Math.sin(a)*radius);}
+ }
+ g.drawImage(source,0,0);return result;
+}
+
 async function build(im,mode){
  const base=document.createElement('canvas');base.width=256;base.height=256;const g=base.getContext('2d'),scale=220/Math.max(im.naturalWidth,im.naturalHeight),iw=im.naturalWidth*scale,ih=im.naturalHeight*scale;g.drawImage(im,(256-iw)/2,238-ih,iw,ih);
  const frames=[];
@@ -23,9 +36,9 @@ async function build(im,mode){
    else{const side=Math.sin(phase+(u<0?0:Math.PI));dx=side*legs*(mode==='heavy'?2:mode==='crawl'?4:5);dy=-Math.max(0,side)*legs*5+Math.cos(phase*2)*(1-legs)*(mode==='heavy'?1:2);}
    return {x:x+dx,y:y+dy};};
   for(let y=0;y<256;y+=32)for(let x=0;x<256;x+=32){const a={x,y},b={x:x+32,y},c={x:x+32,y:y+32},d={x,y:y+32};triangle(h,base,[a,b,c],[deform(a.x,a.y),deform(b.x,b.y),deform(c.x,c.y)]);triangle(h,base,[a,c,d],[deform(a.x,a.y),deform(c.x,c.y),deform(d.x,d.y)]);}
-  frames.push(frame);
+  frames.push(outlinedCreature(frame));
  }
- return {base,frames};
+ return {base:outlinedCreature(base),frames};
 }
 export function drawWaveCreature(g,im,e,time,size){
  if(!im.complete||!im.naturalWidth)return;

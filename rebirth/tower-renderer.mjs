@@ -1,4 +1,4 @@
-import {drawWaveCreature} from './wave-motion.mjs?v=field-fragment-13';
+import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 import {damageRows} from './damage-stack.mjs?v=field-fragment-13';
 import {drawFourth} from './fourth-effects.mjs?v=field-fragment-13';
@@ -118,7 +118,7 @@ export class TowerRenderer {
     g.save();g.strokeStyle='#d7cd9870';g.lineWidth=3;g.strokeRect(110,110,2980,2980);g.restore();
   }
   waveMonster(e,time){
-    const g=this.g,size=e.elite?150:105,bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
+    const g=this.g,size=(e.elite?150:105)*(this.mobileActors.matches?1.65:1),bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
     this.shadow(e.x,e.y,e.elite?43:29);
     if(e.elite){g.save();g.strokeStyle='#ffd880';g.lineWidth=3;g.beginPath();g.ellipse(e.x,e.y,58,24,0,0,7);g.stroke();g.restore();}
     drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);

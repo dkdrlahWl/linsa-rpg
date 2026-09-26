@@ -1,10 +1,10 @@
 import {GameAudio} from './game-audio.mjs?v=field-fragment-13';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=field-fragment-13';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-visible-18';
 import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=field-fragment-13';
 import {TOWER_FLOORS} from './tower-model.mjs?v=field-fragment-13';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=field-fragment-13';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-visible-18';
 import * as D from "./data.mjs?v=field-fragment-13";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
