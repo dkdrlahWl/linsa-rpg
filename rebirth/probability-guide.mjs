@@ -1,6 +1,6 @@
-import * as D from './data.mjs?v=foley-audio-1';
-import {COOP_TIERS} from './coop-model.mjs?v=foley-audio-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=foley-audio-1';
+import * as D from './data.mjs?v=rift-chests-1';
+import {COOP_TIERS} from './coop-model.mjs?v=rift-chests-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=rift-chests-1';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const section=(id,title,body)=>'<section id="'+id+'"><h2>'+title+'</h2>'+body+'</section>';
@@ -16,14 +16,14 @@ table(['사냥터','권장 Lv.','몬스터 2종','HP','공격','기본 XP','기�
 html+=section('boss','2. 보스·협동 균열',
 '<p>모든 필드·보스·탑·균열은 레벨·스타포스·선행 처치 조건 없이 입장합니다. 일일 보스는 보스별 하루 1회 도전(입장 시 차감, 한국 시간 00시 갱신), 균열 보상은 무제한, 주간 보스는 보스별 주 1회(월요일 00시 한국 시간 갱신), 탑은 층별 최초 1회이며 연습·패배는 보상 없음. 아래 장비 확률은 승리 1회 기준입니다.</p>'+
 table(['보스','주기','장비 레벨','장비 확률','확정 G','레드','추가'],D.BOSSES.map(b=>[b.name,b.weekly?'주간':'일일',b.weekly?(b.gearLevel-10)+' / '+b.gearLevel:b.gearLevel,pct(b.dropChance),b.gold,b.cubes,b.weekly?'블랙 2개 100%':'없음']))+
-'<h3>협동 균열</h3><p>승리 보상 횟수 무제한. 실제 피해를 주고 이탈하지 않은 참가자에게 아래 보상 100% 지급. 장비 추첨 없음.</p>'+
-table(['균열','권장 Lv.','확정 보상'],COOP_TIERS.map(t=>[t.name,t.level,reward(t)])));
+ '<h3>협동 균열</h3><p>1–4인 입장, 3인 기준 고정 난이도. 입장·보상 횟수 제한 없음. 실제 피해를 준 참가자는 처치 후 개인 상자를 가까이서 공격하여 열고 나갑니다. 항목별 독립 추첨이며 장비는 던전과 같은 레벨·무작위 직업입니다.</p>'+
+ table(['레벨','확정 골드','레드','블랙','프라임','장비','파편','잠재 해금 주문서'],COOP_TIERS.map(t=>[t.level,t.gold,...['cube','highCube','primeCube'].map(k=>pct(t.chances[k])+' / 1개'),pct(t.gearChance)+' / 1개',pct(t.chances.fragment)+' / '+t.fragmentCount+'개',pct(t.chances.scroll)+' / 1개'])));
 html+=section('stars','3. 스타포스·잠재',
 '<p>스타포스는 성공하면 +1성, 실패하면 현재 별 유지. 모든 구간 하락 0%, 파괴 0%. 최대 25성.</p>'+
 table(['강화','성공','유지'],D.STAR_SUCCESS.map((p,i)=>[i+' → '+(i+1)+'성',pct(p),pct(1-p)]))+
 '<p>강화 비용 = 반올림[45 × (1+장비레벨/25)^1.3 × (현재별+1)^1.35 × (1+max(0,현재별−15)×0.5)] G.</p>'+
-table(['항목','확률·비용'],[['초기 잠재','레어 등급 · 3줄 100% · 무료'],['기존 장비','원래 등급·옵션 유지, 빈 줄만 현재 등급 레드 표로 보충'],['옛 파괴 장비 복원','12성으로 복원 · 성공 100%']])+
-'<p>새 장비 옵션은 레드·레어 표를 사용합니다. 확장석과 개방 주문서는 삭제되었습니다. 기존 보유분은 확장석 1개당 파편 20개, 주문서 1개당 파편 3개로 자동 전환합니다. 장비 제작은 삭제되었습니다. 보스 장비는 보스 드롭으로 생성되며, 유저 간 거래도 가능합니다.</p>');
+table(['항목','확률·비용'],[['초기 잠재','3줄 잠금 · 잠재 해금 주문서 1개로 전체 개방 (100%)'],['기존 장비','원래 등급·옵션 유지, 빈 줄만 현재 등급 레드 표로 보충'],['옛 파괴 장비 복원','12성으로 복원 · 성공 100%']])+
+'<p>잠재 해금 시 레드·레어 표로 3줄을 추첨합니다. 잠재 해금 주문서는 협동 균열 개인 상자에서 획득합니다. 기존 개방 잠재는 유지합니다. 확장석은 삭제되었으며 기존 확장석만 1개당 파편 20개로 전환합니다. 장비 제작은 삭제되었습니다. 보스 장비는 보스 드롭으로 생성되며, 유저 간 거래도 가능합니다.</p>');
 html+=section('cube','4. 큐브 등급·모든 옵션',
 table(['큐브','레어→에픽','에픽→유니크','유니크→레전더리','기능'],Object.entries(D.CUBES).map(([k,c])=>[c.name,...[2,3,4].map(g=>pct(c.prime&&g===2?1:c.up[g])),c.prime?'결과 최소 에픽, 첫 줄 유지, 나머지 재설정':c.choose?'기존/새 등급과 옵션 선택':'전체 옵션 재설정, 즉시 적용']))+
 '<p>1회 큐브 1개, 추가 골드 0. 모든 장비의 잠재는 3줄입니다. 프라임은 모든 잠재 등급에 사용합니다. 레어 장비는 에픽으로 100% 상승하며, 에픽·유니크·레전더리는 기존 등급을 유지합니다. 고정된 첫 줄은 수치와 줄 등급도 그대로 유지됩니다.</p>'+

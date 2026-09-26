@@ -1,6 +1,6 @@
 import {startCoop,advanceCoop} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
-import { initialState, execute, power } from "./engine.mjs";
+import { initialState, execute, power, grantCoopChest } from "./engine.mjs";
 const url = Deno.env.get("SUPABASE_URL")!;
 const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       if(body.command.startsWith('coop')||(body.command==='sync'&&snap.state?.coopRoom)){
         if(!snap.state)throw new Error('CHARACTER_REQUIRED');
         const action=body.command==='sync'?'sync':body.command.slice(4).toLowerCase();
-        if(!['create','join','start','input','sync','leave','list'].includes(action))throw new Error('INVALID_COOP_ACTION');
+        if(!['create','join','start','input','sync','leave','list','open'].includes(action))throw new Error('INVALID_COOP_ACTION');
         const ctx={now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
         const computed=execute(snap.state,'sync',{},ctx);
         const base={user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed.state,power:power(computed.state),args:body.args};
@@ -80,7 +80,15 @@ Deno.serve(async (req) => {
           if(!room&&["input","sync"].includes(action))return reply(current);
           if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
           const world=action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?body.args.input:null,Number(current.now)):null;
-          const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision}},true);
+          let claim=null;
+          if(action==='open'){
+            const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);
+            if(room?.status!=='won'||!member||!room.chest)throw new Error('COOP_CHEST_NOT_READY');
+            if(!(member.damage>0))throw new Error('COOP_DAMAGE_REQUIRED');
+            if(Math.hypot(member.x-room.chest.x,member.y-room.chest.y)>180)throw new Error('COOP_CHEST_TOO_FAR');
+            claim=grantCoopChest(computed.state,room.tier,ctx);
+          }
+          const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim?.reward,rewardState:claim?.state}},true);
           return reply(result);
         }catch(e){if(e.message==='SAVE_CONFLICT'&&retry<2)continue;throw e;}
       }

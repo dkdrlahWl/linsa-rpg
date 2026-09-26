@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=foley-volume-2';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=foley-audio-1';
-import {incomingDamage} from './journey-balance.mjs?v=foley-audio-1';
-import {installMenuIcons} from './menu-icons.mjs?v=foley-audio-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=foley-audio-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=foley-audio-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=foley-audio-1';
-import * as D from "./data.mjs?v=foley-audio-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=foley-audio-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=foley-audio-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=foley-audio-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=foley-audio-1";
+import {GameAudio} from './game-audio.mjs?v=rift-chests-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-chests-1';
+import {incomingDamage} from './journey-balance.mjs?v=rift-chests-1';
+import {installMenuIcons} from './menu-icons.mjs?v=rift-chests-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=rift-chests-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=rift-chests-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=rift-chests-1';
+import * as D from "./data.mjs?v=rift-chests-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=rift-chests-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=rift-chests-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=rift-chests-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=rift-chests-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -93,7 +93,12 @@ const errors = {
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
   INSUFFICIENT_CUBE: "레드 큐브가 부족합니다.",
   INSUFFICIENT_HIGHCUBE: "블랙 큐브가 부족합니다.",
-  INSUFFICIENT_SCROLL: "잠재 부여 주문서가 부족합니다.",
+  COOP_CHEST_TOO_FAR: "개인 상자 가까이 이동한 뒤 공격 버튼을 눌러주세요.",
+  COOP_DAMAGE_REQUIRED: "보스에게 직접 피해를 줘야 개인 상자를 받을 수 있습니다.",
+  COOP_CHEST_NOT_READY: "보스 처치 후 개인 상자를 열 수 있습니다.",
+  COOP_CHEST_CLAIMED: "이미 받은 상자입니다.",
+  POTENTIAL_ALREADY_OPEN: "이미 잠재가 해금된 장비입니다.",
+  INSUFFICIENT_SCROLL: "잠재 해금 주문서가 부족합니다.",
   INSUFFICIENT_EXPAND: "잠재 확장석이 부족합니다.",
   INSUFFICIENT_MATERIAL: "판매할 소모품 수량이 부족합니다.",
   INVALID_QUANTITY: "남은 수량 안에서 정수로 입력해 주세요.",
@@ -337,10 +342,10 @@ function shell(content) {
     .join("")}</nav></div>`;
 }
 function render() {
-  sounds.setCombat(!!state?.battle||coopRoom?.status==='fighting');
+  sounds.setCombat(!!state?.battle||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
   const towerBattle=state?.battle?.kind==='tower'?state.battle:null;
-  const coopFight=state?.coopRoom&&coopRoom?.status==='fighting';
+  const coopFight=state?.coopRoom&&['fighting','won'].includes(coopRoom?.status);
   document.body.classList.toggle('tower-mode',!!towerBattle||!!coopFight);
   if(coopFight&&coopController?.room.id===coopRoom.id){coopController.accept(coopRoom);return;}
   if(coopController){coopController.dispose();coopController=null;}
@@ -734,7 +739,7 @@ function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.s
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G<br>큐브 '+r.cube+(r.highCube?' · 블랙 큐브 '+r.highCube:''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;
-  if(r?.type==='coop')return open(r.won?'균열 토벌 성공':'균열 도전 종료','<p>'+(r.gold?fmt(r.gold)+' G · 레드 '+r.cube+' · 블랙 '+r.highCube:r.won?'실제 피해를 준 참가자에게 보상이 지급됩니다.':'장비를 정비하고 다시 도전해 보세요.')+'</p>'+btn('확인','ack','','gold',true));
+  if(r?.type==='coop')return open(r.won?'개인 상자 획득':'균열 도전 종료','<p>'+(r.won?fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join(''):'장비를 정비하고 다시 도전해 보세요.')+'</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · 잠재 3줄 잠금 (가방이 가득 차면 보관함)</p>').join('')+btn('확인','ack','','gold',true));
   if(r?.type==='advancementTrial')return advancementResult(r);
   if(r?.type==='tower')return towerReward(r);
   const enemy = r && (r.type === "dungeon" ? D.DUNGEONS[r.dungeon] : r.type === "boss" ? D.BOSSES[r.bossId] : null);
@@ -1085,6 +1090,7 @@ document.addEventListener("click", async (e) => {
       );
       return itemDetail(arg);
     }
+    if (action === "potentialUnlock") return await command("potential", {id:arg});
     if (action === "cubeUse") return await command("cube", {id:arg,kind:cubeKind});
     if (["lock", "star"].includes(action)) {
       await command(action, { id: arg });

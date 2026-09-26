@@ -1,10 +1,10 @@
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=foley-audio-1';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=foley-audio-1';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=foley-audio-1';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=foley-audio-1';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=foley-audio-1';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=foley-audio-1";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=foley-audio-1";
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=rift-chests-1';
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=rift-chests-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=rift-chests-1';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=rift-chests-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=rift-chests-1';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=rift-chests-1";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=rift-chests-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -189,6 +189,7 @@ export const BOSSES = bosses.flatMap((list, r) =>
   })),
 );
 export const MATERIALS = {
+  scroll: "잠재 해금 주문서",
   fragment: "장비 파편",
   cube: "레드 큐브",
   highCube: "블랙 큐브",
@@ -320,6 +321,7 @@ export function normalizePotentialItem(item) {
   }
   delete item.quality;
   normalizeEquipment(item);
+  if(item.potentialVersion===5){if(item.potentialUnlocked===false){item.lines=[];item.grade=0;return item;}return fillPotentialLines(item);}
   if (item.potentialVersion !== 3 && item.potentialVersion !== 4) {
     const grade = item.potentialVersion === 2 ? (item.grade || 0) : Math.min(5, (item.grade || 0) + 2);
     item.lines = (item.lines || []).map(line => ({...line, grade:line.grade ?? grade}));
@@ -327,6 +329,7 @@ export function normalizePotentialItem(item) {
   }
   if(item.potentialVersion!==4){item.grade=item.lines.length?Math.max(2,...item.lines.map(line=>line.grade||0)):0;item.potentialVersion=4;}
   item.grade=item.lines.length?Math.max(2,Math.min(5,item.grade||2)):0;
+  item.potentialVersion=5;item.potentialUnlocked=true;
   return fillPotentialLines(item);
 }
 export function normalizePotentialState(state) {
@@ -338,8 +341,8 @@ export function normalizePotentialState(state) {
   if(state.battle?.kind==='dungeon'){state.battle=null;state.hunting=false;}
   state.cubePity??={};
   state.materials??={};
-  state.materials.fragment=(state.materials.fragment||0)+(state.materials.expand||0)*20+(state.materials.scroll||0)*3;
-  delete state.materials.expand;delete state.materials.scroll;
+  state.materials.fragment=(state.materials.fragment||0)+(state.materials.expand||0)*20;
+  delete state.materials.expand;state.materials.scroll??=0;
   for(const [old,key,ratio] of [["strangeCube","cube",1],["masterCube","cube",2],["artisanCube","highCube",1],["silverCube","highCube",1],["goldCube","highCube",2]]){state.materials[key]=(state.materials[key]||0)+(state.materials[old]||0)*ratio;delete state.materials[old];}
   if(["silverCube","goldCube"].includes(state.pendingCube?.kind))state.pendingCube.kind="highCube";
   for(const key of Object.keys(CUBES))state.materials[key]??=0;

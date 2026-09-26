@@ -1,13 +1,21 @@
-import {beginThird,stepThird} from './advancement.mjs?v=foley-audio-1';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=foley-audio-1';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=foley-audio-1';
-import {incomingDamage} from './journey-balance.mjs?v=foley-audio-1';
-export const COOP_TIERS=[{level:60,name:'숲의 균열',hp:700000,attack:450,art:'rift-forest',gold:18000,cube:20,highCube:3,fragment:0},{level:140,name:'용암의 균열',hp:3500000,attack:1800,art:'rift-magma',gold:35000,cube:30,highCube:5,fragment:0},{level:200,name:'공허의 균열',hp:10000000,attack:3400,art:'rift-void',gold:60000,cube:40,highCube:8,fragment:0}];
+import {beginThird,stepThird} from './advancement.mjs?v=rift-chests-1';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=rift-chests-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=rift-chests-1';
+import {incomingDamage} from './journey-balance.mjs?v=rift-chests-1';
+import {COOP_TIERS} from './rift-rewards.mjs?v=rift-chests-1';
+export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-export function startCoop(room,now){const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=Math.round(tier.hp*(.65+.55*w.members.length));w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return w;}
+export function startCoop(room,now){const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=tier.hp;w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return w;}
 export function advanceCoop(room,user,input,now){
- const w=structuredClone(room);if(w.status!=='fighting')return w;
+ const w=structuredClone(room);
+ if(input&&(!Array.isArray(input)||input.length!==3||!input.every(Number.isFinite)||Math.abs(input[0])>1||Math.abs(input[1])>1||!Number.isInteger(input[2])||input[2]<0||input[2]>31))throw Error('INVALID_COOP_INPUT');
+ if(w.status==='won'){
+  const dt=Math.max(0,Math.min(1000,now-(w.lootAt??now)))/1000;w.lootAt=now;w.tick+=dt*10;
+  for(const m of w.members){if(m.left)continue;let [x,y]=now-m.inputAt<1000?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y));m.x=clamp(m.x+x/n*250*dt);m.y=clamp(m.y+y/n*250*dt);m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?dt*10:0);if(x)m.face=x<0?-1:1;}
+  const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=[input[0],input[1],0];me.inputAt=now;}return w;
+ }
+ if(w.status!=='fighting')return w;
  w.effects||=[];w.numbers||=[];w.projectiles||=[];w.serial||=0;
  const tier=COOP_TIERS[w.tier],upto=Math.min(900,Math.floor((now-w.started)/100));
  // Only a bounded, recent backlog is interactive; long disconnections still time out.
@@ -34,7 +42,7 @@ export function advanceCoop(room,user,input,now){
    if(t>=m.immune&&t>=m.hurtReady){const hazard=w.hazards.find(h=>t>=h.at&&t<h.end&&dist(m,h)<h.r+20&&dist(m,h)>=h.inner-20),mult=hazard?hazard.multiplier:dist(m,e)<105?.6:0;if(mult){const damage=Math.max(1,Math.round(incomingDamage(tier.attack,m.power.defense)*mult*(first?.guard||1)*(second?.guard||1)));m.hp=Math.max(0,m.hp-damage);m.hurtReady=t+5;w.numbers.push({id:++w.serial,value:damage,x:m.x,y:m.y-100,kind:"incoming",start:t,end:t+9});fx("impact",m.x,m.y-40,110);}}
   }
   for(const q of w.projectiles){if(t>=q.at){q.x+=q.dx;q.y+=q.dy;}}
-  w.hazards=w.hazards.filter(h=>h.end>t);if(w.hp<=0)w.status='won';
+  w.hazards=w.hazards.filter(h=>h.end>t);if(w.hp<=0){w.status='won';w.chest={x:e.x,y:e.y};w.lootAt=now;w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];for(const m of w.members){if(!m.left)m.hp=Math.max(1,m.hp);m.input=[0,0,0];m.attackUntil=0;m.skillUntil=0;m.dashUntil=0;delete m.pendingHit;delete m.pendingSkill;}}
  }
  if(w.tick>=900&&w.status==='fighting')w.status='lost';
  const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){if(!Array.isArray(input)||input.length!==3||!input.every(Number.isFinite)||Math.abs(input[0])>1||Math.abs(input[1])>1||!Number.isInteger(input[2])||input[2]<0||input[2]>31)throw Error('INVALID_COOP_INPUT');me.input=input;me.inputAt=now;}

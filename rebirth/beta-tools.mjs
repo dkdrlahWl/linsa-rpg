@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=foley-audio-1';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=rift-chests-1';
 // Temporary beta switch. Disable on the server before the production release.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

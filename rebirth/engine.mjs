@@ -1,7 +1,8 @@
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=foley-audio-1';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=foley-audio-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=foley-audio-1';
-import {applyBetaTool} from './beta-tools.mjs?v=foley-audio-1';
+import {rollRiftReward} from './rift-rewards.mjs?v=rift-chests-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rift-chests-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=rift-chests-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=rift-chests-1';
+import {applyBetaTool} from './beta-tools.mjs?v=rift-chests-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -39,9 +40,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=foley-audio-1";
+} from "./data.mjs?v=rift-chests-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=foley-audio-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=rift-chests-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -61,7 +62,7 @@ function pick(a, ctx) {
 export function makeItem(level, classId, slot, boss, ctx, variant) {
   const selectedVariant = slot === 0 ? (variant ?? Math.floor(ctx.random() * WEAPON_TYPES[classId].length)) : 0;
   check(int(selectedVariant, 0, 2), "INVALID_WEAPON_TYPE");
-  return fillPotentialLines({
+  return {
     id: ctx.uuid(),
     level,
     classId,
@@ -71,11 +72,12 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
 
     stars: 0,
     grade: 0,
-    potentialVersion: 4,
+    potentialVersion: 5,
+    potentialUnlocked: false,
     lines: [],
     locked: false,
     broken: false,
-  },ctx.random);
+  };
 }
 export function makeLootItem(base,classId,slot,boss,ctx,variant){const level=Math.max(10,rollEquipmentLevel(base,ctx.random)),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
 
@@ -748,6 +750,12 @@ export function execute(input, command, args = {}, ctx) {
       events.push({ type: "restore", id: it.id });
       break;
     }
+    case "potential": {
+      const it=gear(s,args.id);writable(s,it);check(!it.lines.length,"POTENTIAL_ALREADY_OPEN");
+      check(!s.pendingCube,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
+      it.potentialUnlocked=true;it.potentialVersion=5;fillPotentialLines(it,ctx.random);
+      events.push({type:"potential",id:it.id});break;
+    }
     case "cube": {
       const it=gear(s,args.id);writable(s,it);
       check(it.lines.length>0,"POTENTIAL_REQUIRED");check(!s.pendingCube,"ITEM_CUBE_PENDING");
@@ -811,3 +819,12 @@ export function execute(input, command, args = {}, ctx) {
   return { state: s, events };
 }
 
+
+// Called only by the authenticated cooperative endpoint; persisted atomically with the personal chest claim.
+export function grantCoopChest(input,tier,ctx){
+ const s=normalizePotentialState(structuredClone(input)),reward=rollRiftReward(tier,ctx.random);
+ s.gold+=reward.gold;for(const key of ['cube','highCube','primeCube','fragment','scroll'])s.materials[key]=(s.materials[key]||0)+reward[key];
+ if(reward.gear){const classId=pick(CLASSES,ctx).id,slot=Math.floor(ctx.random()*SLOTS.length),design=selectDesign(reward.level,classId,slot,false,ctx.random);
+  const item={...makeItem(reward.level,classId,slot,false,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);reward.items.push(item);}
+ delete reward.gear;delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
+}
