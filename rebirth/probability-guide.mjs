@@ -1,6 +1,6 @@
-import * as D from './data.mjs?v=weekly-first-1';
-import {COOP_TIERS} from './coop-model.mjs?v=weekly-first-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=weekly-first-1';
+import * as D from './data.mjs?v=daily-limit-1';
+import {COOP_TIERS} from './coop-model.mjs?v=daily-limit-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=daily-limit-1';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const section=(id,title,body)=>'<section id="'+id+'"><h2>'+title+'</h2>'+body+'</section>';
@@ -14,7 +14,7 @@ table(['항목','1마리당 확률','성공 시'],[['일반 장비',pct(D.EQUIP_
 table(['사냥터','권장 Lv.','몬스터 2종','HP','공격','기본 XP','기본 G','장비 상한'],D.STAGES.map(s=>[s.name,s.level,D.MONSTERS.slice(s.id*2,s.id*2+2).map(m=>m.name).join(' / '),s.hp,s.attack,s.xp,s.gold,Math.max(10,s.dropLevel)]))+
 '<p>경험치 = 기본 XP × min(1, (사냥터 레벨+15)/내 레벨)² × 경험치 보너스. 골드에는 골드 획득 보너스가 반영됩니다. 처치 속도는 전투력에 따라 달라지고 최소 8초입니다.</p>');
 html+=section('boss','2. 보스·협동 균열',
-'<p>모든 필드·보스·탑·균열은 레벨·스타포스·선행 처치 조건 없이 입장합니다. 일반 보스·균열 보상은 무제한, 주간 보스는 보스별 주 1회(월요일 00시 한국 시간 갱신), 탑은 층별 최초 1회이며 연습·패배는 보상 없음. 아래 장비 확률은 승리 1회 기준입니다.</p>'+
+'<p>모든 필드·보스·탑·균열은 레벨·스타포스·선행 처치 조건 없이 입장합니다. 일일 보스는 보스별 하루 1회 도전(입장 시 차감, 한국 시간 00시 갱신), 균열 보상은 무제한, 주간 보스는 보스별 주 1회(월요일 00시 한국 시간 갱신), 탑은 층별 최초 1회이며 연습·패배는 보상 없음. 아래 장비 확률은 승리 1회 기준입니다.</p>'+
 table(['보스','주기','장비 레벨','장비 확률','확정 G','레드','추가'],D.BOSSES.map(b=>[b.name,b.weekly?'주간':'일일',b.weekly?(b.gearLevel-10)+' / '+b.gearLevel:b.gearLevel,pct(b.dropChance),b.gold,b.cubes,b.weekly?'블랙 2개 100%':'없음']))+
 '<h3>협동 균열</h3><p>승리 보상 횟수 무제한. 실제 피해를 주고 이탈하지 않은 참가자에게 아래 보상 100% 지급. 장비 추첨 없음.</p>'+
 table(['균열','권장 Lv.','확정 보상'],COOP_TIERS.map(t=>[t.name,t.level,reward(t)])));

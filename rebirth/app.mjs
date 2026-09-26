@@ -1,14 +1,14 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-smooth-2';
-import {incomingDamage} from './journey-balance.mjs?v=weekly-first-1';
-import {installMenuIcons} from './menu-icons.mjs?v=weekly-first-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=weekly-first-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=weekly-first-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=weekly-first-1';
-import * as D from "./data.mjs?v=weekly-first-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=weekly-first-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=weekly-first-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=weekly-first-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=weekly-first-1";
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=daily-limit-1';
+import {incomingDamage} from './journey-balance.mjs?v=daily-limit-1';
+import {installMenuIcons} from './menu-icons.mjs?v=daily-limit-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=daily-limit-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=daily-limit-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=daily-limit-1';
+import * as D from "./data.mjs?v=daily-limit-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=daily-limit-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=daily-limit-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=daily-limit-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=daily-limit-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -190,7 +190,7 @@ const errors = {
   PREVIOUS_FLOOR_REQUIRED: "이전 층을 먼저 클리어해 주세요.",
   LEVEL_REQUIRED: "레벨이 부족합니다.",
   STARS_REQUIRED: "장착 장비의 스타포스가 부족합니다.",
-  BOSS_LIMIT: "이번 보상을 이미 받았습니다. 연습 도전은 가능합니다.",
+  BOSS_LIMIT: "오늘 도전 또는 이번 주 보상을 이미 사용했습니다. 연습 도전은 가능합니다.",
   DUNGEON_LIMIT: "오늘 보상을 이미 받았습니다.",
   ITEM_CUBE_PENDING: "먼저 블랙 큐브 결과를 선택해 주세요.",
   INVENTORY_FULL: "가방이 가득 찼습니다. 장비를 정리해 주세요.",
@@ -612,12 +612,12 @@ function bosses() {
   const menu=`<div class="subnav">${[["daily","일일"],["weekly","주간"],["coop","협동 균열"],["tower","시련의 탑"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="coop")return menu+coopLobby(state,coopRoom,coopRooms);
   if(bossTab==="tower")return menu+towerLobby(state);
-  return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">입장 조건 없음 · 주간 보스별 주 1회 보상 · 월요일 00시 갱신 · 일반 보스 무제한</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
+  return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">입장 조건 없음 · 주간 보스별 주 1회 보상 · 월요일 00시 갱신 · 일일 보스별 하루 1회 도전 · 매일 00시 갱신</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
 }
 function bossCard(b) {
-  const claimed=b.weekly&&state.bossClaims?.[b.id]===D.weekKey(Date.now());
+  const claimed=b.weekly?state.bossClaims?.[b.id]===D.weekKey(Date.now()):state.bossAttempts?.[b.id]===D.dayKey(Date.now())||state.bossClaims?.[b.id]===D.dayKey(Date.now());
   const locked=false;
-  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):"도전·보상 무제한"}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?"보상 완료":locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${b.weekly?"Lv."+(b.gearLevel-10)+" / "+b.gearLevel:gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"승리할 때마다 보상 지급"} · 연습은 보상 없음</p></details></div></section>`;
+  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 도전 완료":"오늘 도전 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"도전 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${b.weekly?"Lv."+(b.gearLevel-10)+" / "+b.gearLevel:gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 도전 · 입장 시 차감 · 패배해도 차감 · 승리 시 보상"} · 연습은 보상 없음</p></details></div></section>`;
 }
 function partyPanel() {
  if(!partyRoom)return header('협동 토벌')+'<div class="panel pad">파티 정보를 불러오는 중…</div>';

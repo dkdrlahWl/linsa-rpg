@@ -31,8 +31,8 @@ export function balanceWorld(stages,bosses,raids){
 }
 export function incomingDamage(attack,defense){return Math.max(1,attack/(1+Math.max(0,defense)/650));}
 export const DAILY_TASKS={
- hunt:{name:'사냥 1,200마리',goal:1200,gold:12000,fragment:80,cube:20,highCube:2},
- boss:{name:'보스 1회 승리',goal:1,gold:18000,fragment:100,cube:20,highCube:3},
- tower:{name:'시련의 탑 새 층 최초 클리어',goal:1,gold:15000,fragment:80,cube:10,highCube:3},
+ hunt:{name:'사냥 1,200마리',goal:1200,gold:12000,fragment:80,cube:4,highCube:1},
+ boss:{name:'보스 1회 승리',goal:1,gold:18000,fragment:100,cube:4,highCube:1},
+ tower:{name:'시련의 탑 새 층 최초 클리어',goal:1,gold:15000,fragment:80,cube:2,highCube:0},
 };
 

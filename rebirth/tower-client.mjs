@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=weekly-first-1';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=weekly-first-1';
-export {TowerController} from './tower-controller.mjs?v=weekly-first-1';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=daily-limit-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=daily-limit-1';
+export {TowerController} from './tower-controller.mjs?v=daily-limit-1';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

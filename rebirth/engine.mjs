@@ -1,6 +1,6 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=weekly-first-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=weekly-first-1';
-import {applyBetaTool} from './beta-tools.mjs?v=weekly-first-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=daily-limit-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=daily-limit-1';
+import {applyBetaTool} from './beta-tools.mjs?v=daily-limit-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -38,9 +38,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=weekly-first-1";
+} from "./data.mjs?v=daily-limit-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=weekly-first-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=daily-limit-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -768,6 +768,7 @@ export function execute(input, command, args = {}, ctx) {
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
       if(b.weekly){check(practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
+      if(!practice){const today=dayKey(ctx.now);s.bossAttempts||={};check(s.bossAttempts[b.id]!==today&&s.bossClaims?.[b.id]!==today,"BOSS_LIMIT");s.bossAttempts[b.id]=today;}
       s.battle = {
         kind: "boss",
         bossId: b.id,

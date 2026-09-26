@@ -1,6 +1,6 @@
-import {incomingDamage} from './journey-balance.mjs?v=weekly-first-1';
+import {incomingDamage} from './journey-balance.mjs?v=daily-limit-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=weekly-first-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=daily-limit-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
