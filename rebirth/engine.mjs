@@ -1,9 +1,9 @@
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=gear-exchange-1';
-import {rollRiftReward} from './rift-rewards.mjs?v=gear-exchange-1';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=gear-exchange-1';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=gear-exchange-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=gear-exchange-1';
-import {applyBetaTool} from './beta-tools.mjs?v=gear-exchange-1';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=enemy-interval-1';
+import {rollRiftReward} from './rift-rewards.mjs?v=enemy-interval-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=enemy-interval-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=enemy-interval-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=enemy-interval-1';
+import {applyBetaTool} from './beta-tools.mjs?v=enemy-interval-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -41,9 +41,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=gear-exchange-1";
+} from "./data.mjs?v=enemy-interval-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=gear-exchange-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=enemy-interval-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -253,7 +253,7 @@ export function huntingRate(s) {
   // Attacks resolve before a monster's simultaneous retaliation. No field time limit.
   const survives = fightSeconds <= deathSeconds;
   const levelReward = Math.min(1,(st.level+15)/s.level)**2;
-  return { seconds: survives ? Math.max(4,fightSeconds) : deathSeconds + 10,
+  return { seconds: survives ? Math.max(8,fightSeconds) : deathSeconds + 10,
     fightSeconds,deathSeconds,incoming,attackInterval:FIELD_ATTACK_SECONDS,enemyInterval:FIELD_MONSTER_SECONDS,damagePerHit:p.dps,
     xp: survives ? st.xp * levelReward * (1 + p.xpGain/100) : 0,
     gold: survives ? st.gold * levelReward * (1 + p.goldGain/100) : 0, survives };

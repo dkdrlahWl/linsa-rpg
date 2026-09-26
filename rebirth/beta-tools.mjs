@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=gear-exchange-1';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=enemy-interval-1';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

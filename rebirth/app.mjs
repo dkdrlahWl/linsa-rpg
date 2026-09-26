@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=gear-exchange-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=gear-exchange-1';
-import {incomingDamage} from './journey-balance.mjs?v=gear-exchange-1';
-import {installMenuIcons} from './menu-icons.mjs?v=gear-exchange-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=gear-exchange-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=gear-exchange-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=gear-exchange-1';
-import * as D from "./data.mjs?v=gear-exchange-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=gear-exchange-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=gear-exchange-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=gear-exchange-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=gear-exchange-1";
+import {GameAudio} from './game-audio.mjs?v=enemy-interval-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=enemy-interval-1';
+import {incomingDamage} from './journey-balance.mjs?v=enemy-interval-1';
+import {installMenuIcons} from './menu-icons.mjs?v=enemy-interval-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=enemy-interval-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=enemy-interval-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=enemy-interval-1';
+import * as D from "./data.mjs?v=enemy-interval-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=enemy-interval-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=enemy-interval-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=enemy-interval-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=enemy-interval-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -1318,7 +1318,7 @@ setInterval(() => {
     const status=$("#hunt-status");
     if(status)status.textContent=recovering?"부활 대기":defeated?"다음 몬스터 등장 대기":"자동 전투 중";
     const result=$("#field-combat-result");
-    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":defeated?"처치 완료 · 다음 전투 준비":"공격 0.5초 · 피격 3초 · HP가 0이면 패배";
+    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":defeated?"처치 완료 · 다음 전투 준비":"공격 1초 · 피격 1.5초 · HP가 0이면 패배";
     const label=$("#battle-info");
     if(label)label.textContent="몬스터 HP "+fmt(enemyHp)+" / "+fmt(st.hp);
     if (!recovering && !defeated && Date.now()-lastVisualHit>=rate.attackInterval*1000) { lastVisualHit=Date.now(); strike(arena); }

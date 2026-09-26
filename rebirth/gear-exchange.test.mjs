@@ -8,5 +8,5 @@ for(const level of [0,1,15,190,200,NaN,'10'])assert.throws(()=>execute(fresh(),'
 assert.throws(()=>execute(fresh(),'exchangeGear',{classId:'bad',level:10},ctx),/INVALID_CLASS/);
 const poor=fresh();poor.materials.fragment=9;assert.throws(()=>execute(poor,'exchangeGear',{classId:'mage',level:10},ctx),/INSUFFICIENT_FRAGMENT/);assert.equal(poor.materials.fragment,9);
 const full=fresh();full.items=Array.from({length:300},(_,i)=>({...full.items[0],id:'full'+i}));const r=execute(full,'exchangeGear',{classId:'pirate',level:180},ctx);assert.equal(r.state.items.length,300);assert.equal(r.state.mailbox.at(-1).item.level,180);assert.equal(r.events.find(e=>e.type==='exchangeGear').stored,true);
-for(const c of CLASSES){const s=initialState(c.id,'시작',ctx);assert.equal(huntingRate(s).attackInterval,.5);assert.equal(huntingRate(s).survives,true);s.stage=2;assert.equal(huntingRate(s).survives,false);}
-console.log('PASS 90 exchange choices, exact cost/class/level, no boss items, invalid/insufficient requests, mailbox overflow, 0.5s field attacks and Lv1 vs Lv12 loss');
+for(const c of CLASSES){const s=initialState(c.id,'시작',ctx);assert.equal(huntingRate(s).attackInterval,1);assert.equal(huntingRate(s).enemyInterval,1.5);assert.equal(huntingRate(s).survives,true);s.stage=2;assert.equal(huntingRate(s).survives,false);}
+console.log('PASS 90 exchange choices, exact cost/class/level, no boss items, invalid/insufficient requests, mailbox overflow, 1s player / 1.5s monster field attacks and Lv1 vs Lv12 loss');
