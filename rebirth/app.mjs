@@ -1,4 +1,4 @@
-import {GameAudio} from './game-audio.mjs?v=rift-chests-1';
+import {GameAudio} from './game-audio.mjs?v=music-loops-1';
 import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-smooth-2';
 import {incomingDamage} from './journey-balance.mjs?v=rift-chests-1';
 import {installMenuIcons} from './menu-icons.mjs?v=rift-chests-1';
@@ -344,7 +344,7 @@ function shell(content) {
     .join("")}</nav></div>`;
 }
 function render() {
-  sounds.setCombat(!!state?.battle||['fighting','won'].includes(coopRoom?.status));
+  sounds.setCombat(state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
   const towerBattle=state?.battle?.kind==='tower'?state.battle:null;
   const coopFight=state?.coopRoom&&['fighting','won'].includes(coopRoom?.status);
