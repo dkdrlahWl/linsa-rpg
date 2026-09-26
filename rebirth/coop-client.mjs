@@ -1,12 +1,12 @@
-import {prepareWaveCreature} from './wave-motion.mjs?v=tower-reward-3x-6';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=tower-reward-3x-6';
-import {waveLobby,waveHud} from './wave-ui.mjs?v=tower-reward-3x-6';
-import {CoopMotion} from './coop-motion.mjs?v=tower-reward-3x-6';
-import {TowerInput,projectPlayer} from './tower-input.mjs?v=tower-reward-3x-6';
-import {predictCoopStep} from './coop-model.mjs?v=tower-reward-3x-6';
-import {COOP_TIERS} from './coop-model.mjs?v=tower-reward-3x-6';
-import {towerArena} from './tower-client.mjs?v=tower-reward-3x-6';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=tower-reward-3x-6';
+import {prepareWaveCreature} from './wave-motion.mjs?v=coop-ready-7';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=coop-ready-7';
+import {waveLobby,waveHud} from './wave-ui.mjs?v=coop-ready-7';
+import {CoopMotion} from './coop-motion.mjs?v=coop-ready-7';
+import {TowerInput,projectPlayer} from './tower-input.mjs?v=coop-ready-7';
+import {predictCoopStep} from './coop-model.mjs?v=coop-ready-7';
+import {COOP_TIERS} from './coop-model.mjs?v=coop-ready-7';
+import {towerArena} from './tower-client.mjs?v=coop-ready-7';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=coop-ready-7';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -64,7 +64,7 @@ export class CoopController{
  draw(now){
   if(this.disposed)return;
   const dt=Math.min(100,this.lastDraw?now-this.lastDraw:16);this.lastDraw=now;
-  if(!this.artReady){this.host.querySelector('#tower-status').textContent='전투 이미지 준비 중…';this.frame=requestAnimationFrame(t=>this.draw(t));return;}
+  // Inputs and the arena must keep running while large character atlases decode.
   const input=this.input();
   if(now-this.received<2500&&!document.hidden)this.sampler.advance(dt,input,frame=>{
    if(this.predicted.status==='fighting')this.frames.push({tick:this.predicted.tick,input:frame});

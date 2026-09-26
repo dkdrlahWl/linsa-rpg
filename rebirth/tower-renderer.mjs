@@ -1,9 +1,9 @@
-import {drawWaveCreature} from './wave-motion.mjs?v=tower-reward-3x-6';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=tower-reward-3x-6';
-import {damageRows} from './damage-stack.mjs?v=tower-reward-3x-6';
-import {drawFourth} from './fourth-effects.mjs?v=tower-reward-3x-6';
-import MOTION_LAYOUT from './motion-layout.mjs?v=tower-reward-3x-6';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=tower-reward-3x-6';
+import {drawWaveCreature} from './wave-motion.mjs?v=coop-ready-7';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=coop-ready-7';
+import {damageRows} from './damage-stack.mjs?v=coop-ready-7';
+import {drawFourth} from './fourth-effects.mjs?v=coop-ready-7';
+import MOTION_LAYOUT from './motion-layout.mjs?v=coop-ready-7';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=coop-ready-7';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -71,7 +71,7 @@ export function prepareCombatArt(classes,boss){
  tasks.push([asset('boss-'+boss),null]);image(asset('fourth-job-atlas'));
  const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
-  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>setTimeout(resolve,0));if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,boss==='aureon'?1:3,1);}catch{preparations.delete(src);}})());
+  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>window.requestIdleCallback?requestIdleCallback(resolve,{timeout:1500}):setTimeout(resolve,0));if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,boss==='aureon'?1:3,1);}catch{preparations.delete(src);}})());
   return preparations.get(src);
  })]);
 }
@@ -91,7 +91,12 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
-  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth){this.sprite(...directional('hero-'+classId,dir,acting),x,y,92,92,1,0,alpha);return;}const frame=acting?Math.min(7,Math.floor(age*9)):moving?Math.floor(walk*1.05)%8:0,r=layout.frames[row*8+frame],flip=([3,4,5].includes(dir)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=(this.mobileActors.matches?140:104)/layout.bodyHeight,g=this.g;g.save();g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(cleanDirectionalAtlas(im,layout),r.x,r.y,r.w,r.h,-r.w*scale/2,-r.foot*scale,r.w*scale,r.h*scale);g.restore();}
+  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth||!cleanAtlases.has(im)){
+  const fallback=image(asset('hero-'+classId+'-directions'));
+  if(fallback.complete&&fallback.naturalWidth)this.sprite(...directional('hero-'+classId,dir,acting),x,y,92,92,1,0,alpha);
+  else{const g=this.g;g.save();g.globalAlpha=alpha;g.translate(x,y);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();g.restore();}
+  return;
+ }const frame=acting?Math.min(7,Math.floor(age*9)):moving?Math.floor(walk*1.05)%8:0,r=layout.frames[row*8+frame],flip=([3,4,5].includes(dir)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=(this.mobileActors.matches?140:104)/layout.bodyHeight,g=this.g;g.save();g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(cleanDirectionalAtlas(im,layout),r.x,r.y,r.w,r.h,-r.w*scale/2,-r.foot*scale,r.w*scale,r.h*scale);g.restore();}
   thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
