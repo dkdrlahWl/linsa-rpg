@@ -11,14 +11,14 @@ export const fourthUnlocked=a=>(a.advancement??a.power?.advancement??0)>=3;
 export function beginFourth(a,target,tick){
  const sk=FOURTH_SKILLS[a.classId];
  if(!sk||!fourthUnlocked(a)||tick<(a.fourthReady||0)||Math.hypot(a.x-target.x,a.y-target.y)>sk.range)return false;
- a.fourthReady=tick+sk.cooldown*10;a.fourthCast={x:target.x,y:target.y,start:tick,next:tick+2,left:sk.hits};a.skillStart=tick;a.skillUntil=tick+9;return true;
+ a.fourthReady=tick+sk.cooldown*10;a.fourthCast={x:target.x,y:target.y,start:tick,next:tick+(sk.mode==='orbit'?2:4),left:sk.hits};a.skillStart=tick;a.skillUntil=tick+9;return true;
 }
 export function stepFourth(a,target,tick,hit,emit=()=>{}){
  const cast=a.fourthCast;if(!cast)return;const sk=FOURTH_SKILLS[a.classId];
  // Launch each visual before its damage pulse; preserve its ground impact afterwards.
  cast.visualNext??=cast.next;cast.visualLeft??=cast.left;
- while(cast.visualLeft>0&&tick>=cast.visualNext-2){const aim=sk.mode==='orbit'?a:cast;
-  emit({kind:'fourth',classId:a.classId,owner:a.id,x:aim.x,y:aim.y,size:sk.radius*2,pulse:sk.hits-cast.visualLeft,orbit:sk.mode==='orbit',start:cast.visualNext-2,impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
+ while(cast.visualLeft>0&&tick>=cast.visualNext-(sk.mode==='orbit'?2:4)){const aim=sk.mode==='orbit'?a:cast;
+  emit({kind:'fourth',classId:a.classId,owner:a.id,x:aim.x,y:aim.y,size:sk.radius*2,pulse:sk.hits-cast.visualLeft,orbit:sk.mode==='orbit',start:cast.visualNext-(sk.mode==='orbit'?2:4),impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
   cast.visualLeft--;cast.visualNext+=sk.interval;
  }
  while(cast.left>0&&tick>=cast.next){const aim=sk.mode==='orbit'?a:cast;

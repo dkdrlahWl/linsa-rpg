@@ -1,10 +1,10 @@
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=dungeon-exit-fix-4';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=dungeon-exit-fix-4';
-import {beginThird,stepThird} from './advancement.mjs?v=dungeon-exit-fix-4';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=dungeon-exit-fix-4';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=dungeon-exit-fix-4';
-import {incomingDamage} from './journey-balance.mjs?v=dungeon-exit-fix-4';
-import {COOP_TIERS} from './rift-rewards.mjs?v=dungeon-exit-fix-4';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=fourth-fall-5';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=fourth-fall-5';
+import {beginThird,stepThird} from './advancement.mjs?v=fourth-fall-5';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fourth-fall-5';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=fourth-fall-5';
+import {incomingDamage} from './journey-balance.mjs?v=fourth-fall-5';
+import {COOP_TIERS} from './rift-rewards.mjs?v=fourth-fall-5';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -48,7 +48,7 @@ export function advanceCoopRaw(room,user,input,now,frames=[]){
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const v=facingVector(m.dir??6);m.dx=n?x/Math.hypot(x,y):v.x;m.dy=n?y/Math.hypot(x,y):v.y;}
    if(t<(m.dashUntil||0)){x=m.dx;y=m.dy;speed=c.speed*3;}
    m.x=clamp(m.x+x*speed);m.y=clamp(m.y+y*speed);if(x)m.face=x<0?-1:1;
-   const fx=(kind,x,y,size=180,angle=0)=>w.effects.push({id:++w.serial,kind,x,y,size,angle,start:t,end:t+7});
+   const fx=(kind,x,y,size=180,angle=0)=>w.effects.push({id:++w.serial,kind,classId:m.classId,owner:m.id,x,y,size,angle,start:t,end:t+7});
    const first=t<(m.guardUntil||0)?CLASS_SKILLS[m.classId]:null,second=t<(m.secondUntil||0)&&SECOND_SKILLS[m.classId].type==='buff'?SECOND_SKILLS[m.classId]:null;
    if(m.power.firstJob!==false&&(bits&8)&&t>=(m.ultimateReady||0)){const sk=CLASS_SKILLS[m.classId];m.ultimateReady=t+sk.cooldown*10;m.guardUntil=t+sk.seconds*10;m.hp=Math.min(m.power.hp,m.hp+m.power.hp*.12);m.skillStart=t;m.skillUntil=t+8;m.skillDir=m.dir;fx('rune',m.x,m.y,220);}
    const hit=(scale,extraCrit=0)=>{const critical=coopRandom(w,t,m.id)<Math.min(.95,m.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+extraCrit),damage=Math.min(w.hp,Math.max(1,Math.round(m.power.attack*m.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(critical?m.power.critDamage+(second?.critDamageAdd||0):1))));w.hp-=damage;m.damage+=damage;w.enemyHurtUntil=t+2;w.numbers.push({id:++w.serial,value:damage,x:e.x,y:e.y-120,kind:critical?'critical':'outgoing',start:t,end:t+24});fx('impact',e.x,e.y-50,150);};

@@ -1,6 +1,6 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=dungeon-exit-fix-4';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=dungeon-exit-fix-4';
-import {incomingDamage} from './journey-balance.mjs?v=dungeon-exit-fix-4';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fourth-fall-5';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=fourth-fall-5';
+import {incomingDamage} from './journey-balance.mjs?v=fourth-fall-5';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -37,7 +37,7 @@ function pulse(w,m,cast,sk){
  const aim=sk.mode==='orbit'?m:sk.mode==='volley'?(w.monsters.filter(e=>e.hp>0&&distance(e,m)<=sk.range+150).sort((a,b)=>distance(a,m)-distance(b,m))[0]||cast):cast;
  const targets=w.monsters.filter(e=>e.hp>0&&distance(e,aim)<=sk.radius);
  damage(w,m,targets,sk.damage);
- w.effects.push({id:++w.serial,kind:cast.kind,classId:m.classId,owner:m.id,x:aim.x,y:aim.y,size:sk.radius*2,orbit:sk.mode==='orbit',pulse:sk.hits-cast.left,start:w.tick,impact:w.tick,end:w.tick+Math.max(4,Math.min(10,sk.interval)),fromX:m.x,fromY:m.y,volley:sk.mode==='volley'});
+ if(cast.kind!=='fourth')w.effects.push({id:++w.serial,kind:cast.kind,classId:m.classId,owner:m.id,x:aim.x,y:aim.y,size:sk.radius*2,orbit:sk.mode==='orbit',pulse:sk.hits-cast.left,start:w.tick,impact:w.tick,end:w.tick+Math.max(4,Math.min(10,sk.interval)),fromX:m.x,fromY:m.y,volley:sk.mode==='volley'});
  cast.left--;cast.next+=sk.interval;
 }
 export function advanceWaveRaw(room,user,input,now,frames=[]){
@@ -56,17 +56,25 @@ export function advanceWaveRaw(room,user,input,now,frames=[]){
    const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0];const n=Math.max(1,Math.hypot(x,y));x/=n;y/=n;m.dir=towerFacing(x,y,m.dir);m.moving=Math.hypot(x,y)>.01;if(m.moving)m.walk++;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}
    const dashing=t<(m.dashUntil||0),speed=c.speed;m.x=bound(m.x+(dashing?m.dx*3:x)*speed);m.y=bound(m.y+(dashing?m.dy*3:y)*speed);if(x)m.face=x<0?-1:1;
-   if(m.power.firstJob!==false&&(bits&8)&&t>=m.ultimateReady){const sk=CLASS_SKILLS[m.classId];m.ultimateReady=t+sk.cooldown*10;m.guardUntil=t+sk.seconds*10;m.hp=Math.min(m.power.hp,m.hp+m.power.hp*.12);m.skillStart=t;m.skillUntil=t+8;}
+   if(m.power.firstJob!==false&&(bits&8)&&t>=m.ultimateReady){const sk=CLASS_SKILLS[m.classId];m.ultimateReady=t+sk.cooldown*10;m.guardUntil=t+sk.seconds*10;m.hp=Math.min(m.power.hp,m.hp+m.power.hp*.12);m.skillStart=t;m.skillUntil=t+8;m.skillDir=m.dir;}
    const targets=w.monsters.filter(e=>e.hp>0).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
    if(target&&(bits&1)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
     // Small cleave keeps all five starter classes viable against a crowd.
     const victims=targets.filter(e=>distance(e,m)<=c.range&&distance(e,target)<(c.range<300?230:140)).slice(0,3);
-    damage(w,m,victims,c.cooldown/10*m.power.cadence);w.effects.push({id:++w.serial,kind:'slash',x:target.x,y:target.y-30,size:180,angle:Math.atan2(target.y-m.y,target.x-m.x),start:t,end:t+5});
+    damage(w,m,victims,c.cooldown/10*m.power.cadence);w.effects.push({id:++w.serial,kind:'slash',classId:m.classId,owner:m.id,x:target.x,y:target.y-30,size:180,angle:Math.atan2(target.y-m.y,target.x-m.x),start:t,end:t+5});
    }
    if(target&&m.advanced&&(bits&2)&&t>=m.skillReady&&distance(m,target)<760){const sk=SECOND_SKILLS[m.classId];m.skillReady=t+sk.cooldown*10;m.skillStart=t;m.skillUntil=t+8;m.skillDir=m.dir;damage(w,m,targets.filter(e=>distance(e,target)<360),sk.damage*sk.hits,sk.critAdd||0);w.effects.push({id:++w.serial,kind:'second',classId:m.classId,x:target.x,y:target.y,size:650,start:t,end:t+16});}
    for(const [bit,stage,key,kind,skills] of [[16,2,'third','third',THIRD_SKILLS],[32,3,'fourth','fourth',FOURTH_SKILLS]]){
-    const sk=skills[m.classId];if(target&&(bits&bit)&&m.power.advancement>=stage&&t>=(m[key+'Ready']||0)&&distance(m,target)<=sk.range){m[key+'Ready']=t+sk.cooldown*10;m[key+'Cast']={kind,x:target.x,y:target.y,next:t+2,left:sk.hits};m.skillStart=t;m.skillUntil=t+9;m.skillDir=m.dir;}
-    const cast=m[key+'Cast'];if(cast&&t>=cast.next){pulse(w,m,cast,sk);if(!cast.left)delete m[key+'Cast'];}
+    const sk=skills[m.classId];if(target&&(bits&bit)&&m.power.advancement>=stage&&t>=(m[key+'Ready']||0)&&distance(m,target)<=sk.range){m[key+'Ready']=t+sk.cooldown*10;m[key+'Cast']={kind,x:target.x,y:target.y,next:t+(kind==='fourth'&&sk.mode!=='orbit'?4:2),left:sk.hits};m.skillStart=t;m.skillUntil=t+9;m.skillDir=m.dir;}
+    const cast=m[key+'Cast'];
+    if(cast&&kind==='fourth'){
+     const lead=sk.mode==='orbit'?2:4;cast.visualNext??=cast.next;cast.visualLeft??=cast.left;
+     while(cast.visualLeft>0&&t>=cast.visualNext-lead){const aim=sk.mode==='orbit'?m:cast;
+      w.effects.push({id:++w.serial,kind,classId:m.classId,owner:m.id,x:aim.x,y:aim.y,size:sk.radius*2,orbit:sk.mode==='orbit',pulse:sk.hits-cast.visualLeft,start:cast.visualNext-lead,impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
+      cast.visualLeft--;cast.visualNext+=sk.interval;
+     }
+    }
+    if(cast&&t>=cast.next){pulse(w,m,cast,sk);if(!cast.left)delete m[key+'Cast'];}
    }
   }
   w.monsters=w.monsters.filter(e=>e.hp>0);

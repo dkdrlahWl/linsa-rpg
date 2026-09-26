@@ -1,9 +1,9 @@
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=dungeon-exit-fix-4';
-import {rollRiftReward} from './rift-rewards.mjs?v=dungeon-exit-fix-4';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=dungeon-exit-fix-4';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=dungeon-exit-fix-4';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=dungeon-exit-fix-4';
-import {applyBetaTool} from './beta-tools.mjs?v=dungeon-exit-fix-4';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=fourth-fall-5';
+import {rollRiftReward} from './rift-rewards.mjs?v=fourth-fall-5';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=fourth-fall-5';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=fourth-fall-5';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=fourth-fall-5';
+import {applyBetaTool} from './beta-tools.mjs?v=fourth-fall-5';
 import {
   VERSION,
   normalizePotentialState,
@@ -41,9 +41,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=dungeon-exit-fix-4";
+} from "./data.mjs?v=fourth-fall-5";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=dungeon-exit-fix-4';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fourth-fall-5';
 const fail = (message) => {
   throw new Error(message);
 };

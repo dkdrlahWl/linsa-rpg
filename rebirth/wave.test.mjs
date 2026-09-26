@@ -36,3 +36,14 @@ w=fresh();w.monsters=[];w=step(w);assert.equal(w.wave,1);
 // 50 and 99 living monsters remain playable; 100 triggers failure.
 for(const count of [50,99]){w=fresh();w.spawnPlan.regular=[...w.spawnCounts];w.spawnPlan.elites=1;w.monsters=Array.from({length:count},(_,i)=>({...w.monsters[0],id:100+i}));w=step(w);assert.equal(w.status,'fighting');}
 console.log('PASS fast clear, relative timer, pending spawns and 50/99 survival');
+
+// Ally attacks retain their class, and falling fourth effects precede impact.
+w=fresh(2);const ally=w.members[1];ally.classId='pirate';ally.power.advancement=3;ally.power.attack=10;
+w.monsters.forEach(e=>{e.x=ally.x;e.y=ally.y-50;e.hp=e.maxHp=100000;});
+w=step(w,{'p1':[0,0,33]});
+const fall=w.effects.find(e=>e.kind==='fourth'&&e.owner==='p1');assert.ok(fall);assert.equal(fall.classId,'pirate');assert.equal(fall.impact-fall.start,4);
+assert.ok(w.effects.some(e=>e.kind==='slash'&&e.owner==='p1'&&e.classId==='pirate'));
+const before=w.members[1].damage;
+for(let i=0;i<3;i++)w=step(w);assert.equal(w.members[1].damage,before);
+w=step(w);assert.ok(w.members[1].damage>before);
+console.log('PASS allied class effects and fourth launch before damage');

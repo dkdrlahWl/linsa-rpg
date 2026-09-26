@@ -1,4 +1,4 @@
-import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=dungeon-exit-fix-4';
+import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=fourth-fall-5';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',5,[.060000002444,.018,.003],[1,1,1],{pity:[0,0,25,83,500]}),
