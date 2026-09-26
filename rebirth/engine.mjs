@@ -1,9 +1,9 @@
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=monster-portrait-1';
-import {rollRiftReward} from './rift-rewards.mjs?v=monster-portrait-1';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=monster-portrait-1';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=monster-portrait-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=monster-portrait-1';
-import {applyBetaTool} from './beta-tools.mjs?v=monster-portrait-1';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=fourth-impact-1';
+import {rollRiftReward} from './rift-rewards.mjs?v=fourth-impact-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=fourth-impact-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=fourth-impact-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=fourth-impact-1';
+import {applyBetaTool} from './beta-tools.mjs?v=fourth-impact-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -41,9 +41,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=monster-portrait-1";
+} from "./data.mjs?v=fourth-impact-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=monster-portrait-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fourth-impact-1';
 const fail = (message) => {
   throw new Error(message);
 };

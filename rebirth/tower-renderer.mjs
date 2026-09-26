@@ -1,7 +1,7 @@
-import {damageRows} from './damage-stack.mjs?v=monster-portrait-1';
-import {drawFourth} from './fourth-effects.mjs?v=monster-portrait-1';
-import MOTION_LAYOUT from './motion-layout.mjs?v=monster-portrait-1';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=monster-portrait-1';
+import {damageRows} from './damage-stack.mjs?v=fourth-impact-1';
+import {drawFourth} from './fourth-effects.mjs?v=fourth-impact-1';
+import MOTION_LAYOUT from './motion-layout.mjs?v=fourth-impact-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=fourth-impact-1';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -246,7 +246,7 @@ export class TowerRenderer {
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
-      if(e.kind==='fourth'){if(b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')));continue;}
+      if(e.kind==='fourth'){if(e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')));continue;}
       if(e.kind==='second'){const col={warrior:0,mage:1,archer:2,rogue:3,pirate:4}[e.classId]??0,im=image(asset('second-job-atlas'));if(im.complete&&im.naturalWidth){const sw=im.width/5,sh=im.height/4,owner=e.follow?(e.owner?(b.allies||[]).find(a=>a.id===e.owner)||player:player):e;g.save();g.globalAlpha=.75;g.drawImage(im,col*sw,frame*sh,sw,sh,owner.x-e.size/2,owner.y-e.size*.4,e.size,e.size*.8);g.restore();}continue;}
       if(e.kind==='third'){const col={warrior:0,mage:1,archer:2,rogue:3,pirate:4}[e.classId]??0;const size=Math.min(900,e.size);if(e.volley){const x=mix(e.fromX,e.x,Math.min(1,age*2)),y=mix(e.fromY,e.y,Math.min(1,age*2));this.thirdSprite(col,frame,x,y,280,220,Math.atan2(e.y-e.fromY,e.x-e.fromX),.85);}else this.thirdSprite(col,frame,e.x,e.y,size,size*.8,e.classId==='rogue'?e.angle:0,.65);continue;}
       if(e.kind==='rune'){this.effect('rune',e.x,e.y,e.size,e.size,-time*.04,1-age);continue;}
@@ -272,4 +272,3 @@ export class TowerRenderer {
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a'+(Math.floor(80+Math.sin(now/250)*30).toString(16));g.strokeRect(0,0,1000,height);g.restore();}
   }
 }
-
