@@ -198,3 +198,15 @@
 .fourth-skill-art{width:44px;height:42px;inset:0 0 auto auto;opacity:.65;background:url(tower/fourth-job-atlas.webp) no-repeat;background-size:220px 88px;background-position:0 center;color:transparent}.tower-play:has(.fourth-skill[title*=메테오]) .fourth-skill-art{background-position:-40px center}.tower-play:has(.fourth-skill[title*=화살]) .fourth-skill-art{background-position:-92px center}.tower-play:has(.fourth-skill[title*=초승달]) .fourth-skill-art{background-position:-135px center}.tower-play:has(.fourth-skill[title*=함포]) .fourth-skill-art{background-position:-177px center}
 
 .skill-burst.fourth-burst{width:85%;height:240px;left:8%;top:8%;background:url(tower/fourth-job-atlas.webp) no-repeat;background-size:500% 100%;font-size:17px;text-shadow:0 2px 4px #000;animation:fourth-field 1s ease-in-out 6}.fourth-burst.mage{background-position:25% 0}.fourth-burst.archer{background-position:50% 0}.fourth-burst.rogue{background-position:75% 0}.fourth-burst.pirate{background-position:100% 0}@keyframes fourth-field{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.7;transform:scale(1)}}
+
+/* Keep player health outside the mobile battlefield. */
+@media(max-width:759px) and (orientation:portrait){
+ .tower-play{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 26px minmax(0,1fr) 35px}
+ .tower-hud{grid-column:1;grid-row:1}
+ .tower-player-hud{position:static;grid-column:1;grid-row:2;inset:auto;height:auto;min-width:0;padding:0 12px;border:0;border-bottom:1px solid #8fd9bb45;border-radius:0;background:#101e26;backdrop-filter:none;box-shadow:none;gap:8px}
+ .tower-player-hud .hp{max-width:none;height:7px;min-width:0}
+ .tower-player-hud #tower-player-hp{min-width:74px;font-size:10px}
+ .tower-player-hud #tower-range{display:none}
+ .tower-stage{grid-column:1;grid-row:3}
+ .tower-footer{grid-column:1;grid-row:4}
+}
