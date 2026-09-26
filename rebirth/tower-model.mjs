@@ -1,10 +1,11 @@
-import {incomingDamage} from './journey-balance.mjs?v=daily-limit-1';
+import {beginThird,stepThird} from './advancement.mjs?v=third-job-1';
+import {incomingDamage} from './journey-balance.mjs?v=third-job-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=daily-limit-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=third-job-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
-export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;return b;}
+export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;delete b.thirdCast;return b;}
 
 export const TOWER_SIZE = {width:3200,height:3200};
 export const TOWER_BOUNDS = {left:150,right:3050,top:150,bottom:3050};
@@ -62,6 +63,7 @@ function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
   if(k%2===1)circle(b,e.x,e.y,4500,18,2.2,3,520);
   if(distance(p,e)>480){fan(b,7);line(b,e.x,e.y,p.x,p.y,190,10,1.7);}
  }
+ if(b.advancementStage){if(k%2===0){line(b,150,p.y,3050,p.y,150,13,1.8);line(b,p.x,150,p.x,3050,150,21,1.8);}else{circle(b,p.x,p.y,200,11,2);circle(b,e.x,e.y,4500,24,2,3,500);}}
  // A second marker predicts the current travel direction; changing direction remains a counter.
  if(k%2===0){const v=facingVector(p.dir??6);circle(b,p.x+v.x*250,p.y+v.y*250,175,18,1.7);}
  b.nextPattern=b.tick+(f===10&&b.enemyHp<towerEncounter(b).hp*.35?28:Math.max(b.weeklyBossId!==undefined?20:26,(b.weeklyBossId!==undefined?34:44)-f*2));
@@ -83,6 +85,8 @@ export function towerStep(b,input){
  if((buttons&8)&&b.tick>=b.ultimateReady){const sk=CLASS_SKILLS[b.classId];b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.12);b.ultimateReady=b.tick+sk.cooldown*10;b.guardUntil=b.tick+sk.seconds*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=p.dir??6;fx(b,'rune',p.x,p.y,220,12);}
  if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){const a=Math.atan2(e.y-p.y,e.x-p.x),v=facingVector(towerFacing(e.x-p.x,e.y-p.y,p.dir??6));p.dir=p.attackDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=v.x<0?-1:1;b.attackReady=b.tick+c.cooldown;b.attackStart=b.tick;b.attackUntil=b.tick+6;if(c.range<300){b.pendingMelee={at:b.tick+2,scale:c.cooldown/10*b.power.cadence};}else{b.projectiles.push({id:++b.serial,side:'player',x:p.x+v.x*28,y:p.y-30+v.y*15,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick,end:b.tick+15,scale:c.cooldown/10*b.power.cadence});}}
  if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;if(sk.type==='attack'){const a=Math.atan2(e.y-p.y,e.x-p.x);p.dir=p.attackDir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=Math.cos(a)<0?-1:1;b.pendingSkillHit={at:b.tick+3,hits:sk.hits,damage:sk.damage,critAdd:sk.critAdd||0};}else{p.skillDir=p.dir??6;b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
+ if((buttons&16)){b.x=p.x;b.y=p.y;if(beginThird(b,e,b.tick)){b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir);}}
+ b.x=p.x;b.y=p.y;stepThird(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(b.tick>=b.nextPattern)pattern(b);
  if(b.charge&&b.tick>=b.charge.at&&b.tick<=b.charge.end){if(b.tick===b.charge.at){b.enemyAttackStart=b.tick;b.enemyAttackUntil=b.tick+6;b.enemyAttackDir=towerFacing(b.charge.x-e.x,b.charge.y-e.y,e.dir??2);}e.dir=b.enemyAttackDir;e.x+=(b.charge.x-e.x)*.48;e.y+=(b.charge.y-e.y)*.48;}

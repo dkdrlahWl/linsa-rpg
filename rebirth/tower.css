@@ -168,3 +168,13 @@
  .tower-buttons{flex-basis:128px;max-width:128px;grid-template-columns:61px 61px;grid-template-rows:61px 61px;gap:6px}
  .tower-button{width:61px;height:61px}.tower-action-art{width:38px;height:38px}
 }
+/* Third job: all three skills remain visible without horizontal scrolling. */
+.tower-skill-bar>.tower-button{flex:1 1 0;min-width:0;padding-left:3px;padding-right:3px;text-align:center;align-items:center}
+.tower-skill-bar{overflow:visible;gap:4px}
+.tower-skill-bar .tower-action-art{display:none}
+.tower-skill-bar .tower-button span{font-size:10px;white-space:normal;line-height:1.15}
+.third-skill{border-color:#d0a9ff!important;background:linear-gradient(145deg,#452759,#151a30)!important}
+.third-skill-art{position:absolute;inset:0;opacity:.3;background-image:url('tower/third-job-atlas.webp');background-size:500% 400%;background-position:calc(var(--third-col)*25%) 66.666%;pointer-events:none}
+.advancement-boss-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}.advancement-boss .tower-portrait{height:150px;width:150px;float:none;margin:auto}.advancement-boss h3{margin-top:8px}
+.skill-burst.third-burst{width:min(80%,400px);height:260px;left:10%;top:15%;background-image:url('tower/third-job-atlas.webp');background-size:500% 400%;background-position:calc(var(--third-col)*25%) 66.666%;font-size:18px;text-shadow:0 2px 4px #000}
+@media(max-width:759px) and (orientation:portrait){.tower-buttons{flex:0 0 168px;max-width:168px}.tower-controls{padding-left:10px;padding-right:10px;gap:6px}.tower-skill-bar>.tower-button{width:auto;flex:1 1 0;border-radius:12px;height:62px;justify-content:center}.tower-core-actions>.tower-button{flex:1;width:auto}.tower-skill-bar .tower-button span{font-size:10px;word-break:keep-all}}

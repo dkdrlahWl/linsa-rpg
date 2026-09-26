@@ -1,6 +1,7 @@
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=daily-limit-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=daily-limit-1';
-import {applyBetaTool} from './beta-tools.mjs?v=daily-limit-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,beginThird,stepThird} from './advancement.mjs?v=third-job-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=third-job-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=third-job-1';
+import {applyBetaTool} from './beta-tools.mjs?v=third-job-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -38,9 +39,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=daily-limit-1";
+} from "./data.mjs?v=third-job-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=daily-limit-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=third-job-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -174,7 +175,7 @@ export function power(s) {
   if (s.classId === "warrior") { hp = Math.floor(hp * 1.15); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
   const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
-  if (s.advancement === 1) { flat *= 1.08; hp = Math.floor(hp * 1.1); }
+  if (s.advancement >= 1) { const bonus=1.1**Math.min(2,s.advancement);flat *= bonus;hp = Math.floor(hp * bonus); }
   const dps = flat * (1 + crit * (critDamage - 1)) * cadence;
   const stats = Object.fromEntries(Object.keys(fixedStats).map(key => {
     const growth = key === cl.stat ? s.level * 2 + equipmentStat : 0;
@@ -184,6 +185,7 @@ export function power(s) {
   return {
     stats,
     bonuses: {...pct},
+    advancement: s.advancement||0,
     combatPower: Math.floor(dps * (1+pct.boss/100) + hp * 0.1 + Math.floor(defense) * 5),
     attack: Math.floor(flat),
     primary: Math.floor(primary),
@@ -363,7 +365,7 @@ function removeItem(s, it) {
     if (s.equipped[k] === it.id) delete s.equipped[k];
 }
 export function battleEnemy(b) {
-  if(b.kind==='tower')return {...TOWER_FLOORS[b.floor-1],region:Math.min(9,b.floor-1)};
+  if(b.kind==='tower')return {...towerEncounter(b),region:Math.min(9,b.floor-1)};
   return b.kind === "dungeon" ? { ...DUNGEONS[b.dungeon], ...b.enemy } : BOSSES[b.bossId];
 }
 function bossSettle(s, ctx, events) {
@@ -381,6 +383,7 @@ function bossSettle(s, ctx, events) {
     const second = t <= (b.secondUntil||0) ? SECOND_SKILLS[s.classId] : null;
     const burst = (active ? skill.damage : 1) * (second?.damage||1);
     const crit = ctx.random() < Math.min(1,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));
+    if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});
     const damage = Math.round(b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence);
     b.enemyHp = Math.max(0, b.enemyHp - damage);
     b.tick = t;
@@ -457,6 +460,7 @@ function towerFinish(s,ctx,events) {
   if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);return;}
   const reward={type:'boss',bossId:b.weeklyBossId,won:false,practice:b.practice,items:[],materials:0};s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);return;
  }
+ if(b.advancementStage){const stage=b.advancementStage,won=b.won;if(won){check((s.advancement||0)===stage-1,'ALREADY_ADVANCED');s.advancement=stage;s.advancementVictories||={};s.advancementVictories[stage]=ctx.now;}const reward={type:'advancementTrial',stage,won,seconds:b.tick/10};s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
  const first=b.won&&!s.tower.cleared.includes(b.floor);
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
@@ -480,7 +484,7 @@ export function execute(input, command, args = {}, ctx) {
   const events = [];
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);
-    if(b.advanced===undefined)b.advanced=s.advancement===1;
+    if(b.advanced===undefined)b.advanced=s.advancement>=1;
     check(['sync','ack','towerInput','towerLeave','towerOpen'].includes(command),'BATTLE_IN_PROGRESS');
     if(!b.chest&&ctx.now-b.started>=towerEncounter(b).seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
     else if(command==='towerOpen'){
@@ -495,7 +499,7 @@ export function execute(input, command, args = {}, ctx) {
     else if(command==='towerInput'){
       check(args.runId===b.runId,'INVALID_TOWER_RUN');
       check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
-      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,15)),'INVALID_TOWER_INPUT');
+      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,31)),'INVALID_TOWER_INPUT');
       const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
       for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&(!b.ended||b.chest);i++)towerStep(b,args.frames[i]);
     }else if(command==='towerLeave'){check(!b.chest,'ITEM_CHEST_PENDING');b.ended=true;b.won=false;b.reason='leave';}
@@ -523,13 +527,14 @@ export function execute(input, command, args = {}, ctx) {
   if (command === "skill") {
     check(s.battle, "NO_BATTLE");
     const b = s.battle;
-    const slot=args.slot===2?2:1;
-    check(slot===1||s.advancement===1,"ADVANCEMENT_REQUIRED");
-    const sk=slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
-    const ready=slot===2?'secondReady':'skillReady';
+    const slot=args.slot===3?3:args.slot===2?2:1;
+    check(slot===1||(s.advancement||0)>=slot-1,"ADVANCEMENT_REQUIRED");
+    const sk=slot===3?THIRD_SKILLS[s.classId]:slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
+    const ready=slot===3?'thirdReadyAt':slot===2?'secondReady':'skillReady';
     check(ctx.now >= (b[ready]||0),"SKILL_COOLDOWN");
     b[ready]=ctx.now+sk.cooldown*1000;
-    if(sk.type==='attack'){
+    if(slot===3){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginThird(b,{x:0,y:0},b.tick*10);}
+    else if(sk.type==='attack'){
       const frames=[];
       for(let i=0;i<sk.hits;i++){
         const crit=ctx.random()<Math.min(1,b.power.crit+(sk.critAdd||0));
@@ -596,7 +601,7 @@ export function execute(input, command, args = {}, ctx) {
       check(int(args.floor,1,10),'INVALID_TOWER_FLOOR');
       check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.tower ||= {cleared:[],best:{}};
-      s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);
+      s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "claimMail": {
@@ -767,7 +772,7 @@ export function execute(input, command, args = {}, ctx) {
       const practice = args.practice === true;
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
-      if(b.weekly){check(practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement===1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
+      if(b.weekly){check(practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
       if(!practice){const today=dayKey(ctx.now);s.bossAttempts||={};check(s.bossAttempts[b.id]!==today&&s.bossClaims?.[b.id]!==today,"BOSS_LIMIT");s.bossAttempts[b.id]=today;}
       s.battle = {
         kind: "boss",
@@ -787,12 +792,10 @@ export function execute(input, command, args = {}, ctx) {
       break;
     }
     case "advance":
-      check(!s.battle, "BATTLE_IN_PROGRESS");
-      check(s.level >= 60, "LEVEL_REQUIRED");
-      check(!s.advancement, "ALREADY_ADVANCED");
-      s.advancement = 1;
-      events.push({type:"advancement"});
-      break;
+    case "advancementStart": {
+      const stage=(s.advancement||0)+1,trial=ADVANCEMENT_BOSSES[stage-1];check(trial,'ALREADY_ADVANCED');check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
+      s.battle=newTowerBattle(trial.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{advancementStage:stage,encounter:trial,enemyHp:trial.hp});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
+    }
     case "tutorial":
       s.tutorial = Math.min(6, s.tutorial + 1);
       break;

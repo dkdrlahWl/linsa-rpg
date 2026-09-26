@@ -25,7 +25,7 @@ begin
    if nullif(actor.state->>'coopRoom','') is not null or actor.state->'pendingCube' is not null and actor.state->'pendingCube'<>'null' then raise exception 'BATTLE_IN_PROGRESS';end if;
    tier:=case when action='create' then (p->'args'->>'tier')::int else (w->>'tier')::int end;
    if tier is null or tier not between 0 and 2 then raise exception 'INVALID_COOP_TIER';end if;
-   member:=jsonb_build_object('id',u,'name',actor.state->>'name','classId',actor.state->>'classId','power',p->'power','advanced',coalesce((actor.state->>'advancement')::int,0)=1,'left',false);
+   member:=jsonb_build_object('id',u,'name',actor.state->>'name','classId',actor.state->>'classId','power',p->'power','advanced',coalesce((actor.state->>'advancement')::int,0)>=1,'left',false);
    if action='create' then
     w:=jsonb_build_object('status','waiting','owner',u,'tier',tier,'members',jsonb_build_array(member),'created',ms);
     insert into rebirth_private.coop_rooms(world) values(w) returning * into r;rid:=r.id;

@@ -1,4 +1,4 @@
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=daily-limit-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=third-job-1';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -77,6 +77,7 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
+  thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
     const g=this.g,source=tintedAtlas(im,filter),sw=source.width/4;
@@ -238,6 +239,7 @@ export class TowerRenderer {
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
+      if(e.kind==='third'){const col={warrior:0,mage:1,archer:2,rogue:3,pirate:4}[e.classId]??0;const size=Math.min(900,e.size);if(e.volley){const x=mix(e.fromX,e.x,Math.min(1,age*2)),y=mix(e.fromY,e.y,Math.min(1,age*2));this.thirdSprite(col,frame,x,y,280,220,Math.atan2(e.y-e.fromY,e.x-e.fromX),.85);}else this.thirdSprite(col,frame,e.x,e.y,size,size*.8,e.classId==='rogue'?e.angle:0,.65);continue;}
       if(e.kind==='rune'){this.effect('rune',e.x,e.y,e.size,e.size,-time*.04,1-age);continue;}
       const src=e.hostile?'attack-burst-v2':b.classId==='warrior'?(e.kind==='slash'?'attack-slash-v2':'attack-burst-v2'):b.classId==='mage'?'attack-burst-v2':b.classId==='archer'?'attack-bolt-v2':b.classId==='rogue'?'attack-slash-v2':'attack-beam-v2';
       const filter=e.hostile?'hue-rotate(330deg)':b.classId==='mage'?'hue-rotate(75deg)':b.classId==='archer'?'hue-rotate(-95deg)':b.classId==='rogue'?'hue-rotate(225deg)':'none';
