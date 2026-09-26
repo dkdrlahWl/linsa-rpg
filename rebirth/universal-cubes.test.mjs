@@ -4,6 +4,8 @@ import {CUBES,cubeUpgrade,cubeTable,rerollCube,rollCubeLine} from './maple-cubes
 import {initialState,execute} from './engine.mjs';
 import {renderCubePanel,cubeOdds} from './cube-ui.mjs';
 let seed=177;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32),ctx=(rng=random)=>({now:0,random:rng,uuid:randomUUID});
+assert.deepEqual(CUBES.highCube.up.slice(2,5),[.30,.07,.028]);
+assert.deepEqual(CUBES.primeCube.up.slice(2,5),[1,.105,.042]);
 const fixture=(grade=2)=>{const s=initialState('warrior','공통큐브',ctx());s.hunting=false;for(const k of Object.keys(CUBES))s.materials[k]=100;const it=s.items[0];it.grade=grade;it.potentialVersion=5;it.potentialUnlocked=true;it.lines=[{key:'DEX',value:3,grade},{key:'INT',value:3,grade},{key:'LUK',value:3,grade}];return s;};
 for(const kind of Object.keys(CUBES))for(let g=2;g<=5;g++){
  const ref=cubeTable(kind,{slot:0,level:200,grade:g});

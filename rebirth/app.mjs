@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=cube-uniform-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=cube-uniform-1';
-import {incomingDamage} from './journey-balance.mjs?v=cube-uniform-1';
-import {installMenuIcons} from './menu-icons.mjs?v=cube-uniform-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube-uniform-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=cube-uniform-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=cube-uniform-1';
-import * as D from "./data.mjs?v=cube-uniform-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=cube-uniform-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=cube-uniform-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=cube-uniform-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-uniform-1";
+import {GameAudio} from './game-audio.mjs?v=cube-up-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=cube-up-1';
+import {incomingDamage} from './journey-balance.mjs?v=cube-up-1';
+import {installMenuIcons} from './menu-icons.mjs?v=cube-up-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube-up-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=cube-up-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=cube-up-1';
+import * as D from "./data.mjs?v=cube-up-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=cube-up-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=cube-up-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=cube-up-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-up-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

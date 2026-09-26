@@ -1,9 +1,9 @@
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=cube-uniform-1';
-import {beginThird,stepThird} from './advancement.mjs?v=cube-uniform-1';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=cube-uniform-1';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=cube-uniform-1';
-import {incomingDamage} from './journey-balance.mjs?v=cube-uniform-1';
-import {COOP_TIERS} from './rift-rewards.mjs?v=cube-uniform-1';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=cube-up-1';
+import {beginThird,stepThird} from './advancement.mjs?v=cube-up-1';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=cube-up-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=cube-up-1';
+import {incomingDamage} from './journey-balance.mjs?v=cube-up-1';
+import {COOP_TIERS} from './rift-rewards.mjs?v=cube-up-1';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

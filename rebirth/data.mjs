@@ -1,11 +1,11 @@
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=cube-uniform-1';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=cube-uniform-1';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=cube-uniform-1';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=cube-uniform-1';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=cube-uniform-1';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=cube-uniform-1';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=cube-uniform-1";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=cube-uniform-1";
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=cube-up-1';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=cube-up-1';
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=cube-up-1';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=cube-up-1';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=cube-up-1';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=cube-up-1';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=cube-up-1";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=cube-up-1";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
