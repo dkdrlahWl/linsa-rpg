@@ -1,5 +1,5 @@
-import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=coop-smooth-12';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=coop-smooth-12';
+import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=field-fragment-13';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;

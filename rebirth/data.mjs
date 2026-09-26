@@ -1,11 +1,11 @@
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=coop-smooth-12';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=coop-smooth-12';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=coop-smooth-12';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=coop-smooth-12';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=coop-smooth-12';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=coop-smooth-12';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=coop-smooth-12";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=coop-smooth-12";
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=field-fragment-13';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=field-fragment-13';
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=field-fragment-13';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=field-fragment-13';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=field-fragment-13';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=field-fragment-13";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=field-fragment-13";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -250,7 +250,7 @@ export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
 export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
 export const CUBE_DROP = 0.0002;
 export const SCROLL_DROP = 0;
-export const FRAGMENT_DROP = 0.01;
+export const FRAGMENT_DROP = 0.003;
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
   return journeyXP(level);

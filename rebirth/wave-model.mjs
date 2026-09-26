@@ -1,6 +1,6 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=coop-smooth-12';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=coop-smooth-12';
-import {incomingDamage} from './journey-balance.mjs?v=coop-smooth-12';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=field-fragment-13';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=field-fragment-13';
+import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
