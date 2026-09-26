@@ -1,5 +1,5 @@
 export const FOURTH_NAMES={warrior:'천검의 지배자',mage:'천체의 대마도사',archer:'폭풍의 수호자',rogue:'월영의 군주',pirate:'해일의 제독'};
-const make=(name,hits,interval,radius,mode,art,description)=>({name,type:'attack',hits,damage:27/hits,interval,range:1100,radius,mode,art,cooldown:30,description:description+' · 총 2700% · 재사용 30초'});
+const make=(name,hits,interval,radius,mode,art,description)=>{const total=mode==='orbit'?25.2:18;return {name,type:'attack',hits,damage:total/hits,interval,range:1100,radius,mode,art,cooldown:30,description:description+' · 총 '+Math.round(total*100)+'% · 재사용 30초'};};
 export const FOURTH_SKILLS={
  warrior:make('천검 만화진',12,3,620,'orbit',0,'여섯 자루의 검이 빠르게 회전하며 0.3초마다 12회 베기'),
  mage:make('성운의 종말',15,4,720,'area',1,'거대한 지역에 15회 메테오 폭격'),
