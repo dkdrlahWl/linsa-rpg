@@ -1,14 +1,15 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=boss-identity-1';
-import {incomingDamage} from './journey-balance.mjs?v=boss-identity-1';
-import {installMenuIcons} from './menu-icons.mjs?v=boss-identity-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=boss-identity-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=boss-identity-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=boss-identity-1';
-import * as D from "./data.mjs?v=boss-identity-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=boss-identity-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=boss-identity-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=boss-identity-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=boss-identity-1";
+import {GameAudio} from './game-audio.mjs?v=foley-audio-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=foley-audio-1';
+import {incomingDamage} from './journey-balance.mjs?v=foley-audio-1';
+import {installMenuIcons} from './menu-icons.mjs?v=foley-audio-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=foley-audio-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=foley-audio-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=foley-audio-1';
+import * as D from "./data.mjs?v=foley-audio-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=foley-audio-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=foley-audio-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=foley-audio-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=foley-audio-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -45,7 +46,7 @@ let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode=
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
 let session,
-  settings = { sound: 0.3, music: 0, low: false },
+  settings = { sound: 0.3, music: 0.18, low: false },
   state = null,
   tab = "hunt",
   sub = "bag",
@@ -68,90 +69,7 @@ try {
 } catch {}
 document.body.classList.toggle("low", settings.low);
 const pendingKey = () => `ringu_rebirth_pending_${session?.user?.id || "none"}`;
-const sounds = new (class {
-  constructor() {
-    this.ctx = null;
-    this.musicTimer = null;
-    this.voices = 0;
-    this.lastHit = 0;
-  }
-  start() {
-    const Audio = window.AudioContext || window.webkitAudioContext;
-    if (!Audio) return;
-    try {
-      if (!this.ctx) this.ctx = new Audio();
-      if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
-    } catch { this.ctx = null; }
-  }
-  tone(freq, duration, volume = 1, type = "sine", delay = 0) {
-    if (!this.ctx || !settings.sound || document.hidden || this.voices >= 8)
-      return;
-    const c = this.ctx,
-      o = c.createOscillator(),
-      g = c.createGain(),
-      t = c.currentTime + delay;
-    o.type = type;
-    o.frequency.setValueAtTime(freq, t);
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(settings.sound * 0.09 * volume, t + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
-    o.connect(g).connect(c.destination);
-    o.start(t);
-    o.stop(t + duration + 0.03);
-    this.voices++;
-    o.onended = () => {
-      this.voices--;
-      o.disconnect();
-      g.disconnect();
-    };
-  }
-  play(kind) {
-    if (kind?.startsWith("tower-")) {
-      if (Date.now() - (this.lastTowerSound || 0) < 75) return;
-      this.lastTowerSound = Date.now();
-      if (kind === "tower-swing") { this.tone(420, 0.07, 0.22, "sawtooth"); return; }
-      if (kind === "tower-dash") { this.tone(280, 0.15, 0.28, "triangle"); this.tone(560, 0.09, 0.18, "sine", 0.03); return; }
-      if (kind === "tower-skill") { this.tone(190, 0.22, 0.5, "triangle"); this.tone(680, 0.18, 0.25, "sine", 0.04); return; }
-      const heavy = kind === "tower-crit", hurt = kind === "tower-hurt";
-      this.tone(heavy ? 95 : hurt ? 105 : 145, heavy ? 0.25 : 0.15, heavy ? 0.8 : 0.55, "triangle");
-      this.tone(heavy ? 860 : hurt ? 220 : 620, 0.09, heavy ? 0.55 : 0.28, "sawtooth", 0.01);
-    } else if (kind === "hit") {
-      if (Date.now() - this.lastHit < 350) return;
-      this.lastHit = Date.now();
-      this.tone(130, 0.12, 0.4, "triangle");
-    } else if (["success", "craft", "potential", "restore"].includes(kind)) {
-      [392, 494, 587].forEach((f, i) =>
-        this.tone(f, 0.32, 0.7, "sine", i * 0.1),
-      );
-    } else if (kind === "cube") {
-      [330, 440, 660].forEach((f, i) =>
-        this.tone(f, 0.4, 0.6, "sine", i * 0.12),
-      );
-    } else if (["destroy", "down", "keep"].includes(kind)) {
-      this.tone(180, 0.3, 0.6, "triangle");
-      this.tone(120, 0.4, 0.5, "triangle", 0.12);
-    } else this.tone(480, 0.07, 0.3);
-  }
-  music() {
-    clearInterval(this.musicTimer);
-    if (!this.ctx || !settings.music || document.hidden) return;
-    let n = 0;
-    this.musicTimer = setInterval(() => {
-      const saved = settings.sound;
-      settings.sound = settings.music;
-      this.tone(
-        [196, 246.94, 293.66, 246.94, 174.61, 220, 261.63, 220][n++ % 8],
-        1.5,
-        0.25,
-      );
-      settings.sound = saved;
-    }, 1200);
-  }
-  pause() {
-    clearInterval(this.musicTimer);
-    this.ctx?.suspend();
-  }
-})();
+const sounds = new GameAudio(()=>settings,()=>state);
 document.addEventListener(
   "pointerdown",
   () => {
@@ -326,7 +244,9 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     const result = await request("/functions/v1/ringu-rebirth", body);
     if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
     localStorage.removeItem(pendingKey());
+    const audioPrevious=state;
     state = D.normalizePotentialState(result.state);
+    if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
     if(result.coopRooms)coopRooms=result.coopRooms;
     rankingRevision++;rankingUpdated=0;
@@ -417,6 +337,7 @@ function shell(content) {
     .join("")}</nav></div>`;
 }
 function render() {
+  sounds.setCombat(!!state?.battle||coopRoom?.status==='fighting');
   const preservedScroll=window.scrollY;
   const towerBattle=state?.battle?.kind==='tower'?state.battle:null;
   const coopFight=state?.coopRoom&&coopRoom?.status==='fighting';
@@ -446,8 +367,8 @@ function render() {
   app.innerHTML = shell(content);
   window.scrollTo({top:preservedScroll,behavior:"instant"});
   refreshLevelRequirements();
-  if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command);return;}
-  if(towerBattle){towerController=new TowerController(app.querySelector('.tower-play'),towerBattle,command,kind=>sounds.play(kind));return;}
+  if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
+  if(towerBattle){towerController=new TowerController(app.querySelector('.tower-play'),towerBattle,command,kind=>sounds.play(kind),{audio:b=>sounds.battle(b)});return;}
   if(state?.battle||state?.partyRoom)updateCombatClock();
   if (state.pendingCube && !modal.open) cubeChoice();
   else if(state.lastReward?.type==="coop"&&!modal.open)reward();
@@ -702,6 +623,7 @@ function open(title, html, closable = true) {
   modal.scrollTop = preservedModalScroll;
   requestAnimationFrame(()=>{if(modal.open&&modal.dataset.scrollKey===scrollKey)modal.scrollTop=preservedModalScroll;});
   if (!modal.open) {
+    sounds.play('ui-open');
     history.pushState({ modal: true }, "");
     modal.showModal();
   }
@@ -763,7 +685,7 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
-    sounds.play(e.outcome || e.type);
+    sounds.event(e);
     if (e.type === "attendance") {
       open(`${e.day}일차 출석 완료`, `<p class="attendance-claimed">${attendanceReward(e.reward)}</p><p class="note">보상이 가방과 재화에 지급됐어요.${e.day===7?" 내일부터 다시 1일차 보상을 받을 수 있어요.":""}</p><div class="actions">${btn("확인","close","","gold")}</div>`);
       modal.classList.add("attendance-dialog");
@@ -879,6 +801,7 @@ function login() {
       busy = false;
       await command("sync");
     } catch (err) {
+    sounds.play("ui-error");
       if ($("#auth-error"))
         $("#auth-error").textContent = authFailureMessage(err,register);
     } finally {
@@ -969,6 +892,7 @@ async function marketWrite(action, args) {
   await command("sync", {}, true);
   await marketLoad();
   modal.close();
+  sounds.play("purchase-complete");
   toast("거래가 완료되었습니다.");
 }
 document.addEventListener("click", async (e) => {
@@ -976,7 +900,9 @@ document.addEventListener("click", async (e) => {
   if (!b || b.disabled) return;
   const action = b.dataset.action,
     arg = b.dataset.arg;
-  sounds.play("click");
+  sounds.start();sounds.music();
+  sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage'].includes(action)?'ui-tab':'ui-click');
+  if(action==='star')sounds.play('enhance-charge');
   try {
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
     if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
@@ -1271,6 +1197,7 @@ document.addEventListener("click", async (e) => {
         ...(action==="buyListing"&&marketRows.find(l=>l.id===arg)?.item.kind==="consumable"?{quantity:Number($("#material-buy-count")?.value)}:{}),
       });
   } catch (err) {
+    sounds.play("ui-error");
     toast(message(err));
   }
 });
@@ -1314,6 +1241,7 @@ setInterval(() => {
   if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
 }, 1000);
 function strike(arena, frame = null) {
+  sounds.play(state.classId+"-attack");
   if (settings.low || arena.querySelectorAll(".slash").length > 2) return;
   const slash = document.createElement("i");
   slash.className = "slash strike-" + state.classId;
@@ -1328,7 +1256,7 @@ function strike(arena, frame = null) {
     arena.append(n); setTimeout(()=>n.remove(),850);
   }
   setTimeout(()=>slash.remove(),450);
-  sounds.play("hit");
+
 }
 setInterval(() => {
   if (state?.battle?.kind==='tower')return;

@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=boss-identity-1';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=boss-identity-1';
-export {TowerController} from './tower-controller.mjs?v=boss-identity-1';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=foley-audio-1';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=foley-audio-1';
+export {TowerController} from './tower-controller.mjs?v=foley-audio-1';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

@@ -1,6 +1,6 @@
-import {COOP_TIERS} from './coop-model.mjs?v=boss-identity-1';
-import {towerArena} from './tower-client.mjs?v=boss-identity-1';
-import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=boss-identity-1';
+import {COOP_TIERS} from './coop-model.mjs?v=foley-audio-1';
+import {towerArena} from './tower-client.mjs?v=foley-audio-1';
+import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=foley-audio-1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -11,7 +11,7 @@ export function coopLobby(state,room,rooms=[]){
 export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({floor:[1,4,10][room.tier],classId:me.classId,runId:room.id,advanced:!!me.advanced,power:me.power,third:(me.power?.advancement||0)>=2}).replaceAll('시련의 탑','협동 균열').replace('towerLeaveConfirm','coopLeaveConfirm');}
 const keyBits={KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16};
 export class CoopController{
- constructor(host,room,send){Object.assign(this,{host,room,send,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,disposed:false,positions:new Map(),lastDraw:0,correction:{x:0,y:0},pendingBits:0});this.renderer=new TowerRenderer(host.querySelector('canvas'));this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
+ constructor(host,room,send,sound){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,disposed:false,positions:new Map(),lastDraw:0,correction:{x:0,y:0},pendingBits:0});this.renderer=new TowerRenderer(host.querySelector('canvas'));this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
   window.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,dialog'))return;if(keyBits[e.code]||/^(Key[WASD]|Arrow)/.test(e.code)){e.preventDefault();this.keys.add(e.code);this.pendingBits|=keyBits[e.code]||0;}},opt);window.addEventListener('keyup',e=>this.keys.delete(e.code),opt);
   const clear=()=>{this.keys.clear();this.pointers.clear();this.stick={x:0,y:0};this.auto=false;this.pendingBits=0;};window.addEventListener('blur',clear,opt);document.addEventListener('visibilitychange',clear,opt);
   for(const b of host.querySelectorAll('[data-tower-button]')){b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);this.pointers.set(e.pointerId,Number(b.dataset.towerButton));this.pendingBits|=Number(b.dataset.towerButton);},opt);for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,e=>this.pointers.delete(e.pointerId),opt);}
@@ -44,6 +44,7 @@ export class CoopController{
     }
     this.positions.set(id,old);return {...p,x:old.x,y:old.y};
   };
+  this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:w.status==='won',ended:['won','lost'].includes(w.status)});
   const player=smooth(me.id,me),enemy=smooth('enemy',w.enemy),b={...w,...me,kind:'tower',worldVersion:3,floor:[1,4,10][w.tier],encounter:{...tier,seconds:90},classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m.id,m))};
   b.tick=w.tick+visualTicks;b.player.walk=(me.walk||0)+visualTicks*(Math.hypot(input[0],input[1])>.01?1:0);b.projectiles=b.projectiles.map(q=>({...q,x:q.x+q.dx*visualTicks,y:q.y+q.dy*visualTicks}));
   const previous={enemy,projectiles:b.projectiles};this.renderer.draw(b,previous,player,0,now,input,{attack:0,skill:0,dash:0});this.frame=requestAnimationFrame(t=>this.draw(t));

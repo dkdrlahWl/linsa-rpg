@@ -1,7 +1,7 @@
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=boss-identity-1';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS} from './data.mjs?v=boss-identity-1';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=boss-identity-1';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=boss-identity-1';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=foley-audio-1';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS} from './data.mjs?v=foley-audio-1';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=foley-audio-1';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=foley-audio-1';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -10,6 +10,7 @@ const snapshot=b=>({enemy:{...b.enemy},projectiles:b.projectiles.map(q=>({...q})
 export class TowerController {
   constructor(host,b,send,sound,options={}){
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
+    this.options.audio?.(this.b);
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
     this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
@@ -51,14 +52,14 @@ export class TowerController {
     if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=25||(bit===8&&this.b.power.firstJob===false||bit===2&&!this.b.advanced||bit===16&&(this.b.power.advancement||0)<2))return;
     if(bit===1&&this.b.chest){if(canOpenChest(this.b)){this.chestQueued=true;this.openChest();}return;}
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
-    if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;this.sound?.('tower-swing');}
-    if(bit===8&&b.tick+1>=b.ultimateReady){this.hint.skill=now+110;this.sound?.('tower-skill');}
-    if(bit===2&&b.tick+1>=b.skillReady&&(SECOND_SKILLS[b.classId].type!=='attack'||d<760)){this.hint.skill=now+110;this.sound?.('tower-skill');}
-    if(bit===4&&b.tick+1>=b.dashReady){this.hint.dash=now+110;this.sound?.('tower-dash');}
+    if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;}
+    if(bit===8&&b.tick+1>=b.ultimateReady){this.hint.skill=now+110;}
+    if(bit===2&&b.tick+1>=b.skillReady&&(SECOND_SKILLS[b.classId].type!=='attack'||d<760)){this.hint.skill=now+110;}
+    if(bit===4&&b.tick+1>=b.dashReady){this.hint.dash=now+110;}
   }
   async openChest(){
     if(this.openingRequest||!canOpenChest(this.b))return;if(this.pending){this.chestQueued=true;return;}this.chestQueued=false;this.openingRequest=true;
-    try{await this.flush(true);if(this.error||this.frames.length||!canOpenChest(this.b))return;this.b.chest.openAt=performance.now();await new Promise(r=>setTimeout(r,650));if(!this.disposed){await this.send('towerOpen',{runId:this.b.runId});if(!this.disposed&&this.b.chest)delete this.b.chest.openAt;}}catch{if(this.b.chest)delete this.b.chest.openAt;}finally{this.openingRequest=false;}
+    try{await this.flush(true);if(this.error||this.frames.length||!canOpenChest(this.b))return;this.sound?.("chest-open");this.b.chest.openAt=performance.now();await new Promise(r=>setTimeout(r,650));if(!this.disposed){await this.send('towerOpen',{runId:this.b.runId});if(!this.disposed&&this.b.chest)delete this.b.chest.openAt;}}catch{if(this.b.chest)delete this.b.chest.openAt;}finally{this.openingRequest=false;}
   }
   input(){
     if(this.openingRequest)return [0,0,0];
@@ -100,7 +101,7 @@ export class TowerController {
     if(this.disposed)return;
     const ready=this.required.every(src=>image(src).complete&&image(src).naturalWidth);
     if(ready&&!this.loaded)this.last=now;this.loaded=ready;
-    this.advance(now);
+    this.advance(now);this.options.audio?.(this.b);
     if(!this.openingRequest&&now-this.lastSend>350&&(this.frames.length||now-this.lastSend>2000))this.flush(true);
     if(this.b.chest&&canOpenChest(this.b)&&this.chestQueued&&!this.pending)this.openChest();
     this.draw(now);this.frame=requestAnimationFrame(t=>this.loop(t));
@@ -108,7 +109,7 @@ export class TowerController {
   draw(now){
     const point=projectPlayer(this.b,this.sampler);point.x+=this.correction.x;point.y+=this.correction.y;
     this.renderer.draw(this.b,this.previous,point,this.sampler.elapsed/TOWER_STEP,now,this.input(),this.hint);
-    for(const n of this.b.numbers)if(n.id>this.lastSound){this.lastSound=n.id;if(n.kind!=='heal')this.sound?.(n.kind==='critical'?'tower-crit':n.kind==='incoming'?'tower-hurt':'tower-hit');}
+    for(const n of this.b.numbers)if(n.id>this.lastSound){this.lastSound=n.id;if(n.kind!=='heal'&&n.kind!=='incoming')this.sound?.(n.kind==='critical'?'tower-crit':n.kind==='incoming'?'tower-hurt':'tower-hit');}
     if(now-this.lastHud>=50){this.updateHud();this.lastHud=now;}
   }
   updateHud(){
