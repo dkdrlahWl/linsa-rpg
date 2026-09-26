@@ -1,8 +1,8 @@
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=coop-party-ready-8';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=coop-party-ready-8';
-import {incomingDamage} from './journey-balance.mjs?v=coop-party-ready-8';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=field-drop-double-9';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=field-drop-double-9';
+import {incomingDamage} from './journey-balance.mjs?v=field-drop-double-9';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=coop-party-ready-8';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=field-drop-double-9';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

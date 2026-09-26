@@ -1,6 +1,6 @@
-import * as D from './data.mjs?v=coop-party-ready-8';
-import {COOP_TIERS} from './coop-model.mjs?v=coop-party-ready-8';
-import {TOWER_FLOORS} from './tower-model.mjs?v=coop-party-ready-8';
+import * as D from './data.mjs?v=field-drop-double-9';
+import {COOP_TIERS} from './coop-model.mjs?v=field-drop-double-9';
+import {TOWER_FLOORS} from './tower-model.mjs?v=field-drop-double-9';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const section=(id,title,body)=>'<section id="'+id+'"><h2>'+title+'</h2>'+body+'</section>';
@@ -37,7 +37,7 @@ html+=section('gear','5. 장비 종류·기본 능력치',
 table(['출처','레벨·직업·부위당 종류','디자인 조건부 확률'],[['필드','일반 2종','각 50%'],['보스','보스 전용 1종','100%']])+'<p>10~200레벨의 20구간 × 9부위 × 3종 = 직업당 540종, 5직업 총 2,700종. 보스 장비는 이 수량에 포함됩니다. 주간 보스 상자는 25%로 장비 1개를 지급하며, 해당 지역의 두 레벨을 각각 50%로 추첨합니다. 일일 보스는 표의 레벨로 10% 추첨합니다. 일일·주간 보스 제한 시간은 90초, 전직 보스는 120초입니다. <a href="boss-equipment.html">보스 장비 900종 전체 목록</a></p>'+
 '<div class="filters">'+select('gear-level','레벨',levels.map(l=>[l,l]))+select('gear-class','직업',D.CLASSES.map(c=>[c.id,c.name]))+select('gear-slot','부위',D.SLOTS.map((s,i)=>[i,s]))+select('gear-boss','장비 종류',[[0,'일반'],[1,'보스']])+'</div><div id="gear-rows"></div><button id="gear-csv">전체 장비·디자인·능력치 범위 CSV</button>'+
 '<p>품질 등급 추첨은 없습니다. 공격력·주스탯·HP·방어력의 기본 수치는 각각 독립 추첨합니다. 연속 구간의 하위 50%에 75%, 다음 40%에 24%, 최상위 10%에 1%를 배분한 뒤 정수로 내림합니다. 따라서 정수 구간 경계에서 각 수치의 확률은 달라집니다. 아래에서 선택한 장비의 수치별 정확한 추첨 확률을 펼칠 수 있습니다.</p><div id="stat-rows"></div>'+
-'<p>특정 장비의 사냥 1회 확률 = 0.065% × 20% × 1/9 × 디자인 확률. 보스에서는 0.065% 대신 해당 보스 장비 확률을 사용합니다. 기본 능력치까지 지정하면 각각의 수치 확률도 곱합니다. 무기 3종은 일반 2종과 보스 1종에 각각 배정됩니다.</p>');
+'<p>특정 장비의 사냥 1회 확률 = 0.13% × 20% × 1/9 × 디자인 확률. 보스에서는 0.13% 대신 해당 보스 장비 확률을 사용합니다. 기본 능력치까지 지정하면 각각의 수치 확률도 곱합니다. 무기 3종은 일반 2종과 보스 1종에 각각 배정됩니다.</p>');
 html+=section('fixed','6. 확정 보상·전투 확률',
 '<h3>탑</h3><p>첫 클리어는 아래 보상을 100% 지급. 재도전 승리에는 보상을 지급하지 않습니다. 최초 클리어만 일일 탑 과제에 반영됩니다. 무작위 장비 드롭 없음.</p>'+
 table(['층','첫 클리어 보상'],TOWER_FLOORS.map(f=>[f.floor,reward(f.reward)]))+

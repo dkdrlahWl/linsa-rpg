@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=coop-party-ready-8';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=field-drop-double-9';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

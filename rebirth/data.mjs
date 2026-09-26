@@ -1,11 +1,11 @@
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=coop-party-ready-8';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=coop-party-ready-8';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=coop-party-ready-8';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=coop-party-ready-8';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=coop-party-ready-8';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=coop-party-ready-8';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=coop-party-ready-8";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=coop-party-ready-8";
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=field-drop-double-9';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=field-drop-double-9';
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=field-drop-double-9';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=field-drop-double-9';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=field-drop-double-9';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=field-drop-double-9';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=field-drop-double-9";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=field-drop-double-9";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -241,14 +241,14 @@ export const STAR_SUCCESS = [.95,.95,.9,.9,.85,.8,.75,.7,.65,.6,.55,.5,.45,.4,.3
 export const CUBE_UP = CUBES.cube.up;
 export const HIGH_CUBE_UP = CUBES.highCube.up;
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
-export const EQUIP_DROP = 0.00065;
+export const EQUIP_DROP = 0.0013;
 export const FIELD_BOSS_DROP = 0;
 export function equipmentLevelRange(base){const min=base>=200?200:Math.max(1,Math.floor(base/10)*10);return {min,max:min};}
 export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
 export const salvageYield = item => 4+Math.floor(item.level/20)+(item.boss?10:0);
-export const CUBE_DROP = 0.0001;
+export const CUBE_DROP = 0.0002;
 export const SCROLL_DROP = 0;
 export const FRAGMENT_DROP = 0.01;
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
