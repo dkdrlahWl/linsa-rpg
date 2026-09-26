@@ -8,7 +8,7 @@ import * as D from "./data.mjs?v=motion-world-1";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=motion-world-1";
 import equipmentBounds from "./equipment-bounds.mjs?v=motion-world-1";
 import { inventoryGroups } from "./inventory-order.mjs?v=motion-world-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=motion-world-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=job-practice-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -608,7 +608,7 @@ function combatSkillButtons(party=false) {
 function skillGuide(){return '<div class="skill-guide">'+[1,2,3].map(slot=>{const sk=slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===1?30:slot===2?60:100)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
 function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row">'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">◆</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
 
-function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨. 전용 보스를 직접 처치하면 즉시 전직합니다.</p><p class="note">60초 제한 · 실패 후 재도전 가능 · 전직마다 공격력·최대 체력 10% 증가 (3회 누적 33.1%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done!==t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 60초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'전직 완료':locked?'레벨·이전 전직 필요':'전직 보스 도전','advancementStart',t.stage,cleared||locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
+function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨. 전용 보스를 직접 처치하면 즉시 전직합니다.</p><p class="note">60초 제한 · 완료한 전직 보스도 연습 가능 · 연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (3회 누적 33.1%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 60초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'연습 입장':locked?'레벨·이전 전직 필요':'전직 보스 도전','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
 function bosses() {
   const menu=`<div class="subnav">${[["daily","일일"],["weekly","주간"],["coop","협동 균열"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="coop")return menu+coopLobby(state,coopRoom,coopRooms);
@@ -808,7 +808,7 @@ function showEvents(events) {
     }
   }
 }
-function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
+function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.practice?(r.won?'전직 보스 연습 성공':'전직 보스 연습 종료'):r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.practice?'연습 전투입니다. 전직·능력치·보상은 추가로 지급되지 않습니다.':r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G<br>큐브 '+r.cube+(r.highCube?' · 블랙 큐브 '+r.highCube:''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;
@@ -1019,7 +1019,7 @@ document.addEventListener("click", async (e) => {
     if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
     if (action === "advance") {tab="boss";bossTab="advancement";view="game";return render();}
-    if(action==="advancementStart"){modal.close();tab="boss";bossTab="advancement";view="game";return await command("advancementStart");}
+    if(action==="advancementStart"){modal.close();tab="boss";bossTab="advancement";view="game";return await command("advancementStart",{stage:Number(arg)});}
     if (action === "journal") {view="journal";return render();}
     if (action === "ranking") {view="ranking";return await loadRankings();}
     if (action === "rankingRefresh") return await loadRankings();

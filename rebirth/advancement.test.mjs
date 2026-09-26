@@ -16,3 +16,9 @@ const novice={...s,firstAdvancement:false,advancement:0};assert.ok(Math.abs(powe
 assert.equal(firstJobUnlocked({advancement:1}),true);assert.equal(jobStage({advancement:2}),3);
 for(const unlocked of [false,true]){const p={attack:10,hp:10000,defense:0,boss:1,crit:0,critDamage:1,cadence:1,advancement:0,firstJob:unlocked};const b=newTowerBattle(1,'warrior',p,0,'first',1,false);towerStep(b,[0,0,8]);assert.equal(b.ultimateReady>0,unlocked);let room=startCoop({tier:0,status:'waiting',members:[{id:'me',classId:'warrior',power:p,advanced:false}]},0);room=advanceCoop(room,'me',[0,0,8],0);room=advanceCoop(room,'me',[0,0,0],100);assert.equal((room.members[0].ultimateReady||0)>0,unlocked);}
 console.log('PASS 30/60/100 gates, first-job victory only, legacy advancement, 10% each, solo/co-op first skill lock');
+
+const preserved=x=>JSON.stringify({advancement:x.advancement,first:x.firstAdvancement,power:power(x),gold:x.gold,materials:x.materials,items:x.items,victories:x.advancementVictories,tower:x.tower,bossClaims:x.bossClaims});
+for(const stage of [0,1,2])for(const won of [false,true]){const before=preserved(s);s=execute(s,'advancementStart',{stage},ctx).state;assert.equal(s.battle.advancementStage,stage);assert.equal(s.battle.advancementPractice,true);assert.equal(s.battle.encounter.seconds,60);s.battle.ended=true;s.battle.won=won;s=execute(s,'sync',{},ctx).state;assert.equal(s.lastReward.practice,true);assert.equal(preserved(s),before);}
+assert.throws(()=>execute(novice,'advancementStart',{stage:2},ctx),/ADVANCEMENT_REQUIRED/);
+assert.throws(()=>execute(s,'advancementStart',{stage:-1},ctx),/INVALID_TRIAL/);
+console.log('PASS all completed trials replay, win/loss preserves advancement, power and rewards; future trials blocked');

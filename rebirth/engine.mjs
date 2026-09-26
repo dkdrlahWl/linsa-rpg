@@ -462,7 +462,7 @@ function towerFinish(s,ctx,events) {
   if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);return;}
   const reward={type:'boss',bossId:b.weeklyBossId,won:false,practice:b.practice,items:[],materials:0};s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);return;
  }
- if(b.advancementStage!==undefined){const stage=b.advancementStage,won=b.won;if(won){check(nextTrialStage(s)===stage,'ALREADY_ADVANCED');s.firstAdvancement=true;s.advancement=stage;s.advancementVictories||={};s.advancementVictories[stage]=ctx.now;}const reward={type:'advancementTrial',stage,won,seconds:b.tick/10};s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
+ if(b.advancementStage!==undefined){const stage=b.advancementStage,won=b.won,practice=!!b.advancementPractice;if(won&&!practice){check(nextTrialStage(s)===stage,'ALREADY_ADVANCED');s.firstAdvancement=true;s.advancement=stage;s.advancementVictories||={};s.advancementVictories[stage]=ctx.now;}const reward={type:'advancementTrial',stage,won,practice,seconds:b.tick/10};s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
  const first=b.won&&!s.tower.cleared.includes(b.floor);
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
@@ -795,8 +795,8 @@ export function execute(input, command, args = {}, ctx) {
     }
     case "advance":
     case "advancementStart": {
-      const stage=nextTrialStage(s),trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);check(trial,'ALREADY_ADVANCED');check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
-      s.battle=newTowerBattle(trial.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{advancementStage:stage,encounter:trial,enemyHp:trial.hp});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
+      const next=nextTrialStage(s),stage=args.stage===undefined?next:args.stage;check(Number.isInteger(stage)&&stage>=0&&stage<=2,stage===3?'ALREADY_ADVANCED':'INVALID_TRIAL');const trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);check(stage<=next,'ADVANCEMENT_REQUIRED');const practice=stage<next;check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
+      s.battle=newTowerBattle(trial.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{advancementStage:stage,advancementPractice:practice,encounter:trial,enemyHp:trial.hp});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "tutorial":
       s.tutorial = Math.min(6, s.tutorial + 1);
