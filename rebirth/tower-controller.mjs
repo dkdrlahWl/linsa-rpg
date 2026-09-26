@@ -1,7 +1,7 @@
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=third-job-1';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS} from './data.mjs?v=third-job-1';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=third-job-1';
-import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=third-job-1';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=motion-world-1';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS} from './data.mjs?v=motion-world-1';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=motion-world-1';
+import {TowerRenderer,image,asset,motionAsset} from './tower-renderer.mjs?v=motion-world-1';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -12,17 +12,19 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
-    this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b)&&!this.pending)this.send('towerOpen',{runId:this.b.runId}).catch(()=>{});},{signal:this.abort.signal});
-    this.required=['effects','boss-'+towerEncounter(b).art,'hero-'+b.classId+'-directions'].map(asset);
-    this.required.push(...['arena-overhead-v3','hero-'+b.classId+'-walk-v3','hero-'+b.classId+'-motion-v2','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2'].map(motionAsset));
-    this.required.push(asset('third-job-atlas'));this.required.forEach(image);
+    this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
+    this.required=['effects','boss-'+towerEncounter(b).art,'hero-'+b.classId+'-directions','hero-'+b.classId+'-motion-v4','second-job-atlas','reward-chest'].map(asset);
+    this.required.push(...['arena-overhead-v3','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2'].map(motionAsset));
+    this.required.push(asset('third-job-atlas'));if(b.classId==='warrior')this.required.push(asset('hero-warrior-east-v4'));this.required.forEach(image);
+    image(asset('reward-chest'));image(asset('second-job-atlas'));image(asset('hero-'+b.classId+'-motion-v4'));
+    host.querySelector('#tower-chest')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();this.openChest();},{signal:this.abort.signal});
     this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
     this.buttons=[...host.querySelectorAll('[data-tower-button]')];
     const signal={signal:this.abort.signal};
     window.addEventListener('keydown',e=>{
       if(e.target?.closest('input,textarea,select,dialog,[contenteditable="true"]'))return;
       if(e.target?.closest('[data-tower-button]')&&['Space','Enter'].includes(e.code))return;
-      const action=codes[e.code];if(action===undefined||this.paused()||(action===2&&!this.b.advanced||action===16&&(this.b.power.advancement||0)<2))return;
+      const action=codes[e.code];if(action===undefined||this.paused()||(action===8&&this.b.power.firstJob===false||action===2&&!this.b.advanced||action===16&&(this.b.power.advancement||0)<2))return;
       e.preventDefault();this.advance(performance.now());
       if(!this.keys.has(e.code)&&typeof action==='number')this.press(action);
       this.keys.add(e.code);
@@ -46,23 +48,30 @@ export class TowerController {
   paused(){return document.hidden||!!document.querySelector('dialog[open]');}
   resetInput(){this.keys.clear();this.buttonPointers.clear();this.stickPointer=null;this.stick={x:0,y:0};this.sampler.buttons=0;this.nodes['stick-knob'].style.transform='';for(const el of this.buttons)el.classList.remove('pressed');}
   press(bit){
-    if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=25||(bit===2&&!this.b.advanced||bit===16&&(this.b.power.advancement||0)<2))return;
+    if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=25||(bit===8&&this.b.power.firstJob===false||bit===2&&!this.b.advanced||bit===16&&(this.b.power.advancement||0)<2))return;
+    if(bit===1&&this.b.chest){if(canOpenChest(this.b)){this.chestQueued=true;this.openChest();}return;}
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;this.sound?.('tower-swing');}
     if(bit===8&&b.tick+1>=b.ultimateReady){this.hint.skill=now+110;this.sound?.('tower-skill');}
     if(bit===2&&b.tick+1>=b.skillReady&&(SECOND_SKILLS[b.classId].type!=='attack'||d<760)){this.hint.skill=now+110;this.sound?.('tower-skill');}
     if(bit===4&&b.tick+1>=b.dashReady){this.hint.dash=now+110;this.sound?.('tower-dash');}
   }
+  async openChest(){
+    if(this.openingRequest||!canOpenChest(this.b))return;if(this.pending){this.chestQueued=true;return;}this.chestQueued=false;this.openingRequest=true;
+    try{await this.flush(true);if(this.error||this.frames.length||!canOpenChest(this.b))return;this.b.chest.openAt=performance.now();await new Promise(r=>setTimeout(r,650));if(!this.disposed){await this.send('towerOpen',{runId:this.b.runId});if(!this.disposed&&this.b.chest)delete this.b.chest.openAt;}}catch{if(this.b.chest)delete this.b.chest.openAt;}finally{this.openingRequest=false;}
+  }
   input(){
+    if(this.openingRequest)return [0,0,0];
     let x=this.stick.x,y=this.stick.y,bits=this.autoAttack?1:0;
     const directions=new Set();for(const code of this.keys){const action=codes[code];if(typeof action==='number'){if(action!==2||this.b.advanced)bits|=action;}else directions.add(action);}
     x+=Number(directions.has('right'))-Number(directions.has('left'));y+=Number(directions.has('down'))-Number(directions.has('up'));
     const n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}for(const bit of this.buttonPointers.values())bits|=bit;
-    return [x,y,this.b.chest?bits&4:bits];
+    return [x,y,this.b.chest?bits&5:bits];
   }
   advance(now){
     const dt=Math.max(0,Math.min(200,now-this.last));this.last=now;
     if(!this.loaded||this.paused()){this.resetInput();return;}
+    if(this.openingRequest||this.b.chest?.openAt!==undefined)return;
     this.sampler.advance(dt,this.input(),input=>{this.previous=snapshot(this.b);this.frames.push(input);towerStep(this.b,input);},()=>this.frames.length<25&&(!this.b.ended||this.b.chest));
     const decay=Math.exp(-dt/65);this.correction.x*=decay;this.correction.y*=decay;
   }
@@ -77,7 +86,7 @@ export class TowerController {
     this.correction.x=clamp(this.correction.x+before.x-after.x,-100,100);this.correction.y=clamp(this.correction.y+before.y-after.y,-100,100);
   }
   async flush(force=false){
-    if(this.pending||this.disposed||(!this.frames.length&&!force)||performance.now()<this.retryAfter)return;
+    if((this.b.chest?.openAt!==undefined&&!force)||this.pending||this.disposed||(!this.frames.length&&!force)||performance.now()<this.retryAfter)return;
     this.pending=true;this.lastSend=performance.now();
     try{
       const result=await this.send('towerInput',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,30)},true);
@@ -92,7 +101,8 @@ export class TowerController {
     const ready=this.required.every(src=>image(src).complete&&image(src).naturalWidth);
     if(ready&&!this.loaded)this.last=now;this.loaded=ready;
     this.advance(now);
-    if(now-this.lastSend>350&&(this.frames.length||now-this.lastSend>2000))this.flush(true);
+    if(!this.openingRequest&&now-this.lastSend>350&&(this.frames.length||now-this.lastSend>2000))this.flush(true);
+    if(this.b.chest&&canOpenChest(this.b)&&this.chestQueued&&!this.pending)this.openChest();
     this.draw(now);this.frame=requestAnimationFrame(t=>this.loop(t));
   }
   draw(now){
@@ -113,11 +123,11 @@ export class TowerController {
     const inRange=b.chest?canOpenChest(b):distance<=c.range;text('range',b.chest?(inRange?'상자 열기 가능':'상자에게 접근'):inRange?'공격 가능':'보스에게 접근');this.nodes.range.classList.toggle('in-range',inRange);
     const failed=this.required.some(src=>image(src).complete&&!image(src).naturalWidth),waiting=this.frames.length>=25;
     const casting=b.tick<b.enemyCastUntil;
-    text('status',b.chest?(canOpenChest(b)?'상자를 열어 보상을 받고 나가세요.':'이동 패드로 상자 가까이 가세요.'):failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
+    text('status',b.chest?(canOpenChest(b)?'공격 버튼으로 상자를 열고 나가세요.':'이동 패드로 상자 가까이 가세요.'):failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
     this.nodes.status.hidden=!this.nodes.status.textContent;this.nodes.status.classList.toggle('danger',casting||b.hazards.length>0);
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){
-      const bit=Number(el.dataset.towerButton);el.disabled=b.chest?bit!==4:(bit===2&&!b.advanced||bit===16&&(b.power.advancement||0)<2);const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady'}[bit];
+      const bit=Number(el.dataset.towerButton);el.disabled=b.chest?(bit!==4&&bit!==1):(bit===8&&b.power.firstJob===false||bit===2&&!b.advanced||bit===16&&(b.power.advancement||0)<2);const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady'}[bit];
       const duration={1:c.cooldown,2:SECOND_SKILLS[b.classId].cooldown*10,4:35,8:CLASS_SKILLS[b.classId].cooldown*10,16:THIRD_SKILLS[b.classId].cooldown*10}[bit],remaining=Math.max(0,(b[key]||0)-b.tick-this.sampler.elapsed/100);
       const label=el.querySelector('b'),value=bit!==1&&remaining>0?(remaining/10).toFixed(1):'';
       if(label.textContent!==value)label.textContent=value;

@@ -1,4 +1,5 @@
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=third-job-1';
+import MOTION_LAYOUT from './motion-layout.mjs?v=motion-world-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=motion-world-1';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -20,18 +21,16 @@ function tintedAtlas(im,filter){
 }
 // Some painted poses overlap a neighbouring atlas cell. Isolate the actual
 // character in each cell so stray weapon tips and hair never appear beside it.
-function cleanDirectionalAtlas(im){
+function cleanDirectionalAtlas(im,layout=null){
   if(cleanAtlases.has(im))return cleanAtlases.get(im);
   try{
     const canvas=document.createElement('canvas');canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
     const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
-    const sw=canvas.width/4,sh=canvas.height/4,size=sw*sh;
-    if(!Number.isInteger(sw)||!Number.isInteger(sh))return im;
-    const labels=new Int32Array(size),queue=new Int32Array(size),mask=new Uint8Array(size);
-    for(let cell=0;cell<16;cell++){
-      labels.fill(0);
-      const ox=(cell%4)*sw,oy=Math.floor(cell/4)*sh,groups=[null];
+    const regions=layout?.frames||Array.from({length:16},(_,i)=>({x:i%4*canvas.width/4,y:Math.floor(i/4)*canvas.height/4,w:canvas.width/4,h:canvas.height/4}));
+    for(const region of regions){
+      const sw=Math.floor(region.w),sh=Math.floor(region.h),size=sw*sh,ox=Math.floor(region.x),oy=Math.floor(region.y),groups=[null];
+      const labels=new Int32Array(size),queue=new Int32Array(size),mask=new Uint8Array(size);
       for(let y=0;y<sh;y++)for(let x=0;x<sw;x++)mask[y*sw+x]=data[((oy+y)*canvas.width+ox+x)*4+3]>8?1:0;
       for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
         const start=y*sw+x;if(labels[start]||!mask[start])continue;
@@ -77,6 +76,7 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
+  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth){this.sprite(...directional('hero-'+classId,dir,acting),x,y,92,92,1,0,alpha);return;}const frame=acting?Math.min(7,Math.floor(age*9)):moving?Math.floor(walk*1.05)%8:0,r=layout.frames[row*8+frame],flip=([3,4,5].includes(dir)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=(this.mobileActors.matches?140:104)/layout.bodyHeight,g=this.g;g.save();g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(cleanDirectionalAtlas(im,layout),r.x,r.y,r.w,r.h,-r.w*scale/2,-r.foot*scale,r.w*scale,r.h*scale);g.restore();}
   thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
@@ -138,7 +138,7 @@ export class TowerRenderer {
     this.particles=this.particles.slice(-180);
     this.shockwaves.push({x:n.x,y:n.y+28,at:now,color:colors[1],size:critical?240:incoming?175:155});
     this.shockwaves=this.shockwaves.slice(-12);
-    if(!heal){this.shake=Math.max(this.shake,critical?18:incoming?13:8);this.flash=Math.max(this.flash,critical?.3:incoming?.22:.16);this.zoom=Math.max(this.zoom,critical?.045:.025);}
+    if(!heal){this.shake=Math.max(this.shake,critical?18:incoming?13:8);this.flash=Math.max(this.flash,critical?.3:incoming?.22:.16);this.zoom=Math.max(this.zoom,critical?.014:.008);}
   }
   drawImpacts(now,dt){
     const g=this.g,step=Math.min(2,dt/16.7);
@@ -163,7 +163,7 @@ export class TowerRenderer {
     const dt=this.last?Math.min(50,now-this.last):16;
     for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);this.impact(n,now);}
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
-    const scale=Math.min(.9,Math.max(.58,height/2300)),viewWidth=1000/scale,viewHeight=height/scale;
+    const scale=Math.min(.7,Math.max(.46,height/3000)),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
@@ -182,7 +182,7 @@ export class TowerRenderer {
     const casting=b.tick<b.skillUntil||hint.skill>now,attacking=b.tick<b.attackUntil||hint.attack>now;
     const attackAge=clamp((time-(b.attackStart??(b.attackUntil-6)))/6),skillAge=clamp((time-(b.skillStart??(b.skillUntil-8)))/8);
     const moveDir=towerFacing(input[0],input[1],b.player.dir??6);
-    const dir=attacking?(b.player.attackDir??towerFacing(enemy.x-player.x,enemy.y-player.y,moveDir)):casting?(b.player.skillDir??moveDir):moving?moveDir:(b.player.dir??6);
+    const dir=casting?(b.player.skillDir??moveDir):attacking?(b.player.attackDir??towerFacing(enemy.x-player.x,enemy.y-player.y,moveDir)):moving?moveDir:(b.player.dir??6);
     const forward=facingVector(dir);
     const stride=moving?Math.sin(((b.player.walk||0)+fraction)*2.25):0;
     const bob=moving&&!dashing?Math.abs(stride)*5:Math.sin(now/600)*1.2;
@@ -202,16 +202,11 @@ export class TowerRenderer {
       const lunge=attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0;
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
-      if(dir===0||dir===4){
-        const flip=dir===4?-1:1;
-        if(attacking||casting){const age=casting?skillAge:attackAge,frame=(casting?4:0)+Math.min(3,Math.floor(age*4));this.sprite(motionAsset('hero-'+b.classId+'-motion-v2'),4,2,frame,x,y,116,116,flip,0,alpha);}
-        else if(moving||dashing)this.sprite(motionAsset('hero-'+b.classId+'-walk-v3'),4,1,Math.floor(now/(dashing?75:125))%4,x,y,92,92,flip,0,alpha);
-        else this.sprite(...directional('hero-'+b.classId,dir),x,y,92,92,1,0,alpha);
-      }else this.sprite(...directional('hero-'+b.classId,dir,attacking||casting),x,y,92,92,1,stride*.015,alpha);
+      this.actor(b.classId,dir,moving||dashing,attacking||casting,casting?skillAge:attackAge,(b.player.walk||0)+fraction,x,y,alpha);
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
     const drawBoss=()=>{
-      if(b.chest){const x=b.chest.x,y=b.chest.y;g.save();g.shadowColor='#ffd474';g.shadowBlur=35;g.fillStyle='#bd8537';g.fillRect(x-66,y-72,132,82);g.fillStyle='#644426';g.fillRect(x-58,y-38,116,42);g.strokeStyle='#ffe7a2';g.lineWidth=7;g.strokeRect(x-66,y-72,132,82);g.fillStyle='#fff0bd';g.fillRect(x-10,y-39,20,27);g.font='bold 23px sans-serif';g.textAlign='center';g.fillText('보상 상자',x,y-94);g.restore();return;}
+      if(b.chest){const x=b.chest.x,y=b.chest.y,opening=b.chest.openAt!==undefined,frame=opening?Math.min(3,Math.floor((now-b.chest.openAt)/160)):0;this.shadow(x,y,62);const im=image(asset('reward-chest'));if(im.complete&&im.naturalWidth){const sw=im.width/4;g.save();g.shadowColor='#f9d47d';g.shadowBlur=12;g.drawImage(im,frame*sw,0,sw,im.height,x-110,y-170,220,190);g.restore();}g.save();g.fillStyle='#fff2c0';g.font='bold 22px sans-serif';g.textAlign='center';g.fillText(opening?'상자 여는 중…':'가까이서 공격해 열기',x,y-185);g.restore();return;}
 
       const windup=b.tick<b.enemyCastUntil,frame=windup?1:b.tick<b.enemyAttackUntil?2:0;
       const bossDir=windup?(b.enemy.castDir??b.enemy.dir??2):frame===2?(b.enemyAttackDir??b.enemy.dir??2):(b.enemy.dir??2),toward=facingVector(bossDir);
@@ -222,8 +217,8 @@ export class TowerRenderer {
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
     const actors=[{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
-      const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(attacking?m.attackDir:casting?m.skillDir:m.dir)??6,alpha=m.hp>0?1:.35;
-      this.shadow(m.x,m.y,25);if((dir===0||dir===4)&&(attacking||casting)){const age=(time-(casting?m.skillStart:m.attackStart))/8,frame=(casting?4:0)+Math.min(3,Math.max(0,Math.floor(age*4)));this.sprite(motionAsset('hero-'+m.classId+'-motion-v2'),4,2,frame,m.x,m.y,116,116,dir===4?-1:1,0,alpha);}else if((dir===0||dir===4)&&m.moving)this.sprite(motionAsset('hero-'+m.classId+'-walk-v3'),4,1,Math.floor(now/125)%4,m.x,m.y,92,92,dir===4?-1:1,0,alpha);else this.sprite(...directional('hero-'+m.classId,dir,attacking||casting),m.x,m.y,92,92,1,0,alpha);
+      const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
+      this.shadow(m.x,m.y,25);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,m.y-150);g.fillStyle='#25312d';g.fillRect(m.x-40,m.y-139,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,m.y-139,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
     }}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
@@ -239,6 +234,7 @@ export class TowerRenderer {
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
+      if(e.kind==='second'){const col={warrior:0,mage:1,archer:2,rogue:3,pirate:4}[e.classId]??0,im=image(asset('second-job-atlas'));if(im.complete&&im.naturalWidth){const sw=im.width/5,sh=im.height/4,owner=e.follow?(e.owner?(b.allies||[]).find(a=>a.id===e.owner)||player:player):e;g.save();g.globalAlpha=.75;g.drawImage(im,col*sw,frame*sh,sw,sh,owner.x-e.size/2,owner.y-e.size*.4,e.size,e.size*.8);g.restore();}continue;}
       if(e.kind==='third'){const col={warrior:0,mage:1,archer:2,rogue:3,pirate:4}[e.classId]??0;const size=Math.min(900,e.size);if(e.volley){const x=mix(e.fromX,e.x,Math.min(1,age*2)),y=mix(e.fromY,e.y,Math.min(1,age*2));this.thirdSprite(col,frame,x,y,280,220,Math.atan2(e.y-e.fromY,e.x-e.fromX),.85);}else this.thirdSprite(col,frame,e.x,e.y,size,size*.8,e.classId==='rogue'?e.angle:0,.65);continue;}
       if(e.kind==='rune'){this.effect('rune',e.x,e.y,e.size,e.size,-time*.04,1-age);continue;}
       const src=e.hostile?'attack-burst-v2':b.classId==='warrior'?(e.kind==='slash'?'attack-slash-v2':'attack-burst-v2'):b.classId==='mage'?'attack-burst-v2':b.classId==='archer'?'attack-bolt-v2':b.classId==='rogue'?'attack-slash-v2':'attack-beam-v2';

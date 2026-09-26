@@ -1,8 +1,15 @@
-import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {initialState,makeItem,power,execute} from './engine.mjs';import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,RAID_BOSSES} from './data.mjs';
-const ctx={now:1000000,random:()=>.5,uuid:randomUUID};
-for(const c of CLASSES){let s=initialState(c.id,'검증',ctx);s.level=200;s.advancement=1;s.cleared=Array.from({length:29},(_,i)=>i);s=execute(s,'boss',{id:29,practice:true},ctx).state;const hp=s.battle.enemyHp;s=execute(s,'skill',{slot:1},ctx).state;assert.equal(s.battle.skillReady,ctx.now+CLASS_SKILLS[c.id].cooldown*1000);s=execute(s,'skill',{slot:2},ctx).state;assert.equal(s.battle.secondReady,ctx.now+SECOND_SKILLS[c.id].cooldown*1000);if(SECOND_SKILLS[c.id].type==='attack')assert.ok(s.battle.enemyHp<hp);assert.throws(()=>execute(s,'skill',{slot:2},ctx),/SKILL_COOLDOWN/);s.advancement=0;s.battle.secondReady=0;assert.throws(()=>execute(s,'skill',{slot:2},ctx),/ADVANCEMENT_REQUIRED/);}
-let s=initialState('warrior','사냥',ctx);s.level=200;s.stats.STR=1000;s=execute(s,'sync',{}, {...ctx,now:ctx.now+21600000,random:()=>.01}).state;assert.equal(s.recentLoot.length,5);const before=JSON.stringify(s.recentLoot);s.hunting=false;s=execute(s,'sync',{}, {...ctx,now:ctx.now+21601000}).state;assert.equal(JSON.stringify(s.recentLoot),before);
-console.log('PASS engine: all 10 skill assignments, independent cooldowns, one/two hit damage, advancement lock, persisted bounded loot');
-function build(c,level,stars){let s=initialState(c,'균형',ctx);s.level=level;s.stats[CLASSES.find(x=>x.id===c).stat]+=5*(level-1);s.advancement=1;s.items=[];s.equipped={};for(let slot=0;slot<9;slot++){const it=makeItem(level,c,slot,false,ctx);it.stars=stars;it.lines=[];s.items.push(it);s.equipped[slot]=it.id;}return power(s);}
-const results=[];for(const b of RAID_BOSSES)for(const n of [1,4])for(const enabled of [false,true])for(const c of CLASSES){const p=build(c.id,b.id===100?60:140,b.id===100?5:10);let eh=b.hp,hps=Array(n).fill(p.hp),first=-100,second=-100,time=0;const sk=CLASS_SKILLS[c.id],ss=SECOND_SKILLS[c.id];for(let t=1;t<=b.seconds;t++){time=t;if(enabled&&(t-1)%sk.cooldown===0)first=t+sk.seconds-1;if(enabled&&(t-1)%ss.cooldown===0){second=t+ss.seconds-1;if(ss.type==='attack')eh-=hps.filter(h=>h>0).length*p.attack*ss.damage*ss.hits*p.boss*(1+Math.min(1,p.crit+(ss.critAdd||0))*(p.critDamage-1));}for(let i=0;i<n;i++){if(hps[i]<=0)continue;const a=t<=first,sec=t<=second&&ss.type==='buff';const crit=Math.min(1,p.crit+(a?sk.critAdd||0:0)+(sec?ss.critAdd||0:0));eh-=p.attack*p.boss*p.cadence*(a?sk.damage:1)*(sec?ss.damage:1)*(1+crit*(p.critDamage+(sec?ss.critDamageAdd||0:0)-1));}if(eh<=0)break;if(t%3===0||t%b.patternEvery===0)for(let i=0;i<n;i++)hps[i]-=Math.max(1,Math.floor((b.attack*(t%b.patternEvery===0?b.patternMultiplier:1)-p.defense*.4)*(t<=first?sk.guard:1)*(t<=second&&ss.type==='buff'?ss.guard:1)));if(hps.every(h=>h<=0))break;}results.push({boss:b.name,n,skills:enabled,class:c.name,win:eh<=0,seconds:time,hp:Math.round(hps[0]),remainingBoss:Math.round(Math.max(0,eh))});}
-assert.ok(results.filter(r=>r.n===4).every(r=>r.win));assert.ok(results.filter(r=>r.n===1).every(r=>!r.win));console.log('PASS reference balance: 4 players clear without skills; solo requires more growth',JSON.stringify(results));
+import assert from 'node:assert/strict';
+import {CLASSES,CLASS_SKILLS,SECOND_SKILLS} from './data.mjs';
+import {newTowerBattle,towerStep} from './tower-model.mjs';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs';
+for(const c of CLASSES){
+ const p={attack:1000,hp:1e8,defense:100,boss:1,crit:0,critDamage:1.5,cadence:1,advancement:1};
+ const b=newTowerBattle(1,c.id,p,0,'skill',42,true);b.player.y=1650;b.enemyHp=1e8;
+ towerStep(b,[0,0,8]);assert.equal(b.ultimateReady,1+CLASS_SKILLS[c.id].cooldown*10);
+ towerStep(b,[0,0,2]);const ready=b.skillReady;assert.equal(ready,2+SECOND_SKILLS[c.id].cooldown*10);assert.ok(b.effects.some(e=>e.kind==='second'));
+ for(let i=0;i<4;i++)towerStep(b,[0,0,2]);assert.equal(b.skillReady,ready);
+ if(SECOND_SKILLS[c.id].type==='attack')assert.ok(b.enemyHp<1e8);else assert.ok(b.secondUntil>b.tick);
+ const locked=newTowerBattle(1,c.id,{...p,advancement:0},0,'locked',42,false);towerStep(locked,[0,0,2]);assert.equal(locked.skillReady,0);
+}
+for(const trial of ADVANCEMENT_BOSSES){const b=newTowerBattle(trial.floor,'warrior',{attack:1,hp:1e9,defense:1e9,boss:1,crit:0,critDamage:1,cadence:1},0,'timeout',1);b.encounter=trial;b.enemyHp=trial.hp;b.advancementStage=trial.stage;for(let i=0;i<600;i++)towerStep(b,[0,0,0]);assert.equal(b.tick,600);assert.equal(b.ended,true);assert.equal(b.won,false);}
+console.log('PASS five classes: first/second skills, independent cooldowns, damage/buff, unlock, 60-second advancement timeout');

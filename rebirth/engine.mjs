@@ -1,7 +1,7 @@
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,beginThird,stepThird} from './advancement.mjs?v=third-job-1';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=third-job-1';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=third-job-1';
-import {applyBetaTool} from './beta-tools.mjs?v=third-job-1';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=motion-world-1';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION} from './journey-balance.mjs?v=motion-world-1';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=motion-world-1';
+import {applyBetaTool} from './beta-tools.mjs?v=motion-world-1';
 import {
   VERSION,
   normalizePotentialState,
@@ -39,9 +39,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=third-job-1";
+} from "./data.mjs?v=motion-world-1";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=third-job-1';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=motion-world-1';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -175,7 +175,7 @@ export function power(s) {
   if (s.classId === "warrior") { hp = Math.floor(hp * 1.15); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
   const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
-  if (s.advancement >= 1) { const bonus=1.1**Math.min(2,s.advancement);flat *= bonus;hp = Math.floor(hp * bonus); }
+  if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
   const dps = flat * (1 + crit * (critDamage - 1)) * cadence;
   const stats = Object.fromEntries(Object.keys(fixedStats).map(key => {
     const growth = key === cl.stat ? s.level * 2 + equipmentStat : 0;
@@ -186,6 +186,8 @@ export function power(s) {
     stats,
     bonuses: {...pct},
     advancement: s.advancement||0,
+    firstJob:firstJobUnlocked(s),
+    level:s.level,
     combatPower: Math.floor(dps * (1+pct.boss/100) + hp * 0.1 + Math.floor(defense) * 5),
     attack: Math.floor(flat),
     primary: Math.floor(primary),
@@ -460,7 +462,7 @@ function towerFinish(s,ctx,events) {
   if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);return;}
   const reward={type:'boss',bossId:b.weeklyBossId,won:false,practice:b.practice,items:[],materials:0};s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);return;
  }
- if(b.advancementStage){const stage=b.advancementStage,won=b.won;if(won){check((s.advancement||0)===stage-1,'ALREADY_ADVANCED');s.advancement=stage;s.advancementVictories||={};s.advancementVictories[stage]=ctx.now;}const reward={type:'advancementTrial',stage,won,seconds:b.tick/10};s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
+ if(b.advancementStage!==undefined){const stage=b.advancementStage,won=b.won;if(won){check(nextTrialStage(s)===stage,'ALREADY_ADVANCED');s.firstAdvancement=true;s.advancement=stage;s.advancementVictories||={};s.advancementVictories[stage]=ctx.now;}const reward={type:'advancementTrial',stage,won,seconds:b.tick/10};s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
  const first=b.won&&!s.tower.cleared.includes(b.floor);
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
@@ -483,7 +485,7 @@ export function execute(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
   if(s.battle?.kind==='tower'){
-    const b=upgradeTowerBattle(s.battle);
+    const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
     check(['sync','ack','towerInput','towerLeave','towerOpen'].includes(command),'BATTLE_IN_PROGRESS');
     if(!b.chest&&ctx.now-b.started>=towerEncounter(b).seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
@@ -528,7 +530,7 @@ export function execute(input, command, args = {}, ctx) {
     check(s.battle, "NO_BATTLE");
     const b = s.battle;
     const slot=args.slot===3?3:args.slot===2?2:1;
-    check(slot===1||(s.advancement||0)>=slot-1,"ADVANCEMENT_REQUIRED");
+    check(slot===1?firstJobUnlocked(s):(s.advancement||0)>=slot-1,"ADVANCEMENT_REQUIRED");
     const sk=slot===3?THIRD_SKILLS[s.classId]:slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
     const ready=slot===3?'thirdReadyAt':slot===2?'secondReady':'skillReady';
     check(ctx.now >= (b[ready]||0),"SKILL_COOLDOWN");
@@ -793,7 +795,7 @@ export function execute(input, command, args = {}, ctx) {
     }
     case "advance":
     case "advancementStart": {
-      const stage=(s.advancement||0)+1,trial=ADVANCEMENT_BOSSES[stage-1];check(trial,'ALREADY_ADVANCED');check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
+      const stage=nextTrialStage(s),trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);check(trial,'ALREADY_ADVANCED');check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.battle=newTowerBattle(trial.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{advancementStage:stage,encounter:trial,enemyHp:trial.hp});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "tutorial":

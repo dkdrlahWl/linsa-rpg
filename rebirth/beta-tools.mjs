@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=third-job-1';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=motion-world-1';
 // Temporary beta switch. Disable on the server before the production release.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){
@@ -34,7 +34,7 @@ export function applyBetaTool(s,command,args,now){
   check(!s.pendingCube,'ITEM_CUBE_PENDING');
   const before=s.level;s.level=args.level;s.xp=0;s.xpRemainder=0;
   s.stats={STR:4,DEX:4,INT:4,LUK:4};s.points=(s.level-1)*5;s.classBuilds={};
-  if(s.level<60)s.advancement=0;
+  if(s.advancement>=1)s.firstAdvancement=true;if(s.level<30)s.firstAdvancement=false;if(s.level<60)s.advancement=0;else if(s.level<100&&s.advancement>=2)s.advancement=1;
   for(const [slot,id] of Object.entries(s.equipped)){
     const item=s.items.find(it=>it.id===id);
     if(!item||item.level>s.level)delete s.equipped[slot];

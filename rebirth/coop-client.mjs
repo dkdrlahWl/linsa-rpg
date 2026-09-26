@@ -1,6 +1,6 @@
-import {COOP_TIERS} from './coop-model.mjs?v=third-job-1';
-import {towerArena} from './tower-client.mjs?v=third-job-1';
-import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=third-job-1';
+import {COOP_TIERS} from './coop-model.mjs?v=motion-world-1';
+import {towerArena} from './tower-client.mjs?v=motion-world-1';
+import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=motion-world-1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -8,7 +8,7 @@ export function coopLobby(state,room,rooms=[]){
  if(room){const tier=COOP_TIERS[room.tier];return '<section class="panel pad"><h2>'+tier.name+' · 준비실</h2><p>1–4인 · 직접 이동하며 공격 · 제한 1분 30초</p>'+room.members.filter(m=>!m.left).map(m=>'<p>● '+esc(m.name)+' · 전투력 '+fmt(m.power.combatPower)+'</p>').join('')+'<div class="actions">'+button('출발','coopStart','',room.owner!==room.me)+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';}
  return '<section class="panel pad"><h2>협동 균열</h2><p class="note">장비를 준비하고 함께 패턴을 피하세요. 1–4인 입장 · 인원에 따라 체력 조정 · 입장·승리 보상 무제한 · 실제 피해를 준 참가자에게 지급<br>탑과 같은 이동·회피·직업 스킬로 싸웁니다. 패배·연습은 무제한입니다.</p><div class="coop-tiers">'+COOP_TIERS.map((t,i)=>'<article><div class="coop-boss-portrait" style="background-image:url(tower/boss-'+t.art+'.webp)" role="img" aria-label="'+t.name+'"></div><h3>'+t.name+'</h3><p>권장 Lv.'+t.level+' · 레드 '+t.cube+' / 블랙 '+t.highCube+'</p>'+button('방 만들기','coopCreate',i,false)+'</article>').join('')+'</div><h3>모집 중</h3>'+button('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>'<div class="daily-row"><span>'+esc(r.name)+' · '+COOP_TIERS[r.tier].name+'<small>'+r.count+' / 4명</small></span>'+button('참가','coopJoin',r.id,r.count>=4)+'</div>').join(''):'<p class="note">모집 중인 방이 없습니다. 새 방을 만들 수 있습니다.</p>')+'</section>';
 }
-export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({floor:[1,4,10][room.tier],classId:me.classId,runId:room.id,advanced:!!me.advanced,third:(me.power?.advancement||0)>=2}).replaceAll('시련의 탑','협동 균열').replace('towerLeaveConfirm','coopLeaveConfirm');}
+export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({floor:[1,4,10][room.tier],classId:me.classId,runId:room.id,advanced:!!me.advanced,power:me.power,third:(me.power?.advancement||0)>=2}).replaceAll('시련의 탑','협동 균열').replace('towerLeaveConfirm','coopLeaveConfirm');}
 const keyBits={KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16};
 export class CoopController{
  constructor(host,room,send){Object.assign(this,{host,room,send,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,disposed:false,positions:new Map(),lastDraw:0,correction:{x:0,y:0},pendingBits:0});this.renderer=new TowerRenderer(host.querySelector('canvas'));this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
@@ -19,7 +19,7 @@ export class CoopController{
   const move=e=>{const r=stick.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)/(r.width*.4),y=(e.clientY-r.top-r.height/2)/(r.height*.4),n=Math.max(1,Math.hypot(x,y));this.stick={x:x/n,y:y/n};knob.style.transform='translate('+this.stick.x*r.width*.3+'px,'+this.stick.y*r.height*.3+'px)';};
   stick.addEventListener('pointerdown',e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;stick.setPointerCapture(pointer);move(e);},opt);stick.addEventListener('pointermove',e=>{if(e.pointerId===pointer)move(e);},opt);for(const type of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(type,e=>{if(e.pointerId===pointer){pointer=null;this.stick={x:0,y:0};knob.style.transform='';}},opt);
   host.querySelector('#tower-auto').addEventListener('click',e=>{this.auto=!this.auto;e.currentTarget.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');},opt);
-  for(const cls of new Set(room.members.map(m=>m.classId))){image(asset('hero-'+cls+'-directions'));image(motionAsset('hero-'+cls+'-walk-v3'));image(motionAsset('hero-'+cls+'-motion-v2'));}image(asset('boss-'+COOP_TIERS[room.tier].art+'-directions'));image(asset('effects'));
+  for(const cls of new Set(room.members.map(m=>m.classId))){image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+COOP_TIERS[room.tier].art+'-directions'));image(asset('effects'));
   this.accept(room);this.timer=setInterval(()=>this.flush(),300);this.frame=requestAnimationFrame(t=>this.draw(t));
  }
  input(){if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=this.auto?1:0;for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,bits];}

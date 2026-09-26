@@ -1,7 +1,7 @@
-import {beginThird,stepThird} from './advancement.mjs?v=third-job-1';
-import {incomingDamage} from './journey-balance.mjs?v=third-job-1';
+import {beginThird,stepThird} from './advancement.mjs?v=motion-world-1';
+import {incomingDamage} from './journey-balance.mjs?v=motion-world-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=third-job-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=motion-world-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
@@ -63,7 +63,7 @@ function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
   if(k%2===1)circle(b,e.x,e.y,4500,18,2.2,3,520);
   if(distance(p,e)>480){fan(b,7);line(b,e.x,e.y,p.x,p.y,190,10,1.7);}
  }
- if(b.advancementStage){if(k%2===0){line(b,150,p.y,3050,p.y,150,13,1.8);line(b,p.x,150,p.x,3050,150,21,1.8);}else{circle(b,p.x,p.y,200,11,2);circle(b,e.x,e.y,4500,24,2,3,500);}}
+ if(b.advancementStage!==undefined){if(k%2===0){line(b,150,p.y,3050,p.y,150,13,1.8);line(b,p.x,150,p.x,3050,150,21,1.8);}else{circle(b,p.x,p.y,200,11,2);circle(b,e.x,e.y,4500,24,2,3,500);}}
  // A second marker predicts the current travel direction; changing direction remains a counter.
  if(k%2===0){const v=facingVector(p.dir??6);circle(b,p.x+v.x*250,p.y+v.y*250,175,18,1.7);}
  b.nextPattern=b.tick+(f===10&&b.enemyHp<towerEncounter(b).hp*.35?28:Math.max(b.weeklyBossId!==undefined?20:26,(b.weeklyBossId!==undefined?34:44)-f*2));
@@ -82,9 +82,9 @@ export function towerStep(b,input){
  if(b.tick<(b.dashUntil||0)){mx=b.dashX*3;my=b.dashY*3;p.dir=towerFacing(mx,my,p.dir??6);}
  const moveSpeed=(buttons&1)&&c.range>300&&!(b.tick<(b.dashUntil||0))?17:25;
  p.x=clamp(p.x+mx*moveSpeed,TOWER_BOUNDS.left,TOWER_BOUNDS.right);p.y=clamp(p.y+my*moveSpeed,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);
- if((buttons&8)&&b.tick>=b.ultimateReady){const sk=CLASS_SKILLS[b.classId];b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.12);b.ultimateReady=b.tick+sk.cooldown*10;b.guardUntil=b.tick+sk.seconds*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=p.dir??6;fx(b,'rune',p.x,p.y,220,12);}
- if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){const a=Math.atan2(e.y-p.y,e.x-p.x),v=facingVector(towerFacing(e.x-p.x,e.y-p.y,p.dir??6));p.dir=p.attackDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=v.x<0?-1:1;b.attackReady=b.tick+c.cooldown;b.attackStart=b.tick;b.attackUntil=b.tick+6;if(c.range<300){b.pendingMelee={at:b.tick+2,scale:c.cooldown/10*b.power.cadence};}else{b.projectiles.push({id:++b.serial,side:'player',x:p.x+v.x*28,y:p.y-30+v.y*15,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick,end:b.tick+15,scale:c.cooldown/10*b.power.cadence});}}
- if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;if(sk.type==='attack'){const a=Math.atan2(e.y-p.y,e.x-p.x);p.dir=p.attackDir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=Math.cos(a)<0?-1:1;b.pendingSkillHit={at:b.tick+3,hits:sk.hits,damage:sk.damage,critAdd:sk.critAdd||0};}else{p.skillDir=p.dir??6;b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
+ if(b.power.firstJob!==false&&(buttons&8)&&b.tick>=b.ultimateReady){const sk=CLASS_SKILLS[b.classId];b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.12);b.ultimateReady=b.tick+sk.cooldown*10;b.guardUntil=b.tick+sk.seconds*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=p.dir??6;fx(b,'rune',p.x,p.y,220,12);}
+ if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){const a=Math.atan2(e.y-p.y,e.x-p.x),v=facingVector(towerFacing(e.x-p.x,e.y-p.y,p.dir??6));p.dir=p.attackDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=v.x<0?-1:1;b.attackReady=b.tick+c.cooldown;b.attackStart=b.tick;b.attackUntil=b.tick+6;if(c.range<300){b.pendingMelee={at:b.tick+2,scale:c.cooldown/10*b.power.cadence};}else{b.projectiles.push({id:++b.serial,side:'player',x:p.x+v.x*28,y:p.y-30+v.y*15,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick+2,end:b.tick+17,scale:c.cooldown/10*b.power.cadence});}}
+ if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;b.effects.push({id:++b.serial,kind:'second',follow:sk.type!=='attack',classId:b.classId,x:sk.type==='attack'?e.x:p.x,y:sk.type==='attack'?e.y:p.y,size:sk.type==='attack'?500:360,start:b.tick,end:b.tick+16});if(sk.type==='attack'){const a=Math.atan2(e.y-p.y,e.x-p.x);p.dir=p.attackDir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=Math.cos(a)<0?-1:1;b.pendingSkillHit={at:b.tick+3,hits:sk.hits,damage:sk.damage,critAdd:sk.critAdd||0};}else{p.skillDir=p.dir??6;b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
  if((buttons&16)){b.x=p.x;b.y=p.y;if(beginThird(b,e,b.tick)){b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir);}}
  b.x=p.x;b.y=p.y;stepThird(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
