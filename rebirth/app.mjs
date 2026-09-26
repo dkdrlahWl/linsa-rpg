@@ -1,5 +1,5 @@
 import {GameAudio} from './game-audio.mjs?v=fourth-rift-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fourth-rift-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fourth-rift-2';
 import {incomingDamage} from './journey-balance.mjs?v=rift-chests-1';
 import {installMenuIcons} from './menu-icons.mjs?v=rift-chests-1';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=rift-chests-1';

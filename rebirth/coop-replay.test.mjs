@@ -26,3 +26,8 @@ for(const [classId,range] of [['mage',560],['archer',610],['pirate',550]]){
  assert.ok(room.members[0].damage>=power.attack*2,classId+' in-flight shots must not be overwritten by the next attack');
 }
 console.log('PASS 500–1000ms delayed frame replay matches local movement, dash, damage and RNG; duplicate/future/malformed input guards; dodged hazard does not damage after delayed reconciliation.');
+
+for(const [radius,inner,x] of [[250,0,1255],[900,500,1495]]){
+ const room=fresh();room.enemy={x:400,y:400};Object.assign(room.members[0],{x,y:1000});room.hazards=[{x:1000,y:1000,r:radius,inner,at:0,end:4,multiplier:2}];
+ assert.equal(predictCoopStep(room,'me',[0,0,0]).members[0].hp,power.hp,'visible safe boundary must match hit test');
+}

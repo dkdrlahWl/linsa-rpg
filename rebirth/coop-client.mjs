@@ -1,7 +1,7 @@
 import {CoopMotion} from './coop-motion.mjs?v=rift-smooth-2';
 import {TowerInput,projectPlayer} from './tower-input.mjs?v=fourth-rift-1';
-import {predictCoopStep} from './coop-model.mjs?v=fourth-rift-1';
-import {COOP_TIERS} from './coop-model.mjs?v=fourth-rift-1';
+import {predictCoopStep} from './coop-model.mjs?v=fourth-rift-2';
+import {COOP_TIERS} from './coop-model.mjs?v=fourth-rift-2';
 import {towerArena} from './tower-client.mjs?v=fourth-rift-1';
 import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=fourth-rift-1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
