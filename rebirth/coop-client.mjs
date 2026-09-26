@@ -1,10 +1,10 @@
 import {prepareWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 import {waveLobby,waveHud} from './wave-ui.mjs?v=field-fragment-13';
-import {CoopMotion} from './coop-motion.mjs?v=field-fragment-13';
+import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=coop-smooth-19';
 import {TowerInput,projectPlayer} from './tower-input.mjs?v=field-fragment-13';
-import {predictCoopStep} from './coop-model.mjs?v=field-fragment-13';
-import {COOP_TIERS} from './coop-model.mjs?v=field-fragment-13';
+import {predictCoopStep} from './coop-model.mjs?v=coop-smooth-19';
+import {COOP_TIERS} from './coop-model.mjs?v=coop-smooth-19';
 import {towerArena} from './tower-client.mjs?v=wave-visible-18';
 import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=wave-visible-18';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -36,7 +36,7 @@ export class CoopController{
  input(){if(this.predicted?.mode==='wave'&&this.predicted.members.find(m=>m.id===this.room.me)?.hp<=0)return [0,0,0];if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=this.auto?1:0;for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,bits];}
  press(bits){this.pendingBits|=bits;this.sampler.press(bits);const now=performance.now();if(bits&4)this.hint.dash=now+110;else if(bits&1)this.hint.attack=now+110;else this.hint.skill=now+110;}
  async flush(){
-  if(this.busy||this.disposed||performance.now()<this.nextSend)return;this.busy=true;
+  if(this.busy||this.disposed||performance.now()<this.nextSend)return;this.busy=true;const started=performance.now();
   try{
    const taps=this.pendingBits;this.pendingBits=0;
    const room=this.predicted,me=room.members.find(m=>m.id===room.me),chest=room.chest;
@@ -49,20 +49,20 @@ export class CoopController{
    if(!result)this.pendingBits|=taps;
    if(result)this.failures=0;
   }catch{this.failures=(this.failures||0)+1;}
-  finally{this.busy=false;this.nextSend=performance.now()+180+Math.random()*100;}
+  finally{this.busy=false;this.nextSend=Math.max(started+250,performance.now()+60);}
  }
  accept(room){if(!room||room.id!==this.room.id||room.tick<this.room.tick)return;this.previousRoom=this.room;this.room=room;this.received=performance.now();
  const target=Math.max(room.tick,Math.min(this.predicted?.tick||room.tick,room.tick+20));
  const base=room.predictionBase||room;
  this.nextSend=Math.max(this.nextSend||0,performance.now()+80);
  this.frames=this.frames.filter(f=>f.tick>=base.tick);
- this.previousSim=null;this.predicted=structuredClone(base);
+ this.predicted=structuredClone(base);this.previousSim=motionSnapshot(this.predicted);
  delete this.predicted.predictionBase;
  if(room.status==='fighting')while(this.predicted.tick<target&&this.predicted.status==='fighting'){
   const input=this.frames.find(f=>f.tick===this.predicted.tick)?.input||this.predicted.members.find(m=>m.id===room.me).input||[0,0,0];
-  this.previousSim=this.predicted;this.predicted=predictCoopStep(this.predicted,room.me,input);
+  this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,room.me,input,true);
  }
- this.motion.accept(room,this.received,room._rtt||0);if(room.mode==='wave'){const block=Math.floor(((room.wave||1)-1)/10)%30;for(const i of [block,(block+1)%30]){void prepareWaveCreature(image(WAVE_MONSTERS[i].art),i);void prepareWaveCreature(image(WAVE_MONSTERS[i].eliteArt),i);}waveHud(this.host,room);return;}const t=COOP_TIERS[room.tier],me=room.members.find(m=>m.id===room.me);this.host.querySelector('.tower-title-row h3').textContent=t.name;this.host.querySelector('#tower-enemy-hp').textContent=fmt(room.hp)+' / '+fmt(room.maxHp);this.host.querySelector('#tower-enemy-bar').style.width=room.hp/room.maxHp*100+'%';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp);this.host.querySelector('#tower-player-bar').style.width=me.hp/me.power.hp*100+'%';this.host.querySelector('#tower-clock').textContent=room.status==='won'?'개인 상자':Math.max(0,90-Math.floor(room.tick/10))+'초';this.host.querySelector('#tower-status').textContent=room.status==='won'?(me.damage>0?'개인 상자로 이동한 뒤 공격 버튼을 눌러 여세요.':'피해를 주지 않아 보상이 없습니다. 나가기를 눌러주세요.'):me.hp>0?'탑과 같은 조작 · 붉은 예고 회피':'쓰러졌습니다 · 동료 전투 관전 중';this.host.querySelector('#tower-range').textContent='참가 '+room.members.filter(m=>!m.left&&m.hp>0).length+'명';const chest=this.host.querySelector('#tower-chest');chest.hidden=room.status!=='won'||!(me.damage>0);chest.disabled=!room.chest||Math.hypot(me.x-room.chest.x,me.y-room.chest.y)>180;chest.textContent=chest.disabled?'개인 상자 가까이 이동하세요':'개인 상자 열고 나가기';for(const b of this.host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady'}[b.dataset.towerButton],left=Math.max(0,(me[key]||0)-room.tick);b.querySelector('b').textContent=left?Math.ceil(left/10)+'s':'';}}
+ this.motion.reconcile();if(room.mode==='wave'){const block=Math.floor(((room.wave||1)-1)/10)%30;for(const i of [block,(block+1)%30]){void prepareWaveCreature(image(WAVE_MONSTERS[i].art),i);void prepareWaveCreature(image(WAVE_MONSTERS[i].eliteArt),i);}waveHud(this.host,room);return;}const t=COOP_TIERS[room.tier],me=room.members.find(m=>m.id===room.me);this.host.querySelector('.tower-title-row h3').textContent=t.name;this.host.querySelector('#tower-enemy-hp').textContent=fmt(room.hp)+' / '+fmt(room.maxHp);this.host.querySelector('#tower-enemy-bar').style.width=room.hp/room.maxHp*100+'%';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp);this.host.querySelector('#tower-player-bar').style.width=me.hp/me.power.hp*100+'%';this.host.querySelector('#tower-clock').textContent=room.status==='won'?'개인 상자':Math.max(0,90-Math.floor(room.tick/10))+'초';this.host.querySelector('#tower-status').textContent=room.status==='won'?(me.damage>0?'개인 상자로 이동한 뒤 공격 버튼을 눌러 여세요.':'피해를 주지 않아 보상이 없습니다. 나가기를 눌러주세요.'):me.hp>0?'탑과 같은 조작 · 붉은 예고 회피':'쓰러졌습니다 · 동료 전투 관전 중';this.host.querySelector('#tower-range').textContent='참가 '+room.members.filter(m=>!m.left&&m.hp>0).length+'명';const chest=this.host.querySelector('#tower-chest');chest.hidden=room.status!=='won'||!(me.damage>0);chest.disabled=!room.chest||Math.hypot(me.x-room.chest.x,me.y-room.chest.y)>180;chest.textContent=chest.disabled?'개인 상자 가까이 이동하세요':'개인 상자 열고 나가기';for(const b of this.host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady'}[b.dataset.towerButton],left=Math.max(0,(me[key]||0)-room.tick);b.querySelector('b').textContent=left?Math.ceil(left/10)+'s':'';}}
  draw(now){
   if(this.disposed)return;
   const dt=Math.min(100,this.lastDraw?now-this.lastDraw:16);this.lastDraw=now;
@@ -71,15 +71,16 @@ export class CoopController{
   if(now-this.received<2500&&!document.hidden)this.sampler.advance(dt,input,frame=>{
    if(this.predicted.status==='fighting')this.frames.push({tick:this.predicted.tick,input:frame});
    this.frames=this.frames.slice(-35);
-   this.previousSim=this.predicted;this.predicted=predictCoopStep(this.predicted,this.room.me,frame);
+   this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true);
   });
   const w=this.predicted,me=w.members.find(m=>m.id===w.me),tier=COOP_TIERS[w.tier];
-  const smooth=(actor,old)=>{if(!old||Math.hypot(actor.x-old.x,actor.y-old.y)>100)return actor;const f=this.sampler.elapsed/100;return {...actor,x:Math.max(120,Math.min(3080,actor.x+(actor.x-old.x)*f)),y:Math.max(120,Math.min(3080,actor.y+(actor.y-old.y)*f))};};
+  this.motion.begin(now);
+  const smooth=(actor,old,key)=>this.motion.sample(key,interpolateActor(actor,old,this.sampler.elapsed/100));
   const projection={waveMode:w.mode==='wave',player:me,classId:me.classId,tick:w.tick,dashReady:me.dashReady,dashUntil:me.dashUntil,dashX:me.dx,dashY:me.dy};
-  const point=projectPlayer(projection,this.sampler),player={...me,...point},enemy=smooth(w.enemy,this.previousSim?.enemy);
+  const point=projectPlayer(projection,this.sampler),player=this.motion.sample('player:'+me.id,{...me,...point},true),enemy=smooth(w.enemy,this.previousSim?.enemy,'enemy');
   this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:this.room.status==='won',ended:['won','lost'].includes(this.room.status)});
   if(w.status==='won')this.auto=false;
-  const b={...w,...me,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:{...tier,seconds:90},classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id)))};
+  const b={...w,...me,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:{...tier,seconds:90},classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id),'player:'+m.id))};
   b.tick=w.tick+this.sampler.elapsed/100;
   if(!this.lastHud||now-this.lastHud>=100){this.lastHud=now;
   this.host.querySelector('#tower-enemy-hp').textContent=fmt(w.hp)+' / '+fmt(w.maxHp);
@@ -90,7 +91,8 @@ export class CoopController{
   if(w.mode==='wave')waveHud(this.host,w);
   const connection=this.host.querySelector('#tower-connection');connection.hidden=now-this.received<1800;connection.textContent='연결 지연 · 자동 재연결 중';
   }
-  if(w.mode==='wave'){b.enemy={x:player.x,y:player.y};const oldMonsters=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));b.monsters=w.monsters.map(e=>smooth(e,oldMonsters.get(e.id)));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}
+  if(w.mode==='wave'){b.enemy={x:player.x,y:player.y};const oldMonsters=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));b.monsters=w.monsters.map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}
+  this.motion.end();
   this.renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},player,0,now,input,this.hint);
   this.frame=requestAnimationFrame(t=>this.draw(t));
  }

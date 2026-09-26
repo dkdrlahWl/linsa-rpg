@@ -6,6 +6,7 @@ export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const bound=x=>Math.max(120,Math.min(3080,x));
 function random(w){w.seed=(Math.imul(w.seed,1664525)+1013904223)>>>0;return w.seed/4294967296;}
+function spawnRandom(w){w.spawnSeed=(Math.imul(w.spawnSeed??((w.started>>>0)||1),1664525)+1013904223)>>>0;return w.spawnSeed/4294967296;}
 export function waveStats(wave){
  const level=Math.max(1,wave)*2,block=Math.floor((wave-1)/10);
  // Four similarly equipped players share ~24 seconds of single-target work.
@@ -13,18 +14,18 @@ export function waveStats(wave){
 }
 function emitWaveSpawn(w){
  const plan=w.spawnPlan;if(!plan)return;const s=waveStats(w.wave),age=w.tick-plan.at;
- const spawn=(side,elite)=>{const p=200+random(w)*2800,x=side===1?3040:side===3?160:p,y=side===0?160:side===2?3040:p;w.monsters.push({id:++w.serial,x,y,side,elite,species:s.species,level:s.level,hp:s.hp*(elite?4:1),maxHp:s.hp*(elite?4:1),attack:s.attack*(elite?1.7:1),speed:elite?23:s.speed,ready:w.tick+10,walk:0,face:1});};
+ const spawn=(side,elite)=>{const p=200+spawnRandom(w)*2800,x=side===1?3040:side===3?160:p,y=side===0?160:side===2?3040:p;w.serial++;const ordinal=elite?plan.elites:plan.regular[side],id=-(w.wave*100000+(elite?50000:side*10000)+ordinal+1);w.monsters.push({id,x,y,side,elite,species:s.species,level:s.level,hp:s.hp*(elite?4:1),maxHp:s.hp*(elite?4:1),attack:s.attack*(elite?1.7:1),speed:elite?23:s.speed,ready:w.tick+10,walk:0,face:1});};
  // Reinforcements arrive during the first ten seconds, so later waves do not
  // automatically lose merely because their total spawn budget exceeds the arena limit.
  for(let side=0;side<4;side++){const due=Math.min(w.spawnCounts[side],1+Math.floor(age/10));while(plan.regular[side]<due&&w.monsters.length<WAVE_LIMIT){spawn(side,false);plan.regular[side]++;}}
- const elitesDue=Math.min(s.eliteCount,1+Math.floor(age*s.eliteCount/100));while(plan.elites<elitesDue&&w.monsters.length<WAVE_LIMIT){spawn(Math.floor(random(w)*4),true);plan.elites++;}
+ const elitesDue=Math.min(s.eliteCount,1+Math.floor(age*s.eliteCount/100));while(plan.elites<elitesDue&&w.monsters.length<WAVE_LIMIT){spawn(Math.floor(spawnRandom(w)*4),true);plan.elites++;}
  if(w.monsters.length>=WAVE_LIMIT){w.status='lost';w.reason='overrun';w.endedTick=w.tick;}
 }
 export function spawnWave(w){
- w.wave++;w.nextWave=w.tick+WAVE_SECONDS*10;w.spawnCounts=Array.from({length:4},()=>5+Math.floor(random(w)*6));w.spawnPlan={at:w.tick,regular:[0,0,0,0],elites:0};emitWaveSpawn(w);
+ w.wave++;w.nextWave=w.tick+WAVE_SECONDS*10;w.spawnCounts=Array.from({length:4},()=>5+Math.floor(spawnRandom(w)*6));w.spawnPlan={at:w.tick,regular:[0,0,0,0],elites:0};emitWaveSpawn(w);
 }
 export function initializeWave(w){
- Object.assign(w,{wave:0,nextWave:0,monsters:[],kills:0,seed:(w.started>>>0)||1});
+ Object.assign(w,{wave:0,nextWave:0,monsters:[],kills:0,spawnSeed:(w.started>>>0)||1,seed:(w.started>>>0)||1});
  for(const m of w.members){m.x=1450+w.members.indexOf(m)*100;m.y=1600;m.reviveProgress=0;}
  spawnWave(w);return w;
 }

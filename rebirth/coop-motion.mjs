@@ -1,36 +1,33 @@
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-// Reconcile against the displayed position at the snapshot's time, not the
-// current predicted position. Otherwise every response rewinds local movement.
+// Only positions are copied between simulation steps; inventory, effects and
+// combat state remain owned by the prediction world.
+export function motionSnapshot(room){
+ const point=a=>({id:a.id,x:a.x,y:a.y});
+ return {enemy:point(room.enemy),members:room.members.map(point),monsters:(room.monsters||[]).map(point)};
+}
+export function interpolateActor(actor,previous,fraction){
+ if(!previous)return actor;
+ const f=clamp(fraction,0,1);
+ return {...actor,x:previous.x+(actor.x-previous.x)*f,y:previous.y+(actor.y-previous.y)*f};
+}
+// Preserve the last rendered position when authoritative replay changes the
+// world. Decay only the correction, so fresh movement/dashes remain responsive.
 export class CoopMotion {
- constructor(){this.points=new Map();this.history=[];this.correction={x:0,y:0};this.lastAccept=0;this.interval=300;}
- accept(room,now,lag=0){
-  if(this.lastAccept)this.interval=clamp(this.interval*.6+(now-this.lastAccept)*.4,100,1200);
-  this.lastAccept=now;
-  const me=room.members.find(m=>m.id===room.me),at=now-clamp(lag/2,0,1000);
-  const sample=this.history.reduce((best,p)=>!best||Math.abs(p.at-at)<Math.abs(best.at-at)?p:best,null);
-  if(sample){this.correction.x=clamp(me.x-sample.x,-350,350);this.correction.y=clamp(me.y-sample.y,-350,350);}
-  for(const [id,p] of [['enemy',room.enemy],...room.members.map(m=>[m.id,m])]){
-   const old=this.points.get(id);if(!old){this.points.set(id,{x:p.x,y:p.y,fromX:p.x,fromY:p.y,targetX:p.x,targetY:p.y,at:now});continue;}
-   if(id===room.me)continue;
-   Object.assign(old,{fromX:old.x,fromY:old.y,targetX:p.x,targetY:p.y,at:now});
+ constructor(){this.points=new Map();this.generation=0;this.last=0;}
+ reconcile(){this.generation++;}
+ begin(now){this.seconds=this.last?clamp((now-this.last)/1000,0,.05):0;this.last=now;this.active=new Set();}
+ sample(id,actor,local=false){
+  this.active.add(id);let p=this.points.get(id);
+  if(!p){p={x:actor.x,y:actor.y,dx:0,dy:0,generation:this.generation};this.points.set(id,p);}
+  if(p.generation!==this.generation){
+   p.dx=p.x-actor.x;p.dy=p.y-actor.y;p.generation=this.generation;
+  }else{
+   const distance=Math.hypot(p.dx,p.dy),limit=(local?300:500)*this.seconds;
+   const factor=distance?Math.min(1-Math.exp(-this.seconds/.18),limit/distance):0;
+   p.dx*=1-factor;p.dy*=1-factor;
   }
- }
- local(id,actor,input,dt,now,speed){
-  const p=this.points.get(id)||{x:actor.x,y:actor.y};
-  const connected=now-this.lastAccept<2000,seconds=Math.min(50,Math.max(0,dt))/1000;
-  const limit=(Math.hypot(input[0],input[1])>.01?speed*.35:220)*seconds;
-  const distance=Math.hypot(this.correction.x,this.correction.y),factor=distance?Math.min(1-Math.exp(-seconds/0.24),limit/distance):0;
-  const dx=this.correction.x*factor,dy=this.correction.y*factor;
-  p.x=clamp(p.x+(connected?input[0]*speed*seconds:0)+dx,120,3080);
-  p.y=clamp(p.y+(connected?input[1]*speed*seconds:0)+dy,120,3080);
-  this.correction.x-=dx;this.correction.y-=dy;this.points.set(id,p);
-  this.history.push({at:now,x:p.x,y:p.y});while(this.history.length&&this.history[0].at<now-2500)this.history.shift();
+  p.x=clamp(actor.x+p.dx,120,3080);p.y=clamp(actor.y+p.dy,120,3080);
   return {...actor,x:p.x,y:p.y};
  }
- remote(id,actor,now){
-  const p=this.points.get(id);if(!p)return actor;
-  const t=clamp((now-p.at)/this.interval,0,1.25);
-  p.x=clamp(p.fromX+(p.targetX-p.fromX)*t,120,3080);p.y=clamp(p.fromY+(p.targetY-p.fromY)*t,120,3080);
-  return {...actor,x:p.x,y:p.y};
- }
+ end(){for(const id of this.points.keys())if(!this.active.has(id))this.points.delete(id);}
 }

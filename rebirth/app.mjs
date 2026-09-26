@@ -1,5 +1,5 @@
 import {GameAudio} from './game-audio.mjs?v=field-fragment-13';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-visible-18';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-smooth-19';
 import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=field-fragment-13';

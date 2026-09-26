@@ -1,4 +1,4 @@
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=field-fragment-13';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=coop-smooth-19';
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=field-fragment-13';
 import {beginThird,stepThird} from './advancement.mjs?v=field-fragment-13';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=field-fragment-13';
@@ -70,9 +70,9 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
 
 // Stable RNG makes a replay of the same inputs yield the same damage.
 function coopRandom(w,t,id){let n=((t+1)*2654435761+(w.serial||0)*1013904223)>>>0;for(const c of id)n=Math.imul(n^c.charCodeAt(0),16777619)>>>0;return n/4294967296;}
-export function predictCoopStep(room,user,input){
- if(room.status==='won')return advanceCoopRaw(room,user,input,(room.lootAt||room.started)+100);
- return advanceCoopRaw(room,null,null,room.started+(room.tick+1)*100,[{user,tick:room.tick,input}]);
+export function predictCoopStep(room,user,input,owned=false){
+ if(room.status==='won')return advanceCoopRaw(room,user,input,(room.lootAt||room.started)+100,[],owned);
+ return advanceCoopRaw(room,null,null,room.started+(room.tick+1)*100,[{user,tick:room.tick,input}],owned);
 }
 const validFrame=f=>f&&Number.isInteger(f.tick)&&Array.isArray(f.input)&&f.input.length===3&&f.input.every(Number.isFinite)&&Math.abs(f.input[0])<=1&&Math.abs(f.input[1])<=1&&Number.isInteger(f.input[2])&&f.input[2]>=0&&f.input[2]<=63;
 const bare=w=>{const {_net,_queuedInputs,predictionBase,...core}=w;return structuredClone(core);};
