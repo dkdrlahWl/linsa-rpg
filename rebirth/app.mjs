@@ -407,7 +407,11 @@ function render() {
   if (state.pendingCube && !modal.open) cubeChoice();
   else if(state.lastReward?.type==="coop"&&!modal.open)reward();
 }
-function dailyCard(){return '<section class="panel pad daily-card"><h3>오늘의 모험</h3><p class="note">매일 한국 시간 0시 갱신 · 목표마다 현재 레벨 경험치 5%</p>'+Object.entries(D.DAILY_TASKS).map(([key,t])=>'<div class="daily-row"><div><strong>'+t.name+'</strong><small>'+Math.min(t.goal,state.daily?.[key]||0)+' / '+t.goal+' · 레드 '+t.cube+' / 블랙 '+t.highCube+'</small></div>'+disabledBtn(state.daily?.claimed?.includes(key)?'완료':'받기','dailyClaim',key,(state.daily?.[key]||0)<t.goal||state.daily?.claimed?.includes(key))+'</div>').join('')+'</section>';}
+function dailyRewardLines(task){
+  return [['gold','골드'],['fragment','장비 파편'],['cube','레드 큐브'],['highCube','블랙 큐브']]
+    .filter(([key])=>task[key]>0).map(([key,label])=>label+' '+fmt(task[key])+(key==='gold'?' G':'개'));
+}
+function dailyCard(){return '<section class="panel pad daily-card"><h3>오늘의 모험</h3><p class="note">매일 한국 시간 0시 갱신 · 목표마다 현재 레벨 경험치 5%</p>'+Object.entries(D.DAILY_TASKS).map(([key,t])=>'<div class="daily-row"><div style="min-width:0"><strong>'+t.name+'</strong><small>진행 '+fmt(Math.min(t.goal,state.daily?.[key]||0))+' / '+fmt(t.goal)+'</small><small>'+dailyRewardLines(t).join('<br>')+'</small></div>'+disabledBtn(state.daily?.claimed?.includes(key)?'완료':'받기','dailyClaim',key,(state.daily?.[key]||0)<t.goal||state.daily?.claimed?.includes(key))+'</div>').join('')+'</section>';}
 function hunt() {
   const st = D.STAGES[state.stage],
     region = state.battle?.dungeon === "relic" ? D.EXPEDITION : D.REGIONS[state.battle ? battleEnemy(state.battle).region : st.region],
@@ -735,7 +739,10 @@ function showEvents(events) {
     if(e.type==="autoEquip") {
       open("최적 장착 완료",`<div class="auto-equip-result"><span>${e.changed.length?e.changed.length+"개 부위 교체":"현재 장비 유지"}</span><div><b>${fmt(e.before)}</b><i>→</i><strong>${fmt(e.after)}</strong></div><p>전투력 +${fmt(e.after-e.before)}</p></div><p class="note">${e.changed.length?e.changed.map(slot=>D.SLOTS[slot]).join(" · ")+" 장비를 교체했습니다.":"이번 비교에서 더 높은 전투력 조합을 찾지 못해 현재 장비를 유지했습니다."}</p>`);
     }
-    if(e.type==="daily")toast(e.name+" 보상을 받았습니다.");
+    if(e.type==="daily"){
+      const task=Object.values(D.DAILY_TASKS).find(t=>t.name===e.name);
+      open("일일 과제 보상",'<h3>'+esc(e.name)+'</h3>'+(task?'<p>'+dailyRewardLines(task).join('<br>')+'<br>경험치 5%</p>':'<p>보상을 받았습니다.</p>')+btn("확인","close","","gold"));
+    }
     if(e.type==="coop"){tab="boss";bossTab=e.mode==="wave"?"wave":"coop";view="game";render();reward();continue;}
     if(e.type==="exchangeGear")open("장비 교환 완료",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
