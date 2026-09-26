@@ -6,7 +6,7 @@ import {CUBES,cubeUpgrade,cubeTable,cubeLineRates,rerollCube,rollCubeLine} from 
 import {renderCubePanel} from './cube-ui.mjs';
 let seed=1234567;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
 const ctx=(rng=random)=>({now:0,random:rng,uuid:randomUUID});
-function fixture(grade=2){const s=initialState('mage','큐브검증',ctx());s.hunting=false;s.gold=1e7;for(const k of Object.keys(CUBES))s.materials[k]=20;s.items[0].level=200;s.items[0].grade=grade;s.items[0].lines=[{key:'INT',value:6,grade},{key:'STR',value:3,grade:grade-1},{key:'flatHP',value:100,grade:grade-1}];return s;}
+function fixture(grade=2){const s=initialState('mage','큐브검증',ctx());s.hunting=false;s.gold=1e7;for(const k of Object.keys(CUBES))s.materials[k]=20;s.items[0].potentialUnlocked=true;s.items[0].level=200;s.items[0].grade=grade;s.items[0].lines=[{key:'INT',value:6,grade},{key:'STR',value:3,grade:grade-1},{key:'flatHP',value:100,grade:grade-1}];return s;}
 for(const[k,c]of Object.entries(CUBES))for(let g=2;g<c.maxGrade;g++){
  if(c.prime)continue;assert.equal(cubeUpgrade({},k,g,()=>c.up[g]-1e-12),g+1);assert.equal(cubeUpgrade({},k,g,()=>c.up[g]),g);
  if(c.pity[g]){const s={cubePity:{[k+':'+g]:c.pity[g]-1}};assert.equal(cubeUpgrade(s,k,g,()=>.999),g);assert.equal(cubeUpgrade(s,k,g,()=>.999),g+1);assert.equal(s.cubePity[k+':'+g],0);}
@@ -18,7 +18,7 @@ for(const[k,c]of Object.entries(CUBES))for(let g=c.prime?5:2;g<=c.maxGrade;g++)f
  const lines=rerollCube(k,it,g,random);
  assert.equal(lines.length,3);assert.equal(lines[0].grade,g);
  for(const l of lines.slice(1))assert.ok(l.grade===g||l.grade===g-1);
- if(c.prime)assert.deepEqual(lines[0],it.lines[0]);
+ assert.ok(lines.every(l=>l.grade===g));
 }
 for(const [k,c]of Object.entries(CUBES)){
  let s=fixture(c.prime?5:2),before=structuredClone(s);
@@ -39,8 +39,8 @@ assert.equal(r.items[0].grade,2);assert.equal(r.pendingCube.grade,3);
 assert.deepEqual(r.pendingCube.lines.map(l=>l.grade),[3,3,3]);
 for(const flag of ['locked','broken']){let t=fixture();t.items[0][flag]=true;assert.throws(()=>execute(t,'cube',{id:t.items[0].id},ctx()),/ITEM_PROTECTED/);}
 s=fixture();s.materials.cube=0;assert.throws(()=>execute(s,'cube',{id:s.items[0].id},ctx()),/INSUFFICIENT_CUBE/);
-s=fixture(5);assert.throws(()=>execute(s,'cube',{id:s.items[0].id,kind:'strangeCube'},ctx()),/INVALID_CUBE_GRADE/);
-s=fixture(2);assert.throws(()=>execute(s,'cube',{id:s.items[0].id,kind:'primeCube'},ctx()),/PRIME_LEGENDARY_REQUIRED/);
+s=fixture(5);assert.throws(()=>execute(s,'cube',{id:s.items[0].id,kind:'strangeCube'},ctx()),/INVALID_CUBE/);
+s=fixture(2);const prime=execute(s,'cube',{id:s.items[0].id,kind:'primeCube'},ctx()).state;assert.equal(prime.items[0].grade,3);assert.ok(prime.items[0].lines.every(l=>l.grade===3));
 assert.throws(()=>execute(s,'cube',{id:s.items[0].id,kind:'__proto__'},ctx()),/INVALID_CUBE/);
 assert.throws(()=>execute(s,'qualityReroll',{id:s.items[0].id},ctx()));
 for(const q of [0,50,100])for(const boss of [false,true])for(const stars of [0,10,25]){
@@ -52,5 +52,5 @@ for(const q of [0,50,100])for(const boss of [false,true])for(const stars of [0,1
 s=fixture();s.items[0].potentialVersion=3;s.items[0].lines[1].grade=5;s.mailbox=[{item:structuredClone(s.items[0])}];normalizePotentialState(s);
 assert.equal(s.items[0].grade,5);assert.equal(s.mailbox[0].item.grade,5);assert.deepEqual(normalizePotentialState(structuredClone(s)),s);
 s=fixture();s.items[0].lines=[{key:'flatAttack',value:32,grade:5}];const boosted=power(s);s.items[0].lines=[];assert.ok(boosted.attack>power(s).attack);
-console.log('PASS: all cube/grade/slot/level pools; official rate boundaries; pity; choices; prime lock; migration; atomic failures; supported effects; UI output.');
+console.log('PASS: all cube/grade/slot/level pools; rate boundaries; pity; choices; prime upgrade; migration; atomic failures; supported effects; UI output.');
 

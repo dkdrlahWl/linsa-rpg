@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=field-melee-1';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=field-melee-1';
-export {TowerController} from './tower-controller.mjs?v=field-melee-1';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=cube-uniform-1';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=cube-uniform-1';
+export {TowerController} from './tower-controller.mjs?v=cube-uniform-1';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

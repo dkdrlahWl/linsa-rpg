@@ -1,5 +1,5 @@
-import {currencyIconURL} from './currency-icons.mjs?v=field-melee-1';
-import * as D from './data.mjs?v=field-melee-1';
+import {currencyIconURL} from './currency-icons.mjs?v=cube-uniform-1';
+import * as D from './data.mjs?v=cube-uniform-1';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const pct=n=>(n*100).toFixed(6).replace(/\.?0+$/,'')+'%';
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
@@ -9,27 +9,26 @@ export function potentialPanel(item,label='현재 잠재능력'){
 }
 export function cubeOdds(kind,item,grade=item.grade){
  const c=D.CUBES[kind];if(!c||grade<2||grade>c.maxGrade)return '';
- grade=D.CUBES[kind].prime?Math.max(3,grade):grade;
- const table=D.cubeTable(kind,item,grade),rates=D.cubeLineRates(kind,grade);
- return `<details class="cube-probabilities"><summary>${D.RARITIES[grade]} 옵션별 실제 등장 확률</summary><p class="note">공식 표에서 이 게임에 없는 효과를 제외하고, 각 옵션 등급 안에서 확률을 재분배했습니다. 아래 확률은 이 게임의 실제 추첨 확률입니다.${table.level!==item.level?` 이 부위의 Lv.${item.level} 공식 표가 없어 가장 가까운 Lv.${table.level} 표를 적용합니다.`:''}</p>${table.rows.map((pool,i)=>`<details><summary>${i+1}번째 줄${c.prime&&i===0?' · 기존 옵션 고정':''}</summary>${c.prime&&i===0?'첫 줄은 다시 추첨하지 않습니다.':`<table><thead><tr><th>등급 · 옵션</th><th>확률</th></tr></thead><tbody>${['current','lower'].flatMap(group=>(pool[group]||[]).map(r=>`<tr><td>${D.RARITIES[grade-(group==='lower'?1:0)]} · ${optionLabel(r)}</td><td>${pct(r.weight*(group==='current'?rates[i]:1-rates[i]))}</td></tr>`)).join('')}</tbody></table>`}</details>`).join('')}<p class="note">기존과 세부 옵션이 모두 같으면 전체를 다시 추첨합니다. 표는 이 재추첨 조건 적용 전 확률입니다.</p><a href="https://maplestory.nexon.com/Guide/OtherProbability/cube/${c.table}" target="_blank" rel="noopener">메이플 공식 원본 확률표</a></details>`;
+ grade=c.prime?Math.max(3,grade):grade;
+ const pool=D.cubeTable(kind,item,grade).rows[0].current;
+ return `<details class="cube-probabilities"><summary>${D.RARITIES[grade]} · 3줄 공통 옵션 확률</summary><p class="note">장비 레벨·직업·부위·큐브 종류와 관계없이 같은 등급은 동일한 표를 사용합니다. 세 줄 모두 ${D.RARITIES[grade]} 옵션만 나옵니다. 아래는 각 줄의 생성 확률입니다.</p><div class="scroll"><table><thead><tr><th>옵션</th><th>줄당 확률</th></tr></thead><tbody>${pool.map(r=>`<tr><td>${optionLabel(r)}</td><td>${pct(r.weight)}</td></tr>`).join('')}</tbody></table></div><p class="note">3줄은 독립 추첨하며 같은 옵션 중복이 가능합니다. 현재 3줄과 등급·수치·옵션이 전부 같으면 다시 추첨하므로 최종 결과는 이 조건을 반영합니다.</p></details>`;
 }
 export function renderCubePanel(it,state,kind,lastResult,protectedReason=''){
  const opened=it.lines.length>0,c=D.CUBES[kind]||D.CUBES.cube,key=kind,cost=D.cubeCost(kind,it);
  if(!opened)return `${potentialPanel(it)}<div class="cube-card"><img class="cube-item-art" src="${currencyIconURL('scroll')}" alt="잠재 해금 주문서"><span><strong>잠재 해금 주문서</strong><small>1개로 잠긴 3줄을 모두 해금 · 성공 100%</small><b>보유 ${fmt(state.materials.scroll)}개</b></span></div><p class="note">협동 균열의 개인 상자에서 획득합니다. 해금 시 레어 잠재 3줄이 부여됩니다.</p>${button('잠재 3줄 해금','potentialUnlock',it.id,!!protectedReason||!(state.materials.scroll>0))}<p class="enhance-help">${protectedReason||(!(state.materials.scroll>0)?'잠재 해금 주문서가 필요합니다.':'')}</p>`;
- const invalid=opened&&(it.grade>c.maxGrade||c.prime&&(it.lines.length<2));
- const blocked=protectedReason||(invalid?(c.prime?'잠재가 개방된 2줄 이상 장비가 필요합니다.':'이 큐브로 재설정할 수 없는 등급입니다.'):(state.materials[key]||0)<1?'재료가 부족합니다.':state.gold<cost?'골드가 부족합니다.':'');
+ const invalid=opened&&(it.grade>c.maxGrade||c.prime&&(it.lines.length!==3));
+ const blocked=protectedReason||(invalid?(c.prime?'잠재 3줄이 개방된 장비가 필요합니다.':'이 큐브로 재설정할 수 없는 등급입니다.'):(state.materials[key]||0)<1?'재료가 부족합니다.':state.gold<cost?'골드가 부족합니다.':'');
  const limit=c.pity[it.grade],failures=state.cubePity?.[kind+':'+it.grade]||0;
  return `<div class="enhance-intro"><span>POTENTIAL</span><small>장비 등급 · 옵션 재설정</small></div>${lastResult?.id===it.id?`<div class="enhance-result success" role="status"><strong>${lastResult.up?'등급 상승 결과를 확인하세요':'잠재능력을 재설정했습니다'}</strong></div>`:''}${potentialPanel(it)}
- ${opened?`<div class="cube-picker maple-cube-picker" role="group" aria-label="사용할 큐브 선택">${Object.entries(D.CUBES).map(([k,r])=>`<button class="cube-card ${kind===k?'selected':''}" data-action="cubeKind" data-arg="${k}" aria-pressed="${kind===k}"><img class="cube-item-art" src="${currencyIconURL(k)}" alt=""><span><strong>${r.name}</strong><small>${r.prime?'최소 에픽 · 첫 줄 고정':r.choose?'이전 / 이후 선택':'새 옵션 즉시 적용'}</small><b>보유 ${fmt(state.materials[k])}개</b></span></button>`).join('')}</div>
+ ${opened?`<div class="cube-picker maple-cube-picker" role="group" aria-label="사용할 큐브 선택">${Object.entries(D.CUBES).map(([k,r])=>`<button class="cube-card ${kind===k?'selected':''}" data-action="cubeKind" data-arg="${k}" aria-pressed="${kind===k}"><img class="cube-item-art" src="${currencyIconURL(k)}" alt=""><span><strong>${r.name}</strong><small>${r.prime?'최소 에픽 · 3줄 전체 재설정':r.choose?'이전 / 이후 선택':'새 옵션 즉시 적용'}</small><b>보유 ${fmt(state.materials[k])}개</b></span></button>`).join('')}</div>
  <p class="cube-chance">장비 전체 등급: <b>${D.RARITIES[it.grade]}</b><br>${invalid?'사용 등급 제한':it.grade===c.maxGrade?'등급 유지':`${D.RARITIES[it.grade]} → ${D.RARITIES[it.grade+1]} <b>${pct(c.up[it.grade])}</b>`}${limit?`<br>등급 상승 연속 실패 ${failures} / ${limit} · ${failures>=limit?'다음 사용은 등급 상승 확정':limit-failures+'회 더 실패하면 다음 사용은 확정'}`:''}</p>
- ${!invalid?`<p class="note">현재 등급 옵션: ${D.cubeLineRates(kind,it.grade).map((r,i)=>`${i+1}줄 ${pct(r)}`).join(' · ')}<br>나머지는 한 단계 낮은 등급의 옵션입니다.</p>`:''}`:'<p class="note">새 장비의 잠재 3줄은 주문서로 해금합니다.</p>'}
+ ${!invalid?`<p class="note">승급 후 장비 등급과 3줄 옵션 등급이 모두 같습니다. 낮은 등급 옵션은 나오지 않습니다.<br>모든 레벨·직업·부위에 동일한 옵션·수치·확률 적용.</p>`:''}`:'<p class="note">새 장비의 잠재 3줄은 주문서로 해금합니다.</p>'}
  <p class="enhance-wallet">${D.MATERIALS[key]} ${fmt(state.materials[key])}개 · 필요 1개${cost?' + '+fmt(cost)+' G':''}</p>
  ${button(c.name+' 사용하기','cubeUse',it.id,!!blocked)}
- <p class="enhance-help">${blocked||(opened?(c.choose?'이전/이후 중 등급과 옵션을 함께 선택합니다.':c.prime?'첫 줄은 보존되고 나머지 결과는 즉시 적용됩니다.':'새 결과가 즉시 적용됩니다. 이전 옵션으로 되돌릴 수 없습니다.'):'')}</p>
- ${opened&&!invalid?cubeOdds(kind,it)+((it.grade<c.maxGrade&&!c.prime)?cubeOdds(kind,it,it.grade+1):''):''}
+ <p class="enhance-help">${blocked||(opened?(c.choose?'이전/이후 중 등급과 옵션을 함께 선택합니다.':c.prime?'최소 에픽, 레전더리까지 승급 가능. 3줄 전체 결과가 즉시 적용됩니다.':'새 결과가 즉시 적용됩니다. 이전 옵션으로 되돌릴 수 없습니다.'):'')}</p>
+ ${opened&&!invalid?cubeOdds(kind,it)+((it.grade<c.maxGrade&&!(c.prime&&it.grade<3))?cubeOdds(kind,it,it.grade+1):''):''}
 `;
 }
 export function cubeGuide(){
- return `<div class="panel pad"><h3>잠재능력 · 큐브 3종</h3><p>레어 → 에픽 → 유니크 → 레전더리. 장비 전체 등급은 한 번에 한 단계씩 상승합니다. 옵션의 줄별 등급은 매번 새로 추첨합니다.</p><p>현재 게임에 있는 효과만 사용하며 부위·레벨·큐브별 공식 표에서 제외된 효과의 확률을 재분배합니다. 옵션 수치는 공식 표의 고정값입니다. 장비의 큐브 화면에서 실제 확률을 확인하세요.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.entries(D.CUBES).map(([k,c])=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${c.prime?(g===2?'100%':'—'):g<c.maxGrade?pct(c.up[g]):'—'}</td>`).join('')}</tr>`).join('')}</table><p>레드: 전체 재설정 · 블랙: 이전/이후 선택 · 프라임: 결과 등급 최소 에픽 · 첫 줄 고정. 단종 큐브는 레드·블랙으로 자동 전환됩니다. 기존 잠재 옵션은 재설정 전까지 보존됩니다. 새 장비는 잠재 3줄이 잠겨 있으며 잠재 해금 주문서 1개로 모두 해금합니다. 기존 장비의 개방된 잠재는 보존됩니다.</p></div>`;
+ return `<div class="panel pad"><h3>잠재능력 · 큐브 3종</h3><p>장비 잠재 등급과 세 줄의 옵션 등급이 항상 같습니다. 레어면 세 줄 레어, 에픽이면 세 줄 에픽, 유니크면 세 줄 유니크, 레전더리면 세 줄 레전더리입니다.</p><p>모든 장비의 레벨·직업·부위와 관계없이 동일한 옵션 종류·수치·확률을 사용합니다. 같은 옵션이 세 줄 모두 나올 수 있습니다. 레전더리 STR +12% 세 줄도 가능합니다.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.values(D.CUBES).map(c=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${pct(c.up[g])}</td>`).join('')}</tr>`).join('')}</table><p>레드: 3줄 즉시 적용 · 블랙: 이전/이후 선택 · 프라임: 최소 에픽, 레전더리까지 승급, 첫 줄 고정 없이 3줄 즉시 적용. 사용당 큐브 1개, 추가 골드 없음.</p><p>기존 잠재 옵션은 큐브를 쓰기 전까지 유지됩니다. 새 장비는 잠재 해금 주문서 1개로 3줄을 개방합니다. 해금 결과는 세 줄 모두 레어입니다.</p></div>`;
 }
-

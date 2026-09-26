@@ -1,8 +1,8 @@
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=field-melee-1';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=field-melee-1';
-import {incomingDamage} from './journey-balance.mjs?v=field-melee-1';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=cube-uniform-1';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=cube-uniform-1';
+import {incomingDamage} from './journey-balance.mjs?v=cube-uniform-1';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=field-melee-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=cube-uniform-1';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

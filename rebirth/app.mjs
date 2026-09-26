@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=field-melee-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=field-melee-1';
-import {incomingDamage} from './journey-balance.mjs?v=field-melee-1';
-import {installMenuIcons} from './menu-icons.mjs?v=field-melee-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=field-melee-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=field-melee-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=field-melee-1';
-import * as D from "./data.mjs?v=field-melee-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-melee-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=field-melee-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=field-melee-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=field-melee-1";
+import {GameAudio} from './game-audio.mjs?v=cube-uniform-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=cube-uniform-1';
+import {incomingDamage} from './journey-balance.mjs?v=cube-uniform-1';
+import {installMenuIcons} from './menu-icons.mjs?v=cube-uniform-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube-uniform-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=cube-uniform-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=cube-uniform-1';
+import * as D from "./data.mjs?v=cube-uniform-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=cube-uniform-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=cube-uniform-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=cube-uniform-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-uniform-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -120,7 +120,7 @@ const errors = {
   TRADE_LEVEL_REQUIRED: "거래소 구매·등록은 20레벨부터 이용할 수 있습니다.",
   SAVE_CONFLICT: "상태가 변경됐어요. 다시 시도해 주세요.",
   PRIME_LEGENDARY_REQUIRED: "프라임 큐브 사용 조건을 충족하지 않습니다.",
-  PRIME_EPIC_REQUIRED: "프라임 큐브에는 잠재가 개방된 2줄 이상 장비가 필요합니다.",
+  PRIME_EPIC_REQUIRED: "프라임 큐브에는 잠재 3줄이 개방된 장비가 필요합니다.",
   SERVER_RETRY_REQUIRED: "연결을 확인하고 같은 요청을 다시 시도해 주세요.",
   LISTING_UNAVAILABLE: "이미 거래됐거나 만료된 매물입니다.",
   BATTLE_IN_PROGRESS: "보스전이 끝난 뒤 이용해 주세요.",
