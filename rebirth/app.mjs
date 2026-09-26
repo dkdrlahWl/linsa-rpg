@@ -117,7 +117,7 @@ const errors = {
   DUNGEON_LIMIT: "오늘 보상을 이미 받았습니다.",
   ITEM_CUBE_PENDING: "먼저 블랙 큐브 결과를 선택해 주세요.",
   INVENTORY_FULL: "가방이 가득 찼습니다. 장비를 정리해 주세요.",
-  TRADE_LEVEL_REQUIRED: "거래소 구매·등록은 20레벨부터 이용할 수 있습니다.",
+  TRADE_LEVEL_REQUIRED: "거래소 구매·등록은 5레벨부터 이용할 수 있습니다.",
   SAVE_CONFLICT: "상태가 변경됐어요. 다시 시도해 주세요.",
   PRIME_LEGENDARY_REQUIRED: "프라임 큐브 사용 조건을 충족하지 않습니다.",
   PRIME_EPIC_REQUIRED: "프라임 큐브에는 잠재 3줄이 개방된 장비가 필요합니다.",
@@ -634,7 +634,7 @@ function marketGearDetails(it) {
   return `<div class="item">${itemMarkup(it)}</div>${gearStatsMarkup(it)}${gearRollDetails(it)}<div class="market-picked-options"><h4>잠재능력</h4>${it.lines.length?it.lines.map(l=>`<div class="grade-color-${l.grade}"><small>${D.RARITIES[l.grade]}</small><span>${D.OPTIONS[l.key]}</span><b>+${l.value}${D.optionUnit(l.key)}</b></div>`).join(""):'<p class="note">잠재 미개방</p>'}</div>`;
 }
 function market() {
-  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div><div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(20)}부터 · 판매 수수료 5% · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
+  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div><div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(5)}부터 · 판매 수수료 5% · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
     marketRows
       .slice(0, 20)
       .map(marketTile)
@@ -878,7 +878,7 @@ function marketItemBlock(it) {
   return "";
 }
 function marketSellBlock(it) {
-  return marketItemBlock(it)||(state.level<20?"거래소는 Lv.20부터 이용할 수 있습니다.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 등록할 수 있습니다.":"");
+  return marketItemBlock(it)||(state.level<5?"거래소는 Lv.5부터 이용할 수 있습니다.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 등록할 수 있습니다.":"");
 }
 function updateSellPrice() {
   const input=$("#sell-price");if(!input)return;

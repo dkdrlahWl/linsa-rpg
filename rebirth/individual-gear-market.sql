@@ -19,7 +19,7 @@ begin
  if found then if old.fingerprint<>fingerprint then raise exception 'REQUEST_ID_REUSED'; end if;return old.result;end if;
  select * into p from rebirth_private.players where id=u for update;
  if p.state is null then raise exception 'CHARACTER_REQUIRED'; end if;
- if (p.state->>'level')::integer<20 and p_action<>'cancel' then raise exception 'TRADE_LEVEL_REQUIRED'; end if;
+ if (p.state->>'level')::integer<5 and p_action<>'cancel' then raise exception 'TRADE_LEVEL_REQUIRED'; end if;
  if p.state->'battle'<>'null'::jsonb or (nullif(p.state->>'partyRoom','') is not null or nullif(p.state->>'coopRoom','') is not null) then raise exception 'BATTLE_IN_PROGRESS'; end if;
  if p_action='sell' then
   if p_args->>'material' is not null then
