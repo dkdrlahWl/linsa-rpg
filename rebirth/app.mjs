@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=enemy-interval-1';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=enemy-interval-1';
-import {incomingDamage} from './journey-balance.mjs?v=enemy-interval-1';
-import {installMenuIcons} from './menu-icons.mjs?v=enemy-interval-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=enemy-interval-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=enemy-interval-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=enemy-interval-1';
-import * as D from "./data.mjs?v=enemy-interval-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=enemy-interval-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=enemy-interval-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=enemy-interval-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=enemy-interval-1";
+import {GameAudio} from './game-audio.mjs?v=wave-meadow-1';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-meadow-1';
+import {incomingDamage} from './journey-balance.mjs?v=wave-meadow-1';
+import {installMenuIcons} from './menu-icons.mjs?v=wave-meadow-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=wave-meadow-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=wave-meadow-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-meadow-1';
+import * as D from "./data.mjs?v=wave-meadow-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=wave-meadow-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=wave-meadow-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=wave-meadow-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-meadow-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -552,7 +552,8 @@ function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 
 
 function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨. 전용 보스를 직접 처치하면 즉시 전직합니다.</p><p class="note">120초 제한 · 완료한 전직 보스도 연습 가능 · 연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (4회 누적 46.41%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'연습 입장':locked?'레벨·이전 전직 필요':'전직 보스 도전','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
 function bosses() {
-  const menu=`<div class="subnav">${[["daily","일일"],["weekly","주간"],["coop","협동 균열"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  const menu=`<div class="subnav">${[["daily","일일"],["weekly","주간"],["coop","협동 균열"],["wave","협동 웨이브"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  if(bossTab==="wave")return menu+coopLobby(state,coopRoom,coopRooms,"wave");
   if(bossTab==="coop")return menu+coopLobby(state,coopRoom,coopRooms);
   if(bossTab==="tower")return menu+towerLobby(state);
   if(bossTab==="advancement")return menu+advancementLobby();
@@ -717,7 +718,7 @@ function showEvents(events) {
       open("최적 장착 완료",`<div class="auto-equip-result"><span>${e.changed.length?e.changed.length+"개 부위 교체":"현재 장비 유지"}</span><div><b>${fmt(e.before)}</b><i>→</i><strong>${fmt(e.after)}</strong></div><p>전투력 +${fmt(e.after-e.before)}</p></div><p class="note">${e.changed.length?e.changed.map(slot=>D.SLOTS[slot]).join(" · ")+" 장비를 교체했습니다.":"이번 비교에서 더 높은 전투력 조합을 찾지 못해 현재 장비를 유지했습니다."}</p>`);
     }
     if(e.type==="daily")toast(e.name+" 보상을 받았습니다.");
-    if(e.type==="coop"){tab="boss";bossTab="coop";view="game";render();reward();continue;}
+    if(e.type==="coop"){tab="boss";bossTab=e.mode==="wave"?"wave":"coop";view="game";render();reward();continue;}
     if(e.type==="exchangeGear")open("장비 교환 완료",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
     if(e.type==="salvage")open("장비 분해 완료",`<p>장비 ${e.count}개를 분해했습니다.</p><p class="salvage-reward"><strong>장비 파편 ${fmt(e.fragments)}개 획득</strong></p><p class="note">현재 보유 ${fmt(state.materials.fragment)}개</p>${btn("확인","close","","gold")}`);
@@ -756,6 +757,7 @@ function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.s
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G<br>큐브 '+r.cube+(r.highCube?' · 블랙 큐브 '+r.highCube:''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;
+  if(r?.type==='coop'&&r.mode==='wave')return open('협동 웨이브 종료','<h3>'+fmt(r.wave)+'웨이브 도달 · '+fmt(r.cleared)+'웨이브 생존</h3><p>처치 '+fmt(r.kills)+'마리 · '+(r.reason==='overrun'?'몬스터 50마리 누적':r.reason==='leave'?'도전 종료':'전원 사망')+'</p><p>'+fmt(r.gold)+' G · 레드 큐브 '+fmt(r.cube)+'개 · 잠재 해금 주문서 '+fmt(r.scroll)+'개</p><p>재도전은 항상 1웨이브부터 시작합니다.</p>'+btn('확인','ack','','gold',true));
   if(r?.type==='coop')return open(r.won?'개인 상자 획득':'균열 도전 종료','<p>'+(r.won?fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join(''):'장비를 정비하고 다시 도전해 보세요.')+'</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · 잠재 3줄 잠금 (가방이 가득 차면 보관함)</p>').join('')+btn('확인','ack','','gold',true));
   if(r?.type==='advancementTrial')return advancementResult(r);
   if(r?.type==='tower')return towerReward(r);
@@ -929,10 +931,11 @@ document.addEventListener("click", async (e) => {
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
     if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
     if(action==="battlePotion")return await command("battlePotion");
+    if(action==="waveCreate")return await command("coopCreate",{tier:0,mode:"wave"});
     if(action==="coopCreate")return await command("coopCreate",{tier:Number(arg)});
     if(action==="coopJoin")return await command("coopJoin",{room:arg});
     if(["coopStart","coopSync","coopList","coopLeave"].includes(action)){modal.close();return await command(action);}
-    if(action==="coopLeaveConfirm")return open("균열에서 나가기",'<p>진행 중인 도전에서 나가면 보상을 받을 수 없습니다.</p>'+btn("나가기","coopLeave","","danger",true));
+    if(action==="coopLeaveConfirm")return open(coopRoom?.mode==="wave"?"웨이브에서 나가기":"균열에서 나가기",'<p>'+(coopRoom?.mode==="wave"?"완료한 웨이브의 누적 보상을 받고 나갑니다. 다시 도전하면 1웨이브부터 시작합니다.":"진행 중인 도전에서 나가면 보상을 받을 수 없습니다.")+'</p>'+btn("나가기","coopLeave","","danger",true));
     if(action==='itemGroup')return itemGroup(arg);
     if(action==='towerOpen')return await command('towerOpen',{runId:state.battle?.runId});
     if(action==='towerStart'){modal.close();tab='boss';bossTab='tower';view='game';return await command('towerStart',{floor:Number(arg)});}
@@ -965,7 +968,7 @@ document.addEventListener("click", async (e) => {
       if (tab === "market") await marketLoad();
       return;
     }
-    if (action === "bossSub") {bossTab=arg;render();if(arg==="coop")await command("coopList",{},true);return;}
+    if (action === "bossSub") {bossTab=arg;render();if(["coop","wave"].includes(arg))await command("coopList",{},true);return;}
     if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
     if (action === "advance") {tab="boss";bossTab="advancement";view="game";return render();}

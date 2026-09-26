@@ -1,7 +1,9 @@
-import {damageRows} from './damage-stack.mjs?v=enemy-interval-1';
-import {drawFourth} from './fourth-effects.mjs?v=enemy-interval-1';
-import MOTION_LAYOUT from './motion-layout.mjs?v=enemy-interval-1';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=enemy-interval-1';
+import {drawWaveCreature} from './wave-motion.mjs?v=wave-meadow-1';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-meadow-1';
+import {damageRows} from './damage-stack.mjs?v=wave-meadow-1';
+import {drawFourth} from './fourth-effects.mjs?v=wave-meadow-1';
+import MOTION_LAYOUT from './motion-layout.mjs?v=wave-meadow-1';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=wave-meadow-1';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -103,6 +105,27 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=clamp(alpha);
     g.drawImage(im,frame%2*sw,Math.floor(frame/2)*sh,sw,sh,-w/2,-h/2,w,h);g.restore();
   }
+  meadow(){
+    if(!this.meadowCanvas){
+      const c=document.createElement('canvas');c.width=3200;c.height=3200;const g=c.getContext('2d');
+      g.fillStyle='#547a40';g.fillRect(0,0,3200,3200);let seed=71023;const rand=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+      for(let i=0;i<1400;i++){const x=rand()*3200,y=rand()*3200,r=20+rand()*90;g.fillStyle=['#77915318','#385b351a','#a2ab5920'][i%3];g.beginPath();g.ellipse(x,y,r,r*.6,rand(),0,Math.PI*2);g.fill();}
+      for(let i=0;i<13000;i++){const x=rand()*3200,y=rand()*3200;g.strokeStyle=['#9bb56b60','#314f3960','#c2c98248'][i%3];g.lineWidth=1+rand();g.beginPath();g.moveTo(x,y);g.lineTo(x+rand()*7-3,y-3-rand()*9);g.stroke();}
+      for(let i=0;i<190;i++){const x=rand()*3200,y=rand()*3200;g.fillStyle=i%3?'#e6d7a1aa':'#a9b9e3aa';g.beginPath();g.arc(x,y,2+rand()*2,0,7);g.fill();}
+      g.strokeStyle='#bacd8190';g.lineWidth=9;g.strokeRect(105,105,2990,2990);g.setLineDash([18,28]);g.lineWidth=3;g.strokeStyle='#e3edbb80';g.strokeRect(130,130,2940,2940);g.setLineDash([]);
+      this.meadowCanvas=c;
+    }this.g.drawImage(this.meadowCanvas,0,0);
+  }
+  waveMonster(e,time){
+    const g=this.g,size=e.elite?150:105,bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
+    this.shadow(e.x,e.y,e.elite?43:29);
+    if(e.elite){g.save();g.strokeStyle='#ffd880';g.lineWidth=3;g.beginPath();g.ellipse(e.x,e.y,58,24,0,0,7);g.stroke();g.restore();}
+    drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);
+    g.save();g.fillStyle='#18221be6';g.fillRect(e.x-35,e.y-size-9,70,5);g.fillStyle=e.elite?'#ffcf6a':'#de7065';g.fillRect(e.x-35,e.y-size-9,70*e.hp/e.maxHp,5);if(e.elite){g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#fff0ac';g.fillText('정예',e.x,e.y-size-16);}g.restore();
+  }
+  grave(m){
+    const g=this.g;g.save();g.translate(m.x,m.y);this.shadow(0,0,32);g.fillStyle='#73878b';g.strokeStyle='#d2ded3';g.lineWidth=3;g.beginPath();g.roundRect(-27,-68,54,68,[22,22,3,3]);g.fill();g.stroke();g.strokeStyle='#283b40';g.lineWidth=5;g.beginPath();g.moveTo(0,-53);g.lineTo(0,-18);g.moveTo(-12,-40);g.lineTo(12,-40);g.stroke();g.font='bold 21px sans-serif';g.textAlign='center';g.lineWidth=4;g.strokeStyle='#142b21';g.fillStyle='#fff2d2';g.strokeText(m.name,0,-83);g.fillText(m.name,0,-83);g.beginPath();g.arc(0,-30,55,-Math.PI/2,-Math.PI/2+Math.PI*2*(m.reviveProgress||0)/50);g.strokeStyle='#92f3bc';g.lineWidth=6;g.stroke();g.restore();
+  }
   background(){
     const bg=image(motionAsset('arena-overhead-v3'));
     if(!this.backdrop&&bg.complete&&bg.naturalWidth){
@@ -188,7 +211,7 @@ export class TowerRenderer {
     this.shake*=Math.exp(-dt/90);this.flash*=Math.exp(-dt/85);this.zoom*=Math.exp(-dt/110);
     const jx=(Math.random()-.5)*this.shake,jy=(Math.random()-.5)*this.shake;
     g.save();g.translate(500+jx,height/2+jy);g.scale(scale*(1+this.zoom),scale*(1+this.zoom));
-    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);this.background();
+    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.waveMode)this.meadow();else this.background();
     for(const hazard of b.hazards)this.hazard(hazard,time);
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
@@ -202,7 +225,7 @@ export class TowerRenderer {
     if(moving&&!dashing&&now-this.lastStep>120){this.lastStep=now;this.steps.push({x:player.x,y:player.y+3,at:now});}
     this.steps=this.steps.filter(step=>now-step.at<420).slice(-8);
     for(const step of this.steps){g.save();g.globalAlpha=(1-(now-step.at)/420)*.27;g.fillStyle='#ecce9b';g.beginPath();g.ellipse(step.x,step.y,12,5,0,0,Math.PI*2);g.fill();g.restore();}
-    this.shadow(enemy.x,enemy.y-4,66);this.shadow(player.x,player.y,25);
+    if(!b.waveMode)this.shadow(enemy.x,enemy.y-4,66);this.shadow(player.x,player.y,25);
     // A small, constant marker makes the player easy to track during effects.
     g.save();g.beginPath();g.ellipse(player.x,player.y,26,10,0,0,Math.PI*2);g.fillStyle='#78ffe81d';g.fill();g.lineWidth=2;g.strokeStyle='#a5ffdf99';g.stroke();g.restore();
     if((input[2]&1)&&Math.hypot(player.x-b.enemy.x,player.y-b.enemy.y)>c.range){
@@ -212,6 +235,7 @@ export class TowerRenderer {
     this.trail=this.trail.filter(p=>now-p.at<180).slice(-6);
     for(const p of this.trail)this.sprite(...directional('hero-'+b.classId,p.dir),p.x,p.y,92,92,1,0,.23*(1-(now-p.at)/180));
     const drawPlayer=()=>{
+      if(b.waveMode&&b.hp<=0)return;
       const lunge=attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0;
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
@@ -219,6 +243,7 @@ export class TowerRenderer {
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
     const drawBoss=()=>{
+      if(b.waveMode)return;
       if(b.chest){const x=b.chest.x,y=b.chest.y,opening=b.chest.openAt!==undefined,frame=opening?Math.min(3,Math.floor((now-b.chest.openAt)/160)):0;this.shadow(x,y,62);const im=image(asset('reward-chest'));if(im.complete&&im.naturalWidth){const sw=im.width/4;g.save();g.shadowColor='#f9d47d';g.shadowBlur=12;g.drawImage(im,frame*sw,0,sw,im.height,x-110,y-170,220,190);g.restore();}g.save();g.fillStyle='#fff2c0';g.font='bold 22px sans-serif';g.textAlign='center';g.fillText(opening?'상자 여는 중…':'가까이서 공격해 열기',x,y-185);g.restore();return;}
 
       const windup=b.tick<b.enemyCastUntil,frame=windup?1:b.tick<b.enemyAttackUntil?2:0;
@@ -234,7 +259,7 @@ export class TowerRenderer {
       this.shadow(m.x,m.y,25);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,m.y-150);g.fillStyle='#25312d';g.fillRect(m.x-40,m.y-139,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,m.y-139,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
-    }}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
+    }})),...(b.monsters||[]).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
     for(const q of b.projectiles){
       if(b.tick<q.at)continue;
       const old=previous.projectiles.find(p=>p.id===q.id)||{x:q.x-q.dx,y:q.y-q.dy};
@@ -267,7 +292,7 @@ export class TowerRenderer {
       const row=rows.indexOf(n);
       g.save();g.globalAlpha=fade;g.font=`900 ${row>=0?rowFont:43}px system-ui`;g.textAlign='center';g.lineWidth=7;g.strokeStyle='#071017';
       g.fillStyle=incoming?'#ff9994':n.kind==='heal'?'#8cffbb':n.kind==='critical'?'#ffe092':'#fff';
-      const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=row>=0?stackTop+row*rowHeight:n.y-age*8,x=row>=0?b.enemy.x:n.x;
+      const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=row>=0&&!b.waveMode?stackTop+row*rowHeight:n.y-age*6,x=row>=0&&!b.waveMode?b.enemy.x:n.x;
       g.shadowColor=n.kind==='critical'?'#ffae34':incoming?'#f74c4c':'#ffffff';g.shadowBlur=12;
       g.strokeText(value,x,y);g.fillText(value,x,y);g.restore();
     }

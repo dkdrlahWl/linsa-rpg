@@ -1,0 +1,422 @@
+[
+  {
+    "index": 0,
+    "elite": false,
+    "name": "씨앗 톡톡이",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A tiny green seed-sprout creature with two broad leaf ears, a rounded acorn body, root feet and lively dark eyes.",
+    "file": "normal-01.webp"
+  },
+  {
+    "index": 0,
+    "elite": true,
+    "name": "뿌리갑옷 파수꾼",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A stout ancient living root guardian with a bark shield and branching antlers, moss shoulders, amber eyes.",
+    "file": "elite-01.webp"
+  },
+  {
+    "index": 1,
+    "elite": false,
+    "name": "붉은갓 버섯",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A lively walking scarlet toadstool creature with cream spots, stubby stalk legs and an impish face.",
+    "file": "normal-02.webp"
+  },
+  {
+    "index": 1,
+    "elite": true,
+    "name": "포자왕",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A formidable fungal monarch with three layered purple mushroom caps, spore lanterns and thick vine arms.",
+    "file": "elite-02.webp"
+  },
+  {
+    "index": 2,
+    "elite": false,
+    "name": "청동 딱정벌레",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A jade and bronze rhinoceros beetle monster with six short legs and a compact horn.",
+    "file": "normal-03.webp"
+  },
+  {
+    "index": 2,
+    "elite": true,
+    "name": "거대 철갑충",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A massive iron plated stag beetle guardian with ornate metallic mandibles and glowing orange abdomen.",
+    "file": "elite-03.webp"
+  },
+  {
+    "index": 3,
+    "elite": false,
+    "name": "바람 여우",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small wind-touched russet fox with pale turquoise wisps along its tail.",
+    "file": "normal-04.webp"
+  },
+  {
+    "index": 3,
+    "elite": true,
+    "name": "질풍 구미호",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A majestic silver fox spirit with three long wind-swept tails and emerald markings, no humanoid form.",
+    "file": "elite-04.webp"
+  },
+  {
+    "index": 4,
+    "elite": false,
+    "name": "가시 멧돼지",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A low wild boar with mossy brown fur and bramble spines.",
+    "file": "normal-05.webp"
+  },
+  {
+    "index": 4,
+    "elite": true,
+    "name": "뿔바위 돌격수",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A hulking stone-armored boar with two enormous curved tusks and mineral plated shoulders.",
+    "file": "elite-05.webp"
+  },
+  {
+    "index": 5,
+    "elite": false,
+    "name": "연못 두꺼비",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A moss-green pond toad monster with golden eyes and a water lily leaf on its back.",
+    "file": "normal-06.webp"
+  },
+  {
+    "index": 5,
+    "elite": true,
+    "name": "독안개 대왕두꺼비",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A broad deep-purple swamp toad with luminous poison sacs, a fern crown and heavy webbed limbs.",
+    "file": "elite-06.webp"
+  },
+  {
+    "index": 6,
+    "elite": false,
+    "name": "서리 늑대",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A compact icy-blue wolf with frosted fur and bright white paws.",
+    "file": "normal-07.webp"
+  },
+  {
+    "index": 6,
+    "elite": true,
+    "name": "빙갑 늑대군주",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A huge midnight-blue wolf clad in jagged translucent ice armor with a frost mane.",
+    "file": "elite-07.webp"
+  },
+  {
+    "index": 7,
+    "elite": false,
+    "name": "촛불 정령",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small amber candle-flame spirit contained in a broken floating clay lantern.",
+    "file": "normal-08.webp"
+  },
+  {
+    "index": 7,
+    "elite": true,
+    "name": "태양 화로령",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A floating ornate brass brazier elemental with a large white-hot flame face and orbiting ember stones.",
+    "file": "elite-08.webp"
+  },
+  {
+    "index": 8,
+    "elite": false,
+    "name": "수정 집게",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A violet crystal crab with two small amethyst claws and stony legs.",
+    "file": "normal-09.webp"
+  },
+  {
+    "index": 8,
+    "elite": true,
+    "name": "보석 갑각왕",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: An enormous asymmetric geode crab with one giant citrine claw and a deep blue crystal shell.",
+    "file": "elite-09.webp"
+  },
+  {
+    "index": 9,
+    "elite": false,
+    "name": "조약돌 골렘",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A squat animated pebble golem with a little grass tuft and glowing turquoise cracks.",
+    "file": "normal-10.webp"
+  },
+  {
+    "index": 9,
+    "elite": true,
+    "name": "산맥 수호석",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A towering but squat obsidian stone guardian with broad column arms, gold runes and a mossy carved face.",
+    "file": "elite-10.webp"
+  },
+  {
+    "index": 10,
+    "elite": false,
+    "name": "황혼 박쥐",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A round midnight-purple bat monster with orange eyes and short spread wings.",
+    "file": "normal-11.webp"
+  },
+  {
+    "index": 10,
+    "elite": true,
+    "name": "월식 날개군주",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: An imposing armored giant bat with crescent-shaped silver horns and purple-black membranes, compact wings.",
+    "file": "elite-11.webp"
+  },
+  {
+    "index": 11,
+    "elite": false,
+    "name": "번개 뱀",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A curled electric-yellow viper with small blue fins and lightning-shaped markings.",
+    "file": "normal-12.webp"
+  },
+  {
+    "index": 11,
+    "elite": true,
+    "name": "폭풍 코브라",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A large azure cobra with an elaborate storm-cloud hood, bronze horns and crackling white eyes.",
+    "file": "elite-12.webp"
+  },
+  {
+    "index": 12,
+    "elite": false,
+    "name": "붉은발 랩터",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small scarlet feathered raptor with strong legs and a short hooked beak.",
+    "file": "normal-13.webp"
+  },
+  {
+    "index": 12,
+    "elite": true,
+    "name": "태고의 포식자",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A heavy armored emerald raptor with a golden feather crest and oversized hooked claws.",
+    "file": "elite-13.webp"
+  },
+  {
+    "index": 13,
+    "elite": false,
+    "name": "망령 병사",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small ghostly hollow suit of rusted armor carrying a short broken sword, teal spectral eyes.",
+    "file": "normal-14.webp"
+  },
+  {
+    "index": 13,
+    "elite": true,
+    "name": "공허 기사장",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: An imposing black armored spectral knight with a violet greatshield, horned helmet and a heavy cleaver.",
+    "file": "elite-14.webp"
+  },
+  {
+    "index": 14,
+    "elite": false,
+    "name": "별빛 해파리",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A floating pale-blue star jellyfish with a rounded bell and short curled tentacles.",
+    "file": "normal-15.webp"
+  },
+  {
+    "index": 14,
+    "elite": true,
+    "name": "성운 해파리왕",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A large celestial jellyfish with an ornate gold-rimmed violet bell, pearl core and layered tendrils.",
+    "file": "elite-15.webp"
+  },
+  {
+    "index": 15,
+    "elite": false,
+    "name": "사막 전갈",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A compact copper desert scorpion with red pincers and a curled tail.",
+    "file": "normal-16.webp"
+  },
+  {
+    "index": 15,
+    "elite": true,
+    "name": "황금 독침군주",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A broad black-and-gold armored emperor scorpion with two large shield-shaped claws and a luminous jade stinger.",
+    "file": "elite-16.webp"
+  },
+  {
+    "index": 16,
+    "elite": false,
+    "name": "불씨 아기용",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A squat orange baby drake with little horns, tucked wings and an ember-tipped tail.",
+    "file": "normal-17.webp"
+  },
+  {
+    "index": 16,
+    "elite": true,
+    "name": "용암 비늘군주",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A massive volcanic drake on four legs with obsidian armor plates, magma cracks and a heavy horned skull.",
+    "file": "elite-17.webp"
+  },
+  {
+    "index": 17,
+    "elite": false,
+    "name": "꿈결 부엉이",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small dusky indigo owl creature with a star-shaped forehead marking and feather tufts.",
+    "file": "normal-18.webp"
+  },
+  {
+    "index": 17,
+    "elite": true,
+    "name": "황혼의 현자조",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A grand ivory owl spirit with elaborate bronze feather armor, turquoise eyes and broad folded wings.",
+    "file": "elite-18.webp"
+  },
+  {
+    "index": 18,
+    "elite": false,
+    "name": "공허 눈알",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A floating crimson single-eyed orb monster with four short black tendrils.",
+    "file": "normal-19.webp"
+  },
+  {
+    "index": 18,
+    "elite": true,
+    "name": "심연 감시자",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A large black-violet many-eyed beholder with gold shell rings, a central emerald eye and six sturdy tendrils.",
+    "file": "elite-19.webp"
+  },
+  {
+    "index": 19,
+    "elite": false,
+    "name": "은빛 키메라",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small silver feline chimera with short ram horns and a jade serpent tail.",
+    "file": "normal-20.webp"
+  },
+  {
+    "index": 19,
+    "elite": true,
+    "name": "천극의 키메라왕",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A regal armored white lion chimera with sweeping gold ram horns, a dark sapphire mane and a dragon tail.",
+    "file": "elite-20.webp"
+  },
+  {
+    "index": 20,
+    "elite": false,
+    "name": "청옥 거북",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small turquoise shelled turtle monster with jade crystal bumps.",
+    "file": "normal-21.webp"
+  },
+  {
+    "index": 20,
+    "elite": true,
+    "name": "해일 등갑장군",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A gigantic deep-blue turtle guardian with a shell shaped like a coral fortress and ivory tusks.",
+    "file": "elite-21.webp"
+  },
+  {
+    "index": 21,
+    "elite": false,
+    "name": "재투성이 임프",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A tiny soot-black imp with ember ears and a coal tail.",
+    "file": "normal-22.webp"
+  },
+  {
+    "index": 21,
+    "elite": true,
+    "name": "흑염 악마대장",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A bulky crimson horned demon with black basalt fists and a fierce molten mane.",
+    "file": "elite-22.webp"
+  },
+  {
+    "index": 22,
+    "elite": false,
+    "name": "유리 사마귀",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A pale mint translucent praying mantis with thin crystalline blade arms.",
+    "file": "normal-23.webp"
+  },
+  {
+    "index": 22,
+    "elite": true,
+    "name": "비취 칼날여왕",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A tall imposing jade mantis queen with layered golden leaf armor and two large curved crystal blades.",
+    "file": "elite-23.webp"
+  },
+  {
+    "index": 23,
+    "elite": false,
+    "name": "달토끼 마수",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A compact lavender horned rabbit with silver ear tips and a star-like fluffy tail.",
+    "file": "normal-24.webp"
+  },
+  {
+    "index": 23,
+    "elite": true,
+    "name": "만월 뿔토끼왕",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A broad white jackalope with ornate golden branching antlers, navy mane and large muscular paws.",
+    "file": "elite-24.webp"
+  },
+  {
+    "index": 24,
+    "elite": false,
+    "name": "도깨비 호박",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small walking carved pumpkin monster with thin vine feet and emerald glowing eyes.",
+    "file": "normal-25.webp"
+  },
+  {
+    "index": 24,
+    "elite": true,
+    "name": "수확의 호박군주",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A huge gnarled pumpkin beast with a crooked tree trunk body, root claws and a glowing amber carved face.",
+    "file": "elite-25.webp"
+  },
+  {
+    "index": 25,
+    "elite": false,
+    "name": "산호 해마",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A floating coral pink seahorse monster with jade fins and a tightly coiled tail.",
+    "file": "normal-26.webp"
+  },
+  {
+    "index": 25,
+    "elite": true,
+    "name": "심해 용기병",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A powerful serpentine deep-sea dragon with dark teal scales, coral armor and gold fin spines.",
+    "file": "elite-26.webp"
+  },
+  {
+    "index": 26,
+    "elite": false,
+    "name": "새벽 그리핀",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small tawny griffin cub with a white eagle head and folded bronze wings.",
+    "file": "normal-27.webp"
+  },
+  {
+    "index": 26,
+    "elite": true,
+    "name": "태양 갈기 그리핀",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: An imposing royal griffin with golden feather armor, a crimson eagle crest and powerful ivory claws.",
+    "file": "elite-27.webp"
+  },
+  {
+    "index": 27,
+    "elite": false,
+    "name": "태엽 병정",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A compact bronze clockwork soldier with a round body, mechanical arms and a sapphire glass core.",
+    "file": "normal-28.webp"
+  },
+  {
+    "index": 27,
+    "elite": true,
+    "name": "거신 태엽파수꾼",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A massive ornate brass automaton with broad shield arms, an exposed glowing blue crystal heart and dark iron joints.",
+    "file": "elite-28.webp"
+  },
+  {
+    "index": 28,
+    "elite": false,
+    "name": "별뿔 사슴",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A small deep-blue stag spirit with pale luminous antlers and white star spots.",
+    "file": "normal-29.webp"
+  },
+  {
+    "index": 28,
+    "elite": true,
+    "name": "천상의 뿔군주",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A majestic armored silver elk with an intricate crown of gold antlers, flowing sapphire mane and glowing cyan hooves.",
+    "file": "elite-29.webp"
+  },
+  {
+    "index": 29,
+    "elite": false,
+    "name": "불꽃 깃새",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A compact crimson phoenix fledgling with orange feather tips and bright cream chest.",
+    "file": "normal-30.webp"
+  },
+  {
+    "index": 29,
+    "elite": true,
+    "name": "종말의 불사조",
+    "prompt": "Use case: stylized-concept. Asset type: individual transparent 2D fantasy RPG enemy sprite. Create ONE original monster, full body entirely visible with generous empty transparent margin on all sides. Polished hand-painted Korean fantasy RPG chibi creature art, crisp detailed silhouette readable at 100 pixels, three-quarter overhead view facing down-right, feet grounded at the same baseline, soft daylight, rich natural colors. Transparent alpha background, no floor, no shadow, no text, no frame, no other subjects, no cropping. Subject: A formidable dark ruby phoenix with gold flame-shaped feathers, white-hot eyes, compact spread wings and a sweeping ember tail.",
+    "file": "elite-30.webp"
+  }
+]
