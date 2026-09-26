@@ -1,6 +1,6 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=field-drop-double-9';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=field-drop-double-9';
-import {incomingDamage} from './journey-balance.mjs?v=field-drop-double-9';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=damage-thirty-10';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=damage-thirty-10';
+import {incomingDamage} from './journey-balance.mjs?v=damage-thirty-10';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

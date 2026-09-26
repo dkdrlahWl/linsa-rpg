@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=field-drop-double-9';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=field-drop-double-9';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=damage-thirty-10';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=damage-thirty-10';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

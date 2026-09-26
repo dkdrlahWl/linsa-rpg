@@ -1,4 +1,4 @@
-import * as D from './data.mjs?v=field-drop-double-9';
+import * as D from './data.mjs?v=damage-thirty-10';
 const bossesFor=level=>D.BOSSES.filter(b=>b.weekly?[b.gearLevel-10,b.gearLevel].includes(level):b.gearLevel===level);
 const option=(value,label)=>'<option value="'+value+'">'+label+'</option>';
 document.querySelector('#class').innerHTML+=D.CLASSES.map(c=>option(c.id,c.name)).join('');

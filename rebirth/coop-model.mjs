@@ -1,10 +1,10 @@
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=field-drop-double-9';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=field-drop-double-9';
-import {beginThird,stepThird} from './advancement.mjs?v=field-drop-double-9';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=field-drop-double-9';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=field-drop-double-9';
-import {incomingDamage} from './journey-balance.mjs?v=field-drop-double-9';
-import {COOP_TIERS} from './rift-rewards.mjs?v=field-drop-double-9';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=damage-thirty-10';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=damage-thirty-10';
+import {beginThird,stepThird} from './advancement.mjs?v=damage-thirty-10';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=damage-thirty-10';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=damage-thirty-10';
+import {incomingDamage} from './journey-balance.mjs?v=damage-thirty-10';
+import {COOP_TIERS} from './rift-rewards.mjs?v=damage-thirty-10';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

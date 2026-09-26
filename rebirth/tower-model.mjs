@@ -1,8 +1,8 @@
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=field-drop-double-9';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=field-drop-double-9';
-import {incomingDamage} from './journey-balance.mjs?v=field-drop-double-9';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=damage-thirty-10';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=damage-thirty-10';
+import {incomingDamage} from './journey-balance.mjs?v=damage-thirty-10';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=field-drop-double-9';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=damage-thirty-10';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
@@ -76,7 +76,7 @@ export function towerStep(b,input){
   if(b.tick<(b.dashUntil||0)){x=b.dashX*3;y=b.dashY*3;}p.x=clamp(p.x+x*TOWER_CLASSES[b.classId].speed,TOWER_BOUNDS.left,TOWER_BOUNDS.right);p.y=clamp(p.y+y*TOWER_CLASSES[b.classId].speed,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);return b;
  }
  if(b.ended)return b;upgradeTowerBattle(b);b.tick++;const f=towerEncounter(b),c=TOWER_CLASSES[b.classId],p=b.player,e=b.enemy;
- b.effects=b.effects.filter(x=>x.end>b.tick).slice(-40);b.numbers=b.numbers.filter(x=>x.end>b.tick).slice(-25);
+ b.effects=b.effects.filter(x=>x.end>b.tick).slice(-40);b.numbers=b.numbers.filter(x=>x.end>b.tick).slice(-40);
  let [mx,my,buttons]=input,n=Math.hypot(mx,my);if(n>1){mx/=n;my/=n;}p.moving=!!n;
  if(n>.01){p.dir=towerFacing(mx,my,p.dir??6);p.walk=(p.walk||0)+Math.min(1,n);if(mx)p.face=mx<0?-1:1;}
  if((buttons&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+TOWER_CLASSES[b.classId].dashCooldown;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx/Math.hypot(mx,my):v.x;b.dashY=n?my/Math.hypot(mx,my):v.y;fx(b,'slash',p.x,p.y,170,6,Math.atan2(b.dashY,b.dashX));}

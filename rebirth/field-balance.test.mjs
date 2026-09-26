@@ -26,9 +26,9 @@ for(const cl of D.CLASSES)for(const level of [1,20,40,60,80,100,120,140,160,180,
 // Zero damage while spawning; no artificial defeat when a long fight remains survivable.
 const tank=fieldCharacter(1,D.CLASSES[0]);tank.stage=29;for(const it of tank.items)it.lines=[{key:'flatHP',value:1e8}];
 const long=huntingRate(tank);assert.ok(long.fightSeconds>90);assert.equal(long.survives,true);
-// Damage queue keeps exactly the ten latest outgoing hits, without consuming slots for healing/hurt.
+// Damage queue keeps exactly the thirty latest outgoing hits, without consuming slots for healing/hurt.
 const numbers=Array.from({length:40},(_,i)=>({id:i,start:i/10,end:50,kind:i%7===0?'incoming':'outgoing'}));
-const rows=damageRows(numbers,5);assert.equal(rows.length,10);assert.equal(rows.at(-1).id,39);assert.ok(rows.every(n=>n.kind==='outgoing'));assert.equal(damageRows(numbers,51).length,0);
+const rows=damageRows(numbers,5);assert.equal(rows.length,30);assert.equal(rows.at(-1).id,39);assert.ok(rows.every(n=>n.kind==='outgoing'));assert.equal(damageRows(numbers,51).length,0);
 // The same melee speed/dash rules must hold in solo and co-op simulation.
 for(const cl of D.CLASSES){const p=power(fieldCharacter(100,cl)),b=newTowerBattle(1,cl.id,p,0,'speed',1,true);b.nextPattern=1e9;b.enemy.x=3000;b.enemy.y=3000;
  const start=b.player.x;towerStep(b,[1,0,0]);assert.equal(b.player.x-start,TOWER_CLASSES[cl.id].speed);towerStep(b,[1,0,4]);assert.equal(b.dashReady-b.tick,TOWER_CLASSES[cl.id].dashCooldown);

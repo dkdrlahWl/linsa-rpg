@@ -1,9 +1,9 @@
-import {drawWaveCreature} from './wave-motion.mjs?v=field-drop-double-9';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-drop-double-9';
-import {damageRows} from './damage-stack.mjs?v=field-drop-double-9';
-import {drawFourth} from './fourth-effects.mjs?v=field-drop-double-9';
-import MOTION_LAYOUT from './motion-layout.mjs?v=field-drop-double-9';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=field-drop-double-9';
+import {drawWaveCreature} from './wave-motion.mjs?v=damage-thirty-10';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=damage-thirty-10';
+import {damageRows} from './damage-stack.mjs?v=damage-thirty-10';
+import {drawFourth} from './fourth-effects.mjs?v=damage-thirty-10';
+import MOTION_LAYOUT from './motion-layout.mjs?v=damage-thirty-10';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=damage-thirty-10';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -287,7 +287,9 @@ export class TowerRenderer {
     }
     this.drawImpacts(now,dt);
     const rows=damageRows(b.numbers,time),personal=b.numbers.filter(n=>n.end>time&&(n.kind==='incoming'||n.kind==='heal')).slice(-3);
-    const rowHeight=this.mobileActors.matches?58:42,rowFont=this.mobileActors.matches?52:36;
+    const room=Math.max(0,b.enemy.y-155-(this.camera.y+65));
+    const rowHeight=Math.min(this.mobileActors.matches?58:42,room/Math.max(1,rows.length-1));
+    const rowFont=Math.min(this.mobileActors.matches?52:36,Math.max(16,rowHeight*.85));
     const stackTop=Math.max(this.camera.y+65,b.enemy.y-155-(rows.length-1)*rowHeight);
     for(const n of [...rows,...personal]){
       const age=time-n.start,fade=clamp((n.end-time)/2),incoming=n.kind==='incoming';
