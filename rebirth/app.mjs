@@ -1,14 +1,14 @@
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=motion-world-1';
-import {incomingDamage} from './journey-balance.mjs?v=motion-world-1';
-import {installMenuIcons} from './menu-icons.mjs?v=motion-world-1';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=motion-world-1';
-import {TOWER_FLOORS} from './tower-model.mjs?v=motion-world-1';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=motion-world-1';
-import * as D from "./data.mjs?v=motion-world-1";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=motion-world-1";
-import equipmentBounds from "./equipment-bounds.mjs?v=motion-world-1";
-import { inventoryGroups } from "./inventory-order.mjs?v=motion-world-1";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=job-practice-1";
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=boss-identity-1';
+import {incomingDamage} from './journey-balance.mjs?v=boss-identity-1';
+import {installMenuIcons} from './menu-icons.mjs?v=boss-identity-1';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=boss-identity-1';
+import {TOWER_FLOORS} from './tower-model.mjs?v=boss-identity-1';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=boss-identity-1';
+import * as D from "./data.mjs?v=boss-identity-1";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=boss-identity-1";
+import equipmentBounds from "./equipment-bounds.mjs?v=boss-identity-1";
+import { inventoryGroups } from "./inventory-order.mjs?v=boss-identity-1";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=boss-identity-1";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

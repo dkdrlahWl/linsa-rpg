@@ -1,8 +1,8 @@
-import {beginThird,stepThird} from './advancement.mjs?v=motion-world-1';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=motion-world-1';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=motion-world-1';
-import {incomingDamage} from './journey-balance.mjs?v=motion-world-1';
-export const COOP_TIERS=[{level:60,name:'숲의 균열',hp:700000,attack:450,art:'moss',gold:18000,cube:20,highCube:3,fragment:0},{level:140,name:'용암의 균열',hp:3500000,attack:1800,art:'wolf',gold:35000,cube:30,highCube:5,fragment:0},{level:200,name:'공허의 균열',hp:10000000,attack:3400,art:'king',gold:60000,cube:40,highCube:8,fragment:0}];
+import {beginThird,stepThird} from './advancement.mjs?v=boss-identity-1';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=boss-identity-1';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=boss-identity-1';
+import {incomingDamage} from './journey-balance.mjs?v=boss-identity-1';
+export const COOP_TIERS=[{level:60,name:'숲의 균열',hp:700000,attack:450,art:'rift-forest',gold:18000,cube:20,highCube:3,fragment:0},{level:140,name:'용암의 균열',hp:3500000,attack:1800,art:'rift-magma',gold:35000,cube:30,highCube:5,fragment:0},{level:200,name:'공허의 균열',hp:10000000,attack:3400,art:'rift-void',gold:60000,cube:40,highCube:8,fragment:0}];
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startCoop(room,now){const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=Math.round(tier.hp*(.65+.55*w.members.length));w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return w;}

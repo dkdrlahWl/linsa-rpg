@@ -1,6 +1,6 @@
-import {COOP_TIERS} from './coop-model.mjs?v=motion-world-1';
-import {towerArena} from './tower-client.mjs?v=motion-world-1';
-import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=motion-world-1';
+import {COOP_TIERS} from './coop-model.mjs?v=boss-identity-1';
+import {towerArena} from './tower-client.mjs?v=boss-identity-1';
+import {TowerRenderer,motionAsset,asset,image} from './tower-renderer.mjs?v=boss-identity-1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -19,7 +19,7 @@ export class CoopController{
   const move=e=>{const r=stick.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)/(r.width*.4),y=(e.clientY-r.top-r.height/2)/(r.height*.4),n=Math.max(1,Math.hypot(x,y));this.stick={x:x/n,y:y/n};knob.style.transform='translate('+this.stick.x*r.width*.3+'px,'+this.stick.y*r.height*.3+'px)';};
   stick.addEventListener('pointerdown',e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;stick.setPointerCapture(pointer);move(e);},opt);stick.addEventListener('pointermove',e=>{if(e.pointerId===pointer)move(e);},opt);for(const type of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(type,e=>{if(e.pointerId===pointer){pointer=null;this.stick={x:0,y:0};knob.style.transform='';}},opt);
   host.querySelector('#tower-auto').addEventListener('click',e=>{this.auto=!this.auto;e.currentTarget.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');},opt);
-  for(const cls of new Set(room.members.map(m=>m.classId))){image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+COOP_TIERS[room.tier].art+'-directions'));image(asset('effects'));
+  for(const cls of new Set(room.members.map(m=>m.classId))){image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+COOP_TIERS[room.tier].art));image(asset('effects'));
   this.accept(room);this.timer=setInterval(()=>this.flush(),300);this.frame=requestAnimationFrame(t=>this.draw(t));
  }
  input(){if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=this.auto?1:0;for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,bits];}
