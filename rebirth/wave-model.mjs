@@ -1,6 +1,6 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=skills-half-11';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=skills-half-11';
-import {incomingDamage} from './journey-balance.mjs?v=skills-half-11';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=coop-smooth-12';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=coop-smooth-12';
+import {incomingDamage} from './journey-balance.mjs?v=coop-smooth-12';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -40,8 +40,8 @@ function pulse(w,m,cast,sk){
  if(cast.kind!=='fourth')w.effects.push({id:++w.serial,kind:cast.kind,classId:m.classId,owner:m.id,x:aim.x,y:aim.y,size:sk.radius*2,orbit:sk.mode==='orbit',pulse:sk.hits-cast.left,start:w.tick,impact:w.tick,end:w.tick+Math.max(4,Math.min(10,sk.interval)),fromX:m.x,fromY:m.y,volley:sk.mode==='volley'});
  cast.left--;cast.next+=sk.interval;
 }
-export function advanceWaveRaw(room,user,input,now,frames=[]){
- const w=structuredClone(room);if(w.status!=='fighting')return w;
+export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
+ const w=owned?room:structuredClone(room);if(w.status!=='fighting')return w;
  const upto=Math.max(w.tick,Math.floor((now-w.started)/100));
  // A disconnected arena cannot be kept alive by skipping simulation time.
  const end=Math.min(upto,w.tick+100);

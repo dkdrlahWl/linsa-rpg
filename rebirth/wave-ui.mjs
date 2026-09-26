@@ -1,5 +1,5 @@
-import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=skills-half-11';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=skills-half-11';
+import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=coop-smooth-12';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=coop-smooth-12';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
@@ -18,6 +18,7 @@ export function waveHud(host,w){
  host.querySelector('#tower-player-bar').style.width=me.hp/me.power.hp*100+'%';
  host.querySelector('#tower-clock').textContent=`다음 ${clock}초`;
  const dead=w.members.filter(m=>!m.left&&m.hp<=0),reviving=dead.find(m=>m.reviver===me.id);
+ host.querySelector('#tower-status').hidden=!(w.pendingOutcome||me.hp<=0||reviving||count>=WAVE_LIMIT*.8);
  host.querySelector('#tower-status').textContent=w.pendingOutcome?'종료 판정 확인 중…':me.hp<=0?`동료가 묘비 위에서 5초 대기하면 부활 · ${(me.reviveProgress/10).toFixed(1)} / 5초`:reviving?`동료 부활 중 ${(reviving.reviveProgress/10).toFixed(1)} / 5초 · 움직이면 중단`:count>=WAVE_LIMIT*.8?'위험! 몬스터 100마리가 쌓이면 종료됩니다.':`사방의 적을 처치하세요 · 정예 ${s.eliteCount}마리 등장`;
  host.querySelector('#tower-range').textContent=`생존 ${w.members.filter(m=>!m.left&&m.hp>0).length} / ${w.members.filter(m=>!m.left).length}`;
  host.querySelector('#tower-chest').hidden=true;

@@ -5,7 +5,7 @@
 /* The whole battle fits in the viewport, with controls outside the arena. */
 .tower-mode{overflow:hidden;overscroll-behavior:none;background:#070e13}
 .tower-mode .shell{width:100%;max-width:none;padding:0;margin:0}
-.tower-mode .connection-status{position:fixed;top:0;left:0;right:0;z-index:20;margin:0}
+.tower-mode .connection-status{display:none}
 .tower-play{--gold:#edcd89;--cooldown:0%;width:100%;max-width:980px;height:100svh;height:100dvh;margin:0 auto;display:grid;grid-template-rows:auto minmax(0,1fr) 38px 152px 40px;padding:env(safe-area-inset-top) max(0px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(0px,env(safe-area-inset-left));overflow:hidden;border:0;border-radius:0;background:#0b141d;color:#f3ede2;box-shadow:0 0 80px #0009}
 .tower-hud{padding:10px 20px 8px;z-index:2;background:linear-gradient(110deg,#172730,#171d23);border-bottom:1px solid #a18d543b}
 .tower-title-row{display:flex;align-items:center;gap:12px}

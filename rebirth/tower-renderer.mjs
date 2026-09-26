@@ -1,9 +1,9 @@
-import {drawWaveCreature} from './wave-motion.mjs?v=skills-half-11';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=skills-half-11';
-import {damageRows} from './damage-stack.mjs?v=skills-half-11';
-import {drawFourth} from './fourth-effects.mjs?v=skills-half-11';
-import MOTION_LAYOUT from './motion-layout.mjs?v=skills-half-11';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=skills-half-11';
+import {drawWaveCreature} from './wave-motion.mjs?v=coop-smooth-12';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=coop-smooth-12';
+import {damageRows} from './damage-stack.mjs?v=coop-smooth-12';
+import {drawFourth} from './fourth-effects.mjs?v=coop-smooth-12';
+import MOTION_LAYOUT from './motion-layout.mjs?v=coop-smooth-12';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=coop-smooth-12';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -167,15 +167,14 @@ export class TowerRenderer {
   impact(n,now){
     const incoming=n.kind==='incoming',critical=n.kind==='critical',heal=n.kind==='heal';
     const colors=heal?['#a4ffbb','#5ee6cc']:incoming?['#ffdcc6','#ff694e']:critical?['#fff8cc','#ffbe4c']:['#ffffff','#ffdc89'];
-    const count=heal?10:critical?42:incoming?28:24;
+    const count=heal?4:critical?10:incoming?8:6;
     for(let i=0;i<count;i++){
       const angle=Math.PI*2*i/count+(Math.random()-.5)*.4,speed=(critical?8:6)*(0.45+Math.random()*.9);
       this.particles.push({x:n.x,y:n.y+28,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-1,life:260+Math.random()*280,at:now,size:2+Math.random()*4,color:colors[i%2]});
     }
-    this.particles=this.particles.slice(-180);
+    this.particles=this.particles.slice(-64);
     this.shockwaves.push({x:n.x,y:n.y+28,at:now,color:colors[1],size:critical?240:incoming?175:155});
-    this.shockwaves=this.shockwaves.slice(-12);
-    if(!heal){this.shake=Math.max(this.shake,critical?18:incoming?13:8);this.flash=Math.max(this.flash,critical?.3:incoming?.22:.16);this.zoom=Math.max(this.zoom,critical?.014:.008);}
+    this.shockwaves=this.shockwaves.slice(-4);
   }
   drawImpacts(now,dt){
     const g=this.g,step=Math.min(2,dt/16.7);
@@ -195,10 +194,11 @@ export class TowerRenderer {
     }
   }
   draw(b,previous,player,fraction,now,input,hint){
+    if(now<(this.nextFrame||0))return;this.nextFrame=Math.max(now,(this.nextFrame||now)+1000/60);
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
-    for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);this.impact(n,now);}
+    const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
     const scale=Math.min(.7,Math.max(.46,height/3000)),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
@@ -209,11 +209,10 @@ export class TowerRenderer {
     const follow=1-Math.exp(-Math.min(100,dt)/135);this.last=now;
     this.camera.x=mix(this.camera.x,target.x,follow);this.camera.y=mix(this.camera.y,target.y,follow);
     g.fillStyle='#08131c';g.fillRect(0,0,1000,height);
-    this.shake*=Math.exp(-dt/90);this.flash*=Math.exp(-dt/85);this.zoom*=Math.exp(-dt/110);
-    const jx=(Math.random()-.5)*this.shake,jy=(Math.random()-.5)*this.shake;
-    g.save();g.translate(500+jx,height/2+jy);g.scale(scale*(1+this.zoom),scale*(1+this.zoom));
+    g.save();g.translate(500,height/2);g.scale(scale,scale);
     g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.waveMode)this.meadow();else this.background();
-    for(const hazard of b.hazards)this.hazard(hazard,time);
+    const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
+    for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time);
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
     const casting=b.tick<b.skillUntil||hint.skill>now,attacking=b.tick<b.attackUntil||hint.attack>now;
@@ -260,7 +259,7 @@ export class TowerRenderer {
       this.shadow(m.x,m.y,25);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,m.y-150);g.fillStyle='#25312d';g.fillRect(m.x-40,m.y-139,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,m.y-139,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
-    }})),...(b.monsters||[]).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
+    }})),...(b.monsters||[]).filter(e=>visible(e.x,e.y)).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
     for(const q of b.projectiles){
       if(b.tick<q.at)continue;
       const old=previous.projectiles.find(p=>p.id===q.id)||{x:q.x-q.dx,y:q.y-q.dy};
@@ -297,11 +296,10 @@ export class TowerRenderer {
       g.save();g.globalAlpha=fade;g.font=`900 ${row>=0?rowFont:43}px system-ui`;g.textAlign='center';g.lineWidth=7;g.strokeStyle='#071017';
       g.fillStyle=incoming?'#ff9994':n.kind==='heal'?'#8cffbb':n.kind==='critical'?'#ffe092':'#fff';
       const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=row>=0&&!b.waveMode?stackTop+row*rowHeight:n.y-age*6,x=row>=0&&!b.waveMode?b.enemy.x:n.x;
-      g.shadowColor=n.kind==='critical'?'#ffae34':incoming?'#f74c4c':'#ffffff';g.shadowBlur=12;
+      g.shadowColor=n.kind==='critical'?'#ffae34':incoming?'#f74c4c':'#ffffff';g.shadowBlur=0;
       g.strokeText(value,x,y);g.fillText(value,x,y);g.restore();
     }
     g.restore();
-    if(this.flash>.01){g.save();g.fillStyle=`rgba(255,238,204,${this.flash*.38})`;g.fillRect(0,0,1000,height);g.restore();}
-    if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a'+(Math.floor(80+Math.sin(now/250)*30).toString(16));g.strokeRect(0,0,1000,height);g.restore();}
+    if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}
   }
 }

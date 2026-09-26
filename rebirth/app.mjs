@@ -1,15 +1,15 @@
-import {GameAudio} from './game-audio.mjs?v=skills-half-11';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=skills-half-11';
-import {incomingDamage} from './journey-balance.mjs?v=skills-half-11';
-import {installMenuIcons} from './menu-icons.mjs?v=skills-half-11';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=skills-half-11';
-import {TOWER_FLOORS} from './tower-model.mjs?v=skills-half-11';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=skills-half-11';
-import * as D from "./data.mjs?v=skills-half-11";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=skills-half-11";
-import equipmentBounds from "./equipment-bounds.mjs?v=skills-half-11";
-import { inventoryGroups } from "./inventory-order.mjs?v=skills-half-11";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=skills-half-11";
+import {GameAudio} from './game-audio.mjs?v=coop-smooth-12';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-smooth-12';
+import {incomingDamage} from './journey-balance.mjs?v=coop-smooth-12';
+import {installMenuIcons} from './menu-icons.mjs?v=coop-smooth-12';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=coop-smooth-12';
+import {TOWER_FLOORS} from './tower-model.mjs?v=coop-smooth-12';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=coop-smooth-12';
+import * as D from "./data.mjs?v=coop-smooth-12";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=coop-smooth-12";
+import equipmentBounds from "./equipment-bounds.mjs?v=coop-smooth-12";
+import { inventoryGroups } from "./inventory-order.mjs?v=coop-smooth-12";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=coop-smooth-12";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -244,7 +244,8 @@ function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
 async function command(command, args = {}, quiet = false, freshSnapshot = false) {
   if (busy || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
   busy = true;
-  document
+  const streaming=command==="coopInput";
+  if(!streaming)document
     .querySelectorAll("button[data-write]")
     .forEach((b) => {if(!dungeonExitActions.has(b.dataset.action))b.disabled=true;});
   let body, recoverCharacter = false;
@@ -253,6 +254,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     await ensureToken();
     if(!recoverySync){
       try{body=JSON.parse(localStorage.getItem(pendingKey())||"null");}catch{body=null;}
+      if(body?.command==="coopInput"){localStorage.removeItem(pendingKey());body=null;}
       if(body&&(typeof body.command!=="string"||!body.args||typeof body.args!=="object"||!body.requestId))body=null;
     }
     if (
@@ -260,11 +262,11 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
       (body.command !== command ||
         JSON.stringify(body.args) !== JSON.stringify(args))
     ) {
-      toast("이전 요청을 먼저 복구합니다.");
+      if(!quiet)toast("이전 요청을 먼저 복구합니다.");
     }
     if (!body) {
       body = { command, args, requestId: crypto.randomUUID() };
-      if(!recoverySync)localStorage.setItem(pendingKey(), JSON.stringify(body));
+      if(!recoverySync&&!streaming)localStorage.setItem(pendingKey(), JSON.stringify(body));
     }
     const sentAt=performance.now();
     const result = await request("/functions/v1/ringu-rebirth", body);
@@ -276,11 +278,12 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
     if(result.coopRooms)coopRooms=result.coopRooms;
-    rankingRevision++;rankingUpdated=0;
+    if(!streaming){rankingRevision++;rankingUpdated=0;}
     if ("room" in result) partyRoom=result.room; else if (!state?.partyRoom) partyRoom=null;
     if (result.rooms) partyRooms=result.rooms;
     lastSync = Date.now();
     connectionLost = false;
+    const recoveredBanner=$("#connection-status");if(recoveredBanner)recoveredBanner.hidden=true;
     retryAt = 0;
     retryFailures = 0;
     render();
@@ -293,7 +296,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if (e.status === 401) {
       endSession();
     }
-    if (!e.status || e.status >= 500) {
+    if ((!e.status || e.status >= 500)&&e.message!=="SAVE_CONFLICT") {
       connectionLost = true;
       retryFailures++;
       retryAt = Date.now() + Math.min(60000, 5000 * 2 ** Math.min(retryFailures - 1, 4));
@@ -311,7 +314,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if(autoHuntPending)queueMicrotask(flushAutoHunt);
     if(recoverCharacter)queueMicrotask(()=>command("sync",{},true).catch(()=>{}));
     if(view==="ranking"&&state&&!rankingLoading&&rankingUpdated===0&&!connectionLost)loadRankings(true);
-    document
+    if(!streaming)document
       .querySelectorAll("button[data-write]")
       .forEach((b) => (b.disabled = b.hasAttribute("data-unavailable")));
   }
@@ -1284,7 +1287,7 @@ window.addEventListener("popstate", () => {
 });
 setInterval(() => {
   if (!session || document.hidden || busy || !state || !navigator.onLine || Date.now() < retryAt) return;
-  if(state.battle?.kind==='tower')return;
+  if(state.battle?.kind==='tower'||coopController)return;
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
   const partyLobbyOpen = false;
   const due = state.coopRoom&&coopRoom?.status==='waiting'?2000:state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;

@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=skills-half-11';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=skills-half-11';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=coop-smooth-12';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=coop-smooth-12';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

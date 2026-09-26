@@ -1,4 +1,4 @@
-import {startCoop,advanceCoop,coopClientView} from './coop-model.mjs';
+import {startCoop,advanceCoop,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
 import { initialState, execute, power, grantCoopChest } from "./engine.mjs";
 const url = Deno.env.get("SUPABASE_URL")!;
@@ -11,6 +11,7 @@ Deno.serve(async (req) => {
     Vary: "Origin",
     "Access-Control-Allow-Headers": "authorization,apikey,content-type",
     "Access-Control-Allow-Methods": "POST,OPTIONS",
+    "Access-Control-Max-Age": "3600",
   };
   const reply = (data: unknown, status = 200) =>
     new Response(JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:coopClientView(data.coop)}:data,(key,value)=>key==="_net"?undefined:value), {
@@ -70,9 +71,11 @@ Deno.serve(async (req) => {
         if(!snap.state)throw new Error('CHARACTER_REQUIRED');
         const action=body.command==='sync'?'sync':body.command.slice(4).toLowerCase();
         if(!['create','join','start','ready','input','sync','leave','list','open'].includes(action))throw new Error('INVALID_COOP_ACTION');
+        const queueInput=action==='input'&&Array.isArray(body.args.frames);
+        if(queueInput)validateCoopFrames(body.args.frames);
         const ctx={admin:user.app_metadata?.ringu_admin===true,now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
         const computed=execute(snap.state,'sync',{},ctx);
-        const base={user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed.state,power:power(computed.state),args:body.args};
+        const base={queueInput,user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed.state,power:power(computed.state),args:body.args};
         try{
           const current=await rpc('rebirth_coop_action',{p:{...base,action:'read'}},true);
           if(snap.receipt)return reply(current);

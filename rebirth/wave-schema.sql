@@ -18,6 +18,25 @@ begin
  rid:=nullif(actor.state->>'coopRoom','')::uuid;
  if action='join' then rid:=(p->'args'->>'room')::uuid;end if;
  if rid is not null then select * into r from rebirth_private.coop_rooms where id=rid for update;w:=r.world;end if;
+ -- Queue each player's validated frames under the room lock before simulating.
+ -- Queue writes do not invalidate the simulation revision.
+ if action='read' and coalesce((p->>'queueInput')::boolean,false) and w->>'status'='fighting' then
+  if not exists(select 1 from jsonb_array_elements(w->'members') m where m->>'id'=u::text and not coalesce((m->>'left')::boolean,false)) then raise exception 'PARTY_NOT_FOUND';end if;
+  select coalesce(jsonb_agg(q.value),'[]') into members from (
+   select distinct on (incoming.value->>'user',incoming.value->>'tick') incoming.value
+   from jsonb_array_elements(coalesce(w->'_queuedInputs','[]') || coalesce((select jsonb_agg(f||jsonb_build_object('user',u)) from jsonb_array_elements(p->'args'->'frames') f),'[]')) as incoming(value)
+   where (incoming.value->>'tick')::int>=greatest(0,coalesce((w->>'tick')::int,0)-35)
+    and (incoming.value->>'tick')::int<=greatest(coalesce((w->>'tick')::int,0),floor((ms-(w->>'started')::bigint)/100.0)::int)+2
+    and not exists(select 1 from jsonb_array_elements(coalesce(w->'_net'->'frames','[]')) f where f->>'user'=incoming.value->>'user' and f->>'tick'=incoming.value->>'tick')
+   order by incoming.value->>'user',incoming.value->>'tick' limit 160
+  ) q;
+  w:=jsonb_set(w,'{_queuedInputs}',members);
+  update rebirth_private.coop_rooms set world=w where id=rid returning * into r;
+ end if;
+ -- A concurrent winner already advanced the room. Keep our queued inputs and
+ -- return that snapshot; the next update consumes every player's input queue.
+ if action='input' and coalesce((p->>'queueInput')::boolean,false) and r.revision<>(p->>'roomRevision')::bigint then action:='read';end if;
+
  if action not in ('read','list') then
   if actor.revision<>(p->>'revision')::bigint then raise exception 'SAVE_CONFLICT';end if;
   if actor.state->'battle' is not null and actor.state->'battle'<>'null' or nullif(actor.state->>'partyRoom','') is not null then raise exception 'BATTLE_IN_PROGRESS';end if;
@@ -87,6 +106,12 @@ begin
    if w->>'status' in ('fighting','won') or action='start' then w:=p->'world';end if;
   else raise exception 'INVALID_COOP_ACTION';end if;
   if rid is not null and w is not null then
+   if w->>'status'='fighting' then
+    select coalesce(jsonb_agg(q),'[]') into members from jsonb_array_elements(coalesce(r.world->'_queuedInputs','[]')) q
+     where (q->>'tick')::int>=coalesce((w->>'tick')::int,0)-35
+      and not exists(select 1 from jsonb_array_elements(coalesce(w->'_net'->'frames','[]')) f where f->>'user'=q->>'user' and f->>'tick'=q->>'tick');
+    w:=jsonb_set(w,'{_queuedInputs}',members);
+   else w:=w-'_queuedInputs';end if;
    update rebirth_private.coop_rooms set world=w,revision=revision+1 where id=rid returning * into r;
    if w->>'status'='lost' then
     for member in select value from jsonb_array_elements(w->'members') loop
