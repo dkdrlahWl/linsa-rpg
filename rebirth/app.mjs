@@ -364,7 +364,8 @@ function systemInbox() {
 }
 function systemMailButton() {
   const count=state.systemMailbox?.length||0;
-  return btn('우편함'+(count?`<span class="mail-count">${count}</span>`:''),'systemInbox','',count?'mail-alert':'');
+  const label=count?`우편함 · 받지 않은 우편 ${count}통`:'우편함 · 받은 우편 없음';
+  return `<button class="mail-icon-button ${count?'mail-alert':''}" data-action="systemInbox" aria-label="${esc(label)}" title="${esc(label)}"><img class="mail-envelope-icon" src="ui/mail-envelope-v1.png" width="38" height="38" alt="" aria-hidden="true">${count?`<span class="mail-count" aria-hidden="true">${count}</span>`:''}</button>`;
 }
 function attendanceReady() { return state?.attendance?.lastClaim !== D.dayKey(Date.now()); }
 function attendanceReward(reward) {

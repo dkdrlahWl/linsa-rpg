@@ -1,4 +1,9 @@
 .top-actions .mail-alert{color:#ffe3a2;border-color:#b59653;background:#44351f}
+.top-actions .mail-icon-button{position:relative;display:inline-grid;place-items:center;flex:0 0 48px;width:48px;height:44px;padding:2px;overflow:visible}
+.mail-icon-button .mail-envelope-icon{display:block;width:38px;height:38px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 2px #0009)}
+.mail-icon-button:hover .mail-envelope-icon{filter:drop-shadow(0 0 4px #eec77777) brightness(1.1)}
+.mail-icon-button:focus-visible{outline:2px solid #ffe3a2;outline-offset:3px}
+.mail-icon-button .mail-count{position:absolute;top:-5px;right:-5px;margin:0;min-width:19px;min-height:19px;border:1px solid #f9d18b;background:#a63b2a;color:#fff5df;pointer-events:none}
 .mail-count{display:inline-grid;place-items:center;min-width:20px;min-height:20px;margin-left:5px;border-radius:50%;background:#e2ba68;color:#231b0d;font-size:12px;font-weight:800}
 .mail-intro{color:#bcb29e;line-height:1.7;margin:0 0 16px}
 .system-mail{padding:20px;border:1px solid #927847;border-radius:14px;background:linear-gradient(135deg,#342b1b,#161d23);color:#f5ead4}
