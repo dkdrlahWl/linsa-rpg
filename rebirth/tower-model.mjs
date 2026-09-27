@@ -1,12 +1,13 @@
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=skill-sequence-21';
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=field-fragment-13';
 import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=field-fragment-13';
 import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=field-fragment-13';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=skill-sequence-21';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
-export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;delete b.thirdCast;delete b.fourthCast;return b;}
+export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;delete b.firstCast;delete b.secondCast;delete b.thirdCast;delete b.fourthCast;return b;}
 
 export const TOWER_SIZE = {width:3200,height:3200};
 export const TOWER_BOUNDS = {left:150,right:3050,top:150,bottom:3050};
@@ -39,8 +40,8 @@ export function upgradeTowerBattle(b){
 }
 function fx(b,kind,x,y,size=150,life=6,angle=0,hostile=false){b.effects.push({id:++b.serial,kind,x,y,size,start:b.tick,end:b.tick+life,angle,hostile});}
 function number(b,value,x,y,kind){b.numbers.push({id:++b.serial,value,x,y,kind,start:b.tick,end:b.tick+(kind==='incoming'||kind==='heal'?9:24)});}
-function enemyDamage(b,scale,skillCrit=0){const first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)&&SECOND_SKILLS[b.classId].type==='buff'?SECOND_SKILLS[b.classId]:null;const crit=random(b)<Math.min(.95,b.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+skillCrit),damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(crit?b.power.critDamage+(second?.critDamageAdd||0):1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
-function playerDamage(b,multiplier){if(b.tick<b.invulnerableUntil||b.tick<(b.hurtUntil||0))return;const f=towerEncounter(b),first=b.tick<(b.guardUntil||0)?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)&&SECOND_SKILLS[b.classId].type==='buff'?SECOND_SKILLS[b.classId]:null;const damage=Math.max(1,Math.round((incomingDamage(f.attack,b.power.defense)*multiplier)*(first?.guard||1)*(second?.guard||1)));b.hp=Math.max(0,b.hp-damage);b.hurtUntil=b.tick+5;number(b,damage,b.player.x,b.player.y-100,'incoming');fx(b,'impact',b.player.x,b.player.y-40,110);}
+function enemyDamage(b,scale,skillCrit=0){const first=b.tick<(b.guardUntil||0)&&CLASS_SKILLS[b.classId].type==='buff'?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)&&SECOND_SKILLS[b.classId].type==='buff'?SECOND_SKILLS[b.classId]:null;const crit=random(b)<Math.min(.95,b.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+skillCrit),damage=Math.max(1,Math.round(b.power.attack*b.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(crit?b.power.critDamage+(second?.critDamageAdd||0):1)));b.enemyHp=Math.max(0,b.enemyHp-damage);number(b,damage,b.enemy.x,b.enemy.y-120,crit?'critical':'outgoing');fx(b,'impact',b.enemy.x,b.enemy.y-50,150);b.enemyHurtUntil=b.tick+2;}
+function playerDamage(b,multiplier){if(b.tick<b.invulnerableUntil||b.tick<(b.hurtUntil||0))return;const f=towerEncounter(b),first=b.tick<(b.guardUntil||0)&&CLASS_SKILLS[b.classId].type==='buff'?CLASS_SKILLS[b.classId]:null,second=b.tick<(b.secondUntil||0)&&SECOND_SKILLS[b.classId].type==='buff'?SECOND_SKILLS[b.classId]:null;const damage=Math.max(1,Math.round((incomingDamage(f.attack,b.power.defense)*multiplier)*(first?.guard||1)*(second?.guard||1)));b.hp=Math.max(0,b.hp-damage);b.hurtUntil=b.tick+5;number(b,damage,b.player.x,b.player.y-100,'incoming');fx(b,'impact',b.player.x,b.player.y-40,110);}
 function circle(b,x,y,r,delay=12,multiplier=1.6,duration=3,inner=0){const hx=clamp(x,TOWER_BOUNDS.left,TOWER_BOUNDS.right),hy=clamp(y,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);b.hazards.push({id:++b.serial,type:'circle',x:hx,y:hy,r,inner,dir:towerFacing(hx-b.enemy.x,hy-b.enemy.y,b.enemy.dir??2),at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
 function line(b,x,y,tx,ty,width=90,delay=12,multiplier=1.6,duration=3){b.hazards.push({id:++b.serial,type:'line',x,y,tx,ty,width,dir:towerFacing(tx-x,ty-y,b.enemy.dir??2),at:b.tick+delay,end:b.tick+delay+duration,multiplier});}
 function fan(b,count=5){const a=Math.atan2(b.player.y-b.enemy.y,b.player.x-b.enemy.x);for(let i=0;i<count;i++){const angle=a+(i-(count-1)/2)*.23;b.projectiles.push({id:++b.serial,side:'enemy',x:b.enemy.x,y:b.enemy.y,dx:Math.cos(angle)*31,dy:Math.sin(angle)*31,r:24,at:b.tick+10,end:b.tick+65,multiplier:.9});}}
@@ -83,13 +84,15 @@ export function towerStep(b,input,shared=null){
  if(b.tick<(b.dashUntil||0)){mx=b.dashX*3;my=b.dashY*3;p.dir=towerFacing(mx,my,p.dir??6);}
  const moveSpeed=(buttons&1)&&c.range>300&&!(b.tick<(b.dashUntil||0))?17:c.speed;
  p.x=clamp(p.x+mx*moveSpeed,TOWER_BOUNDS.left,TOWER_BOUNDS.right);p.y=clamp(p.y+my*moveSpeed,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);
- if(b.power.firstJob!==false&&(buttons&8)&&b.tick>=b.ultimateReady){const sk=CLASS_SKILLS[b.classId];b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.06);b.ultimateReady=b.tick+sk.cooldown*10;b.guardUntil=b.tick+sk.seconds*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=p.dir??6;fx(b,'rune',p.x,p.y,220,12);}
+ b.x=p.x;b.y=p.y;
+ if((buttons&8)&&beginCombatSkill(b,e,b.tick,1)){p.dir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=e.x<p.x?-1:1;}
  if((buttons&1)&&b.tick>=b.attackReady&&distance(p,e)<=c.range){const a=Math.atan2(e.y-p.y,e.x-p.x),v=facingVector(towerFacing(e.x-p.x,e.y-p.y,p.dir??6));p.dir=p.attackDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=v.x<0?-1:1;b.attackReady=b.tick+c.cooldown;b.attackStart=b.tick;b.attackUntil=b.tick+6;if(c.range<300){b.pendingMelee={at:b.tick+2,scale:c.cooldown/10*b.power.cadence};}else{b.projectiles.push({id:++b.serial,side:'player',owner:b.actorId,x:p.x+v.x*28,y:p.y-30+v.y*15,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:b.tick+2,end:b.tick+17,scale:c.cooldown/10*b.power.cadence});}}
- if(b.advanced&&(buttons&2)&&b.tick>=b.skillReady){const sk=SECOND_SKILLS[b.classId];if(sk.type!=='attack'||distance(p,e)<760){b.skillReady=b.tick+sk.cooldown*10;b.skillStart=b.tick;b.skillUntil=b.tick+8;b.effects.push({id:++b.serial,kind:'second',follow:sk.type!=='attack',classId:b.classId,x:sk.type==='attack'?e.x:p.x,y:sk.type==='attack'?e.y:p.y,size:sk.type==='attack'?500:360,start:b.tick,end:b.tick+16});if(sk.type==='attack'){const a=Math.atan2(e.y-p.y,e.x-p.x);p.dir=p.attackDir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=Math.cos(a)<0?-1:1;b.pendingSkillHit={at:b.tick+3,hits:sk.hits,damage:sk.damage,critAdd:sk.critAdd||0};}else{p.skillDir=p.dir??6;b.secondUntil=b.tick+sk.seconds*10;fx(b,'rune',p.x,p.y,220,12);}}}
+ if((buttons&2)&&beginCombatSkill(b,e,b.tick,2)){p.dir=p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir??6);p.face=e.x<p.x?-1:1;}
  if((buttons&16)){b.x=p.x;b.y=p.y;if(beginThird(b,e,b.tick)){b.skillStart=b.tick;b.skillUntil=b.tick+8;p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir);}}
  if(buttons&32){b.x=p.x;b.y=p.y;if(beginFourth(b,e,b.tick))p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir);}
  b.x=p.x;b.y=p.y;stepFourth(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
  b.x=p.x;b.y=p.y;stepThird(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
+ stepCombatSkills(b,[e],b.tick,(scale,crit)=>{if(b.enemyHp>0)enemyDamage(b,scale,crit);},effect=>b.effects.push({...effect,id:++b.serial}));
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(!shared||shared.advanceEnemy){
  if(b.tick>=b.nextPattern)pattern(b);

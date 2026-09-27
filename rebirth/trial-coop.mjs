@@ -1,10 +1,10 @@
 import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=field-fragment-13';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=trial-coop-20';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=skill-sequence-21';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.
 const sharedKeys=['enemy','hazards','projectiles','effects','numbers','serial','seed','nextPattern','phase','charge','enemyCastStart','enemyCastUntil','enemyAttackStart','enemyAttackUntil','enemyAttackDir','enemyHurtUntil'];
-const actorKeys=['hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
+const actorKeys=['hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','firstCast','secondCast','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
 const copy=(to,from,keys)=>{for(const key of keys){if(from[key]===undefined)delete to[key];else to[key]=from[key];}};
 export function startTrialCoop(room,now){
  const trial=ADVANCEMENT_BOSSES[room.tier];

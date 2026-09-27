@@ -1,7 +1,7 @@
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=trial-coop-20';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=field-fragment-13';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=field-fragment-13';
-import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=wave-visible-18';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=skill-sequence-21';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=skill-sequence-21';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=skill-sequence-21';
+import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=skill-sequence-21';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -16,7 +16,7 @@ export class TowerController {
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
     this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
     this.required=['effects','boss-'+towerEncounter(b).art,'hero-'+b.classId+'-directions','hero-'+b.classId+'-motion-v4','second-job-atlas','reward-chest'].map(asset);
-    this.required.push(...['arena-overhead-v3','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2'].map(motionAsset));
+    this.required.push(...['arena-overhead-v3','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2','second-sequence-atlas-v1'].map(motionAsset));
     this.required.push(asset('third-job-atlas'));if(b.classId==='warrior')this.required.push(asset('hero-warrior-east-v4'));this.required.forEach(image);
     image(asset('reward-chest'));image(asset('second-job-atlas'));image(asset('hero-'+b.classId+'-motion-v4'));
     host.querySelector('#tower-chest')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();this.openChest();},{signal:this.abort.signal});
@@ -54,8 +54,8 @@ export class TowerController {
     if(bit===1&&this.b.chest){if(canOpenChest(this.b)){this.chestQueued=true;this.openChest();}return;}
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;}
-    if(bit===8&&b.tick+1>=b.ultimateReady){this.hint.skill=now+110;}
-    if(bit===2&&b.tick+1>=b.skillReady&&(SECOND_SKILLS[b.classId].type!=='attack'||d<760)){this.hint.skill=now+110;}
+    if(bit===8&&b.tick+1>=b.ultimateReady&&d<=CLASS_SKILLS[b.classId].range){this.hint.skill=now+110;}
+    if(bit===2&&b.tick+1>=b.skillReady&&d<=SECOND_SKILLS[b.classId].range){this.hint.skill=now+110;}
     if(bit===4&&b.tick+1>=b.dashReady){this.hint.dash=now+110;}
   }
   async openChest(){

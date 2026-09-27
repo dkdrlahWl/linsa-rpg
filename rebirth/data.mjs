@@ -16,7 +16,7 @@ export const CLASSES = [
     name: "전사",
     stat: "STR",
     weapon: "대검",
-    skill: "철벽",
+    skill: "대지 분쇄",
     color: "#dc945b",
   },
   {
@@ -24,7 +24,7 @@ export const CLASSES = [
     name: "마법사",
     stat: "INT",
     weapon: "지팡이",
-    skill: "마력 해방",
+    skill: "빙결 폭쇄",
     color: "#9ca3ff",
   },
   {
@@ -32,7 +32,7 @@ export const CLASSES = [
     name: "궁수",
     stat: "DEX",
     weapon: "활",
-    skill: "집중 사격",
+    skill: "질풍 관통",
     color: "#91c99b",
   },
   {
@@ -40,7 +40,7 @@ export const CLASSES = [
     name: "도적",
     stat: "LUK",
     weapon: "단검",
-    skill: "그림자 습격",
+    skill: "그림자 처형",
     color: "#c28bee",
   },
   {
@@ -48,7 +48,7 @@ export const CLASSES = [
     name: "해적",
     stat: "DEX",
     weapon: "권총",
-    skill: "속사",
+    skill: "파쇄 포격",
     color: "#7ac9dc",
   },
 ];
@@ -63,20 +63,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export const CLASS_SKILLS = {
- warrior:{name:'철벽',type:'buff',damage:1.05,guard:.80,seconds:5,cooldown:12,description:'5초 피해 +5% · 받는 피해 20% 감소'},
- mage:{name:'마력 해방',type:'buff',damage:1.09,guard:.925,seconds:5,cooldown:14,description:'5초 피해 +9% · 받는 피해 7.5% 감소'},
- archer:{name:'집중 사격',type:'buff',damage:1.04,guard:.925,critAdd:.05,seconds:5,cooldown:12,description:'5초 피해 +4% · 치명 확률 +5%p · 받는 피해 7.5% 감소'},
- rogue:{name:'그림자 습격',type:'buff',damage:1.075,guard:.75,seconds:4,cooldown:11,description:'4초 피해 +7.5% · 받는 피해 25% 감소'},
- pirate:{name:'속사',type:'buff',damage:1.06,guard:.90,seconds:5,cooldown:13,description:'5초 피해 +6% · 받는 피해 10% 감소'},
-};
-export const SECOND_SKILLS = {
- warrior:{name:'대지 분쇄',type:'attack',hits:1,damage:.75,seconds:0,cooldown:14,description:'즉시 75% 피해 1타 · 치명타·보공 적용'},
- mage:{name:'빙결 폭쇄',type:'attack',hits:3,damage:.3,seconds:0,cooldown:16,description:'얼음 결정 폭발 · 30% × 3타 · 총 90%'},
- archer:{name:'질풍 관통',type:'attack',hits:5,damage:.18,seconds:0,cooldown:15,description:'바람 화살 연격 · 18% × 5타 · 총 90%'},
- rogue:{name:'그림자 처형',type:'attack',hits:2,damage:.45,critAdd:.05,seconds:0,cooldown:15,description:'즉시 45% 피해 2타 · 이 스킬 치명 확률 +5%p'},
- pirate:{name:'파쇄 포격',type:'attack',hits:2,damage:.45,seconds:0,cooldown:15,description:'포탄 연속 폭발 · 45% × 2타 · 총 90%'},
-};
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=skill-sequence-21';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},

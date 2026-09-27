@@ -1,9 +1,10 @@
+import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=skill-sequence-21';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=field-fragment-13';
 import {rollRiftReward} from './rift-rewards.mjs?v=field-fragment-13';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=field-fragment-13';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=field-fragment-13';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';
-import {applyBetaTool} from './beta-tools.mjs?v=field-fragment-13';
+import {applyBetaTool} from './beta-tools.mjs?v=skill-sequence-21';
 import {
   VERSION,
   normalizePotentialState,
@@ -41,9 +42,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=field-fragment-13";
+} from "./data.mjs?v=skill-sequence-21";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=trial-coop-20';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=skill-sequence-21';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -389,21 +390,22 @@ function bossSettle(s, ctx, events) {
     Math.max(0, Math.floor((ctx.now - b.started) / 1000)),
   );
   for (let t = b.tick + 1; t <= upto; t++) {
-    const active = t <= b.burstUntil;
+    const active = skill.type==='buff' && t <= b.burstUntil;
     const second = t <= (b.secondUntil||0) && SECOND_SKILLS[s.classId].type==='buff' ? SECOND_SKILLS[s.classId] : null;
     const burst = (active ? skill.damage : 1) * (second?.damage||1);
     const crit = ctx.random() < Math.min(1,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));
+    if(b.firstCast||b.secondCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepCombatSkills(b,b.enemyHp>0?[{x:0,y:0}]:[],pulse,(scale,extraCrit)=>{if(b.enemyHp<=0)return;const critical=ctx.random()<Math.min(.95,b.power.crit+extraCrit),value=Math.round(b.power.attack*b.power.boss*scale*(critical?b.power.critDamage:1));b.enemyHp=Math.max(0,b.enemyHp-value);frames.push({tick:pulse/10,damage:value,crit:critical,incoming:0,enemyHp:b.enemyHp});});
     if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});
     if(b.fourthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepFourth(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});
     const damage = Math.round(b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence);
     b.enemyHp = Math.max(0, b.enemyHp - damage);
     b.tick = t;
     const frame = {tick:t, damage, crit, incoming:0, enemyHp:b.enemyHp};
-    frames.push(frame); if (frames.length > 3) frames.shift();
+    frames.push(frame); if (frames.length > 40) frames.shift();
     if (b.enemyHp <= 0) break;
     if (t % 3 === 0 || t % boss.patternEvery === 0) {
       const telegraph = t % boss.patternEvery === 0;
-      const guarded = t <= b.guardUntil;
+      const guarded = skill.type==='buff' && t <= b.guardUntil;
       frame.incoming = Math.max(
         1,
         Math.floor(
@@ -548,17 +550,7 @@ export function execute(input, command, args = {}, ctx) {
     b[ready]=ctx.now+sk.cooldown*1000;
     if(slot===4){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginFourth(b,{x:0,y:0},b.tick*10);}
     else if(slot===3){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginThird(b,{x:0,y:0},b.tick*10);}
-    else if(sk.type==='attack'){
-      const frames=[];
-      for(let i=0;i<sk.hits;i++){
-        const crit=ctx.random()<Math.min(1,b.power.crit+(sk.critAdd||0));
-        const damage=Math.round(b.power.attack*sk.damage*b.power.boss*(crit?b.power.critDamage:1));
-        b.enemyHp=Math.max(0,b.enemyHp-damage);frames.push({tick:b.tick,damage,crit,incoming:0,enemyHp:b.enemyHp});
-      }
-      events.push({type:'combat',frames});
-      const reward=bossSettle(s,ctx,events);if(reward)events.push(reward);
-    }else if(slot===2)b.secondUntil=b.tick+sk.seconds;
-    else {b.guardUntil=b.tick+sk.seconds;b.burstUntil=b.guardUntil;}
+    else {Object.assign(b,{classId:s.classId,x:0,y:100});scheduleCombatSkill(b,{x:0,y:0},b.tick*10,slot);}
     events.push({type:'skill',slot});
     return { state: s, events };
   }

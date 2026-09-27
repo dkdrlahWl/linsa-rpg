@@ -1,15 +1,16 @@
-import {GameAudio} from './game-audio.mjs?v=field-fragment-13';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=trial-coop-20';
+import {playSecondOverlay} from './skill-overlay.mjs?v=skill-sequence-21';
+import {GameAudio} from './game-audio.mjs?v=skill-sequence-21';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=skill-sequence-21';
 import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=field-fragment-13';
-import {TOWER_FLOORS} from './tower-model.mjs?v=trial-coop-20';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-visible-18';
-import * as D from "./data.mjs?v=field-fragment-13";
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=skill-sequence-21';
+import {TOWER_FLOORS} from './tower-model.mjs?v=skill-sequence-21';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=skill-sequence-21';
+import * as D from "./data.mjs?v=skill-sequence-21";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=field-fragment-13";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=skill-sequence-21";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -755,12 +756,13 @@ function showEvents(events) {
     if (e.type === "combat") continue;
     if (e.type === "skill") {
       const arena = $(".arena");
+      if(e.slot===2&&arena&&!settings.low){playSecondOverlay(arena,state.classId);continue;}
       if (arena && !settings.low) {
         const flash = document.createElement("div");
-        flash.className = "skill-burst " + state.classId+(e.slot===4?" fourth-burst":e.slot===3?" third-burst":e.slot===2?" second-burst":"");if(e.slot===2)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);if(e.slot===3)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);
+        flash.className = "skill-burst " + state.classId+(e.slot===4?" fourth-burst":e.slot===3?" third-burst":e.slot===1?" second-burst":"");if(e.slot===1)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);if(e.slot===3)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);
         flash.textContent = (e.slot===4?D.FOURTH_SKILLS:e.slot===3?D.THIRD_SKILLS:e.slot===2?D.SECOND_SKILLS:D.CLASS_SKILLS)[state.classId].name;
         arena.append(flash);
-        setTimeout(()=>flash.remove(), e.slot===4?6000:e.slot===2?1200:900);
+        setTimeout(()=>flash.remove(), e.slot===4?6000:e.slot===1?1200:900);
       }
     }
     if (e.type === "star") {

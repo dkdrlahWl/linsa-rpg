@@ -19,6 +19,9 @@ export class BattleAudioTracker{
     const fields={attackReady:b.classId+'-attack',ultimateReady:b.classId+'-skill-1',skillReady:b.classId+'-skill-2',thirdReady:b.classId+'-skill-3',fourthReady:b.classId+'-skill-4',dashReady:'battle-dash',enemyCastStart:'boss-warning'};
     if(!old){old={hp:b.hp,won:!!b.won,ended:!!b.ended};for(const k in fields)old[k]=b[k]||0;this.runs.set(b.runId,old);if(this.runs.size>12)this.runs.delete(this.runs.keys().next().value);return;}
     for(const [key,id] of Object.entries(fields)){const value=b[key]||0;if(value>old[key]){if(!b.ended&&(key==='enemyCastStart'||value>b.tick))this.emit(id);old[key]=value;}}
+    old.pulses||=new Set();
+    for(const e of b.effects||[]){if(e.kind!=='second-sequence'||e.phase!=='pulse'||e.classId!==b.classId||(e.owner&&b.id&&e.owner!==b.id)||b.tick<e.impact||b.tick>e.impact+3||old.pulses.has(e.id)||b.ended)continue;old.pulses.add(e.id);this.emit(e.final?'battle-crit':b.classId+'-attack');}
+    if(old.pulses.size>48)old.pulses=new Set([...old.pulses].slice(-32));
     if(b.hp<old.hp)this.emit('battle-hurt');old.hp=b.hp;
     if(b.won&&!old.won)this.emit('battle-victory');
     else if(b.ended&&!old.ended&&!b.won)this.emit('battle-defeat');
@@ -33,7 +36,7 @@ export class GameAudio{
   volume(){if(!this.ctx)return;this.fx.gain.setTargetAtTime(Math.max(0,Number(this.settings().sound)||0),this.ctx.currentTime,.025);this.bg.gain.setTargetAtTime(Math.max(0,Number(this.settings().music)||0)*1.5,this.ctx.currentTime,.08);}
   async load(id){
     if(!this.ctx||!AUDIO_IDS.has(id))return null;
-    if(!this.buffers.has(id)){const ctx=this.ctx;const pending=fetch(new URL('./audio/'+({"lobby-bgm":"lobby-green-road","battle-bgm":"battle-wild-oath"}[id]||id)+'.mp3',import.meta.url)).then(r=>{if(!r.ok)throw Error('audio');return r.arrayBuffer();}).then(b=>ctx.decodeAudioData(b)).catch(()=>{this.buffers.delete(id);return null;});this.buffers.set(id,pending);}return this.buffers.get(id);
+    if(!this.buffers.has(id)){const ctx=this.ctx;const pending=fetch(new URL('./audio/'+({"lobby-bgm":"lobby-green-road","battle-bgm":"battle-wild-oath"}[id]||id.replace('-skill-1','-skill-2'))+'.mp3',import.meta.url)).then(r=>{if(!r.ok)throw Error('audio');return r.arrayBuffer();}).then(b=>ctx.decodeAudioData(b)).catch(()=>{this.buffers.delete(id);return null;});this.buffers.set(id,pending);}return this.buffers.get(id);
   }
   warm(){for(const id of ['ui-click','ui-back','ui-tab','ui-error','enhance-charge','enhance-success','enhance-fail','cube-red','cube-black','cube-prime','cube-rankup','chest-open','loot-common'])void this.load(id);this.warmClass();}
   warmClass(){if(!this.ctx)return;const cls=this.state()?.classId;if(cls&&cls!==this.warmedClass){this.warmedClass=cls;for(const k of ['attack','skill-1','skill-2','skill-3','skill-4'])void this.load(cls+'-'+k);}}

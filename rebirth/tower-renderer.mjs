@@ -1,9 +1,10 @@
+import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 import {damageRows} from './damage-stack.mjs?v=field-fragment-13';
 import {drawFourth} from './fourth-effects.mjs?v=field-fragment-13';
 import MOTION_LAYOUT from './motion-layout.mjs?v=field-fragment-13';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=trial-coop-20';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=skill-sequence-21';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -69,6 +70,7 @@ const preparations=new Map();
 export function prepareCombatArt(classes,boss){
  const tasks=[...new Set(classes)].flatMap(cls=>[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
  tasks.push([asset('boss-'+boss),null]);image(asset('fourth-job-atlas'));
+ image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
   if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>window.requestIdleCallback?requestIdleCallback(resolve,{timeout:1500}):setTimeout(resolve,0));if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,boss==='aureon'?1:3,1);}catch{preparations.delete(src);}})());
@@ -77,7 +79,8 @@ export function prepareCombatArt(classes,boss){
 }
 
 export class TowerRenderer {
-  constructor(canvas){
+  constructor(canvas,options={}){
+    this.presentationScale=options.presentationScale;
     this.mobileActors=matchMedia('(pointer: coarse)');
     this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.shake=0;this.flash=0;this.zoom=0;
@@ -200,7 +203,7 @@ export class TowerRenderer {
     const dt=this.last?Math.min(50,now-this.last):16;
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
-    const scale=Math.min(.7,Math.max(.46,height/3000)),viewWidth=1000/scale,viewHeight=height/scale;
+    const scale=this.presentationScale||Math.min(.7,Math.max(.46,height/3000)),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
@@ -273,7 +276,8 @@ export class TowerRenderer {
       if(e.hostile)continue;
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
       if(e.kind==='fourth'){if(e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')));continue;}
-      if(e.kind==='second'){
+      if(e.kind==='second-sequence'){drawSecondSequence(g,e,time,image(motionAsset('second-sequence-atlas-v1')),(x,y,dir,alpha)=>this.actor('rogue',dir,true,true,.6,time,x,y,alpha));continue;}
+      if(e.kind==='first'||e.kind==='second'){
         if(['mage','archer','pirate'].includes(e.classId)){const im=image(asset('second-'+e.classId+'-attack-v1'));if(im.complete&&im.naturalWidth){const cuts={mage:[0,525/2172,1060/2172,1665/2172,1],archer:[0,.25,.5,.75,1],pirate:[0,455/2172,935/2172,1600/2172,1]}[e.classId],sx=Math.round(cuts[frame]*im.width),sw=Math.round(cuts[frame+1]*im.width)-sx,h=e.size*.75;g.save();g.globalAlpha=.92;g.drawImage(im,sx,0,sw,im.height,e.x-e.size/2,e.y-h*.76,e.size,h);g.restore();}continue;}
         const col={warrior:0,rogue:3}[e.classId]??0,im=image(asset('second-job-atlas'));if(im.complete&&im.naturalWidth){const sw=im.width/5,sh=im.height/4;g.save();g.globalAlpha=.75;g.drawImage(im,col*sw,frame*sh,sw,sh,e.x-e.size/2,e.y-e.size*.4,e.size,e.size*.8);g.restore();}continue;
       }
