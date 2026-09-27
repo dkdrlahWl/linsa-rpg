@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {startCoop,advanceCoop,advanceCoopRaw} from './coop-model.mjs?v=crit-odds-55';
+import {startCoop,advanceCoop,advanceCoopRaw} from './coop-model.mjs?v=crit-values-56';
 const power={attack:40,hp:100000,defense:100,boss:1,crit:0,critDamage:1.5,cadence:1,firstJob:true,advancement:3};
 for(const mode of ['wave','rift']){
  const initial=startCoop({id:'queued',me:'p0',mode,tier:0,status:'waiting',members:['warrior','mage','archer','pirate'].map((classId,i)=>({id:'p'+i,classId,power,advanced:true}))},0);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import {CLASSES,CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=crit-odds-55';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-odds-55';
+import {CLASSES,CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=crit-values-56';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-values-56';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 for(const c of CLASSES){
  const p={attack:1000,hp:1e8,defense:100,boss:1,crit:0,critDamage:1.5,cadence:1,advancement:1};

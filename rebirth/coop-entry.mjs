@@ -1,4 +1,4 @@
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=crit-odds-55';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=crit-values-56';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){

@@ -1,2 +1,2 @@
 // The former per-line permanent-rank contract was replaced by equipment-wide Maple ranks.
-import './maple-cubes.test.mjs?v=crit-odds-55';
+import './maple-cubes.test.mjs?v=crit-values-56';

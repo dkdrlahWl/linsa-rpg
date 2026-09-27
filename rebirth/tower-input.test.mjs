@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {TowerInput,projectPlayer,stickVector} from './tower-input.mjs?v=crit-odds-55';
-import {newTowerBattle,towerStep,upgradeTowerBattle,TOWER_BOUNDS} from './tower-model.mjs?v=crit-odds-55';
-import {TowerController} from './tower-controller.mjs?v=crit-odds-55';
+import {TowerInput,projectPlayer,stickVector} from './tower-input.mjs?v=crit-values-56';
+import {newTowerBattle,towerStep,upgradeTowerBattle,TOWER_BOUNDS} from './tower-model.mjs?v=crit-values-56';
+import {TowerController} from './tower-controller.mjs?v=crit-values-56';
 const battle=()=>newTowerBattle(1,'warrior',{attack:240,hp:4000,defense:100,boss:1,crit:0,critDamage:1.6,cadence:1},0,'test',1);
 test('movement distance is independent of 30 / 60 / 144 Hz rendering',()=>{
  for(const hz of [30,60,144]){const b=battle(),q=new TowerInput();for(let i=0;i<hz;i++)q.advance(1000/hz,[1,0,0],f=>towerStep(b,f));assert.equal(b.tick,10);assert.ok(Math.abs(b.player.x-1850)<1e-6);}

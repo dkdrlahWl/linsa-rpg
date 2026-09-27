@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {CUBES,cubeUpgrade,cubeTable,rerollCube,rollCubeLine} from './maple-cubes.mjs?v=crit-odds-55';
-import {initialState,execute} from './engine.mjs?v=crit-odds-55';
-import {renderCubePanel,cubeOdds} from './cube-ui.mjs?v=crit-odds-55';
+import {CUBES,cubeUpgrade,cubeTable,rerollCube,rollCubeLine} from './maple-cubes.mjs?v=crit-values-56';
+import {initialState,execute} from './engine.mjs?v=crit-values-56';
+import {renderCubePanel,cubeOdds} from './cube-ui.mjs?v=crit-values-56';
 let seed=177;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32),ctx=(rng=random)=>({now:0,random:rng,uuid:randomUUID});
 assert.deepEqual(CUBES.highCube.up.slice(2,5),[.30,.07,.028]);
 assert.deepEqual(CUBES.primeCube.up.slice(2,5),[1,.105,.042]);

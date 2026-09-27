@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {initialState,makeItem,power} from './engine.mjs?v=crit-odds-55';
-import {CLASSES} from './data.mjs?v=crit-odds-55';
+import {initialState,makeItem,power} from './engine.mjs?v=crit-values-56';
+import {CLASSES} from './data.mjs?v=crit-values-56';
 const ctx={now:0,uuid:randomUUID,random:()=>.5};
 for(const cl of CLASSES){
  const s=initialState(cl.id,'능력치',ctx);s.level=80;

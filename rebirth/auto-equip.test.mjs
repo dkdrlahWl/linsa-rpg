@@ -1,7 +1,7 @@
-import {normalizePotentialItem} from './data.mjs?v=crit-odds-55';
+import {normalizePotentialItem} from './data.mjs?v=crit-values-56';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {initialState,makeItem,power,bestEquipment,execute} from './engine.mjs?v=crit-odds-55';
+import {initialState,makeItem,power,bestEquipment,execute} from './engine.mjs?v=crit-values-56';
 const ctx={now:0,uuid:randomUUID,random:()=>.5};
 const state=()=>{const s=initialState('warrior','장착검증',ctx);s.level=100;s.hunting=false;return s;};
 let seed=11;const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};

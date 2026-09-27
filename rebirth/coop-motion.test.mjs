@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs';
-import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-odds-55';
-import {spawnWave} from './wave-model.mjs?v=crit-odds-55';
+import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-values-56';
+import {spawnWave} from './wave-model.mjs?v=crit-values-56';
 // A received snapshot can correct any actor by a large amount without moving
 // its first displayed frame. Subsequent corrections have a bounded velocity.
 for(const local of [false,true]){

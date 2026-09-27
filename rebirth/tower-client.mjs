@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=crit-odds-55';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=crit-odds-55';
-export {TowerController} from './tower-controller.mjs?v=crit-odds-55';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=crit-values-56';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=crit-values-56';
+export {TowerController} from './tower-controller.mjs?v=crit-values-56';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

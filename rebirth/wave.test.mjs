@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import {startCoop,advanceCoop,predictCoopStep} from './coop-model.mjs?v=crit-odds-55';
-import {waveStats,spawnWave,advanceWaveRaw} from './wave-model.mjs?v=crit-odds-55';
+import {startCoop,advanceCoop,predictCoopStep} from './coop-model.mjs?v=crit-values-56';
+import {waveStats,spawnWave,advanceWaveRaw} from './wave-model.mjs?v=crit-values-56';
 const p={attack:40,hp:10000,defense:10,boss:1,crit:.1,critDamage:1.5,cadence:1,firstJob:false,advancement:0};
 const fresh=(count=4)=>startCoop({id:'wave',mode:'wave',me:'p0',tier:0,status:'waiting',members:Array.from({length:count},(_,i)=>({id:'p'+i,name:'모험가'+i,classId:'warrior',power:{...p},advanced:false}))},0);
 const step=(w,inputs={})=>advanceWaveRaw(w,null,null,w.started+(w.tick+1)*100,Object.entries(inputs).map(([user,input])=>({user,input,tick:w.tick})));

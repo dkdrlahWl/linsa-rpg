@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import * as E from './engine.mjs?v=crit-odds-55';
-import * as D from './data.mjs?v=crit-odds-55';
+import * as E from './engine.mjs?v=crit-values-56';
+import * as D from './data.mjs?v=crit-values-56';
 const ctx=(now=0,random=()=>.5)=>({now,random,uuid:randomUUID});
 let s=E.initialState('rogue','도전자',ctx());
 const a=E.execute(s,'sync',{},ctx(21600000)),b=E.execute(s,'sync',{},ctx(86400000));

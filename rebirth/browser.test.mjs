@@ -1,7 +1,7 @@
 import {chromium} from 'playwright';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
-import {initialState,makeItem,execute} from './engine.mjs?v=crit-odds-55';
+import {initialState,makeItem,execute} from './engine.mjs?v=crit-values-56';
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});
 const seed=()=>{const s=initialState('rogue','모험가',{now:Date.now(),uuid:randomUUID});s.level=80;s.points=50;s.gold=1250000;s.stats.LUK=345;s.materials={fragment:140,scroll:4,cube:30,highCube:5,expand:6};s.cleared=[0,1,2,3,4,5,6,7,8];s.stage=9;s.items=Array.from({length:9},(_,slot)=>({...makeItem(60,'rogue',slot,true,{uuid:randomUUID}),stars:8,lines:[{key:'LUK',value:3}],grade:1}));s.equipped=Object.fromEntries(s.items.map(i=>[i.slot,i.id]));return s;};
 try{for(const width of [360,412,1280]){

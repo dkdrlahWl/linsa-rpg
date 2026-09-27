@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import {initialState,makeItem,power,huntingRate,execute} from './engine.mjs?v=crit-odds-55';
-import * as D from './data.mjs?v=crit-odds-55';
+import {initialState,makeItem,power,huntingRate,execute} from './engine.mjs?v=crit-values-56';
+import * as D from './data.mjs?v=crit-values-56';
 import {damageRows} from './damage-stack.mjs';
-import {newTowerBattle,towerStep,TOWER_CLASSES} from './tower-model.mjs?v=crit-odds-55';
-import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-odds-55';
+import {newTowerBattle,towerStep,TOWER_CLASSES} from './tower-model.mjs?v=crit-values-56';
+import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-values-56';
 let id=0;const ctx={now:100000,random:()=>.5,uuid:()=>String(++id)};
 export function fieldCharacter(level,cl,geared=true){
  const s=initialState(cl.id,'사냥시험',ctx);Object.assign(s,{level,items:[],equipped:{},firstAdvancement:level>=30,advancement:level>=150?3:level>=100?2:level>=60?1:0});s.stats[cl.stat]+=5*(level-1);

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-const source=readFileSync(new URL('./app.mjs?v=crit-odds-55',import.meta.url),'utf8');
+const source=readFileSync(new URL('./app.mjs?v=crit-values-56',import.meta.url),'utf8');
 const helper=source.slice(source.indexOf('let coopListAttempt='),source.indexOf('let marketKind='));
 const calls=[],waiters=[];
 const ctx=vm.createContext({view:'game',tab:'boss',bossTab:'advancement',state:{},session:{},busy:true,document:{hidden:false},navigator:{onLine:true},commandIdleWaiters:waiters,command:async(...args)=>calls.push(args)});
