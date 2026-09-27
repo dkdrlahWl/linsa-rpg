@@ -20,6 +20,7 @@ try{
   await assert.rejects(()=>call(low,'create',{mode:'advancement',tier:trial.stage}),/LEVEL_REQUIRED/);
   if(trial.stage)await assert.rejects(()=>call(future,'create',{mode:'advancement',tier:trial.stage}),/ADVANCEMENT_REQUIRED/);
   let r=await call(host,'create',{mode:'advancement',tier:trial.stage});const rid=r.coop.id;
+  for(const viewer of [helper,low,future]){const listing=await call(viewer,'list');assert.ok(listing.coopRooms.some(room=>room.id===rid&&room.mode==='advancement'&&room.tier===trial.stage&&room.count===1));}
   await assert.rejects(()=>call(low,'join',{room:rid}),/LEVEL_REQUIRED/);
   r=await call(helper,'join',{room:rid});
   await assert.rejects(()=>call(third,'join',{room:rid}),/PARTY_NOT_FOUND/);

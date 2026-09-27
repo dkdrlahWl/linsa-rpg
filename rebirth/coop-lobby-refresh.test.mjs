@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+const source=readFileSync(new URL('./app.mjs',import.meta.url),'utf8');
+const helper=source.slice(source.indexOf('let coopListAttempt='),source.indexOf('let marketKind='));
+const calls=[],waiters=[];
+const ctx=vm.createContext({view:'game',tab:'boss',bossTab:'advancement',state:{},session:{},busy:true,document:{hidden:false},navigator:{onLine:true},commandIdleWaiters:waiters,command:async(...args)=>calls.push(args)});
+vm.runInContext(helper,ctx);
+const first=vm.runInContext('refreshCoopRooms()',ctx),duplicate=vm.runInContext('refreshCoopRooms()',ctx);
+assert.equal(calls.length,0);assert.equal(waiters.length,1);
+ctx.busy=false;waiters.splice(0).forEach(f=>f());await Promise.all([first,duplicate]);
+assert.equal(calls.length,1);assert.equal(calls[0][0],'coopList');
+ctx.busy=true;const abandoned=vm.runInContext('refreshCoopRooms()',ctx);ctx.tab='hunt';ctx.busy=false;waiters.splice(0).forEach(f=>f());await abandoned;assert.equal(calls.length,1);
+ctx.tab='boss';ctx.state={coopRoom:'joined'};await vm.runInContext('refreshCoopRooms()',ctx);assert.equal(calls.length,1);
+assert.ok(source.includes('Date.now()-coopListAttempt>=3000'));
+console.log('PASS queued lobby refresh survives busy requests, coalesces duplicates, cancels after exit/join, and refreshes every 3 seconds.');
