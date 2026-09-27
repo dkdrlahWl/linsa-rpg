@@ -1,4 +1,4 @@
-import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=skill-sequence-21';
+import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=defense-half-24';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');

@@ -1,17 +1,17 @@
 import {nextAutoSkill} from './auto-skills.mjs?v=auto-skills-23';
 import {playSecondOverlay} from './skill-overlay.mjs?v=skill-sequence-21';
 import {GameAudio} from './game-audio.mjs?v=skill-sequence-21';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=auto-skills-23';
-import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=defense-half-24';
+import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=skill-sequence-21';
-import {TOWER_FLOORS} from './tower-model.mjs?v=skill-sequence-21';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=auto-skills-23';
-import * as D from "./data.mjs?v=skill-sequence-21";
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=defense-half-24';
+import {TOWER_FLOORS} from './tower-model.mjs?v=defense-half-24';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=defense-half-24';
+import * as D from "./data.mjs?v=defense-half-24";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=skill-sequence-21";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=defense-half-24";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

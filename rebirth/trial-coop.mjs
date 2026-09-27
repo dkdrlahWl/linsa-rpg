@@ -1,5 +1,5 @@
 import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=field-fragment-13';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=skill-sequence-21';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=defense-half-24';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.
