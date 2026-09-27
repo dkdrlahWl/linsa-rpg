@@ -1,0 +1,6 @@
+/* Keep the controls in place while damage and cooldowns update. */
+.actions>.regular-combat-skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;flex:0 0 100%;width:100%;min-width:0}
+.regular-combat-skills>button{display:grid;grid-template-rows:1fr 18px;align-items:center;justify-items:center;gap:4px;width:100%;height:78px;min-height:78px;min-width:0;margin:0;padding:8px 10px;box-sizing:border-box;white-space:normal;transform:none}
+.regular-combat-skills .combat-skill-name{display:block;line-height:1.35;font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
+.regular-combat-skills small{display:block;height:18px;line-height:18px;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.regular-combat-skills .menu-art{display:none}

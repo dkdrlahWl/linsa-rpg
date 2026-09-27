@@ -597,11 +597,21 @@ function disabledBtn(label,action,arg,blocked=false,cls="") {
   return blocked ? html.replace("<button ","<button disabled data-unavailable ") : html;
 }
 let regularAutoSkills=false,regularAutoBattle=null;
+function combatSkillState(slot,party=false,tick){
+ const r=party?partyRoom:state.battle,me=party?r.members.find(m=>m.mine):r;
+ const seconds=party?r.seconds:battleEnemy(r).seconds;
+ tick??=Math.min(seconds,r.tick+Math.max(0,Math.floor((Date.now()-lastSync)/1000)));
+ const sk=slot===5?D.PRIEST_SKILLS[5]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];
+ const ready=slot===5?r.fifthReadyAt:slot===4?r.fourthReadyAt:slot===3?r.thirdReadyAt:slot===1?me?.skillReady:me?.secondReady;
+ const remain=party?Math.max(0,Math.ceil((ready||0)-tick)):Math.max(0,Math.ceil(((ready||0)-r.started-tick*1000)/1000));
+ const locked=slot===5?state.classId!=='priest'||state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;
+ return {sk,disabled:locked||remain>0||(party&&me?.hp<=0)||tick>=seconds,status:locked?'전직 필요':remain?remain+'초':'사용 가능'};
+}
 function combatSkillButtons(party=false) {
  const key=state.battle?.started;if(regularAutoBattle!==key){regularAutoBattle=key;regularAutoSkills=false;}
- const me=party?partyRoom?.members.find(m=>m.mine):null;
- return (state.classId==='priest'?[1,2,3,4,5]:[1,2,3,4]).map(slot=>{const sk=slot===5?D.PRIEST_SKILLS[5]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId],locked=slot===5?state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;
- return '<button class="gold skill-button" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(locked||me?.hp<=0?'disabled':'')+' title="'+esc(sk.description)+'">'+(locked?slot+'차 전직 후 · ':slot+'차 · ')+sk.name+'</button>';}).join('')+(party?'':'<button data-action="autoSkills" aria-pressed="'+regularAutoSkills+'">스킬 자동 '+(regularAutoSkills?'켜짐':'꺼짐')+'</button>');
+ return '<div class="regular-combat-skills">'+(state.classId==='priest'?[1,2,3,4,5]:[1,2,3,4]).map(slot=>{
+ const {sk,disabled,status}=combatSkillState(slot,party);
+ return '<button class="gold skill-button" data-illustrated="1" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(disabled?'disabled':'')+' title="'+esc(sk.description)+'"><span class="combat-skill-name">'+slot+'차 · '+esc(sk.name)+'</span><small data-skill-status>'+status+'</small></button>';}).join('')+(party?'':'<button data-illustrated="1" data-action="autoSkills" aria-pressed="'+regularAutoSkills+'"><span class="combat-skill-name">스킬 자동</span><small>'+(regularAutoSkills?'켜짐':'꺼짐')+'</small></button>')+'</div>';
 }
 function skillGuide(){return '<div class="skill-guide">'+(state.classId==='priest'?[1,2,3,4,5]:[1,2,3,4]).map(slot=>{const sk=slot===5?D.PRIEST_SKILLS[5]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===5?state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===5?200:slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
 function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row">'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">◆</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
@@ -1433,8 +1443,12 @@ function updateCombatClock(){
  const seconds=party?r.seconds:battleEnemy(r).seconds;
  const tick=Math.min(seconds,r.tick+Math.max(0,Math.floor((Date.now()-lastSync)/1000)));
  const timer=$('#battle-timer');if(timer)timer.textContent='남은 '+Math.max(0,seconds-tick)+'초 / '+seconds+'초';
- const me=party?r.members.find(m=>m.mine):r;
- document.querySelectorAll('[data-skill-slot]').forEach(button=>{const slot=Number(button.dataset.skillSlot),sk=slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];const ready=slot===5?r.fifthReadyAt:slot===4?r.fourthReadyAt:slot===3?r.thirdReadyAt:slot===1?(party?me?.skillReady:r.skillReady):(party?me?.secondReady:r.secondReady);const remain=party?Math.max(0,(ready||0)-tick):Math.max(0,Math.ceil(((ready||0)-r.started-tick*1000)/1000));const locked=slot===5?state.classId!=='priest'||state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;button.disabled=busy||locked||remain>0||(party&&me?.hp<=0)||tick>=seconds;button.textContent=slot+'차 · '+sk.name+(locked?' · 전직 필요':remain?' · '+remain+'초':' · 사용 가능');});
+ document.querySelectorAll('.regular-combat-skills [data-skill-slot]').forEach(button=>{
+  const {disabled,status}=combatSkillState(Number(button.dataset.skillSlot),party,tick);
+  button.disabled=disabled;
+  const label=button.querySelector('[data-skill-status]');
+  if(label&&label.textContent!==status)label.textContent=status;
+ });
 }
 function unavailable() {
   app.innerHTML='<div class="login panel"><p class="eyebrow">링구 RPG</p><h2>잠시 연결을 기다리고 있어요</h2><p class="note">연결이 복구되면 저장된 모험을 이어갈 수 있어요.</p><div class="actions">'+btn("다시 연결","reconnect","","gold")+btn("로그인 복구","recoverLogin")+'</div></div>';
