@@ -3,7 +3,7 @@ import {raidLobby} from './raid-ui.mjs?v=raid-weekly-41';
 import {nextAutoSkill} from './auto-skills.mjs?v=priest-visual-35';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-visual-35';
 import {GameAudio} from './game-audio.mjs?v=priest-visual-35';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=actor-fixed-42';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-rewards-43';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=priest-visual-35';
@@ -13,7 +13,7 @@ import * as D from "./data.mjs?v=priest-portrait-28";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=raid-weekly-41";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=rift-rewards-43";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

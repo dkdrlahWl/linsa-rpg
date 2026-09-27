@@ -12,7 +12,7 @@ import {beginThird,stepThird} from './advancement.mjs?v=priest-visual-35';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-visual-35';
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=priest-visual-35';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
-import {COOP_TIERS} from './rift-rewards.mjs?v=field-fragment-13';
+import {COOP_TIERS} from './rift-rewards.mjs?v=rift-rewards-43';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
