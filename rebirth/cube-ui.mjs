@@ -1,5 +1,5 @@
 import {currencyIconURL} from './currency-icons.mjs?v=field-fragment-13';
-import * as D from './data.mjs?v=effective-defense-54';
+import * as D from './data.mjs?v=crit-odds-55';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const pct=n=>(n*100).toFixed(6).replace(/\.?0+$/,'')+'%';
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
@@ -11,7 +11,7 @@ export function cubeOdds(kind,item,grade=item.grade){
  const c=D.CUBES[kind];if(!c||grade<2||grade>c.maxGrade)return '';
  grade=c.prime?Math.max(3,grade):grade;
  const pool=D.cubeTable(kind,item,grade).rows[0].current;
- return `<details class="cube-probabilities"><summary>${D.RARITIES[grade]} · 3줄 공통 옵션 확률</summary><p class="note">장비 레벨·직업·부위·큐브 종류와 관계없이 같은 등급은 동일한 표를 사용합니다. 세 줄 모두 ${D.RARITIES[grade]} 옵션만 나옵니다. 에픽 이상 공격력%·보스 피해% 등장 확률은 기존보다 40% 낮으며, 줄어든 확률은 나머지 옵션에 배분됩니다. 아래는 각 줄의 생성 확률입니다.</p><div class="scroll"><table><thead><tr><th>옵션</th><th>줄당 확률</th></tr></thead><tbody>${pool.map(r=>`<tr><td>${optionLabel(r)}</td><td>${pct(r.weight)}</td></tr>`).join('')}</tbody></table></div><p class="note">3줄은 독립 추첨하며 같은 옵션 중복이 가능합니다. 현재 3줄과 등급·수치·옵션이 전부 같으면 다시 추첨하므로 최종 결과는 이 조건을 반영합니다.</p></details>`;
+ return `<details class="cube-probabilities"><summary>${D.RARITIES[grade]} · 3줄 공통 옵션 확률</summary><p class="note">장비 레벨·직업·부위·큐브 종류와 관계없이 같은 등급은 동일한 표를 사용합니다. 세 줄 모두 ${D.RARITIES[grade]} 옵션만 나옵니다. 에픽 이상 공격력%·보스 피해% 등장 확률은 기존보다 40% 낮으며, 치명타 확률 옵션은 이번 조정 직전의 절반으로 감소했습니다. 공격력%·보스 피해% 확률은 유지하며, 치확에서 빠진 확률은 그 외 옵션에 배분됩니다. 아래는 각 줄의 생성 확률입니다.</p><div class="scroll"><table><thead><tr><th>옵션</th><th>줄당 확률</th></tr></thead><tbody>${pool.map(r=>`<tr><td>${optionLabel(r)}</td><td>${pct(r.weight)}</td></tr>`).join('')}</tbody></table></div><p class="note">3줄은 독립 추첨하며 같은 옵션 중복이 가능합니다. 현재 3줄과 등급·수치·옵션이 전부 같으면 다시 추첨하므로 최종 결과는 이 조건을 반영합니다.</p></details>`;
 }
 export function renderCubePanel(it,state,kind,lastResult,protectedReason=''){
  const opened=it.lines.length>0,c=D.CUBES[kind]||D.CUBES.cube,key=kind,cost=D.cubeCost(kind,it);

@@ -1,5 +1,5 @@
 import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest-visual-35';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=effective-defense-54';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=crit-odds-55';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
 import {beginThird,stepThird} from './advancement.mjs?v=priest-visual-35';
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-visual-35';

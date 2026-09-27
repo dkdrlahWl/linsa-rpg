@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=effective-defense-54';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=effective-defense-54';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=crit-odds-55';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=crit-odds-55';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

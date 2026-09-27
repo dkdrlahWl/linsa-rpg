@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
-import {initialState,makeItem,power} from './engine.mjs?v=effective-defense-54';
-import {CLASSES,OPTIONS} from './data.mjs?v=effective-defense-54';
+import {initialState,makeItem,power} from './engine.mjs?v=crit-odds-55';
+import {CLASSES,OPTIONS} from './data.mjs?v=crit-odds-55';
 const db=new PGlite();const ctx={now:0,uuid:randomUUID,random:()=>.5};
 try {
 await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key,raw_app_meta_data jsonb);create schema rebirth_private;create table rebirth_private.players(id uuid primary key,state jsonb);create function rebirth_private.session_user() returns uuid language plpgsql as $$begin if nullif(current_setting('test.actor',true),'') is null then raise exception 'LOGIN_REQUIRED';end if;return current_setting('test.actor')::uuid;end $$;`);

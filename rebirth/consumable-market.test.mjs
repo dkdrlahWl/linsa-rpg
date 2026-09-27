@@ -1,9 +1,9 @@
-import {MATERIALS} from './data.mjs?v=effective-defense-54';
+import {MATERIALS} from './data.mjs?v=crit-odds-55';
 import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
-import {initialState} from './engine.mjs?v=effective-defense-54';
+import {initialState} from './engine.mjs?v=crit-odds-55';
 const db=new PGlite();
 try {
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);

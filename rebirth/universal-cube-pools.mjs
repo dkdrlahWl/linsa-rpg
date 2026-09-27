@@ -1,13 +1,17 @@
 // All levels, jobs, equipment parts and cube colours share each option-grade pool.
 // Alternate values split their ability's probability. Epic+ attack% and boss%
-// each retain 60% of their former probability; other abilities share the remainder.
+// each retain 60% of their former probability. Epic+ critical options retain
+// half their previous probability; redistribute only to other non-damage options.
 const stats=(prefix,value)=>Object.fromEntries(['STR','DEX','INT','LUK'].map(k=>[prefix+k,value]));
 const pool=(options,reduceDamage=false)=>{
  const entries=Object.entries(options),reduced=reduceDamage?entries.filter(([key])=>key==='attack'||key==='boss').length:0;
  const otherShare=(1-.6*reduced/entries.length)/(entries.length-reduced);
+ const criticalKeys=new Set(['crit','critDamage']);
+ const criticalCount=reduceDamage?entries.filter(([key])=>criticalKeys.has(key)).length:0;
+ const redistributed=otherShare*.5*criticalCount/Math.max(1,entries.length-reduced-criticalCount);
  return entries.flatMap(([key,values])=>{
   const a=Array.isArray(values)?values:[values],restricted=reduceDamage&&(key==='attack'||key==='boss');
-  const chance=restricted?0.6/entries.length:otherShare;
+  const chance=restricted?0.6/entries.length:reduceDamage&&criticalKeys.has(key)?otherShare*.5:otherShare+redistributed;
   return a.map(value=>({key,value,weight:chance/a.length}));
  });
 };

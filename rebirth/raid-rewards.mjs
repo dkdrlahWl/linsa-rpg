@@ -1,5 +1,5 @@
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-weekly-41';
-import {weekKey} from './data.mjs?v=effective-defense-54';
+import {weekKey} from './data.mjs?v=crit-odds-55';
 
 export const RAID_WEEKLY_LIMIT=3;
 export function raidWeeklyStatus(state,now=Date.now()){

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {initialState,execute,power} from './engine.mjs?v=effective-defense-54';
-import {normalizePotentialItem,normalizePotentialState,gearAttributes,OPTIONS} from './data.mjs?v=effective-defense-54';
-import {CUBES,cubeUpgrade,cubeTable,cubeLineRates,rerollCube,rollCubeLine} from './maple-cubes.mjs?v=flat-defense-53';
-import {renderCubePanel} from './cube-ui.mjs?v=effective-defense-54';
+import {initialState,execute,power} from './engine.mjs?v=crit-odds-55';
+import {normalizePotentialItem,normalizePotentialState,gearAttributes,OPTIONS} from './data.mjs?v=crit-odds-55';
+import {CUBES,cubeUpgrade,cubeTable,cubeLineRates,rerollCube,rollCubeLine} from './maple-cubes.mjs?v=crit-odds-55';
+import {renderCubePanel} from './cube-ui.mjs?v=crit-odds-55';
 let seed=1234567;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
 const ctx=(rng=random)=>({now:0,random:rng,uuid:randomUUID});
 function fixture(grade=2){const s=initialState('mage','큐브검증',ctx());s.hunting=false;s.gold=1e7;for(const k of Object.keys(CUBES))s.materials[k]=20;s.items[0].potentialUnlocked=true;s.items[0].level=200;s.items[0].grade=grade;s.items[0].lines=[{key:'INT',value:6,grade},{key:'STR',value:3,grade:grade-1},{key:'flatHP',value:100,grade:grade-1}];return s;}

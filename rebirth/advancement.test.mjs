@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import {initialState,execute,power} from './engine.mjs?v=effective-defense-54';
+import {initialState,execute,power} from './engine.mjs?v=crit-odds-55';
 import {jobStage,firstJobUnlocked,ADVANCEMENT_BOSSES} from './advancement.mjs';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=effective-defense-54';
-import {startCoop,advanceCoop} from './coop-model.mjs?v=effective-defense-54';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-odds-55';
+import {startCoop,advanceCoop} from './coop-model.mjs?v=crit-odds-55';
 let id=0;const ctx={now:1000000,random:()=>.5,uuid:()=>String(++id)};
 let s=initialState('warrior','전직검사',ctx);s.hunting=false;s.level=29;
 assert.throws(()=>execute(s,'advance',{},ctx),/LEVEL_REQUIRED/);
