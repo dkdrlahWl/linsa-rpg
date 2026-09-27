@@ -1,6 +1,6 @@
 import {supportTick} from './priest.mjs?v=priest-visual-35';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-visual-35';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-values-56';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-restore-57';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.

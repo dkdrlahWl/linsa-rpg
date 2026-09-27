@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
-import {startCoop,advanceCoop,predictCoopStep} from './coop-model.mjs?v=crit-values-56';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-values-56';
+import {startCoop,advanceCoop,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-restore-57';
 const power={attack:100,hp:1000000,defense:0,boss:1,crit:.2,critDamage:1.5,cadence:1,advancement:3,firstJob:true};
 const member=(id,classId='warrior')=>({id,classId,power,advanced:true,left:false,ready:true});
 for(const t of ADVANCEMENT_BOSSES)for(const cls of ['warrior','mage','archer','rogue','pirate']){

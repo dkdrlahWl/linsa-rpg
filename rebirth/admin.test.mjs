@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {initialState,execute} from './engine.mjs?v=crit-values-56';
-import {BOSSES,dayKey,weekKey,MATERIALS} from './data.mjs?v=crit-values-56';
+import {initialState,execute} from './engine.mjs?v=crit-restore-57';
+import {BOSSES,dayKey,weekKey,MATERIALS} from './data.mjs?v=crit-restore-57';
 const now=Date.UTC(2026,8,26,5),ctx={now,random:()=>.5,uuid:randomUUID},admin={...ctx,admin:true};
 const base=()=>{const s=initialState('warrior','도현1',ctx);s.hunting=false;return s;};
 const forged=base();forged.isAdmin=true;

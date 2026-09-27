@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import {CoopController} from './coop-client.mjs?v=crit-values-56';
+import {CoopController} from './coop-client.mjs?v=crit-restore-57';
 import {CoopMotion} from './coop-motion.mjs';
-import {TowerInput} from './tower-input.mjs?v=crit-values-56';
-import {startCoop} from './coop-model.mjs?v=crit-values-56';
+import {TowerInput} from './tower-input.mjs?v=crit-restore-57';
+import {startCoop} from './coop-model.mjs?v=crit-restore-57';
 globalThis.document={hidden:false,querySelector:()=>null};
 globalThis.requestAnimationFrame=()=>0;
 globalThis.Image=class {complete=false;naturalWidth=0;decode(){return Promise.reject(new Error('headless'));}};

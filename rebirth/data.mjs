@@ -3,8 +3,8 @@ export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest-visual-35';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=priest-visual-35';
 import {balanceWorld,journeyXP} from './journey-balance.mjs?v=effective-defense-54';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=effective-defense-54';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=crit-values-56';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=crit-values-56';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=crit-restore-57';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=crit-restore-57';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-visual-35";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=priest-visual-35";
 // Shared public balance data. The server is authoritative for RNG and ownership.
@@ -280,10 +280,10 @@ export function optionValue(key, grade, random = Math.random) {
 // Version 4: one equipment rank; legacy options are preserved until rerolled.
 export function fillPotentialLines(item, random) {
   item.lines ||= [];
-  // Migrate each existing critical-chance line exactly once; new rolls are tagged.
-  for (const line of item.lines) if (line.key === 'crit' && line.critBalanceVersion !== 1) {
-    line.value /= 2;
-    line.critBalanceVersion = 1;
+  // Restore only previously halved lines; untouched and new rolls keep original values.
+  for (const line of item.lines) if (line.key === 'crit' && line.critBalanceVersion !== 2) {
+    if (line.critBalanceVersion === 1) line.value *= 2;
+    line.critBalanceVersion = 2;
   }
   // Rebalance legacy flat-defense rolls as well as newly rolled options.
   for (const line of item.lines) if (line.key === "flatDefense") {

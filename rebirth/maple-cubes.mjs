@@ -1,4 +1,4 @@
-import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=crit-values-56';
+import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=crit-restore-57';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',4,[.060000002444,.018,0],[1,1,1],{pity:[0,0,25,83,0]}),
@@ -20,7 +20,7 @@ export function rollCubeLine(kind,item,grade,index,random){
  const table=cubeTable(kind,item,grade),rate=cubeLineRates(kind,grade)[index];
  const current=index===0||random()<rate;
  const row=weighted(table.rows[index][current?'current':'lower'],random);
- return {key:row.key,value:row.value,grade:current?grade:grade-1,...(row.key==='crit'?{critBalanceVersion:1}:{})};
+ return {key:row.key,value:row.value,grade:current?grade:grade-1,...(row.key==='crit'?{critBalanceVersion:2}:{})};
 }
 const signature=lines=>JSON.stringify(lines.map(l=>[l.key,l.value,l.grade]));
 export function rerollCube(kind,item,grade,random){

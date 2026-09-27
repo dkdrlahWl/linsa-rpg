@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import {initialState,execute,huntingRate} from './engine.mjs?v=crit-values-56';
-import {CLASSES} from './data.mjs?v=crit-values-56';
+import {initialState,execute,huntingRate} from './engine.mjs?v=crit-restore-57';
+import {CLASSES} from './data.mjs?v=crit-restore-57';
 let id=0;const ctx={now:1e6,random:()=>.5,uuid:()=>String(++id)};
 const fresh=()=>{const s=initialState('warrior','교환',ctx);s.hunting=false;s.materials.fragment=10000;return s;};
 for(const c of CLASSES)for(let level=10;level<=180;level+=10){const s=fresh(),r=execute(s,'exchangeGear',{classId:c.id,level},ctx),e=r.events.find(e=>e.type==='exchangeGear');assert.equal(r.state.materials.fragment,10000-level);assert.equal(e.item.level,level);assert.equal(e.item.classId,c.id);assert.equal(e.item.boss,false);assert.ok(e.item.design<2);assert.equal(e.item.potentialUnlocked,false);assert.ok(r.state.items.some(it=>it.id===e.item.id));}

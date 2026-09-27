@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {startCoop,advanceCoop,predictCoopStep} from './coop-model.mjs?v=crit-values-56';
+import {startCoop,advanceCoop,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';
 const power={attack:50,hp:50000,defense:30,boss:1,crit:.3,critDamage:1.6,cadence:1,firstJob:true,advancement:3};
 const fresh=()=>startCoop({id:'replay',me:'me',tier:5,status:'waiting',members:[{id:'me',classId:'mage',power,advanced:true}]},0);
 const trace=Array.from({length:90},(_,tick)=>({tick,input:[tick<30?1:tick<60?-1:0,0,1|(tick%35===0?4:0)|(tick===5?32:0)]}));

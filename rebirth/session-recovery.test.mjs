@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-const source=readFileSync(new URL('./app.mjs?v=crit-values-56',import.meta.url),'utf8');
+const source=readFileSync(new URL('./app.mjs?v=crit-restore-57',import.meta.url),'utf8');
 const auth=source.slice(source.indexOf('async function request('),source.indexOf('const icon ='));
 function setup(response){
  const saved=new Map([['pending','keep-me']]);let requests=0,logins=0;

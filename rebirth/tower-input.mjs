@@ -1,4 +1,4 @@
-import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=crit-values-56';
+import {TOWER_BOUNDS,TOWER_CLASSES,facingVector} from './tower-model.mjs?v=crit-restore-57';
 // Integrate input at display/event frequency; send the existing 100 ms protocol.
 export class TowerInput {
   constructor(step=100){this.step=step;this.clear();}

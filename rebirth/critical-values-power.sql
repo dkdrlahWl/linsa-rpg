@@ -43,7 +43,7 @@ begin
    elsif k='attack' then atk_pct:=atk_pct+val;
    elsif k='hp' then hp_pct:=hp_pct+val;
    elsif k='defense' then def_pct:=def_pct+val;
-   elsif k='crit' then crit_pct:=crit_pct+(case when coalesce(ln->>'critBalanceVersion','0')='1' then val else val/2 end);
+   elsif k='crit' then crit_pct:=crit_pct+(case when coalesce(ln->>'critBalanceVersion','0')='1' then val*2 else val end);
    elsif k='boss' then boss_pct:=boss_pct+val; end if;
   end loop;
  end loop;
