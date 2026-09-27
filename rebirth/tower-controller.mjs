@@ -1,8 +1,8 @@
-import {autoSkillBits} from './auto-skills.mjs?v=raid-light-32';
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=raid-light-32';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=raid-light-32';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=raid-light-32';
-import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=priest-visual-34';
+import {autoSkillBits} from './auto-skills.mjs?v=priest-visual-35';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=priest-visual-35';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=priest-visual-35';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=priest-visual-35';
+import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=priest-visual-35';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));

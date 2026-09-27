@@ -1,4 +1,4 @@
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-light-32';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-visual-35';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const btn=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
 export function raidLobby(state,room,rooms=[]){

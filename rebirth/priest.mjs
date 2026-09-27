@@ -1,10 +1,10 @@
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
 export const PRIEST_SKILLS={
- 1:{name:'성광 심판',type:'attack',cooldown:10,range:1800,radius:300,hits:3,damage:.6,interval:2,hpRatio:.01,description:'성광 3발 · 총 공격력 180% + 사제 최대 HP 3%'},
- 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:1100,radius:900,hits:1,damage:2,interval:1,hpRatio:.02,description:'주변 아군 각각 사제 최대 HP 15% 회복 · 공격력 200% + 최대 HP 2% 피해'},
- 3:{name:'성역의 결계',type:'attack',cooldown:24,range:1100,radius:900,hits:1,damage:4.5,interval:1,hpRatio:.05,art:5,description:'주변 아군 각각 사제 최대 HP 25% 보호막 6초 · 공격력 450% + 최대 HP 5% 피해'},
- 5:{name:'대천사 강림',type:'attack',cooldown:30,range:1100,radius:900,hits:8,damage:1.75,interval:10,hpRatio:.01875,description:'200레벨 · 8초 대천사 성역 · 공격력 1400% + 최대 HP 15% · 첫 회 최대 HP 10% 회복 · 아군 피해 15% 감소'},
- 4:{name:'천상의 심판',type:'attack',cooldown:30,range:1800,radius:760,hits:8,damage:1.25,interval:10,hpRatio:.0125,art:5,description:'8초 성광 폭격 · 총 공격력 1000% + 최대 HP 10% · 범위 내 아군 초당 사제 최대 HP 1% 회복'}
+ 1:{name:'성광 심판',type:'attack',cooldown:10,range:2100,radius:650,hits:3,damage:.6,interval:2,hpRatio:.01,description:'성광 3발 · 총 공격력 180% + 사제 최대 HP 3%'},
+ 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:1500,radius:1500,hits:1,damage:2,interval:1,hpRatio:.02,description:'주변 아군 각각 사제 최대 HP 15% 회복 · 공격력 200% + 최대 HP 2% 피해'},
+ 3:{name:'성역의 결계',type:'attack',cooldown:24,range:1500,radius:1500,hits:1,damage:4.5,interval:1,hpRatio:.05,art:5,description:'주변 아군 각각 사제 최대 HP 25% 보호막 6초 · 공격력 450% + 최대 HP 5% 피해'},
+ 5:{name:'대천사 강림',type:'attack',cooldown:30,range:1500,radius:1550,hits:8,damage:1.75,interval:10,hpRatio:.01875,description:'200레벨 · 8초 대천사 성역 · 공격력 1400% + 최대 HP 15% · 첫 회 최대 HP 10% 회복 · 아군 피해 15% 감소'},
+ 4:{name:'천상의 심판',type:'attack',cooldown:30,range:2100,radius:1250,hits:8,damage:1.25,interval:10,hpRatio:.0125,art:5,description:'8초 성광 폭격 · 총 공격력 1000% + 최대 HP 10% · 범위 내 아군 초당 사제 최대 HP 1% 회복'}
 };
 const keys={1:'firstCast',2:'secondCast',3:'thirdCast',4:'fourthCast',5:'fifthCast'},ready={1:'ultimateReady',2:'skillReady',3:'thirdReady',4:'fourthReady',5:'fifthReady'};
 export function beginPriest(a,target,tick,slot){

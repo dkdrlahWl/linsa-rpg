@@ -1,4 +1,4 @@
-import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=raid-light-32';
+import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=priest-visual-35';
 // Third-job skills share a deterministic pulse scheduler across solo and co-op combat.
 export const THIRD_NAMES={priest:'빛의 대사제',warrior:'소드 엠페러',mage:'엘리멘탈 로드',archer:'윈드 마스터',rogue:'섀도 팬텀',pirate:'스톰 커맨더'};
 const skill=(name,hits,damage,interval,range,radius,mode,art,description)=>({name,type:'attack',hits,damage,interval,range,radius,mode,art,cooldown:18,description});

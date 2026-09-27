@@ -1,9 +1,9 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=raid-light-32';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=raid-light-32';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=raid-light-32';
-import {beginThird,stepThird} from './advancement.mjs?v=raid-light-32';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=raid-light-32';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=raid-light-32';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest-visual-35';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-visual-35';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
+import {beginThird,stepThird} from './advancement.mjs?v=priest-visual-35';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-visual-35';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
 import {incomingDamage} from './journey-balance.mjs';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){

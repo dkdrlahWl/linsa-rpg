@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=raid-light-32';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=raid-light-32';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=priest-visual-35';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=priest-visual-35';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};
