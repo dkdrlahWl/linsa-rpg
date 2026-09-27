@@ -1,0 +1,119 @@
+/* Keep the mobile account summary separate from the action buttons. */
+@media (max-width: 700px) {
+  .shell > .top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "brand identity resources" "actions actions actions";
+    align-items: center;
+    gap: 10px 8px;
+    padding: 10px 6px;
+    min-width: 0;
+  }
+  .top > .brand {
+    grid-area: brand;
+    font-size: 15px;
+    letter-spacing: .5px;
+    white-space: nowrap;
+  }
+  .top > .brand small { display: none; }
+  .top > .identity {
+    grid-area: identity;
+    min-width: 0;
+    width: auto;
+    overflow: hidden;
+    line-height: 1.4;
+  }
+  .top > .identity strong,
+  .top > .identity small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .top > .identity strong { font-size: 12px; }
+  .top > .identity small { font-size: 10px; }
+  .top > .top-resources {
+    grid-area: resources;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .top-resources .top-power { display: none; }
+  .top-resources .money {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .top-resources .money img {
+    width: 21px;
+    height: 21px;
+    object-fit: contain;
+    flex: 0 0 21px;
+  }
+  .top-resources .money strong { font-size: 12px; }
+  .top-resources .money > span { font-size: 10px; }
+  .top > .top-actions {
+    grid-area: actions;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  .top > .top-actions:has(> :nth-child(5)) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .top .top-actions > button {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 100%;
+    min-width: 0;
+    height: 57px;
+    min-height: 57px;
+    margin: 0;
+    padding: 5px 2px;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  .top .top-actions .menu-art {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    margin: 0;
+  }
+  .top .top-actions .mail-envelope-icon {
+    width: 27px;
+    height: 24px;
+    object-fit: contain;
+  }
+  .top .top-actions .mail-icon-button::after { content: "우편"; }
+  .top .top-actions .mail-count {
+    top: 2px;
+    right: 3px;
+    min-width: 16px;
+    min-height: 16px;
+    font-size: 10px;
+  }
+}
+@media (max-width: 359px) {
+  .shell > .top { gap: 8px 5px; padding-inline: 2px; }
+  .top > .brand { font-size: 13px; }
+  .top-resources .money strong { font-size: 11px; }
+  .top > .top-actions { gap: 4px; }
+  .top .top-actions > button { font-size: 10px; }
+}
