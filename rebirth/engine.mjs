@@ -43,7 +43,7 @@ import {
   WEAPON_TYPES,
 } from "./data.mjs?v=field-fragment-13";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=field-fragment-13';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=trial-coop-20';
 const fail = (message) => {
   throw new Error(message);
 };

@@ -7,7 +7,7 @@ globalThis.document={hidden:false,querySelector:()=>null};
 globalThis.requestAnimationFrame=()=>0;
 globalThis.Image=class {complete=false;naturalWidth=0;decode(){return Promise.reject(new Error('headless'));}};
 const power={attack:1,hp:10000,defense:20,boss:1,crit:0,critDamage:1,cadence:1,firstJob:false};
-for(const mode of ['rift','wave']){
+for(const mode of ['rift','wave','advancement']){
  const world=startCoop({id:mode,me:'me',tier:0,mode,status:'waiting',members:[{id:'me',classId:'warrior',power},{id:'other',classId:'warrior',power}]},0);
  const nodes=new Map(),host={querySelector:s=>{if(!nodes.has(s))nodes.set(s,{style:{},dataset:{},classList:{toggle(){}},textContent:'',innerHTML:''});return nodes.get(s);},querySelectorAll:()=>[]};
  const controller=Object.assign(Object.create(CoopController.prototype),{host,room:world,predicted:structuredClone(world),frames:[],keys:new Set(),pointers:new Map(),stick:{x:0,y:0},motion:new CoopMotion(),sampler:new TowerInput(100),hint:{},received:performance.now(),renderer:{draw(b){controller.rendered=b;}}});

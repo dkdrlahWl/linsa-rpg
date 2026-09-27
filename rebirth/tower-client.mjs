@@ -1,4 +1,4 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=field-fragment-13';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=trial-coop-20';
 import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=field-fragment-13';
 export {TowerController} from './tower-controller.mjs?v=wave-visible-18';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');

@@ -1,4 +1,4 @@
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=field-fragment-13';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=trial-coop-20';
 import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=field-fragment-13';
 import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
 
