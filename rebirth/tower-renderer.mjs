@@ -1,4 +1,4 @@
-import {drawHoly} from './priest-effects.mjs?v=raid-light-32';
+import {drawPriestSkillArt,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-visual-34';
 import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
@@ -73,6 +73,7 @@ export function prepareCombatArt(classes,boss){
  tasks.push([asset(boss==='raid-2'?'raid-boss-2-portrait':'boss-'+boss),null]);image('tower/priest-orb-v1.png');if(String(boss).startsWith('raid-')){image(asset('raid-map-'+boss.slice(5)));image(asset('raid-boss-'+boss.slice(5)+'-portrait'));}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
+ if(classes.includes('priest'))secondLoads.push(preparePriestSkillArt());
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
   if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();}catch{preparations.delete(src);}})());
   return preparations.get(src);
@@ -246,9 +247,9 @@ export class TowerRenderer {
       const lunge=attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0;
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
-      if(b.classId==='priest'&&casting){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawHoly(g,{slot,x:player.x,y:player.y,size:slot>=4?430:260,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5,pulse:0},time);}
+      if(b.classId==='priest'&&casting){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
+      if(b.shield>0&&b.tick<b.shieldUntil)drawPriestSkillArt(g,{slot:3,x:player.x,y:player.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});
       this.actor(b.classId,dir,moving||dashing,attacking||casting,casting?skillAge:attackAge,(b.player.walk||0)+fraction,x,y,alpha);
-      if(b.shield>0&&b.tick<b.shieldUntil)drawHoly(g,{slot:3,x:player.x,y:player.y,size:250,start:b.tick-5,end:b.tick+15},time,image(asset('priest-effects')));
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
     const drawBoss=()=>{
@@ -264,10 +265,10 @@ export class TowerRenderer {
       this.sprite(asset('boss-'+f.art),f.art==='aureon'?1:3,1,f.art==='aureon'?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,245,245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
+    const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}for(const e of holy.values())drawPriestSkillArt(g,e,time);
     const actors=[{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
-      this.shadow(m.x,m.y,25);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
-      if(m.shield>0&&b.tick<m.shieldUntil)drawHoly(g,{slot:3,x:m.x,y:m.y,size:250,start:b.tick-5,end:b.tick+15},time,image(asset('priest-effects')));
+      this.shadow(m.x,m.y,25);if(m.shield>0&&b.tick<m.shieldUntil)drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,m.y-150);g.fillStyle='#25312d';g.fillRect(m.x-40,m.y-139,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,m.y-139,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
     }})),...(b.monsters||[]).filter(e=>visible(e.x,e.y)).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
@@ -282,7 +283,7 @@ export class TowerRenderer {
     for(const e of b.effects){
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
-      if(e.kind==='priest'){drawHoly(g,e,time);continue;}
+      if(e.kind==='priest')continue;
       if(e.kind==='priest-orb'){const age=clamp((time-e.start)/(e.end-e.start)),x=mix(e.fromX,e.x,age),y=mix(e.fromY,e.y,age)-Math.sin(age*Math.PI)*45,orb=image('tower/priest-orb-v1.png');g.save();g.globalCompositeOperation='screen';for(let i=3;i>0;i--){const t=clamp(age-i*.07);g.globalAlpha=.16;g.fillStyle='#fff0ab';g.shadowColor='#fff2bf';g.shadowBlur=22;g.beginPath();g.arc(mix(e.fromX,e.x,t),mix(e.fromY,e.y,t)-Math.sin(t*Math.PI)*45,22+i*4,0,Math.PI*2);g.fill();}g.globalAlpha=1;g.shadowColor='#fff8cd';g.shadowBlur=38;if(orb.complete&&orb.naturalWidth)g.drawImage(orb,x-78,y-78,156,156);else{g.fillStyle='#fff8cf';g.beginPath();g.arc(x,y,35,0,Math.PI*2);g.fill();}g.restore();continue;}
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
       if(e.kind==='fourth'){if(!e.orbit&&!fourthAreas.includes(e))continue;if(e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')),image(asset('fourth-impact-atlas-v2')));continue;}

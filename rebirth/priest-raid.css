@@ -61,3 +61,9 @@
  .tower-play[data-class="priest"] .tower-skill-bar>.tower-button{height:43px;padding:3px 25px 3px 24px}
  .tower-play[data-class="priest"] .tower-skill-bar i{right:1px;width:25px;height:34px}
 }
+.tower-play[data-class="priest"] .tower-skill-bar i{background-size:400% 100%;background-position:66.666% 0}
+.tower-play[data-class="priest"] [data-tower-button="8"] i{background-image:url('tower/priest-skill-1-v2.png');background-position:66.666% 0}
+.tower-play[data-class="priest"] [data-tower-button="2"] i{background-image:url('tower/priest-skill-2-v2.png');background-position:66.666% 0}
+.tower-play[data-class="priest"] [data-tower-button="16"] i{background-image:url('tower/priest-skill-3-v2.png');background-position:66.666% 0}
+.tower-play[data-class="priest"] [data-tower-button="32"] i{background-image:url('tower/priest-skill-4-v2.png');background-position:66.666% 0}
+.tower-play[data-class="priest"] [data-tower-button="64"] i{background-image:url('tower/priest-skill-5-v2.png');background-position:66.666% 0}
