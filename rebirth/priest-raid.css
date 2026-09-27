@@ -20,6 +20,13 @@
 .tower-play[data-class="priest"] [data-tower-button="32"]::before{content:'O'}
 .tower-play[data-class="priest"] [data-tower-button="64"]::before{content:'U'}
 .tower-play[data-class="priest"] .tower-canvas-wrap #tower-status{left:12px;right:auto;margin:0;max-width:55%;text-align:left}
+.tower-player-hud .player-health{position:relative}
+.tower-player-hud .player-health i{position:absolute;inset:0 auto 0 0}
+.tower-player-hud .player-health #tower-player-shield{width:0;transform:none;background:linear-gradient(90deg,#848d97,#d8dce0);box-shadow:0 0 9px #d5e2ee8c;transition:width 100ms linear}
+.raid-roster span{position:relative;padding-bottom:9px}
+.raid-roster .shield-fill,.raid-roster .health-fill{position:absolute;left:5px;bottom:3px;display:block;height:4px;margin:0;border-radius:2px}
+.raid-roster .shield-fill{background:#bfc7cf;box-shadow:0 0 5px #cbd5df8a}
+.raid-roster .health-fill{background:#69d7a7}
 @media(max-width:759px) and (orientation:portrait){
  .tower-play[data-class="priest"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 28px minmax(0,1fr) 214px 40px}
  .tower-play[data-class="priest"] .tower-hud{grid-column:1;grid-row:1}

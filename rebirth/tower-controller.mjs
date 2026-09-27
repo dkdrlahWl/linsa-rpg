@@ -2,7 +2,7 @@ import {autoSkillBits} from './auto-skills.mjs?v=priest-raids-27';
 import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=priest-raids-27';
 import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=priest-raids-27';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=priest-raids-27';
-import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=raid-visibility-29';
+import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=priest-motion-30';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -17,10 +17,10 @@ export class TowerController {
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
     this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
     this.required=['effects','boss-'+towerEncounter(b).art,'second-job-atlas','reward-chest'].map(asset);
-    this.required.push(...(b.classId==='priest'?['tower/priest-portrait-v2.png']:[asset('hero-'+b.classId+'-directions'),asset('hero-'+b.classId+'-motion-v4')]));
+    this.required.push(...(b.classId==='priest'?['tower/priest-motion-v1.png']:[asset('hero-'+b.classId+'-directions'),asset('hero-'+b.classId+'-motion-v4')]));
     this.required.push(...['arena-overhead-v3','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2','second-sequence-atlas-v1'].map(motionAsset));
     this.required.push(asset('third-job-atlas'));if(b.classId==='warrior')this.required.push(asset('hero-warrior-east-v4'));this.required.forEach(image);
-    image(asset('reward-chest'));image(asset('second-job-atlas'));if(b.classId==='priest')image('tower/priest-portrait-v2.png');else image(asset('hero-'+b.classId+'-motion-v4'));
+    image(asset('reward-chest'));image(asset('second-job-atlas'));if(b.classId==='priest')image('tower/priest-motion-v1.png');else image(asset('hero-'+b.classId+'-motion-v4'));
     host.querySelector('#tower-chest')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();this.openChest();},{signal:this.abort.signal});
     this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','auto-skills','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
     this.buttons=[...host.querySelectorAll('[data-tower-button]')];
@@ -121,7 +121,7 @@ export class TowerController {
     const b=this.b,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],input=this.input(),distance=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     const text=(id,value)=>{if(this.nodes[id].textContent!==value)this.nodes[id].textContent=value;};
     text('enemy-hp',`${format(b.enemyHp)} / ${format(f.hp)}`);text('player-hp',`${format(b.hp)} / ${format(b.power.hp)}`);
-    this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;this.nodes['player-bar'].style.transform=`scaleX(${b.hp/b.power.hp})`;
+    this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;const shield=Math.max(0,b.shield||0),barMax=Math.max(b.power.hp,b.hp+shield);this.nodes['player-bar'].style.transform=`scaleX(${b.hp/barMax})`;this.host.querySelector('#tower-player-shield').style.width=(b.hp+shield)/barMax*100+'%';
     this.host.classList.toggle('low-health',b.hp/b.power.hp<.3);
     const left=Math.max(0,f.seconds-Math.floor(b.tick/10));text('clock',b.chest?'토벌 완료':`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`);
     const chestButton=this.host.querySelector('#tower-chest');if(chestButton){chestButton.hidden=!b.chest;chestButton.disabled=!!b.chest&&!canOpenChest(b);chestButton.textContent=canOpenChest(b)?'상자 열고 보상 받기':'상자 가까이 이동하세요';}
@@ -143,4 +143,5 @@ export class TowerController {
   }
   dispose(){this.disposed=true;cancelAnimationFrame(this.frame);this.abort.abort();this.renderer.dispose();this.resetInput();}
 }
+
 

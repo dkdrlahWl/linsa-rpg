@@ -1,4 +1,4 @@
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=priest-raids-27';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=priest-motion-30';
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-raids-27';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
@@ -131,3 +131,4 @@ export function advanceCoop(room,user,input,now){
  if(w.status==='lost'&&upto-w.tick<30&&(room.mode==='wave'||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
  w._net=net;return w;
 }
+

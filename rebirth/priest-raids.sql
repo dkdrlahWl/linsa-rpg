@@ -116,7 +116,6 @@ begin
    if action='start' and exists(select 1 from jsonb_array_elements(w->'members') where not coalesce((value->>'ready')::boolean,false)) then raise exception 'COOP_NOT_READY';end if;
    if action='start' and w->>'mode'='raid' then
     if (w->>'tier')::int not between 0 and 3 or jsonb_array_length(w->'members') not between 1 and 8 then raise exception 'INVALID_RAID';end if;
-    if not exists(select 1 from jsonb_array_elements(w->'members') m where m->>'classId'='priest' and not coalesce((m->>'left')::boolean,false)) then raise exception 'RAID_PRIEST_REQUIRED';end if;
    end if;
    if action='start' and w->>'mode'='advancement' then
     tier:=(w->>'tier')::int;

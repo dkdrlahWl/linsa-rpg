@@ -1,4 +1,4 @@
-import {drawHoly} from './priest-effects.mjs?v=raid-visibility-29';
+import {drawHoly} from './priest-effects.mjs?v=priest-motion-30';
 import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
@@ -69,12 +69,12 @@ function cleanDirectionalAtlas(im,layout=null){
 
 const preparations=new Map();
 export function prepareCombatArt(classes,boss){
- const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-portrait-v2.png',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
+ const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-motion-v1.png',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
  tasks.push([asset(boss==='raid-2'?'raid-boss-2-portrait':'boss-'+boss),null]);image(asset('priest-effects'));image(asset('raid-cover'));if(String(boss).startsWith('raid-')){image(asset('raid-map-'+boss.slice(5)));image(asset('raid-boss-'+boss.slice(5)+'-portrait'));}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
-  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>window.requestIdleCallback?requestIdleCallback(resolve,{timeout:1500}):setTimeout(resolve,0));if(src.includes('-portrait'))return;if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,String(boss).startsWith('raid-')?4:boss==='aureon'?1:3,String(boss).startsWith('raid-')?2:1);}catch{preparations.delete(src);}})());
+  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>window.requestIdleCallback?requestIdleCallback(resolve,{timeout:1500}):setTimeout(resolve,0));if(src.includes('-portrait')||src.includes('priest-motion'))return;if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,String(boss).startsWith('raid-')?4:boss==='aureon'?1:3,String(boss).startsWith('raid-')?2:1);}catch{preparations.delete(src);}})());
   return preparations.get(src);
  })]);
 }
@@ -95,7 +95,7 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
-  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){if(classId==='priest'){const im=image('tower/priest-portrait-v2.png');if(im.complete&&im.naturalWidth){const g=this.g;g.save();g.translate(x,y);g.scale([3,4,5].includes(dir)?-1:1,1);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?28:12;g.drawImage(im,-130,-260+(moving?Math.sin(walk*.7)*3:0),260,260);g.restore();}return;}let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth||!cleanAtlases.has(im)){
+  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){if(classId==='priest'){const im=image('tower/priest-motion-v1.png');if(im.complete&&im.naturalWidth){const g=this.g,sw=im.width/8,sh=im.height/6,row=acting?(age<.4?3:4):moving?Math.floor(walk/2)%3:0,size=this.mobileActors.matches?164:120;g.save();g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,dir*sw,row*sh,sw,sh,x-size/2,y-size,size,size);g.restore();}return;}let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth||!cleanAtlases.has(im)){
   const fallback=image(asset('hero-'+classId+'-directions'));
   if(fallback.complete&&fallback.naturalWidth)this.sprite(...directional('hero-'+classId,dir,acting),x,y,92,92,1,0,alpha);
   else{const g=this.g;g.save();g.globalAlpha=alpha;g.translate(x,y);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();g.restore();}
@@ -245,6 +245,7 @@ export class TowerRenderer {
       const lunge=attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0;
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
+      if(b.classId==='priest'&&casting){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawHoly(g,{slot,x:player.x,y:player.y,size:slot>=4?430:260,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5,pulse:0},time);}
       this.actor(b.classId,dir,moving||dashing,attacking||casting,casting?skillAge:attackAge,(b.player.walk||0)+fraction,x,y,alpha);
       if(b.shield>0&&b.tick<b.shieldUntil)drawHoly(g,{slot:3,x:player.x,y:player.y,size:250,start:b.tick-5,end:b.tick+15},time,image(asset('priest-effects')));
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
@@ -315,3 +316,4 @@ export class TowerRenderer {
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}
   }
 }
+

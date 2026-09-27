@@ -8,7 +8,6 @@ import {incomingDamage} from './journey-balance.mjs';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>8)throw Error('INVALID_COOP_ROOM');
- if(!room.members.some(m=>m.classId==='priest'&&!m.left))throw Error('RAID_PRIEST_REQUIRED');
  const w=structuredClone(room),b=RAID_ENCOUNTERS[w.tier];Object.assign(w,{status:'fighting',started:now,tick:0,hp:b.hp,maxHp:b.hp,enemy:{x:1600,y:1200,dir:2,walk:0},walls:raidWalls(w.tier),hazards:[],effects:[],numbers:[],projectiles:[],serial:0,nextBasic:15,nextPattern:60,nextCorruption:120,nextJudgment:300,phase:0});
  w.members.forEach((m,i)=>Object.assign(m,{x:1200+i%4*250,y:2520+Math.floor(i/4)*210,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,thirdReady:0,fourthReady:0,immune:0,hurtReady:0,damage:0,healing:0,shield:0,dir:6,walk:0,corruption:0,soloSupport:false}));return w;
 }
