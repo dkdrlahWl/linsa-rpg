@@ -1,10 +1,10 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-raids-27';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-raids-27';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=raid-light-32';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=raid-light-32';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=raid-light-32';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=raid-light-32';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=priest-raids-27';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=raid-light-32';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

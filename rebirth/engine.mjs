@@ -1,12 +1,12 @@
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-raids-27';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
-import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-raids-27';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-light-32';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=raid-light-32';
+import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=raid-light-32';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=raid-light-32';
 import {rollRiftReward} from './rift-rewards.mjs?v=field-fragment-13';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=priest-raids-27';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=raid-light-32';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=defense-half-24';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';
-import {applyBetaTool} from './beta-tools.mjs?v=priest-raids-27';
+import {applyBetaTool} from './beta-tools.mjs?v=raid-light-32';
 import {
   VERSION,
   normalizePotentialState,
@@ -44,9 +44,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=priest-raids-27";
+} from "./data.mjs?v=raid-light-32";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=priest-raids-27';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=raid-light-32';
 const fail = (message) => {
   throw new Error(message);
 };

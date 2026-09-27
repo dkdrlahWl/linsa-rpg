@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=priest-raids-27';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=priest-raids-27';
-export {TowerController} from './tower-controller.mjs?v=priest-combat-31';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=raid-light-32';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=raid-light-32';
+export {TowerController} from './tower-controller.mjs?v=raid-light-32';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

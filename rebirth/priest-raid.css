@@ -54,6 +54,7 @@
 .tower-play[data-class="priest"] [data-tower-button="64"] i{background-position:100% 0}
 .tower-play[data-class="priest"] .tower-skill-bar button span{position:relative;z-index:1}
 .portrait.priest-portrait{background-size:contain!important;background-position:center!important}
+.tower-play[data-class="priest"] .tower-button.attack .tower-action-art{background-image:url('tower/priest-orb-v1.png');background-size:contain;background-position:center;opacity:1;filter:drop-shadow(0 0 8px #ffe7a0)}
 .hero .portrait.priest-portrait{width:min(100%,290px);aspect-ratio:1;mask-image:none}
 @media(max-width:759px) and (orientation:portrait){
  .tower-play[data-class="priest"] .tower-skill-bar{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}

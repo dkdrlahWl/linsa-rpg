@@ -1,7 +1,7 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-raids-27';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=priest-raids-27';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=raid-light-32';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=raid-light-32';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=raid-light-32';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=raid-light-32';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
@@ -64,7 +64,7 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
    if(target&&(bits&1)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
     // Small cleave keeps all five starter classes viable against a crowd.
     const victims=targets.filter(e=>distance(e,m)<=c.range&&distance(e,target)<(c.range<300?230:140)).slice(0,3);
-    damage(w,m,victims,c.cooldown/10*m.power.cadence);w.effects.push({id:++w.serial,kind:'slash',classId:m.classId,owner:m.id,x:target.x,y:target.y-30,size:180,angle:Math.atan2(target.y-m.y,target.x-m.x),start:t,end:t+5});
+    damage(w,m,victims,c.cooldown/10*m.power.cadence);w.effects.push({id:++w.serial,kind:m.classId==='priest'?'priest-orb':'slash',classId:m.classId,owner:m.id,fromX:m.x,fromY:m.y-85,x:target.x,y:target.y-45,size:180,angle:Math.atan2(target.y-m.y,target.x-m.x),start:t,end:t+7});
    }
    for(const [bit,slot] of [[8,1],[2,2]])if((bits&bit)&&beginCombatSkill(m,target,t,slot))m.skillDir=target?towerFacing(target.x-m.x,target.y-m.y,m.dir):m.dir;
    stepCombatSkills(m,targets,t,(scale,crit,enemy)=>damage(w,m,[enemy],scale,crit),effect=>w.effects.push({...effect,id:++w.serial}));

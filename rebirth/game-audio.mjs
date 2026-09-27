@@ -40,18 +40,25 @@ export class GameAudio{
     if(!this.buffers.has(id)){const ctx=this.ctx;const pending=fetch(new URL('./audio/'+({"lobby-bgm":"lobby-green-road","battle-bgm":"battle-wild-oath"}[id]||id.replace('-skill-1','-skill-2'))+'.mp3',import.meta.url)).then(r=>{if(!r.ok)throw Error('audio');return r.arrayBuffer();}).then(b=>ctx.decodeAudioData(b)).catch(()=>{this.buffers.delete(id);return null;});this.buffers.set(id,pending);}return this.buffers.get(id);
   }
   warm(){for(const id of ['ui-click','ui-back','ui-tab','ui-error','enhance-charge','enhance-success','enhance-fail','cube-red','cube-black','cube-prime','cube-rankup','chest-open','loot-common'])void this.load(id);this.warmClass();}
-  warmClass(){if(!this.ctx)return;const cls=this.state()?.classId;if(cls&&cls!==this.warmedClass){this.warmedClass=cls;if(cls!=='priest')for(const k of ['attack','skill-1','skill-2','skill-3','skill-4'])void this.load(cls+'-'+k);}}
+  warmClass(){if(!this.ctx)return;const cls=this.state()?.classId;if(cls&&cls!==this.warmedClass){this.warmedClass=cls;if(cls==='priest')for(const id of ['mage-attack','mage-skill-3','mage-skill-4','warrior-skill-3','warrior-skill-4','battle-crit','battle-victory','level-up','loot-rare','enhance-success'])void this.load(id);else for(const k of ['attack','skill-1','skill-2','skill-3','skill-4'])void this.load(cls+'-'+k);}}
   priestSound(id){
-    const ctx=this.ctx,base=ctx.currentTime+.01;
-    const tone=(from,to,delay,duration,level,type='sine')=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),at=base+delay;osc.type=type;osc.frequency.setValueAtTime(from,at);osc.frequency.exponentialRampToValueAtTime(Math.max(20,to),at+duration);gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(level,at+Math.min(.035,duration*.2));gain.gain.exponentialRampToValueAtTime(.0001,at+duration);osc.connect(gain).connect(this.fx);osc.start(at);osc.stop(at+duration+.02);osc.onended=()=>{osc.disconnect();gain.disconnect();};};
-    const chime=(hz,at,level=.13,seconds=.9)=>{tone(hz,hz*.998,at,seconds,level);tone(hz*2.01,hz*1.99,at,seconds*.64,level*.35);tone(hz*3.92,hz*3.88,at,seconds*.42,level*.15);};
-    const air=(at,duration,level,frequency)=>{if(!this.priestNoise){const b=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate),d=b.getChannelData(0);let seed=1977;for(let i=0;i<d.length;i++){seed=(Math.imul(seed,1664525)+1013904223)|0;d[i]=(seed/2147483648)*.45;}this.priestNoise=b;}const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain(),start=base+at;source.buffer=this.priestNoise;source.loop=true;filter.type='bandpass';filter.frequency.setValueAtTime(frequency,start);filter.frequency.exponentialRampToValueAtTime(frequency*1.8,start+duration);filter.Q.value=.6;gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(level,start+Math.min(.1,duration*.3));gain.gain.exponentialRampToValueAtTime(.0001,start+duration);source.connect(filter).connect(gain).connect(this.fx);source.start(start);source.stop(start+duration+.01);source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};};
-    if(id==='priest-attack'){chime(880,0,.07,.28);return;}
-    if(id==='priest-skill-1'){tone(180,760,0,.34,.14,'sawtooth');air(.05,.55,.075,1800);chime(1175,.22,.17,1.05);chime(1760,.36,.09,.7);return;}
-    if(id==='priest-skill-2'){chime(523,0,.14,1.15);chime(659,.16,.13,1.05);chime(784,.32,.14,1.35);air(0,.85,.035,850);return;}
-    if(id==='priest-skill-3'){tone(95,185,0,.68,.09,'triangle');tone(330,640,.08,.56,.085,'sawtooth');air(.05,.75,.055,2300);for(const [i,hz] of [988,1175,1480].entries())chime(hz,.16+i*.13,.10,.9);return;}
-    if(id==='priest-skill-4'){tone(75,48,0,.85,.16,'sawtooth');tone(1600,190,.08,.7,.12,'sawtooth');air(.1,.95,.11,1100);chime(988,.48,.16,1.35);chime(1480,.57,.12,1.1);return;}
-    if(id==='priest-skill-5'){tone(110,165,0,1.6,.11,'triangle');tone(220,330,0,1.5,.085,'sine');air(0,1.7,.09,640);for(const [i,hz] of [392,494,587,784,988].entries())chime(hz,.20+i*.20,.13,1.7);tone(740,1480,1.0,.85,.075,'triangle');}
+    // Layer the recorded combat sounds used by the other jobs. Each spell has its own mix.
+    const layers={
+      'priest-attack':[['mage-attack',1.18,.9,0]],
+      'priest-skill-1':[['mage-skill-4',1.05,1.15,0],['battle-crit',.85,.42,.13]],
+      'priest-skill-2':[['level-up',.96,.85,0],['loot-rare',1.16,.62,.22]],
+      'priest-skill-3':[['enhance-success',.8,.8,0],['warrior-skill-3',.82,.6,.08]],
+      'priest-skill-4':[['mage-skill-3',.85,1.1,0],['warrior-skill-4',.77,.7,.18]],
+      'priest-skill-5':[['battle-victory',.82,.7,0],['level-up',.72,1.05,.12],['mage-skill-4',.78,.9,.44]]
+    }[id]||[];
+    const pressed=performance.now();
+    for(const [sample,rate,volume,delay] of layers)void this.load(sample).then(buffer=>{
+      if(!buffer||document.hidden||!this.settings().sound||performance.now()-pressed>1200||this.ctx.state!=='running')return;
+      const source=this.ctx.createBufferSource(),gain=this.ctx.createGain(),at=this.ctx.currentTime+delay;
+      source.buffer=buffer;source.playbackRate.value=rate;gain.gain.value=volume;
+      source.connect(gain).connect(this.fx);const voice={source,gain,id};this.active.add(voice);
+      source.onended=()=>{this.active.delete(voice);source.disconnect();gain.disconnect();};source.start(at);
+    });
   }
   play(kind){
     const aliases={click:'ui-click',hit:this.state()?.classId+'-attack','tower-hit':'battle-hit','tower-crit':'battle-crit','tower-hurt':'battle-hurt','tower-dash':'battle-dash'};

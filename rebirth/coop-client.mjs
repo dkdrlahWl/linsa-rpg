@@ -1,15 +1,15 @@
-import {raidLobby} from './raid-ui.mjs?v=priest-motion-30';
-import {raidMove} from './raid-content.mjs?v=priest-combat-31';
-import {autoSkillBits} from './auto-skills.mjs?v=priest-raids-27';
+import {raidLobby} from './raid-ui.mjs?v=raid-light-32';
+import {raidMove} from './raid-content.mjs?v=raid-light-32';
+import {autoSkillBits} from './auto-skills.mjs?v=raid-light-32';
 import {prepareWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
-import {waveLobby,waveHud} from './wave-ui.mjs?v=priest-raids-27';
+import {waveLobby,waveHud} from './wave-ui.mjs?v=raid-light-32';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=coop-smooth-19';
-import {TowerInput,projectPlayer} from './tower-input.mjs?v=priest-raids-27';
-import {predictCoopStep} from './coop-model.mjs?v=priest-combat-31';
-import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=priest-combat-31';
-import {towerArena} from './tower-client.mjs?v=priest-combat-31';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-combat-31';
+import {TowerInput,projectPlayer} from './tower-input.mjs?v=raid-light-32';
+import {predictCoopStep} from './coop-model.mjs?v=raid-light-32';
+import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=raid-light-32';
+import {towerArena} from './tower-client.mjs?v=raid-light-32';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=raid-light-32';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -82,7 +82,7 @@ export class CoopController{
    this.frames=this.frames.slice(-35);
    this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true);
   });
-  const w=this.predicted,me=w.members.find(m=>m.id===w.me),tier=coopEncounter(w);
+  const w=this.predicted;if(w.mode==='raid')w.walls=[];const me=w.members.find(m=>m.id===w.me),tier=coopEncounter(w);
   this.motion.begin(now);
   const smooth=(actor,old,key)=>this.motion.sample(key,interpolateActor(actor,old,this.sampler.elapsed/100));
   const projection={waveMode:w.mode==='wave',player:me,classId:me.classId,tick:w.tick,dashReady:me.dashReady,dashUntil:me.dashUntil,dashX:me.dx,dashY:me.dy};
@@ -102,7 +102,7 @@ export class CoopController{
   this.host.querySelector('#tower-player-shield').style.width=(me.hp+shield)/barMax*100+'%';
   for(const button of this.host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady',64:'fifthReady'}[button.dataset.towerButton];const left=Math.max(0,(me[key]||0)-b.tick);button.querySelector('b').textContent=left?(left/10).toFixed(1):'';}
   if(w.mode==='wave')waveHud(this.host,w);
-  if(w.mode==='raid'){let roster=this.host.querySelector('.raid-roster');if(!roster){roster=document.createElement('div');roster.className='raid-roster';this.host.querySelector('.tower-hud').append(roster);}roster.innerHTML=w.members.filter(m=>!m.left).map(m=>'<span class="'+(m.hp<=0?'fallen ': '')+(m.classId==='priest'?'healer':'')+'">'+esc(m.name)+' '+Math.ceil(m.hp/m.power.hp*100)+'%'+(m.shield?' <b class="shield">▣</b>':'')+'<em class="shield-fill" style="width:'+Math.min(100,(m.hp+(m.shield||0))/Math.max(m.power.hp,m.hp+(m.shield||0))*100)+'%"></em><i class="health-fill" style="width:'+Math.min(100,m.hp/Math.max(m.power.hp,m.hp+(m.shield||0))*100)+'%"></i></span>').join('');this.host.querySelector('#tower-status').textContent=w.tick<(w.announcementUntil||0)?w.announcement:'엄폐물로 탄막 회피 · 사제 근처에서 치유';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp)+(me.shield?' · 보호막 '+fmt(me.shield):'');}
+  if(w.mode==='raid'){let roster=this.host.querySelector('.raid-roster');if(!roster){roster=document.createElement('div');roster.className='raid-roster';this.host.querySelector('.tower-hud').append(roster);}roster.innerHTML=w.members.filter(m=>!m.left).map(m=>'<span class="'+(m.hp<=0?'fallen ': '')+(m.classId==='priest'?'healer':'')+'">'+esc(m.name)+' '+Math.ceil(m.hp/m.power.hp*100)+'%'+(m.shield?' <b class="shield">▣</b>':'')+'<em class="shield-fill" style="width:'+Math.min(100,(m.hp+(m.shield||0))/Math.max(m.power.hp,m.hp+(m.shield||0))*100)+'%"></em><i class="health-fill" style="width:'+Math.min(100,m.hp/Math.max(m.power.hp,m.hp+(m.shield||0))*100)+'%"></i></span>').join('');this.host.querySelector('#tower-status').textContent=w.tick<(w.announcementUntil||0)?w.announcement:'탄막과 장판 회피 · 사제 근처에서 치유';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp)+(me.shield?' · 보호막 '+fmt(me.shield):'');}
   const connection=this.host.querySelector('#tower-connection');connection.hidden=now-this.received<1800;connection.textContent='연결 지연 · 자동 재연결 중';
   }
   if(w.mode==='wave'){b.enemy={x:player.x,y:player.y};const oldMonsters=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));b.monsters=w.monsters.map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}

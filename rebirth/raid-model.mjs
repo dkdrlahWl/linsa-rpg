@@ -1,9 +1,9 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest-combat-31';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-raids-27';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
-import {beginThird,stepThird} from './advancement.mjs?v=priest-raids-27';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-raids-27';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=raid-light-32';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=raid-light-32';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=raid-light-32';
+import {beginThird,stepThird} from './advancement.mjs?v=raid-light-32';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=raid-light-32';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=raid-light-32';
 import {incomingDamage} from './journey-balance.mjs';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
@@ -12,7 +12,7 @@ export function startRaid(room,now){
  w.members.forEach((m,i)=>Object.assign(m,{x:1200+i%4*250,y:2520+Math.floor(i/4)*210,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,thirdReady:0,fourthReady:0,immune:0,hurtReady:0,damage:0,healing:0,shield:0,dir:6,walk:0,corruption:0,soloSupport:false}));return w;
 }
 export function advanceRaidRaw(room,user,input,now,frames=[]){
- const w=room,b=RAID_ENCOUNTERS[w.tier];if(!b)return w;
+ const w=room,b=RAID_ENCOUNTERS[w.tier];if(!b)return w;w.walls=[];
  const upto=Math.min(b.seconds*10,Math.floor((now-w.started)/100));
  if(w.status==='won'){const dt=Math.min(1,Math.max(0,now-(w.lootAt||now))/1000);w.lootAt=now;for(const m of w.members){if(m.left)continue;const active=m.id===user&&input?input:now-m.inputAt<1500?m.input:[0,0,0],moving=Math.hypot(active[0],active[1])>.01;raidMove(m,m.x+active[0]*250*dt,m.y+active[1]*250*dt,[]);if(moving){m.dir=towerFacing(active[0],active[1],m.dir);m.walk=(m.walk||0)+dt*10;}m.moving=moving;if(m.id===user&&input){m.input=input;m.inputAt=now;}}return w;}
  if(w.status!=='fighting')return w;
@@ -28,10 +28,10 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  if(t>=w.nextBasic){circle(target.x,target.y,150,10,1.5);w.nextBasic=t+(enraged?17:23);w.enemyAttackStart=t+10;w.enemyAttackUntil=t+15;}
  if(t>=w.nextPattern){
   const phase=w.phase++;w.enemyCastStart=t;w.enemyCastUntil=t+22;w.enemyAttackStart=t+22;w.enemyAttackUntil=t+30;
-  if(phase%3===0){w.announcement='탄막 · 벽 뒤로 숨으세요';w.announcementUntil=t+70;const angle=Math.atan2(target.y-e.y,target.x-e.x),count=16+w.tier*8;for(let i=0;i<count;i++){const a=angle+i*Math.PI*2/count;w.projectiles.push({id:++w.serial,side:'enemy',x:e.x,y:e.y,dx:Math.cos(a)*46,dy:Math.sin(a)*46,r:34,at:t+22,end:t+120,multiplier:5});}}
+  if(phase%3===0){w.announcement='탄막 · 발사체 사이로 피하세요';w.announcementUntil=t+70;const angle=Math.atan2(target.y-e.y,target.x-e.x),count=16+w.tier*8;for(let i=0;i<count;i++){const a=angle+i*Math.PI*2/count;w.projectiles.push({id:++w.serial,side:'enemy',x:e.x,y:e.y,dx:Math.cos(a)*46,dy:Math.sin(a)*46,r:34,at:t+22,end:t+120,multiplier:5});}}
   else if(w.tier===0){circle(e.x,e.y,1250,25,3.5,phase%2?470:0);w.announcement=phase%2?'조류 고리 · 보스 가까이':'해일 · 바깥으로';w.announcementUntil=t+28;}
   else if(w.tier===1){for(const m of alive.slice(0,4))circle(m.x,m.y,260,23,4);w.announcement='용철 낙하 · 서로 떨어지세요';w.announcementUntil=t+26;}
-  else if(w.tier===2){const a=phase*Math.PI/4;w.hazards.push({type:'line',x:e.x-Math.cos(a)*2200,y:e.y-Math.sin(a)*2200,tx:e.x+Math.cos(a)*2200,ty:e.y+Math.sin(a)*2200,width:260,at:t+25,end:t+29,multiplier:5,cover:true,source:{...e}});for(const m of alive.slice(0,3))circle(m.x,m.y,210,32,3);w.announcement='성좌 절단 · 석벽 엄폐 후 장판 회피';w.announcementUntil=t+35;}
+  else if(w.tier===2){const a=phase*Math.PI/4;w.hazards.push({type:'line',x:e.x-Math.cos(a)*2200,y:e.y-Math.sin(a)*2200,tx:e.x+Math.cos(a)*2200,ty:e.y+Math.sin(a)*2200,width:260,at:t+25,end:t+29,multiplier:5,cover:true,source:{...e}});for(const m of alive.slice(0,3))circle(m.x,m.y,210,32,3);w.announcement='성좌 절단 · 광선과 장판 회피';w.announcementUntil=t+35;}
   else {if(phase%2){circle(1600,1600,4500,26,5,850);circle(1600,1600,500,26,5);}else for(const dx of [-650,650])w.hazards.push({type:'line',x:1600+dx,y:100,tx:1600-dx,ty:3100,width:320,at:t+24,end:t+28,multiplier:5,cover:true,source:{x:1600+dx,y:100}});w.announcement='시간 붕괴 · 안전 고리 / 교차 광선';w.announcementUntil=t+30;}
   w.nextPattern=t+(enraged?70:100);
  }
@@ -40,7 +40,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
   let speed=c.speed;if((bits&4)&&t>=m.dashReady){const v=facingVector(m.dir);m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;m.dx=m.moving?x:v.x;m.dy=m.moving?y:v.y;}if(t<(m.dashUntil||0)){x=m.dx;y=m.dy;speed*=3;}raidMove(m,m.x+x*speed,m.y+y*speed,w.walls);
   const emit=fx=>w.effects.push({...fx,id:++w.serial});
   const hit=(scale,extra=0)=>{if(w.hp<=0)return;const seed=((t*2654435761+(++w.serial)*1013904223)>>>0)/4294967296,crit=seed<Math.min(.95,m.power.crit+extra),value=Math.min(w.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(crit?m.power.critDamage:1))*m.power.boss)));w.hp-=value;m.damage+=value;w.enemyHurtUntil=t+2;w.numbers.push({id:++w.serial,value,x:e.x,y:e.y-140,kind:crit?'critical':'outgoing',start:t,end:t+12});};
-  if((bits&1)&&t>=m.attackReady&&dist(m,e)<=c.range&&!covered(m,e,w.walls)){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(e.x-m.x,e.y-m.y,m.dir);hit(c.cooldown/10*m.power.cadence);emit({kind:m.classId==='priest'?'priest':'impact',slot:1,classId:m.classId,owner:m.id,x:e.x,y:e.y-40,size:180,start:t,end:t+7});}
+  if((bits&1)&&t>=m.attackReady&&dist(m,e)<=(m.classId==='priest'?1500:c.range)&&!covered(m,e,w.walls)){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(e.x-m.x,e.y-m.y,m.dir);hit(c.cooldown/10*m.power.cadence);emit({kind:m.classId==='priest'?'priest-orb':'impact',slot:1,classId:m.classId,owner:m.id,fromX:m.x,fromY:m.y-90,x:e.x,y:e.y-90,size:180,start:t,end:t+8});}
   if(bits&8)beginCombatSkill(m,e,t,1);if(bits&2)beginCombatSkill(m,e,t,2);if(bits&16)beginThird(m,e,t);if(bits&32)beginFourth(m,e,t);
   if(m.classId==='priest'){if(bits&64)beginPriest(m,e,t,5);stepPriest(m,[e],t,5,hit,emit);}
   stepCombatSkills(m,[e],t,hit,emit);stepThird(m,e,t,hit,emit);stepFourth(m,e,t,hit,emit);
