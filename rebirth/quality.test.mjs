@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {gearAttributes,normalizePotentialItem} from './data.mjs';
-import {initialState,execute,makeLootItem} from './engine.mjs';
+import {gearAttributes,normalizePotentialItem} from './data.mjs?v=flat-defense-53';
+import {initialState,execute,makeLootItem} from './engine.mjs?v=flat-defense-53';
 const ctx={now:0,random:()=>.5,uuid:randomUUID};
 let checked=0;
 for(let quality=0;quality<=100;quality++)for(const level of [1,10,100,200])for(const boss of [false,true])for(const stars of [0,10,25]){

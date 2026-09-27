@@ -4,7 +4,7 @@ import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-visual-35';
 import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-visual-35';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=priest-visual-35';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=flat-defense-53';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
-import {initialState,execute,power} from './engine.mjs';
-import {newTowerBattle,towerStep} from './tower-model.mjs';
-import {startCoop,predictCoopStep} from './coop-model.mjs';
+import {initialState,execute,power} from './engine.mjs?v=flat-defense-53';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=flat-defense-53';
+import {startCoop,predictCoopStep} from './coop-model.mjs?v=flat-defense-53';
 import {randomUUID} from 'node:crypto';
 for(const classId of Object.keys(FOURTH_SKILLS)){
  const a={classId,advancement:3,x:0,y:0},target={x:100,y:0};let total=0,count=0;

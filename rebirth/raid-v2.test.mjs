@@ -1,6 +1,6 @@
 import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';import {randomUUID} from 'node:crypto';import assert from 'node:assert/strict';
-import {initialState,power} from './engine.mjs';import {RAID_BOSSES,CLASS_SKILLS,SECOND_SKILLS} from './data.mjs';
+import {initialState,power} from './engine.mjs?v=flat-defense-53';import {RAID_BOSSES,CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=flat-defense-53';
 const db=new PGlite();try{
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
 await db.exec(await readFile(new URL('schema.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('raid-v2.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('individual-gear.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('individual-gear-party.sql',import.meta.url),'utf8'));await db.exec('update rebirth_private.release set enabled=true');

@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=priest-visual-35';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=priest-visual-35';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=flat-defense-53';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=flat-defense-53';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

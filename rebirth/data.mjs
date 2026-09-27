@@ -3,8 +3,8 @@ export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest-visual-35';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=priest-visual-35';
 import {balanceWorld,journeyXP} from './journey-balance.mjs?v=defense-half-24';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=defense-half-24';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=cube-odds-46';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=cube-odds-46';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=flat-defense-53';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=flat-defense-53';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-visual-35";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=priest-visual-35";
 // Shared public balance data. The server is authoritative for RNG and ownership.
@@ -280,6 +280,11 @@ export function optionValue(key, grade, random = Math.random) {
 // Version 4: one equipment rank; legacy options are preserved until rerolled.
 export function fillPotentialLines(item, random) {
   item.lines ||= [];
+  // Rebalance legacy flat-defense rolls as well as newly rolled options.
+  for (const line of item.lines) if (line.key === "flatDefense") {
+    if (line.value === 60) line.value = 20;
+    else if (line.value === 120) line.value = 40;
+  }
   item.grade = item.lines.length ? Math.max(2, Math.min(5, item.grade || 2)) : 2;
   if (!random) {
     let seed=2166136261;

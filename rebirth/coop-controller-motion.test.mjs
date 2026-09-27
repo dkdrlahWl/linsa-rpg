@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import {CoopController} from './coop-client.mjs';
+import {CoopController} from './coop-client.mjs?v=flat-defense-53';
 import {CoopMotion} from './coop-motion.mjs';
-import {TowerInput} from './tower-input.mjs';
-import {startCoop} from './coop-model.mjs';
+import {TowerInput} from './tower-input.mjs?v=flat-defense-53';
+import {startCoop} from './coop-model.mjs?v=flat-defense-53';
 globalThis.document={hidden:false,querySelector:()=>null};
 globalThis.requestAnimationFrame=()=>0;
 globalThis.Image=class {complete=false;naturalWidth=0;decode(){return Promise.reject(new Error('headless'));}};

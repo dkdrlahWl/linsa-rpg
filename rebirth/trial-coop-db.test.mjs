@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-import {initialState,power} from './engine.mjs';
-import {startCoop} from './coop-model.mjs';
+import {initialState,power} from './engine.mjs?v=flat-defense-53';
+import {startCoop} from './coop-model.mjs?v=flat-defense-53';
 import {jobStage,ADVANCEMENT_BOSSES} from './advancement.mjs';
 const db=new PGlite(),ctx={now:Date.now(),random:()=>.5,uuid:randomUUID};
 try{

@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=priest-visual-35';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=flat-defense-53';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

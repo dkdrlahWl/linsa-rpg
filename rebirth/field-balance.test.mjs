@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import {initialState,makeItem,power,huntingRate,execute} from './engine.mjs';
-import * as D from './data.mjs';
+import {initialState,makeItem,power,huntingRate,execute} from './engine.mjs?v=flat-defense-53';
+import * as D from './data.mjs?v=flat-defense-53';
 import {damageRows} from './damage-stack.mjs';
-import {newTowerBattle,towerStep,TOWER_CLASSES} from './tower-model.mjs';
-import {startCoop,predictCoopStep} from './coop-model.mjs';
+import {newTowerBattle,towerStep,TOWER_CLASSES} from './tower-model.mjs?v=flat-defense-53';
+import {startCoop,predictCoopStep} from './coop-model.mjs?v=flat-defense-53';
 let id=0;const ctx={now:100000,random:()=>.5,uuid:()=>String(++id)};
 export function fieldCharacter(level,cl,geared=true){
  const s=initialState(cl.id,'사냥시험',ctx);Object.assign(s,{level,items:[],equipped:{},firstAdvancement:level>=30,advancement:level>=150?3:level>=100?2:level>=60?1:0});s.stats[cl.stat]+=5*(level-1);

@@ -1,4 +1,4 @@
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=priest-visual-35';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=flat-defense-53';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){
