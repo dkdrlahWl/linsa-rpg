@@ -1,3 +1,37 @@
-.raid-cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.raid-card{overflow:hidden}.raid-art{height:210px;background-image:linear-gradient(0deg,#101723b8,transparent),var(--raid-map);background-size:cover;background-position:center;display:grid;place-items:center}.raid-art img{height:95%;max-width:90%;object-fit:contain;filter:drop-shadow(0 8px 8px #0008)}.raid-card h3{font-size:21px}.raid-card p{line-height:1.6}.raid-members{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.raid-members>div{padding:12px;border:1px solid #c5af7544;border-radius:10px;background:#ffffff06}.raid-members span{display:block;font-size:12px;color:#c8c4b5}.raid-warning{color:#ffd18c}.portrait.priest-portrait{background-image:url('tower/priest-portrait.webp')!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat}.tower-play[data-class="priest"] .tower-skill-bar i{background-image:url('tower/priest-effects.webp');background-size:400% 200%;font-size:0}.tower-play[data-class="priest"] [data-tower-button="8"] i{background-position:0 0}.tower-play[data-class="priest"] [data-tower-button="2"] i{background-position:33.333% 0}.tower-play[data-class="priest"] [data-tower-button="16"] i{background-position:66.666% 0}.tower-play[data-class="priest"] [data-tower-button="32"] i{background-position:0 100%}.raid-roster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin-top:5px}.raid-roster span{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 5px;background:#0b1524c9;border-radius:4px;color:#e3edee}.raid-roster .fallen{opacity:.4}.raid-roster .healer{color:#ffe8ad}.raid-roster i{display:block;height:3px;margin-top:3px;background:#69d7a7}.raid-roster .shield{color:#9ddaff}.class-choice{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:600px){.raid-members{grid-template-columns:repeat(2,minmax(0,1fr))}.raid-art{height:180px}.raid-roster{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.raid-cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.raid-card{overflow:hidden}.raid-art{height:210px;background-image:linear-gradient(0deg,#101723b8,transparent),var(--raid-map);background-size:cover;background-position:center;display:grid;place-items:center}.raid-art img{height:95%;max-width:90%;object-fit:contain;filter:drop-shadow(0 8px 8px #0008)}.raid-card h3{font-size:21px}.raid-card p{line-height:1.6}.raid-members{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.raid-members>div{padding:12px;border:1px solid #c5af7544;border-radius:10px;background:#ffffff06}.raid-members span{display:block;font-size:12px;color:#c8c4b5}.raid-warning{color:#ffd18c}.portrait.priest-portrait{background-image:url('tower/priest-portrait-v2.png')!important;background-size:auto 100%!important;background-position:center!important;background-repeat:no-repeat}.tower-play[data-class="priest"] .tower-skill-bar i{background-image:url('tower/priest-effects.webp');background-size:400% 200%;font-size:0}.tower-play[data-class="priest"] [data-tower-button="8"] i{background-position:0 0}.tower-play[data-class="priest"] [data-tower-button="2"] i{background-position:33.333% 0}.tower-play[data-class="priest"] [data-tower-button="16"] i{background-position:66.666% 0}.tower-play[data-class="priest"] [data-tower-button="32"] i{background-position:0 100%}.raid-roster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin-top:5px}.raid-roster span{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 5px;background:#0b1524c9;border-radius:4px;color:#e3edee}.raid-roster .fallen{opacity:.4}.raid-roster .healer{color:#ffe8ad}.raid-roster i{display:block;height:3px;margin-top:3px;background:#69d7a7}.raid-roster .shield{color:#9ddaff}.class-choice{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:600px){.raid-members{grid-template-columns:repeat(2,minmax(0,1fr))}.raid-art{height:180px}.raid-roster{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
 .tower-play[data-class="priest"] [data-tower-button="64"] i{background-position:0 100%}.tower-play[data-class="priest"] .tower-skill-bar{grid-template-columns:repeat(5,minmax(0,1fr))}.tower-play[data-class="priest"] .tower-skill-bar button span{font-size:10px;line-height:1.25}
+
+/* Keep boss art inside its card regardless of the image's intrinsic size. */
+.raid-art{position:relative;display:block;overflow:hidden}
+.raid-art img{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:contain;object-position:center;filter:drop-shadow(0 8px 8px #0008)}
+
+/* Five priest skills need readable names and visible keyboard keys. */
+.tower-play[data-class="priest"] .tower-skill-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;overflow:visible}
+.tower-play[data-class="priest"] .tower-skill-bar>.tower-button{height:54px;min-width:0;padding:5px 6px 5px 30px;text-align:left;align-items:flex-start}
+.tower-play[data-class="priest"] .tower-skill-bar button span{font-size:11px;line-height:1.2;white-space:normal;word-break:keep-all}
+.tower-play[data-class="priest"] .tower-skill-bar button small{display:none}
+.tower-play[data-class="priest"] .tower-core-actions button small{display:block;color:#ffe9b2;font-size:11px;font-weight:800;line-height:1.2}
+.tower-play[data-class="priest"] .tower-skill-bar i{display:none!important}
+.tower-play[data-class="priest"] .tower-skill-bar>.tower-button::before{position:absolute;left:5px;top:50%;transform:translateY(-50%);z-index:2;display:grid;place-items:center;width:21px;height:24px;border:1px solid #ffe6ad85;border-radius:5px;background:#1a2330;color:#fff2c7;font-size:14px;font-weight:900;box-shadow:0 0 8px #ffe6ad45}
+.tower-play[data-class="priest"] [data-tower-button="8"]::before{content:'K'}
+.tower-play[data-class="priest"] [data-tower-button="2"]::before{content:'L'}
+.tower-play[data-class="priest"] [data-tower-button="16"]::before{content:'I'}
+.tower-play[data-class="priest"] [data-tower-button="32"]::before{content:'O'}
+.tower-play[data-class="priest"] [data-tower-button="64"]::before{content:'U'}
+.tower-play[data-class="priest"] .tower-canvas-wrap #tower-status{left:12px;right:auto;margin:0;max-width:55%;text-align:left}
+@media(max-width:759px) and (orientation:portrait){
+ .tower-play[data-class="priest"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 28px minmax(0,1fr) 214px 40px}
+ .tower-play[data-class="priest"] .tower-hud{grid-column:1;grid-row:1}
+ .tower-play[data-class="priest"] .tower-player-hud{position:static;grid-column:1;grid-row:2;height:auto;inset:auto}
+ .tower-play[data-class="priest"] .tower-stage{grid-column:1;grid-row:3}
+ .tower-play[data-class="priest"] .tower-controls{position:static;grid-column:1;grid-row:4;height:214px;padding:7px 12px;align-items:center;background:linear-gradient(140deg,#15252d,#0e1822 65%,#1c2429);pointer-events:auto}
+ .tower-play[data-class="priest"] .tower-footer{grid-column:1;grid-row:5}
+ .tower-play[data-class="priest"] .tower-movement{flex:0 0 106px;max-width:106px}
+ .tower-play[data-class="priest"] .tower-stick{width:106px;height:106px}
+ .tower-play[data-class="priest"] .tower-buttons{flex:1 1 0;width:auto;max-width:none;min-width:0}
+ .tower-play[data-class="priest"] .tower-skill-bar>.tower-button{height:43px;padding:4px 4px 4px 24px}
+ .tower-play[data-class="priest"] .tower-skill-bar button span{font-size:10px}
+ .tower-play[data-class="priest"] .tower-skill-bar>.tower-button::before{left:3px;width:19px;height:23px;font-size:13px}
+ .tower-play[data-class="priest"] .tower-core-actions>.tower-button{height:48px}
+}

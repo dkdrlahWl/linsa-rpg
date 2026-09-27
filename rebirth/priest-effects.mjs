@@ -1,4 +1,19 @@
-export function drawHoly(g,e,time,atlas){if(!atlas?.complete||!atlas.naturalWidth)return;const age=Math.max(0,Math.min(1,(time-e.start)/(e.end-e.start))),size=Math.min(1300,e.size||500),sw=atlas.width/4,sh=atlas.height/2;
+function drawHolyFallback(g,e,time){
+ const age=Math.max(0,Math.min(1,(time-e.start)/Math.max(1,e.end-e.start))),size=Math.min(1300,e.size||500),pulse=1+Math.sin(time*.35)*.08;
+ const color=e.slot===2?'#86ffe2':e.slot===3?'#a8e9ff':'#ffe8a0';
+ g.save();g.globalCompositeOperation='screen';g.translate(e.x,e.y);
+ const glow=g.createRadialGradient(0,-size*.18,0,0,-size*.18,size*.55);
+ glow.addColorStop(0,'#fffde0aa');glow.addColorStop(.35,color+'88');glow.addColorStop(1,color+'00');
+ g.globalAlpha=Math.max(.25,1-age*.7);g.fillStyle=glow;g.beginPath();g.arc(0,-size*.18,size*.55*pulse,0,Math.PI*2);g.fill();
+ g.strokeStyle=color;g.lineWidth=Math.max(8,size*.022);g.shadowColor=color;g.shadowBlur=28;
+ g.beginPath();g.ellipse(0,0,size*.42*pulse,size*.17*pulse,0,0,Math.PI*2);g.stroke();
+ const rays=e.slot>=4?12:e.slot===3?8:6;
+ for(let i=0;i<rays;i++){const a=i*Math.PI*2/rays+time*.02,inner=size*.12,outer=size*(e.slot>=4?.48:.36);
+  g.beginPath();g.moveTo(Math.cos(a)*inner,Math.sin(a)*inner*.45-size*.18);g.lineTo(Math.cos(a)*outer,Math.sin(a)*outer*.55-size*.18);g.lineWidth=Math.max(4,size*.012);g.stroke();}
+ if(e.slot>=3){g.beginPath();g.moveTo(0,-size*.65);g.lineTo(0,size*.08);g.lineWidth=size*(e.slot>=4?.075:.04);g.stroke();}
+ g.restore();
+}
+export function drawHoly(g,e,time,atlas){if(!atlas?.complete||!atlas.naturalWidth){drawHolyFallback(g,e,time);return;}const age=Math.max(0,Math.min(1,(time-e.start)/(e.end-e.start))),size=Math.min(1300,e.size||500),sw=atlas.width/4,sh=atlas.height/2;
  const tile=(n,x,y,w,h,alpha=1)=>{g.save();g.globalAlpha=alpha;g.drawImage(atlas,n%4*sw,Math.floor(n/4)*sh,sw,sh,x-w/2,y-h/2,w,h);g.restore();};
  if(e.slot===1){tile(0,e.x,e.y-80,Math.min(400,size),260,1-age*.7);tile(6,e.x,e.y-30,320*(.6+age),260,1-age);}
  else if(e.slot===2){tile(1,e.x,e.y,size*.85,size*.65,Math.sin(age*Math.PI)*.7);tile(6,e.x,e.y-100,480,480,(1-age)*.8);}

@@ -1,3 +1,3 @@
-import {drawHoly} from './priest-effects.mjs?v=priest-raids-27';
+import {drawHoly} from './priest-effects.mjs?v=raid-visibility-29';
 let atlas;
 export function playHolyOverlay(arena,slot){atlas||=Object.assign(new Image(),{src:new URL('./tower/priest-effects.webp',import.meta.url).href});const canvas=document.createElement('canvas');canvas.width=800;canvas.height=700;canvas.className='skill-sequence-overlay';arena.append(canvas);const g=canvas.getContext('2d'),start=performance.now(),duration=slot>=4?8000:1800;const render=now=>{if(!canvas.isConnected||now-start>duration){canvas.remove();return;}g.clearRect(0,0,800,700);const t=(now-start)/100,e={slot,x:400,y:410,size:slot>=4?760:650,start:slot>=4?Math.floor(t/10)*10:0,end:slot>=4?Math.floor(t/10)*10+12:18,pulse:Math.floor(t/10)};drawHoly(g,e,t,atlas);requestAnimationFrame(render);};requestAnimationFrame(render);}

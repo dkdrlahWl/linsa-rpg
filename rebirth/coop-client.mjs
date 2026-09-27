@@ -9,7 +9,7 @@ import {TowerInput,projectPlayer} from './tower-input.mjs?v=priest-raids-27';
 import {predictCoopStep} from './coop-model.mjs?v=priest-raids-27';
 import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=priest-raids-27';
 import {towerArena} from './tower-client.mjs?v=priest-raids-27';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-raids-27';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=raid-visibility-29';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -38,7 +38,7 @@ export class CoopController{
   const chestButton=host.querySelector('#tower-chest');delete chestButton.dataset.action;chestButton.addEventListener('click',()=>{this.pendingBits|=1;this.flush();},opt);
   host.querySelector('#tower-auto').addEventListener('click',e=>{this.auto=!this.auto;e.currentTarget.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');},opt);
   host.querySelector('#tower-auto-skills').addEventListener('click',e=>{this.autoSkills=!this.autoSkills;e.currentTarget.setAttribute('aria-pressed',String(this.autoSkills));e.currentTarget.textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');},opt);
-  for(const cls of new Set(room.members.map(m=>m.classId))){image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+coopEncounter(room).art));image(asset('effects'));image(asset('reward-chest'));
+  for(const cls of new Set(room.members.map(m=>m.classId))){if(cls==='priest')image('tower/priest-portrait-v2.png');else{image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));}if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+coopEncounter(room).art));image(asset('effects'));image(asset('reward-chest'));
   this.artReady=false;Promise.all([prepareCombatArt(room.members.map(m=>m.classId),coopEncounter(room).art),...(room.mode==='wave'?[image('wave/meadow-painted-v2.webp').decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].art).decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].eliteArt).decode().catch(()=>{})]:[])]).then(()=>{this.artReady=true;});
   this.accept(room);this.nextSend=0;this.timer=setInterval(()=>this.flush(),80);this.frame=requestAnimationFrame(t=>this.draw(t));
  }

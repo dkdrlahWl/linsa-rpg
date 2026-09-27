@@ -1,15 +1,15 @@
-import {playHolyOverlay} from './priest-overlay.mjs?v=priest-raids-27';
+import {playHolyOverlay} from './priest-overlay.mjs?v=raid-visibility-29';
 import {raidLobby} from './raid-ui.mjs?v=priest-raids-27';
 import {nextAutoSkill} from './auto-skills.mjs?v=priest-raids-27';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-raids-27';
 import {GameAudio} from './game-audio.mjs?v=skill-sequence-21';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=priest-raids-27';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=raid-visibility-29';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=priest-raids-27';
 import {TOWER_FLOORS} from './tower-model.mjs?v=priest-raids-27';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=priest-raids-27';
-import * as D from "./data.mjs?v=priest-raids-27";
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=raid-visibility-29';
+import * as D from "./data.mjs?v=priest-portrait-28";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
@@ -28,6 +28,7 @@ const esc = (v) =>
   );
 const fmt = (n) => Math.floor(n || 0).toLocaleString("ko-KR");
 const pct = (n) => (n * 100).toLocaleString("ko-KR", {maximumFractionDigits: 4}) + "%";
+const portraitPosition = (id) => Math.max(0, ["warrior", "mage", "archer", "rogue", "pirate"].indexOf(id)) * 25;
 function requiredLevel(level, label = "Lv." + level) {
   return `<span data-required-level="${level}" class="required-level ${state&&state.level<level?"level-unmet":""}">${esc(label)}</span>`;
 }
@@ -365,7 +366,7 @@ function attendance() {
 }
 function changeClassDialog() {
   const current = D.CLASSES.find(c=>c.id===state.classId);
-  open("직업 변경", `<p class="note">현재 ${current.name} · 변경하면 장착 장비가 모두 가방으로 돌아가고 자동사냥이 멈춥니다. 전직·레벨·보스 기록은 유지돼요.</p><div class="change-class-grid">${D.CLASSES.map((c,i)=>`<button class="change-class-card ${c.id===state.classId?"current":""}" data-action="changeClassPick" data-arg="${c.id}" ${c.id===state.classId?"disabled":""}><span class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${i*25}% 0" aria-hidden="true"></span><strong>${c.name}</strong><small>${c.stat} · ${c.weapon}</small><span>1차 ${D.CLASS_SKILLS[c.id].name}<br>2차 ${D.SECOND_SKILLS[c.id].name}</span>${c.id===state.classId?"<em>현재 직업</em>":""}</button>`).join("")}</div><p class="note">직업별 스탯 배분은 따로 저장됩니다. 처음 바꾸는 직업의 기본 무기는 가방 또는 보관함에 한 번 지급됩니다.</p>`);
+  open("직업 변경", `<p class="note">현재 ${current.name} · 변경하면 장착 장비가 모두 가방으로 돌아가고 자동사냥이 멈춥니다. 전직·레벨·보스 기록은 유지돼요.</p><div class="change-class-grid">${D.CLASSES.map((c,i)=>`<button class="change-class-card ${c.id===state.classId?"current":""}" data-action="changeClassPick" data-arg="${c.id}" ${c.id===state.classId?"disabled":""}><span class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(c.id)}% 0" aria-hidden="true"></span><strong>${c.name}</strong><small>${c.stat} · ${c.weapon}</small><span>1차 ${D.CLASS_SKILLS[c.id].name}<br>2차 ${D.SECOND_SKILLS[c.id].name}</span>${c.id===state.classId?"<em>현재 직업</em>":""}</button>`).join("")}</div><p class="note">직업별 스탯 배분은 따로 저장됩니다. 처음 바꾸는 직업의 기본 무기는 가방 또는 보관함에 한 번 지급됩니다.</p>`);
   modal.classList.add("change-class-dialog");
 }
 function confirmClassChange(classId) {
@@ -464,7 +465,7 @@ function regions() {
 function character() {
   const c = D.CLASSES.find((x) => x.id === state.classId),
     p = power(state);
-  return `${header("캐릭터", (state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}${btn("직업 변경","changeClass")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${D.jobStage(state)?D.jobStage(state)+"차 직업":"견습 모험가"} · ${state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name}</strong><p class="note">1차 Lv.30 / 2차 Lv.60 / 3차 Lv.100 / 4차 Lv.150 · 전용 보스 처치 · 전직마다 공격력·HP +10%</p></div>${btn("전직 보스","advance","","gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${D.CLASSES.indexOf(c) * 25}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+  return `${header("캐릭터", (state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}${btn("직업 변경","changeClass")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${D.jobStage(state)?D.jobStage(state)+"차 직업":"견습 모험가"} · ${state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name}</strong><p class="note">1차 Lv.30 / 2차 Lv.60 / 3차 Lv.100 / 4차 Lv.150 · 전용 보스 처치 · 전직마다 공격력·HP +10%</p></div>${btn("전직 보스","advance","","gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(c.id)}% 0" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
     state.stats,
   )
     .map(
@@ -638,7 +639,7 @@ function rankings() {
   const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
   const className=r=>r.advancement>=3?D.FOURTH_NAMES[r.classId]:r.advancement>=2?D.THIRD_NAMES[r.classId]:r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name||"모험가";
   const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
-  const portrait=r=>`<div class="rank-portrait portrait ${r.classId==='priest'?'priest-portrait':''}" style="background-position:${Math.max(0,D.CLASSES.findIndex(c=>c.id===r.classId))*25}% 0" aria-hidden="true"></div>`;
+  const portrait=r=>`<div class="rank-portrait portrait ${r.classId==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(r.classId)}% 0" aria-hidden="true"></div>`;
   const podium=rows.slice(0,3).map(r=>`<article class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}">${esc(r.name)}</strong><small>${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
   return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong>${esc(r.name)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><b class="rank-score">${score(r)}</b></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
 }
@@ -884,7 +885,7 @@ function login() {
   };
 }
 function createScreen() {
-  app.innerHTML = `<div class="login panel" style="max-width:650px"><p class="eyebrow">CHOOSE YOUR PATH</p><p class="note">접속 계정: ${esc(session?.user?.email?.split("@")[0]||session?.user?.user_metadata?.username||"현재 계정")}</p><h2>어떤 모험가가 될까요?</h2><p class="note">직업에 맞는 주스탯과 장비를 성장시키세요.</p><div class="class-choice">${D.CLASSES.map((c, i) => btn(`<div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${i * 25}% 0"></div>${c.name}<br><small>${c.stat}</small>`, "chooseClass", c.id, c.id === chosenClass ? "selected" : "")).join("")}</div><p class="note">선택: ${D.CLASSES.find((c) => c.id === chosenClass).name} · 첫 무기와 잠재 주문서를 지급합니다.</p><label>캐릭터 이름<input id="char-name" maxlength="12" placeholder="한글·영문·숫자 2~12자"></label><div class="actions">${btn("모험 시작", "create", "", "gold", true)}${btn("다른 계정 만들기 · 로그인", "switchAccount")}</div></div>`;
+  app.innerHTML = `<div class="login panel" style="max-width:650px"><p class="eyebrow">CHOOSE YOUR PATH</p><p class="note">접속 계정: ${esc(session?.user?.email?.split("@")[0]||session?.user?.user_metadata?.username||"현재 계정")}</p><h2>어떤 모험가가 될까요?</h2><p class="note">직업에 맞는 주스탯과 장비를 성장시키세요.</p><div class="class-choice">${D.CLASSES.map((c, i) => btn(`<div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(c.id)}% 0"></div>${c.name}<br><small>${c.stat}</small>`, "chooseClass", c.id, c.id === chosenClass ? "selected" : "")).join("")}</div><p class="note">선택: ${D.CLASSES.find((c) => c.id === chosenClass).name} · 첫 무기와 잠재 주문서를 지급합니다.</p><label>캐릭터 이름<input id="char-name" maxlength="12" placeholder="한글·영문·숫자 2~12자"></label><div class="actions">${btn("모험 시작", "create", "", "gold", true)}${btn("다른 계정 만들기 · 로그인", "switchAccount")}</div></div>`;
 }
 let betaResource="gold",betaAmount=1000;
 function betaTools(){

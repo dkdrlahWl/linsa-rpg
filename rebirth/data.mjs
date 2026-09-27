@@ -53,7 +53,6 @@ export const CLASSES = [
     skill: "파쇄 포격",
     color: "#7ac9dc",
   },
-  {id:"priest",name:"사제",stat:"LUK",weapon:"성물",skill:"성광 심판",color:"#f5f1df"},
 ];
 export const SLOTS = [
   "무기",

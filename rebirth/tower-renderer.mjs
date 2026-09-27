@@ -1,4 +1,4 @@
-import {drawHoly} from './priest-effects.mjs?v=priest-raids-27';
+import {drawHoly} from './priest-effects.mjs?v=raid-visibility-29';
 import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
@@ -69,12 +69,12 @@ function cleanDirectionalAtlas(im,layout=null){
 
 const preparations=new Map();
 export function prepareCombatArt(classes,boss){
- const tasks=[...new Set(classes)].flatMap(cls=>[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
- tasks.push([asset('boss-'+boss),null]);image(asset('priest-effects'));image(asset('raid-cover'));if(String(boss).startsWith('raid-'))image(asset('raid-map-'+boss.slice(5)));image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
+ const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-portrait-v2.png',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
+ tasks.push([asset(boss==='raid-2'?'raid-boss-2-portrait':'boss-'+boss),null]);image(asset('priest-effects'));image(asset('raid-cover'));if(String(boss).startsWith('raid-')){image(asset('raid-map-'+boss.slice(5)));image(asset('raid-boss-'+boss.slice(5)+'-portrait'));}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
-  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>window.requestIdleCallback?requestIdleCallback(resolve,{timeout:1500}):setTimeout(resolve,0));if(layout)cleanDirectionalAtlas(im,layout);else if(src.includes('hero-priest'))frameBounds(im,8,6);else frameBounds(im,String(boss).startsWith('raid-')?4:boss==='aureon'?1:3,String(boss).startsWith('raid-')?2:1);}catch{preparations.delete(src);}})());
+  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();await new Promise(resolve=>window.requestIdleCallback?requestIdleCallback(resolve,{timeout:1500}):setTimeout(resolve,0));if(src.includes('-portrait'))return;if(layout)cleanDirectionalAtlas(im,layout);else frameBounds(im,String(boss).startsWith('raid-')?4:boss==='aureon'?1:3,String(boss).startsWith('raid-')?2:1);}catch{preparations.delete(src);}})());
   return preparations.get(src);
  })]);
 }
@@ -95,7 +95,7 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
-  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){if(classId==='priest'){const row=acting?(age<.5?3:4):moving?1+Math.floor(walk/3)%2:0;this.sprite(asset('hero-priest-motion-v4'),8,6,row*8+dir,x,y,110,130,1,0,alpha);return;}let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth||!cleanAtlases.has(im)){
+  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){if(classId==='priest'){const im=image('tower/priest-portrait-v2.png');if(im.complete&&im.naturalWidth){const g=this.g;g.save();g.translate(x,y);g.scale([3,4,5].includes(dir)?-1:1,1);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?28:12;g.drawImage(im,-130,-260+(moving?Math.sin(walk*.7)*3:0),260,260);g.restore();}return;}let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth||!cleanAtlases.has(im)){
   const fallback=image(asset('hero-'+classId+'-directions'));
   if(fallback.complete&&fallback.naturalWidth)this.sprite(...directional('hero-'+classId,dir,acting),x,y,92,92,1,0,alpha);
   else{const g=this.g;g.save();g.globalAlpha=alpha;g.translate(x,y);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();g.restore();}
@@ -204,11 +204,11 @@ export class TowerRenderer {
     const dt=this.last?Math.min(50,now-this.last):16;
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
-    const scale=this.presentationScale||Math.min(.7,Math.max(.46,height/3000)),viewWidth=1000/scale,viewHeight=height/scale;
+    const scale=this.presentationScale||(b.raidMode?Math.min(.7,Math.max(.28,height/Math.max(2200,Math.abs(player.y-b.enemy.y)+750))):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
-    const target={x:limit(mix(player.x,b.enemy.x,.12)-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit(verticalFocus-viewHeight/2,viewHeight,TOWER_SIZE.height)};
+    const target=b.raidMode?{x:limit((player.x+b.enemy.x)/2-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit((player.y+b.enemy.y)/2-90-viewHeight/2,viewHeight,TOWER_SIZE.height)}:{x:limit(mix(player.x,b.enemy.x,.12)-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit(verticalFocus-viewHeight/2,viewHeight,TOWER_SIZE.height)};
     if(!this.camera)this.camera=target;
     const follow=1-Math.exp(-Math.min(100,dt)/135);this.last=now;
     this.camera.x=mix(this.camera.x,target.x,follow);this.camera.y=mix(this.camera.y,target.y,follow);
@@ -251,7 +251,7 @@ export class TowerRenderer {
     };
     const drawBoss=()=>{
       if(b.waveMode)return;
-      if(b.raidMode&&!b.chest){const frame=b.tick<b.enemyCastUntil?4:b.tick<b.enemyAttackUntil?5:b.tick<(b.enemyHurtUntil||0)?6:Math.floor(time/8)%2;this.sprite(asset('boss-'+f.art),4,2,frame,enemy.x,enemy.y,390,390);return;}
+      if(b.raidMode&&!b.chest){const frame=b.tick<b.enemyCastUntil?4:b.tick<b.enemyAttackUntil?5:b.tick<(b.enemyHurtUntil||0)?6:Math.floor(time/8)%2,src=asset('boss-'+f.art),im=image(src);if(im.complete&&im.naturalWidth)this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);else{const portrait=image(asset('raid-boss-'+b.tier+'-portrait'));if(portrait.complete&&portrait.naturalWidth){g.save();g.shadowColor='#fff2c0';g.shadowBlur=18;g.drawImage(portrait,enemy.x-195,enemy.y-390,390,390);g.restore();}}return;}
       if(b.chest){const x=b.chest.x,y=b.chest.y,opening=b.chest.openAt!==undefined,frame=opening?Math.min(3,Math.floor((now-b.chest.openAt)/160)):0;this.shadow(x,y,62);const im=image(asset('reward-chest'));if(im.complete&&im.naturalWidth){const sw=im.width/4;g.save();g.shadowColor='#f9d47d';g.shadowBlur=12;g.drawImage(im,frame*sw,0,sw,im.height,x-110,y-170,220,190);g.restore();}g.save();g.fillStyle='#fff2c0';g.font='bold 22px sans-serif';g.textAlign='center';g.fillText(opening?'상자 여는 중…':'가까이서 공격해 열기',x,y-185);g.restore();return;}
 
       const windup=b.tick<b.enemyCastUntil,frame=windup?1:b.tick<b.enemyAttackUntil?2:0;
@@ -262,7 +262,7 @@ export class TowerRenderer {
       this.sprite(asset('boss-'+f.art),f.art==='aureon'?1:3,1,f.art==='aureon'?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,245,245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
-    const walls=(b.walls||[]).map(w=>({y:w.y+w.h,draw:()=>{const im=image(asset('raid-cover'));if(!im.complete||!im.naturalWidth)return;const sw=im.width/4,sh=im.height/2;g.drawImage(im,b.tier*sw,0,sw,sh,w.x-35,w.y-110,w.w+70,w.h+155);}}));
+    const walls=(b.walls||[]).map(w=>({y:w.y+w.h,draw:()=>{g.save();g.fillStyle=['#173b43','#342c2b','#43405c','#2d3245'][b.tier]||'#30343b';g.strokeStyle='#f1daaa';g.lineWidth=7;g.shadowColor='#000b';g.shadowBlur=16;g.fillRect(w.x,w.y,w.w,w.h);g.strokeRect(w.x+3,w.y+3,w.w-6,w.h-6);g.restore();const im=image(asset('raid-cover'));if(im.complete&&im.naturalWidth){const sw=im.width/4,sh=im.height/2;g.drawImage(im,b.tier*sw,0,sw,sh,w.x-20,w.y-78,w.w+40,w.h+86);}}}));
     const actors=[...walls,{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.shadow(m.x,m.y,25);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
