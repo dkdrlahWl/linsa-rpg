@@ -2,7 +2,7 @@ import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 import {damageRows} from './damage-stack.mjs?v=field-fragment-13';
-import {drawFourth} from './fourth-effects.mjs?v=field-fragment-13';
+import {drawFourth,drawFourthGround,fourthAreaEffects} from './fourth-effects.mjs?v=fourth-barrage-22';
 import MOTION_LAYOUT from './motion-layout.mjs?v=field-fragment-13';
 import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=skill-sequence-21';
 const cache=new Map(),spriteBounds=new WeakMap();
@@ -69,7 +69,7 @@ function cleanDirectionalAtlas(im,layout=null){
 const preparations=new Map();
 export function prepareCombatArt(classes,boss){
  const tasks=[...new Set(classes)].flatMap(cls=>[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
- tasks.push([asset('boss-'+boss),null]);image(asset('fourth-job-atlas'));
+ tasks.push([asset('boss-'+boss),null]);image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
@@ -215,6 +215,8 @@ export class TowerRenderer {
     g.save();g.translate(500,height/2);g.scale(scale,scale);
     g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.waveMode)this.meadow();else this.background();
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
+    const fourthAreas=fourthAreaEffects(b.effects);
+    for(const e of fourthAreas)drawFourthGround(g,e,time);
     for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time);
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
@@ -275,7 +277,7 @@ export class TowerRenderer {
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
-      if(e.kind==='fourth'){if(e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')));continue;}
+      if(e.kind==='fourth'){if(!e.orbit&&!fourthAreas.includes(e))continue;if(e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')),image(asset('fourth-impact-atlas-v2')));continue;}
       if(e.kind==='second-sequence'){drawSecondSequence(g,e,time,image(motionAsset('second-sequence-atlas-v1')),(x,y,dir,alpha)=>this.actor('rogue',dir,true,true,.6,time,x,y,alpha));continue;}
       if(e.kind==='first'||e.kind==='second'){
         if(['mage','archer','pirate'].includes(e.classId)){const im=image(asset('second-'+e.classId+'-attack-v1'));if(im.complete&&im.naturalWidth){const cuts={mage:[0,525/2172,1060/2172,1665/2172,1],archer:[0,.25,.5,.75,1],pirate:[0,455/2172,935/2172,1600/2172,1]}[e.classId],sx=Math.round(cuts[frame]*im.width),sw=Math.round(cuts[frame+1]*im.width)-sx,h=e.size*.75;g.save();g.globalAlpha=.92;g.drawImage(im,sx,0,sw,im.height,e.x-e.size/2,e.y-h*.76,e.size,h);g.restore();}continue;}
