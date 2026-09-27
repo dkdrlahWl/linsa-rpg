@@ -1,4 +1,5 @@
-import * as D from './data.mjs?v=skill-cooldowns-26';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-raids-27';
+import * as D from './data.mjs?v=priest-raids-27';
 const bossesFor=level=>D.BOSSES.filter(b=>b.weekly?[b.gearLevel-10,b.gearLevel].includes(level):b.gearLevel===level);
 const option=(value,label)=>'<option value="'+value+'">'+label+'</option>';
 document.querySelector('#class').innerHTML+=D.CLASSES.map(c=>option(c.id,c.name)).join('');
@@ -10,3 +11,5 @@ document.querySelector('#count').textContent=rows.length+'종 · 보스 장비�
 document.querySelector('#rows').innerHTML=rows.map(({it,bosses})=>'<tr><td>'+it.level+'</td><td>'+D.CLASSES.find(c=>c.id===it.classId).name+'</td><td>'+D.SLOTS[it.slot]+'</td><td>'+D.gearName(it)+'</td><td>'+bosses.map(b=>b.name+(b.weekly?' (주간 상자)':'')).join('<br>')+'</td><td>'+bosses.map(b=>b.weekly?'장비 25% × 해당 레벨 50%':'장비 10%').join('<br>')+'</td></tr>').join('');}
 for(const id of ['class','level','slot','search'])document.getElementById(id).addEventListener('input',draw);draw();
 
+
+const raidNote=document.createElement('p');raidNote.className='note';raidNote.textContent='레이드 추가 획득: 60·100·150·200레벨 보스 장비 각 25%. 6직업 각 1/6, 9부위 각 1/9. 보스별 주 1회 개인 보상.';document.querySelector('#rows')?.closest('table')?.before(raidNote);

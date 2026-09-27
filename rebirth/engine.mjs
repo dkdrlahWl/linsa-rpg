@@ -1,10 +1,12 @@
-import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=skill-sequence-21';
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=skill-cooldowns-26';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-raids-27';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
+import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-raids-27';
 import {rollRiftReward} from './rift-rewards.mjs?v=field-fragment-13';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=skill-cooldowns-26';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=priest-raids-27';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=defense-half-24';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';
-import {applyBetaTool} from './beta-tools.mjs?v=skill-cooldowns-26';
+import {applyBetaTool} from './beta-tools.mjs?v=priest-raids-27';
 import {
   VERSION,
   normalizePotentialState,
@@ -42,9 +44,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=skill-cooldowns-26";
+} from "./data.mjs?v=priest-raids-27";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=skill-cooldowns-26';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=priest-raids-27';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -390,14 +392,17 @@ function bossSettle(s, ctx, events) {
     Math.max(0, Math.floor((ctx.now - b.started) / 1000)),
   );
   for (let t = b.tick + 1; t <= upto; t++) {
+    Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100,soloSupport:true});
     const active = skill.type==='buff' && t <= b.burstUntil;
     const second = t <= (b.secondUntil||0) && SECOND_SKILLS[s.classId].type==='buff' ? SECOND_SKILLS[s.classId] : null;
     const burst = (active ? skill.damage : 1) * (second?.damage||1);
     const crit = ctx.random() < Math.min(1,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));
-    if(b.firstCast||b.secondCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepCombatSkills(b,b.enemyHp>0?[{x:0,y:0}]:[],pulse,(scale,extraCrit)=>{if(b.enemyHp<=0)return;const critical=ctx.random()<Math.min(.95,b.power.crit+extraCrit),value=Math.round(b.power.attack*b.power.boss*scale*(critical?b.power.critDamage:1));b.enemyHp=Math.max(0,b.enemyHp-value);frames.push({tick:pulse/10,damage:value,crit:critical,incoming:0,enemyHp:b.enemyHp});});
-    if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});
-    if(b.fourthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepFourth(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1)));});
-    const damage = Math.round(b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence);
+    if(b.firstCast||b.secondCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepCombatSkills(b,b.enemyHp>0?[{x:0,y:0}]:[],pulse,(scale,extraCrit)=>{if(b.enemyHp<=0)return;const critical=ctx.random()<Math.min(.95,b.power.crit+extraCrit),value=Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*(critical?b.power.critDamage:1)));b.enemyHp=Math.max(0,b.enemyHp-value);frames.push({tick:pulse/10,damage:value,crit:critical,incoming:0,enemyHp:b.enemyHp});});
+    if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1))));});
+    if(b.fourthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepFourth(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1))));});
+    if(b.fifthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepPriest(b,[{x:0,y:0}],pulse,5,scale=>{const crit=ctx.random()<b.power.crit;b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*scale*(crit?b.power.critDamage:1))*b.power.boss));});
+    supportTick([b],t*10);
+    const damage = Math.round(b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence * (s.classId==='priest'?1.15:1));
     b.enemyHp = Math.max(0, b.enemyHp - damage);
     b.tick = t;
     const frame = {tick:t, damage, crit, incoming:0, enemyHp:b.enemyHp};
@@ -413,7 +418,7 @@ function bossSettle(s, ctx, events) {
             (guarded ? skill.guard : 1) * (second?.guard||1),
         ),
       );
-      b.hp = Math.max(0, b.hp - frame.incoming);
+      b.hp = Math.max(0, b.hp - absorbDamage(b,frame.incoming,t*10));
     }
     if (b.hp <= 0) break;
   }
@@ -514,7 +519,7 @@ export function execute(input, command, args = {}, ctx) {
     else if(command==='towerInput'){
       check(args.runId===b.runId,'INVALID_TOWER_RUN');
       check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
-      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,63)),'INVALID_TOWER_INPUT');
+      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,127)),'INVALID_TOWER_INPUT');
       const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
       for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&(!b.ended||b.chest);i++)towerStep(b,args.frames[i]);
     }else if(command==='towerLeave'){check(!b.chest,'ITEM_CHEST_PENDING');b.ended=true;b.won=false;b.reason='leave';}
@@ -542,15 +547,16 @@ export function execute(input, command, args = {}, ctx) {
   if (command === "skill") {
     check(s.battle, "NO_BATTLE");
     const b = s.battle;
-    const slot=args.slot===4?4:args.slot===3?3:args.slot===2?2:1;
-    check(slot===1?firstJobUnlocked(s):(s.advancement||0)>=slot-1,"ADVANCEMENT_REQUIRED");
-    const sk=slot===4?FOURTH_SKILLS[s.classId]:slot===3?THIRD_SKILLS[s.classId]:slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
-    const ready=slot===4?'fourthReadyAt':slot===3?'thirdReadyAt':slot===2?'secondReady':'skillReady';
+    const slot=args.slot===5?5:args.slot===4?4:args.slot===3?3:args.slot===2?2:1;
+    check(slot===5?s.classId==='priest'&&s.level>=200:slot===1?firstJobUnlocked(s):(s.advancement||0)>=slot-1,"ADVANCEMENT_REQUIRED");
+    const sk=slot===5?PRIEST_SKILLS[5]:slot===4?FOURTH_SKILLS[s.classId]:slot===3?THIRD_SKILLS[s.classId]:slot===2?SECOND_SKILLS[s.classId]:CLASS_SKILLS[s.classId];
+    const ready=slot===5?'fifthReadyAt':slot===4?'fourthReadyAt':slot===3?'thirdReadyAt':slot===2?'secondReady':'skillReady';
     check(ctx.now >= (b[ready]||0),"SKILL_COOLDOWN");
     b[ready]=ctx.now+sk.cooldown*1000;
-    if(slot===4){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginFourth(b,{x:0,y:0},b.tick*10);}
+    if(slot===5){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginPriest(b,{x:0,y:0},b.tick*10,5);}
+    else if(slot===4){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginFourth(b,{x:0,y:0},b.tick*10);}
     else if(slot===3){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginThird(b,{x:0,y:0},b.tick*10);}
-    else {Object.assign(b,{classId:s.classId,x:0,y:100});scheduleCombatSkill(b,{x:0,y:0},b.tick*10,slot);}
+    else {Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});scheduleCombatSkill(b,{x:0,y:0},b.tick*10,slot);}
     events.push({type:'skill',slot});
     return { state: s, events };
   }
@@ -852,4 +858,11 @@ export function grantCoopChest(input,tier,ctx){
  if(reward.gear){const classId=pick(CLASSES,ctx).id,slot=Math.floor(ctx.random()*SLOTS.length),design=selectDesign(reward.level,classId,slot,false,ctx.random);
   const item={...makeItem(reward.level,classId,slot,false,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);reward.items.push(item);}
  delete reward.gear;delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
+}
+
+export function grantRaidChest(input,tier,ctx){
+ const s=normalizePotentialState(structuredClone(input)),raid=RAID_ENCOUNTERS[tier];check(raid,'INVALID_RAID');const claim=weekKey(ctx.now),practice=s.raidClaims?.[tier]===claim;
+ const reward={type:'coop',mode:'raid',name:raid.name,won:true,practice,gold:practice?0:raid.gold,cube:practice?0:raid.cubes,highCube:practice?0:raid.highCube,items:[]};
+ if(!practice){s.gold+=reward.gold;s.materials.cube+=reward.cube;s.materials.highCube+=reward.highCube;if(ctx.random()<raid.gearChance){const classId=pick(CLASSES,ctx).id,slot=Math.floor(ctx.random()*9),design=selectDesign(raid.level,classId,slot,true,ctx.random),item={...makeItem(raid.level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);reward.items.push(item);}s.raidClaims={...s.raidClaims,[tier]:claim};}
+ delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
 }

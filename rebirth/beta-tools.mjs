@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=skill-cooldowns-26';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=priest-raids-27';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

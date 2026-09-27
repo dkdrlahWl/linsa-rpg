@@ -1,10 +1,11 @@
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=skill-cooldowns-26';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=skill-cooldowns-26';
+import {supportTick} from './priest.mjs?v=priest-raids-27';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-raids-27';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=priest-raids-27';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.
 const sharedKeys=['enemy','hazards','projectiles','effects','numbers','serial','seed','nextPattern','phase','charge','enemyCastStart','enemyCastUntil','enemyAttackStart','enemyAttackUntil','enemyAttackDir','enemyHurtUntil'];
-const actorKeys=['hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','firstCast','secondCast','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
+const actorKeys=['fifthCast','fifthReady','holyReductionUntil','shieldGiven','purifiedUntil','holySupport','shield','shieldUntil','shieldOwner','healing','holyHealTick','holyHealAmount','hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','firstCast','secondCast','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
 const copy=(to,from,keys)=>{for(const key of keys){if(from[key]===undefined)delete to[key];else to[key]=from[key];}};
 export function startTrialCoop(room,now){
  const trial=ADVANCEMENT_BOSSES[room.tier];
@@ -32,7 +33,7 @@ export function advanceTrialCoopRaw(w,user,input,now,frames=[]){
   const target=alive.reduce((a,b)=>Math.hypot(a.x-w.enemy.x,a.y-w.enemy.y)<=Math.hypot(b.x-w.enemy.x,b.y-w.enemy.y)?a:b);
   // Target runs first; followers take the same hazards without moving the boss twice.
   for(const m of [target,...alive.filter(m=>m!==target)]){
-   const b={...m,kind:'tower',worldVersion:3,actorId:m.id,runId:w.id,floor:trial.floor,encounter:trial,advancementStage:w.tier,started:w.started,tick,enemyHp:w.hp,ended:false,won:false,player:{x:m.x,y:m.y,dir:m.dir,face:m.face,walk:m.walk,attackDir:m.attackDir,skillDir:m.skillDir}};
+   const b={...m,sharedTrial:true,soloSupport:w.members.length===1,kind:'tower',worldVersion:3,actorId:m.id,runId:w.id,floor:trial.floor,encounter:trial,advancementStage:w.tier,started:w.started,tick,enemyHp:w.hp,ended:false,won:false,player:{x:m.x,y:m.y,dir:m.dir,face:m.face,walk:m.walk,attackDir:m.attackDir,skillDir:m.skillDir}};
    copy(b,w,sharedKeys);
    const oldSerial=w.serial,oldHp=w.hp;
    towerStep(b,w.started+tick*100-m.inputAt<1500?m.input:[0,0,0],{advanceEnemy:m===target});
@@ -41,6 +42,7 @@ export function advanceTrialCoopRaw(w,user,input,now,frames=[]){
    copy(m,b,actorKeys);Object.assign(m,b.player,{damage:m.damage+Math.max(0,oldHp-w.hp),immune:b.invulnerableUntil,dx:b.dashX,dy:b.dashY});
    if(w.hp<=0)break;
   }
+  supportTick(w.members,tick,w.numbers,w.effects,()=>++w.serial);
   w.tick=tick+1;
   if(w.hp<=0){w.status='won';w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];}
   else if(!w.members.some(m=>m.hp>0&&!m.left)||w.tick>=trial.seconds*10)w.status='lost';

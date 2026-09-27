@@ -1,6 +1,7 @@
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=skill-sequence-21';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=skill-cooldowns-26';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=skill-cooldowns-26';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-raids-27';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=priest-raids-27';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
@@ -33,7 +34,7 @@ export function initializeWave(w){
 function number(w,value,a,kind){w.numbers.push({id:++w.serial,value,x:a.x,y:a.y-90,kind,start:w.tick,end:w.tick+16});}
 function damage(w,m,targets,scale,critAdd=0){
  const first=w.tick<(m.guardUntil||0)&&CLASS_SKILLS[m.classId].type==='buff'?CLASS_SKILLS[m.classId]:null;
- for(const enemy of targets){if(enemy.hp<=0)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(m.power.attack*scale*(first?.damage||1)*(critical?m.power.critDamage:1))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
+ for(const enemy of targets){if(enemy.hp<=0)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(first?.damage||1)*(critical?m.power.critDamage:1)))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
 }
 function pulse(w,m,cast,sk){
  const aim=sk.mode==='orbit'?m:sk.mode==='volley'?(w.monsters.filter(e=>e.hp>0&&distance(e,m)<=sk.range+150).sort((a,b)=>distance(a,m)-distance(b,m))[0]||cast):cast;
@@ -65,9 +66,11 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
     const victims=targets.filter(e=>distance(e,m)<=c.range&&distance(e,target)<(c.range<300?230:140)).slice(0,3);
     damage(w,m,victims,c.cooldown/10*m.power.cadence);w.effects.push({id:++w.serial,kind:'slash',classId:m.classId,owner:m.id,x:target.x,y:target.y-30,size:180,angle:Math.atan2(target.y-m.y,target.x-m.x),start:t,end:t+5});
    }
-   for(const [bit,slot] of [[8,1],[2,2]])if((bits&bit)&&beginCombatSkill(m,target,t,slot))m.skillDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);
+   for(const [bit,slot] of [[8,1],[2,2]])if((bits&bit)&&beginCombatSkill(m,target,t,slot))m.skillDir=target?towerFacing(target.x-m.x,target.y-m.y,m.dir):m.dir;
    stepCombatSkills(m,targets,t,(scale,crit,enemy)=>damage(w,m,[enemy],scale,crit),effect=>w.effects.push({...effect,id:++w.serial}));
+   if(m.classId==='priest'){if(bits&64)beginPriest(m,target,t,5);stepPriest(m,targets,t,5,(scale,crit,enemy)=>damage(w,m,[enemy],scale,crit),effect=>w.effects.push({...effect,id:++w.serial}));}
    for(const [bit,stage,key,kind,skills] of [[16,2,'third','third',THIRD_SKILLS],[32,3,'fourth','fourth',FOURTH_SKILLS]]){
+    if(m.classId==='priest'){const slot=stage+1;if(bits&bit)beginPriest(m,target,t,slot);stepPriest(m,targets,t,slot,(scale,crit,enemy)=>damage(w,m,[enemy],scale,crit),effect=>w.effects.push({...effect,id:++w.serial}));continue;}
     const sk=skills[m.classId];if(target&&(bits&bit)&&m.power.advancement>=stage&&t>=(m[key+'Ready']||0)&&distance(m,target)<=sk.range){m[key+'Ready']=t+sk.cooldown*10;m[key+'Cast']={kind,x:target.x,y:target.y,next:t+(kind==='fourth'&&sk.mode!=='orbit'?4:2),left:sk.hits};m.skillStart=t;m.skillUntil=t+9;m.skillDir=m.dir;}
     const cast=m[key+'Cast'];
     if(cast&&kind==='fourth'){
@@ -80,6 +83,7 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
     if(cast&&t>=cast.next){pulse(w,m,cast,sk);if(!cast.left)delete m[key+'Cast'];}
    }
   }
+  supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
   w.monsters=w.monsters.filter(e=>e.hp>0);
   // A cleared full spawn budget advances immediately, without waiting for the clock.
   const plan=w.spawnPlan;
@@ -94,8 +98,8 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
     e.skill=type==='line'?{type,x:e.x,y:e.y,tx:target.x,ty:target.y,width:130,at,end:at+3}:{type,x:e.species%3===2?e.x:target.x,y:e.species%3===2?e.y:target.y,r:e.species%3===2?240:170,inner:0,at,end:at+3};
     w.hazards.push({...e.skill});e.skillReady=t+85;e.castStart=t;e.attackStart=at;e.attackUntil=at+5;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);
    }
-   if(e.skill&&t>=e.skill.at){const h=e.skill;for(const m of alive){let inside=distance(m,h)<=h.r;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,q=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy||1)));inside=Math.hypot(m.x-h.x-q*dx,m.y-h.y-q*dy)<=h.width/2;}if(!inside||t<m.immune||t<m.hurtReady)continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*1.65*guard));m.hp=Math.max(0,m.hp-value);m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;}}delete e.skill;}
-   if(e.strike&&t>=e.strike.at){for(const m of alive){if(t<m.immune||t<m.hurtReady||distance(m,e.strike)>(e.elite?135:95))continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*guard));m.hp=Math.max(0,m.hp-value);m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;}}
+   if(e.skill&&t>=e.skill.at){const h=e.skill;for(const m of alive){let inside=distance(m,h)<=h.r;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,q=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy||1)));inside=Math.hypot(m.x-h.x-q*dx,m.y-h.y-q*dy)<=h.width/2;}if(!inside||t<m.immune||t<m.hurtReady)continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*1.65*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;}}delete e.skill;}
+   if(e.strike&&t>=e.strike.at){for(const m of alive){if(t<m.immune||t<m.hurtReady||distance(m,e.strike)>(e.elite?135:95))continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;}}
     delete e.strike;
    }
   }

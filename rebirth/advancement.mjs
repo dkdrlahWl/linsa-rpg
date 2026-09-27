@@ -1,7 +1,9 @@
+import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=priest-raids-27';
 // Third-job skills share a deterministic pulse scheduler across solo and co-op combat.
-export const THIRD_NAMES={warrior:'소드 엠페러',mage:'엘리멘탈 로드',archer:'윈드 마스터',rogue:'섀도 팬텀',pirate:'스톰 커맨더'};
+export const THIRD_NAMES={priest:'빛의 대사제',warrior:'소드 엠페러',mage:'엘리멘탈 로드',archer:'윈드 마스터',rogue:'섀도 팬텀',pirate:'스톰 커맨더'};
 const skill=(name,hits,damage,interval,range,radius,mode,art,description)=>({name,type:'attack',hits,damage,interval,range,radius,mode,art,cooldown:18,description});
 export const THIRD_SKILLS={
+ priest:PRIEST_SKILLS[3],
  warrior:skill('천공 참렬',6,1.5,2,650,430,'area',0,'거대한 검기를 6회 연속 폭발 · 150% × 6 · 넓은 범위'),
  mage:skill('아스트라 폴',10,.9,5,950,480,'area',1,'지정 위치에 4.5초 마력 폭풍 · 90% × 10 · 지속 범위'),
  archer:skill('실피드 레인',9,1,2,1000,180,'volley',2,'추적 마력 화살 9연사 · 100% × 9 · 긴 사거리'),
@@ -18,5 +20,5 @@ export const ADVANCEMENT_BOSSES=[
  {stage:2,level:100,floor:10,name:'각성의 군주 에클립스',art:'eclipse',hp:540000,attack:308,seconds:120,pattern:'공허 연격 · 붕괴의 고리',guide:'추적 공격과 안전 고리가 이어집니다. 100제 보스 장비 9부위·15성·유니크 주스탯 잠재 권장.'},
 ].sort((a,b)=>a.stage-b.stage);
 export const thirdUnlocked=a=>(a.advancement||a.power?.advancement||0)>=2||a.third===true;
-export function beginThird(a,target,tick){const sk=THIRD_SKILLS[a.classId];if(!thirdUnlocked(a)||tick<(a.thirdReady||0)||Math.hypot(a.x-target.x,a.y-target.y)>sk.range)return false;a.thirdReady=tick+sk.cooldown*10;a.thirdCast={x:target.x,y:target.y,start:tick,next:tick+3,left:sk.hits};a.skillStart=tick;a.skillUntil=tick+8;return true;}
-export function stepThird(a,target,tick,hit,emit=()=>{}){const cast=a.thirdCast;if(!cast)return;const sk=THIRD_SKILLS[a.classId];while(cast.left>0&&tick>=cast.next){const aim=sk.mode==='volley'?target:cast;if(sk.mode==='volley'?Math.hypot(a.x-target.x,a.y-target.y)<=sk.range+150:Math.hypot(cast.x-target.x,cast.y-target.y)<=sk.radius)hit(sk.damage);emit({kind:'third',classId:a.classId,x:aim.x,y:aim.y,size:sk.radius*2,angle:(sk.hits-cast.left)*.24,start:cast.next,end:cast.next+10,fromX:a.x,fromY:a.y,volley:sk.mode==='volley'});cast.left--;cast.next+=sk.interval;}if(!cast.left)delete a.thirdCast;}
+export function beginThird(a,target,tick){if(a.classId==='priest')return beginPriest(a,target,tick,3);const sk=THIRD_SKILLS[a.classId];if(!thirdUnlocked(a)||tick<(a.thirdReady||0)||Math.hypot(a.x-target.x,a.y-target.y)>sk.range)return false;a.thirdReady=tick+sk.cooldown*10;a.thirdCast={x:target.x,y:target.y,start:tick,next:tick+3,left:sk.hits};a.skillStart=tick;a.skillUntil=tick+8;return true;}
+export function stepThird(a,target,tick,hit,emit=()=>{}){if(a.classId==='priest'){stepPriest(a,[target],tick,3,hit,emit);return;}const cast=a.thirdCast;if(!cast)return;const sk=THIRD_SKILLS[a.classId];while(cast.left>0&&tick>=cast.next){const aim=sk.mode==='volley'?target:cast;if(sk.mode==='volley'?Math.hypot(a.x-target.x,a.y-target.y)<=sk.range+150:Math.hypot(cast.x-target.x,cast.y-target.y)<=sk.radius)hit(sk.damage);emit({kind:'third',classId:a.classId,x:aim.x,y:aim.y,size:sk.radius*2,angle:(sk.hits-cast.left)*.24,start:cast.next,end:cast.next+10,fromX:a.x,fromY:a.y,volley:sk.mode==='volley'});cast.left--;cast.next+=sk.interval;}if(!cast.left)delete a.thirdCast;}

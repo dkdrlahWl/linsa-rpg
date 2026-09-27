@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=skill-cooldowns-26';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=skill-cooldowns-26';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=priest-raids-27';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=priest-raids-27';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

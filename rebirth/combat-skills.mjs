@@ -1,10 +1,13 @@
+import {PRIEST_SKILLS,beginPriest,schedulePriest,stepPriest} from './priest.mjs?v=priest-raids-27';
 // One deterministic timeline drives solo, party and wave damage and VFX.
 const first=(name,hits,damage,cooldown,critAdd=0)=>({name,type:'attack',hits,damage,cooldown,critAdd,seconds:0,range:760,description:`${Math.round(damage*100)}% × ${hits}타 · 총 ${Math.round(hits*damage*100)}%${critAdd?' · 이 스킬 치명 확률 +5%p':''}`,pulses:Array.from({length:hits},(_,i)=>({at:3+i*2,damage}))});
 export const CLASS_SKILLS={
+ priest:PRIEST_SKILLS[1],
  warrior:first('대지 분쇄',1,1.6,10),mage:first('빙결 폭쇄',3,.6,12),archer:first('질풍 관통',5,.35,11),rogue:first('그림자 처형',2,.8,10,.05),pirate:first('파쇄 포격',2,.85,11),
 };
 const sequence=(name,cooldown,range,mode,times,scales,description,close=[])=>({name,type:'sequence',cooldown,range,mode,hits:times.length,seconds:times.at(-1)/10,damage:scales.reduce((a,b)=>a+b,0)/times.length,description,pulses:times.map((at,i)=>({at,damage:scales[i],close:close.includes(i)}))});
 export const SECOND_SKILLS={
+ priest:PRIEST_SKILLS[2],
  warrior:sequence('균열 참격',14,760,'fissure',[4,8,12,16,20,24,28,30],[.8,.5,.5,.5,.5,.5,.5,.9],'3초 · 횡베기 80% + 균열 50% × 6 + 솟는 검기 90% · 8타 / 총 470%'),
  mage:sequence('프리즘 창',16,950,'lance',[5,9,13,17,21,25,29,33,38],[.45,.45,.45,.45,.45,.45,.45,.45,1.2],'3.8초 · 마력창 45% × 8 + 결정 폭발 120% · 9타 / 총 480%'),
  archer:sequence('매의 저격',15,1100,'snipe',[6,9,12,15,18,21,24,27,30,34],[1.6,.3,.3,.3,.3,.3,.3,.3,.3,.6],'3.4초 · 저격 160% + 잔상 화살 30% × 8 + 관통 섬광 60% · 10타 / 총 460%'),
@@ -15,12 +18,14 @@ export const skillFor=(classId,slot)=> (slot===1?CLASS_SKILLS:SECOND_SKILLS)[cla
 const key=slot=>slot===1?'firstCast':'secondCast';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function scheduleCombatSkill(a,target,tick,slot){
+ if(a.classId==='priest'){schedulePriest(a,target,tick,slot);return PRIEST_SKILLS[slot];}
  const sk=skillFor(a.classId,slot);
  a[key(slot)]={start:tick,origin:{x:a.x,y:a.y},target:{x:target.x,y:target.y},targetId:target.id,angle:Math.atan2(target.y-a.y,target.x-a.x),visual:0,next:0,aims:[],announced:false};
  a.skillStart=tick;a.skillUntil=tick+8;
  return sk;
 }
 export function beginCombatSkill(a,target,tick,slot){
+ if(a.classId==='priest')return beginPriest(a,target,tick,slot);
  const sk=skillFor(a.classId,slot),ready=slot===1?'ultimateReady':'skillReady';
  const unlocked=slot===1?a.power?.firstJob!==false:(a.advanced===true||(a.advancement??a.power?.advancement??0)>=1);
  if(!target||!unlocked||tick<(a[ready]||0)||distance(a,target)>sk.range)return false;
@@ -29,6 +34,7 @@ export function beginCombatSkill(a,target,tick,slot){
 function onLine(origin,angle,target,length,width){const dx=target.x-origin.x,dy=target.y-origin.y,along=dx*Math.cos(angle)+dy*Math.sin(angle);return along>=-60&&along<=length+60&&Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))<=width;}
 export function stepCombatSkills(a,targets,tick,hit,emit=()=>{}){
  for(const slot of [1,2]){
+  if(a.classId==='priest'){stepPriest(a,targets,tick,slot,hit,emit);continue;}
   const cast=a[key(slot)];if(!cast)continue;
   const sk=skillFor(a.classId,slot),primary=targets.find(t=>t.id===cast.targetId)||targets[0]||cast.target;
   if(!cast.announced){

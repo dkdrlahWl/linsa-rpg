@@ -1,16 +1,18 @@
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=skill-cooldowns-26';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=skill-cooldowns-26';
+export {PRIEST_SKILLS} from './priest.mjs?v=priest-raids-27';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest-raids-27';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=priest-raids-27';
 import {balanceWorld,journeyXP} from './journey-balance.mjs?v=defense-half-24';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=defense-half-24';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=field-fragment-13';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=field-fragment-13";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=field-fragment-13";
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-raids-27";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=priest-raids-27";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
 export const FIELD_XP_MULTIPLIER = 2.5;
 export const CLASSES = [
+  {id:"priest",name:"사제",stat:"LUK",weapon:"성물",skill:"성광 심판",color:"#f5f1df"},
   {
     id: "warrior",
     name: "전사",
@@ -51,6 +53,7 @@ export const CLASSES = [
     skill: "파쇄 포격",
     color: "#7ac9dc",
   },
+  {id:"priest",name:"사제",stat:"LUK",weapon:"성물",skill:"성광 심판",color:"#f5f1df"},
 ];
 export const SLOTS = [
   "무기",
@@ -63,13 +66,13 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=skill-sequence-21';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=priest-raids-27';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
 ];
 export const raidBoss = id => RAID_BOSSES.find(b=>b.id===Number(id));
-export const ADVANCEMENTS = {warrior:"가디언",mage:"아크메이지",archer:"레인저",rogue:"나이트워커",pirate:"캡틴"};
+export const ADVANCEMENTS = {priest:"빛의 사제",warrior:"가디언",mage:"아크메이지",archer:"레인저",rogue:"나이트워커",pirate:"캡틴"};
 export const EXPEDITION = {name:"여명의 폐허",background:"ui/dawn-ruins.svg"};
 export const DUNGEONS = {
   relic: {name:"여명의 파수꾼",art:"ui/dawn-sentinel.svg",fullArt:true,seconds:180,reward:"일반 200레벨 장비 1개 · 20,000 G · 파편 60개"},

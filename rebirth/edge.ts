@@ -1,6 +1,6 @@
 import {startCoop,advanceCoop,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
-import { initialState, execute, power, grantCoopChest } from "./engine.mjs";
+import { initialState, execute, power, grantCoopChest, grantRaidChest } from "./engine.mjs";
 const url = Deno.env.get("SUPABASE_URL")!;
 const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -87,9 +87,9 @@ Deno.serve(async (req) => {
           if(action==='open'){
             const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);
             if(room?.status!=='won'||!member||!room.chest)throw new Error('COOP_CHEST_NOT_READY');
-            if(!(member.damage>0))throw new Error('COOP_DAMAGE_REQUIRED');
+            if(!(member.damage>0||(room.mode==='raid'&&((member.healing||0)+(member.shieldGiven||0)>0))))throw new Error('COOP_DAMAGE_REQUIRED');
             if(Math.hypot(member.x-room.chest.x,member.y-room.chest.y)>180)throw new Error('COOP_CHEST_TOO_FAR');
-            claim=grantCoopChest(computed.state,room.tier,ctx);
+            claim=room.mode==='raid'?grantRaidChest(computed.state,room.tier,ctx):grantCoopChest(computed.state,room.tier,ctx);
           }
           const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim?.reward,rewardState:claim?.state}},true);
           return reply(result);

@@ -1,6 +1,6 @@
-import * as D from './data.mjs?v=skill-cooldowns-26';
-import {COOP_TIERS} from './coop-model.mjs?v=skill-cooldowns-26';
-import {TOWER_FLOORS} from './tower-model.mjs?v=skill-cooldowns-26';
+import * as D from './data.mjs?v=priest-raids-27';
+import {COOP_TIERS} from './coop-model.mjs?v=priest-raids-27';
+import {TOWER_FLOORS} from './tower-model.mjs?v=priest-raids-27';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
 const table=(heads,rows)=>'<div class="scroll"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 const section=(id,title,body)=>'<section id="'+id+'"><h2>'+title+'</h2>'+body+'</section>';
@@ -32,12 +32,13 @@ table(['큐브','첫 줄','둘째 줄','셋째 줄','보장 시도'],[['레드',
 '<p>보장 횟수는 캐릭터의 큐브 종류·현재 등급별 누적. 승급 결과 생성 시 초기화되며 블랙에서 기존 결과를 선택해도 되돌려지지 않습니다. 기존 장비의 옵션은 큐브 사용 전까지 유지됩니다.</p>'+
 '<div class="filters">'+select('cube-kind','큐브',Object.entries(D.CUBES).map(([k,c])=>[k,c.name]))+select('cube-grade','결과 등급',[2,3,4,5].map(g=>[g,D.RARITIES[g]]))+select('cube-level','장비 레벨 (확률 동일)',levels.map(l=>[l,l]))+select('cube-slot','장비 부위 (확률 동일)',D.SLOTS.map((s,i)=>[i,s]))+'</div><p id="cube-mapping"></p><div id="cube-rows"></div><button id="cube-csv">전체 큐브 옵션 확률 CSV 다운로드</button>'+
 '<p>옵션 표는 승급 후 각 줄의 생성 확률입니다. 3줄은 독립 추첨하고 같은 옵션 중복을 허용합니다. 기존 3줄과 등급·옵션·수치가 모두 같으면 전체 재추첨합니다. 최종 결과 확률은 해당 전체 결과 생성 확률 ÷ (1−기존 전체 결과 생성 확률)로 조건화됩니다. 최대 256회 모두 같으면 결제 취소.</p>');
+html+='<section class="panel pad"><h2>신규 레이드</h2><p>6인 기준 고정 난이도 · 최대 8인 · 레벨 제한 없음 · 사제 필수 · 보스별 주 1회 개인 보상(월요일 갱신).</p><p>60 / 100 / 150 / 200레벨 보스 장비 각각 25% · 직업 1/6 · 부위 1/9 · 보스 디자인 1종. 골드 24,000 / 42,000 / 65,000 / 100,000 · 레드 큐브 12 / 18 / 24 / 30 · 블랙 큐브 2 / 3 / 4 / 6.</p></section>';
 html+=section('gear','5. 장비 종류·기본 능력치',
-'<p>드롭 직업은 전사·마법사·궁수·도적·해적 각각 20%. 내 직업 우선 없음. 9개 부위는 각각 1/9 (약 11.111111%). 직업과 부위는 독립 추첨합니다. 아래 디자인 확률은 해당 레벨·직업·부위의 장비가 나온 조건에서의 확률입니다.</p>'+
-table(['출처','레벨·직업·부위당 종류','디자인 조건부 확률'],[['필드','일반 2종','각 50%'],['보스','보스 전용 1종','100%']])+'<p>10~200레벨의 20구간 × 9부위 × 3종 = 직업당 540종, 5직업 총 2,700종. 보스 장비는 이 수량에 포함됩니다. 주간 보스 상자는 25%로 장비 1개를 지급하며, 해당 지역의 두 레벨을 각각 50%로 추첨합니다. 일일 보스는 표의 레벨로 10% 추첨합니다. 일일·주간 보스 제한 시간은 90초, 전직 보스는 120초입니다. <a href="boss-equipment.html">보스 장비 900종 전체 목록</a></p>'+
+'<p>드롭 직업은 전사·마법사·궁수·도적·해적·사제 각각 1/6 (약 16.666667%). 내 직업 우선 없음. 9개 부위는 각각 1/9 (약 11.111111%). 직업과 부위는 독립 추첨합니다. 아래 디자인 확률은 해당 레벨·직업·부위의 장비가 나온 조건에서의 확률입니다.</p>'+
+table(['출처','레벨·직업·부위당 종류','디자인 조건부 확률'],[['필드','일반 2종','각 50%'],['보스','보스 전용 1종','100%']])+'<p>10~200레벨의 20구간 × 9부위 × 3종 = 직업당 540종, 6직업 총 3,240종. 보스 장비는 이 수량에 포함됩니다. 주간 보스 상자는 25%로 장비 1개를 지급하며, 해당 지역의 두 레벨을 각각 50%로 추첨합니다. 일일 보스는 표의 레벨로 10% 추첨합니다. 일일·주간 보스 제한 시간은 90초, 전직 보스는 120초입니다. <a href="boss-equipment.html">보스 장비 1,080종 전체 목록</a></p>'+
 '<div class="filters">'+select('gear-level','레벨',levels.map(l=>[l,l]))+select('gear-class','직업',D.CLASSES.map(c=>[c.id,c.name]))+select('gear-slot','부위',D.SLOTS.map((s,i)=>[i,s]))+select('gear-boss','장비 종류',[[0,'일반'],[1,'보스']])+'</div><div id="gear-rows"></div><button id="gear-csv">전체 장비·디자인·능력치 범위 CSV</button>'+
 '<p>품질 등급 추첨은 없습니다. 공격력·주스탯·HP·방어력의 기본 수치는 각각 독립 추첨합니다. 연속 구간의 하위 50%에 75%, 다음 40%에 24%, 최상위 10%에 1%를 배분한 뒤 정수로 내림합니다. 따라서 정수 구간 경계에서 각 수치의 확률은 달라집니다. 아래에서 선택한 장비의 수치별 정확한 추첨 확률을 펼칠 수 있습니다.</p><div id="stat-rows"></div>'+
-'<p>특정 장비의 사냥 1회 확률 = 0.13% × 20% × 1/9 × 디자인 확률. 보스에서는 0.13% 대신 해당 보스 장비 확률을 사용합니다. 기본 능력치까지 지정하면 각각의 수치 확률도 곱합니다. 무기 3종은 일반 2종과 보스 1종에 각각 배정됩니다.</p>');
+'<p>특정 장비의 사냥 1회 확률 = 0.13% × 1/6 × 1/9 × 디자인 확률. 보스에서는 0.13% 대신 해당 보스 장비 확률을 사용합니다. 기본 능력치까지 지정하면 각각의 수치 확률도 곱합니다. 무기 3종은 일반 2종과 보스 1종에 각각 배정됩니다.</p>');
 html+=section('fixed','6. 확정 보상·전투 확률',
 '<h3>탑</h3><p>첫 클리어는 아래 보상을 100% 지급. 재도전 승리에는 보상을 지급하지 않습니다. 최초 클리어만 일일 탑 과제에 반영됩니다. 무작위 장비 드롭 없음.</p>'+
 table(['층','첫 클리어 보상'],TOWER_FLOORS.map(f=>[f.floor,reward(f.reward)]))+
