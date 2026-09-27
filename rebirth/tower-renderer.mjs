@@ -91,7 +91,7 @@ export class TowerRenderer {
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
     const actorScale=this.mobileActors.matches?1.5:1;w*=actorScale;h*=actorScale;
-    const g=this.g,source=src.endsWith('-directions.webp')?cleanDirectionalAtlas(im):im,sw=source.width/columns,sh=source.height/rows;
+    const g=this.g,source=im,sw=source.width/columns,sh=source.height/rows;
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
