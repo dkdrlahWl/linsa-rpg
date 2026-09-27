@@ -60,7 +60,7 @@ const salvageSelection=new Set();
 const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id;
 let partyBossId=null, partyPractice=false;
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
-let connectionLost = false, marketRequest = 0, lastVisualHit = 0;
+let connectionLost = false, marketRequest = 0, lastVisualHit = 0, lastBattleRequestAt = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
 let session,
   settings = { sound: 0.3, music: 0.18, low: false },
@@ -288,6 +288,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
       if(!recoverySync&&!streaming)localStorage.setItem(pendingKey(), JSON.stringify(body));
     }
     const sentAt=performance.now();
+    if(state?.battle?.kind==='boss'||body.command==='boss')lastBattleRequestAt=Date.now();
     const result = await request("/functions/v1/ringu-rebirth", body);
     if(result.coop)result.coop._rtt=performance.now()-sentAt;
     if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
@@ -1331,10 +1332,15 @@ setInterval(() => {
   if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=3000){refreshCoopRooms().catch(()=>{});return;}
   if(regularAutoSkills&&state.battle&&state.battle.started===regularAutoBattle&&!modal.open){const slot=nextAutoSkill(state,Date.now());if(slot!==null){command('skill',{slot}).catch(()=>{});return;}}
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
+  // Measure from dispatch so response latency does not lengthen each combat second.
+  if(state.battle?.kind==='boss'){
+    if(Date.now()-lastBattleRequestAt>=1000)command("sync",{},true).catch(()=>{});
+    return;
+  }
   const partyLobbyOpen = false;
   const due = state.coopRoom&&coopRoom?.status==='waiting'?2000:state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;
   if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
-}, 1000);
+}, 250);
 function strike(arena, frame = null) {
   sounds.play(state.classId+"-attack");
   if (settings.low || arena.querySelectorAll(".slash").length > 2) return;
