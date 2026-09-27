@@ -1,4 +1,4 @@
-import {drawPriestSkillArt,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-visual-35';
+import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-aura-36';
 import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
@@ -249,6 +249,7 @@ export class TowerRenderer {
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
       if(b.classId==='priest'&&casting){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
       if(b.shield>0&&b.tick<b.shieldUntil)drawPriestSkillArt(g,{slot:3,x:player.x,y:player.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});
+      drawPriestBuffAura(g,{...b,x:player.x,y:player.y},time,holyEffects);
       this.actor(b.classId,dir,moving||dashing,attacking||casting,casting?skillAge:attackAge,(b.player.walk||0)+fraction,x,y,alpha);
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
@@ -265,10 +266,10 @@ export class TowerRenderer {
       this.sprite(asset('boss-'+f.art),f.art==='aureon'?1:3,1,f.art==='aureon'?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,245,245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
-    const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}for(const e of holy.values())drawPriestSkillArt(g,e,time);
+    const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
     const actors=[{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
-      this.shadow(m.x,m.y,25);if(m.shield>0&&b.tick<m.shieldUntil)drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
+      this.shadow(m.x,m.y,25);if(m.shield>0&&b.tick<m.shieldUntil)drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,m.y-150);g.fillStyle='#25312d';g.fillRect(m.x-40,m.y-139,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,m.y-139,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
     }})),...(b.monsters||[]).filter(e=>visible(e.x,e.y)).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());

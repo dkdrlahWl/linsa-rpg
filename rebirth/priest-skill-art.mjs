@@ -46,3 +46,48 @@ export function drawPriestSkillArt(g,e,time,options={}){
   g.restore();
   return true;
 }
+
+export function drawPriestRangeAura(g,e,time){
+  if(e.slot<2||e.start>time||e.end<=time)return;
+  const radius=Math.max(1,(e.size||0)/2),color=colors[e.slot]||colors[2];
+  const fade=Math.min(1,(time-e.start+2)/5,(e.end-time)/6);
+  if(fade<=0)return;
+  g.save();g.translate(e.x,e.y);g.globalCompositeOperation='screen';
+  const fill=g.createRadialGradient(0,0,radius*.12,0,0,radius);
+  fill.addColorStop(0,color+'08');fill.addColorStop(.72,color+'19');fill.addColorStop(1,color+'34');
+  g.globalAlpha=fade;g.fillStyle=fill;g.beginPath();g.arc(0,0,radius,0,Math.PI*2);g.fill();
+  g.strokeStyle=color;g.shadowColor=color;g.shadowBlur=28;g.lineWidth=11;
+  g.globalAlpha=fade*(.52+Math.sin(time*.55)*.08);
+  g.beginPath();g.arc(0,0,radius,0,Math.PI*2);g.stroke();
+  g.globalAlpha=fade*.24;g.lineWidth=34;g.beginPath();g.arc(0,0,radius-20,0,Math.PI*2);g.stroke();
+  for(let i=0;i<16;i++){
+    const a=i*2.399+time*.015,r=radius*(.32+(i%6)*.11);
+    const x=Math.cos(a)*r,y=Math.sin(a)*r;
+    const size=8+(i%4)*3;
+    g.globalAlpha=fade*(.24+(i%3)*.12);g.lineWidth=3+(i%2);
+    g.beginPath();g.moveTo(x-size,y);g.lineTo(x+size,y);g.moveTo(x,y-size);g.lineTo(x,y+size);g.stroke();
+  }
+  g.restore();
+}
+
+export function drawPriestBuffAura(g,actor,time,areas=[]){
+  const active=[];
+  const area=areas.filter(e=>e.slot>=2&&Math.hypot(actor.x-e.x,actor.y-e.y)<=(e.size||0)/2).sort((a,b)=>b.start-a.start)[0];
+  if(area)active.push(area.slot);
+  else if(actor.purifiedUntil>time)active.push(2);
+  if(actor.shield>0&&actor.shieldUntil>time&&!active.includes(3))active.push(3);
+  if(actor.holyReductionUntil>time&&!active.includes(5))active.push(5);
+  if(!active.length)return;
+  g.save();g.globalCompositeOperation='screen';
+  active.forEach((slot,j)=>{
+    const color=colors[slot],radius=58+j*18;
+    g.strokeStyle=color;g.shadowColor=color;g.shadowBlur=17;g.lineWidth=5;g.globalAlpha=.48;
+    g.beginPath();g.ellipse(actor.x,actor.y,radius,radius*.37,0,0,Math.PI*2);g.stroke();
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4+time*.045*(j%2?-1:1),rise=(time*9+i*23)%135;
+      const x=actor.x+Math.cos(a)*(40+j*12),y=actor.y-20-rise;
+      g.globalAlpha=.35+.35*(1-rise/135);g.fillStyle=color;g.beginPath();g.arc(x,y,3+i%3,0,Math.PI*2);g.fill();
+    }
+  });
+  g.restore();
+}
