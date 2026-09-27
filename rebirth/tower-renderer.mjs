@@ -5,6 +5,7 @@ import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 import {damageRows} from './damage-stack.mjs?v=field-fragment-13';
 import {drawFourth,drawFourthGround,fourthAreaEffects} from './fourth-effects.mjs?v=priest-visual-35';
 import MOTION_LAYOUT from './motion-layout.mjs?v=field-fragment-13';
+import MOTION_BODY_LAYOUT from './motion-body-layout.mjs?v=actor-body-39';
 import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=priest-visual-35';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
@@ -103,17 +104,19 @@ export class TowerRenderer {
       if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,phase=(walk||0)*.9,row=acting?(age<.3?3:age<.7?4:5):moving?[0,1,2,1][Math.floor(phase)%4]:0,size=this.raidActors?(this.mobileActors.matches?215:180):(this.mobileActors.matches?164:120);g.save();try{g.translate(x,y);g.rotate(moving&&!acting?Math.sin(phase*Math.PI/2)*.025:0);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,facing*sw,row*sh,sw,sh,-size/2,-size,size,size);}finally{g.restore();}}
       return;
     }
+    const bodySize=this.raidActors?(this.mobileActors.matches?210:180):(this.mobileActors.matches?140:104);
     const fallback=()=>{
       const still=image(asset('hero-'+classId+'-directions'));
-      if(still.complete&&still.naturalWidth){const sw=still.width/4,sh=still.height/4,index=(acting?8:0)+facing,size=this.raidActors?180:104;g.save();try{g.globalAlpha=alpha;g.drawImage(still,index%4*sw,Math.floor(index/4)*sh,sw,sh,x-size/2,y-size,size,size);}finally{g.restore();}return;}
+      if(still.complete&&still.naturalWidth){const sw=still.width/4,sh=still.height/4,index=(acting?8:0)+facing,body=MOTION_BODY_LAYOUT[classId+'Directions']?.[index]||[sh,sw/2,sh],scale=bodySize/body[0];g.save();try{g.globalAlpha=alpha;g.drawImage(still,index%4*sw,Math.floor(index/4)*sh,sw,sh,x-body[1]*scale,y-body[2]*scale,sw*scale,sh*scale);}finally{g.restore();}return;}
       g.save();try{g.globalAlpha=alpha;g.translate(x,y);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();}finally{g.restore();}
     };
     let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],row=[2,1,0,1,2,3,4,3][facing]+(acting?5:0);
     if(classId==='warrior'&&acting){if(facing===0||facing===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[facing];}
     const im=image(asset(name)),frame=acting?Math.min(7,Math.max(0,Math.floor((age||0)*9))):moving?((Math.floor((walk||0)*1.05)%8)+8)%8:0,r=layout?.frames?.[row*8+frame];
     if(!im.complete||!im.naturalWidth||!r||!Number.isFinite(r.foot)||r.w<=0||r.h<=0){fallback();return;}
-    const flip=([3,4,5].includes(facing)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=(this.raidActors?(this.mobileActors.matches?210:180):(this.mobileActors.matches?140:104))/layout.bodyHeight;
-    g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(im,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.foot*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
+    const body=MOTION_BODY_LAYOUT[name==='hero-warrior-east-v4'?'warriorEast':classId]?.[row*8+frame]||[layout.bodyHeight,r.w/2,r.foot];
+    const flip=([3,4,5].includes(facing)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=bodySize/body[0];
+    g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(im,r.x,r.y,r.w,r.h,-body[1]*scale,-body[2]*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
   }
   thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){
