@@ -1,6 +1,6 @@
 /* Keep the mobile account summary separate from the action buttons. */
 @media (max-width: 700px) {
-  .shell > .top {
+  body:not(.tower-mode) .shell > .top {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas: "brand identity resources" "actions actions actions";
@@ -111,9 +111,15 @@
   }
 }
 @media (max-width: 359px) {
-  .shell > .top { gap: 8px 5px; padding-inline: 2px; }
+  body:not(.tower-mode) .shell > .top { gap: 8px 5px; padding-inline: 2px; }
   .top > .brand { font-size: 13px; }
   .top-resources .money strong { font-size: 11px; }
   .top > .top-actions { gap: 4px; }
   .top .top-actions > button { font-size: 10px; }
+}
+
+/* Combat owns the viewport; lobby header layout must never override this. */
+body.tower-mode .shell > .top,
+body.tower-mode .shell > .bottom {
+  display: none;
 }
