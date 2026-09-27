@@ -1,6 +1,6 @@
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=skill-sequence-21';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=defense-half-24';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=defense-half-24';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=skill-cooldowns-26';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=skill-cooldowns-26';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;

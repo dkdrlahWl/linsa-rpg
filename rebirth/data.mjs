@@ -1,5 +1,5 @@
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=field-fragment-13';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=field-fragment-13';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=skill-cooldowns-26';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=skill-cooldowns-26';
 import {balanceWorld,journeyXP} from './journey-balance.mjs?v=defense-half-24';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=defense-half-24';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';

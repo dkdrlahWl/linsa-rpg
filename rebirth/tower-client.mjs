@@ -1,6 +1,6 @@
-import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=defense-half-24';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=defense-half-24';
-export {TowerController} from './tower-controller.mjs?v=defense-half-24';
+import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=skill-cooldowns-26';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=skill-cooldowns-26';
+export {TowerController} from './tower-controller.mjs?v=skill-cooldowns-26';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

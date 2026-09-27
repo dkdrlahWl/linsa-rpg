@@ -1,6 +1,6 @@
 // Third-job skills share a deterministic pulse scheduler across solo and co-op combat.
 export const THIRD_NAMES={warrior:'소드 엠페러',mage:'엘리멘탈 로드',archer:'윈드 마스터',rogue:'섀도 팬텀',pirate:'스톰 커맨더'};
-const skill=(name,hits,damage,interval,range,radius,mode,art,description)=>({name,type:'attack',hits,damage,interval,range,radius,mode,art,cooldown:12,description});
+const skill=(name,hits,damage,interval,range,radius,mode,art,description)=>({name,type:'attack',hits,damage,interval,range,radius,mode,art,cooldown:18,description});
 export const THIRD_SKILLS={
  warrior:skill('천공 참렬',6,1.5,2,650,430,'area',0,'거대한 검기를 6회 연속 폭발 · 150% × 6 · 넓은 범위'),
  mage:skill('아스트라 폴',10,.9,5,950,480,'area',1,'지정 위치에 4.5초 마력 폭풍 · 90% × 10 · 지속 범위'),
