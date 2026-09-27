@@ -1,4 +1,5 @@
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-visual-35';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-weekly-41';
+import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs?v=raid-weekly-41';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
 import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-visual-35';
@@ -861,8 +862,13 @@ export function grantCoopChest(input,tier,ctx){
 }
 
 export function grantRaidChest(input,tier,ctx){
- const s=normalizePotentialState(structuredClone(input)),raid=RAID_ENCOUNTERS[tier];check(raid,'INVALID_RAID');const claim=weekKey(ctx.now),practice=s.raidClaims?.[tier]===claim;
- const reward={type:'coop',mode:'raid',name:raid.name,won:true,practice,gold:practice?0:raid.gold,cube:practice?0:raid.cubes,highCube:practice?0:raid.highCube,items:[]};
- if(!practice){s.gold+=reward.gold;s.materials.cube+=reward.cube;s.materials.highCube+=reward.highCube;if(ctx.random()<raid.gearChance){const classId=pick(CLASSES,ctx).id,slot=Math.floor(ctx.random()*9),design=selectDesign(raid.level,classId,slot,true,ctx.random),item={...makeItem(raid.level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);reward.items.push(item);}s.raidClaims={...s.raidClaims,[tier]:claim};}
+ const s=normalizePotentialState(structuredClone(input)),raid=RAID_ENCOUNTERS[tier];check(raid,'INVALID_RAID');const weekly=raidWeeklyStatus(s,ctx.now),practice=weekly.remaining===0;
+ const reward=practice?{type:'coop',mode:'raid',name:raid.name,won:true,practice:true,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]}:rollRaidReward(tier,ctx.random);
+ if(!practice){
+  s.gold+=reward.gold;
+  for(const key of ['cube','highCube','primeCube','fragment','scroll'])s.materials[key]=(s.materials[key]||0)+reward[key];
+  s.raidWeekly={week:weekly.week,count:weekly.used+1};
+ }
+ Object.assign(reward,{weeklyUsed:weekly.used+(practice?0:1),weeklyLimit:weekly.limit,weeklyRemaining:Math.max(0,weekly.remaining-(practice?0:1))});
  delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
 }

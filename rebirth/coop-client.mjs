@@ -1,4 +1,4 @@
-import {raidLobby} from './raid-ui.mjs?v=priest-visual-35';
+import {raidLobby} from './raid-ui.mjs?v=raid-weekly-41';
 import {raidMove} from './raid-content.mjs?v=priest-visual-35';
 import {autoSkillBits} from './auto-skills.mjs?v=priest-visual-35';
 import {prepareWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
