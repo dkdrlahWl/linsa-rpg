@@ -10,6 +10,8 @@ export const raidWalls=tier=>[
  [{x:600,y:1500,w:400,h:150},{x:2200,y:1500,w:400,h:150},{x:1400,y:800,w:400,h:150},{x:1400,y:2250,w:400,h:150}],
  [{x:620,y:900,w:460,h:150},{x:2120,y:900,w:460,h:150},{x:1020,y:2160,w:460,h:150},{x:1800,y:1800,w:460,h:150}]
 ][tier].map((w,i)=>({...w,id:i}));
-export function wallCross(a,b,w,pad=0){let lo=0,hi=1;for(const [v,d,min,max] of [[a.x,b.x-a.x,w.x-pad,w.x+w.w+pad],[a.y,b.y-a.y,w.y-pad,w.y+w.h+pad]]){if(Math.abs(d)<1e-8){if(v<min||v>max)return false;continue;}const l=(min-v)/d,h=(max-v)/d;lo=Math.max(lo,Math.min(l,h));hi=Math.min(hi,Math.max(l,h));if(lo>hi)return false;}return hi>=0&&lo<=1;}
+function crossBox(a,b,w,pad){let lo=0,hi=1;for(const [v,d,min,max] of [[a.x,b.x-a.x,w.x-pad,w.x+w.w+pad],[a.y,b.y-a.y,w.y-pad,w.y+w.h+pad]]){if(Math.abs(d)<1e-8){if(v<min||v>max)return false;continue;}const l=(min-v)/d,h=(max-v)/d;lo=Math.max(lo,Math.min(l,h));hi=Math.min(hi,Math.max(l,h));if(lo>hi)return false;}return hi>=0&&lo<=1;}
+// The painted rail narrows below its top ledge; the transparent corners are walkable.
+export function wallCross(a,b,w,pad=0){const upper={x:w.x+35,y:w.y-18,w:w.w-70,h:93},lower={x:w.x+65,y:w.y+75,w:w.w-130,h:53};return crossBox(a,b,upper,pad)||crossBox(a,b,lower,pad);}
 export const covered=(a,b,walls)=>walls.some(w=>wallCross(a,b,w));
 export function raidMove(a,x,y,walls){const bound=n=>Math.max(150,Math.min(3050,n));const dx={x:bound(x),y:a.y};if(!walls.some(w=>wallCross(a,dx,w,30)))a.x=dx.x;const dy={x:a.x,y:bound(y)};if(!walls.some(w=>wallCross(a,dy,w,30)))a.y=dy.y;}

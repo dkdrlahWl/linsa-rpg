@@ -1,4 +1,4 @@
-import {drawHoly} from './priest-effects.mjs?v=priest-motion-30';
+import {drawHoly} from './priest-effects.mjs?v=priest-combat-31';
 import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
@@ -95,7 +95,7 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
-  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){if(classId==='priest'){const im=image('tower/priest-motion-v1.png');if(im.complete&&im.naturalWidth){const g=this.g,sw=im.width/8,sh=im.height/6,row=acting?(age<.4?3:4):moving?Math.floor(walk/2)%3:0,size=this.mobileActors.matches?164:120;g.save();g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,dir*sw,row*sh,sw,sh,x-size/2,y-size,size,size);g.restore();}return;}let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth||!cleanAtlases.has(im)){
+  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){if(classId==='priest'){const im=image('tower/priest-motion-v1.png');if(im.complete&&im.naturalWidth){const g=this.g,sw=im.width/8,sh=im.height/6,phase=walk*.9,row=acting?(age<.3?3:age<.7?4:5):moving?[0,1,2,1][Math.floor(phase)%4]:0,size=this.mobileActors.matches?164:120;g.save();g.translate(x,y);g.rotate(moving&&!acting?Math.sin(phase*Math.PI/2)*.025:0);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,dir*sw,row*sh,sw,sh,-size/2,-size,size,size);g.restore();}return;}let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth||!cleanAtlases.has(im)){
   const fallback=image(asset('hero-'+classId+'-directions'));
   if(fallback.complete&&fallback.naturalWidth)this.sprite(...directional('hero-'+classId,dir,acting),x,y,92,92,1,0,alpha);
   else{const g=this.g;g.save();g.globalAlpha=alpha;g.translate(x,y);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();g.restore();}
@@ -263,7 +263,7 @@ export class TowerRenderer {
       this.sprite(asset('boss-'+f.art),f.art==='aureon'?1:3,1,f.art==='aureon'?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,245,245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
-    const walls=(b.walls||[]).map(w=>({y:w.y+w.h,draw:()=>{g.save();g.fillStyle=['#173b43','#342c2b','#43405c','#2d3245'][b.tier]||'#30343b';g.strokeStyle='#f1daaa';g.lineWidth=7;g.shadowColor='#000b';g.shadowBlur=16;g.fillRect(w.x,w.y,w.w,w.h);g.strokeRect(w.x+3,w.y+3,w.w-6,w.h-6);g.restore();const im=image(asset('raid-cover'));if(im.complete&&im.naturalWidth){const sw=im.width/4,sh=im.height/2;g.drawImage(im,b.tier*sw,0,sw,sh,w.x-20,w.y-78,w.w+40,w.h+86);}}}));
+    const walls=(b.walls||[]).map(w=>({y:w.y+w.h,draw:()=>{const im=image(asset('raid-cover'));if(im.complete&&im.naturalWidth){const sw=im.width/4,sh=im.height/2;g.drawImage(im,b.tier*sw,0,sw,sh,w.x-20,w.y-78,w.w+40,w.h+86);}else{g.save();g.fillStyle=['#173b43','#342c2b','#43405c','#2d3245'][b.tier]||'#30343b';g.strokeStyle='#f1daaa';g.lineWidth=5;g.beginPath();g.roundRect(w.x+35,w.y-18,w.w-70,93,12);g.roundRect(w.x+65,w.y+75,w.w-130,53,9);g.fill();g.stroke();g.restore();}}}));
     const actors=[...walls,{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.shadow(m.x,m.y,25);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
@@ -316,4 +316,5 @@ export class TowerRenderer {
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}
   }
 }
+
 

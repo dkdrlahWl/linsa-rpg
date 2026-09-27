@@ -1,5 +1,5 @@
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=priest-motion-30';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-raids-27';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=priest-combat-31';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-combat-31';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-raids-27';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
 import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=priest-raids-27';
@@ -105,8 +105,8 @@ export function coopClientView(room){
 }
 export function advanceCoop(room,user,input,now){
  if(Array.isArray(input)||!input)return advanceCoopRaw(room,user,input,now);
+ if(room.status==='won')return advanceCoopRaw(room,user,Array.isArray(input.input)?input.input:input.frames?.at(-1)?.input||[0,0,0],now);
  validateCoopFrames(input.frames);
- if(room.status==='won')return advanceCoopRaw(room,user,input.frames.at(-1)?.input||[0,0,0],now);
  if(room.status!=='fighting')return structuredClone(room);
  const upto=Math.min(room.mode==='wave'?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-room.started)/100))),net=structuredClone(room._net||{points:[bare(room)],frames:[]});
  let earliest=Infinity;
@@ -131,4 +131,5 @@ export function advanceCoop(room,user,input,now){
  if(w.status==='lost'&&upto-w.tick<30&&(room.mode==='wave'||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
  w._net=net;return w;
 }
+
 

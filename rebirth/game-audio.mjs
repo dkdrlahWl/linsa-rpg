@@ -1,6 +1,6 @@
-const CLASSES=['warrior','mage','archer','rogue','pirate'];
+const CLASSES=['warrior','mage','archer','rogue','pirate','priest'];
 const COMMON=['ui-click','ui-tab','ui-back','ui-open','ui-error','enhance-charge','enhance-success','enhance-fail','enhance-break','cube-red','cube-black','cube-prime','cube-rankup','purchase-complete','loot-common','loot-rare','chest-open','level-up','battle-hit','battle-crit','battle-hurt','battle-dash','battle-victory','battle-defeat','boss-warning','lobby-bgm','battle-bgm'];
-export const AUDIO_IDS=new Set([...COMMON,...CLASSES.flatMap(c=>['attack','skill-1','skill-2','skill-3','skill-4'].map(k=>c+'-'+k))]);
+export const AUDIO_IDS=new Set([...COMMON,...CLASSES.flatMap(c=>['attack','skill-1','skill-2','skill-3','skill-4',...(c==='priest'?['skill-5']:[])].map(k=>c+'-'+k))]);
 export function eventAudio(e,classId){
   if(e.type==='star')return [e.outcome==='success'?'enhance-success':e.outcome==='destroy'?'enhance-break':'enhance-fail'];
   if(e.type==='cube')return [({cube:'cube-red',highCube:'cube-black',primeCube:'cube-prime'})[e.kind]||'cube-red',...(e.up?['cube-rankup']:[])];
@@ -16,7 +16,7 @@ export class BattleAudioTracker{
   constructor(emit){this.emit=emit;this.runs=new Map();}
   observe(b){
     if(!b?.runId)return;let old=this.runs.get(b.runId);
-    const fields={attackReady:b.classId+'-attack',ultimateReady:b.classId+'-skill-1',skillReady:b.classId+'-skill-2',thirdReady:b.classId+'-skill-3',fourthReady:b.classId+'-skill-4',dashReady:'battle-dash',enemyCastStart:'boss-warning'};
+    const fields={attackReady:b.classId+'-attack',ultimateReady:b.classId+'-skill-1',skillReady:b.classId+'-skill-2',thirdReady:b.classId+'-skill-3',fourthReady:b.classId+'-skill-4',...(b.classId==='priest'?{fifthReady:'priest-skill-5'}:{}),dashReady:'battle-dash',enemyCastStart:'boss-warning'};
     if(!old){old={hp:b.hp,won:!!b.won,ended:!!b.ended};for(const k in fields)old[k]=b[k]||0;this.runs.set(b.runId,old);if(this.runs.size>12)this.runs.delete(this.runs.keys().next().value);return;}
     for(const [key,id] of Object.entries(fields)){const value=b[key]||0;if(value>old[key]){if(!b.ended&&(key==='enemyCastStart'||value>b.tick))this.emit(id);old[key]=value;}}
     old.pulses||=new Set();
@@ -36,15 +36,29 @@ export class GameAudio{
   volume(){if(!this.ctx)return;this.fx.gain.setTargetAtTime(Math.max(0,Number(this.settings().sound)||0),this.ctx.currentTime,.025);this.bg.gain.setTargetAtTime(Math.max(0,Number(this.settings().music)||0)*1.5,this.ctx.currentTime,.08);}
   async load(id){
     if(!this.ctx||!AUDIO_IDS.has(id))return null;
+    if(id.startsWith('priest-'))return null;
     if(!this.buffers.has(id)){const ctx=this.ctx;const pending=fetch(new URL('./audio/'+({"lobby-bgm":"lobby-green-road","battle-bgm":"battle-wild-oath"}[id]||id.replace('-skill-1','-skill-2'))+'.mp3',import.meta.url)).then(r=>{if(!r.ok)throw Error('audio');return r.arrayBuffer();}).then(b=>ctx.decodeAudioData(b)).catch(()=>{this.buffers.delete(id);return null;});this.buffers.set(id,pending);}return this.buffers.get(id);
   }
   warm(){for(const id of ['ui-click','ui-back','ui-tab','ui-error','enhance-charge','enhance-success','enhance-fail','cube-red','cube-black','cube-prime','cube-rankup','chest-open','loot-common'])void this.load(id);this.warmClass();}
-  warmClass(){if(!this.ctx)return;const cls=this.state()?.classId;if(cls&&cls!==this.warmedClass){this.warmedClass=cls;for(const k of ['attack','skill-1','skill-2','skill-3','skill-4'])void this.load(cls+'-'+k);}}
+  warmClass(){if(!this.ctx)return;const cls=this.state()?.classId;if(cls&&cls!==this.warmedClass){this.warmedClass=cls;if(cls!=='priest')for(const k of ['attack','skill-1','skill-2','skill-3','skill-4'])void this.load(cls+'-'+k);}}
+  priestSound(id){
+    const ctx=this.ctx,base=ctx.currentTime+.01;
+    const tone=(from,to,delay,duration,level,type='sine')=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),at=base+delay;osc.type=type;osc.frequency.setValueAtTime(from,at);osc.frequency.exponentialRampToValueAtTime(Math.max(20,to),at+duration);gain.gain.setValueAtTime(.0001,at);gain.gain.exponentialRampToValueAtTime(level,at+Math.min(.035,duration*.2));gain.gain.exponentialRampToValueAtTime(.0001,at+duration);osc.connect(gain).connect(this.fx);osc.start(at);osc.stop(at+duration+.02);osc.onended=()=>{osc.disconnect();gain.disconnect();};};
+    const chime=(hz,at,level=.13,seconds=.9)=>{tone(hz,hz*.998,at,seconds,level);tone(hz*2.01,hz*1.99,at,seconds*.64,level*.35);tone(hz*3.92,hz*3.88,at,seconds*.42,level*.15);};
+    const air=(at,duration,level,frequency)=>{if(!this.priestNoise){const b=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate),d=b.getChannelData(0);let seed=1977;for(let i=0;i<d.length;i++){seed=(Math.imul(seed,1664525)+1013904223)|0;d[i]=(seed/2147483648)*.45;}this.priestNoise=b;}const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain(),start=base+at;source.buffer=this.priestNoise;source.loop=true;filter.type='bandpass';filter.frequency.setValueAtTime(frequency,start);filter.frequency.exponentialRampToValueAtTime(frequency*1.8,start+duration);filter.Q.value=.6;gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(level,start+Math.min(.1,duration*.3));gain.gain.exponentialRampToValueAtTime(.0001,start+duration);source.connect(filter).connect(gain).connect(this.fx);source.start(start);source.stop(start+duration+.01);source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};};
+    if(id==='priest-attack'){chime(880,0,.07,.28);return;}
+    if(id==='priest-skill-1'){tone(180,760,0,.34,.14,'sawtooth');air(.05,.55,.075,1800);chime(1175,.22,.17,1.05);chime(1760,.36,.09,.7);return;}
+    if(id==='priest-skill-2'){chime(523,0,.14,1.15);chime(659,.16,.13,1.05);chime(784,.32,.14,1.35);air(0,.85,.035,850);return;}
+    if(id==='priest-skill-3'){tone(95,185,0,.68,.09,'triangle');tone(330,640,.08,.56,.085,'sawtooth');air(.05,.75,.055,2300);for(const [i,hz] of [988,1175,1480].entries())chime(hz,.16+i*.13,.10,.9);return;}
+    if(id==='priest-skill-4'){tone(75,48,0,.85,.16,'sawtooth');tone(1600,190,.08,.7,.12,'sawtooth');air(.1,.95,.11,1100);chime(988,.48,.16,1.35);chime(1480,.57,.12,1.1);return;}
+    if(id==='priest-skill-5'){tone(110,165,0,1.6,.11,'triangle');tone(220,330,0,1.5,.085,'sine');air(0,1.7,.09,640);for(const [i,hz] of [392,494,587,784,988].entries())chime(hz,.20+i*.20,.13,1.7);tone(740,1480,1.0,.85,.075,'triangle');}
+  }
   play(kind){
     const aliases={click:'ui-click',hit:this.state()?.classId+'-attack','tower-hit':'battle-hit','tower-crit':'battle-crit','tower-hurt':'battle-hurt','tower-dash':'battle-dash'};
     const id=aliases[kind]||kind;if(!AUDIO_IDS.has(id)||['lobby-bgm','battle-bgm'].includes(id)||!this.settings().sound||document.hidden)return;
     this.start();if(!this.ctx)return;const now=performance.now(),gap=id.startsWith('ui-')?35:id==='boss-warning'?900:id.endsWith('-attack')?90:id.includes('-skill-')?300:180;
     if(now-(this.last.get(id)??-Infinity)<gap)return;this.last.set(id,now);
+    if(id.startsWith('priest-')){this.priestSound(id);return;}
     void this.load(id).then(buffer=>{if(!buffer||document.hidden||!this.settings().sound||performance.now()-now>1000||this.ctx.state!=='running')return;
       if(this.active.size>=10){const quiet=[...this.active].find(v=>v.id.endsWith('-attack')||v.id==='battle-hit');if(quiet)quiet.source.stop();else return;}
       const source=this.ctx.createBufferSource(),gain=this.ctx.createGain();source.buffer=buffer;gain.gain.value=id.endsWith('-attack')||id.includes('-skill-')?3:id==='battle-hit'?.5:1;source.connect(gain).connect(this.fx);const voice={source,gain,id};this.active.add(voice);source.onended=()=>{this.active.delete(voice);source.disconnect();gain.disconnect();};source.start();

@@ -1,4 +1,4 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest-raids-27';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest-combat-31';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-raids-27';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-raids-27';
 import {beginThird,stepThird} from './advancement.mjs?v=priest-raids-27';
@@ -14,7 +14,7 @@ export function startRaid(room,now){
 export function advanceRaidRaw(room,user,input,now,frames=[]){
  const w=room,b=RAID_ENCOUNTERS[w.tier];if(!b)return w;
  const upto=Math.min(b.seconds*10,Math.floor((now-w.started)/100));
- if(w.status==='won'){const dt=Math.min(1,Math.max(0,now-(w.lootAt||now))/1000);w.lootAt=now;for(const m of w.members){if(m.left)continue;const active=m.id===user&&input?input:now-m.inputAt<1500?m.input:[0,0,0];raidMove(m,m.x+active[0]*250*dt,m.y+active[1]*250*dt,w.walls);}return w;}
+ if(w.status==='won'){const dt=Math.min(1,Math.max(0,now-(w.lootAt||now))/1000);w.lootAt=now;for(const m of w.members){if(m.left)continue;const active=m.id===user&&input?input:now-m.inputAt<1500?m.input:[0,0,0],moving=Math.hypot(active[0],active[1])>.01;raidMove(m,m.x+active[0]*250*dt,m.y+active[1]*250*dt,[]);if(moving){m.dir=towerFacing(active[0],active[1],m.dir);m.walk=(m.walk||0)+dt*10;}m.moving=moving;if(m.id===user&&input){m.input=input;m.inputAt=now;}}return w;}
  if(w.status!=='fighting')return w;
  if(upto-w.tick>100){w.tick=upto-100;w.members.forEach(m=>m.input=[0,0,0]);}
  for(;w.tick<upto&&w.status==='fighting';w.tick++){
@@ -55,3 +55,4 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  }
  if(w.tick>=b.seconds*10&&w.status==='fighting')w.status='lost';const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=input;me.inputAt=now;}return w;
 }
+

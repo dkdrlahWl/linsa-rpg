@@ -50,10 +50,14 @@ export function drawHoly(g,e,time){
  }else if(slot===3){
   g.strokeStyle=colors[0];g.lineWidth=Math.max(6,size*.013);g.shadowColor='#b4e9ff';g.shadowBlur=30;g.beginPath();g.ellipse(0,-size*.20,base*.92,base*.52,0,Math.PI,TAU);g.stroke();
   for(let i=0;i<9;i++){const a=i*TAU/9;star(g,Math.cos(a)*base*.84,Math.sin(a)*base*.33-size*.24,size*.025,'#ffffff');}
+ }else if(slot===4){
+  for(let i=-2;i<=2;i++)beam(g,i*base*.38,0,size*.09,size*(.55+.08*(2-Math.abs(i))),colors[0],.75);
+  g.strokeStyle='#fff5c4';g.lineWidth=Math.max(7,size*.019);g.shadowColor='#fff0b0';g.shadowBlur=36;
+  g.beginPath();g.moveTo(0,-size*.81);g.lineTo(0,-size*.12);g.moveTo(-size*.15,-size*.58);g.lineTo(size*.15,-size*.58);g.stroke();
+  star(g,0,-size*.83,size*.065,'#ffffff');
  }else{
-  for(let i=0;i<(slot===5?9:6);i++){const a=i*2.399+pulseIndex*.7,r=base*(.25+(i%4)*.15);beam(g,Math.cos(a)*r,Math.sin(a)*r*.38,size*.065,size*(slot===5?.78:.56),colors[0],.45+.2*Math.sin(time*.2+i));}
-  angel(g,size*(slot===5?1:.78),age,colors[0]);
-  star(g,0,-size*.52,size*.085,'#ffffff');
+  for(let i=0;i<9;i++){const a=i*2.399+pulseIndex*.7,r=base*(.25+(i%4)*.15);beam(g,Math.cos(a)*r,Math.sin(a)*r*.38,size*.065,size*.78,colors[0],.45+.2*Math.sin(time*.2+i));}
+  angel(g,size,age,colors[0]);star(g,0,-size*.52,size*.085,'#ffffff');
  }
  g.restore();
 }

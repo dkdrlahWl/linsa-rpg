@@ -1,15 +1,15 @@
 import {raidLobby} from './raid-ui.mjs?v=priest-motion-30';
-import {raidMove} from './raid-content.mjs?v=priest-raids-27';
+import {raidMove} from './raid-content.mjs?v=priest-combat-31';
 import {autoSkillBits} from './auto-skills.mjs?v=priest-raids-27';
 import {prepareWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 import {waveLobby,waveHud} from './wave-ui.mjs?v=priest-raids-27';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=coop-smooth-19';
 import {TowerInput,projectPlayer} from './tower-input.mjs?v=priest-raids-27';
-import {predictCoopStep} from './coop-model.mjs?v=priest-motion-30';
-import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=priest-motion-30';
-import {towerArena} from './tower-client.mjs?v=priest-motion-30';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-motion-30';
+import {predictCoopStep} from './coop-model.mjs?v=priest-combat-31';
+import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=priest-combat-31';
+import {towerArena} from './tower-client.mjs?v=priest-combat-31';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-combat-31';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -112,5 +112,6 @@ export class CoopController{
  }
  dispose(){this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.renderer.dispose();}
 }
+
 
 
