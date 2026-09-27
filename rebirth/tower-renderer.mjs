@@ -236,7 +236,9 @@ export class TowerRenderer {
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
     const casting=b.tick<b.skillUntil||hint.skill>now,attacking=b.tick<b.attackUntil||hint.attack>now;
-    const attackAge=clamp((time-(b.attackStart??(b.attackUntil-6)))/6),skillAge=clamp((time-(b.skillStart??(b.skillUntil-8)))/8);
+    // Input previews can arrive before the first simulation tick creates start/end times.
+    const actionAge=(start,end,preview,duration)=>b.tick<(end||0)?clamp((time-(start??end-duration))/duration):preview>now?clamp((now-preview+110)/(duration*100)):0;
+    const attackAge=actionAge(b.attackStart,b.attackUntil,hint.attack,6),skillAge=actionAge(b.skillStart,b.skillUntil,hint.skill,8);
     const moveDir=towerFacing(input[0],input[1],b.player.dir??6);
     const dir=casting?(b.player.skillDir??moveDir):attacking?(b.player.attackDir??towerFacing(enemy.x-player.x,enemy.y-player.y,moveDir)):moving?moveDir:(b.player.dir??6);
     const forward=facingVector(dir);
