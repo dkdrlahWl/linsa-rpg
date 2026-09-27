@@ -13,7 +13,7 @@ import * as D from "./data.mjs?v=cube-odds-46";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-odds-46";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=mail-thanks-48";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -135,6 +135,8 @@ const errors = {
   DUNGEON_LIMIT: "오늘 보상을 이미 받았습니다.",
   ITEM_CUBE_PENDING: "먼저 블랙 큐브 결과를 선택해 주세요.",
   INVENTORY_FULL: "가방이 가득 찼습니다. 장비를 정리해 주세요.",
+  MAIL_NOT_FOUND: "받을 수 있는 우편이 없습니다.",
+  MAIL_ALREADY_CLAIMED: "이미 받은 우편입니다.",
   TRADE_LEVEL_REQUIRED: "거래소 구매·등록은 5레벨부터 이용할 수 있습니다.",
   SAVE_CONFLICT: "상태가 변경됐어요. 다시 시도해 주세요.",
   PRIME_LEGENDARY_REQUIRED: "프라임 큐브 사용 조건을 충족하지 않습니다.",
@@ -355,6 +357,15 @@ const btn = (label, action, args = "", cls = "", write = false) =>
 function header(title, kicker = "새로운 여정") {
   return `<div class="page-head"><div><p class="eyebrow">${kicker}</p><h2>${title}</h2></div>${tab === "hunt" ? '<span class="pill">오프라인 최대 6시간</span>' : ""}</div>`;
 }
+function systemInbox() {
+  const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
+  const labels={scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
+  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}"><img src="${currencyIconURL(key)}" alt=""><span>${esc(labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}개</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방의 보유 재료에서 확인할 수 있어요.</p></div>'}</div>`);
+}
+function systemMailButton() {
+  const count=state.systemMailbox?.length||0;
+  return btn('우편함'+(count?`<span class="mail-count">${count}</span>`:''),'systemInbox','',count?'mail-alert':'');
+}
 function attendanceReady() { return state?.attendance?.lastClaim !== D.dayKey(Date.now()); }
 function attendanceReward(reward) {
   return Object.entries(reward).map(([key,amount]) => `${key==="gold"?"골드":D.MATERIALS[key]} ${fmt(amount)}${key==="gold"?" G":"개"}`).join(" · ");
@@ -378,7 +389,7 @@ function confirmClassChange(classId) {
 }
 function shell(content) {
   const c = D.CLASSES.find((c) => c.id === state.classId);
-  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn(attendanceReady()?"출석 · 받기":"출석 완료", "attendance", "", attendanceReady()?"attendance-alert":"")}${btn("랭킹", "ranking", "", "top-ranking")}${state.isAdmin?btn("관리자","betaTools"):""}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${state.isAdmin?"∞":fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
+  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn(attendanceReady()?"출석 · 받기":"출석 완료", "attendance", "", attendanceReady()?"attendance-alert":"")}${systemMailButton()}${btn("랭킹", "ranking", "", "top-ranking")}${state.isAdmin?btn("관리자","betaTools"):""}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${state.isAdmin?"∞":fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
     ["hunt", "사냥"],
     ["character", "캐릭터"],
     ["gear", "가방"],
@@ -754,6 +765,10 @@ function cubeChoice() {
 function showEvents(events) {
   for (const e of events) {
     sounds.event(e);
+    if(e.type==="systemMail"){
+      toast("장비 잠재 개방 주문서 "+fmt(e.rewards.scroll||0)+"개 · 장비 파편 "+fmt(e.rewards.fragment||0)+"개를 받았습니다.");
+      continue;
+    }
     if (e.type === "attendance") {
       open(`${e.day}일차 출석 완료`, `<p class="attendance-claimed">${attendanceReward(e.reward)}</p><p class="note">보상이 가방과 재화에 지급됐어요.${e.day===7?" 내일부터 다시 1일차 보상을 받을 수 있어요.":""}</p><div class="actions">${btn("확인","close","","gold")}</div>`);
       modal.classList.add("attendance-dialog");
@@ -1006,6 +1021,12 @@ document.addEventListener("click", async (e) => {
     if (action === "reconnect") return await command("sync",{},false,true);
     if (action === "recoverLogin"){location.href="recover.html?v=request-recovery-2";return;}
     if (action === "attendance") return attendance();
+    if (action === "systemInbox") return systemInbox();
+    if (action === "claimSystemMail") {
+      const result=await command("claimSystemMail",{id:arg});
+      if(result)systemInbox();
+      return;
+    }
     if (action === "attendanceClaim") return await command("attendanceClaim");
     if (action === "changeClass") return changeClassDialog();
     if (action === "changeClassPick") return confirmClassChange(arg);

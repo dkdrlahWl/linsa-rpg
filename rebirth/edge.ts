@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
         if(!['create','join','start','ready','input','sync','leave','list','open'].includes(action))throw new Error('INVALID_COOP_ACTION');
         const queueInput=action==='input'&&Array.isArray(body.args.frames);
         if(queueInput)validateCoopFrames(body.args.frames);
-        const ctx={admin:user.app_metadata?.ringu_admin===true,now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
+        const ctx={admin:user.app_metadata?.ringu_admin===true,accountCreatedAt:user.created_at,now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
         const computed=execute(snap.state,'sync',{},ctx);
         const base={queueInput,user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed.state,power:power(computed.state),args:body.args};
         try{
@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
       }
       const ctx = {
         admin: user.app_metadata?.ringu_admin === true,
+        accountCreatedAt: user.created_at,
         now: Number(snap.now),
         random: () =>
           crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296,

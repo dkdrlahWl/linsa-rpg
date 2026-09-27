@@ -1,0 +1,18 @@
+.top-actions .mail-alert{color:#ffe3a2;border-color:#b59653;background:#44351f}
+.mail-count{display:inline-grid;place-items:center;min-width:20px;min-height:20px;margin-left:5px;border-radius:50%;background:#e2ba68;color:#231b0d;font-size:12px;font-weight:800}
+.mail-intro{color:#bcb29e;line-height:1.7;margin:0 0 16px}
+.system-mail{padding:20px;border:1px solid #927847;border-radius:14px;background:linear-gradient(135deg,#342b1b,#161d23);color:#f5ead4}
+.system-mail h3{color:#ffe1a2;font-size:20px;margin:8px 0 12px}
+.system-mail .mail-sender{color:#cbb98f;font-size:12px;letter-spacing:.05em}
+.system-mail p{line-height:1.7}
+.mail-rewards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
+.mail-reward{display:flex;align-items:center;gap:10px;min-width:0;padding:12px;background:#111820;border:1px solid #706044;border-radius:10px}
+.mail-reward img{width:46px;height:46px;object-fit:contain;flex:0 0 46px}
+.mail-reward span{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.mail-reward strong{display:block;color:#ffe1a2;font-size:20px}
+.system-mail .actions button{width:100%;min-height:48px;font-weight:700}
+.mail-empty{text-align:center;padding:38px 16px;border:1px dashed #6e6046;border-radius:14px}
+.mail-empty strong{display:block;color:#e9d5aa;font-size:18px;margin-bottom:10px}
+.mail-empty p{color:#bcb29e;margin:0;line-height:1.7}
+@media(max-width:700px){.top-actions{flex-wrap:wrap}.system-mail{padding:14px}.mail-reward{gap:7px;padding:9px}.mail-reward img{width:36px;height:36px;flex-basis:36px}.mail-reward span{font-size:12px}}
+@media(max-width:380px){.mail-rewards{grid-template-columns:1fr}}

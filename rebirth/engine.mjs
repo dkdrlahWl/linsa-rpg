@@ -1,3 +1,4 @@
+import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=mail-thanks-48';
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-weekly-41';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs?v=raid-weekly-41';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
@@ -97,7 +98,7 @@ export function initialState(classId, name, ctx) {
   );
   const starter = makeItem(1, classId, 0, false, ctx, 0);
   starter.bound = true;normalizePotentialItem(starter);
-  return {
+  return deliverSystemMail({
     version: VERSION,
     name,
     classId,
@@ -126,7 +127,7 @@ export function initialState(classId, name, ctx) {
     lastReward: null,
     collection: [[1, classId, 0, false].join(":")],
     tutorial: 0,
-  };
+  }, ctx);
 }
 export function power(s) {
   const cl = CLASSES.find((c) => c.id === s.classId);
@@ -497,6 +498,7 @@ export function execute(input, command, args = {}, ctx) {
   s.isAdmin = ctx.admin === true;
   if(s.isAdmin){s.gold=8e12;for(const key of Object.keys(MATERIALS))s.materials[key]=1e9;}
   check(s.version === VERSION, "VERSION_MISMATCH");
+  deliverSystemMail(s,ctx);
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
   const dailyDay=dayKey(ctx.now);
   if(s.daily?.day!==dailyDay)s.daily={day:dailyDay,hunt:0,boss:0,tower:0,claimed:[]};
@@ -639,6 +641,10 @@ export function execute(input, command, args = {}, ctx) {
       s.tower ||= {cleared:[],best:{}};
       s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
+    }
+    case "claimSystemMail": {
+      events.push(claimSystemMail(s,args.id));
+      break;
     }
     case "claimMail": {
       const mail = s.mailbox?.find(x => x.key === args.key);
