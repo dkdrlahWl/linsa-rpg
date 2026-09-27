@@ -1,5 +1,5 @@
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-weekly-41';
-import {raidWeeklyStatus} from './raid-rewards.mjs?v=flat-defense-53';
+import {raidWeeklyStatus} from './raid-rewards.mjs?v=effective-defense-54';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const btn=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
 function rewardDetails(raid){

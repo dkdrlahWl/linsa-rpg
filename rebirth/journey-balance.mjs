@@ -32,8 +32,8 @@ export function balanceWorld(stages,bosses,raids){
  const raidValues=[{hp:1200000,attack:500,seconds:240,gold:18000,fragment:100,cube:16,highCubeChance:.5},{hp:9000000,attack:2200,seconds:240,gold:60000,fragment:240,cube:30,highCubeChance:1}];
  raids.forEach((r,i)=>Object.assign(r,raidValues[i]));
 }
-// Displayed defense is unchanged; only 50% contributes to damage mitigation.
-export function incomingDamage(attack,defense){return Math.max(1,attack/(1+Math.max(0,defense)*0.5/650));}
+// Displayed defense is unchanged; only 25% contributes to damage mitigation.
+export function incomingDamage(attack,defense){return Math.max(1,attack/(1+Math.max(0,defense)*0.25/650));}
 export const DAILY_TASKS={
  hunt:{name:'사냥 1,200마리',goal:1200,gold:12000,fragment:80,cube:4,highCube:1},
  boss:{name:'보스 1회 승리',goal:1,gold:18000,fragment:100,cube:4,highCube:1},

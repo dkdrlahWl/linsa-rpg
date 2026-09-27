@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {initialState,execute} from './engine.mjs?v=flat-defense-53';
-import {BOSSES,dayKey,weekKey,MATERIALS} from './data.mjs?v=flat-defense-53';
+import {initialState,execute} from './engine.mjs?v=effective-defense-54';
+import {BOSSES,dayKey,weekKey,MATERIALS} from './data.mjs?v=effective-defense-54';
 const now=Date.UTC(2026,8,26,5),ctx={now,random:()=>.5,uuid:randomUUID},admin={...ctx,admin:true};
 const base=()=>{const s=initialState('warrior','도현1',ctx);s.hunting=false;return s;};
 const forged=base();forged.isAdmin=true;

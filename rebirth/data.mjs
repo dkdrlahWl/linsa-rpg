@@ -1,8 +1,8 @@
 export {PRIEST_SKILLS} from './priest.mjs?v=priest-visual-35';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest-visual-35';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=priest-visual-35';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=defense-half-24';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=defense-half-24';
+import {balanceWorld,journeyXP} from './journey-balance.mjs?v=effective-defense-54';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=effective-defense-54';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=flat-defense-53';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=flat-defense-53';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-visual-35";

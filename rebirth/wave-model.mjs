@@ -1,8 +1,8 @@
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=flat-defense-53';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=flat-defense-53';
-import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=effective-defense-54';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=effective-defense-54';
+import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

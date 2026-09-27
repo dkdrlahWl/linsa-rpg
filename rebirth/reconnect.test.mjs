@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
-const source=readFileSync(new URL('./app.mjs?v=flat-defense-53',import.meta.url),'utf8');
+const source=readFileSync(new URL('./app.mjs?v=effective-defense-54',import.meta.url),'utf8');
 const auth=source.slice(source.indexOf('async function request('),source.indexOf('const icon ='));
 const ranking=source.slice(source.indexOf('let rankingAttempt='),source.indexOf('function rankings()'));
 assert.match(ranking,/let rankingAttempt=0, rankingRevision=0/);
