@@ -67,3 +67,19 @@
 .tower-play[data-class="priest"] [data-tower-button="16"] i{background-image:url('tower/priest-skill-3-v2.png');background-position:66.666% 0}
 .tower-play[data-class="priest"] [data-tower-button="32"] i{background-image:url('tower/priest-skill-4-v2.png');background-position:66.666% 0}
 .tower-play[data-class="priest"] [data-tower-button="64"] i{background-image:url('tower/priest-skill-5-v2.png');background-position:66.666% 0}
+
+/* Match the other jobs' two-column skill deck while keeping the fifth skill visible. */
+.tower-play[data-class="priest"] .tower-skill-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;overflow:visible}
+.tower-play[data-class="priest"] .tower-skill-bar>.tower-button{width:100%;min-width:0;height:56px;padding:5px 22px 5px 6px;align-items:flex-start;justify-content:center;text-align:left;overflow:hidden;border-radius:11px}
+.tower-play[data-class="priest"] .tower-skill-bar>.tower-button::before{left:auto;right:4px;top:4px;transform:none;width:16px;height:17px;font-size:10px;border-radius:4px;box-shadow:0 0 7px #ffe6ad45}
+.tower-play[data-class="priest"] .tower-skill-bar i{display:block!important;inset:0;width:100%;height:100%;transform:none;background-size:400% 100%;opacity:.42;filter:drop-shadow(0 0 8px #ffe4a3);mix-blend-mode:screen}
+.tower-play[data-class="priest"] .tower-skill-bar button span{position:relative;z-index:1;font-size:10px;line-height:1.15;text-shadow:0 1px 4px #000,0 0 7px #000}
+.tower-play[data-class="priest"] .tower-skill-bar button small{display:block;position:relative;z-index:1;margin-top:2px;font-size:9px;line-height:1.1;color:#ffe5ad;text-shadow:0 1px 4px #000}
+.tower-play[data-class="priest"] .tower-skill-bar>[data-tower-button="64"]{grid-column:1/-1}
+.tower-play[data-class="priest"] .tower-skill-bar>[data-tower-button="64"] i{opacity:.5}
+@media(max-width:759px) and (orientation:portrait){
+ .tower-play[data-class="priest"] .tower-skill-bar{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tower-play[data-class="priest"] .tower-skill-bar>.tower-button{height:46px;padding:4px 19px 4px 5px}
+ .tower-play[data-class="priest"] .tower-skill-bar button span{font-size:9px}
+ .tower-play[data-class="priest"] .tower-skill-bar button small{font-size:8px}
+}

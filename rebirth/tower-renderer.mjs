@@ -96,12 +96,25 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
-  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){if(classId==='priest'){const im=image('tower/priest-motion-v1.png');if(im.complete&&im.naturalWidth){const g=this.g,sw=im.width/8,sh=im.height/6,phase=walk*.9,row=acting?(age<.3?3:age<.7?4:5):moving?[0,1,2,1][Math.floor(phase)%4]:0,size=this.raidActors?(this.mobileActors.matches?215:180):(this.mobileActors.matches?164:120);g.save();g.translate(x,y);g.rotate(moving&&!acting?Math.sin(phase*Math.PI/2)*.025:0);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,dir*sw,row*sh,sw,sh,-size/2,-size,size,size);g.restore();}return;}let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],rows=[2,1,0,1,2,3,4,3],row=rows[dir]+(acting?5:0);if(classId==='warrior'&&acting){if(dir===0||dir===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[dir];}const im=image(asset(name));if(!layout||!im.complete||!im.naturalWidth){
-  const fallback=image(asset('hero-'+classId+'-directions'));
-  if(fallback.complete&&fallback.naturalWidth)this.sprite(...directional('hero-'+classId,dir,acting),x,y,this.raidActors?180:92,this.raidActors?180:92,1,0,alpha);
-  else{const g=this.g;g.save();g.globalAlpha=alpha;g.translate(x,y);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();g.restore();}
-  return;
- }const frame=acting?Math.min(7,Math.floor(age*9)):moving?Math.floor(walk*1.05)%8:0,r=layout.frames[row*8+frame],flip=([3,4,5].includes(dir)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=(this.raidActors?(this.mobileActors.matches?210:180):(this.mobileActors.matches?140:104))/layout.bodyHeight,g=this.g;g.save();g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(im,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.foot*scale,r.w*scale,r.h*scale);g.restore();}
+  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){
+    const facing=Number.isInteger(dir)&&dir>=0&&dir<8?dir:6,g=this.g;
+    if(classId==='priest'){
+      const im=image('tower/priest-motion-v1.png');
+      if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,phase=(walk||0)*.9,row=acting?(age<.3?3:age<.7?4:5):moving?[0,1,2,1][Math.floor(phase)%4]:0,size=this.raidActors?(this.mobileActors.matches?215:180):(this.mobileActors.matches?164:120);g.save();try{g.translate(x,y);g.rotate(moving&&!acting?Math.sin(phase*Math.PI/2)*.025:0);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,facing*sw,row*sh,sw,sh,-size/2,-size,size,size);}finally{g.restore();}}
+      return;
+    }
+    const fallback=()=>{
+      const still=image(asset('hero-'+classId+'-directions'));
+      if(still.complete&&still.naturalWidth){const sw=still.width/4,sh=still.height/4,index=(acting?8:0)+facing,size=this.raidActors?180:104;g.save();try{g.globalAlpha=alpha;g.drawImage(still,index%4*sw,Math.floor(index/4)*sh,sw,sh,x-size/2,y-size,size,size);}finally{g.restore();}return;}
+      g.save();try{g.globalAlpha=alpha;g.translate(x,y);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();}finally{g.restore();}
+    };
+    let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],row=[2,1,0,1,2,3,4,3][facing]+(acting?5:0);
+    if(classId==='warrior'&&acting){if(facing===0||facing===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[facing];}
+    const im=image(asset(name)),frame=acting?Math.min(7,Math.max(0,Math.floor((age||0)*9))):moving?((Math.floor((walk||0)*1.05)%8)+8)%8:0,r=layout?.frames?.[row*8+frame];
+    if(!im.complete||!im.naturalWidth||!r||!Number.isFinite(r.foot)||r.w<=0||r.h<=0){fallback();return;}
+    const flip=([3,4,5].includes(facing)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=(this.raidActors?(this.mobileActors.matches?210:180):(this.mobileActors.matches?140:104))/layout.bodyHeight;
+    g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(im,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.foot*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
+  }
   thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;

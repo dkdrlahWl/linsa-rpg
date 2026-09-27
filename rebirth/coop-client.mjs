@@ -9,7 +9,7 @@ import {TowerInput,projectPlayer} from './tower-input.mjs?v=priest-visual-35';
 import {predictCoopStep} from './coop-model.mjs?v=priest-visual-35';
 import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=priest-visual-35';
 import {towerArena} from './tower-client.mjs?v=priest-visual-35';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-aura-36';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-controls-37';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -107,8 +107,9 @@ export class CoopController{
   }
   if(w.mode==='wave'){b.enemy={x:player.x,y:player.y};const oldMonsters=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));b.monsters=w.monsters.map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}
   this.motion.end();
-  this.renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},player,0,now,input,this.hint);
+  // Keep input and painting alive if an individual image frame cannot be drawn.
   this.frame=requestAnimationFrame(t=>this.draw(t));
+  this.renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},player,0,now,input,this.hint);
  }
  dispose(){this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.renderer.dispose();}
 }
