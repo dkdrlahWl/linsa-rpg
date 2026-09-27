@@ -1,11 +1,12 @@
+import {nextAutoSkill} from './auto-skills.mjs?v=auto-skills-23';
 import {playSecondOverlay} from './skill-overlay.mjs?v=skill-sequence-21';
 import {GameAudio} from './game-audio.mjs?v=skill-sequence-21';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fourth-barrage-22';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=auto-skills-23';
 import {incomingDamage} from './journey-balance.mjs?v=field-fragment-13';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=skill-sequence-21';
 import {TOWER_FLOORS} from './tower-model.mjs?v=skill-sequence-21';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fourth-barrage-22';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=auto-skills-23';
 import * as D from "./data.mjs?v=skill-sequence-21";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
@@ -566,10 +567,12 @@ function disabledBtn(label,action,arg,blocked=false,cls="") {
   const html=btn(label,action,arg,cls,true);
   return blocked ? html.replace("<button ","<button disabled data-unavailable ") : html;
 }
+let regularAutoSkills=false,regularAutoBattle=null;
 function combatSkillButtons(party=false) {
+ const key=state.battle?.started;if(regularAutoBattle!==key){regularAutoBattle=key;regularAutoSkills=false;}
  const me=party?partyRoom?.members.find(m=>m.mine):null;
  return [1,2,3,4].map(slot=>{const sk=slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId],locked=slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;
- return '<button class="gold skill-button" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(locked||me?.hp<=0?'disabled':'')+' title="'+esc(sk.description)+'">'+(locked?slot+'차 전직 후 · ':slot+'차 · ')+sk.name+'</button>';}).join('');
+ return '<button class="gold skill-button" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(locked||me?.hp<=0?'disabled':'')+' title="'+esc(sk.description)+'">'+(locked?slot+'차 전직 후 · ':slot+'차 · ')+sk.name+'</button>';}).join('')+(party?'':'<button data-action="autoSkills" aria-pressed="'+regularAutoSkills+'">스킬 자동 '+(regularAutoSkills?'켜짐':'꺼짐')+'</button>');
 }
 function skillGuide(){return '<div class="skill-guide">'+[1,2,3,4].map(slot=>{const sk=slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
 function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row">'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">◆</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
@@ -961,6 +964,7 @@ document.addEventListener("click", async (e) => {
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
     if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
     if(action==="battlePotion")return await command("battlePotion");
+    if(action==='autoSkills'){regularAutoSkills=!regularAutoSkills;render();return;}
     if(action==="waveCreate")return await command("coopCreate",{tier:0,mode:"wave"});
     if(action==="coopCreate")return await command("coopCreate",{tier:Number(arg)});
     if(action==="coopJoin")return await command("coopJoin",{room:arg});
@@ -1299,6 +1303,7 @@ window.addEventListener("popstate", () => {
 setInterval(() => {
   if (!session || document.hidden || busy || !state || !navigator.onLine || Date.now() < retryAt) return;
   if(state.battle?.kind==='tower'||coopController)return;
+  if(regularAutoSkills&&state.battle&&state.battle.started===regularAutoBattle&&!modal.open){const slot=nextAutoSkill(state,Date.now());if(slot!==null){command('skill',{slot}).catch(()=>{});return;}}
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
   const partyLobbyOpen = false;
   const due = state.coopRoom&&coopRoom?.status==='waiting'?2000:state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;

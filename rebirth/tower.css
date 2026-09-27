@@ -224,3 +224,7 @@
 .tower-play[data-class="mage"] .first-attack .tower-action-art{background-image:url('tower/second-mage-attack-v1.webp');background-size:400% 100%;background-position:66.666% 0}
 .tower-play[data-class="archer"] .first-attack .tower-action-art{background-image:url('tower/second-archer-attack-v1.webp');background-size:400% 100%;background-position:66.666% 0}
 .tower-play[data-class="pirate"] .first-attack .tower-action-art{background-image:url('tower/second-pirate-attack-v1.webp');background-size:400% 100%;background-position:66.666% 0}
+
+/* Compact independent attack/skill toggles fit beside exit on mobile. */
+#tower-auto-skills:focus-visible{outline:2px solid #dce9bc;outline-offset:2px}
+@media(max-width:640px){.tower-footer{gap:5px;padding-left:8px;padding-right:8px}.tower-footer button{white-space:nowrap;padding-left:7px;padding-right:7px;font-size:10px}.tower-footer:has(#tower-chest:not([hidden])) #tower-auto-skills{display:none}}

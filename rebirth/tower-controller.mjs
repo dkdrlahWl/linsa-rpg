@@ -1,3 +1,4 @@
+import {autoSkillBits} from './auto-skills.mjs?v=auto-skills-23';
 import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=skill-sequence-21';
 import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=skill-sequence-21';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=skill-sequence-21';
@@ -9,7 +10,7 @@ const snapshot=b=>({enemy:{...b.enemy},projectiles:b.projectiles.map(q=>({...q})
 
 export class TowerController {
   constructor(host,b,send,sound,options={}){
-    Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false});
+    Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false,autoSkills:false});
     this.options.audio?.(this.b);
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
     this.artReady=false;prepareCombatArt([b.classId],towerEncounter(b).art).then(()=>{this.artReady=true;});
@@ -20,7 +21,7 @@ export class TowerController {
     this.required.push(asset('third-job-atlas'));if(b.classId==='warrior')this.required.push(asset('hero-warrior-east-v4'));this.required.forEach(image);
     image(asset('reward-chest'));image(asset('second-job-atlas'));image(asset('hero-'+b.classId+'-motion-v4'));
     host.querySelector('#tower-chest')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();this.openChest();},{signal:this.abort.signal});
-    this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
+    this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','auto-skills','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
     this.buttons=[...host.querySelectorAll('[data-tower-button]')];
     const signal={signal:this.abort.signal};
     window.addEventListener('keydown',e=>{
@@ -45,6 +46,7 @@ export class TowerController {
     stick.addEventListener('pointermove',e=>{if(e.pointerId!==this.stickPointer)return;this.advance(performance.now());move(e);},signal);
     for(const type of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(type,e=>{if(e.pointerId!==this.stickPointer)return;this.advance(performance.now());this.stickPointer=null;this.stick={x:0,y:0};this.nodes['stick-knob'].style.transform='';},signal);
     this.nodes.auto.addEventListener('click',()=>{this.autoAttack=!this.autoAttack;this.nodes.auto.setAttribute('aria-pressed',String(this.autoAttack));this.nodes.auto.textContent='연속 공격 '+(this.autoAttack?'켜짐':'꺼짐');},signal);
+    this.nodes['auto-skills'].addEventListener('click',()=>{this.autoSkills=!this.autoSkills;this.nodes['auto-skills'].setAttribute('aria-pressed',String(this.autoSkills));this.nodes['auto-skills'].textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');},signal);
     this.frame=requestAnimationFrame(t=>this.loop(t));this.canvas.focus({preventScroll:true});
   }
   paused(){return document.hidden||!!document.querySelector('dialog[open]');}
@@ -64,7 +66,7 @@ export class TowerController {
   }
   input(){
     if(this.openingRequest)return [0,0,0];
-    let x=this.stick.x,y=this.stick.y,bits=this.autoAttack?1:0;
+    let x=this.stick.x,y=this.stick.y,bits=(this.autoAttack?1:0)|(this.autoSkills&&!this.paused()?autoSkillBits(this.b,this.b.tick+1):0);
     const directions=new Set();for(const code of this.keys){const action=codes[code];if(typeof action==='number'){if(action!==2||this.b.advanced)bits|=action;}else directions.add(action);}
     x+=Number(directions.has('right'))-Number(directions.has('left'));y+=Number(directions.has('down'))-Number(directions.has('up'));
     const n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}for(const bit of this.buttonPointers.values())bits|=bit;
