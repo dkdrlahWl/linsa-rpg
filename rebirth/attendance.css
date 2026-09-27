@@ -15,3 +15,12 @@
 .attendance-dialog .actions button{width:100%}
 @media(min-width:600px){.attendance-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:640px){.top{flex-wrap:wrap}.top .identity{min-width:50px}.top-actions{margin-left:auto}.top-resources{display:flex;align-items:center;justify-content:flex-end;gap:10px;width:100%}.top .attendance-alert{font-size:11px}}
+
+/* Dedicated illustrated attendance icon; keep the label stable after claiming. */
+.top .attendance-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; }
+.top .attendance-button .menu-art,
+.top .attendance-button > svg { display:none !important; }
+.top .attendance-button .attendance-calendar-icon { display:block; width:27px; height:27px; flex:0 0 27px; object-fit:contain; margin:0; pointer-events:none; }
+@media(max-width:700px) {
+ .top .top-actions .attendance-calendar-icon { width:24px; height:24px; flex-basis:24px; }
+}
