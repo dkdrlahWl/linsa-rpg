@@ -17,9 +17,12 @@ const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 // The priest's front idle body occupies 157 px of its 181 px frame.
 const PRIEST_BODY_RATIO=157/181;
-// Each new atlas has eight hand-drawn ready poses followed by eight attack poses.
-// Direction order matches towerFacing: E, SE, S, SW, W, NW, N, NE.
-const directional=(name,dir,attack=false)=>[asset(name+'-directions'),4,4,(attack?8:0)+dir];
+// Use one standing-body scale for each source atlas, including every attack frame.
+// A crouch or raised weapon changes the pose's bounds, never the actor's scale.
+const ACTOR_BODY_REFERENCE=Object.fromEntries(Object.entries(MOTION_BODY_LAYOUT).map(([key,frames])=>{
+  const standing=frames.slice(0,key==='warriorEast'?1:8).map(frame=>frame[0]).sort((a,b)=>a-b);
+  return [key,standing[Math.floor(standing.length/2)]];
+}));
 const cleanAtlases=new WeakMap();
 const tintedAtlases=new WeakMap();
 function tintedAtlas(im,filter){
@@ -101,7 +104,7 @@ export class TowerRenderer {
   }
   actor(classId,dir,moving,acting,age,walk,x,y,alpha=1){
     const facing=Number.isInteger(dir)&&dir>=0&&dir<8?dir:6,g=this.g;
-    const spriteSize=this.raidActors?(this.mobileActors.matches?215:180):(this.mobileActors.matches?164:120);
+    const spriteSize=this.mobileActors.matches?215:180;
     if(classId==='priest'){
       const im=image('tower/priest-motion-v1.png');
       if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,phase=(walk||0)*.9,row=acting?(age<.3?3:age<.7?4:5):moving?[0,1,2,1][Math.floor(phase)%4]:0;g.save();try{g.translate(x,y);g.rotate(moving&&!acting?Math.sin(phase*Math.PI/2)*.025:0);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,facing*sw,row*sh,sw,sh,-spriteSize/2,-spriteSize,spriteSize,spriteSize);}finally{g.restore();}}
@@ -110,15 +113,15 @@ export class TowerRenderer {
     const bodySize=spriteSize*PRIEST_BODY_RATIO;
     const fallback=()=>{
       const still=image(asset('hero-'+classId+'-directions'));
-      if(still.complete&&still.naturalWidth){const sw=still.width/4,sh=still.height/4,index=(acting?8:0)+facing,body=MOTION_BODY_LAYOUT[classId+'Directions']?.[index]||[sh,sw/2,sh],scale=bodySize/body[0];g.save();try{g.globalAlpha=alpha;g.drawImage(still,index%4*sw,Math.floor(index/4)*sh,sw,sh,x-body[1]*scale,y-body[2]*scale,sw*scale,sh*scale);}finally{g.restore();}return;}
+      if(still.complete&&still.naturalWidth){const sw=still.width/4,sh=still.height/4,index=(acting?8:0)+facing,body=MOTION_BODY_LAYOUT[classId+'Directions']?.[index]||[sh,sw/2,sh],scale=bodySize/(ACTOR_BODY_REFERENCE[classId+'Directions']||sh);g.save();try{g.globalAlpha=alpha;g.drawImage(still,index%4*sw,Math.floor(index/4)*sh,sw,sh,x-body[1]*scale,y-body[2]*scale,sw*scale,sh*scale);}finally{g.restore();}return;}
       g.save();try{g.globalAlpha=alpha;g.translate(x,y);g.scale(bodySize/97,bodySize/97);g.translate(0,13);g.fillStyle={warrior:'#bd8d58',mage:'#9889d5',archer:'#77a97d',rogue:'#a06c90',pirate:'#639fb4'}[classId]||'#b9a18a';g.beginPath();g.ellipse(0,-49,30,36,0,0,Math.PI*2);g.fill();g.beginPath();g.arc(0,-91,19,0,Math.PI*2);g.fill();}finally{g.restore();}
     };
     let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],row=[2,1,0,1,2,3,4,3][facing]+(acting?5:0);
     if(classId==='warrior'&&acting){if(facing===0||facing===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[facing];}
     const im=image(asset(name)),frame=acting?Math.min(7,Math.max(0,Math.floor((age||0)*9))):moving?((Math.floor((walk||0)*1.05)%8)+8)%8:0,r=layout?.frames?.[row*8+frame];
     if(!im.complete||!im.naturalWidth||!r||!Number.isFinite(r.foot)||r.w<=0||r.h<=0){fallback();return;}
-    const body=MOTION_BODY_LAYOUT[name==='hero-warrior-east-v4'?'warriorEast':classId]?.[row*8+frame]||[layout.bodyHeight,r.w/2,r.foot];
-    const flip=([3,4,5].includes(facing)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=bodySize/body[0];
+    const atlasKey=name==='hero-warrior-east-v4'?'warriorEast':classId,body=MOTION_BODY_LAYOUT[atlasKey]?.[row*8+frame]||[layout.bodyHeight,r.w/2,r.foot];
+    const flip=([3,4,5].includes(facing)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=bodySize/(ACTOR_BODY_REFERENCE[atlasKey]||layout.bodyHeight);
     g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(im,r.x,r.y,r.w,r.h,-body[1]*scale,-body[2]*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
   }
   thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
@@ -219,12 +222,13 @@ export class TowerRenderer {
   }
   draw(b,previous,player,fraction,now,input,hint){
     if(now<(this.nextFrame||0))return;this.nextFrame=Math.max(now,(this.nextFrame||now)+1000/60);
-    const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;this.raidActors=!!b.raidMode;
+    const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
-    const scale=this.presentationScale||(b.raidMode?Math.min(.7,Math.max(.28,height/Math.max(2200,Math.abs(player.y-b.enemy.y)+750))):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
+    // Keep zoom stable when a boss approaches or the player lunges to attack.
+    const scale=this.presentationScale||(b.raidMode?Math.min(.7,Math.max(.28,height/2600)):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
@@ -262,7 +266,7 @@ export class TowerRenderer {
     }
     if(dashing&&(!this.trail.length||now-this.trail.at(-1).at>28))this.trail.push({x:player.x,y:player.y,at:now,dir});
     this.trail=this.trail.filter(p=>now-p.at<180).slice(-6);
-    for(const p of this.trail)this.sprite(...directional('hero-'+b.classId,p.dir),p.x,p.y,92,92,1,0,.23*(1-(now-p.at)/180));
+    for(const p of this.trail)this.actor(b.classId,p.dir,true,false,0,b.player.walk||0,p.x,p.y,.23*(1-(now-p.at)/180));
     const drawPlayer=()=>{
       if(b.waveMode&&b.hp<=0)return;
       const lunge=attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0;
@@ -292,7 +296,8 @@ export class TowerRenderer {
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.shadow(m.x,m.y,25);if(m.shield>0&&b.tick<m.shieldUntil)drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
-      g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,m.y-150);g.fillStyle='#25312d';g.fillRect(m.x-40,m.y-139,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,m.y-139,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
+      const labelY=m.y-(this.mobileActors.matches?215:180)-24;
+      g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,labelY);g.fillStyle='#25312d';g.fillRect(m.x-40,labelY+11,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,labelY+11,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
     }})),...(b.monsters||[]).filter(e=>visible(e.x,e.y)).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
     for(const q of b.projectiles){
       if(b.tick<q.at)continue;
