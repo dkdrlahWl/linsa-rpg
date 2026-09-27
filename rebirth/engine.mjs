@@ -6,7 +6,7 @@ import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-vi
 import {rollRiftReward} from './rift-rewards.mjs?v=rift-rewards-43';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=priest-visual-35';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=defense-half-24';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=red-unique-45';
 import {applyBetaTool} from './beta-tools.mjs?v=priest-visual-35';
 import {
   VERSION,
@@ -45,7 +45,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=priest-visual-35";
+} from "./data.mjs?v=red-unique-45";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=priest-visual-35';
 const fail = (message) => {

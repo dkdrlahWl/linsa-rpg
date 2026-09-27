@@ -6,14 +6,14 @@ import {GameAudio} from './game-audio.mjs?v=priest-visual-35';
 import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-entry-44';
 import {incomingDamage} from './journey-balance.mjs?v=defense-half-24';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=priest-visual-35';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=red-unique-45';
 import {TOWER_FLOORS} from './tower-model.mjs?v=priest-visual-35';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=actor-fixed-42';
-import * as D from "./data.mjs?v=priest-portrait-28";
+import * as D from "./data.mjs?v=red-unique-45";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=rift-rewards-43";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=red-unique-45";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

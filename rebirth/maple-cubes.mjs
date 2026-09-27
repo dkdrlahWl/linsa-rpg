@@ -1,7 +1,7 @@
 import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=field-fragment-13';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
- cube:rule('레드 큐브','red',5,[.060000002444,.018,.003],[1,1,1],{pity:[0,0,25,83,500]}),
+ cube:rule('레드 큐브','red',4,[.060000002444,.018,0],[1,1,1],{pity:[0,0,25,83,0]}),
  highCube:rule('블랙 큐브','black',5,[.30,.07,.028],[1,1,1],{choose:true,pity:[0,0,10,42,107]}),
  primeCube:rule('프라임 큐브','black',5,[1,.105,.042],[1,1,1],{prime:true,pity:[0,0,0,42,107]}),
 };

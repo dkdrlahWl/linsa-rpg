@@ -3,8 +3,8 @@ export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest-visual-35';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=priest-visual-35';
 import {balanceWorld,journeyXP} from './journey-balance.mjs?v=defense-half-24';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=defense-half-24';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=field-fragment-13';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=field-fragment-13';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=red-unique-45';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=red-unique-45';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-visual-35";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=priest-visual-35";
 // Shared public balance data. The server is authoritative for RNG and ownership.
@@ -286,7 +286,9 @@ export function fillPotentialLines(item, random) {
     for(const c of String(item.id||[item.level,item.classId,item.slot].join(':'))) seed=Math.imul(seed^c.charCodeAt(0),16777619);
     random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
   }
-  while(item.lines.length<3) item.lines.push(rollCubeLine('cube',item,item.grade,item.lines.length,random));
+  // Restore missing legacy lines without applying the red cube's usage cap.
+  const fillKind=item.grade>CUBES.cube.maxGrade?'highCube':'cube';
+  while(item.lines.length<3) item.lines.push(rollCubeLine(fillKind,item,item.grade,item.lines.length,random));
   return item;
 }
 export function normalizePotentialItem(item) {
