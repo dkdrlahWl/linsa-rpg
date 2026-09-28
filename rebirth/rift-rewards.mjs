@@ -4,7 +4,7 @@ export const COOP_TIERS=Array.from({length:10},(_,i)=>{
  return {level,name:`Lv.${level} ${['숲','용암','공허'][band]}의 균열`,art:['rift-forest','rift-magma','rift-void'][band],
   hp:[80000,185000,320000,680000,1650000,2050000,3250000,4000000,4600000,5200000][i],
   attack:[200,340,520,780,1100,1450,1800,2200,2650,3200][i]*1.8,
-  gold:(100+level*8)/2,gearChance:[.10,.15,.20][band],fragmentCount:[1,2,3][band],
+  gold:(100+level*8)/2,gearChance:.05,fragmentCount:[1,2,3][band],
   chances:{cube:[.05,.10,.15][band],highCube:[0,.015,.03][band],primeCube:[0,0,.005][band],fragment:[.08,.12,.16][band],scroll:[.05,.075,.10][band]}};
 });
 export function rollRiftReward(tier,random){

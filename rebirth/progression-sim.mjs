@@ -1,6 +1,6 @@
 
 import fs from 'node:fs';
-import {initialState,execute,power,huntingRate,bestEquipment} from './engine.mjs?v=priest-support-62';
+import {initialState,execute,power,huntingRate,bestEquipment} from './engine.mjs?v=rift-gear-63';
 import * as D from './data.mjs?v=priest-support-62';
 import {towerStep,TOWER_CLASSES} from './tower-model.mjs?v=priest-support-62';
 const classId=process.argv[2]||'warrior',seed=Number(process.argv[3]||1),maxDays=Number(process.argv[4]||365);
