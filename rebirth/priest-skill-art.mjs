@@ -75,7 +75,8 @@ export function drawPriestBuffAura(g,actor,time,areas=[]){
   const area=areas.filter(e=>e.slot>=2&&Math.hypot(actor.x-e.x,actor.y-e.y)<=(e.size||0)/2).sort((a,b)=>b.start-a.start)[0];
   if(area)active.push(area.slot);
   else if(actor.purifiedUntil>time)active.push(2);
-  if(actor.shield>0&&actor.shieldUntil>time&&!active.includes(3))active.push(3);
+  if(actor.shield>0&&(actor.shieldPermanent||actor.shieldUntil>time)&&!active.includes(3))active.push(3);
+  if(actor.holyAttackUntil>time&&!active.includes(4))active.push(4);
   if(actor.holyReductionUntil>time&&!active.includes(5))active.push(5);
   if(!active.length)return;
   g.save();g.globalCompositeOperation='screen';

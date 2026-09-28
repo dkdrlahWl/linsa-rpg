@@ -1,14 +1,14 @@
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=mail-thanks-48';
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-weekly-41';
-import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs?v=crit-restore-57';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
-import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-visual-35';
+import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs?v=priest-support-62';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs?v=priest-support-62';
+import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-support-62';
 import {rollRiftReward} from './rift-rewards.mjs?v=rift-daily-59';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=priest-visual-35';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=priest-support-62';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=rift-daily-59';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=crit-restore-57';
-import {applyBetaTool} from './beta-tools.mjs?v=crit-restore-57';
+import {applyBetaTool} from './beta-tools.mjs?v=priest-support-62';
 import {
   VERSION,
   normalizePotentialState,
@@ -46,9 +46,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=rift-daily-59";
+} from "./data.mjs?v=priest-support-62";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=crit-restore-57';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=priest-support-62';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -171,19 +171,22 @@ export function power(s) {
       else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
     }
   }
+  const priestGearAttack=flat;
   primary *= 1 + pct[cl.stat] / 100;
   flat = (flat + primary * 0.65) * (1 + pct.attack / 100);
   hp = Math.floor(hp * (1 + pct.hp / 100));
   defense *= 1 + pct.defense / 100;
   const crit = Math.min(
     0.95,
-    0.05 + pct.crit / 100 + (s.classId === "archer" ? 0.05 : 0),
+    0.05 + pct.crit / 100 * (s.classId==="priest"?PRIEST_OFFENSE_POTENTIAL_RATE:1) + (s.classId === "archer" ? 0.05 : 0),
   );
   const cadence = s.classId === "pirate" ? 1.08 : 1;
   if (s.classId === "warrior") { hp = Math.floor(hp * 1.30); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
   const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
   if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
+  if(s.classId==="priest")flat=priestAttack(hp,primary,priestGearAttack*(firstJobUnlocked(s)?1.1**jobStage(s):1),pct.attack,pct.hp,pct.LUK);
+  const boss=1+pct.boss/100*(s.classId==="priest"?PRIEST_OFFENSE_POTENTIAL_RATE:1);
   const dps = flat * (1 + crit * (critDamage - 1)) * cadence;
   const stats = Object.fromEntries(Object.keys(fixedStats).map(key => {
     const growth = key === cl.stat ? s.level * 2 + equipmentStat : 0;
@@ -196,7 +199,7 @@ export function power(s) {
     advancement: s.advancement||0,
     firstJob:firstJobUnlocked(s),
     level:s.level,
-    combatPower: Math.floor(dps * (1+pct.boss/100) + hp * (1 + Math.floor(defense) / 2600) * 0.1),
+    combatPower: Math.floor(dps * boss + hp * (1 + Math.floor(defense) / 2600) * 0.1),
     attack: Math.floor(flat),
     primary: Math.floor(primary),
     hp,
@@ -204,7 +207,7 @@ export function power(s) {
     crit,
     critDamage,
     cadence,
-    boss: 1 + pct.boss / 100,
+    boss,
     stars,
     goldGain: pct.goldGain,
     xpGain: pct.xpGain,
@@ -395,16 +398,17 @@ function bossSettle(s, ctx, events) {
   );
   for (let t = b.tick + 1; t <= upto; t++) {
     Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100,soloSupport:true});
+    supportTick([b],(t-1)*10);
     const active = skill.type==='buff' && t <= b.burstUntil;
     const second = t <= (b.secondUntil||0) && SECOND_SKILLS[s.classId].type==='buff' ? SECOND_SKILLS[s.classId] : null;
     const burst = (active ? skill.damage : 1) * (second?.damage||1);
     const crit = ctx.random() < Math.min(1,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));
-    if(b.firstCast||b.secondCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepCombatSkills(b,b.enemyHp>0?[{x:0,y:0}]:[],pulse,(scale,extraCrit)=>{if(b.enemyHp<=0)return;const critical=ctx.random()<Math.min(.95,b.power.crit+extraCrit),value=Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*(critical?b.power.critDamage:1)));b.enemyHp=Math.max(0,b.enemyHp-value);frames.push({tick:pulse/10,damage:value,crit:critical,incoming:0,enemyHp:b.enemyHp});});
-    if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1))));});
-    if(b.fourthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepFourth(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1))));});
-    if(b.fifthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepPriest(b,[{x:0,y:0}],pulse,5,scale=>{const crit=ctx.random()<b.power.crit;b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*scale*(crit?b.power.critDamage:1))*b.power.boss));});
+    if(b.firstCast||b.secondCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepCombatSkills(b,b.enemyHp>0?[{x:0,y:0}]:[],pulse,(scale,extraCrit)=>{if(b.enemyHp<=0)return;const critical=ctx.random()<Math.min(.95,b.power.crit+extraCrit),value=Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*(critical?b.power.critDamage:1),pulse));b.enemyHp=Math.max(0,b.enemyHp-value);frames.push({tick:pulse/10,damage:value,crit:critical,incoming:0,enemyHp:b.enemyHp});});
+    if(b.thirdCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepThird(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1),pulse)));});
+    if(b.fourthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepFourth(b,{x:0,y:0},pulse,scale=>{const c=ctx.random()<Math.min(.95,b.power.crit+(active?(skill.critAdd||0):0)+(second?.critAdd||0));b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*b.power.boss*scale*burst*(c?b.power.critDamage+(second?.critDamageAdd||0):1),pulse)));});
+    if(b.fifthCast)for(let pulse=(t-1)*10+1;pulse<=t*10;pulse++)stepPriest(b,[{x:0,y:0}],pulse,5,scale=>{const crit=ctx.random()<b.power.crit;b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*scale*(crit?b.power.critDamage:1),pulse)*b.power.boss));});
     supportTick([b],t*10);
-    const damage = Math.round(b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence * (s.classId==='priest'?1.15:1));
+    const damage = Math.round(holyDamage(b,b.power.attack * (crit ? b.power.critDamage+(second?.critDamageAdd||0) : 1) * b.power.boss * burst * b.power.cadence,t*10));
     b.enemyHp = Math.max(0, b.enemyHp - damage);
     b.tick = t;
     const frame = {tick:t, damage, crit, incoming:0, enemyHp:b.enemyHp};
@@ -560,6 +564,10 @@ export function execute(input, command, args = {}, ctx) {
     else if(slot===4){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginFourth(b,{x:0,y:0},b.tick*10);}
     else if(slot===3){Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});beginThird(b,{x:0,y:0},b.tick*10);}
     else {Object.assign(b,{classId:s.classId,advancement:s.advancement,x:0,y:100});scheduleCombatSkill(b,{x:0,y:0},b.tick*10,slot);}
+    if(s.classId==='priest'){
+      stepPriest(b,[{x:0,y:0}],b.tick*10,slot,scale=>{const crit=ctx.random()<b.power.crit;b.enemyHp=Math.max(0,b.enemyHp-Math.round(holyDamage(b,b.power.attack*scale*(crit?b.power.critDamage:1),b.tick*10)*b.power.boss));});
+      supportTick([b],b.tick*10);
+    }
     events.push({type:'skill',slot});
     return { state: s, events };
   }

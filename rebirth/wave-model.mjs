@@ -1,7 +1,7 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=crit-restore-57';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=crit-restore-57';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-support-62';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-support-62';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=priest-support-62';
 import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100;
@@ -34,7 +34,7 @@ export function initializeWave(w){
 function number(w,value,a,kind){w.numbers.push({id:++w.serial,value,x:a.x,y:a.y-90,kind,start:w.tick,end:w.tick+16});}
 function damage(w,m,targets,scale,critAdd=0){
  const first=w.tick<(m.guardUntil||0)&&CLASS_SKILLS[m.classId].type==='buff'?CLASS_SKILLS[m.classId]:null;
- for(const enemy of targets){if(enemy.hp<=0)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(first?.damage||1)*(critical?m.power.critDamage:1)))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
+ for(const enemy of targets){if(enemy.hp<=0)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
 }
 function pulse(w,m,cast,sk){
  const aim=sk.mode==='orbit'?m:sk.mode==='volley'?(w.monsters.filter(e=>e.hp>0&&distance(e,m)<=sk.range+150).sort((a,b)=>distance(a,m)-distance(b,m))[0]||cast):cast;
@@ -55,6 +55,7 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
   if(!alive.length){w.status='lost';w.reason='dead';w.endedTick=t;break;}
   if(t>=w.nextWave)spawnWave(w);else emitWaveSpawn(w);if(w.status==='lost')break;
   w.effects=w.effects.filter(e=>e.end>t).slice(-70);w.numbers=w.numbers.filter(e=>e.end>t).slice(-35);w.hazards=w.hazards.filter(h=>h.end>t);w.projectiles=[];
+  supportTick(w.members,t);
   for(const m of alive){
    const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0];const n=Math.max(1,Math.hypot(x,y));x/=n;y/=n;m.dir=towerFacing(x,y,m.dir);m.moving=Math.hypot(x,y)>.01;if(m.moving)m.walk++;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}

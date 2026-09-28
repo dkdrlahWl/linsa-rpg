@@ -1,19 +1,19 @@
-import {playHolyOverlay} from './priest-overlay.mjs?v=priest-size-40';
-import {raidLobby} from './raid-ui.mjs?v=crit-restore-57';
+import {playHolyOverlay} from './priest-overlay.mjs?v=priest-support-62';
+import {raidLobby} from './raid-ui.mjs?v=priest-support-62';
 import {nextAutoSkill} from './auto-skills.mjs?v=priest-visual-35';
-import {playSecondOverlay} from './skill-overlay.mjs?v=skill-alpha-60';
+import {playSecondOverlay} from './skill-overlay.mjs?v=priest-support-62';
 import {GameAudio} from './game-audio.mjs?v=priest-visual-35';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=skill-alpha-60';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=priest-support-62';
 import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=crit-restore-57';
-import {TOWER_FLOORS} from './tower-model.mjs?v=crit-restore-57';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=skill-alpha-60';
-import * as D from "./data.mjs?v=rift-daily-59";
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=priest-support-62';
+import {TOWER_FLOORS} from './tower-model.mjs?v=priest-support-62';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=priest-support-62';
+import * as D from "./data.mjs?v=priest-support-62";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=rift-daily-59";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=priest-support-62";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -616,7 +616,7 @@ function combatSkillButtons(party=false) {
  const {sk,disabled,status}=combatSkillState(slot,party);
  return '<button class="gold skill-button" data-illustrated="1" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(disabled?'disabled':'')+' title="'+esc(sk.description)+'"><span class="combat-skill-name">'+slot+'차 · '+esc(sk.name)+'</span><small data-skill-status>'+status+'</small></button>';}).join('')+(party?'':'<button data-illustrated="1" data-action="autoSkills" aria-pressed="'+regularAutoSkills+'"><span class="combat-skill-name">스킬 자동</span><small>'+(regularAutoSkills?'켜짐':'꺼짐')+'</small></button>')+'</div>';
 }
-function skillGuide(){return '<div class="skill-guide">'+(state.classId==='priest'?[1,2,3,4,5]:[1,2,3,4]).map(slot=>{const sk=slot===5?D.PRIEST_SKILLS[5]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===5?state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===5?200:slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
+function skillGuide(){return (state.classId==='priest'?'<p class="note">사제는 최대 HP가 평타와 모든 공격 스킬을 강화합니다. 같은 등급의 잠재는 HP%가 가장 효율적이며, 주스탯 LUK%와 장비 공격력도 피해량에 반영됩니다. 공격력%·크리티컬%·보스 피해% 잠재는 표기 수치의 5%가 적용됩니다.</p>':'')+'<div class="skill-guide">'+(state.classId==='priest'?[1,2,3,4,5]:[1,2,3,4]).map(slot=>{const sk=slot===5?D.PRIEST_SKILLS[5]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===5?state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===5?200:slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
 function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row">'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">◆</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
 
 function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}

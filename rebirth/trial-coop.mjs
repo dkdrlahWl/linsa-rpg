@@ -1,11 +1,11 @@
-import {supportTick} from './priest.mjs?v=priest-visual-35';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-visual-35';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-restore-57';
+import {supportTick} from './priest.mjs?v=priest-support-62';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-support-62';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=priest-support-62';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.
 const sharedKeys=['enemy','hazards','projectiles','effects','numbers','serial','seed','nextPattern','phase','charge','enemyCastStart','enemyCastUntil','enemyAttackStart','enemyAttackUntil','enemyAttackDir','enemyHurtUntil'];
-const actorKeys=['fifthCast','fifthReady','holyReductionUntil','shieldGiven','purifiedUntil','holySupport','shield','shieldUntil','shieldOwner','healing','holyHealTick','holyHealAmount','hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','firstCast','secondCast','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
+const actorKeys=['holyAreas','holyAttackUntil','shieldPermanent','fifthCast','fifthReady','holyReductionUntil','shieldGiven','purifiedUntil','holySupport','shield','shieldUntil','shieldOwner','healing','holyHealTick','holyHealAmount','hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','firstCast','secondCast','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
 const copy=(to,from,keys)=>{for(const key of keys){if(from[key]===undefined)delete to[key];else to[key]=from[key];}};
 export function startTrialCoop(room,now){
  const trial=ADVANCEMENT_BOSSES[room.tier];
@@ -28,6 +28,7 @@ export function advanceTrialCoopRaw(w,user,input,now,frames=[]){
  while(w.tick<upto&&w.status==='fighting'){
   const tick=w.tick;
   for(const f of frames)if(f.tick===tick){const m=w.members.find(m=>m.id===f.user&&!m.left);if(m){m.input=f.input;m.inputAt=w.started+tick*100;}}
+  supportTick(w.members,tick);
   const alive=w.members.filter(m=>m.hp>0&&!m.left);
   if(!alive.length){w.status='lost';break;}
   const target=alive.reduce((a,b)=>Math.hypot(a.x-w.enemy.x,a.y-w.enemy.y)<=Math.hypot(b.x-w.enemy.x,b.y-w.enemy.y)?a:b);

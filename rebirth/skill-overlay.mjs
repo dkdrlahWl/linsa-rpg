@@ -1,4 +1,4 @@
-import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=priest-visual-35';
+import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=priest-support-62';
 import {drawSecondSequence} from './second-effects.mjs?v=skill-alpha-60';
 let atlas;
 // The compact boss screen uses the same VFX timeline as movement battles.

@@ -1,17 +1,17 @@
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=crit-restore-57';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=crit-restore-57';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=priest-support-62';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=priest-support-62';
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-visual-35';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=crit-restore-57';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-visual-35';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-support-62';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=priest-support-62';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-support-62';
 export const coopEncounter=room=>room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=crit-restore-57';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-visual-35';
-import {beginThird,stepThird} from './advancement.mjs?v=priest-visual-35';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=crit-restore-57';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=crit-restore-57';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=priest-support-62';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-support-62';
+import {beginThird,stepThird} from './advancement.mjs?v=priest-support-62';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-support-62';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=priest-support-62';
 import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
 import {COOP_TIERS} from './rift-rewards.mjs?v=rift-daily-59';
 export {COOP_TIERS};
@@ -57,6 +57,7 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
    else for(const m of [...alive].sort((a,b)=>dist(a,e)-dist(b,e)).slice(0,2))w.hazards.push({x:m.x,y:m.y,r:170,inner:0,at:t+15,end:t+19,multiplier:1.6});
    w.nextPattern=t+90;
   }
+  supportTick(w.members,t);
   for(const m of alive){const c={...TOWER_CLASSES[m.classId],skillScale:{warrior:3.8,mage:4.2,archer:3.5,rogue:4.4,pirate:4}[m.classId],skillCooldown:{warrior:90,mage:110,archer:85,rogue:100,pirate:100}[m.classId]};let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0],n=Math.hypot(x,y);if(n>1){x/=n;y/=n;}m.dir=towerFacing(x,y,m.dir??6);m.moving=n>.01;if(m.moving)m.walk=(m.walk||0)+1;let speed=(bits&1)&&c.range>300?17:c.speed;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const v=facingVector(m.dir??6);m.dx=n?x/Math.hypot(x,y):v.x;m.dy=n?y/Math.hypot(x,y):v.y;}
    if(t<(m.dashUntil||0)){x=m.dx;y=m.dy;speed=c.speed*3;}
@@ -64,7 +65,7 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
    const fx=(kind,x,y,size=180,angle=0)=>w.effects.push({id:++w.serial,kind,classId:m.classId,owner:m.id,x,y,size,angle,start:t,end:t+7});
    const first=t<(m.guardUntil||0)&&CLASS_SKILLS[m.classId].type==='buff'?CLASS_SKILLS[m.classId]:null,second=t<(m.secondUntil||0)&&SECOND_SKILLS[m.classId].type==='buff'?SECOND_SKILLS[m.classId]:null;
    if((bits&8)&&beginCombatSkill(m,e,t,1))m.skillDir=towerFacing(e.x-m.x,e.y-m.y,m.dir);
-   const hit=(scale,extraCrit=0)=>{const critical=coopRandom(w,t,m.id)<Math.min(.95,m.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+extraCrit),damage=Math.min(w.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*m.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(critical?m.power.critDamage+(second?.critDamageAdd||0):1)))));w.hp-=damage;m.damage+=damage;w.enemyHurtUntil=t+2;w.numbers.push({id:++w.serial,value:damage,x:e.x,y:e.y-120,kind:critical?'critical':'outgoing',start:t,end:t+24});fx('impact',e.x,e.y-50,150);};
+   const hit=(scale,extraCrit=0)=>{const critical=coopRandom(w,t,m.id)<Math.min(.95,m.power.crit+(first?.critAdd||0)+(second?.critAdd||0)+extraCrit),damage=Math.min(w.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*m.power.boss*scale*(first?.damage||1)*(second?.damage||1)*(critical?m.power.critDamage+(second?.critDamageAdd||0):1),t))));w.hp-=damage;m.damage+=damage;w.enemyHurtUntil=t+2;w.numbers.push({id:++w.serial,value:damage,x:e.x,y:e.y-120,kind:critical?'critical':'outgoing',start:t,end:t+24});fx('impact',e.x,e.y-50,150);};
    if((bits&1)&&t>=m.attackReady&&dist(m,e)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(e.x-m.x,e.y-m.y,m.dir);m.dir=m.attackDir;m.face=e.x<m.x?-1:1;if(c.range<300)(m.pendingHits||=[]).push({at:t+2,scale:c.cooldown/10*m.power.cadence});else{const a=Math.atan2(e.y-m.y,e.x-m.x),ticks=Math.max(1,Math.ceil(dist(m,e)/75));w.projectiles.push({id:++w.serial,side:'player',owner:m.id,classId:m.classId,x:m.x,y:m.y-30,dx:Math.cos(a)*75,dy:Math.sin(a)*75,r:28,at:t+2,end:t+ticks+2});(m.pendingHits||=[]).push({at:t+ticks+2,scale:c.cooldown/10*m.power.cadence,ranged:true});}}
    m.pendingHits||=[];if(m.pendingHit){m.pendingHits.push(m.pendingHit);delete m.pendingHit;}for(const pending of m.pendingHits){if(t>=pending.at&&(pending.ranged||dist(m,e)<=c.range+30)){hit(pending.scale);if(!pending.ranged)fx('slash',(m.x+e.x)/2,(m.y+e.y)/2-40,220,Math.atan2(e.y-m.y,e.x-m.x));}}m.pendingHits=m.pendingHits.filter(p=>p.at>t).slice(-16);
    if((bits&2)&&beginCombatSkill(m,e,t,2))m.skillDir=towerFacing(e.x-m.x,e.y-m.y,m.dir);
