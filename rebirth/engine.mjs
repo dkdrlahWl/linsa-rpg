@@ -496,7 +496,7 @@ export function execute(input, command, args = {}, ctx) {
   );
   const s = normalizePotentialState(structuredClone(input));
   s.isAdmin = ctx.admin === true;
-  if(s.isAdmin){s.gold=8e12;for(const key of Object.keys(MATERIALS))s.materials[key]=1e9;}
+  if(s.isAdmin){s.gold=999999999999;for(const key of Object.keys(MATERIALS))s.materials[key]=999999999999;}
   check(s.version === VERSION, "VERSION_MISMATCH");
   deliverSystemMail(s,ctx);
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;

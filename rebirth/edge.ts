@@ -63,6 +63,10 @@ Deno.serve(async (req) => {
       Array.isArray(body.args)
     )
       return reply({ error: "INVALID_REQUEST" }, 400);
+    if(body.command==='adminTransfer'){
+      if(user.app_metadata?.ringu_admin!==true)throw new Error('BETA_DISABLED');
+      return reply(await rpc('rebirth_admin_transfer',{p_args:body.args,p_request:body.requestId}));
+    }
     const fingerprint = { command: body.command, args: body.args };
     for (let retry = 0; retry < 3; retry++) {
       const snap = await rpc("rebirth_snapshot", { p_request: body.requestId });

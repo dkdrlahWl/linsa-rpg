@@ -13,7 +13,7 @@ import * as D from "./data.mjs?v=crit-restore-57";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=crit-restore-57";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=admin-transfer-58";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -158,6 +158,9 @@ const errors = {
   SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
 };
 function message(e) {
+  if(e.message==='BETA_DISABLED')return '관리자만 사용할 수 있습니다.';
+  if(e.message==='INVALID_TRANSFER_LIMIT')return '받는 계정의 보유 한도(9조)를 초과합니다. 수량을 줄여 주세요.';
+  if(e.message==='INVALID_TRANSFER_RECIPIENT')return '받는 계정을 찾을 수 없습니다. 랭킹을 새로고침해 주세요.';
   if(e.message==='RAID_PRIEST_REQUIRED')return '사제 1명 이상이 있어야 레이드를 출발할 수 있습니다.';
   return (
     errors[e.message] ||
@@ -390,7 +393,7 @@ function confirmClassChange(classId) {
 }
 function shell(content) {
   const c = D.CLASSES.find((c) => c.id === state.classId);
-  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn('<img class="attendance-calendar-icon" src="ui/attendance-calendar-v1.webp" alt="" aria-hidden="true"><span>출석체크</span>', "attendance", "", attendanceReady()?"attendance-button attendance-alert":"attendance-button")}${systemMailButton()}${btn("랭킹", "ranking", "", "top-ranking")}${state.isAdmin?btn("관리자","betaTools"):""}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${state.isAdmin?"∞":fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
+  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn('<img class="attendance-calendar-icon" src="ui/attendance-calendar-v1.webp" alt="" aria-hidden="true"><span>출석체크</span>', "attendance", "", attendanceReady()?"attendance-button attendance-alert":"attendance-button")}${systemMailButton()}${btn("랭킹", "ranking", "", "top-ranking")}${state.isAdmin?btn("관리자","betaTools"):""}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
     ["hunt", "사냥"],
     ["character", "캐릭터"],
     ["gear", "가방"],
@@ -657,6 +660,11 @@ async function loadRankings(quiet=false) {
   } catch(err) { rankingError=message(err); }
   finally { if(requestId===rankingRequest){rankingLoading=false;if(view==="ranking")render();} }
 }
+function adminTransferDialog(id) {
+  if(!state?.isAdmin)return;
+  const target=rankingRows.find(r=>r.id===id);if(!target)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
+  open("관리자 송금",`<div class="stack"><p><strong>${esc(target.name)}</strong> · Lv.${target.level} · ${esc(D.CLASSES.find(c=>c.id===target.classId)?.name||"")}</p><label>재화 · 소비템<select id="transfer-resource">${Object.entries({gold:"골드",...D.MATERIALS}).map(([key,name])=>`<option value="${key}">${esc(name)}</option>`).join("")}</select></label><label>보낼 수량<input id="transfer-amount" type="number" inputmode="numeric" min="1" max="999999999999" step="1" value="1"></label><p class="note">수수료 없이 입력한 수량 전부가 상대방 보유량에 추가됩니다. 관리자 재화는 999,999,999,999로 유지됩니다.</p>${btn("송금하기","adminTransferSend",id,"gold",true)}</div>`);
+}
 function rankings() {
   const combat=rankingMode==="combat",rankKey=combat?"combatRank":"levelRank",label=combat?"전투력":"레벨";
   const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
@@ -664,7 +672,7 @@ function rankings() {
   const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
   const portrait=r=>`<div class="rank-portrait portrait ${r.classId==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(r.classId)}% 0" aria-hidden="true"></div>`;
   const podium=rows.slice(0,3).map(r=>`<article class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}">${esc(r.name)}</strong><small>${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
-  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong>${esc(r.name)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><b class="rank-score">${score(r)}</b></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
+  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong>${esc(r.name)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><div class="rank-score"><b>${score(r)}</b>${state.isAdmin&&r.id?btn("송금","adminTransferOpen",r.id,"rank-transfer-button"):""}</div></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
 }
 function journal() {
   const goals=[["첫 토벌",state.cleared.length,1,"보스 첫 처치"],["장비 수집가",state.collection.length,50,"서로 다른 장비 50종 발견"],["직업의 길",D.firstJobUnlocked(state)?1:0,1,requiredLevel(30)+" · 수정 문지기 처치 후 전직"],["숙련 모험가",state.level,100,requiredLevel(100,"100레벨 달성")],["왕좌를 넘어",state.cleared.length,30,"멸신왕 벨제리온 처치"],["새벽의 탐험가",state.dungeonClaims.relic?1:0,1,"여명의 폐허 클리어"]];
@@ -775,6 +783,7 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
+    if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
       toast("장비 잠재 개방 주문서 "+fmt(e.rewards.scroll||0)+"개 · 장비 파편 "+fmt(e.rewards.fragment||0)+"개를 받았습니다.");
@@ -923,7 +932,7 @@ let betaResource="gold",betaAmount=1000;
 function betaTools(){
   if(!state?.isAdmin)return;
   const blocked=!!state.battle||!!state.partyRoom||!!state.coopRoom;
-  open("관리자 · 도현1",`<p class="note">랭킹 제외 · 던전 무한 입장 · 골드와 모든 재화 무제한</p><section class="panel pad"><h3>레벨 조정 · Lv.${state.level}</h3><input id="beta-level" aria-label="원하는 레벨" type="number" inputmode="numeric" min="1" max="200" step="1" value="${state.level}"><p class="note">1~200레벨. 스탯 포인트를 다시 분배하고, 착용 레벨에 맞지 않는 장비는 해제합니다. 낮춘 레벨에 맞춰 전직도 해제됩니다.</p>${disabledBtn("레벨 적용","betaLevel","",blocked||!!state.pendingCube,"gold")}</section><section class="panel pad"><h3>사냥 시간 건너뛰기</h3><p class="note">현재 사냥터·장비로 선택한 시간만큼 사냥합니다. 경험치와 무작위 드롭을 실제로 지급합니다. 너무 강한 사냥터에서는 처치하지 못할 수 있습니다.</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${Array.from({length:12},(_,i)=>disabledBtn((i+1)+"시간","adminSkip",i+1,blocked)).join("")}</div></section>${blocked?'<p class="note">전투·파티 종료 후 사용할 수 있습니다.</p>':""}`);
+  open("관리자 · 도현1",`<p class="note">랭킹 제외 · 던전 무한 입장 · 골드와 모든 재화·소비템 각각 999,999,999,999</p><section class="panel pad"><h3>레벨 조정 · Lv.${state.level}</h3><input id="beta-level" aria-label="원하는 레벨" type="number" inputmode="numeric" min="1" max="200" step="1" value="${state.level}"><p class="note">1~200레벨. 스탯 포인트를 다시 분배하고, 착용 레벨에 맞지 않는 장비는 해제합니다. 낮춘 레벨에 맞춰 전직도 해제됩니다.</p>${disabledBtn("레벨 적용","betaLevel","",blocked||!!state.pendingCube,"gold")}</section><section class="panel pad"><h3>사냥 시간 건너뛰기</h3><p class="note">현재 사냥터·장비로 선택한 시간만큼 사냥합니다. 경험치와 무작위 드롭을 실제로 지급합니다. 너무 강한 사냥터에서는 처치하지 못할 수 있습니다.</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${Array.from({length:12},(_,i)=>disabledBtn((i+1)+"시간","adminSkip",i+1,blocked)).join("")}</div></section>${blocked?'<p class="note">전투·파티 종료 후 사용할 수 있습니다.</p>':""}`);
 }
 function settingsDialog() {
   open(
@@ -1067,6 +1076,13 @@ document.addEventListener("click", async (e) => {
     if(action==="advancementStart"){modal.close();tab="boss";bossTab="advancement";view="game";return await command("coopCreate",{mode:"advancement",tier:Number(arg)});}
     if (action === "journal") {view="journal";return render();}
     if (action === "ranking") {view="ranking";return await loadRankings();}
+    if(action==="adminTransferOpen")return adminTransferDialog(arg);
+    if(action==="adminTransferSend"){
+      if(busy||!state?.isAdmin)return;
+      const amount=Number($("#transfer-amount")?.value),resource=$("#transfer-resource")?.value;
+      if(!Number.isSafeInteger(amount)||amount<1||amount>999999999999)return toast("수량은 1~999,999,999,999 사이 정수로 입력해 주세요.");
+      return await command("adminTransfer",{recipient:arg,resource,amount});
+    }
     if (action === "rankingRefresh") return await loadRankings();
     if (action === "rankingMode") {rankingMode=arg==="combat"?"combat":"level";return render();}
     if(action==="betaBossReset"){
