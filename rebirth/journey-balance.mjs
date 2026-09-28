@@ -4,6 +4,7 @@ export const FIELD_ATTACK_SECONDS=1;
 export const FIELD_MONSTER_SECONDS=1.5;
 export const levelHours=level=>.16+.00035*level*level;
 export const journeyXP=level=>Math.round(120+level**2.1*12);
+export const dropEquipmentLevel=level=>Math.max(10,Math.min(200,Math.round(level/10)*10));
 export function balanceWorld(stages,bosses,raids){
  const fieldHP=[260,1800,5000,11000,20000,32000,48000,65000,90000,120000];
  const fieldAttack=[30,480,1050,1850,2400,3000,3300,3700,4600,5300];
@@ -14,7 +15,7 @@ export function balanceWorld(stages,bosses,raids){
   if(s.region===0){s.hp=[160,800,2000][offset];s.attack=[30,90,200][offset];}
   s.xp=Math.max(1,Math.ceil((journeyXP(s.level)*8/(levelHours(s.level)*3600)+s.hp*.002)*(1+s.region*.06)));
   s.gold=Math.round((4+s.level*.3+s.hp*.001)*(1+s.region*.1));
-  s.dropLevel=s.id===29?200:Math.max(10,Math.floor(s.level/10)*10);
+  s.dropLevel=dropEquipmentLevel(s.level);
   s.star=s.region<2?0:Math.max(0,(s.region-1)*9);
  }
  const bossHP=[1800,26000,100000,245000,480000,830000,1350000,2050000,3000000,4400000];
@@ -25,8 +26,9 @@ export function balanceWorld(stages,bosses,raids){
   b.patternEvery=Math.max(9,16-b.region);b.patternMultiplier=2.1+n*.2;
   b.gold=Math.round((1200+900*b.region)*(n===2?4:1));
   b.cubes=n===2?18:6;b.material=0;
-  b.dropChance=n===2?.25:.10;b.gearLevel=b.region*20+(n===0?10:20);
+  b.dropChance=n===2?.25:.10;
   b.level=b.id===29?200:b.region===0?1+n*5:Math.min(200,b.region*20+n*6);
+  b.gearLevel=dropEquipmentLevel(b.level);
   b.recommended={...b.recommended,gear:Math.max(1,b.region*20),stars:Math.min(20,Math.round(b.region*2)),pot:b.region>=2,target:100};
  }
  const raidValues=[{hp:1200000,attack:500,seconds:240,gold:18000,fragment:100,cube:16,highCubeChance:.5},{hp:9000000,attack:2200,seconds:240,gold:60000,fragment:240,cube:30,highCubeChance:1}];

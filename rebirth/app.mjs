@@ -3,17 +3,17 @@ import {raidLobby} from './raid-ui.mjs?v=crit-restore-57';
 import {nextAutoSkill} from './auto-skills.mjs?v=priest-visual-35';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-visual-35';
 import {GameAudio} from './game-audio.mjs?v=priest-visual-35';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=crit-restore-57';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-daily-59';
 import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=crit-restore-57';
 import {TOWER_FLOORS} from './tower-model.mjs?v=crit-restore-57';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=crit-restore-57';
-import * as D from "./data.mjs?v=crit-restore-57";
+import * as D from "./data.mjs?v=rift-daily-59";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=admin-transfer-58";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=rift-daily-59";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -593,7 +593,7 @@ function odds() {
     },
   ).join(
     "",
-  )}</table></div>${cubeGuide()}<div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 레드 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 6개 직업 중 각각 1/6 (약 16.67%) 확률로 무작위 추첨합니다. 부위는 9종 균등입니다. 모든 직업은 일반 2종 각 50%, 보스 1종 100%입니다. 무기 종류의 구성은 레벨마다 달라집니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 지역</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.REGIONS.map(r=>`<tr><td>${r.name} · 3개 사냥터 공통</td><td>${gearLevelRange(D.TIERS[r.id])} / ${gearLevelRange(D.TIERS[r.id])}</td><td>${pct(D.EQUIP_DROP)} / ${pct(D.FIELD_BOSS_DROP)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 장비는 1·10·20·30…200레벨만 새로 생성됩니다. 일반 사냥 장비는 사냥터와 캐릭터 레벨 이하로 제한됩니다. 상위 레벨 장비는 상위 콘텐츠에서 획득합니다. 기존 장비도 1·10·20…200레벨로 보정하며 강화·잠재·잠금은 유지합니다. 오프라인 최대 6시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 기본 수치별로 보관합니다.</p><h3>신규 장비 기본 수치</h3><p class="note">각 개별 장비에는 고유 이름과 수치 범위가 있습니다.  장비 종류에 따라 정해진 범위에서 공격력·주스탯·HP·방어력을 각각 추첨합니다. 범위 하위 50% 구간 75%, 다음 40% 구간 24%, 최상위 10% 구간 1%로 추첨한 뒤 정수로 확정합니다. 범위가 좁으면 반올림으로 구간의 수치가 겹칠 수 있습니다. 보스 장비는 더 높은 별도 범위를 사용합니다.</p></div>`;
+  )}</table></div>${cubeGuide()}<div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 레드 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}.<br>장비 직업은 6개 직업 중 각각 1/6 (약 16.67%) 확률로 무작위 추첨합니다. 부위는 9종 균등입니다. 모든 직업은 일반 2종 각 50%, 보스 1종 100%입니다. 무기 종류의 구성은 레벨마다 달라집니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 · 몬스터 레벨</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.STAGES.map(r=>`<tr><td>${r.name} · Lv.${r.level}</td><td>${gearLevelRange(r.dropLevel)} / ${gearLevelRange(r.dropLevel)}</td><td>${pct(D.EQUIP_DROP)} / ${pct(D.FIELD_BOSS_DROP)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 장비는 1·10·20·30…200레벨만 새로 생성됩니다. 모든 드롭 장비는 몬스터·보스 레벨을 10단위로 반올림합니다(최소 10, 최대 200). 60→60 · 66→70 · 80→80 · 85→90레벨입니다. 상위 레벨 장비는 상위 콘텐츠에서 획득합니다. 기존 장비도 1·10·20…200레벨로 보정하며 강화·잠재·잠금은 유지합니다. 오프라인 최대 6시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 기본 수치별로 보관합니다.</p><h3>신규 장비 기본 수치</h3><p class="note">각 개별 장비에는 고유 이름과 수치 범위가 있습니다.  장비 종류에 따라 정해진 범위에서 공격력·주스탯·HP·방어력을 각각 추첨합니다. 범위 하위 50% 구간 75%, 다음 40% 구간 24%, 최상위 10% 구간 1%로 추첨한 뒤 정수로 확정합니다. 범위가 좁으면 반올림으로 구간의 수치가 겹칠 수 있습니다. 보스 장비는 더 높은 별도 범위를 사용합니다.</p></div>`;
 }
 function disabledBtn(label,action,arg,blocked=false,cls="") {
   const html=btn(label,action,arg,cls,true);
@@ -633,7 +633,7 @@ function bosses() {
 function bossCard(b) {
   const claimed=!state.isAdmin&&(b.weekly?state.bossClaims?.[b.id]===D.weekKey(Date.now()):state.bossAttempts?.[b.id]===D.dayKey(Date.now())||state.bossClaims?.[b.id]===D.dayKey(Date.now()));
   const locked=false;
-  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 도전 완료":"오늘 도전 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"도전 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${b.weekly?"Lv."+(b.gearLevel-10)+" / "+b.gearLevel:gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 도전 · 입장 시 차감 · 패배해도 차감 · 승리 시 보상"} · 연습은 보상 없음</p></details></div></section>`;
+  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 도전 완료":"오늘 도전 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"도전 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 도전 · 입장 시 차감 · 패배해도 차감 · 승리 시 보상"} · 연습은 보상 없음</p></details></div></section>`;
 }
 function partyPanel() {
  if(!partyRoom)return header('협동 토벌')+'<div class="panel pad">파티 정보를 불러오는 중…</div>';

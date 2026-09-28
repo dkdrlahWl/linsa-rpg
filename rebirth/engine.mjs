@@ -4,9 +4,9 @@ import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs?v=crit-restore
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-visual-35';
 import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-visual-35';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-visual-35';
-import {rollRiftReward} from './rift-rewards.mjs?v=rift-rewards-43';
+import {rollRiftReward} from './rift-rewards.mjs?v=rift-daily-59';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=priest-visual-35';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=effective-defense-54';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=rift-daily-59';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=crit-restore-57';
 import {applyBetaTool} from './beta-tools.mjs?v=crit-restore-57';
 import {
@@ -46,7 +46,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=crit-restore-57";
+} from "./data.mjs?v=rift-daily-59";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=crit-restore-57';
 const fail = (message) => {
@@ -333,7 +333,7 @@ export function settle(s, ctx) {
   const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, EQUIP_DROP, ctx),bossGearCount=rollCount(kills,FIELD_BOSS_DROP,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
     const item = makeLootItem(
-      Math.min(STAGES[s.stage].dropLevel,Math.max(1,Math.floor(s.level/10)*10)),
+      STAGES[s.stage].dropLevel,
       pick(CLASSES, ctx).id,
       Math.floor(ctx.random() * 9),
       i>=normalGearCount,
@@ -516,7 +516,7 @@ export function execute(input, command, args = {}, ctx) {
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
-      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel-(ctx.random()<.5?10:0);const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
+      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){

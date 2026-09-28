@@ -4,3 +4,9 @@
 .regular-combat-skills .combat-skill-name{display:block;line-height:1.35;font-weight:700;word-break:keep-all;overflow-wrap:anywhere}
 .regular-combat-skills small{display:block;height:18px;line-height:18px;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .regular-combat-skills .menu-art{display:none}
+@media(max-width:759px){
+ .actions>.regular-combat-skills:has([data-action="skill"]){grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .regular-combat-skills:has([data-action="skill"])>button{height:54px;min-height:54px;grid-template-rows:1fr 14px;gap:2px;padding:5px 4px}
+ .regular-combat-skills:has([data-action="skill"]) .combat-skill-name{font-size:11px;line-height:1.15}
+ .regular-combat-skills:has([data-action="skill"]) small{height:14px;line-height:14px;font-size:10px}
+}

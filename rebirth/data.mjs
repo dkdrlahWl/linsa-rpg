@@ -1,8 +1,8 @@
 export {PRIEST_SKILLS} from './priest.mjs?v=priest-visual-35';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest-visual-35';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=priest-visual-35';
-import {balanceWorld,journeyXP} from './journey-balance.mjs?v=effective-defense-54';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=effective-defense-54';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=rift-daily-59';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=rift-daily-59';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=crit-restore-57';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=crit-restore-57';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-visual-35";
@@ -232,7 +232,7 @@ export const HIGH_CUBE_UP = CUBES.highCube.up;
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
 export const EQUIP_DROP = 0.0013;
 export const FIELD_BOSS_DROP = 0;
-export function equipmentLevelRange(base){const min=base>=200?200:Math.max(1,Math.floor(base/10)*10);return {min,max:min};}
+export function equipmentLevelRange(base){const min=dropEquipmentLevel(base);return {min,max:min};}
 export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
