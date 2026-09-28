@@ -1,19 +1,19 @@
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=priest-support-62';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=priest-support-62';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-visual-35';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-support-62';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=priest-support-62';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-support-62';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs';
+import {RAID_ENCOUNTERS} from './raid-content.mjs';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 export const coopEncounter=room=>room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=priest-support-62';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-support-62';
-import {beginThird,stepThird} from './advancement.mjs?v=priest-support-62';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-support-62';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=priest-support-62';
-import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
-import {COOP_TIERS} from './rift-rewards.mjs?v=rift-fragments-64';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=wave-ending-65';
+import {beginFourth,stepFourth} from './fourth-job.mjs';
+import {beginThird,stepThird} from './advancement.mjs';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs';
+import {incomingDamage} from './journey-balance.mjs';
+import {COOP_TIERS} from './rift-rewards.mjs';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -140,5 +140,6 @@ export function advanceCoop(room,user,input,now){
  if(w.status==='lost'&&upto-w.tick<30&&(room.mode==='wave'||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
  w._net=net;return w;
 }
+
 
 

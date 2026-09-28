@@ -1,9 +1,10 @@
+import {waveRewardBody} from './wave-ui.mjs?v=wave-ending-65';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-support-62';
 import {raidLobby} from './raid-ui.mjs?v=priest-support-62';
 import {nextAutoSkill} from './auto-skills.mjs?v=priest-visual-35';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-support-62';
 import {GameAudio} from './game-audio.mjs?v=priest-visual-35';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-fragments-64';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-ending-65';
 import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=priest-support-62';
@@ -13,7 +14,7 @@ import * as D from "./data.mjs?v=priest-support-62";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";
 import { inventoryGroups } from "./inventory-order.mjs?v=field-fragment-13";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=rift-fragments-64";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-ending-65";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -840,7 +841,7 @@ function showEvents(events) {
   }
 }
 function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.practice?(r.won?'전직 보스 연습 성공':'전직 보스 연습 종료'):r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.practice?'연습 전투입니다. 전직·능력치·보상은 추가로 지급되지 않습니다.':r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===3?D.FOURTH_SKILLS[state.classId].name:r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
-function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G<br>큐브 '+r.cube+(r.highCube?' · 블랙 큐브 '+r.highCube:''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
+function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G'+['fragment','cube','highCube','scroll'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+fmt(r[k])+'개').join(''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;
   if(r?.type==='coop'&&r.mode==='raid'){
@@ -848,7 +849,7 @@ function reward() {
     const remaining=Number.isInteger(r.weeklyUsed)?`이번 주 개인 보상 ${r.weeklyUsed}/${r.weeklyLimit}회 · 남은 보상 ${r.weeklyRemaining}회<br>`:'';
     return open(r.practice?'레이드 연습 완료':'레이드 보상 획득','<h3>'+esc(r.name)+'</h3><p>'+loot+'</p><p class="note">'+remaining+'모든 레이드 보스 합산 · 월요일 00시(한국 시간) 초기화</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+'</p>').join('')+btn('확인','ack','','gold',true));
   }
-  if(r?.type==='coop'&&r.mode==='wave')return open('협동 웨이브 종료','<h3>'+fmt(r.wave)+'웨이브 도달 · '+fmt(r.cleared)+'웨이브 생존</h3><p>처치 '+fmt(r.kills)+'마리 · '+(r.reason==='overrun'?'몬스터 100마리 누적':r.reason==='leave'?'도전 종료':'전원 사망')+'</p><p>'+fmt(r.gold)+' G · 레드 큐브 '+fmt(r.cube)+'개 · 잠재 해금 주문서 '+fmt(r.scroll)+'개</p><p>재도전은 항상 1웨이브부터 시작합니다.</p>'+btn('확인','ack','','gold',true));
+  if(r?.type==='coop'&&r.mode==='wave')return open(r.ending?'200웨이브 엔딩 · 보상 지급 완료':'웨이브 종료 · 보상 지급 완료',waveRewardBody(r)+btn('확인','ack','','gold',true));
   if(r?.type==='coop')return open(r.won?'개인 상자 획득':'균열 도전 종료','<p>'+(r.won?fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join(''):'장비를 정비하고 다시 도전해 보세요.')+'</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · 잠재 3줄 잠금 (가방이 가득 차면 보관함)</p>').join('')+btn('확인','ack','','gold',true));
   if(r?.type==='advancementTrial')return advancementResult(r);
   if(r?.type==='tower')return towerReward(r);
@@ -1024,13 +1025,14 @@ document.addEventListener("click", async (e) => {
     if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
     if(action==="battlePotion")return await command("battlePotion");
     if(action==='autoSkills'){regularAutoSkills=!regularAutoSkills;render();return;}
+    if(action==='waveRewardHistory'){const r=state.waveRewardHistory?.[Number(arg)];if(r)return open('웨이브 보상 수령 내역',waveRewardBody(r)+btn('닫기','close','','gold'));return;}
     if(action==="waveCreate")return await command("coopCreate",{tier:0,mode:"wave"});
     if(action==="coopCreate")return await command("coopCreate",{tier:Number(arg)});
     if(action==="raidCreate")return await command("coopCreate",{mode:"raid",tier:Number(arg)});
     if(action==="coopJoin")return await command("coopJoin",{room:arg});
     if(action==="coopList")return await refreshCoopRooms();
     if(["coopStart","coopSync","coopLeave"].includes(action)){modal.close();return await command(action);}
-    if(action==="coopLeaveConfirm")return open(coopRoom?.mode==="wave"?"웨이브에서 나가기":coopRoom?.mode==="advancement"?"전직 보스에서 나가기":"균열에서 나가기",'<p>'+(coopRoom?.mode==="wave"?"완료한 웨이브의 누적 보상을 받고 나갑니다. 다시 도전하면 1웨이브부터 시작합니다.":"진행 중인 도전에서 나가면 보상을 받을 수 없습니다.")+'</p>'+btn("나가기","coopLeave","","danger",true));
+    if(action==="coopLeaveConfirm")return open(coopRoom?.mode==="wave"?"웨이브에서 나가기":coopRoom?.mode==="advancement"?"전직 보스에서 나가기":"균열에서 나가기",'<p>'+(coopRoom?.mode==="wave"?"완료한 마지막 10단위 구간에서 한 번 추첨하고, 미수령 최초 보상을 함께 받습니다. 진행 중인 웨이브는 제외되며 재도전은 1웨이브부터 시작합니다.":"진행 중인 도전에서 나가면 보상을 받을 수 없습니다.")+'</p>'+btn("나가기","coopLeave","","danger",true));
     if(action==='itemGroup')return itemGroup(arg);
     if(action==='towerOpen')return await command('towerOpen',{runId:state.battle?.runId});
     if(action==='towerStart'){modal.close();tab='boss';bossTab='tower';view='game';return await command('towerStart',{floor:Number(arg)});}
@@ -1484,6 +1486,7 @@ if (session) command("sync").catch(() => {});
 else login();
 
 installMenuIcons();
+
 
 
 

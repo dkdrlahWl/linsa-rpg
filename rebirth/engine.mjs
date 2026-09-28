@@ -1,14 +1,14 @@
-import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=mail-thanks-48';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-weekly-41';
-import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs?v=priest-support-62';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs?v=priest-support-62';
-import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=priest-support-62';
-import {rollRiftReward} from './rift-rewards.mjs?v=rift-fragments-64';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=priest-support-62';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=rift-daily-59';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs?v=crit-restore-57';
-import {applyBetaTool} from './beta-tools.mjs?v=priest-support-62';
+import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
+import {RAID_ENCOUNTERS} from './raid-content.mjs';
+import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs';
+import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
+import {rollRiftReward} from './rift-rewards.mjs';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
+import {applyBetaTool} from './beta-tools.mjs';
 import {
   VERSION,
   normalizePotentialState,
@@ -46,9 +46,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=priest-support-62";
+} from "./data.mjs";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=priest-support-62';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -535,7 +535,7 @@ export function execute(input, command, args = {}, ctx) {
   // A retried final input must never grant rewards twice.
   if(command==='towerInput'||command==='towerLeave'||command==='towerOpen')return {state:s,events};
   const hunting = settle(s, ctx);
-  if (hunting && hunting.seconds >= 60) {
+  if (hunting && hunting.seconds >= 60 && !(s.lastReward?.type==='coop'&&s.lastReward?.mode==='wave')) {
     s.lastReward = { type: "offline", ...hunting };
     events.push(s.lastReward);
   }
@@ -886,3 +886,4 @@ export function grantRaidChest(input,tier,ctx){
  Object.assign(reward,{weeklyUsed:weekly.used+(practice?0:1),weeklyLimit:weekly.limit,weeklyRemaining:Math.max(0,weekly.remaining-(practice?0:1))});
  delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
 }
+

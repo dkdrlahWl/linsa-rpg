@@ -3,11 +3,11 @@ import {raidMove} from './raid-content.mjs?v=priest-visual-35';
 import {autoSkillBits} from './auto-skills.mjs?v=priest-visual-35';
 import {prepareWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
-import {waveLobby,waveHud} from './wave-ui.mjs?v=priest-support-62';
+import {waveLobby,waveHud} from './wave-ui.mjs?v=wave-ending-65';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=coop-smooth-19';
 import {TowerInput,projectPlayer} from './tower-input.mjs?v=priest-support-62';
-import {predictCoopStep} from './coop-model.mjs?v=rift-fragments-64';
-import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=rift-fragments-64';
+import {predictCoopStep} from './coop-model.mjs?v=wave-ending-65';
+import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=wave-ending-65';
 import {towerArena} from './tower-client.mjs?v=priest-support-62';
 import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-support-62';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -131,6 +131,7 @@ export class CoopController{
  }
  dispose(){this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.renderer.dispose();}
 }
+
 
 
 

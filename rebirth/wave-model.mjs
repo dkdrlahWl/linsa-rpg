@@ -1,10 +1,10 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-support-62';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-support-62';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=priest-support-62';
-import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs';
+import {incomingDamage} from './journey-balance.mjs';
 
-export const WAVE_SECONDS=30, WAVE_LIMIT=100;
+export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const bound=x=>Math.max(120,Math.min(3080,x));
 function random(w){w.seed=(Math.imul(w.seed,1664525)+1013904223)>>>0;return w.seed/4294967296;}
@@ -24,6 +24,7 @@ function emitWaveSpawn(w){
  if(w.monsters.length>=WAVE_LIMIT){w.status='lost';w.reason='overrun';w.endedTick=w.tick;}
 }
 export function spawnWave(w){
+ if(w.wave>=WAVE_END){w.wave=WAVE_END;w.status='won';w.reason='ending';w.cleared=WAVE_END;w.endedTick=w.tick;w.nextWave=w.tick;return;}
  w.wave++;w.nextWave=w.tick+WAVE_SECONDS*10;w.spawnCounts=Array.from({length:4},()=>5+Math.floor(spawnRandom(w)*6));w.spawnPlan={at:w.tick,regular:[0,0,0,0],elites:0};emitWaveSpawn(w);
 }
 export function initializeWave(w){
@@ -53,7 +54,7 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
   for(const f of frames)if(f.tick===t){const m=w.members.find(a=>a.id===f.user&&!a.left);if(m){m.input=f.input;m.inputAt=w.started+t*100;}}
   let alive=w.members.filter(m=>!m.left&&m.hp>0);
   if(!alive.length){w.status='lost';w.reason='dead';w.endedTick=t;break;}
-  if(t>=w.nextWave)spawnWave(w);else emitWaveSpawn(w);if(w.status==='lost')break;
+  if(t>=w.nextWave&&w.wave<WAVE_END)spawnWave(w);else emitWaveSpawn(w);if(w.status==='lost')break;
   w.effects=w.effects.filter(e=>e.end>t).slice(-70);w.numbers=w.numbers.filter(e=>e.end>t).slice(-35);w.hazards=w.hazards.filter(h=>h.end>t);w.projectiles=[];
   supportTick(w.members,t);
   for(const m of alive){
@@ -89,6 +90,7 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
   // A cleared full spawn budget advances immediately, without waiting for the clock.
   const plan=w.spawnPlan;
   if(!w.monsters.length&&plan&&plan.regular.every((n,i)=>n>=w.spawnCounts[i])&&plan.elites>=waveStats(w.wave).eliteCount)spawnWave(w);
+  if(w.status==='won')break;
   for(const e of w.monsters){
    alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length)break;
    const target=alive.reduce((a,b)=>distance(a,e)<distance(b,e)?a:b),d=distance(target,e);
@@ -115,3 +117,4 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
  const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=input;me.inputAt=now;}
  return w;
 }
+
