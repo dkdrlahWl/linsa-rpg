@@ -1,4 +1,4 @@
-import {initialState,makeItem,power} from './engine.mjs?v=rift-gear-63';
+import {initialState,makeItem,power} from './engine.mjs?v=rift-fragments-64';
 import {CLASSES,rollBaseStats} from './data.mjs?v=priest-support-62';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
 import {beginThird,stepThird} from './advancement.mjs?v=priest-support-62';
