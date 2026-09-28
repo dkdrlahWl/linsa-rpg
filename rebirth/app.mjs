@@ -1,3 +1,4 @@
+import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=disclosure-66';
 import {waveRewardBody} from './wave-ui.mjs?v=wave-ending-65';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-support-62';
 import {raidLobby} from './raid-ui.mjs?v=priest-support-62';
@@ -434,7 +435,7 @@ function render() {
       boss: bosses,
       market: market,
     }[tab]();
-  app.innerHTML = shell(content);
+  replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), shell(content));
   window.scrollTo({top:preservedScroll,behavior:"instant"});
   refreshLevelRequirements();
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
@@ -717,7 +718,7 @@ function open(title, html, closable = true) {
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
   modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog");
-  modal.innerHTML = `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`;
+  replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = preservedModalScroll;
   requestAnimationFrame(()=>{if(modal.open&&modal.dataset.scrollKey===scrollKey)modal.scrollTop=preservedModalScroll;});
@@ -865,6 +866,7 @@ function reward() {
   );
 }
 function clearAccountView() {
+  clearDisclosureState();
   if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
   state=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
   marketKind="all";marketRows=[];marketRequest++;marketPage=0;mine=false;selected=null;view="game";tab="hunt";sub="bag";
