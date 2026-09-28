@@ -8,8 +8,8 @@ import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=co
 import {TowerInput,projectPlayer} from './tower-input.mjs?v=crit-restore-57';
 import {predictCoopStep} from './coop-model.mjs?v=rift-daily-59';
 import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=rift-daily-59';
-import {towerArena} from './tower-client.mjs?v=crit-restore-57';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=crit-restore-57';
+import {towerArena} from './tower-client.mjs?v=skill-alpha-60';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=skill-alpha-60';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';

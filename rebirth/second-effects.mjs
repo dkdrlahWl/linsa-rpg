@@ -1,3 +1,4 @@
+import {transparentEffectAtlas} from './effect-alpha.mjs?v=skill-alpha-60';
 // Painted motifs sit over terrain using screen blending; animation follows the
 // authoritative impact tick, so a projectile arrives exactly when damage lands.
 const columns={warrior:0,mage:1,archer:2,rogue:3,pirate:4};
@@ -5,12 +6,13 @@ const palettes={warrior:['#ff8c44','#ffe2a1'],mage:['#9b83ff','#c5faff'],archer:
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const mix=(a,b,t)=>a+(b-a)*t;
 export function drawSecondSequence(g,e,time,atlas,ghost){
+ const source=transparentEffectAtlas(atlas);
  const [color,light]=palettes[e.classId],col=columns[e.classId],age=Math.max(0,time-e.start),angle=e.angle||0;
  const origin={x:e.fromX,y:e.fromY-45},target={x:e.x,y:e.y-45};
  const sprite=(row,x,y,w,h=w,rotation=0,alpha=1)=>{
-  if(!atlas?.complete||!atlas.naturalWidth)return;
+  if(!source)return;
   const sw=atlas.naturalWidth/5,sh=atlas.naturalHeight/3;
-  g.save();g.globalCompositeOperation='screen';g.globalAlpha=alpha;g.translate(x,y);g.rotate(rotation);g.drawImage(atlas,col*sw,row*sh,sw,sh,-w/2,-h/2,w,h);g.restore();
+  g.save();g.globalCompositeOperation='screen';g.globalAlpha=alpha;g.translate(x,y);g.rotate(rotation);g.drawImage(source,col*sw,row*sh,sw,sh,-w/2,-h/2,w,h);g.restore();
  };
  const line=(points,width,alpha,shade=color)=>{g.save();g.globalAlpha=alpha;g.strokeStyle=shade;g.lineWidth=width;g.lineCap='round';g.lineJoin='round';g.beginPath();points.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));g.stroke();g.restore();};
  const ring=(x,y,r,alpha)=>{g.save();g.globalAlpha=alpha;g.strokeStyle=color;g.lineWidth=3;g.beginPath();g.ellipse(x,y,r,r*.55,0,0,Math.PI*2);g.stroke();g.restore();};

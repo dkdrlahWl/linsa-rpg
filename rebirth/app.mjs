@@ -1,14 +1,14 @@
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-size-40';
 import {raidLobby} from './raid-ui.mjs?v=crit-restore-57';
 import {nextAutoSkill} from './auto-skills.mjs?v=priest-visual-35';
-import {playSecondOverlay} from './skill-overlay.mjs?v=priest-visual-35';
+import {playSecondOverlay} from './skill-overlay.mjs?v=skill-alpha-60';
 import {GameAudio} from './game-audio.mjs?v=priest-visual-35';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=rift-daily-59';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=skill-alpha-60';
 import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
 import {installMenuIcons} from './menu-icons.mjs?v=field-fragment-13';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=crit-restore-57';
 import {TOWER_FLOORS} from './tower-model.mjs?v=crit-restore-57';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=crit-restore-57';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=skill-alpha-60';
 import * as D from "./data.mjs?v=rift-daily-59";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=field-fragment-13";
 import equipmentBounds from "./equipment-bounds.mjs?v=field-fragment-13";

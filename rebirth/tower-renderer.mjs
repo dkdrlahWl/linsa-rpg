@@ -1,5 +1,5 @@
 import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-aura-36';
-import {drawSecondSequence} from './second-effects.mjs?v=skill-sequence-21';
+import {drawSecondSequence} from './second-effects.mjs?v=skill-alpha-60';
 import {drawWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
 import {damageRows} from './damage-stack.mjs?v=field-fragment-13';
