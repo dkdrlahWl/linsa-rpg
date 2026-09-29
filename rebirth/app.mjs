@@ -1,6 +1,6 @@
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=fantasy-75';
-import {fieldPetHP} from './pet-event.mjs?v=fantasy-75';
-import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=fantasy-75';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=fantasy-76';
+import {fieldPetHP} from './pet-event.mjs?v=fantasy-76';
+import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=fantasy-76';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-68';
 import {waveRewardBody} from './wave-ui.mjs?v=lumi-68';
 import {playHolyOverlay} from './priest-overlay.mjs?v=lumi-68';
@@ -18,7 +18,7 @@ import * as D from "./data.mjs?v=lumi-68";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=lumi-68";
 import equipmentBounds from "./equipment-bounds.mjs?v=lumi-68";
 import { inventoryGroups } from "./inventory-order.mjs?v=lumi-68";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fantasy-75";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fantasy-76";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

@@ -1,5 +1,5 @@
-import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=fantasy-75';
-import {PET_ID,PET_NAME,PET_EVENT,petProgress,petRates} from './pet-event.mjs?v=fantasy-75';
+import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=fantasy-76';
+import {PET_ID,PET_NAME,PET_EVENT,petProgress,petRates} from './pet-event.mjs?v=fantasy-76';
 import {currencyIconURL} from './currency-icons.mjs?v=lumi-68';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const art=key=>key==='pet'?'pets/lumi.png':key==='gear'?'tower/reward-chest.webp':currencyIconURL(key);
