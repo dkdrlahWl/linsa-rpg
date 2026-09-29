@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {startCoop,advanceCoop,setWaveSpeed,coopClientView} from './coop-model.mjs';
+import {TOWER_CLASSES} from './tower-model.mjs';
+const power={attack:1,hp:1e8,defense:100,boss:1,crit:0,critDamage:1.5,cadence:1,advancement:0};
+let w=startCoop({id:'speed',owner:'host',me:'host',mode:'wave',tier:0,status:'waiting',members:[{id:'host',classId:'warrior',power},{id:'guest',classId:'rogue',power}]},0);
+assert.throws(()=>setWaveSpeed(w,'host',1.5,0),/NOT_READY/);
+w.entryWaiting=false;
+assert.throws(()=>setWaveSpeed(w,'guest',1.5,0),/HOST_ONLY/);
+assert.throws(()=>setWaveSpeed(w,'host',2,0),/INVALID/);
+w=advanceCoop(w,'host',{frames:[]},1000);assert.equal(w.tick,10);
+w=setWaveSpeed(w,'host',1.5,1000);
+w=advanceCoop(w,'host',{frames:[]},2000);assert.equal(w.tick,25);
+// A delayed input replays older snapshots without reverting the speed.
+w=advanceCoop(w,'guest',{frames:[{tick:12,input:[0,0,0]}]},2000);assert.equal(w.waveSpeed,1.5);assert.equal(w.tick,25);
+assert.equal(coopClientView({...w,me:'guest'}).predictionBase.waveSpeed,1.5);
+w=setWaveSpeed(w,'host',1,2000);assert.equal(w.tick,25);
+w=advanceCoop(w,'host',{frames:[]},3000);assert.equal(w.tick,35);
+w=setWaveSpeed(w,'host',1.5,3000);w=setWaveSpeed(w,'host',1.5,3000);
+w=advanceCoop(w,'host',{frames:[]},4000);assert.equal(w.tick,50);
+assert.equal(TOWER_CLASSES.warrior.range,225*1.3);assert.equal(TOWER_CLASSES.rogue.range,200*1.3);
+assert.ok(TOWER_CLASSES.warrior.range<300);assert.equal(TOWER_CLASSES.mage.range,560);
+console.log('PASS host authorization, 1x/1.5x clocks, repeated requests, delayed replay, shared snapshot and melee ranges');

@@ -7,7 +7,7 @@ import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 export const coopEncounter=room=>room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=wave-ending-65';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=wave-speed-67';
 import {beginFourth,stepFourth} from './fourth-job.mjs';
 import {beginThird,stepThird} from './advancement.mjs';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs';
@@ -106,9 +106,27 @@ export function coopClientView(room){
  let base=structuredClone(point);
  while(base.tick<target&&base.status==='fighting')base=advanceCoopRaw(base,null,null,base.started+(base.tick+1)*100,net.frames,true);
  for(const m of base.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
- view.predictionBase={...base,id:room.id,me:room.me,revision:room.revision};return view;
+ view.predictionBase={...base,id:room.id,me:room.me,owner:room.owner,revision:room.revision,waveSpeed:room.waveSpeed,speedAt:room.speedAt,speedTime:room.speedTime};return view;
+}
+export function waveClock(room,now){
+ if(room.mode!=='wave'||room.entryWaiting||room.speedAt==null)return now;
+ return room.speedTime+Math.max(0,now-room.speedAt)*(room.waveSpeed===1.5?1.5:1);
+}
+export function setWaveSpeed(room,user,speed,now){
+ if(room?.mode!=='wave'||room.owner!==user||!room.members.some(m=>m.id===user&&!m.left))throw Error('COOP_HOST_ONLY');
+ if(speed!==1&&speed!==1.5)throw Error('INVALID_WAVE_SPEED');
+ if(room.status!=='fighting'||room.entryWaiting)throw Error('COOP_NOT_READY');
+ const world=advanceCoop(room,user,{frames:[]},now);
+ world.speedTime=waveClock(room,now);world.speedAt=now;world.waveSpeed=speed;
+ // Replay snapshots retain combat history, while the authoritative clock stays current.
+ return world;
 }
 export function advanceCoop(room,user,input,now){
+ const world=advanceCoopTimeline(room,user,input,waveClock(room,now));
+ for(const key of ['waveSpeed','speedAt','speedTime'])if(room[key]!==undefined)world[key]=room[key];
+ return world;
+}
+function advanceCoopTimeline(room,user,input,now){
  if(Array.isArray(input)||!input)return advanceCoopRaw(room,user,input,now);
  if(room.status==='won')return advanceCoopRaw(room,user,Array.isArray(input.input)?input.input:input.frames?.at(-1)?.input||[0,0,0],now);
  validateCoopFrames(input.frames);

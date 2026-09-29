@@ -1,15 +1,15 @@
-import {raidLobby} from './raid-ui.mjs?v=priest-support-62';
-import {raidMove} from './raid-content.mjs?v=priest-visual-35';
-import {autoSkillBits} from './auto-skills.mjs?v=priest-visual-35';
-import {prepareWaveCreature} from './wave-motion.mjs?v=wave-visible-18';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
-import {waveLobby,waveHud} from './wave-ui.mjs?v=wave-ending-65';
-import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=coop-smooth-19';
-import {TowerInput,projectPlayer} from './tower-input.mjs?v=priest-support-62';
-import {predictCoopStep} from './coop-model.mjs?v=wave-ending-65';
-import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=wave-ending-65';
-import {towerArena} from './tower-client.mjs?v=priest-support-62';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=priest-support-62';
+import {raidLobby} from './raid-ui.mjs?v=wave-speed-67';
+import {raidMove} from './raid-content.mjs?v=wave-speed-67';
+import {autoSkillBits} from './auto-skills.mjs?v=wave-speed-67';
+import {prepareWaveCreature} from './wave-motion.mjs?v=wave-speed-67';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-speed-67';
+import {waveLobby,waveHud} from './wave-ui.mjs?v=wave-speed-67';
+import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=wave-speed-67';
+import {TowerInput,projectPlayer} from './tower-input.mjs?v=wave-speed-67';
+import {predictCoopStep} from './coop-model.mjs?v=wave-speed-67';
+import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=wave-speed-67';
+import {towerArena} from './tower-client.mjs?v=wave-speed-67';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=wave-speed-67';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
@@ -38,6 +38,16 @@ export class CoopController{
   const chestButton=host.querySelector('#tower-chest');delete chestButton.dataset.action;chestButton.addEventListener('click',()=>{this.pendingBits|=1;this.flush();},opt);
   host.querySelector('#tower-auto').addEventListener('click',e=>{this.auto=!this.auto;e.currentTarget.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');},opt);
   host.querySelector('#tower-auto-skills').addEventListener('click',e=>{this.autoSkills=!this.autoSkills;e.currentTarget.setAttribute('aria-pressed',String(this.autoSkills));e.currentTarget.textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');},opt);
+  if(room.mode==='wave'){
+   const speed=document.createElement('button');speed.id='wave-speed';speed.type='button';
+   host.querySelector('#tower-auto').parentElement.append(speed);
+   speed.addEventListener('click',async()=>{
+    if(this.speedBusy||this.room.owner!==this.room.me||this.room.entryWaiting||this.room.status!=='fighting')return;
+    this.speedBusy=true;speed.disabled=true;
+    try{await this.send('coopSync',{waveSpeed:this.room.waveSpeed===1.5?1:1.5});}
+    finally{this.speedBusy=false;if(!this.disposed)waveHud(this.host,this.room);}
+   },opt);
+  }
   for(const cls of new Set(room.members.map(m=>m.classId))){if(cls==='priest')image('tower/priest-motion-v1.png');else{image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));}if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+coopEncounter(room).art));image(asset('effects'));image(asset('reward-chest'));
   this.artReady=false;Promise.all([prepareCombatArt(room.members.map(m=>m.classId),coopEncounter(room).art),image(room.mode==='raid'?asset('raid-map-'+room.tier):room.mode==='wave'?'wave/meadow-painted-v2.webp':motionAsset('arena-overhead-v3')).decode().catch(()=>{}),...(room.mode==='wave'?[image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].art).decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].eliteArt).decode().catch(()=>{})]:[])]).then(()=>{if(!this.disposed){this.artReady=true;this.entryHud();}});
   this.accept(room);this.entryHud();this.nextSend=0;this.timer=setInterval(()=>this.flush(),80);this.frame=requestAnimationFrame(t=>this.draw(t));
@@ -94,7 +104,7 @@ export class CoopController{
   // Loading clients keep polling, but cannot signal movement readiness yet.
   const input=this.input();
   if(this.room.entryWaiting&&this.artReady&&Math.hypot(input[0],input[1])>.01)this.entryMoveInput=[input[0],input[1],0];
-  if(now-this.received<2500&&!document.hidden)this.sampler.advance(dt,input,frame=>{
+  if(now-this.received<2500&&!document.hidden)this.sampler.advance(dt*(this.room.mode==='wave'&&!this.room.entryWaiting&&this.room.waveSpeed===1.5?1.5:1),input,frame=>{
    if(this.predicted.status==='fighting'&&!this.room.entryWaiting)this.frames.push({tick:this.predicted.tick,input:frame});
    this.frames=this.frames.slice(-35);
    this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true);

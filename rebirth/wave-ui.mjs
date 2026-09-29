@@ -1,7 +1,7 @@
-import {WAVE_REWARDS,WAVE_END} from './wave-rewards.mjs?v=wave-ending-65';
-import {currencyIconURL} from './currency-icons.mjs?v=field-fragment-13';
-import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=wave-ending-65';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=field-fragment-13';
+import {WAVE_REWARDS,WAVE_END} from './wave-rewards.mjs?v=wave-speed-67';
+import {currencyIconURL} from './currency-icons.mjs?v=wave-speed-67';
+import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=wave-speed-67';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-speed-67';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
@@ -11,6 +11,9 @@ export function waveLobby(state,room,rooms=[]){
  return `<section class="panel pad wave-lobby"><p class="eyebrow">THE FINAL MEADOW</p><h2>협동 웨이브</h2><p>함께 돌파하는 200웨이브 · 마지막 적을 쓰러뜨리면 엔딩.</p><div class="wave-rules"><span>1~4인 · 레벨 제한 없음</span><span>매 도전 1웨이브부터</span><span>전멸 즉시 / 최대 30초마다 다음 웨이브</span><span>전원 사망 / 몬스터 100마리 → 종료</span></div><p class="note">상하좌우 각 5~10마리 + 정예가 첫 10초 동안 몰려옵니다. 10웨이브마다 몬스터 종류 변경, 정예 1마리 추가. 200웨이브는 모든 적을 처치해야 완료되며, 201웨이브는 없습니다.<br>동료 묘비 위에서 움직이지 않고 5초 → 체력 30%로 부활.<br>권장 레벨 = 웨이브 × 2 · 4인 기준 고정 난이도 · 입장 횟수 무제한</p><div class="actions">${button('방 만들기','waveCreate')}${button('목록 새로고침','coopList')}</div>${waveRewardGuide(state)}<p>내 최고 기록 <strong>${fmt(state.waveBest)}웨이브</strong></p>${state.waveEnding?'<p class="wave-ending-badge">200웨이브 엔딩 달성</p>':''}${waveHistory(state)}<h3>모집 중인 방</h3>${list.length?list.map(r=>`<div class="daily-row"><span>${esc(r.name)}의 초원<small>${r.count} / 4명 · 1웨이브부터 시작</small></span>${button('참가','coopJoin',r.id,r.count>=4)}</div>`).join(''):'<p class="note">새 방을 만들어 혼자서도 출발할 수 있어요.</p>'}</section>`;
 }
 export function waveHud(host,w){
+ const speed=host.querySelector('#wave-speed');
+ if(speed){speed.textContent='1.5배속 '+(w.waveSpeed===1.5?'켜짐':'꺼짐')+(w.owner!==w.me?' · 방장 전용':'');speed.setAttribute('aria-pressed',String(w.waveSpeed===1.5));speed.disabled=w.owner!==w.me||w.entryWaiting||w.status!=='fighting';}
+
  const me=w.members.find(m=>m.id===w.me),s=waveStats(w.wave||1),count=w.monsters?.length||0,clock=Math.max(0,Math.ceil((w.nextWave-w.tick)/10));
  host.querySelector('.tower-title-row h3').textContent=`${w.wave} / ${WAVE_END}웨이브 · ${WAVE_MONSTERS[s.species].name}`;
  host.querySelector('.tower-floor-tag').textContent='W'+w.wave;

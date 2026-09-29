@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=rift-fragments-64';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=priest-support-62';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=wave-speed-67';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=wave-speed-67';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

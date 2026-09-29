@@ -1,4 +1,4 @@
-import {FOURTH_SKILLS} from './fourth-job.mjs?v=priest-support-62';
+import {FOURTH_SKILLS} from './fourth-job.mjs?v=wave-speed-67';
 const TAU=Math.PI*2;
 const palette={mage:['#ffd397','#ef9853'],archer:['#e4ffca','#9be3a1'],pirate:['#d6fbff','#72d5f2']};
 // Independent, continuous visual rain. These samples never call combat damage.

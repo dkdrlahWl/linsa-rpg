@@ -1,10 +1,10 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest-visual-35';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-support-62';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
-import {beginThird,stepThird} from './advancement.mjs?v=priest-support-62';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-support-62';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-support-62';
-import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=wave-speed-67';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=wave-speed-67';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=wave-speed-67';
+import {beginThird,stepThird} from './advancement.mjs?v=wave-speed-67';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=wave-speed-67';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=wave-speed-67';
+import {incomingDamage} from './journey-balance.mjs?v=wave-speed-67';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>8)throw Error('INVALID_COOP_ROOM');

@@ -1,4 +1,4 @@
-import {startCoop,advanceCoop,coopClientView,validateCoopFrames} from './coop-model.mjs';
+import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
 import { initialState, execute, power, grantCoopChest, grantRaidChest } from "./engine.mjs";
 const url = Deno.env.get("SUPABASE_URL")!;
@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
           const room=current.coop;
           if(!room&&["input","sync"].includes(action))return reply(current);
           if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
-          const world=action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
+          const world=action==='sync'&&body.args.waveSpeed!==undefined?setWaveSpeed(room,user.id,body.args.waveSpeed,Number(current.now)):action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
           let claim=null;
           if(action==='open'){
             const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);

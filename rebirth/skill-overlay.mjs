@@ -1,5 +1,5 @@
-import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=priest-support-62';
-import {drawSecondSequence} from './second-effects.mjs?v=skill-alpha-60';
+import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=wave-speed-67';
+import {drawSecondSequence} from './second-effects.mjs?v=wave-speed-67';
 let atlas;
 // The compact boss screen uses the same VFX timeline as movement battles.
 export function playSecondOverlay(arena,classId){

@@ -1,10 +1,10 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-support-62';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-support-62';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-support-62';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-support-62';
-import {incomingDamage} from './journey-balance.mjs?v=effective-defense-54';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=wave-speed-67';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=wave-speed-67';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=wave-speed-67';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=wave-speed-67';
+import {incomingDamage} from './journey-balance.mjs?v=wave-speed-67';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=priest-support-62';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=wave-speed-67';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
@@ -20,8 +20,8 @@ export const TOWER_FLOORS=names.map((name,i)=>({floor:i+1,name,art:arts[i],patte
 export const towerEncounter=b=>b.encounter?(b.advancementStage!==undefined?{...b.encounter,seconds:120,art:ADVANCEMENT_BOSSES.find(t=>t.stage===b.advancementStage)?.art||b.encounter.art}:b.encounter):TOWER_FLOORS[b.floor-1];
 export const TOWER_CLASSES={
  priest:{range:560,cooldown:10,speed:25,dashCooldown:35},
- warrior:{range:225,cooldown:9,speed:25,dashCooldown:30},mage:{range:560,cooldown:10,speed:25,dashCooldown:35},
- archer:{range:610,cooldown:8,speed:25,dashCooldown:35},rogue:{range:200,cooldown:7,speed:28,dashCooldown:25},pirate:{range:550,cooldown:8,speed:25,dashCooldown:35}
+ warrior:{range:292.5,cooldown:9,speed:25,dashCooldown:30},mage:{range:560,cooldown:10,speed:25,dashCooldown:35},
+ archer:{range:610,cooldown:8,speed:25,dashCooldown:35},rogue:{range:260,cooldown:7,speed:28,dashCooldown:25},pirate:{range:550,cooldown:8,speed:25,dashCooldown:35}
 };
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
