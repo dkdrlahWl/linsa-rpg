@@ -1,4 +1,4 @@
-import {PET_ID,summonPet,equipPet,fieldPetDeath} from './pet-event.mjs?v=fantasy-71';
+import {PET_ID,summonPet,equipPet,fieldPetDeath} from './pet-event.mjs?v=fantasy-73';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';

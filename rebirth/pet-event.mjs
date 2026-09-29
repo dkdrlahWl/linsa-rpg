@@ -1,9 +1,9 @@
 export const PET_ID='moonfox-lumi';
 export const PET_NAME='달빛 여우 루미';
-export const PET_EVENT={id:'lumi-202609',start:Date.parse('2026-09-29T14:51:35+00:00'),end:Date.parse('2026-10-06T14:51:35+00:00'),adminOnly:true,cost:20000,pity:100};
-export const PET_REWARDS=[{key:'pet',name:PET_NAME,amount:1,cap:1,rate:1},{key:'gear',name:'100레벨 랜덤 보스 장비',amount:1,cap:1,rate:1},{key:'gold',name:'골드',amount:1000,rate:33},{key:'fragment',name:'장비 파편',amount:10,rate:25},{key:'cube',name:'레드 큐브',amount:1,rate:20},{key:'highCube',name:'블랙 큐브',amount:1,cap:10,rate:10},{key:'scroll',name:'잠재 해금 주문서',amount:1,cap:10,rate:10}];
+export const PET_EVENT={id:'lumi-202609',start:Date.parse('2026-09-29T14:51:35+00:00'),end:Date.parse('2026-10-06T14:51:35+00:00'),adminOnly:true,cost:20000,pity:200};
+export const PET_REWARDS=[{key:'pet',name:PET_NAME,amount:1,cap:1,rate:0.5},{key:'gear',name:'100레벨 랜덤 보스 장비',amount:1,cap:1,rate:1},{key:'gold',name:'골드',amount:1000,rate:33.5},{key:'fragment',name:'장비 파편',amount:10,rate:25},{key:'cube',name:'레드 큐브',amount:1,rate:20},{key:'highCube',name:'블랙 큐브',amount:1,cap:10,rate:10},{key:'scroll',name:'잠재 해금 주문서',amount:1,cap:10,rate:10}];
 export function petProgress(s){return s.petEvents?.[PET_EVENT.id]||{draws:0,counts:{}};}
-export function petRates(s){const p=petProgress(s);let extra=0;const rows=PET_REWARDS.map(r=>{const exhausted=r.cap&&((p.counts[r.key]||0)>=r.cap||(r.key==='pet'&&s.pets?.includes(PET_ID)));if(exhausted)extra+=r.rate;return {...r,rate:exhausted?0:r.rate};});rows.find(r=>r.key==='gold').rate+=extra;return rows;}
+export function petRates(s){const p=petProgress(s);let extra=0;const rows=PET_REWARDS.map(r=>{const exhausted=r.cap&&((p.counts[r.key]||0)>=r.cap||(r.key==='pet'&&s.pets?.includes(PET_ID)));if(exhausted)extra+=r.rate;return {...r,remaining:r.cap?Math.max(0,r.cap-Math.max(p.counts[r.key]||0,r.key==='pet'&&s.pets?.includes(PET_ID)?1:0)):null,rate:exhausted?0:r.rate};});rows.find(r=>r.key==='gold').rate+=extra;return rows;}
 export function summonPet(s,count,ctx,grantGear){
  if(PET_EVENT.adminOnly&&ctx.admin!==true)throw Error('관리자만 시험 소환할 수 있습니다.');
  if(ctx.now<PET_EVENT.start||ctx.now>=PET_EVENT.end)throw Error('펫 소환 이벤트 기간이 아닙니다.');

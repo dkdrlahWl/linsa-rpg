@@ -139,3 +139,5 @@ body:not(.tower-mode) .class-choice>button{background:linear-gradient(#173654,#0
 .pet-screen>.fantasy-dock{position:relative;bottom:auto;left:auto;transform:none;width:100%;padding:4px 7px calc(4px + env(safe-area-inset-bottom))}
 .pet-screen>.fantasy-dock>button{min-height:55px;font-size:11px}
 .pet-screen>.fantasy-dock .menu-art{width:26px;height:26px;flex-basis:26px}
+
+.pet-reward-empty .pet-reward-image{filter:grayscale(1);opacity:.45}.pet-reward-empty>small{color:#e5b8a8!important;font-weight:700}
