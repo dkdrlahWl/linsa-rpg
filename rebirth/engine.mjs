@@ -889,7 +889,7 @@ export function grantRaidChest(input,tier,ctx){
   s.gold+=reward.gold;
   for(const key of ['cube','highCube','primeCube','fragment','scroll'])s.materials[key]=(s.materials[key]||0)+reward[key];
   if(ctx.random()<0.6){
-   const level=raid.level,classId=s.classId,slot=Math.floor(ctx.random()*SLOTS.length),design=selectDesign(level,classId,slot,true,ctx.random);
+   const level=raid.level,classId=pick(CLASSES,ctx).id,slot=Math.floor(ctx.random()*SLOTS.length),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
    const stored=s.items.length>=300;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;
   }
