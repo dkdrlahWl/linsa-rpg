@@ -4,7 +4,7 @@ import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiR
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-68';
 import {waveRewardBody} from './wave-ui.mjs?v=lumi-68';
 import {playHolyOverlay} from './priest-overlay.mjs?v=lumi-68';
-import {raidLobby} from './raid-ui.mjs?v=lumi-68';
+import {raidLobby} from './raid-ui.mjs?v=raid-gear-77';
 import {nextAutoSkill} from './auto-skills.mjs?v=lumi-68';
 import {playSecondOverlay} from './skill-overlay.mjs?v=lumi-68';
 import {GameAudio} from './game-audio.mjs?v=lumi-68';
@@ -18,7 +18,7 @@ import * as D from "./data.mjs?v=lumi-68";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=lumi-68";
 import equipmentBounds from "./equipment-bounds.mjs?v=lumi-68";
 import { inventoryGroups } from "./inventory-order.mjs?v=lumi-68";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fantasy-76";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=raid-gear-77";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),

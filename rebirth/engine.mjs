@@ -888,6 +888,11 @@ export function grantRaidChest(input,tier,ctx){
  if(!practice){
   s.gold+=reward.gold;
   for(const key of ['cube','highCube','primeCube','fragment','scroll'])s.materials[key]=(s.materials[key]||0)+reward[key];
+  if(ctx.random()<0.6){
+   const level=raid.level,classId=s.classId,slot=Math.floor(ctx.random()*SLOTS.length),design=selectDesign(level,classId,slot,true,ctx.random);
+   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
+   const stored=s.items.length>=300;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;
+  }
   s.raidWeekly={week:weekly.week,count:weekly.used+1};
  }
  Object.assign(reward,{weeklyUsed:weekly.used+(practice?0:1),weeklyLimit:weekly.limit,weeklyRemaining:Math.max(0,weekly.remaining-(practice?0:1))});
