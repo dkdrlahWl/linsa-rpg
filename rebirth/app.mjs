@@ -1,5 +1,5 @@
 import {fieldPetHP} from './pet-event.mjs?v=lumi-68';
-import {petEventView,petSlot,petResult,updatePetCountdown} from './pet-ui.mjs?v=lumi-68';
+import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal} from './pet-ui.mjs?v=lumi-screen-69';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-68';
 import {waveRewardBody} from './wave-ui.mjs?v=lumi-68';
 import {playHolyOverlay} from './priest-overlay.mjs?v=lumi-68';
@@ -398,13 +398,12 @@ function confirmClassChange(classId) {
 }
 function shell(content) {
   const c = D.CLASSES.find((c) => c.id === state.classId);
-  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn('<img class="attendance-calendar-icon" src="ui/attendance-calendar-v1.webp" alt="" aria-hidden="true"><span>출석체크</span>', "attendance", "", attendanceReady()?"attendance-button attendance-alert":"attendance-button")}${systemMailButton()}${btn("랭킹", "ranking", "", "top-ranking")}${state.isAdmin?btn("관리자","betaTools"):""}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
+  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn('<img class="attendance-calendar-icon" src="ui/attendance-calendar-v1.webp" alt="" aria-hidden="true"><span>출석체크</span>', "attendance", "", attendanceReady()?"attendance-button attendance-alert":"attendance-button")}${btn("이벤트", "tab", "event", "top-event")}${systemMailButton()}${btn("랭킹", "ranking", "", "top-ranking")}${state.isAdmin?btn("관리자","betaTools"):""}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
     ["hunt", "사냥"],
     ["character", "캐릭터"],
     ["gear", "가방"],
     ["boss", "보스"],
     ["market", "거래소"],
-    ["event", "이벤트"],
   ]
     .map(([k, label]) =>
       btn(icon(k) + label, "tab", k, tab === k ? "active" : ""),
@@ -440,7 +439,9 @@ function render() {
       boss: bosses,
       market: market,
     }[tab]();
-  replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), shell(content));
+  const eventScreen=tab==="event"&&view==="game"&&!state.coopRoom&&!towerBattle&&!state.partyRoom;
+  document.body.classList.toggle("pet-event-mode",eventScreen);
+  replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
   window.scrollTo({top:preservedScroll,behavior:"instant"});
   updatePetCountdown();
   refreshLevelRequirements();
@@ -498,7 +499,7 @@ function character() {
     )
     .join(
       "",
-    )}</div><p class="note">장비·잠재를 합산한 최종 스탯 · 남은 포인트 ${state.points}</p><div class="actions">${btn("직접 분배", "stats")}${btn("주스탯 자동 분배", "autoStats", "", "gold", true)}${btn("초기화", "resetStats")}</div></div></section><div>${petSlot(state)}${characterMetrics(p,c)}<section class="panel pad"><h3>장착 장비</h3><div class="gear-grid" style="margin-top:12px">${D.SLOTS.map(
+    )}</div><p class="note">장비·잠재를 합산한 최종 스탯 · 남은 포인트 ${state.points}</p><div class="actions">${btn("직접 분배", "stats")}${btn("주스탯 자동 분배", "autoStats", "", "gold", true)}${btn("초기화", "resetStats")}</div></div></section><div>${characterMetrics(p,c)}<section class="panel pad"><h3>장착 장비</h3><div class="gear-grid" style="margin-top:12px">${D.SLOTS.map(
     (name, slot) => {
       const it = state.items.find((x) => x.id === state.equipped[slot]);
       return btn(
@@ -541,6 +542,7 @@ function inventory() {
   const groups = inventoryGroups(state.items, D.CLASSES, state.classId, Object.values(state.equipped), filterClass, filterSlot);
   return `${header("가방", "INVENTORY")}<div class="subnav">${[
     ["bag", "가방"],
+    ["pets", "펫"],
     ["exchange", "교환소"],
     ["mail", "보관함"],
     ["collection", "도감"],
@@ -549,7 +551,7 @@ function inventory() {
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${sub === "exchange" ? gearExchange() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
+    )}</div>${sub === "pets" ? petInventory(state) : sub === "exchange" ? gearExchange() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
 }
 function gearExchange(){
  const classId=exchangeClass||state.classId;
@@ -791,7 +793,7 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
-    if(e.type==="petSummon"){open("달빛 소환 결과",petResult(e)+btn("확인","close","","gold"));continue;}
+    if(e.type==="petSummon"){const show=()=>open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else show();continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
@@ -1058,6 +1060,8 @@ document.addEventListener("click", async (e) => {
       if(result)systemInbox();
       return;
     }
+    if (action === "petOdds") return open("소환 확률 · 남은 수량",petOdds(state));
+    if (action === "petBag") {modal.close();tab="gear";sub="pets";view="game";return render();}
     if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
     if (action === "petEquip") return await command("petEquip",{id:arg||null});
     if (action === "attendanceClaim") return await command("attendanceClaim");
@@ -1078,6 +1082,7 @@ document.addEventListener("click", async (e) => {
       combatFrames.length = 0;
       modal.close();
       render();
+      window.scrollTo({top:0,behavior:"instant"});
       if(enteringHunt)requestAutoHunt();
       if (tab === "market") await marketLoad();
       return;
