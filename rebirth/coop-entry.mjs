@@ -1,4 +1,4 @@
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=wave-speed-67';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=lumi-68';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){

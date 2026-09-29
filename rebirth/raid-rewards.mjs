@@ -1,5 +1,5 @@
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=wave-speed-67';
-import {weekKey} from './data.mjs?v=wave-speed-67';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=lumi-68';
+import {weekKey} from './data.mjs?v=lumi-68';
 
 export const RAID_WEEKLY_LIMIT=3;
 export function raidWeeklyStatus(state,now=Date.now()){

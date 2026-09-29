@@ -1,4 +1,4 @@
-import {transparentEffectAtlas} from './effect-alpha.mjs?v=wave-speed-67';
+import {transparentEffectAtlas} from './effect-alpha.mjs?v=lumi-68';
 // Painted motifs sit over terrain using screen blending; animation follows the
 // authoritative impact tick, so a projectile arrives exactly when damage lands.
 const columns={warrior:0,mage:1,archer:2,rogue:3,pirate:4};

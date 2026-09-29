@@ -1,12 +1,12 @@
-import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=wave-speed-67';
-import {drawSecondSequence} from './second-effects.mjs?v=wave-speed-67';
-import {drawWaveCreature} from './wave-motion.mjs?v=wave-speed-67';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=wave-speed-67';
-import {damageRows} from './damage-stack.mjs?v=wave-speed-67';
-import {drawFourth,drawFourthGround,fourthAreaEffects} from './fourth-effects.mjs?v=wave-speed-67';
-import MOTION_LAYOUT from './motion-layout.mjs?v=wave-speed-67';
-import MOTION_BODY_LAYOUT from './motion-body-layout.mjs?v=wave-speed-67';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=wave-speed-67';
+import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=lumi-68';
+import {drawSecondSequence} from './second-effects.mjs?v=lumi-68';
+import {drawWaveCreature} from './wave-motion.mjs?v=lumi-68';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=lumi-68';
+import {damageRows} from './damage-stack.mjs?v=lumi-68';
+import {drawFourth,drawFourthGround,fourthAreaEffects} from './fourth-effects.mjs?v=lumi-68';
+import MOTION_LAYOUT from './motion-layout.mjs?v=lumi-68';
+import MOTION_BODY_LAYOUT from './motion-body-layout.mjs?v=lumi-68';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=lumi-68';
 const cache=new Map(),spriteBounds=new WeakMap();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -93,6 +93,18 @@ export class TowerRenderer {
     this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.shake=0;this.flash=0;this.zoom=0;
     this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
+  }
+  pet(actor,x,y,time,key='self'){
+    if(actor.power?.pet!=='moonfox-lumi'||actor.hp<=0)return;
+    const im=image('pets/lumi.png');if(!im.complete||!im.naturalWidth)return;
+    this.petPositions||=new Map();const face=[3,4,5].includes(actor.player?.dir??actor.dir??6)?-1:1;
+    const target={x:x-face*48,y:y+12},old=this.petPositions.get(key)||target;
+    const gap=Math.hypot(target.x-old.x,target.y-old.y),weight=gap>450?1:.12;
+    const p={x:old.x+(target.x-old.x)*weight,y:old.y+(target.y-old.y)*weight};this.petPositions.set(key,p);
+    const size=(this.mobileActors.matches?215:180)*(actor.classId==='priest'?1:PRIEST_BODY_RATIO)/5,g=this.g;
+    const r=frameBounds(im,1,1)[0],scale=size/r.h,bob=gap>4?Math.abs(Math.sin(time*1.5))*3:Math.sin(time*.2)*1.2;
+    g.save();g.translate(p.x,p.y-bob);g.scale(face,1);g.drawImage(im,r.x,r.y,r.w,r.h,-r.w*scale/2,-size,r.w*scale,size);g.restore();
+    if(time<(actor.petHealUntil||0)){this.effect('rune',x,y-15,90,60,time*.04,.65);g.save();g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#a4ffdf';g.fillText('+'+Math.round(actor.petHealAmount||0),x,y-120-(12-(actor.petHealUntil-time))*3);g.restore();}
   }
   dispose(){this.resize.disconnect();}
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
@@ -268,6 +280,7 @@ export class TowerRenderer {
     this.trail=this.trail.filter(p=>now-p.at<180).slice(-6);
     for(const p of this.trail)this.actor(b.classId,p.dir,true,false,0,b.player.walk||0,p.x,p.y,.23*(1-(now-p.at)/180));
     const drawPlayer=()=>{
+      this.pet(b,player.x,player.y,time);
       if(b.waveMode&&b.hp<=0)return;
       const lunge=attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0;
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
@@ -294,6 +307,7 @@ export class TowerRenderer {
     const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
     const actors=[{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
+      this.pet(m,m.x,m.y,time,m.id);
       this.shadow(m.x,m.y,25);if(m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,attacking||casting,clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       const labelY=m.y-(this.mobileActors.matches?215:180)-24;

@@ -1,7 +1,8 @@
+import {PET_ID,summonPet,equipPet,fieldPetDeath} from './pet-event.mjs?v=lumi-68';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs?v=lumi-68';
 import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
 import {rollRiftReward} from './rift-rewards.mjs';
@@ -194,6 +195,7 @@ export function power(s) {
     return [key, {base:s.stats[key], growth, fixed:fixedStats[key], percent:pct[key], total:Math.floor(beforePercent * (1+pct[key]/100))}];
   }));
   return {
+    pet:s.equippedPet===PET_ID&&s.pets?.includes(PET_ID)?PET_ID:null,
     stats,
     bonuses: {...pct},
     advancement: s.advancement||0,
@@ -257,7 +259,7 @@ export function huntingRate(s) {
     p = power(s);
   const fightSeconds = Math.max(1, Math.ceil(st.hp / p.dps))*FIELD_ATTACK_SECONDS;
   const incoming = incomingDamage(st.attack,p.defense);
-  const deathSeconds = Math.max(FIELD_MONSTER_SECONDS, Math.ceil(p.hp / incoming) * FIELD_MONSTER_SECONDS);
+  const deathSeconds = p.pet===PET_ID?fieldPetDeath(p.hp,incoming):Math.max(FIELD_MONSTER_SECONDS, Math.ceil(p.hp / incoming) * FIELD_MONSTER_SECONDS);
   // Attacks resolve before a monster's simultaneous retaliation. No field time limit.
   const survives = fightSeconds <= deathSeconds;
   const levelReward = Math.min(1,(st.level+15)/s.level)**2;
@@ -574,6 +576,11 @@ export function execute(input, command, args = {}, ctx) {
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "petSummon": {
+      check(!s.pendingCube,"먼저 큐브 옵션을 선택하세요.");
+      events.push(summonPet(s,args.count,ctx,()=>{const item=makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);return item;}));break;
+    }
+    case "petEquip": {equipPet(s,args.id);break;}
     case "exchangeGear": {
       check(int(args.level,10,180)&&args.level%10===0,"INVALID_GEAR_LEVEL");
       check(CLASSES.some(c=>c.id===args.classId),"INVALID_CLASS");

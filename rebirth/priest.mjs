@@ -1,3 +1,4 @@
+import {petHealTick} from './pet-event.mjs?v=lumi-68';
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
 export const PRIEST_HP_ATTACK_RATIO=.166;
 export const PRIEST_LUK_ATTACK_RATIO=.6;
@@ -37,6 +38,7 @@ export function stepPriest(a,targets,tick,slot,hit,emit=()=>{}){
  if(!cast.left)delete a[keys[slot]];return true;
 }
 export function supportTick(members,tick,numbers=[],effects=[],serial=()=>0){
+ petHealTick(members,tick);
  for(const m of members){m.holyAttackUntil=0;m.holyReductionUntil=0;if(!m.shieldPermanent&&tick>=(m.shieldUntil||0))m.shield=0;}
  for(const a of members){a.holyAreas=(a.holyAreas||[]).filter(p=>p.end>tick);if(a.hp<=0||a.left){a.holyAreas=[];continue;}for(const p of a.holyAreas){if(p.slot===5){p.x=a.x;p.y=a.y;}for(const m of members){if(m.hp<=0||m.left||Math.hypot(m.x-p.x,m.y-p.y)>p.r)continue;const key=p.slot===4?'holyAttackUntil':'holyReductionUntil';m[key]=Math.max(m[key],p.end);}}}
  for(const a of members){if(a.hp<=0||a.left){a.holySupport=[];continue;}for(const p of a.holySupport||[]){for(const m of members){if(m.hp<=0||m.left||Math.hypot(m.x-p.x,m.y-p.y)>p.r)continue;

@@ -1,4 +1,4 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=lumi-68';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs';
 import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs';

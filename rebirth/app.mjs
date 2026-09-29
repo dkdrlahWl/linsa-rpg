@@ -1,21 +1,23 @@
-import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=wave-speed-67';
-import {waveRewardBody} from './wave-ui.mjs?v=wave-speed-67';
-import {playHolyOverlay} from './priest-overlay.mjs?v=wave-speed-67';
-import {raidLobby} from './raid-ui.mjs?v=wave-speed-67';
-import {nextAutoSkill} from './auto-skills.mjs?v=wave-speed-67';
-import {playSecondOverlay} from './skill-overlay.mjs?v=wave-speed-67';
-import {GameAudio} from './game-audio.mjs?v=wave-speed-67';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=wave-speed-67';
-import {incomingDamage} from './journey-balance.mjs?v=wave-speed-67';
-import {installMenuIcons} from './menu-icons.mjs?v=wave-speed-67';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=wave-speed-67';
-import {TOWER_FLOORS} from './tower-model.mjs?v=wave-speed-67';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=wave-speed-67';
-import * as D from "./data.mjs?v=wave-speed-67";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=wave-speed-67";
-import equipmentBounds from "./equipment-bounds.mjs?v=wave-speed-67";
-import { inventoryGroups } from "./inventory-order.mjs?v=wave-speed-67";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=wave-speed-67";
+import {fieldPetHP} from './pet-event.mjs?v=lumi-68';
+import {petEventView,petSlot,petResult,updatePetCountdown} from './pet-ui.mjs?v=lumi-68';
+import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-68';
+import {waveRewardBody} from './wave-ui.mjs?v=lumi-68';
+import {playHolyOverlay} from './priest-overlay.mjs?v=lumi-68';
+import {raidLobby} from './raid-ui.mjs?v=lumi-68';
+import {nextAutoSkill} from './auto-skills.mjs?v=lumi-68';
+import {playSecondOverlay} from './skill-overlay.mjs?v=lumi-68';
+import {GameAudio} from './game-audio.mjs?v=lumi-68';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=lumi-68';
+import {incomingDamage} from './journey-balance.mjs?v=lumi-68';
+import {installMenuIcons} from './menu-icons.mjs?v=lumi-68';
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=lumi-68';
+import {TOWER_FLOORS} from './tower-model.mjs?v=lumi-68';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=lumi-68';
+import * as D from "./data.mjs?v=lumi-68";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=lumi-68";
+import equipmentBounds from "./equipment-bounds.mjs?v=lumi-68";
+import { inventoryGroups } from "./inventory-order.mjs?v=lumi-68";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=lumi-68";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -348,6 +350,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
 }
 const icon = (name) => {
   const paths = {
+    event: "M4 10h16v11H4zM2 6h20v4H2zM12 6v15M12 6C3 6 5 0 9 3l3 3c9 0 7-6 3-3z",
     hunt: "M4 3l16 18M20 3L4 21M3 6l4-3M17 21l4-4",
     character: "M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M4 21v-3a8 6 0 0 1 16 0v3",
     gear: "M8 3l4 3 4-3 6 5-4 4v9H6v-9L2 8z",
@@ -401,6 +404,7 @@ function shell(content) {
     ["gear", "가방"],
     ["boss", "보스"],
     ["market", "거래소"],
+    ["event", "이벤트"],
   ]
     .map(([k, label]) =>
       btn(icon(k) + label, "tab", k, tab === k ? "active" : ""),
@@ -429,6 +433,7 @@ function render() {
   else if (view === "regions") content = regions();
   else
     content = {
+      event:()=>petEventView(state),
       hunt: hunt,
       character: character,
       gear: inventory,
@@ -437,6 +442,7 @@ function render() {
     }[tab]();
   replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), shell(content));
   window.scrollTo({top:preservedScroll,behavior:"instant"});
+  updatePetCountdown();
   refreshLevelRequirements();
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
   if(towerBattle){towerController=new TowerController(app.querySelector('.tower-play'),towerBattle,command,kind=>sounds.play(kind),{audio:b=>sounds.battle(b)});return;}
@@ -456,7 +462,7 @@ function hunt() {
     r = huntingRate(state),
     b = state.battle,
     boss = b && battleEnemy(b);
-  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : "권장 Lv." + st.level + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : state.hunting ? "전투 중" : "사냥 시작을 눌러 도전하세요"}</small></div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill" id="hunt-status">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : `<p id="field-player-hp">내 HP ${fmt(power(state).hp)} / ${fmt(power(state).hp)}</p><div class="hp player-health"><i id="field-player-bar" style="width:100%"></i></div><small id="field-combat-result">${state.hunting?"몬스터와 전투 중":"사냥을 시작하면 자동으로 전투합니다."}</small>`}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${gearLevelRange(Math.max(10,st.dropLevel))}</b></div></div><div class="actions">${boss ? combatSkillButtons()+disabledBtn("회복 "+(3-(b.potions||0))+"/3","battlePotion","",(b.potions||0)>=3||Date.now()<(b.potionReady||0)) : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside>${dailyCard()}<div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">권장레벨에 맞는 장비를 강화해야 안정적으로 사냥할 수 있습니다. 패배하면 10초 후 부활해 재도전합니다. 반복해서 패배한다면 장비를 강화하거나 하위 사냥터에서 재화를 모으세요. 상위 사냥터로 이동하며 성장하세요. 자신의 레벨보다 15레벨 이상 낮은 사냥터에서는 경험치와 골드가 함께 줄어듭니다.</p><div class="row wrap">${Object.entries(
+  return `${header(boss ? boss.name : st.name, region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : "권장 Lv." + st.level + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2].name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : state.hunting ? "전투 중" : "사냥 시작을 눌러 도전하세요"}</small></div><div class="field-pet-home">${state.equippedPet==='moonfox-lumi'?'<img src="pets/lumi.png" alt="동행 중인 루미">':''}</div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.MONSTERS[st.id * 2 + (state.huntKills || 0) % 2])}</div><div class="combat-status"><span class="pill" id="hunt-status">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : `<p id="field-player-hp">내 HP ${fmt(power(state).hp)} / ${fmt(power(state).hp)}</p><div class="hp player-health"><i id="field-player-bar" style="width:100%"></i></div><small id="field-combat-result">${state.hunting?"몬스터와 전투 중":"사냥을 시작하면 자동으로 전투합니다."}</small>`}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${gearLevelRange(Math.max(10,st.dropLevel))}</b></div></div><div class="actions">${boss ? combatSkillButtons()+disabledBtn("회복 "+(3-(b.potions||0))+"/3","battlePotion","",(b.potions||0)>=3||Date.now()<(b.potionReady||0)) : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside>${dailyCard()}<div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">권장레벨에 맞는 장비를 강화해야 안정적으로 사냥할 수 있습니다. 패배하면 10초 후 부활해 재도전합니다. 반복해서 패배한다면 장비를 강화하거나 하위 사냥터에서 재화를 모으세요. 상위 사냥터로 이동하며 성장하세요. 자신의 레벨보다 15레벨 이상 낮은 사냥터에서는 경험치와 골드가 함께 줄어듭니다.</p><div class="row wrap">${Object.entries(
     D.MATERIALS,
   )
     .map(
@@ -492,7 +498,7 @@ function character() {
     )
     .join(
       "",
-    )}</div><p class="note">장비·잠재를 합산한 최종 스탯 · 남은 포인트 ${state.points}</p><div class="actions">${btn("직접 분배", "stats")}${btn("주스탯 자동 분배", "autoStats", "", "gold", true)}${btn("초기화", "resetStats")}</div></div></section><div>${characterMetrics(p,c)}<section class="panel pad"><h3>장착 장비</h3><div class="gear-grid" style="margin-top:12px">${D.SLOTS.map(
+    )}</div><p class="note">장비·잠재를 합산한 최종 스탯 · 남은 포인트 ${state.points}</p><div class="actions">${btn("직접 분배", "stats")}${btn("주스탯 자동 분배", "autoStats", "", "gold", true)}${btn("초기화", "resetStats")}</div></div></section><div>${petSlot(state)}${characterMetrics(p,c)}<section class="panel pad"><h3>장착 장비</h3><div class="gear-grid" style="margin-top:12px">${D.SLOTS.map(
     (name, slot) => {
       const it = state.items.find((x) => x.id === state.equipped[slot]);
       return btn(
@@ -785,6 +791,7 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
+    if(e.type==="petSummon"){open("달빛 소환 결과",petResult(e)+btn("확인","close","","gold"));continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
@@ -1051,6 +1058,8 @@ document.addEventListener("click", async (e) => {
       if(result)systemInbox();
       return;
     }
+    if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
+    if (action === "petEquip") return await command("petEquip",{id:arg||null});
     if (action === "attendanceClaim") return await command("attendanceClaim");
     if (action === "changeClass") return changeClassDialog();
     if (action === "changeClassPick") return confirmClassChange(arg);
@@ -1429,7 +1438,7 @@ setInterval(() => {
     const defeated=rate.survives&&progress>=rate.fightSeconds;
     const fightTime=recovering?deathAt:Math.min(progress,rate.fightSeconds-.001);
     const incoming=rate.incoming;
-    const hp=recovering?0:Math.max(0,p.hp-Math.floor(fightTime/rate.enemyInterval)*incoming);
+    const hp=recovering?0:p.pet?fieldPetHP(p.hp,incoming,fightTime):Math.max(0,p.hp-Math.floor(fightTime/rate.enemyInterval)*incoming);
     const enemyHp=defeated?0:Math.max(1,st.hp-rate.damagePerHit*Math.floor(fightTime/rate.attackInterval));
     const bar=$("#enemy-hp");
     if(bar)bar.style.width=(100*enemyHp/st.hp)+"%";
@@ -1492,3 +1501,5 @@ installMenuIcons();
 
 
 
+
+setInterval(updatePetCountdown,1000);
