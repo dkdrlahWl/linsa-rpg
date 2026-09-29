@@ -1,6 +1,6 @@
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=fantasy-73';
 import {fieldPetHP} from './pet-event.mjs?v=fantasy-73';
-import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal} from './pet-ui.mjs?v=fantasy-73';
+import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal} from './pet-ui.mjs?v=fantasy-74';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-68';
 import {waveRewardBody} from './wave-ui.mjs?v=lumi-68';
 import {playHolyOverlay} from './priest-overlay.mjs?v=lumi-68';
@@ -1055,6 +1055,7 @@ document.addEventListener("click", async (e) => {
       return;
     }
     if (action === "gameMenu") {open("모험 메뉴",fantasyMenu(state));modal.classList.add("fantasy-menu-dialog");return;}
+    if (action === "petPreview") {if(!state.isAdmin)return; sounds.play("loot-rare"); return playLumiReveal(()=>{});}
     if (action === "petOdds") return open("소환 확률 · 남은 수량",petOdds(state));
     if (action === "petBag") {modal.close();tab="gear";sub="pets";view="game";return render();}
     if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
