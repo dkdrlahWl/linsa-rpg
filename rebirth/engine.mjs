@@ -1,4 +1,4 @@
-import {PET_ID,summonPet,equipPet,fieldPetDeath} from './pet-event.mjs?v=lumi-68';
+import {PET_ID,summonPet,equipPet,fieldPetDeath} from './pet-event.mjs?v=fantasy-71';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
@@ -836,7 +836,7 @@ export function execute(input, command, args = {}, ctx) {
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
       if(b.weekly){check(s.isAdmin||practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
-      if(!practice){const today=dayKey(ctx.now);s.bossAttempts||={};check(s.isAdmin||(s.bossAttempts[b.id]!==today&&s.bossClaims?.[b.id]!==today),"BOSS_LIMIT");s.bossAttempts[b.id]=today;}
+      if(!practice){const today=dayKey(ctx.now);check(s.isAdmin||s.bossClaims?.[b.id]!==today,"BOSS_LIMIT");}
       s.battle = {
         kind: "boss",
         bossId: b.id,

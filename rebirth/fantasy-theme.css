@@ -1,0 +1,133 @@
+/* Moon Citadel interface. Combat renderers, sprites and battlefield controls are excluded. */
+body:not(.tower-mode){--bg:#061123;--panel:#0d2039;--gold:#efd18d;--ink:#f5ecda;--muted:#a8bbcf;--line:#8d784c;--purple:#d1b3ff;--green:#a4e4b7;color:var(--ink);background:#061123 url('ui/fantasy/moon-citadel.webp') center top/cover fixed}
+body:not(.tower-mode):before{background:linear-gradient(180deg,#03102118,#04102360 35%,#020b19b8)}
+body:not(.tower-mode) .fantasy-shell{max-width:1060px;background:linear-gradient(90deg,#04122560,#07142620,#04122560);padding:0 12px calc(78px + env(safe-area-inset-bottom));min-height:100dvh}
+body:not(.tower-mode) .fantasy-content{display:block;min-width:0}
+.fantasy-header{position:sticky;top:0;z-index:25;display:grid;grid-template-rows:1fr 1fr;height:clamp(76px,10dvh,92px);background:linear-gradient(#07182bbb,#071425eb),url('ui/fantasy/moon-citadel.webp') center 18%/cover;border:1px solid #c5a76d;border-top:0;box-shadow:0 4px 18px #0007,inset 0 0 0 3px #dbc0870c;isolation:isolate}
+.fantasy-brand-row{display:flex;align-items:center;justify-content:space-between;padding:0 14px;gap:12px;border-bottom:1px solid #ab8a4c60;min-height:0}
+.fantasy-brand{display:flex;align-items:center;gap:10px;border:0;background:none;box-shadow:none;padding:0;min-height:32px;white-space:nowrap;color:#ffe6af!important}
+.fantasy-brand>span{font-size:23px;font-weight:900;letter-spacing:.2px;text-shadow:0 2px 4px #000,0 0 16px #e8b86040}
+.fantasy-brand>small{font-size:10px;color:#d8c394;border:1px solid #ae92525c;border-radius:4px;padding:2px 5px}
+.fantasy-wallet{display:flex;align-items:center;gap:5px;border:1px solid #b79758;border-radius:18px;padding:2px 9px;background:#030d1bcc;color:#ffedbb;white-space:nowrap;max-width:46%;font-variant-numeric:tabular-nums}
+.fantasy-wallet img{width:24px;height:24px;object-fit:contain}.fantasy-wallet strong{font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.fantasy-main-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));min-height:0}
+.fantasy-main-nav>button{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;gap:7px;padding:3px;border:0;border-right:1px solid #b4966240;border-radius:0;background:linear-gradient(#112943a0,#07132290);box-shadow:none;font-size:13px;color:#dddcd7}
+.fantasy-main-nav>button:last-child{border-right:0}.fantasy-main-nav .menu-art{width:25px;height:25px;flex:0 0 25px;margin:0}
+.fantasy-main-nav>button.active{color:#ffedb8;background:linear-gradient(120deg,#78603788,#18283b);box-shadow:inset 0 0 0 1px #e7c881,inset 0 0 15px #e7c88125;text-shadow:0 0 7px #d8a05450}
+.fantasy-player-strip{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:30px;font-size:10px;padding:5px 9px;color:#b9ccdf;background:linear-gradient(90deg,#07172dbf,#11294180,#07172dbf);border:1px solid #b9995140;border-top:0;border-radius:0 0 7px 7px}
+.fantasy-player-strip>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fantasy-player-strip strong{color:#fff0c7}.fantasy-player-strip b{color:#f4d794}
+.fantasy-dock{position:fixed;z-index:30;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,1060px);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:4px 7px calc(4px + env(safe-area-inset-bottom));background:linear-gradient(#0b2344ed,#040c1af5);border-top:1px solid #d4b775;box-shadow:0 -4px 24px #0008,inset 0 2px #c3a45c1a}
+.fantasy-dock>button{position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;min-width:0;min-height:55px;padding:4px 2px;border:0;border-right:1px solid #b3a16f20;border-radius:4px;background:transparent;box-shadow:none;color:#becde0;font-size:11px}
+.fantasy-dock>button.active{color:#ffe7a2;background:linear-gradient(#b1924d38,#b1924d09);box-shadow:inset 0 -2px #e7c982}.fantasy-dock .menu-art{width:26px;height:26px;flex:0 0 26px;margin:0}.fantasy-dock>button>b{position:absolute;top:2px;right:15%;background:#873a45;color:#fff1c0;min-width:15px;border:1px solid #ddb36d;border-radius:10px;font-size:9px}.fantasy-dock>button>b.fantasy-notice-dot{min-width:6px;width:6px;height:6px;right:22%;background:#efc578}
+/* Both event and regular screens consume exactly the same two-row header. */
+body.pet-event-mode{background:#030b18}.pet-screen{grid-template-rows:clamp(76px,10dvh,92px) minmax(0,1fr)}
+.pet-screen>.fantasy-header{position:relative;height:100%;border-left:0;border-right:0}.pet-screen .fantasy-brand-row{padding-inline:4%}.pet-screen .fantasy-brand>span{font-size:clamp(18px,5.5cqw,23px)}.pet-screen .fantasy-brand{gap:6px}.pet-screen .fantasy-wallet{max-width:44%}.pet-screen .fantasy-wallet img{width:5.5cqw;height:5.5cqw}.pet-screen .fantasy-main-nav>button{font-size:clamp(10px,3.25cqw,13px);gap:1.2cqw}.pet-screen .fantasy-main-nav .menu-art{width:5.5cqw;height:5.5cqw;flex-basis:5.5cqw}
+/* Framed content surfaces. No selector below enters the arena or canvas. */
+body:not(.tower-mode) .fantasy-content :is(.panel,.auto-equip-card,.bag-pager,.bag-class-group,.party-member,.quest,.system-mail,.wave-tier,.wave-loot,.raid-waiting){background-color:#0a1a30;background-image:linear-gradient(135deg,#18375dea,#06152aee);border-color:#9e854f;box-shadow:inset 0 1px #fff0ba20,inset 0 0 0 3px #06102377,0 5px 18px #0005;border-radius:9px}
+body:not(.tower-mode) .fantasy-content .panel:has(>.arena){background:#08172a}
+body:not(.tower-mode) .fantasy-content :is(.pad,.auto-equip-card){padding:13px}
+body:not(.tower-mode) .fantasy-content .page-head{position:relative;padding:10px 11px;margin:12px 0 10px;border-bottom:1px solid #c4a36288;background:linear-gradient(90deg,#0b234ac7,#112c4933,transparent);border-radius:6px 6px 0 0}
+body:not(.tower-mode) .fantasy-content .page-head:after{content:'◆';position:absolute;bottom:-7px;left:48%;font-size:9px;color:#dabc7c;text-shadow:0 0 6px #e6c26966}
+body:not(.tower-mode) .fantasy-content .page-head h2{color:#ffe9b2;text-shadow:0 2px 4px #000;font-size:22px}
+body:not(.tower-mode) .fantasy-content .eyebrow{color:#c7ad72;letter-spacing:2px;font-size:9px}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) .note{color:#b1c4d8}
+body:not(.tower-mode) .fantasy-content :is(.metrics>div,.stat-grid>div,.currency,.party-member,.craft-stats>div,.stat-detail,.character-metrics>div){background:linear-gradient(#112b45cc,#07172dcc);border:1px solid #ad925735;border-radius:6px}
+body:not(.tower-mode) .fantasy-content :is(.metrics b,.combat-power strong,.craft-stats dd){color:#f7d897}
+body:not(.tower-mode) .fantasy-content .hero{background-image:linear-gradient(90deg,#06152622,#07192c66),url('ui/fantasy/moon-citadel.webp');background-position:center 37%;border-bottom:1px solid #ac965e}
+body:not(.tower-mode) .fantasy-content :is(.journal-banner,.advancement-card,.relic-card){background-image:linear-gradient(90deg,#031327ed,#0b245299),url('ui/fantasy/moon-citadel.webp');background-size:cover;background-position:center 40%;border-color:#b49a61}
+body:not(.tower-mode) .fantasy-content :is(.tower-intro,.coop-intro){background-image:linear-gradient(90deg,#06132bef,#0a1a3950),url('ui/fantasy/moon-citadel.webp');background-size:cover;background-position:center 25%;border-color:#b49a61}
+body:not(.tower-mode) .fantasy-content .subnav{display:flex;flex-wrap:wrap;overflow:visible;gap:5px;padding:3px 0 7px;margin-bottom:9px}
+body:not(.tower-mode) .fantasy-content .subnav>button{flex:1 1 auto;min-width:55px;min-height:39px;font-size:11px;padding:7px 9px;white-space:nowrap}
+body:not(.tower-mode) .fantasy-content :is(input,select),body:not(.tower-mode) #modal :is(input,select){background:#071729;color:#efe9de;border:1px solid #947c4b;border-radius:6px;min-height:40px;box-shadow:inset 0 2px 5px #0005}
+body:not(.tower-mode) .fantasy-content input[type=checkbox],body:not(.tower-mode) #modal input[type=checkbox]{min-height:16px;accent-color:#d6b773}
+/* Painted shared button artwork, kept behind live readable labels and existing icons. */
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button:where(:not(.arena *):not(.party-arena *):not(.regular-combat-skills *):not(.bag-slot,.gear-cell,.market-compact-card,.market-inventory-item,.cube-card,.change-class-card,.stack-equipment,.close,.class-card)){position:relative;isolation:isolate;background:transparent;border:0;box-shadow:none;color:#fff0cf;border-radius:7px;padding:9px 14px;min-height:40px;text-shadow:0 1px 2px #0008}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button:where(:not(.arena *):not(.party-arena *):not(.regular-combat-skills *):not(.bag-slot,.gear-cell,.market-compact-card,.market-inventory-item,.cube-card,.change-class-card,.stack-equipment,.close,.class-card)):before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:7px;background:url('ui/fantasy/buttons.webp') center 2.5%/100% 350% no-repeat}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button:not(.regular-combat-skills *):is(.gold,.active,.enhance-primary):not(.cube-primary){color:#2e1c08;text-shadow:0 1px #fff4a088;font-weight:800}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button:not(.regular-combat-skills *):is(.gold,.active,.enhance-primary):not(.cube-primary):before{background-position:center 46.7%}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button.danger{color:#ffe2de}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button.danger:before{background-position:center 90.5%}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button:not(.regular-combat-skills *):disabled{filter:saturate(.35);opacity:.5;cursor:default}
+body:not(.tower-mode) :where(.fantasy-content,#modal,.login) button:focus-visible,.fantasy-header button:focus-visible,.fantasy-dock button:focus-visible{outline:2px solid #ffdf91;outline-offset:2px}
+body:not(.tower-mode) .fantasy-content .actions button:not(.regular-combat-skills *){padding:9px 15px}
+body:not(.tower-mode) .fantasy-content .subnav .active{border-color:transparent!important}
+/* Inventory / trading slots remain distinct from action buttons. */
+body:not(.tower-mode) :is(.fantasy-content,#modal) :is(.bag-slot,.gear-cell,.market-compact-card,.market-inventory-item,.stack-equipment,.change-class-card,.class-card){background:radial-gradient(ellipse at 50% 25%,#29466899,#071629e8);border:1px solid #8b7855;box-shadow:inset 0 0 0 2px #040c1855,inset 0 1px #f4da9820;position:relative;border-radius:7px;color:#eee8da}
+body:not(.tower-mode) .fantasy-content .bag-slot.equipped{border-color:#e5c67f;box-shadow:inset 0 0 10px #dab55324,0 0 6px #daba5720}
+body:not(.tower-mode) .fantasy-content .bag-slot .tile-name{color:#f6edda}
+body:not(.tower-mode) .fantasy-content .bag-slot .other-class{color:#ff9c9c}
+body:not(.tower-mode) .fantasy-content .bag-pager{top:clamp(76px,10dvh,92px);padding:7px 9px;color:#d6caaa;z-index:5}
+body:not(.tower-mode) .fantasy-content .bag-supplies{background:#071b33d9;border:1px solid #9b825b70;border-radius:8px;padding:8px}
+body:not(.tower-mode) .fantasy-content .bag-supplies>div{background:#07132688;border-color:#a28b563a}
+body:not(.tower-mode) .fantasy-content :is(.market-card-price,.market-card-meta b,.stars){color:#f4d488}
+body:not(.tower-mode) .fantasy-content :is(.market-card-status,.market-compact-card small){color:#acbfd2}
+body:not(.tower-mode) .fantasy-content :is(.my-rank,.rank-row){background:linear-gradient(90deg,#112b46,#08172c);border-color:#8f784955}
+body:not(.tower-mode) .fantasy-content .my-rank{box-shadow:inset 3px 0 #e4bf71;color:#ffe2a3}
+/* All modal families share the same dark moonlit frame. */
+body:not(.tower-mode) #modal{border:1px solid #d4b97a;background:linear-gradient(150deg,#122d4df5,#061327fa),url('ui/fantasy/moon-citadel.webp') center/cover;color:#f2e9d6;box-shadow:inset 0 0 0 4px #030a172f,0 18px 80px #000b;border-radius:16px 16px 0 0}
+body:not(.tower-mode) #modal::backdrop{background:#020b1bbb;backdrop-filter:blur(4px)}
+body:not(.tower-mode) #modal>h2{color:#ffe5ab;border-bottom:1px solid #b3955559;padding-bottom:12px;background:transparent;text-shadow:0 2px 4px #000}
+body:not(.tower-mode) #modal>.close{border:1px solid #c7a766;background:#0a1c33;color:#f5dfac;box-shadow:inset 0 1px #ffe59b20;min-height:32px;border-radius:5px;padding:5px 9px}
+body:not(.tower-mode) #modal :is(.panel,.system-mail,.potential,.market-price-box,.market-picked-stats,.market-sell-detail,.market-picker-filters,.change-class-summary,.wave-loot,.wave-tier){background:#0a1e35;border-color:#a88c55;color:#e7e4db}
+body:not(.tower-mode) #modal :is(.attendance-day,.attendance-claimed){background:linear-gradient(125deg,#132e4b,#07172e);border-color:#9e8653}
+body:not(.tower-mode) #modal .attendance-next{border-color:#edd18b;box-shadow:inset 0 0 18px #c8a36124,0 0 9px #c8a36120;background:linear-gradient(135deg,#4d4126,#122b44)}
+body:not(.tower-mode) #modal .attendance-grand{background:linear-gradient(115deg,#4c3820,#17354d);border-color:#e0c17c}
+body:not(.tower-mode) #modal :is(.attendance-day span,.attendance-day small,.change-class-card>span:not(.portrait)){color:#c9d5e1}
+body:not(.tower-mode) #modal .change-class-card.current{border-color:#f0cc7e;background:linear-gradient(#4f422b,#142b43)}
+/* Forge and cube panels: keep grade colours and positive/negative outcome semantics. */
+body:not(.tower-mode) #modal.enhance-dialog{background:linear-gradient(150deg,#102d4b,#061327);color:#e8e8e1}
+body:not(.tower-mode) #modal :is(.enhance-tabs,.enhance-actions,.enhance-choice-actions){background:#08182bed;border-color:#a28b5f}
+body:not(.tower-mode) #modal :is(.enhance-item-head strong,.enhance-gains b,.gear-base-stats b,.enhance-wallet strong,.star-transition b){color:#f2e4c4}
+body:not(.tower-mode) #modal :is(.enhance-item-head small,.enhance-intro small,.enhance-help,.enhance-wallet>div>span:first-child,.wallet-owned,.cube-chance,.expand-options,.expand-options summary,.probability-details span,.enhance-gains span,.gear-base-stats span,.cube-card small,.star-transition>span){color:#abc1d6}
+body:not(.tower-mode) #modal :is(.enhance-gains,.enhance-probabilities,.gear-base-stats,.enhance-item-display,.cube-card,.potential-panel){background:linear-gradient(#16304b,#091a30);border-color:#9e855750;color:#e4e7e9;box-shadow:none}
+body:not(.tower-mode) #modal .enhance-item-display:after{background:#0d2440;color:#eac77f}
+body:not(.tower-mode) #modal .enhance-item-head>.gear-frame{background:#0a1c32;border-color:#a58c5b}
+body:not(.tower-mode) #modal .enhance-stage{background:radial-gradient(ellipse at 30% 50%,#b2944620,transparent 65%)}
+body:not(.tower-mode) #modal .star-transition b.target{color:#f4cc70}
+body:not(.tower-mode) #modal .option-panel{background:#07182e;color:#e1e7ed}
+body:not(.tower-mode) #modal .option-heading{background:#102b47;color:var(--rarity)}
+body:not(.tower-mode) #modal .option-heading b{background:#030c1b80}
+body:not(.tower-mode) #modal .option-line{border-color:#8ba4bc24}
+body:not(.tower-mode) #modal .cube-card.selected{background:#2a2650;border-color:#d5b8f6!important;color:#f2dfff}
+body:not(.tower-mode) #modal .enhance-result{background:#153a32;color:#b8e8c9;border-color:#548f75}
+body:not(.tower-mode) #modal .enhance-result:is(.keep,.down){background:#3e3220;color:#f1d49a;border-color:#927b4d}
+body:not(.tower-mode) #modal .enhance-result.destroy{background:#45212c;color:#ffc4c4;border-color:#a05e65}
+body:not(.tower-mode) #modal .short{color:#ff9b92!important}
+body:not(.tower-mode) #modal :is(.enhance-gains em,.probability-title strong){color:#99dfb6}
+body:not(.tower-mode) #modal .option-panel.rarity-0{--rarity:#b0bbc9}body:not(.tower-mode) #modal .option-panel.rarity-1{--rarity:#8fd2a1}body:not(.tower-mode) #modal .option-panel.rarity-2{--rarity:#89bbf4}body:not(.tower-mode) #modal .option-panel.rarity-3{--rarity:#c9a1f0}body:not(.tower-mode) #modal .option-panel.rarity-4{--rarity:#f0cb75}
+/* Full menu and first-entry screens. */
+.fantasy-menu-name{display:flex;justify-content:space-between;gap:10px;color:#f5db9e;padding:3px 4px 13px}.fantasy-menu-name span{color:#b0c7da}
+.fantasy-menu-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+body:not(.tower-mode) #modal .fantasy-menu-grid>button{min-width:0;display:flex;align-items:center;flex-direction:column;gap:4px;padding:12px 3px;min-height:103px;border:1px solid #9b8354;border-radius:8px;background:linear-gradient(#18365c,#081c36);box-shadow:inset 0 1px #ffdc7b24}
+body:not(.tower-mode) #modal .fantasy-menu-grid>button:before{display:none}.fantasy-menu-grid .menu-art{width:34px;height:34px;margin:0}.fantasy-menu-grid strong{font-size:12px}.fantasy-menu-grid small{font-size:9px;color:#adc3d8;white-space:nowrap}
+body:not(.tower-mode) .login{border:1px solid #d4b57a;background:linear-gradient(#0a2346d9,#071325f0),url('ui/fantasy/moon-citadel.webp') center/cover;box-shadow:0 16px 70px #0008,inset 0 0 0 4px #eac68714;color:#efeadc}
+body:not(.tower-mode) .login h1{color:#ffe6ac;text-shadow:0 2px 8px #000}
+body:not(.tower-mode) #toast{background:#0c2444f2;border:1px solid #c3a66c;color:#fff0cd;box-shadow:0 5px 25px #0009}
+/* Preserve the complete original active-combat DOM layout and controls. */
+body.tower-mode .fantasy-header,body.tower-mode .fantasy-player-strip,body.tower-mode .fantasy-dock{display:none}
+@media(min-width:701px){.fantasy-header{margin:0 -12px;height:96px;grid-template-columns:minmax(280px,1fr) minmax(420px,1.5fr);grid-template-rows:1fr}.fantasy-main-nav{align-items:stretch}.fantasy-brand-row{border-bottom:0}.fantasy-main-nav>button{border-left:1px solid #b4966240;font-size:15px}.fantasy-content .page-head h2{font-size:26px}.fantasy-content .panel{margin-bottom:12px}.pet-screen>.fantasy-header{margin:0;grid-template-columns:1fr;grid-template-rows:1fr 1fr}.pet-screen .fantasy-brand-row{border-bottom:1px solid #ab8a4c60}body:not(.tower-mode) #modal{border-radius:14px}}
+@media(max-width:370px){.fantasy-brand-row{padding:0 8px;gap:6px}.fantasy-brand{gap:5px}.fantasy-brand>span{font-size:20px}.fantasy-brand>small{font-size:9px;padding:1px 3px}.fantasy-wallet{padding:2px 6px}.fantasy-wallet strong{font-size:11px}.fantasy-main-nav>button{font-size:12px;gap:4px}.fantasy-main-nav .menu-art{width:22px;height:22px;flex-basis:22px}body:not(.tower-mode) .fantasy-shell{padding-inline:8px}.fantasy-player-strip{font-size:9px}.fantasy-menu-grid{gap:5px}}
+@media(prefers-reduced-motion:reduce){body:not(.tower-mode){background-attachment:scroll}}
+/* Standalone character files prevent neighboring atlas cells bleeding into the scene. */
+.lumi-pose{background-image:url('pets/lumi-greeting-v3.webp');background-size:contain;background-position:center bottom!important;aspect-ratio:1;background-repeat:no-repeat}
+.pet-hero-pose{height:110%;max-width:88%;width:auto;top:2%;transform:none}
+.lumi-film-actor{bottom:25%;left:12%;width:76%}.lumi-film-actor .lumi-pose{aspect-ratio:1}
+.summon-opening{position:fixed!important;inset:0!important;margin:auto!important;width:min(100vw,520px)!important;height:min(92dvh,850px)!important;max-height:100dvh!important;padding:0!important;border:1px solid #d9bf7d!important;border-radius:14px!important;overflow:hidden!important;background:#071427!important;color:#fff2cc;scrollbar-gutter:auto!important;min-height:0!important}
+.summon-opening::backdrop{background:#020b1bce;backdrop-filter:blur(4px)}.summon-opening-art{position:absolute;inset:0;background:url('ui/fantasy/summon-sanctum.webp') center/cover;opacity:.25;transform:scale(1.04)}.summon-playing .summon-opening-art{animation:summonPortal 1.4s ease-out forwards}.summon-opening-copy{position:absolute;left:5%;right:5%;top:43%;text-align:center;text-shadow:0 2px 8px #000}.summon-opening-copy h2{font-size:27px;padding:0;margin:10px 0;color:#ffe6a2}.summon-opening-copy small{letter-spacing:3px;color:#ead39e;font-size:10px}.summon-opening-copy p{font-size:12px;color:#becfdf}.summon-playing .summon-opening-copy{animation:summonCharge 1.4s ease both}
+body:not(.tower-mode) #modal.summon-result-dialog{background:linear-gradient(#05132922,#04102266),url('ui/fantasy/summon-sanctum.webp') center/cover;min-height:70dvh;padding-top:clamp(80px,16dvh,145px);text-align:center}
+#modal.summon-result-dialog>h2{color:#ffe7ad;background:#07142b80;padding:12px 5px;border:1px solid #bca16a80;border-radius:8px;margin-bottom:20px;text-shadow:0 2px 6px #000}
+#modal.summon-result-dialog>.close{position:absolute;top:12px;right:12px}
+.summon-result-dialog .pet-result{grid-template-columns:repeat(3,minmax(0,1fr));align-content:center;gap:9px;margin:10px 0 16px}.summon-result-dialog .pet-result-card{background:radial-gradient(#1e3e64e8,#081628ef);border:1px solid #dac182;box-shadow:inset 0 0 0 3px #b8954018,0 0 16px #ffe09718;animation:summonCard .65s ease-out backwards}.summon-result-dialog .pet-result-card:nth-child(2){animation-delay:.14s}.summon-result-dialog .pet-result-card:nth-child(3){animation-delay:.28s}.summon-result-dialog .pet-result-card:nth-child(4){animation-delay:.42s}.summon-result-dialog .pet-result-card:nth-child(5){animation-delay:.56s}.summon-result-dialog .pet-result-card:only-child{grid-column:1/-1;max-width:190px;justify-self:center;width:100%;padding:24px 12px}.summon-result-dialog .pet-result-card:only-child img{width:100px;height:100px}.summon-result-dialog>p{padding:9px;color:#eeddb3;background:#051227b8;border-radius:7px;font-size:11px}.summon-result-dialog>button:not(.close){margin:12px 5px 0}
+@keyframes summonPortal{0%{opacity:.2;transform:scale(1.08);filter:brightness(.65)}70%{opacity:1;filter:brightness(1.3)}100%{opacity:1;transform:scale(1);filter:brightness(1)}}
+@keyframes summonCharge{0%{opacity:0;transform:translateY(12px)}35%,80%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes summonCard{from{opacity:0;transform:translateY(25px) scale(.8);filter:brightness(2)}to{opacity:1;transform:none;filter:brightness(1)}}
+
+body:not(.tower-mode) .fantasy-content .subnav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}body:not(.tower-mode) .fantasy-content .subnav>button{width:100%;min-width:0;min-height:42px;padding:7px 3px;white-space:normal;line-height:1.3}body:not(.tower-mode) .fantasy-content .subnav .menu-art{width:19px;height:19px;flex-basis:19px;margin-right:3px}@media(min-width:701px){body:not(.tower-mode) .fantasy-content .subnav{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}}
+
+body:not(.tower-mode) #modal .enhance-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:5px;background:#081a31;border:1px solid #967e50}body:not(.tower-mode) #modal .enhance-tabs>button{padding:7px 2px;min-width:0;min-height:43px;white-space:nowrap;font-size:10px;color:#e6dfce;background:#102b47;border:1px solid #9a804550;border-radius:5px;box-shadow:none;text-shadow:none}body:not(.tower-mode) #modal .enhance-tabs>button:before{opacity:.25}body:not(.tower-mode) #modal .enhance-tabs>button.active{color:#281b0b;background:linear-gradient(#f3d997,#b38c4e);border-color:#edd397;font-weight:800}body:not(.tower-mode) #modal .enhance-tabs .menu-art{display:none}
+html:has(body:not(.tower-mode)){scrollbar-gutter:auto}
+.fantasy-shell>.fantasy-header{margin-inline:-12px}
+.pet-screen .fantasy-brand-row{padding:0 14px;gap:12px}.pet-screen .fantasy-brand{gap:10px}.pet-screen .fantasy-brand>span{font-size:23px}.pet-screen .fantasy-wallet{max-width:46%}.pet-screen .fantasy-wallet img{width:24px;height:24px}.pet-screen .fantasy-main-nav>button{font-size:13px;gap:7px}.pet-screen .fantasy-main-nav .menu-art{width:25px;height:25px;flex-basis:25px}
+body:not(.tower-mode) #modal button.enhance-primary{background:transparent;box-shadow:none;border:0}
+body:not(.tower-mode) .class-choice>button{background:linear-gradient(#173654,#081c32);border:1px solid #9d8455;color:#ece5d8}body:not(.tower-mode) .class-choice>button:before{display:none}body:not(.tower-mode) .class-choice>button.selected{border-color:#f1cf86;background:linear-gradient(#4c402b,#102a42)}
+@media(max-width:370px){.fantasy-shell>.fantasy-header{margin-inline:-8px}.pet-screen .fantasy-brand-row{padding:0 8px;gap:6px}.pet-screen .fantasy-brand{gap:5px}.pet-screen .fantasy-brand>span{font-size:20px}.pet-screen .fantasy-main-nav>button{font-size:12px;gap:4px}.pet-screen .fantasy-main-nav .menu-art{width:22px;height:22px;flex-basis:22px}}

@@ -1,5 +1,6 @@
-import {fieldPetHP} from './pet-event.mjs?v=lumi-68';
-import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal} from './pet-ui.mjs?v=lumi-screen-69';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=fantasy-70';
+import {fieldPetHP} from './pet-event.mjs?v=fantasy-71';
+import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal} from './pet-ui.mjs?v=fantasy-70';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-68';
 import {waveRewardBody} from './wave-ui.mjs?v=lumi-68';
 import {playHolyOverlay} from './priest-overlay.mjs?v=lumi-68';
@@ -17,7 +18,7 @@ import * as D from "./data.mjs?v=lumi-68";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=lumi-68";
 import equipmentBounds from "./equipment-bounds.mjs?v=lumi-68";
 import { inventoryGroups } from "./inventory-order.mjs?v=lumi-68";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=lumi-68";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fantasy-71";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -397,19 +398,11 @@ function confirmClassChange(classId) {
   modal.classList.add("change-class-dialog");
 }
 function shell(content) {
-  const c = D.CLASSES.find((c) => c.id === state.classId);
-  return `<div class="shell"><header class="top"><div class="brand">링구 RPG<small>REBIRTH</small></div><div class="identity"><strong>${esc(state.name)}</strong><small>Lv.${state.level} · ${c.name}</small></div><div class="top-actions">${btn('<img class="attendance-calendar-icon" src="ui/attendance-calendar-v1.webp" alt="" aria-hidden="true"><span>출석체크</span>', "attendance", "", attendanceReady()?"attendance-button attendance-alert":"attendance-button")}${btn("이벤트", "tab", "event", "top-event")}${systemMailButton()}${btn("랭킹", "ranking", "", "top-ranking")}${state.isAdmin?btn("관리자","betaTools"):""}${btn("설정", "settings")}</div><div class="top-resources"><div class="money" data-currency-label="gold" aria-label="보유 골드 ${fmt(state.gold)}"><img src="currencies/gold.svg" alt=""><strong>${fmt(state.gold)}</strong><span>G</span></div><span class="top-power">전투력 <b>${fmt(power(state).combatPower)}</b></span></div></header><div id="connection-status" class="connection-status" role="status" ${connectionLost ? "" : "hidden"}>연결이 지연되고 있어요. 다시 연결되면 진행 상황을 불러옵니다. ${btn("다시 연결", "reconnect")}</div>${content}<nav class="bottom">${[
-    ["hunt", "사냥"],
-    ["character", "캐릭터"],
-    ["gear", "가방"],
-    ["boss", "보스"],
-    ["market", "거래소"],
-  ]
-    .map(([k, label]) =>
-      btn(icon(k) + label, "tab", k, tab === k ? "active" : ""),
-    )
-    .join("")}</nav></div>`;
+  if(document.body.classList.contains("tower-mode"))return `<div class="shell">${content}</div>`;
+  const c = D.CLASSES.find(c=>c.id===state.classId);
+  return `<div class="shell fantasy-shell">${fantasyHeader(state,view==="game"?tab:"")}<div class="fantasy-player-strip"><span><strong>${esc(state.name)}</strong> · Lv.${state.level} ${c.name}</span><span>전투력 <b>${fmt(power(state).combatPower)}</b></span></div><div id="connection-status" class="connection-status" role="status" ${connectionLost?"":"hidden"}>연결이 지연되고 있어요. ${btn("다시 연결","reconnect")}</div><main class="fantasy-content" data-screen="${esc(view==="game"?tab:view)}">${content}</main>${fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady())}</div>`;
 }
+
 function render() {
   sounds.setCombat(state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
@@ -641,9 +634,9 @@ function bosses() {
   return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">입장 조건 없음 · 주간 보스별 주 1회 보상 · 월요일 00시 갱신 · 일일 보스별 하루 1회 도전 · 매일 00시 갱신</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
 }
 function bossCard(b) {
-  const claimed=!state.isAdmin&&(b.weekly?state.bossClaims?.[b.id]===D.weekKey(Date.now()):state.bossAttempts?.[b.id]===D.dayKey(Date.now())||state.bossClaims?.[b.id]===D.dayKey(Date.now()));
+  const claimed=!state.isAdmin&&(b.weekly?state.bossClaims?.[b.id]===D.weekKey(Date.now()):state.bossClaims?.[b.id]===D.dayKey(Date.now()));
   const locked=false;
-  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 도전 완료":"오늘 도전 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"도전 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 도전 · 입장 시 차감 · 패배해도 차감 · 승리 시 보상"} · 연습은 보상 없음</p></details></div></section>`;
+  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 보상 완료":"오늘 보상 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"보상 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 보상 · 승리 시 차감 · 패배·포기 시 재도전 가능"} · 연습은 보상 없음</p></details></div></section>`;
 }
 function partyPanel() {
  if(!partyRoom)return header('협동 토벌')+'<div class="panel pad">파티 정보를 불러오는 중…</div>';
@@ -725,7 +718,7 @@ async function marketLoad() {
 function open(title, html, closable = true) {
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
-  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog");
+  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog");
   replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = preservedModalScroll;
@@ -793,7 +786,7 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
-    if(e.type==="petSummon"){const show=()=>open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else show();continue;}
+    if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
@@ -895,6 +888,7 @@ function authFailureMessage(err,register) {
   return (register?"계정 생성":"로그인")+"에 실패했습니다. "+(err.code||err.message);
 }
 function login() {
+  document.body.classList.remove("pet-event-mode","tower-mode");
   app.innerHTML = `<div class="login panel"><div class="brand">링구 RPG<br><small>새로운 여정</small></div><p class="note">모바일로 이어가는 나만의 모험</p><form id="auth"><label>계정 이름<input name="username" autocomplete="username" pattern="[a-zA-Z0-9_]{3,32}" minlength="3" maxlength="32" required placeholder="영문·숫자·밑줄 3~32자"></label><label>비밀번호<input name="password" autocomplete="current-password" type="password" minlength="8" maxlength="256" required placeholder="8자 이상"></label><div class="two"><button type="submit" name="mode" value="login" class="gold">로그인</button><button type="submit" name="mode" value="register">새 계정 만들기</button></div><p id="auth-error" class="error" role="alert"></p></form><p class="footer-note">이전 게임 아이디·비밀번호도 그대로 로그인할 수 있습니다.<br>PC·모바일은 같은 계정으로 로그인하면 이어집니다.<br>이미 있는 아이디는 재가입하지 말고 ‘로그인’을 눌러 주세요.<br>계정 이름은 대소문자를 구분하지 않습니다.</p></div>`;
   $("#auth").onsubmit = async (e) => {
     e.preventDefault();
@@ -1060,6 +1054,7 @@ document.addEventListener("click", async (e) => {
       if(result)systemInbox();
       return;
     }
+    if (action === "gameMenu") {open("모험 메뉴",fantasyMenu(state));modal.classList.add("fantasy-menu-dialog");return;}
     if (action === "petOdds") return open("소환 확률 · 남은 수량",petOdds(state));
     if (action === "petBag") {modal.close();tab="gear";sub="pets";view="game";return render();}
     if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
@@ -1092,8 +1087,8 @@ document.addEventListener("click", async (e) => {
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
     if (action === "advance") {tab="boss";bossTab="advancement";view="game";render();return await refreshCoopRooms();}
     if(action==="advancementStart"){modal.close();tab="boss";bossTab="advancement";view="game";return await command("coopCreate",{mode:"advancement",tier:Number(arg)});}
-    if (action === "journal") {view="journal";return render();}
-    if (action === "ranking") {view="ranking";return await loadRankings();}
+    if (action === "journal") {modal.close();view="journal";return render();}
+    if (action === "ranking") {modal.close();view="ranking";return await loadRankings();}
     if(action==="adminTransferOpen")return adminTransferDialog(arg);
     if(action==="adminTransferSend"){
       if(busy||!state?.isAdmin)return;
