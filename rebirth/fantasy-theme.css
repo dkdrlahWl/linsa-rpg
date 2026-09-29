@@ -131,3 +131,11 @@ html:has(body:not(.tower-mode)){scrollbar-gutter:auto}
 body:not(.tower-mode) #modal button.enhance-primary{background:transparent;box-shadow:none;border:0}
 body:not(.tower-mode) .class-choice>button{background:linear-gradient(#173654,#081c32);border:1px solid #9d8455;color:#ece5d8}body:not(.tower-mode) .class-choice>button:before{display:none}body:not(.tower-mode) .class-choice>button.selected{border-color:#f1cf86;background:linear-gradient(#4c402b,#102a42)}
 @media(max-width:370px){.fantasy-shell>.fantasy-header{margin-inline:-8px}.pet-screen .fantasy-brand-row{padding:0 8px;gap:6px}.pet-screen .fantasy-brand{gap:5px}.pet-screen .fantasy-brand>span{font-size:20px}.pet-screen .fantasy-main-nav>button{font-size:12px;gap:4px}.pet-screen .fantasy-main-nav .menu-art{width:22px;height:22px;flex-basis:22px}}
+
+/* Primary destinations stay at the bottom on every non-combat screen. */
+.fantasy-main-nav>button{position:relative;white-space:nowrap}
+.fantasy-mail-count{position:absolute;right:3px;top:1px;min-width:14px;padding:0 3px;border-radius:9px;background:#873a45;color:#fff1c0;font-size:9px;border:1px solid #ddb36d}
+.pet-screen{grid-template-rows:clamp(76px,10dvh,92px) minmax(0,1fr) calc(64px + env(safe-area-inset-bottom))}
+.pet-screen>.fantasy-dock{position:relative;bottom:auto;left:auto;transform:none;width:100%;padding:4px 7px calc(4px + env(safe-area-inset-bottom))}
+.pet-screen>.fantasy-dock>button{min-height:55px;font-size:11px}
+.pet-screen>.fantasy-dock .menu-art{width:26px;height:26px;flex-basis:26px}
