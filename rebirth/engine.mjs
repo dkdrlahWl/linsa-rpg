@@ -1,5 +1,5 @@
 import {PET_ID,summonPet,equipPet,fieldPetDeath} from './pet-event.mjs?v=fantasy-73';
-import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
+import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=fantasy-75';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs?v=lumi-68';
@@ -578,7 +578,7 @@ export function execute(input, command, args = {}, ctx) {
   switch (command) {
     case "petSummon": {
       check(!s.pendingCube,"먼저 큐브 옵션을 선택하세요.");
-      events.push(summonPet(s,args.count,ctx,()=>{const item=makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);return item;}));break;
+      events.push(summonPet(s,args.count,ctx,()=>{const mail={id:"lumi-chest-"+ctx.uuid(),kind:"lumiBossChest",title:"100레벨 랜덤 보스 장비 상자",sender:"달빛 소환",message:"받기를 누르면 상자를 열어 현재 직업의 랜덤 보스 장비를 획득합니다.",rewards:{},sentAt:new Date(ctx.now).toISOString()};s.rewardMailbox||=[];s.rewardMailbox.push(mail);s.systemMailbox||=[];s.systemMailbox.push(mail);return {mailId:mail.id};}));break;
     }
     case "petEquip": {equipPet(s,args.id);break;}
     case "exchangeGear": {
@@ -658,7 +658,7 @@ export function execute(input, command, args = {}, ctx) {
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "claimSystemMail": {
-      events.push(claimSystemMail(s,args.id));
+      events.push(claimSystemMail(s,args.id,()=>{const item=makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx),stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
       break;
     }
     case "claimMail": {

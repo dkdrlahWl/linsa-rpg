@@ -24,10 +24,21 @@ export function deliverSystemMail(state, ctx) {
     Number.isFinite(joinedAt) && joinedAt <= Date.parse(mail.sentAt) &&
     ctx.now >= Date.parse(mail.sentAt) && !state.claimedSystemMail.includes(mail.id)
   ).map(mail => structuredClone(mail));
+  state.systemMailbox.push(...(state.rewardMailbox||[]).filter(mail=>!state.claimedSystemMail.includes(mail.id)));
   return state;
 }
 
-export function claimSystemMail(state, id) {
+export function claimSystemMail(state, id, grantBossGear) {
+  state.claimedSystemMail ||= [];
+  const chest=(state.rewardMailbox||[]).find(mail=>mail.id===id);
+  if(chest && !state.claimedSystemMail.includes(id)){
+    if(chest.kind!=="lumiBossChest"||!grantBossGear)throw new Error("INVALID_MAIL_REWARD");
+    const reward=grantBossGear();
+    state.claimedSystemMail.push(id);
+    state.rewardMailbox=state.rewardMailbox.filter(mail=>mail.id!==id);
+    state.systemMailbox=state.systemMailbox.filter(mail=>mail.id!==id);
+    return {type:"bossChest",id,...reward};
+  }
   if (state.claimedSystemMail.includes(id)) throw new Error('MAIL_ALREADY_CLAIMED');
   const mail = SYSTEM_MAIL.find(mail => mail.id === id);
   if (!mail || !state.systemMailbox.some(entry => entry.id === id)) throw new Error('MAIL_NOT_FOUND');

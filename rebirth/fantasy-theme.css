@@ -141,3 +141,5 @@ body:not(.tower-mode) .class-choice>button{background:linear-gradient(#173654,#0
 .pet-screen>.fantasy-dock .menu-art{width:26px;height:26px;flex-basis:26px}
 
 .pet-reward-empty .pet-reward-image{filter:grayscale(1);opacity:.45}.pet-reward-empty>small{color:#e5b8a8!important;font-weight:700}
+
+.boss-chest-stage{position:absolute;inset:18% 0 25%;display:grid;place-items:center;pointer-events:none}.boss-chest-stage .pet-chest{width:min(70vw,300px);height:min(70vw,300px);filter:drop-shadow(0 0 25px #ffe098);animation:bossChestGlow 1.8s ease-out both}.boss-chest-opening .summon-opening-copy{top:auto;bottom:8%}@keyframes bossChestGlow{0%{transform:scale(.7);filter:drop-shadow(0 0 2px #ffe098)}55%{transform:scale(1.05) rotate(-3deg)}70%{transform:scale(1.05) rotate(3deg)}100%{transform:scale(1);filter:drop-shadow(0 0 55px #fff2b0)}}

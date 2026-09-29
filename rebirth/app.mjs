@@ -1,6 +1,6 @@
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=fantasy-73';
-import {fieldPetHP} from './pet-event.mjs?v=fantasy-73';
-import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal} from './pet-ui.mjs?v=fantasy-74';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=fantasy-75';
+import {fieldPetHP} from './pet-event.mjs?v=fantasy-75';
+import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=fantasy-75';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-68';
 import {waveRewardBody} from './wave-ui.mjs?v=lumi-68';
 import {playHolyOverlay} from './priest-overlay.mjs?v=lumi-68';
@@ -18,7 +18,7 @@ import * as D from "./data.mjs?v=lumi-68";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=lumi-68";
 import equipmentBounds from "./equipment-bounds.mjs?v=lumi-68";
 import { inventoryGroups } from "./inventory-order.mjs?v=lumi-68";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fantasy-73";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fantasy-75";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -369,7 +369,7 @@ function header(title, kicker = "새로운 여정") {
 function systemInbox() {
   const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
   const labels={scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
-  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}"><img src="${currencyIconURL(key)}" alt=""><span>${esc(labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}개</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방의 보유 재료에서 확인할 수 있어요.</p></div>'}</div>`);
+  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}"><img src="${currencyIconURL(key)}" alt=""><span>${esc(labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}개</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방의 보유 재료에서 확인할 수 있어요.</p></div>'}</div>`);
 }
 function systemMailButton() {
   const count=state.systemMailbox?.length||0;
@@ -786,6 +786,7 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
+    if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
     if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
@@ -1050,8 +1051,9 @@ document.addEventListener("click", async (e) => {
     if (action === "attendance") return attendance();
     if (action === "systemInbox") return systemInbox();
     if (action === "claimSystemMail") {
+      const chest=state.systemMailbox?.some(m=>m.id===arg&&m.kind==="lumiBossChest");
       const result=await command("claimSystemMail",{id:arg});
-      if(result)systemInbox();
+      if(result&&!chest)systemInbox();
       return;
     }
     if (action === "gameMenu") {open("모험 메뉴",fantasyMenu(state));modal.classList.add("fantasy-menu-dialog");return;}
