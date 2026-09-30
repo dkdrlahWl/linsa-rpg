@@ -1,8 +1,8 @@
 export {PRIEST_SKILLS} from './priest.mjs?v=priest-potential-83';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest-potential-83';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=priest-potential-83';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=priest-potential-83';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=priest-potential-83';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=boss-drop-87';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=boss-drop-87';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=priest-potential-83';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=priest-potential-83';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-potential-83";
