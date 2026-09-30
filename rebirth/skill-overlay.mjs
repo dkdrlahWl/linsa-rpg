@@ -1,5 +1,5 @@
-import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=lumi-68';
-import {drawSecondSequence} from './second-effects.mjs?v=lumi-68';
+import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=lumi-public-80';
+import {drawSecondSequence} from './second-effects.mjs?v=lumi-public-80';
 let atlas;
 // The compact boss screen uses the same VFX timeline as movement battles.
 export function playSecondOverlay(arena,classId){

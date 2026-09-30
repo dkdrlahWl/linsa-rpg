@@ -1,7 +1,7 @@
-import {WAVE_REWARDS,WAVE_END} from './wave-rewards.mjs?v=lumi-68';
-import {currencyIconURL} from './currency-icons.mjs?v=lumi-68';
-import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=lumi-68';
-import {WAVE_MONSTERS} from './wave-monsters.mjs?v=lumi-68';
+import {WAVE_REWARDS,WAVE_END} from './wave-rewards.mjs?v=lumi-public-80';
+import {currencyIconURL} from './currency-icons.mjs?v=lumi-public-80';
+import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=lumi-public-80';
+import {WAVE_MONSTERS} from './wave-monsters.mjs?v=lumi-public-80';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;

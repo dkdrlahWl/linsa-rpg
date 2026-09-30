@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=lumi-68';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=lumi-public-80';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

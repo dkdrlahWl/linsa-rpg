@@ -1,4 +1,4 @@
-import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=lumi-68';
+import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=lumi-public-80';
 export const FOURTH_NAMES={priest:'세라핌',warrior:'천검의 지배자',mage:'천체의 대마도사',archer:'폭풍의 수호자',rogue:'월영의 군주',pirate:'해일의 제독'};
 const make=(name,hits,interval,radius,mode,art,description,multiplier=1)=>{const total=(mode==='orbit'?25.2:18)*multiplier/2;return {name,type:'attack',hits,damage:total/hits,interval,range:1100,radius,mode,art,cooldown:22.5,description:description+' · 총 '+Math.round(total*100)+'% · 재사용 22.5초'};};
 export const FOURTH_SKILLS={

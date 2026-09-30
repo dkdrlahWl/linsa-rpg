@@ -1,10 +1,10 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=lumi-68';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=lumi-68';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=lumi-68';
-import {beginThird,stepThird} from './advancement.mjs?v=lumi-68';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=lumi-68';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=lumi-68';
-import {incomingDamage} from './journey-balance.mjs?v=lumi-68';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=lumi-public-80';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=lumi-public-80';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=lumi-public-80';
+import {beginThird,stepThird} from './advancement.mjs?v=lumi-public-80';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=lumi-public-80';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=lumi-public-80';
+import {incomingDamage} from './journey-balance.mjs?v=lumi-public-80';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>8)throw Error('INVALID_COOP_ROOM');

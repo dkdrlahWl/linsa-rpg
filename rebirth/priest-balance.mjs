@@ -1,10 +1,10 @@
-import {initialState,makeItem,power} from './engine.mjs?v=lumi-68';
-import {CLASSES,rollBaseStats} from './data.mjs?v=lumi-68';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=lumi-68';
-import {beginThird,stepThird} from './advancement.mjs?v=lumi-68';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=lumi-68';
-import {beginPriest,stepPriest,supportTick,holyDamage} from './priest.mjs?v=lumi-68';
-import {TOWER_CLASSES} from './tower-model.mjs?v=lumi-68';
+import {initialState,makeItem,power} from './engine.mjs?v=lumi-public-80';
+import {CLASSES,rollBaseStats} from './data.mjs?v=lumi-public-80';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=lumi-public-80';
+import {beginThird,stepThird} from './advancement.mjs?v=lumi-public-80';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=lumi-public-80';
+import {beginPriest,stepPriest,supportTick,holyDamage} from './priest.mjs?v=lumi-public-80';
+import {TOWER_CLASSES} from './tower-model.mjs?v=lumi-public-80';
 let serial=0;
 export function fixture(classId,level=200,stars=25){const ctx={now:0,random:()=>.99999,uuid:()=>String(++serial)},cl=CLASSES.find(c=>c.id===classId),s=initialState(classId,'밸런스검증',ctx);Object.assign(s,{level,firstAdvancement:level>=30,advancement:level>=150?3:level>=100?2:level>=60?1:0,items:[],equipped:{}});s.stats[cl.stat]=4+(level-1)*5;for(let slot=0;slot<9;slot++){const i=makeItem(level,classId,slot,true,ctx,2);Object.assign(i,{design:2,stars,grade:5,potentialVersion:5,potentialUnlocked:true});i.baseStats=rollBaseStats(i,()=>.99999);s.items.push(i);s.equipped[slot]=i.id;}return s;}
 export function setLines(s,counts){const lines=Object.entries(counts).flatMap(([key,n])=>Array.from({length:n},()=>({key,value:key==='boss'?40:12,grade:5})));s.items.forEach((i,n)=>i.lines=lines.slice(n*3,n*3+3));return s;}

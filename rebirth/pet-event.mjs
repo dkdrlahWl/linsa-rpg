@@ -1,6 +1,6 @@
 export const PET_ID='moonfox-lumi';
 export const PET_NAME='달빛 여우 루미';
-export const PET_EVENT={id:'lumi-202609',start:Date.parse('2026-09-29T14:51:35+00:00'),end:Date.parse('2026-10-06T14:51:35+00:00'),adminOnly:true,cost:20000,pity:200};
+export const PET_EVENT={id:'lumi-202609',start:Date.parse('2026-09-29T14:51:35+00:00'),end:Date.parse('2026-10-06T14:51:35+00:00'),adminOnly:false,cost:20000,pity:200};
 export const PET_REWARDS=[{key:'pet',name:PET_NAME,amount:1,cap:1,rate:0.5},{key:'gear',name:'100레벨 랜덤 보스 장비',amount:1,cap:1,rate:1},{key:'gold',name:'골드',amount:1000,rate:33.5},{key:'fragment',name:'장비 파편',amount:10,rate:25},{key:'cube',name:'레드 큐브',amount:1,rate:20},{key:'highCube',name:'블랙 큐브',amount:1,cap:10,rate:10},{key:'scroll',name:'잠재 해금 주문서',amount:1,cap:10,rate:10}];
 export function petProgress(s){return s.petEvents?.[PET_EVENT.id]||{draws:0,counts:{}};}
 export function petRates(s){const p=petProgress(s);let extra=0;const rows=PET_REWARDS.map(r=>{const exhausted=r.cap&&((p.counts[r.key]||0)>=r.cap||(r.key==='pet'&&s.pets?.includes(PET_ID)));if(exhausted)extra+=r.rate;return {...r,remaining:r.cap?Math.max(0,r.cap-Math.max(p.counts[r.key]||0,r.key==='pet'&&s.pets?.includes(PET_ID)?1:0)):null,rate:exhausted?0:r.rate};});rows.find(r=>r.key==='gold').rate+=extra;return rows;}
@@ -22,13 +22,37 @@ export function summonPet(s,count,ctx,grantGear){
  const result={type:'petSummon',rewards,draws:p.draws,cost:rewards.length*PET_EVENT.cost,unused:(count-rewards.length)*PET_EVENT.cost};p.lastResult=result;return result;
 }
 export function equipPet(s,id){if(id!==null&&(id!==PET_ID||!s.pets?.includes(id)))throw Error('보유하지 않은 펫입니다.');s.equippedPet=id;}
-export function petHealTick(members,tick){for(const m of members){if(m.power?.pet!==PET_ID||m.hp<=0||m.left)continue;const ready=m.petReadyTick??300;if(tick<ready)continue;m.petReadyTick=tick+300;const amount=Math.min(Math.max(0,m.power.hp-m.hp),Math.max(1,Math.round(m.power.hp*.08)));m.hp+=amount;m.petHealAmount=amount;m.petHealUntil=tick+12;}}
-// Field attacks land every 1.5s; the heal resolves before the hit at 30s.
-export function fieldPetDeath(maxHp,damage){
- const first=Math.ceil(maxHp/damage);if(first<20)return first*1.5;
- const heal=Math.max(1,Math.round(maxHp*.08)),loss=20*damage-heal,post=maxHp-Math.max(damage,loss);
- if(post<=0)return 30;if(loss<=0)return Infinity;
- const threshold=Math.max(19*damage,loss),skip=Math.max(0,Math.ceil((post-threshold)/loss));
- const hp=post-skip*loss;return (skip+1)*30+(hp<=19*damage?Math.ceil(hp/damage)*1.5:30);
+export function petHealTick(members,tick){
+ for(const m of members){
+  if(m.power?.pet!==PET_ID||m.hp<=0||m.left)continue;
+  const missing=Math.max(0,m.power.hp-m.hp);
+  if(m.petReadyTick==null){if(missing<m.power.hp*.08)continue;}
+  else if(tick<m.petReadyTick)continue;
+  if(missing<=0)continue;
+  const amount=Math.min(missing,Math.max(1,Math.round(m.power.hp*.08)));
+  m.hp+=amount;m.petReadyTick=tick+300;m.petHealAmount=amount;m.petHealUntil=tick+12;
+ }
 }
-export function fieldPetHP(maxHp,damage,seconds){const hits=Math.floor(seconds/1.5),cycles=Math.floor(hits/20),rem=hits%20,heal=Math.max(1,Math.round(maxHp*.08)),loss=20*damage-heal;return Math.max(0,cycles?maxHp-Math.max(damage,loss)-Math.max(0,loss)*(cycles-1)-rem*damage:maxHp-hits*damage);}
+// Field hits arrive every 1.5s. First heal follows the hit losing 8% HP;
+// subsequent heals follow every 20 hits (30s), provided the owner survives.
+function fieldPetStart(maxHp,damage){
+ const first=Math.ceil(maxHp*.08/damage),heal=Math.max(1,Math.round(maxHp*.08));
+ return {first,hp:Math.min(maxHp,maxHp-first*damage+heal),loss:20*damage-heal};
+}
+export function fieldPetDeath(maxHp,damage){
+ if(damage<=0)return Infinity;
+ const {first,hp,loss}=fieldPetStart(maxHp,damage);
+ if(first*damage>=maxHp)return Math.ceil(maxHp/damage)*1.5;
+ if(hp<=20*damage)return (first+Math.ceil(hp/damage))*1.5;
+ if(loss<=0)return Infinity;
+ const cycles=Math.max(0,Math.ceil((hp-20*damage)/loss));
+ return (first+cycles*20+Math.ceil((hp-cycles*loss)/damage))*1.5;
+}
+export function fieldPetHP(maxHp,damage,seconds){
+ if(damage<=0)return maxHp;
+ if(seconds>=fieldPetDeath(maxHp,damage))return 0;
+ const hits=Math.max(0,Math.floor(seconds/1.5)),{first,hp,loss}=fieldPetStart(maxHp,damage);
+ if(hits<first)return maxHp-hits*damage;
+ const cycles=Math.floor((hits-first)/20),rem=(hits-first)%20;
+ return Math.max(0,Math.min(maxHp,hp-cycles*loss)-rem*damage);
+}

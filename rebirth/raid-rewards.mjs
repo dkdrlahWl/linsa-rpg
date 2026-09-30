@@ -1,5 +1,5 @@
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=lumi-68';
-import {weekKey} from './data.mjs?v=lumi-68';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=lumi-public-80';
+import {weekKey} from './data.mjs?v=lumi-public-80';
 
 export const RAID_WEEKLY_LIMIT=3;
 export function raidWeeklyStatus(state,now=Date.now()){

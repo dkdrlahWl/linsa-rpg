@@ -1,10 +1,10 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=lumi-68';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=lumi-68';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=lumi-68';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=lumi-68';
-import {incomingDamage} from './journey-balance.mjs?v=lumi-68';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=lumi-public-80';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=lumi-public-80';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=lumi-public-80';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=lumi-public-80';
+import {incomingDamage} from './journey-balance.mjs?v=lumi-public-80';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=lumi-68';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=lumi-public-80';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

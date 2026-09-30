@@ -1,5 +1,5 @@
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=lumi-68';
-import {raidWeeklyStatus} from './raid-rewards.mjs?v=lumi-68';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=lumi-public-80';
+import {raidWeeklyStatus} from './raid-rewards.mjs?v=lumi-public-80';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const btn=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
 function rewardDetails(raid){

@@ -1,8 +1,8 @@
-import {PET_ID,summonPet,equipPet,fieldPetDeath} from './pet-event.mjs?v=fantasy-73';
-import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=fantasy-75';
+import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=lumi-public-80';
+import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=lumi-public-80';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs?v=lumi-68';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs?v=lumi-public-80';
 import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
 import {rollRiftReward} from './rift-rewards.mjs';
@@ -427,6 +427,7 @@ function bossSettle(s, ctx, events) {
         ),
       );
       b.hp = Math.max(0, b.hp - absorbDamage(b,frame.incoming,t*10));
+      petHealTick([b],t*10);
     }
     if (b.hp <= 0) break;
   }
