@@ -63,6 +63,9 @@ Deno.serve(async (req) => {
       Array.isArray(body.args)
     )
       return reply({ error: "INVALID_REQUEST" }, 400);
+    if(['lottoList','lottoBuy'].includes(body.command)){
+      return reply(await rpc('rebirth_lotto',{p_action:body.command==='lottoBuy'?'buy':'list',p_args:body.args,p_request:body.requestId}));
+    }
     if(body.command==='adminTransfer'){
       if(user.app_metadata?.ringu_admin!==true)throw new Error('BETA_DISABLED');
       return reply(await rpc('rebirth_admin_transfer',{p_args:body.args,p_request:body.requestId}));
@@ -177,7 +180,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : "SERVER_RETRY_REQUIRED";
     const business =
-      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_|DAILY_|COOP_|BETA_|SHOP_|PRIME_)/.test(
+      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_|DAILY_|COOP_|BETA_|SHOP_|PRIME_|LOTTO_)/.test(
         message,
       );
     if(!business)console.error("ringu-request-failed",message);

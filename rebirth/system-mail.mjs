@@ -31,6 +31,14 @@ export function deliverSystemMail(state, ctx) {
 export function claimSystemMail(state, id, grantBossGear) {
   state.claimedSystemMail ||= [];
   const chest=(state.rewardMailbox||[]).find(mail=>mail.id===id);
+  if(chest?.kind==='lottoGold' && !state.claimedSystemMail.includes(id)){
+    const amount=chest.rewards?.gold;
+    if(!Number.isSafeInteger(amount)||amount<0||amount>9e12||state.gold+amount>9e12)throw new Error('INVALID_MAIL_REWARD');
+    state.gold+=amount;state.claimedSystemMail.push(id);
+    state.rewardMailbox=state.rewardMailbox.filter(mail=>mail.id!==id);
+    state.systemMailbox=state.systemMailbox.filter(mail=>mail.id!==id);
+    return {type:'lottoGold',id,amount};
+  }
   if(chest && !state.claimedSystemMail.includes(id)){
     if(chest.kind!=="lumiBossChest"||!grantBossGear)throw new Error("INVALID_MAIL_REWARD");
     const reward=grantBossGear();

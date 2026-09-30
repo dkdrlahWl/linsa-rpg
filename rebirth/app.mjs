@@ -1,3 +1,5 @@
+import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=lotto-85';
+let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=priest-potential-83';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -164,6 +166,8 @@ const errors = {
   SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
 };
 function message(e) {
+  const lotteryErrors={LOTTO_DUPLICATE:'이번 주에 이미 구매한 번호입니다.',LOTTO_DAILY_LIMIT:'오늘은 3장을 모두 구매했습니다.',LOTTO_ROUND_CHANGED:'추첨 회차가 바뀌었습니다. 로또 화면을 다시 열어주세요.',INVALID_LOTTO_NUMBERS:'1~18 중 서로 다른 번호 2개를 선택하세요.'};
+  if(lotteryErrors[e.message])return lotteryErrors[e.message];
   if(e.message==='BETA_DISABLED')return '관리자만 사용할 수 있습니다.';
   if(e.message==='INVALID_TRANSFER_LIMIT')return '받는 계정의 보유 한도(9조)를 초과합니다. 수량을 줄여 주세요.';
   if(e.message==='INVALID_TRANSFER_RECIPIENT')return '받는 계정을 찾을 수 없습니다. 랭킹을 새로고침해 주세요.';
@@ -306,6 +310,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     localStorage.removeItem(pendingKey());
     const audioPrevious=state;
     state = D.normalizePotentialState(result.state);
+    if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
     if(result.coopRooms)coopRooms=result.coopRooms;
@@ -426,7 +431,7 @@ function render() {
   else if (view === "regions") content = regions();
   else
     content = {
-      event:()=>petEventView(state),
+      event:()=>eventPage==='lotto'?lottoView(state,lottoData):petEventView(state).replace('<div class="pet-scene">','<div class="pet-scene"><button class="pet-lotto-link" data-action="eventPage" data-arg="lotto" data-illustrated="1">주간 로또 ›</button>'),
       hunt: hunt,
       character: character,
       gear: inventory,
@@ -434,7 +439,8 @@ function render() {
       market: market,
     }[tab]();
   const eventScreen=tab==="event"&&view==="game"&&!state.coopRoom&&!towerBattle&&!state.partyRoom;
-  document.body.classList.toggle("pet-event-mode",eventScreen);
+  document.body.classList.toggle("pet-event-mode",eventScreen&&eventPage!=="lotto");
+  document.body.classList.toggle("lotto-mode",eventScreen&&eventPage==="lotto");
   replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
   window.scrollTo({top:preservedScroll,behavior:"instant"});
   updatePetCountdown();
@@ -787,6 +793,8 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
+    if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
+    if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
     if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
     if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
@@ -870,6 +878,7 @@ function reward() {
   );
 }
 function clearAccountView() {
+  lottoData=null;lottoLoadedAt=0;clearLotto();
   clearDisclosureState();
   if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
   state=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
@@ -1029,6 +1038,11 @@ document.addEventListener("click", async (e) => {
   try {
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
+    if(action==='eventPage'){eventPage=arg;tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
+    if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
+    if(action==='lottoAuto'){autoLotto(lottoData);return render();}
+    if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
+    if(action==='lottoBuy'){if(busy||lottoSelection.length!==2||!lottoData)return;const r=await command('lottoBuy',{numbers:[...lottoSelection],drawAt:lottoData.drawAt});if(r?.result?.events?.some(e=>e.type==='lottoBuy')){clearLotto();render();}return;}
     if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
     if(action==="battlePotion")return await command("battlePotion");
     if(action==='autoSkills'){regularAutoSkills=!regularAutoSkills;render();return;}
@@ -1084,6 +1098,7 @@ document.addEventListener("click", async (e) => {
       window.scrollTo({top:0,behavior:"instant"});
       if(enteringHunt)requestAutoHunt();
       if (tab === "market") await marketLoad();
+      if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
       return;
     }
     if (action === "bossSub") {bossTab=arg;render();if(["coop","wave","advancement","raid"].includes(arg))await refreshCoopRooms();return;}
@@ -1404,6 +1419,7 @@ setInterval(() => {
   }
   const partyLobbyOpen = false;
   const due = state.coopRoom&&coopRoom?.status==='waiting'?2000:state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;
+  if(view==='game'&&tab==='event'&&eventPage==='lotto'&&Date.now()-lottoLoadedAt>30000){command('lottoList',{},true).catch(()=>{});return;}
   if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
 }, 250);
 function strike(arena, frame = null) {
