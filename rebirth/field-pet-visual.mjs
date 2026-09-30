@@ -1,9 +1,9 @@
 import {fieldPetHP,fieldPetDeath} from './pet-event.mjs?v=lumi-public-80';
 
 // Describe the actual field heal, including HP immediately before it.
-export function fieldPetVisual(maxHp,damage,seconds){
+export function fieldPetVisual(maxHp,damage,seconds,defeated=false){
  const hp=fieldPetHP(maxHp,damage,seconds);
- if(damage<=0||seconds>=fieldPetDeath(maxHp,damage))return {hp,readyIn:0,healAt:null,amount:0,before:hp};
+ if(defeated||damage<=0||seconds>=fieldPetDeath(maxHp,damage))return {hp,readyIn:0,healAt:null,amount:0,before:hp};
  const first=Math.ceil(maxHp*.08/damage)*1.5;
  if(seconds<first)return {hp,readyIn:0,healAt:null,amount:0,before:hp};
  const healAt=first+Math.floor((seconds-first)/30)*30;
