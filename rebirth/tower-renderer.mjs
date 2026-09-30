@@ -1,4 +1,4 @@
-import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-potential-83';
+import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-perf-86';
 import {drawSecondSequence} from './second-effects.mjs?v=priest-potential-83';
 import {drawWaveCreature} from './wave-motion.mjs?v=priest-potential-83';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=priest-potential-83';
