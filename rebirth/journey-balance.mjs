@@ -28,7 +28,7 @@ export function balanceWorld(stages,bosses,raids){
   b.cubes=n===2?18:6;b.material=0;
   b.level=b.id===29?200:b.region===0?1+n*5:Math.min(200,b.region*20+n*6);
   b.gearLevel=dropEquipmentLevel(b.level);
-  b.dropChance=(n===2?.25:.10)*(b.level>=150?.5:1);
+  b.dropChance=(n===2?.25:.10)*(b.gearLevel>=150?.5:1);
   b.recommended={...b.recommended,gear:Math.max(1,b.region*20),stars:Math.min(20,Math.round(b.region*2)),pot:b.region>=2,target:100};
  }
  const raidValues=[{hp:1200000,attack:500,seconds:240,gold:18000,fragment:100,cube:16,highCubeChance:.5},{hp:9000000,attack:2200,seconds:240,gold:60000,fragment:240,cube:30,highCubeChance:1}];
