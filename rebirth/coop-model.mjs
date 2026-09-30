@@ -1,13 +1,13 @@
 import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs';
 import {startRaid,advanceRaidRaw} from './raid-model.mjs';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=lumi-public-80';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-potential-83';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 export const coopEncounter=room=>room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=lumi-public-80';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=priest-potential-83';
 import {beginFourth,stepFourth} from './fourth-job.mjs';
 import {beginThird,stepThird} from './advancement.mjs';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs';

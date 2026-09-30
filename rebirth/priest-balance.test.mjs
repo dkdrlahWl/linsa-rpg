@@ -1,23 +1,31 @@
 import assert from 'node:assert/strict';
 import {fixture,setLines,rotation} from './priest-balance.mjs';
 import {power} from './engine.mjs';
-import {CLASSES} from './data.mjs';
-const priest=setLines(fixture('priest'),{hp:27});
-assert.deepEqual(priest.items[0].baseStats,{hp:3088,stat:394,attack:3081,defense:155});
-assert.deepEqual(priest.items[1].baseStats,{hp:3088,stat:394,attack:377,defense:155});
-const hpDps=rotation(priest),others=CLASSES.filter(c=>c.id!=='priest').map(c=>rotation(setLines(fixture(c.id),{[c.stat]:27}))),ratio=hpDps/(others.reduce((a,b)=>a+b)/others.length);
-assert.ok(ratio>.69&&ratio<.71,`sustained ratio ${ratio}`);
-const lukDps=rotation(setLines(fixture('priest'),{LUK:27})),baseDps=rotation(setLines(fixture('priest'),{}));
-assert.ok(lukDps>baseDps*1.5);assert.ok(lukDps>hpDps*.8&&lukDps<hpDps);
-for(const key of ['LUK','attack','crit','boss'])for(let n=1;n<=27;n++){
- const mixed=setLines(fixture('priest'),{hp:27-n,[key]:n});
- assert.ok(rotation(mixed)<hpDps,`HP beats ${n} ${key} replacements`);
+import {PRIEST_SKILLS,priestAttack} from './priest.mjs';
+// Offensive lines are no longer suppressed to 5% effectiveness.
+const base=power(setLines(fixture('priest'),{}));
+const attack=power(setLines(fixture('priest'),{attack:1}));
+assert.ok(Math.abs(attack.attack/base.attack-1.12)<.0001);
+assert.equal(power(setLines(fixture('priest'),{boss:1})).boss,1.4);
+assert.ok(Math.abs(power(setLines(fixture('priest'),{crit:1})).crit-base.crit-.12)<1e-12);
+assert.equal(power(setLines(fixture('priest'),{crit:27})).crit,.95);
+assert.equal(priestAttack(1000,100,100,20),priestAttack(1000,100,100,0)*1.2);
+let comparisons=0;
+for(const level of [10,30,60,100,150,200])for(const stars of [0,15,25]){
+ const s=fixture('priest',level,stars);
+ for(const value of [3,6,9,12])for(const n of [1,9,27]){
+  const hp=structuredClone(s),atk=structuredClone(s);
+  for(const [key,state] of [['hp',hp],['attack',atk]])state.items.forEach((item,i)=>{item.lines=Array.from({length:Math.max(0,Math.min(3,n-i*3))},()=>({key,value,grade:5}));});
+  const h=power(hp),a=power(atk);
+  assert.ok(h.attack>a.attack,`HP basic: level ${level}, stars ${stars}, ${n}x${value}`);
+  for(const sk of Object.values(PRIEST_SKILLS))assert.ok(h.attack*sk.damage+h.hp*sk.hpRatio>a.attack*sk.damage+a.hp*sk.hpRatio);
+  comparisons++;
+ }
+ const hpDps=rotation(setLines(structuredClone(s),{hp:27}));
+ for(let attack=1;attack<=27;attack++)assert.ok(rotation(setLines(structuredClone(s),{hp:27-attack,attack}))<hpDps,`HP beats attack replacement: ${level}/${stars}/${attack}`);
 }
-for(const level of [30,60,100,150,200])for(const stars of [0,15,25]){
- const hp=setLines(fixture('priest',level,stars),{hp:27}),luk=setLines(fixture('priest',level,stars),{LUK:27});
- assert.ok(power(hp).attack>power(luk).attack,`HP basic damage level ${level} stars ${stars}`);
- assert.ok(rotation(hp)>rotation(luk),`HP all skills level ${level} stars ${stars}`);
-}
-const withoutGearAttack=structuredClone(priest);withoutGearAttack.items.forEach(i=>i.baseStats.attack=0);
-assert.ok(power(withoutGearAttack).attack<power(priest).attack);
-console.log(`PASS: actual max gear, HP potential priority, meaningful LUK, weapon attack included; 180s basic+skills ratio ${(ratio*100).toFixed(2)}%`);
+const p=setLines(fixture('priest'),{hp:27}),without=structuredClone(p);
+without.items.forEach(i=>i.baseStats.attack=0);
+assert.ok(power(without).attack<power(p).attack);
+assert.ok(power(setLines(fixture('priest'),{LUK:1})).attack>base.attack);
+console.log(`PASS: full offensive potential effects; ${comparisons} HP/attack comparisons, all skill coefficients and mixed attack replacements`);

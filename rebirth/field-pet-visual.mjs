@@ -1,4 +1,4 @@
-import {fieldPetHP,fieldPetDeath} from './pet-event.mjs?v=lumi-public-80';
+import {fieldPetHP,fieldPetDeath} from './pet-event.mjs?v=priest-potential-83';
 
 // Describe the actual field heal, including HP immediately before it.
 export function fieldPetVisual(maxHp,damage,seconds,defeated=false){

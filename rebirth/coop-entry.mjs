@@ -1,4 +1,4 @@
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=lumi-public-80';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=priest-potential-83';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){

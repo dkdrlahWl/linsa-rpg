@@ -1,4 +1,4 @@
-import {currencyIconURL} from './currency-icons.mjs?v=lumi-public-80';
+import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const art=i=>`<i class="menu-art" aria-hidden="true" style="background-position:${i%4*100/3}% ${Math.floor(i/4)*100/3}%"></i>`;

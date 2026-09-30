@@ -1,6 +1,6 @@
-import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=lumi-public-80';
-import {PET_ID,PET_NAME,PET_EVENT,petProgress,petRates} from './pet-event.mjs?v=lumi-public-80';
-import {currencyIconURL} from './currency-icons.mjs?v=lumi-public-80';
+import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=priest-potential-83';
+import {PET_ID,PET_NAME,PET_EVENT,petProgress,petRates} from './pet-event.mjs?v=priest-potential-83';
+import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const art=key=>key==='pet'?'pets/lumi.png':key==='gear'?'tower/reward-chest.webp':currencyIconURL(key);
 const rewardImage=key=>key==='gear'?'<span class="pet-chest" role="img" aria-label="보스 장비"></span>':`<img src="${art(key)}" alt="">`;
