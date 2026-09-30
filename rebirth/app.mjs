@@ -1,5 +1,6 @@
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=lumi-public-80';
 import {fieldPetHP} from './pet-event.mjs?v=lumi-public-80';
+import {fieldPetVisual} from './field-pet-visual.mjs?v=lumi-visible-81';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=lumi-public-80';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=lumi-public-80';
 import {waveRewardBody} from './wave-ui.mjs?v=lumi-public-80';
@@ -1449,6 +1450,25 @@ setInterval(() => {
     if(ownBar)ownBar.style.width=(100*hp/p.hp)+"%";
     const ownLabel=$("#field-player-hp");
     if(ownLabel)ownLabel.textContent="내 HP "+fmt(hp)+" / "+fmt(p.hp);
+    let petStatus=arena.querySelector('.field-pet-status');
+    if(p.pet){
+      if(!petStatus){petStatus=document.createElement('small');petStatus.className='field-pet-status';arena.querySelector('.combat-status')?.append(petStatus);}
+      const heal=fieldPetVisual(p.hp,incoming,fightTime);
+      const recent=!recovering&&heal.healAt!==null&&fightTime-heal.healAt<1.5&&heal.amount>0;
+      petStatus.textContent=recovering?'루미 · 부활 대기':recent?'루미 +'+fmt(heal.amount)+' HP 회복':heal.healAt===null?'루미 · 체력 8% 감소 시 회복':'루미 · 회복 쿨타임 '+Math.ceil(heal.readyIn)+'초';
+      if(progress<Number(arena.dataset.petProgress||0))delete arena.dataset.petHealAt;
+      arena.dataset.petProgress=String(progress);
+      if(recent&&arena.dataset.petHealAt!==String(heal.healAt)){
+        arena.dataset.petHealAt=String(heal.healAt);
+        const number=document.createElement('span');number.className='field-pet-heal-number';number.textContent='루미 +'+fmt(heal.amount)+' HP';arena.append(number);
+        arena.classList.remove('field-pet-healing');void arena.offsetWidth;arena.classList.add('field-pet-healing');
+        // Briefly show the damage before the simultaneous heal, then fill the bar.
+        if(ownBar)ownBar.style.width=(100*heal.before/p.hp)+'%';
+        if(ownLabel)ownLabel.textContent='내 HP '+fmt(heal.before)+' / '+fmt(p.hp);
+        setTimeout(()=>{if(ownBar?.isConnected)ownBar.style.width=(100*hp/p.hp)+'%';if(ownLabel?.isConnected)ownLabel.textContent='내 HP '+fmt(hp)+' / '+fmt(p.hp);},180);
+        setTimeout(()=>{number.remove();arena.classList.remove('field-pet-healing');},1400);
+      }
+    }else petStatus?.remove();
     const status=$("#hunt-status");
     if(status)status.textContent=recovering?"부활 대기":defeated?"다음 몬스터 등장 대기":"자동 전투 중";
     const result=$("#field-combat-result");
