@@ -10,8 +10,8 @@ body.lotto-mode{overflow:hidden;background:#030b18}body.lotto-mode #app{height:1
 @media(min-width:701px){.lotto-screen .fantasy-header{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.lotto-screen .fantasy-main-nav{border-top:1px solid #b4966240}.lotto-screen .fantasy-dock{max-width:none}.lotto-screen .fantasy-main-nav .menu-art{width:24px;height:24px;flex-basis:24px}.lotto-screen .fantasy-main-nav>button{font-size:12px}}
 @media(max-height:720px){.lotto-heading{height:19cqw}.lotto-prize{min-height:19cqw;padding-block:1.5cqw}.lotto-prize>strong{font-size:5.8cqw}.lotto-numbers{gap:1cqw 1.5cqw}.lotto-selection{margin-block:1.5cqw}.lotto-panel{padding-block:1.5cqw}}
 .pet-lotto-link{position:absolute;right:2%;top:1%;z-index:8;padding:5px 9px;border:1px solid #d4b775;border-radius:5px;background:#14263ddd;color:#ffe7a2;font-size:11px}
-/* Keep the full purchase action above the unchanged dock at common phone sizes. */
-.lotto-screen{width:min(100vw,54.52dvh)}.lotto-heading{height:21cqw}.lotto-heading h1{font-family:'Noto Sans KR',system-ui,sans-serif;letter-spacing:-.055em}.lotto-prize>strong{font-size:5.65cqw;white-space:nowrap}.lotto-tabs{margin-top:1.8cqw}.lotto-panel{padding-top:2cqw}.lotto-numbers{row-gap:1.2cqw}
-@media(min-width:701px),(max-height:800px){.lotto-screen{width:min(100vw,50dvh)}}
-@media(max-height:800px){.lotto-screen{width:min(100vw,46dvh)}}
-@media(min-width:701px){.lotto-screen{width:min(100vw,47dvh)}}
+/* Keep mobile width independent of viewport height; long content scrolls above the dock. */
+.lotto-heading{height:21cqw}.lotto-heading h1{font-family:'Noto Sans KR',system-ui,sans-serif;letter-spacing:-.055em}.lotto-prize>strong{font-size:5.65cqw;white-space:nowrap}.lotto-tabs{margin-top:1.8cqw}.lotto-panel{padding-top:2cqw}.lotto-numbers{row-gap:1.2cqw}
+
+
+
