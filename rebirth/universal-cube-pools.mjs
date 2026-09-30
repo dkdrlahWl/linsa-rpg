@@ -9,11 +9,19 @@ const pool=(options,reduceDamage=false)=>{
  const criticalKeys=new Set(['crit','critDamage']);
  const criticalCount=reduceDamage?entries.filter(([key])=>criticalKeys.has(key)).length:0;
  const redistributed=otherShare*.5*criticalCount/Math.max(1,entries.length-reduced-criticalCount);
- return entries.flatMap(([key,values])=>{
+ const rows=entries.flatMap(([key,values])=>{
   const a=Array.isArray(values)?values:[values],restricted=reduceDamage&&(key==='attack'||key==='boss');
   const chance=restricted?0.6/entries.length:reduceDamage&&criticalKeys.has(key)?otherShare*.5:otherShare+redistributed;
   return a.map(value=>({key,value,weight:chance/a.length}));
  });
+ // Boss potential chance is one third; distribute the remainder to non-damage options.
+ const bossRows=rows.filter(row=>row.key==='boss');
+ const removed=bossRows.reduce((sum,row)=>sum+row.weight*2/3,0);
+ const recipients=rows.filter(row=>!['boss','attack','crit','critDamage'].includes(row.key));
+ for(const row of bossRows)row.weight/=3;
+ const recipientWeight=recipients.reduce((sum,row)=>sum+row.weight,0);
+ if(removed&&recipientWeight)for(const row of recipients)row.weight+=removed*row.weight/recipientWeight;
+ return rows;
 };
 export const UNIVERSAL_POOLS={
  1:pool({...stats('flat',6),flatHP:60,flatAttack:6,flatDefense:20}),
