@@ -51,7 +51,7 @@ export function investmentNewsItem(n,now=Date.now()){
 }
 export function investmentNewsView(m){
  const rows=m?.news||[];
- return `<section class="invest-news-feed"><p class="invest-news-intro">대륙 경제 속보 · 하루 3~6개 · 한국 시간 기준</p><div class="invest-activity-list">${rows.length?rows.map(n=>investmentNewsItem(n,Date.parse(m.serverNow))).join(''):'<div class="invest-news-empty"><b>아직 발표된 속보가 없습니다</b><p>새로운 소식이 도착하면 여기에 표시됩니다.</p></div>'}<div class="invest-activity-more"></div></div></section>`;
+ return `<section class="invest-news-feed"><p class="invest-news-intro">대륙 경제 속보 · 한국 시간 기준</p><div class="invest-activity-list">${rows.length?rows.map(n=>investmentNewsItem(n,Date.parse(m.serverNow))).join(''):'<div class="invest-news-empty"><b>아직 발표된 속보가 없습니다</b><p>새로운 소식이 도착하면 여기에 표시됩니다.</p></div>'}<div class="invest-activity-more"></div></div></section>`;
 }
 export function investmentTradeItem(p){
  const profit=Number(p.payout)-Number(p.amount),rate=profit/Number(p.amount)*100,label=profit>0?'수익':profit<0?'손실':'본전',refund=p.reason==='reset'||p.reason==='short_removed';
