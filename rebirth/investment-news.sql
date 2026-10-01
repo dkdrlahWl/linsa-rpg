@@ -216,7 +216,7 @@ begin
  perform pg_advisory_xact_lock(71823081);
  insert into rebirth_private.coin_news_days values(p_day) on conflict do nothing;
  if not found then return;end if;
- n:=6+floor(random()*5)::integer;first_minute:=greatest(0,least(1430,p_from));span:=1440-first_minute;
+ n:=4+floor(random()*4)::integer;first_minute:=greatest(0,least(1430,p_from));span:=1440-first_minute;
  for slot in 0..n-1 loop
   lo:=first_minute+floor(slot*span::numeric/n)::integer;hi:=first_minute+floor((slot+1)*span::numeric/n)::integer-1;
   margin:=least(60,greatest(0,(hi-lo)/2));lo:=lo+margin;hi:=hi-margin;
@@ -229,7 +229,7 @@ end $$;
 revoke all on function rebirth_private.coin_news_schedule(date,integer) from public,anon,authenticated;
 create or replace function rebirth_private.coin_up_chance(p_coin integer,p_at timestamptz) returns numeric language sql stable security definer set search_path='' as $$
  with latest as(select c.kind from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog where n.coin=p_coin and n.published_at<=p_at order by n.published_at desc,n.id desc limit 1), cutoff as(select max(n.published_at) at from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog where n.coin=p_coin and n.published_at<=p_at and c.kind<>(select kind from latest))
- select greatest(.05,least(.95,.5*(1+coalesce(sum(case when c.kind='good' then n.boost else -n.boost end),0))))
+ select greatest(.05,least(.95,.5*(1+coalesce(sum(case when c.kind='good' then n.boost*.5 else -n.boost end),0))))
  from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog
  where n.coin=p_coin and n.published_at<=p_at and n.expires_at>p_at and c.kind=(select kind from latest) and ((select at from cutoff) is null or n.published_at>(select at from cutoff))
 $$;

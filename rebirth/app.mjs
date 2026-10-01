@@ -909,7 +909,7 @@ function reward() {
     const remaining=Number.isInteger(r.weeklyUsed)?`이번 주 개인 보상 ${r.weeklyUsed}/${r.weeklyLimit}회 · 남은 보상 ${r.weeklyRemaining}회<br>`:'';
     return open(r.practice?'레이드 연습 완료':'레이드 보상 획득','<h3>'+esc(r.name)+'</h3><p>'+loot+'</p><p class="note">'+remaining+'모든 레이드 보스 합산 · 월요일 00시(한국 시간) 초기화</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+'</p>').join('')+btn('확인','ack','','gold',true));
   }
-  if(r?.type==='coop'&&r.mode==='wave')return open(r.ending?'200웨이브 엔딩 · 보상 지급 완료':'웨이브 종료 · 보상 지급 완료',waveRewardBody(r)+btn('확인','ack','','gold',true));
+  if(r?.type==='coop'&&r.mode==='wave')return open(r.ending?'200웨이브 엔딩 · 보상 지급 완료':'웨이브 종료 · 보상 지급 완료',waveRewardBody(r)+btn('확인','ack','','gold',true),false);
   if(r?.type==='coop')return open(r.won?'개인 상자 획득':'균열 도전 종료','<p>'+(r.won?fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join(''):'장비를 정비하고 다시 도전해 보세요.')+'</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · 잠재 3줄 잠금 (가방이 가득 차면 보관함)</p>').join('')+btn('확인','ack','','gold',true));
   if(r?.type==='advancementTrial')return advancementResult(r);
   if(r?.type==='tower')return towerReward(r);
