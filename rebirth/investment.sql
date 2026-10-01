@@ -33,7 +33,7 @@ begin
      next_price:=greatest(1,ceil(base*.7),least(floor(base*1.3),round(old*(1+change))));
     elsif extract(hour from ev.at at time zone 'Asia/Seoul')<>0 then
      trend:=trend*.65+(random()-.5)*.008;
-     change:=abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.03)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end;
+     change:=abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.045)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end;
      next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
     end if;
    end if;

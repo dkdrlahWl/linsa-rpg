@@ -8,7 +8,7 @@ const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const price=n=>Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2});
 const signed=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(2)+'%';
 const tone=n=>n>=0?'positive':'negative';
-const icon=id=>`<span class="invest-coin-art" style="--cx:${id%4*100/3}%;--cy:${Math.floor(id/4)*100}%" aria-hidden="true"></span>`;
+const icon=id=>`<span class="invest-coin-art ${id===1?'invest-ringu-owl':''}" style="--cx:${id%4*100/3}%;--cy:${Math.floor(id/4)*100}%" aria-hidden="true"></span>`;
 export function positionValue(p,c){return Math.max(0,p.amount*c.price/p.entry);}
 export function chartSVG(c){
  const rows=c.candles||[];
