@@ -29,7 +29,7 @@ begin
    next_price:=old;
    if old<floor(base*1.3) and old>ceil(base*.7) then
     if ev.kind_order=1 then
-     change:=(.03+random()*.03)*case when ev.news_kind='good' then 1 else -1 end;
+     change:=(.03+random()*.08)*case when ev.news_kind='good' then 1 else -1 end;
      next_price:=greatest(1,ceil(base*.7),least(floor(base*1.3),round(old*(1+change))));
     elsif extract(hour from ev.at at time zone 'Asia/Seoul')<>0 then
      trend:=trend*.65+(random()-.5)*.008;
