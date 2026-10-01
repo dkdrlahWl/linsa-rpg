@@ -14,9 +14,9 @@ await db.exec('update rebirth_private.coin_market set price=1100 where id=0');r=
 await assert.rejects(()=>trade('buy',{coin:0,side:'short',quantity:10,tickAt:tick}));
 await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:-1,tickAt:tick}));await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:999999999,tickAt:tick}));await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:1,tickAt:'2020-01-01'}));
 await db.exec(`insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values('${other}',0,'long',10,1000)`);const foreign=(await db.query(`select id from rebirth_private.coin_positions where user_id='${other}'`)).rows[0].id;await assert.rejects(()=>trade('sell',{position:foreign,tickAt:tick}));
-await db.exec(`update rebirth_private.coin_market set tick_at=date_trunc('hour',now())-interval '72 hours',day_key=(now()-interval '72 hours')::date,price=1000,day_base=1000;select rebirth_private.coin_tick();`);
+await db.exec(`update rebirth_private.coin_market set tick_at=date_bin(interval '30 minutes',now(),timestamptz '2000-01-01 00:00:00+00')-interval '72 hours',day_key=(now()-interval '72 hours')::date,price=1000,day_base=1000;select rebirth_private.coin_tick();`);
 await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:1.5,tickAt:tick}));
-const rows=(await db.query('select * from rebirth_private.coin_candles order by coin,at')).rows;assert.equal(rows.length,576);for(const x of rows)assert.ok(Math.abs(Number(x.close)/Number(x.open)-1)<=.050001);
+const rows=(await db.query('select * from rebirth_private.coin_candles order by coin,at')).rows;assert.equal(rows.length,1152);for(const x of rows)assert.ok(Math.abs(Number(x.close)/Number(x.open)-1)<=.050001);
 const groups=new Map();for(const x of rows){const day=new Date(new Date(x.at).getTime()+9*3600000).toISOString().slice(0,10),key=x.coin+day;if(!groups.has(key))groups.set(key,Number(x.open));const base=groups.get(key);assert.ok(Number(x.close)>=base*.7-.00001&&Number(x.close)<=base*1.3+.00001);}
 const source=fs.readFileSync(new URL('./investment.sql',import.meta.url),'utf8');
 const tickSQL=source.slice(source.indexOf('create or replace function rebirth_private.coin_tick()'),source.indexOf('revoke all on function rebirth_private.coin_tick()')).replace("clock_timestamp()","current_setting('test.coin_now')::timestamptz");
@@ -27,6 +27,9 @@ await db.exec("select set_config('test.coin_now','2026-10-01 15:00:00+00',false)
 for(const c of (await db.query('select * from rebirth_private.coin_market')).rows){assert.equal(Number(c.price),c.id%2===0?1300:700);assert.equal(Number(c.price),Number(c.day_base));assert.equal(new Date(c.day_key).toISOString().slice(0,10),'2026-10-02');}
 await db.exec("select set_config('test.coin_now','2026-10-01 16:00:00+00',false);select rebirth_private.coin_tick();");
 assert.equal((await db.query("select count(*) n from rebirth_private.coin_market where trend<>0")).rows[0].n,8);
+await db.exec("select set_config('test.coin_now','2026-10-01 15:30:00+00',false);update rebirth_private.coin_market set price=10000,day_base=10000,day_key='2026-10-02',tick_at='2026-10-01 15:00:00+00',trend=0;select rebirth_private.coin_tick();");
+assert.equal((await db.query("select count(*) n from rebirth_private.coin_market where tick_at='2026-10-01 15:30:00+00' and trend<>0")).rows[0].n,8);
+assert.equal((await db.query("select count(*) n from rebirth_private.coin_candles where at='2026-10-01 15:30:00+00'")).rows[0].n,8);
 // News probabilities change relatively; the unpublished schedule stays private.
 await db.exec("delete from rebirth_private.coin_news;delete from rebirth_private.coin_news_days;");
 const newsSQL=fs.readFileSync(new URL('./investment-news.sql',import.meta.url),'utf8');await db.exec(newsSQL.slice(newsSQL.indexOf('create or replace function rebirth_private.coin_news_schedule'),newsSQL.indexOf('create or replace function rebirth_private.coin_up_chance')));

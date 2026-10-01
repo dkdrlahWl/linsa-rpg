@@ -1,4 +1,4 @@
--- Hourly shared game market. No real-money assets or external prices.
+-- Half-hour shared game market. No real-money assets or external prices.
 create table if not exists rebirth_private.coin_market(id integer primary key check(id between 0 and 7), name text not null, price numeric not null check(price>0), day_base numeric not null, day_key date not null, tick_at timestamptz not null, trend numeric not null default 0);
 create table if not exists rebirth_private.coin_candles(coin integer not null references rebirth_private.coin_market(id), at timestamptz not null, open numeric not null, close numeric not null, primary key(coin,at));
 create table if not exists rebirth_private.coin_positions(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,coin integer not null references rebirth_private.coin_market(id),side text not null check(side in ('long','short')),amount numeric not null check(amount>0),entry numeric not null check(entry>0),opened_at timestamptz not null default now(),closed_at timestamptz,status text not null default 'open' check(status in ('open','sold','liquidated')),payout numeric,fee numeric,closed_reason text);
@@ -9,10 +9,10 @@ alter table rebirth_private.coin_candles enable row level security;
 alter table rebirth_private.coin_positions enable row level security;
 revoke all on rebirth_private.coin_market,rebirth_private.coin_candles,rebirth_private.coin_positions from public,anon,authenticated;
 insert into rebirth_private.coin_market(id,name,price,day_base,day_key,tick_at)
-select i,n,10000,10000,(now() at time zone 'Asia/Seoul')::date,date_trunc('hour',now()) from unnest(array['도현코인','링구코인','원재코인','민정코인','지원코인','민지코인','성민코인','예찬코인']) with ordinality as a(n,k) cross join lateral (select (k-1)::integer i) q on conflict do nothing;
+select i,n,10000,10000,(now() at time zone 'Asia/Seoul')::date,date_bin(interval '30 minutes',now(),timestamptz '2000-01-01 00:00:00+00') from unnest(array['도현코인','링구코인','원재코인','민정코인','지원코인','민지코인','성민코인','예찬코인']) with ordinality as a(n,k) cross join lateral (select (k-1)::integer i) q on conflict do nothing;
 create or replace function rebirth_private.coin_tick() returns void language plpgsql security definer set search_path='' as $$
 <<tick>>
-declare c rebirth_private.coin_market%rowtype; ev record; t timestamptz; v_now timestamptz:=clock_timestamp(); target timestamptz:=date_trunc('hour',v_now); d date; old numeric; base numeric; next_price numeric; trend numeric; change numeric; schedule_day date;
+declare c rebirth_private.coin_market%rowtype; ev record; t timestamptz; v_now timestamptz:=clock_timestamp(); target timestamptz:=date_bin(interval '30 minutes',v_now,timestamptz '2000-01-01 00:00:00+00'); d date; old numeric; base numeric; next_price numeric; trend numeric; change numeric; schedule_day date;
 begin
  perform pg_advisory_xact_lock(71823081);
  for schedule_day in select generate_series(greatest((select min(tick_at)::date from rebirth_private.coin_market),(select min(day) from rebirth_private.coin_news_days)),(target at time zone 'Asia/Seoul')::date,interval '1 day')::date loop
@@ -21,7 +21,7 @@ begin
  for c in select * from rebirth_private.coin_market order by id for update loop
   t:=c.tick_at;old:=c.price;base:=c.day_base;d:=c.day_key;trend:=c.trend;
   for ev in select * from (
-   select h as at,0 as kind_order,null::uuid as news_id,null::text as news_kind from generate_series(c.tick_at+interval '1 hour',target,interval '1 hour') h
+   select h as at,0 as kind_order,null::uuid as news_id,null::text as news_kind from generate_series(c.tick_at+interval '30 minutes',target,interval '30 minutes') h
    union all
    select n.published_at,1,n.id,cat.kind from rebirth_private.coin_news n join rebirth_private.coin_news_catalog cat on cat.id=n.catalog where n.coin=c.id and n.applied_at is null and n.published_at<=v_now
   ) events order by at,kind_order,news_id loop
@@ -31,13 +31,13 @@ begin
     if ev.kind_order=1 then
      change:=(.03+random()*.08)*case when ev.news_kind='good' then 1 else -1 end;
      next_price:=greatest(1,ceil(base*.7),least(floor(base*1.3),round(old*(1+change))));
-    elsif extract(hour from ev.at at time zone 'Asia/Seoul')<>0 then
+    elsif (ev.at at time zone 'Asia/Seoul')::time<>time '00:00' then
      trend:=trend*.65+(random()-.5)*.008;
      change:=abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.045)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end;
      next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
     end if;
    end if;
-   insert into rebirth_private.coin_candles(coin,at,open,close) values(c.id,date_trunc('hour',ev.at),old,next_price) on conflict(coin,at) do update set close=excluded.close;
+   insert into rebirth_private.coin_candles(coin,at,open,close) values(c.id,date_bin(interval '30 minutes',ev.at,timestamptz '2000-01-01 00:00:00+00'),old,next_price) on conflict(coin,at) do update set close=excluded.close;
    if ev.kind_order=1 then update rebirth_private.coin_news set applied_at=v_now,instant_change=case when old>0 then next_price/old-1 else 0 end where id=ev.news_id;else t:=ev.at;end if;
    old:=next_price;
   end loop;
@@ -88,7 +88,7 @@ begin
    insert into rebirth_private.receipts(user_id,request_id,fingerprint,result) values(u,p_request,fp,result);
   end if;
  end if;
- select jsonb_agg(jsonb_build_object('id',m.id,'name',m.name,'price',m.price,'dayBase',m.day_base,'tickAt',m.tick_at,'candles',coalesce((select jsonb_agg(q order by q.at) from (select at,open,close from rebirth_private.coin_candles where coin=m.id order by at desc limit 48) q),'[]'::jsonb)) order by m.id) into market from rebirth_private.coin_market m;
+ select jsonb_agg(jsonb_build_object('id',m.id,'name',m.name,'price',m.price,'dayBase',m.day_base,'tickAt',m.tick_at,'candles',coalesce((select jsonb_agg(q order by q.at) from (select at,open,close from rebirth_private.coin_candles where coin=m.id order by at desc limit 1440) q),'[]'::jsonb)) order by m.id) into market from rebirth_private.coin_market m;
  select coalesce(jsonb_agg(jsonb_build_object('id',id,'coin',coin,'side',side,'quantity',h.amount/h.entry,'amount',h.amount,'entry',h.entry,'openedAt',h.opened_at) order by h.opened_at desc),'[]'::jsonb) into positions from rebirth_private.coin_positions h where h.user_id=u and h.status='open';
  select coalesce(jsonb_agg(q order by q."closedAt" desc),'[]'::jsonb) into history from (select h.coin,h.side,h.amount,h.payout,h.fee,h.status,h.closed_reason as reason,h.closed_at as "closedAt" from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open' order by h.closed_at desc limit 20) q;
  select coalesce(jsonb_agg(q order by q."publishedAt" desc),'[]'::jsonb) into news from (
@@ -96,7 +96,7 @@ begin
   from rebirth_private.coin_news n join rebirth_private.coin_news_catalog nc on nc.id=n.catalog
   where n.published_at<=v_now and n.published_at>=v_now-interval '7 days' order by n.published_at desc limit 28
  ) q;
- return jsonb_build_object('state',p.state,'revision',p.revision,'investment',jsonb_build_object('coins',market,'positions',positions,'history',history,'news',news,'serverNow',v_now,'nextAt',date_trunc('hour',v_now)+interval '1 hour'),'result',result);
+ return jsonb_build_object('state',p.state,'revision',p.revision,'investment',jsonb_build_object('coins',market,'positions',positions,'history',history,'news',news,'serverNow',v_now,'nextAt',date_bin(interval '30 minutes',v_now,timestamptz '2000-01-01 00:00:00+00')+interval '30 minutes'),'result',result);
 end $$;
 revoke all on function rebirth_private.investment(text,jsonb,uuid) from public,anon;
 grant execute on function rebirth_private.investment(text,jsonb,uuid) to authenticated;
