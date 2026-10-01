@@ -1,3 +1,4 @@
+import {bossSalePrice} from './shop-model.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=priest-potential-83';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
@@ -512,6 +513,7 @@ export function execute(input, command, args = {}, ctx) {
   check(!s.coopRoom || ["sync","ack"].includes(command), "BATTLE_IN_PROGRESS");
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
+  if(command==="shopSell")check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
@@ -726,6 +728,18 @@ export function execute(input, command, args = {}, ctx) {
     case "lock": {
       const it = gear(s, args.id);
       it.locked = !it.locked;
+      break;
+    }
+    case "shopSell": {
+      const it=gear(s,args.id);
+      check(it.boss===true,"SHOP_BOSS_ONLY");
+      writable(s,it);
+      check(!Object.values(s.equipped).includes(it.id),"ITEM_EQUIPPED");
+      const gold=bossSalePrice(it);
+      check(gold>0,"INVALID_SHOP_ITEM");
+      check(Number.isSafeInteger(s.gold+gold),"INVALID_SHOP_GOLD_RANGE");
+      removeItem(s,it);s.gold+=gold;
+      events.push({type:"shopSell",item:it,gold});
       break;
     }
     case "salvage": {

@@ -1,10 +1,12 @@
+import {shopView} from './shop-ui.mjs?v=shop-17';
+import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-chart-16';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-swords-95';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=invest-unread-6';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=invest-unread-6';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=shop-17';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=invest-unread-6';
@@ -25,7 +27,7 @@ import * as D from "./data.mjs?v=boss-drop-87";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=priest-potential-83";
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=priest-potential-83";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=shop-17";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -175,6 +177,7 @@ function message(e) {
   const lotteryErrors={LOTTO_DUPLICATE:'이번 주에 이미 구매한 번호입니다.',LOTTO_DAILY_LIMIT:'오늘은 3장을 모두 구매했습니다.',LOTTO_ROUND_CHANGED:'추첨 회차가 바뀌었습니다. 로또 화면을 다시 열어주세요.',INVALID_LOTTO_NUMBERS:'1~18 중 서로 다른 번호 2개를 선택하세요.'};
   if(lotteryErrors[e.message])return lotteryErrors[e.message];
   if(e.message==='BETA_DISABLED')return '관리자만 사용할 수 있습니다.';
+  if(e.message==='SHOP_BOSS_ONLY')return '보스장비만 판매할 수 있어요.';
   if(e.message==='INVALID_TRANSFER_LIMIT')return '받는 계정의 보유 한도(9조)를 초과합니다. 수량을 줄여 주세요.';
   if(e.message==='INVALID_TRANSFER_RECIPIENT')return '받는 계정을 찾을 수 없습니다. 랭킹을 새로고침해 주세요.';
   if(e.message==='RAID_PRIEST_REQUIRED')return '사제 1명 이상이 있어야 레이드를 출발할 수 있습니다.';
@@ -470,6 +473,7 @@ function render() {
       gear: inventory,
       boss: bosses,
       market: market,
+      shop:()=>shopView(state,D,gearMarkup),
       investment:()=>investmentView(state,investmentData),
     }[tab]();
   document.body.classList.toggle('investment-mode',tab==='investment'&&view==='game'&&!state.battle&&!state.coopRoom&&!state.partyRoom);
@@ -858,7 +862,8 @@ function showEvents(events) {
     if(e.type==="coop"){tab="boss";bossTab=e.mode==="wave"?"wave":"coop";view="game";render();reward();continue;}
     if(e.type==="exchangeGear")open("장비 교환 완료",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
-    if(e.type==="salvage")open("장비 분해 완료",`<p>장비 ${e.count}개를 분해했습니다.</p><p class="salvage-reward"><strong>장비 파편 ${fmt(e.fragments)}개 획득</strong></p><p class="note">현재 보유 ${fmt(state.materials.fragment)}개</p>${btn("확인","close","","gold")}`);
+    if(e.type==="shopSell")toast(`셀리아: 고마워! ${fmt(e.gold)} G를 지급했어.`);
+    if(e.type=="salvage")open("장비 분해 완료",`<p>장비 ${e.count}개를 분해했습니다.</p><p class="salvage-reward"><strong>장비 파편 ${fmt(e.fragments)}개 획득</strong></p><p class="note">현재 보유 ${fmt(state.materials.fragment)}개</p>${btn("확인","close","","gold")}`);
 
     if(e.type==='advancementTrial'){tab='boss';bossTab='advancement';view='game';render();advancementResult(e);continue;}
     if(e.type==='tower'){tab='boss';bossTab='tower';view='game';render();towerReward(e);continue;}
@@ -1091,6 +1096,13 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
+    if(action==='shopSellPick'){
+      const it=state.items.find(x=>x.id===arg),reason=bossSaleBlock(state,it);if(reason)return toast(reason);
+      open("보스장비 판매 확인",`<div class="shop-confirm-item">${gearMarkup(it,"big-item")}<div><strong>${esc(D.gearName(it))}</strong><p>Lv.${it.level} · ${D.SLOTS[it.slot]} · ${it.stars||0}성</p></div></div><div class="shop-confirm-price">${fmt(bossSalePrice(it))} G</div><p class="note">판매하면 이 장비는 가방에서 사라집니다. 판매할까요?</p><div class="actions">${btn("취소","close")}${btn("판매 확정","shopSellConfirm",it.id,"gold",true)}</div>`);return;
+    }
+    if(action==='shopSellConfirm'){
+      const it=state.items.find(x=>x.id===arg),reason=bossSaleBlock(state,it);if(reason)return toast(reason);modal.close();return await command('shopSell',{id:arg});
+    }
     if(action==='lottoBuy'){if(busy||lottoSelection.length!==2||!lottoData)return;const r=await command('lottoBuy',{numbers:[...lottoSelection],drawAt:lottoData.drawAt});if(r?.result?.events?.some(e=>e.type==='lottoBuy')){clearLotto();render();}return;}
     if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
     if(action==="battlePotion")return await command("battlePotion");
