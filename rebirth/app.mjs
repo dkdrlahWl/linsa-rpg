@@ -1,5 +1,5 @@
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-unread-6';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-history-7';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-swords-95';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=invest-unread-6';
@@ -270,6 +270,22 @@ async function refreshNewsNotifications(force=false,seen=[]){
  try{return await newsPollPending;}finally{newsPollPending=null;}
 }
 setInterval(()=>{if(session&&state&&!document.hidden&&navigator.onLine&&Date.now()>=retryAt)refreshNewsNotifications().catch(()=>{});},1000);
+let activityVersion=0;
+async function openCoinActivity(kind){
+ const version=++activityVersion,account=session?.user?.id;await ensureToken();
+ const fetchPage=(before=null,id=null)=>request('/rest/v1/rpc/rebirth_coin_activity',{p_kind:kind,p_before:before,p_before_id:id});
+ const first=await fetchPage();if(version!==activityVersion||session?.user?.id!==account)return;
+ let rows=first.items.slice(0,14),more=first.items.length>14,last=rows.at(-1),loading=false;
+ open(kind==='news'?'코인 속보':'코인 거래내역',kind==='news'?investmentNewsView({news:rows,serverNow:first.serverNow}):investmentHistoryView(rows));modal.classList.add('invest-activity-dialog');
+ const list=modal.querySelector('.invest-activity-list'),end=list.querySelector('.invest-activity-more');
+ const updateEnd=()=>{end.textContent=loading?'이전 기록 불러오는 중…':more?'아래로 내려 이전 기록 보기':rows.length?'마지막 기록입니다':'';};updateEnd();
+ const acknowledge=ids=>refreshNewsNotifications(true,ids).catch(()=>{});
+ if(kind==='news')acknowledge(rows.map(n=>n.id));
+ list.addEventListener('scroll',async()=>{
+  if(loading||!more||list.scrollTop+list.clientHeight<list.scrollHeight-90)return;
+  loading=true;updateEnd();try{const page=await fetchPage(last[kind==='news'?'publishedAt':'closedAt'],last.id);if(!modal.open||version!==activityVersion||session?.user?.id!==account)return;const next=page.items.slice(0,14);end.insertAdjacentHTML('beforebegin',next.map(n=>kind==='news'?investmentNewsItem(n,Date.parse(page.serverNow)):investmentTradeItem(n)).join(''));rows.push(...next);last=next.at(-1)||last;more=page.items.length>14;if(kind==='news')await acknowledge(next.map(n=>n.id));}catch{end.textContent='불러오지 못했습니다. 다시 내려 주세요.';}finally{loading=false;updateEnd();}
+ });
+}
 let autoHuntPending=false;
 function requestAutoHunt(){autoHuntPending=true;flushAutoHunt();}
 function flushAutoHunt(){
@@ -746,7 +762,7 @@ async function marketLoad() {
 function open(title, html, closable = true) {
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
-  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog");
+  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog");
   replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = preservedModalScroll;
@@ -819,7 +835,7 @@ function showEvents(events) {
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
     if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
     if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
-    if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
+    if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog", "invest-activity-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
@@ -1066,7 +1082,7 @@ document.addEventListener("click", async (e) => {
   try {
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
-    if(action==='investNews'){b.disabled=true;try{const news=await refreshNewsNotifications(true);if(!news)return;open('코인 속보',investmentNewsView(news)+btn('닫기','close','','gold'));await refreshNewsNotifications(true,news.news.map(n=>n.id));}finally{b.disabled=false;}return;}
+    if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
     if(action==='investCoin'){selectCoin(arg);return render();}
     if(action==='investPercent'){setInvestmentAmount(Math.floor(state.gold*Number(arg)/100/(investmentData?.coins[selectedCoin]?.price||10000)));return render();}
     if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||quantity*investmentData.coins[selectedCoin].price>state.gold)return toast('보유 골드 안에서 정수 수량을 입력해 주세요.');return await command('investBuy',{coin:selectedCoin,side:'long',quantity,tickAt:investmentData.coins[selectedCoin].tickAt});}

@@ -4,6 +4,7 @@ await db.exec(`create role anon;create role authenticated;create role service_ro
 await db.exec(fs.readFileSync(new URL('./investment.sql',import.meta.url),'utf8').split("select cron.schedule")[0]);
 await db.exec(fs.readFileSync(new URL('./investment-news.sql',import.meta.url),'utf8'));
 await db.exec(fs.readFileSync(new URL('./investment-notifications.sql',import.meta.url),'utf8'));
+await db.exec(fs.readFileSync(new URL('./investment-activity.sql',import.meta.url),'utf8'));
 await db.exec('update rebirth_private.coin_market set price=1000,day_base=1000');
 async function trade(action,args={},request=crypto.randomUUID()){return (await db.query('select rebirth_private.investment($1,$2::jsonb,$3::uuid) r',[action,JSON.stringify(args),request])).rows[0].r;}
 let r=await trade('list');assert.equal(r.investment.coins.length,8);const tick=r.investment.coins[0].tickAt;
@@ -45,6 +46,13 @@ notices=await notify([...visibleIds,future]);assert.equal(notices.unread,0);asse
 await db.exec(`create or replace function rebirth_private.session_user() returns uuid language sql as $$select '${other}'::uuid$$;`);assert.equal((await notify()).unread,2);
 await db.exec(`create or replace function rebirth_private.session_user() returns uuid language sql as $$select '${u}'::uuid$$;`);
 await db.exec("insert into rebirth_private.coin_news(day,coin,catalog,published_at,expires_at,boost) values((now() at time zone 'Asia/Seoul')::date,2,2,now()-interval '3 hours',now()+interval '21 hours',.10);");assert.equal((await notify()).unread,1);
+// Older trades page by (time, id), including equal timestamps, without another user's rows.
+await db.exec(`insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry,status,payout,fee,closed_at) select '${u}',0,'long',1000,1000,'sold',1100,12,now()-interval '1 day' from generate_series(1,31);insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry,status,payout,fee,closed_at) values('${other}',7,'long',1000,1000,'sold',9999,1,now());`);
+let cursor=null,cursorId=null,collected=[];
+for(let page=0;page<10;page++){const result=(await db.query('select public.rebirth_coin_activity($1,$2::timestamptz,$3::uuid) r',['trades',cursor,cursorId])).rows[0].r;const batch=result.items.slice(0,14);collected.push(...batch);if(result.items.length<=14)break;cursor=batch.at(-1).closedAt;cursorId=batch.at(-1).id;}
+assert.equal(collected.length,32);assert.equal(new Set(collected.map(x=>x.id)).size,32);assert.ok(collected.every(x=>x.coin!==7));
+const newsPage=(await db.query("select public.rebirth_coin_activity('news') r")).rows[0].r;assert.ok(newsPage.items.every(x=>Date.parse(x.publishedAt)<=Date.parse(newsPage.serverNow)&&!('boost' in x)));
+const {investmentTradeItem}=await import('./investment-ui.mjs');assert.ok(investmentTradeItem({coin:0,amount:1000,payout:1090,closedAt:new Date().toISOString()}).includes('수익 +9.00%'));assert.ok(investmentTradeItem({coin:0,amount:1000,payout:900,closedAt:new Date().toISOString()}).includes('손실 −10.00%'));
 // The reset refunds each investor once, even when rerun.
 await db.exec(`insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values('${u}',0,'long',1000,1000),('${other}',1,'short',2000,1000);insert into rebirth_private.players values('${other}','{"gold":5000}',0,now());`);
 const balances=(await db.query("select id,(state->>'gold')::numeric gold from rebirth_private.players order by id")).rows;
