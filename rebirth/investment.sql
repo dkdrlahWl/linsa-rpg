@@ -1,5 +1,8 @@
 -- Half-hour shared game market. No real-money assets or external prices.
 create table if not exists rebirth_private.coin_market(id integer primary key check(id between 0 and 7), name text not null, price numeric not null check(price>0), day_base numeric not null, day_key date not null, tick_at timestamptz not null, trend numeric not null default 0);
+create table if not exists rebirth_private.coin_next_direction(coin integer primary key references rebirth_private.coin_market(id),side text not null check(side in ('long','short')),scheduled_at timestamptz not null,administrator uuid not null references auth.users(id),updated_at timestamptz not null default now());
+alter table rebirth_private.coin_next_direction enable row level security;
+revoke all on rebirth_private.coin_next_direction from public,anon,authenticated;
 create table if not exists rebirth_private.coin_candles(coin integer not null references rebirth_private.coin_market(id), at timestamptz not null, open numeric not null, close numeric not null, primary key(coin,at));
 create table if not exists rebirth_private.coin_positions(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,coin integer not null references rebirth_private.coin_market(id),side text not null check(side in ('long','short')),amount numeric not null check(amount>0),entry numeric not null check(entry>0),opened_at timestamptz not null default now(),closed_at timestamptz,status text not null default 'open' check(status in ('open','sold','liquidated')),payout numeric,fee numeric,closed_reason text);
 -- Preserve quantities separately so averaging never changes the held coins.
@@ -29,7 +32,7 @@ insert into rebirth_private.coin_market(id,name,price,day_base,day_key,tick_at)
 select i,n,10000,10000,(now() at time zone 'Asia/Seoul')::date,date_bin(interval '30 minutes',now(),timestamptz '2000-01-01 00:00:00+00') from unnest(array['도현코인','링구코인','원재코인','민정코인','지원코인','민지코인','성민코인','예찬코인']) with ordinality as a(n,k) cross join lateral (select (k-1)::integer i) q on conflict do nothing;
 create or replace function rebirth_private.coin_tick() returns void language plpgsql security definer set search_path='' as $$
 <<tick>>
-declare c rebirth_private.coin_market%rowtype; ev record; t timestamptz; v_now timestamptz:=clock_timestamp(); target timestamptz:=date_bin(interval '30 minutes',v_now,timestamptz '2000-01-01 00:00:00+00'); d date; old numeric; base numeric; next_price numeric; trend numeric; change numeric; schedule_day date;
+declare c rebirth_private.coin_market%rowtype; ev record; t timestamptz; v_now timestamptz:=clock_timestamp(); target timestamptz:=date_bin(interval '30 minutes',v_now,timestamptz '2000-01-01 00:00:00+00'); d date; old numeric; base numeric; next_price numeric; trend numeric; change numeric; schedule_day date; forced_side text;
 begin
  perform pg_advisory_xact_lock(71823081);
  for schedule_day in select generate_series(greatest((select min(tick_at)::date from rebirth_private.coin_market),(select min(day) from rebirth_private.coin_news_days)),(target at time zone 'Asia/Seoul')::date,interval '1 day')::date loop
@@ -43,14 +46,16 @@ begin
    select n.published_at,1,n.id,cat.kind from rebirth_private.coin_news n join rebirth_private.coin_news_catalog cat on cat.id=n.catalog where n.coin=c.id and n.applied_at is null and n.published_at<=v_now
   ) events order by at,kind_order,news_id loop
    if d<>(ev.at at time zone 'Asia/Seoul')::date then d:=(ev.at at time zone 'Asia/Seoul')::date;base:=old;trend:=0;end if;
+   forced_side:=null;
+   if ev.kind_order=0 then delete from rebirth_private.coin_next_direction where coin=c.id and scheduled_at<=ev.at returning side into forced_side;end if;
    next_price:=old;
    if old<floor(base*1.3) and old>ceil(base*.7) then
     if ev.kind_order=1 then
      change:=(.03+random()*.08)*case when ev.news_kind='good' then 1 else -1 end;
      next_price:=greatest(1,ceil(base*.7),least(floor(base*1.3),round(old*(1+change))));
-    elsif (ev.at at time zone 'Asia/Seoul')::time<>time '00:00' then
+    elsif forced_side is not null or (ev.at at time zone 'Asia/Seoul')::time<>time '00:00' then
      trend:=trend*.65+(random()-.5)*.008;
-     change:=abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.045)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end;
+     change:=case when forced_side is not null then (.01+random()*.04)*case when forced_side='long' then 1 else -1 end else abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.045)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end end;
      next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
     end if;
    end if;
