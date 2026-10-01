@@ -25,7 +25,7 @@ begin
     next_price:=old;
    else
    trend:=trend*.65+(random()-.5)*.008;
-   change:=greatest(-.05,least(.05,trend+(random()+random()-1)*case when c.id in (1,3) then .02 when c.id in (5,7) then .045 else .03 end));
+   change:=greatest(-.05,least(.05,trend+(random()+random()-1)*.03));
    next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
    end if;
    insert into rebirth_private.coin_candles values(c.id,t,old,next_price) on conflict do nothing;
