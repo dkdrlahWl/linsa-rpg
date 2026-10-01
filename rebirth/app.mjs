@@ -266,7 +266,7 @@ async function refreshNewsNotifications(force=false,seen=[]){
  if(newsPollPending){if(!force)return;await newsPollPending;}
  if(!session||!state||(!force&&Date.now()-newsPollAt<30000))return;
  newsPollAt=Date.now();const account=session.user?.id;
- newsPollPending=(async()=>{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_coin_news_notifications',{p_seen:seen});if(session?.user?.id!==account)return;setNewsNotifications(result);return result;})();
+ newsPollPending=(async()=>{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_coin_news_notifications',{p_seen:seen});if(session?.user?.id!==account)return;const known=new Set(investmentNewsSummary().news.map(n=>n.id)),arrived=result.news.some(n=>!known.has(n.id));setNewsNotifications(result);if(arrived&&view==='game'&&tab==='investment'&&!busy)await command('investList',{},true);return result;})();
  try{return await newsPollPending;}finally{newsPollPending=null;}
 }
 setInterval(()=>{if(session&&state&&!document.hidden&&navigator.onLine&&Date.now()>=retryAt)refreshNewsNotifications().catch(()=>{});},1000);
