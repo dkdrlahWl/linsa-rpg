@@ -63,6 +63,9 @@ Deno.serve(async (req) => {
       Array.isArray(body.args)
     )
       return reply({ error: "INVALID_REQUEST" }, 400);
+    if(['investList','investBuy','investSell'].includes(body.command)){
+      return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
+    }
     if(['lottoList','lottoBuy'].includes(body.command)){
       return reply(await rpc('rebirth_lotto',{p_action:body.command==='lottoBuy'?'buy':'list',p_args:body.args,p_request:body.requestId}));
     }

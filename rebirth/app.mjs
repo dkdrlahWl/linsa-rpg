@@ -1,7 +1,9 @@
+import {investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-1';
+let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-swords-95';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=lotto-85';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=priest-potential-83';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=invest-1';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=priest-potential-83';
@@ -167,6 +169,8 @@ const errors = {
   SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
 };
 function message(e) {
+  if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED')return '정각에 가격이 갱신됐어요. 새 가격을 확인하고 다시 거래해 주세요.';
+  if(e.message==='INVALID_INVESTMENT_POSITION')return '이미 판매 또는 청산된 투자입니다. 투자 화면을 다시 열어 주세요.';
   const lotteryErrors={LOTTO_DUPLICATE:'이번 주에 이미 구매한 번호입니다.',LOTTO_DAILY_LIMIT:'오늘은 3장을 모두 구매했습니다.',LOTTO_ROUND_CHANGED:'추첨 회차가 바뀌었습니다. 로또 화면을 다시 열어주세요.',INVALID_LOTTO_NUMBERS:'1~18 중 서로 다른 번호 2개를 선택하세요.'};
   if(lotteryErrors[e.message])return lotteryErrors[e.message];
   if(e.message==='BETA_DISABLED')return '관리자만 사용할 수 있습니다.';
@@ -311,6 +315,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     localStorage.removeItem(pendingKey());
     const audioPrevious=state;
     state = D.normalizePotentialState(result.state);
+    if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
@@ -329,6 +334,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
+    if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
     if (e.status === 400) {localStorage.removeItem(pendingKey());recoverCharacter=!state&&!!session&&body?.command!=="sync";}
     if (e.status === 401) {
       endSession();
@@ -438,13 +444,16 @@ function render() {
       gear: inventory,
       boss: bosses,
       market: market,
+      investment:()=>investmentView(state,investmentData),
     }[tab]();
+  document.body.classList.toggle('investment-mode',tab==='investment'&&view==='game'&&!state.battle&&!state.coopRoom&&!state.partyRoom);
   const eventScreen=tab==="event"&&view==="game"&&!state.coopRoom&&!towerBattle&&!state.partyRoom;
   document.body.classList.toggle("pet-event-mode",eventScreen&&eventPage!=="lotto");
   document.body.classList.toggle("lotto-mode",eventScreen&&eventPage==="lotto");
   replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
   window.scrollTo({top:preservedScroll,behavior:"instant"});
   updatePetCountdown();
+  updateInvestmentClock(investmentData,investmentLoadedAt);
   refreshLevelRequirements();
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
   if(towerBattle){towerController=new TowerController(app.querySelector('.tower-play'),towerBattle,command,kind=>sounds.play(kind),{audio:b=>sounds.battle(b)});return;}
@@ -795,6 +804,8 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
+    if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
+    if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
     if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
     if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
@@ -881,7 +892,7 @@ function reward() {
 }
 function clearAccountView() {
   closeWarriorLab();
-  lottoData=null;lottoLoadedAt=0;clearLotto();
+  lottoData=null;lottoLoadedAt=0;clearLotto();investmentData=null;investmentLoadedAt=0;resetInvestment();
   clearDisclosureState();
   if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
   state=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
@@ -1020,6 +1031,7 @@ async function marketWrite(action, args) {
     await request("/rest/v1/rpc/rebirth_market", p);
     localStorage.removeItem(key);
   } catch (e) {
+    if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
     if (e.status === 400) localStorage.removeItem(key);
     throw e;
   } finally {
@@ -1031,6 +1043,7 @@ async function marketWrite(action, args) {
   sounds.play("purchase-complete");
   toast("거래가 완료되었습니다.");
 }
+document.addEventListener('input',e=>{if(e.target.id==='invest-amount'){setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent='예상 투자 '+fmt(Number(investmentAmount)*investmentData.coins[selectedCoin].price)+' G · 1배 · 진입 수수료 없음';}});
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-action]");
   if (!b || b.disabled) return;
@@ -1042,6 +1055,10 @@ document.addEventListener("click", async (e) => {
   try {
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
+    if(action==='investCoin'){selectCoin(arg);return render();}
+    if(action==='investPercent'){setInvestmentAmount(Math.floor(state.gold*Number(arg)/100/(investmentData?.coins[selectedCoin]?.price||1000)));return render();}
+    if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||quantity*investmentData.coins[selectedCoin].price>state.gold)return toast('보유 골드 안에서 정수 수량을 입력해 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg,quantity,tickAt:investmentData.coins[selectedCoin].tickAt});}
+    if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,tickAt:investmentData.coins[pos.coin].tickAt});}
     if(action==='eventPage'){eventPage=arg;tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
@@ -1102,6 +1119,7 @@ document.addEventListener("click", async (e) => {
       window.scrollTo({top:0,behavior:"instant"});
       if(enteringHunt)requestAutoHunt();
       if (tab === "market") await marketLoad();
+      if(tab==='investment')await command('investList',{},true);
       if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
       return;
     }
@@ -1424,6 +1442,7 @@ setInterval(() => {
   }
   const partyLobbyOpen = false;
   const due = state.coopRoom&&coopRoom?.status==='waiting'?2000:state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;
+  if(view==='game'&&tab==='investment'){updateInvestmentClock(investmentData,investmentLoadedAt);const due=!investmentData||Date.parse(investmentData.serverNow)+(Date.now()-investmentLoadedAt)>=Date.parse(investmentData.nextAt);if(due||Date.now()-investmentLoadedAt>30000){command('investList',{},true).catch(()=>{});return;}}
   if(view==='game'&&tab==='event'&&eventPage==='lotto'&&Date.now()-lottoLoadedAt>30000){command('lottoList',{},true).catch(()=>{});return;}
   if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
 }, 250);
