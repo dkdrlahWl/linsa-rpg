@@ -8,14 +8,13 @@ async function trade(action,args={},request=crypto.randomUUID()){return (await d
 let r=await trade('list');assert.equal(r.investment.coins.length,8);const tick=r.investment.coins[0].tickAt;
 const request=crypto.randomUUID(),args={coin:0,side:'long',quantity:10,tickAt:tick};r=await trade('buy',args,request);assert.equal(r.state.gold,90000);const id=r.investment.positions[0].id;r=await trade('buy',args,request);assert.equal(r.state.gold,90000);assert.equal(r.investment.positions.length,1);
 await db.exec('update rebirth_private.coin_market set price=1100 where id=0');r=await trade('sell',{position:id,tickAt:tick});assert.equal(r.state.gold,100890);assert.equal(r.result.events[0].fee,110);await assert.rejects(()=>trade('sell',{position:id,tickAt:tick}));
-r=await trade('buy',{coin:0,side:'short',quantity:10,tickAt:tick});const short=r.investment.positions[0].id;await db.exec('update rebirth_private.coin_market set price=990 where id=0');r=await trade('sell',{position:short,tickAt:tick});assert.equal(r.state.gold,101869);
+await assert.rejects(()=>trade('buy',{coin:0,side:'short',quantity:10,tickAt:tick}));
 await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:-1,tickAt:tick}));await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:999999999,tickAt:tick}));await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:1,tickAt:'2020-01-01'}));
 await db.exec(`insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values('${other}',0,'long',10,1000)`);const foreign=(await db.query(`select id from rebirth_private.coin_positions where user_id='${other}'`)).rows[0].id;await assert.rejects(()=>trade('sell',{position:foreign,tickAt:tick}));
 await db.exec(`update rebirth_private.coin_market set tick_at=date_trunc('hour',now())-interval '72 hours',day_key=(now()-interval '72 hours')::date,price=1000,day_base=1000;select rebirth_private.coin_tick();`);
 await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:1.5,tickAt:tick}));
 const rows=(await db.query('select * from rebirth_private.coin_candles order by coin,at')).rows;assert.equal(rows.length,576);for(const x of rows)assert.ok(Math.abs(Number(x.close)/Number(x.open)-1)<=.050001);
 const groups=new Map();for(const x of rows){const day=new Date(new Date(x.at).getTime()+9*3600000).toISOString().slice(0,10),key=x.coin+day;if(!groups.has(key))groups.set(key,Number(x.open));const base=groups.get(key);assert.ok(Number(x.close)>=base*.7-.00001&&Number(x.close)<=base*1.3+.00001);}
-await db.exec(`insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values('${u}',0,'short',1000,1);update rebirth_private.coin_market set tick_at=tick_at-interval '1 hour';select rebirth_private.coin_tick();`);assert.equal((await db.query('select status from rebirth_private.coin_positions where entry=1')).rows[0].status,'liquidated');
 const source=fs.readFileSync(new URL('./investment.sql',import.meta.url),'utf8');
 const tickSQL=source.slice(source.indexOf('create or replace function rebirth_private.coin_tick()'),source.indexOf('revoke all on function rebirth_private.coin_tick()')).replace("clock_timestamp()","current_setting('test.coin_now')::timestamptz");
 await db.exec(tickSQL);
@@ -47,4 +46,4 @@ assert.equal((await db.query("select count(*) n from rebirth_private.coin_positi
 for(const c of (await db.query('select * from rebirth_private.coin_market')).rows){assert.equal(Number(c.price),10000);assert.equal(Number(c.day_base),10000);}
 assert.equal((await db.query('select count(*) n from rebirth_private.coin_candles')).rows[0].n,0);
 const after=(await db.query('select state from rebirth_private.players order by id')).rows;await db.exec(fs.readFileSync(new URL('./investment-reset.sql',import.meta.url),'utf8'));assert.deepEqual((await db.query('select state from rebirth_private.players order by id')).rows,after);
-console.log('PASS: long/short settlement, 1% fee, idempotency, ownership, insufficient gold, stale quote, 72-hour limits, liquidation, daily 2–4 news, private schedules, relative probability weighting and exact 24-hour expiry');await db.close();
+console.log('PASS: buy/sell settlement, short rejection, 1% fee, idempotency, ownership, insufficient gold, stale quote, 72-hour limits, daily 2–4 news, private schedules, relative probability weighting and exact 24-hour expiry');await db.close();

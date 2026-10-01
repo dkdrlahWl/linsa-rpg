@@ -33,7 +33,6 @@ begin
    next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
    end if;
    insert into rebirth_private.coin_candles values(c.id,t,old,next_price) on conflict do nothing;
-   update rebirth_private.coin_positions set status='liquidated',closed_at=t,payout=0,fee=0 where coin=c.id and status='open' and side='short' and next_price>=entry*2;
    old:=next_price;
   end loop;
   update rebirth_private.coin_market set price=old,day_base=base,day_key=d,tick_at=t,trend=tick.trend where id=c.id;
@@ -60,7 +59,7 @@ begin
   else
    if p.state->'battle' is not null and p.state->'battle'<>'null'::jsonb or nullif(p.state->>'coopRoom','') is not null or nullif(p.state->>'partyRoom','') is not null then raise exception 'BATTLE_IN_PROGRESS';end if;
    if p_action='buy' then
-    if coalesce(p_args->>'coin','')!~'^[0-7]$' or coalesce(p_args->>'side','') not in ('long','short') or coalesce(p_args->>'quantity','')!~'^[0-9]+$' then raise exception 'INVALID_INVESTMENT_ORDER';end if;
+    if coalesce(p_args->>'coin','')!~'^[0-7]$' or coalesce(p_args->>'side','')<>'long' or coalesce(p_args->>'quantity','')!~'^[0-9]+$' then raise exception 'INVALID_INVESTMENT_ORDER';end if;
     select * into c from rebirth_private.coin_market where id=(p_args->>'coin')::integer;
     if c.id is null or p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
     amount:=(p_args->>'quantity')::numeric*c.price;
@@ -73,7 +72,7 @@ begin
     if not found or pos.status<>'open' then raise exception 'INVALID_INVESTMENT_POSITION';end if;
     select * into c from rebirth_private.coin_market where id=pos.coin;
     if p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
-    gross:=greatest(0,pos.amount*(1+case when pos.side='long' then 1 else -1 end*(c.price/pos.entry-1)));
+    gross:=greatest(0,pos.amount*c.price/pos.entry);
     fee:=ceil(gross*.01);payout:=greatest(0,floor(gross-fee));
     if coalesce((p.state->>'gold')::numeric,0)+payout>9007199254740991 then raise exception 'INVALID_INVESTMENT_GOLD_RANGE';end if;
     update rebirth_private.coin_positions set status='sold',closed_at=v_now,payout=trade.payout,fee=trade.fee where id=pos.id;
