@@ -37,4 +37,4 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 
 .invest-coin-entry>.invest-coin{width:100%}.invest-admin-direction{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px}.invest-admin-direction button{min-height:28px!important;padding:4px!important;border-radius:5px;font-size:11px!important;color:#fff!important}
 
-.invest-coin-art.invest-minji-tiger{border-radius:0;box-shadow:none;background-image:url('investment/minji-tiger-v1.png');background-size:contain;background-position:center;background-repeat:no-repeat;image-rendering:auto}
+.invest-coin-art.invest-minji-tiger{border-radius:0;box-shadow:none;background-image:url('investment/minji-creature-v2.png');background-size:contain;background-position:center;background-repeat:no-repeat;image-rendering:auto}
