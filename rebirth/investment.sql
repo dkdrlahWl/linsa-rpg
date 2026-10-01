@@ -2,6 +2,23 @@
 create table if not exists rebirth_private.coin_market(id integer primary key check(id between 0 and 7), name text not null, price numeric not null check(price>0), day_base numeric not null, day_key date not null, tick_at timestamptz not null, trend numeric not null default 0);
 create table if not exists rebirth_private.coin_candles(coin integer not null references rebirth_private.coin_market(id), at timestamptz not null, open numeric not null, close numeric not null, primary key(coin,at));
 create table if not exists rebirth_private.coin_positions(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,coin integer not null references rebirth_private.coin_market(id),side text not null check(side in ('long','short')),amount numeric not null check(amount>0),entry numeric not null check(entry>0),opened_at timestamptz not null default now(),closed_at timestamptz,status text not null default 'open' check(status in ('open','sold','liquidated')),payout numeric,fee numeric,closed_reason text);
+-- Preserve quantities separately so averaging never changes the held coins.
+alter table rebirth_private.coin_positions add column if not exists quantity numeric;
+update rebirth_private.coin_positions set quantity=amount/entry where quantity is null;
+-- Fold existing open lots into their oldest row; completed trades stay untouched.
+with totals as (
+ select user_id,coin,side,(array_agg(id order by opened_at,id))[1] keeper,sum(amount) cost,sum(quantity) units
+ from rebirth_private.coin_positions where status='open' group by user_id,coin,side
+)
+update rebirth_private.coin_positions p set amount=t.cost,quantity=t.units,entry=t.cost/t.units
+from totals t where p.id=t.keeper;
+with keepers as (
+ select (array_agg(id order by opened_at,id))[1] keeper,user_id,coin,side
+ from rebirth_private.coin_positions where status='open' group by user_id,coin,side
+)
+delete from rebirth_private.coin_positions p using keepers k
+where p.status='open' and p.user_id=k.user_id and p.coin=k.coin and p.side=k.side and p.id<>k.keeper;
+create unique index if not exists coin_one_holding on rebirth_private.coin_positions(user_id,coin,side) where status='open';
 create index if not exists coin_owner_open on rebirth_private.coin_positions(user_id,status);
 create index if not exists coin_open on rebirth_private.coin_positions(coin) where status='open';
 alter table rebirth_private.coin_market enable row level security;
@@ -70,7 +87,12 @@ begin
     if c.id is null or p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at or p_args->>'price' is null or (p_args->>'price')::numeric<>c.price then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
     amount:=(p_args->>'quantity')::numeric*c.price;
     if (p_args->>'quantity')::numeric<1 or amount>9007199254740991 or amount>coalesce((p.state->>'gold')::numeric,0) then raise exception 'INSUFFICIENT_GOLD';end if;
-    insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values(u,c.id,p_args->>'side',amount,c.price) returning * into pos;
+    insert into rebirth_private.coin_positions as holding(user_id,coin,side,amount,entry,quantity)
+    values(u,c.id,p_args->>'side',amount,c.price,(p_args->>'quantity')::numeric)
+    on conflict(user_id,coin,side) where status='open' do update
+    set amount=holding.amount+excluded.amount,quantity=holding.quantity+excluded.quantity,
+        entry=(holding.amount+excluded.amount)/(holding.quantity+excluded.quantity)
+    returning * into pos;
     update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::numeric-amount)),revision=revision+1,updated_at=now() where id=u returning * into p;
     result:=jsonb_build_object('events',jsonb_build_array(jsonb_build_object('type','investBuy','amount',amount)));
    else
@@ -78,7 +100,7 @@ begin
     if not found or pos.status<>'open' then raise exception 'INVALID_INVESTMENT_POSITION';end if;
     select * into c from rebirth_private.coin_market where id=pos.coin;
     if p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at or p_args->>'price' is null or (p_args->>'price')::numeric<>c.price then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
-    gross:=greatest(0,pos.amount*c.price/pos.entry);
+    gross:=greatest(0,pos.quantity*c.price);
     fee:=ceil(gross*.01);payout:=greatest(0,floor(gross-fee));
     if coalesce((p.state->>'gold')::numeric,0)+payout>9007199254740991 then raise exception 'INVALID_INVESTMENT_GOLD_RANGE';end if;
     update rebirth_private.coin_positions set status='sold',closed_at=v_now,payout=trade.payout,fee=trade.fee where id=pos.id;
@@ -89,7 +111,7 @@ begin
   end if;
  end if;
  select jsonb_agg(jsonb_build_object('id',m.id,'name',m.name,'price',m.price,'dayBase',m.day_base,'tickAt',m.tick_at,'candles',coalesce((select jsonb_agg(q order by q.at) from (select at,open,close from rebirth_private.coin_candles where coin=m.id order by at desc limit 1440) q),'[]'::jsonb)) order by m.id) into market from rebirth_private.coin_market m;
- select coalesce(jsonb_agg(jsonb_build_object('id',id,'coin',coin,'side',side,'quantity',h.amount/h.entry,'amount',h.amount,'entry',h.entry,'openedAt',h.opened_at) order by h.opened_at desc),'[]'::jsonb) into positions from rebirth_private.coin_positions h where h.user_id=u and h.status='open';
+ select coalesce(jsonb_agg(jsonb_build_object('id',id,'coin',coin,'side',side,'quantity',h.quantity,'amount',h.amount,'entry',h.entry,'openedAt',h.opened_at) order by h.opened_at desc),'[]'::jsonb) into positions from rebirth_private.coin_positions h where h.user_id=u and h.status='open';
  select coalesce(jsonb_agg(q order by q."closedAt" desc),'[]'::jsonb) into history from (select h.coin,h.side,h.amount,h.payout,h.fee,h.status,h.closed_reason as reason,h.closed_at as "closedAt" from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open' order by h.closed_at desc limit 20) q;
  select coalesce(jsonb_agg(q order by q."publishedAt" desc),'[]'::jsonb) into news from (
   select n.id,n.coin,nc.kind,nc.headline,n.published_at as "publishedAt",n.expires_at as "expiresAt"

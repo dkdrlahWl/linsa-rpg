@@ -81,4 +81,21 @@ await db.exec("select set_config('test.coin_now','2026-10-02 03:25:00+00',false)
 const secondJump=await coinPrice(0);assert.ok(secondJump>=firstJump*.89-.5&&secondJump<=firstJump*.97+.5);assert.equal(await chance(0,"'2026-10-02 03:25:00+00'::timestamptz"),.4);assert.equal(await chance(0,"'2026-10-03 03:25:00+00'::timestamptz"),.5);
 await db.exec("select set_config('test.coin_now','2026-10-02 03:30:00+00',false);update rebirth_private.coin_market set price=12950 where id=1;insert into rebirth_private.coin_news(day,coin,catalog,published_at,expires_at,boost) values('2026-10-02',1,1,'2026-10-02 03:30:00+00','2026-10-03 03:30:00+00',.10);select rebirth_private.coin_tick();");assert.equal(await coinPrice(1),13000);
 await db.exec("select set_config('test.coin_now','2026-10-02 03:35:00+00',false);insert into rebirth_private.coin_news(day,coin,catalog,published_at,expires_at,boost) values('2026-10-02',1,101,'2026-10-02 03:35:00+00','2026-10-03 03:35:00+00',.10);select rebirth_private.coin_tick();");assert.equal(await coinPrice(1),13000);assert.equal((await db.query("select count(*) n from rebirth_private.coin_candles where coin=0 and at='2026-10-02 03:00:00+00'")).rows[0].n,1);
-console.log('PASS: buy/sell settlement, short rejection, 1% fee, idempotency, ownership, insufficient gold, stale quote, 72-hour limits, daily 2–4 news, private schedules, relative probability weighting and exact 24-hour expiry, account-owned unread receipts');await db.close();
+console.log('PASS: buy/sell settlement, short rejection, 1% fee, idempotency, ownership, insufficient gold, stale quote, 72-hour limits, daily 2–4 news, private schedules, relative probability weighting and exact 24-hour expiry, account-owned unread receipts');
+// Multiple fills use one holding, exact quantity and weighted cost; replay stays idempotent.
+await db.exec(`create or replace function rebirth_private.session_user() returns uuid language sql as $$select '${u}'::uuid$$;update rebirth_private.players set state='{"gold":100000,"battle":null}' where id='${u}';update rebirth_private.coin_market set price=1000,day_base=1000,day_key=(now() at time zone 'Asia/Seoul')::date,tick_at=date_bin(interval '30 minutes',now(),timestamptz '2000-01-01 00:00:00+00');`);
+await db.exec(source.slice(source.indexOf('create or replace function rebirth_private.coin_tick()'),source.indexOf('revoke all on function rebirth_private.coin_tick()')));
+r=await trade('list');const mergedTick=r.investment.coins[3].tickAt;
+r=await trade('buy',{coin:3,side:'long',quantity:10,tickAt:mergedTick});const mergedId=r.investment.positions.find(p=>p.coin===3).id;
+await db.exec('update rebirth_private.coin_market set price=2000 where id=3');
+const addRequest=crypto.randomUUID(),addArgs={coin:3,side:'long',quantity:20,tickAt:mergedTick};
+r=await trade('buy',addArgs,addRequest);r=await trade('buy',addArgs,addRequest);
+const held=r.investment.positions.filter(p=>p.coin===3);assert.equal(held.length,1);assert.equal(held[0].id,mergedId);assert.equal(held[0].quantity,30);assert.equal(held[0].amount,50000);assert.ok(Math.abs(held[0].entry-50000/30)<1e-9);assert.equal(r.state.gold,50000);
+await db.exec('update rebirth_private.coin_market set price=1800 where id=3');r=await trade('sell',{position:mergedId,tickAt:mergedTick});assert.equal(r.state.gold,103460);assert.equal(r.result.events[0].fee,540);
+// Migrating older split holdings preserves cost/quantity and leaves sold rows intact.
+await db.exec(`drop index rebirth_private.coin_one_holding;insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values('${other}',4,'long',10000,1000),('${other}',4,'long',40000,2000);`);
+await db.exec(source.slice(source.indexOf('-- Preserve quantities'),source.indexOf('create index if not exists coin_owner_open')));
+const legacy=(await db.query(`select amount,entry,quantity from rebirth_private.coin_positions where user_id='${other}' and coin=4 and status='open'`)).rows;assert.equal(legacy.length,1);assert.equal(Number(legacy[0].amount),50000);assert.equal(Number(legacy[0].quantity),30);assert.equal((await db.query('select status from rebirth_private.coin_positions where id=$1',[mergedId])).rows[0].status,'sold');
+console.log('PASS: weighted average, combined sale, exact quantity, retry and legacy migration');
+
+await db.close();
