@@ -1,6 +1,6 @@
 -- Cursor paging preserves older news and private realized trade history.
 create or replace function rebirth_private.coin_activity(p_kind text,p_before timestamptz default null,p_before_id uuid default null) returns jsonb language plpgsql security definer set search_path='' as $$
-declare u uuid; v_now timestamptz:=clock_timestamp(); items jsonb;
+declare u uuid; v_now timestamptz:=clock_timestamp(); items jsonb; totals jsonb;
 begin
  u:=rebirth_private.session_user();
  if p_kind='news' then
@@ -12,13 +12,14 @@ begin
    order by n.published_at desc,n.id desc limit 15
   ) q;
  elsif p_kind='trades' then
+  select jsonb_build_object('profit',coalesce(sum(greatest(coalesce(h.payout,0)-h.amount,0)),0),'loss',coalesce(sum(greatest(h.amount-coalesce(h.payout,0),0)),0),'pnl',coalesce(sum(coalesce(h.payout,0)-h.amount),0)) into totals from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open';
   select coalesce(jsonb_agg(q order by q."closedAt" desc,q.id desc),'[]'::jsonb) into items from (
    select h.id,h.coin,h.amount,h.entry,h.payout,h.fee,h.status,h.closed_reason as reason,h.closed_at as "closedAt"
    from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open' and (p_before is null or (h.closed_at,h.id)<(p_before,coalesce(p_before_id,'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid)))
    order by h.closed_at desc,h.id desc limit 15
   ) q;
  else raise exception 'INVALID_COIN_ACTIVITY';end if;
- return jsonb_build_object('items',items,'serverNow',v_now);
+ return jsonb_build_object('items',items,'serverNow',v_now,'totals',totals);
 end $$;
 revoke all on function rebirth_private.coin_activity(text,timestamptz,uuid) from public,anon;
 grant execute on function rebirth_private.coin_activity(text,timestamptz,uuid) to authenticated;

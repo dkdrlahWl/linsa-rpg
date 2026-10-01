@@ -211,15 +211,17 @@ insert into rebirth_private.coin_news_catalog(id,kind,headline) values
 (200,'bad','마왕 토벌보다 원금 회수가 어렵다는 소문 확산')
 on conflict(id) do update set kind=excluded.kind,headline=excluded.headline;
 create or replace function rebirth_private.coin_news_schedule(p_day date,p_from integer default 0) returns void language plpgsql security definer set search_path='' as $$
-declare n integer; minute integer; article integer; at_time timestamptz;
+declare n integer; minute integer; article integer; at_time timestamptz; first_minute integer; span integer; slot integer; lo integer; hi integer; margin integer;
 begin
  perform pg_advisory_xact_lock(71823081);
  insert into rebirth_private.coin_news_days values(p_day) on conflict do nothing;
  if not found then return;end if;
- n:=2+floor(random()*3)::integer;
- for minute in select s from generate_series(greatest(0,least(1436,p_from)),1439) s order by random() limit n loop
-  at_time:=(p_day::timestamp at time zone 'Asia/Seoul')+minute*interval '1 minute';
-  article:=1+floor(random()*200)::integer;
+ n:=2+floor(random()*3)::integer;first_minute:=greatest(0,least(1436,p_from));span:=1440-first_minute;
+ for slot in 0..n-1 loop
+  lo:=first_minute+floor(slot*span::numeric/n)::integer;hi:=first_minute+floor((slot+1)*span::numeric/n)::integer-1;
+  margin:=least(60,greatest(0,(hi-lo)/2));lo:=lo+margin;hi:=hi-margin;
+  minute:=lo+floor(random()*(hi-lo+1))::integer;
+  at_time:=(p_day::timestamp at time zone 'Asia/Seoul')+minute*interval '1 minute';article:=1+floor(random()*200)::integer;
   insert into rebirth_private.coin_news(day,coin,catalog,published_at,expires_at,boost)
   values(p_day,floor(random()*8)::integer,article,at_time,at_time+interval '24 hours',(.10+floor(random()*21)*.01));
  end loop;

@@ -1,5 +1,5 @@
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-news-jump-8';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-totals-10';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-swords-95';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=invest-unread-6';
@@ -276,7 +276,7 @@ async function openCoinActivity(kind){
  const fetchPage=(before=null,id=null)=>request('/rest/v1/rpc/rebirth_coin_activity',{p_kind:kind,p_before:before,p_before_id:id});
  const first=await fetchPage();if(version!==activityVersion||session?.user?.id!==account)return;
  let rows=first.items.slice(0,14),more=first.items.length>14,last=rows.at(-1),loading=false;
- open(kind==='news'?'코인 속보':'코인 거래내역',kind==='news'?investmentNewsView({news:rows,serverNow:first.serverNow}):investmentHistoryView(rows));modal.classList.add('invest-activity-dialog');
+ open(kind==='news'?'코인 속보':'코인 거래내역',kind==='news'?investmentNewsView({news:rows,serverNow:first.serverNow}):investmentHistoryView(rows,first.totals));modal.classList.add('invest-activity-dialog');if(kind==='trades')modal.classList.add('invest-trade-dialog');
  const list=modal.querySelector('.invest-activity-list'),end=list.querySelector('.invest-activity-more');
  const updateEnd=()=>{end.textContent=loading?'이전 기록 불러오는 중…':more?'아래로 내려 이전 기록 보기':rows.length?'마지막 기록입니다':'';};updateEnd();
  const acknowledge=ids=>refreshNewsNotifications(true,ids).catch(()=>{});
@@ -762,7 +762,7 @@ async function marketLoad() {
 function open(title, html, closable = true) {
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
-  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog");
+  modal.classList.remove("enhance-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog");
   replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = preservedModalScroll;
@@ -835,7 +835,7 @@ function showEvents(events) {
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
     if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
     if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
-    if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog", "invest-activity-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
+    if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
