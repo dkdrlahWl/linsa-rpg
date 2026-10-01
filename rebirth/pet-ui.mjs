@@ -1,4 +1,4 @@
-import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=priest-potential-83';
+import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=invest-1';
 import {PET_ID,PET_NAME,PET_EVENT,petProgress,petRates} from './pet-event.mjs?v=priest-potential-83';
 import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
