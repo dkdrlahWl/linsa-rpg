@@ -17,3 +17,5 @@ body:not(.tower-mode) .fantasy-content .investment-screen button::before,body:no
 @media(max-width:480px){.investment-screen .invest-news-toolbar{font-size:9px;padding-left:6px}.investment-screen .invest-news-button{font-size:10px!important;padding:3px 8px!important;min-height:24px!important}}
 
 .investment-screen .invest-order-buttons{grid-template-columns:1fr}.investment-screen .invest-order-buttons .invest-long{font-size:14px}
+
+.invest-news-unread[hidden]{display:none!important}.investment-screen .invest-news-button{position:relative;padding-right:17px!important}.investment-screen .invest-news-button .invest-news-unread{position:absolute;right:1px;top:-4px;min-width:14px;font-size:9px;background:#873a45;color:#fff1c0;border:1px solid #ddb36d;padding:0 3px;border-radius:9px}

@@ -3,6 +3,7 @@ const db=new PGlite();const u='11111111-1111-4111-8111-111111111111',other='2222
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);insert into auth.users values('${u}'),('${other}');create schema rebirth_private;create table rebirth_private.players(id uuid primary key,state jsonb,revision bigint default 0,updated_at timestamptz);create table rebirth_private.receipts(user_id uuid,request_id uuid,fingerprint jsonb,result jsonb,primary key(user_id,request_id));create function rebirth_private.session_user() returns uuid language sql as $$select '${u}'::uuid$$;insert into rebirth_private.players values('${u}','{"gold":100000,"battle":null}',0,now());`);
 await db.exec(fs.readFileSync(new URL('./investment.sql',import.meta.url),'utf8').split("select cron.schedule")[0]);
 await db.exec(fs.readFileSync(new URL('./investment-news.sql',import.meta.url),'utf8'));
+await db.exec(fs.readFileSync(new URL('./investment-notifications.sql',import.meta.url),'utf8'));
 await db.exec('update rebirth_private.coin_market set price=1000,day_base=1000');
 async function trade(action,args={},request=crypto.randomUUID()){return (await db.query('select rebirth_private.investment($1,$2::jsonb,$3::uuid) r',[action,JSON.stringify(args),request])).rows[0].r;}
 let r=await trade('list');assert.equal(r.investment.coins.length,8);const tick=r.investment.coins[0].tickAt;
@@ -36,6 +37,14 @@ assert.equal(await chance(0),.55);assert.equal(await chance(1),.35);assert.equal
 r=await trade('list');assert.equal(r.investment.news.length,2);assert.ok(r.investment.news.every(n=>!('boost' in n)&&!('catalog' in n)&&Date.parse(n.publishedAt)<=Date.parse(r.investment.serverNow)));
 assert.equal((await db.query("select count(*) n from rebirth_private.coin_news_catalog where kind='good'")).rows[0].n,100);assert.equal((await db.query("select count(*) n from rebirth_private.coin_news_catalog where kind='bad'")).rows[0].n,100);
 assert.equal((await db.query("select has_function_privilege('authenticated','rebirth_private.coin_up_chance(integer,timestamptz)','execute') p")).rows[0].p,false);
+// Reading is account-specific, survives reload, and cannot reveal future news.
+const notify=async(ids=[])=> (await db.query('select public.rebirth_coin_news_notifications($1::uuid[]) r',[ids])).rows[0].r;
+let notices=await notify();assert.equal(notices.unread,2);const visibleIds=notices.news.map(n=>n.id);assert.ok(notices.news.every(n=>!('boost' in n)));
+const future=(await db.query('select id from rebirth_private.coin_news where published_at>now() limit 1')).rows[0].id;
+notices=await notify([...visibleIds,future]);assert.equal(notices.unread,0);assert.equal((await db.query('select count(*) n from rebirth_private.coin_news_reads where news_id=$1',[future])).rows[0].n,0);assert.equal((await notify()).unread,0);
+await db.exec(`create or replace function rebirth_private.session_user() returns uuid language sql as $$select '${other}'::uuid$$;`);assert.equal((await notify()).unread,2);
+await db.exec(`create or replace function rebirth_private.session_user() returns uuid language sql as $$select '${u}'::uuid$$;`);
+await db.exec("insert into rebirth_private.coin_news(day,coin,catalog,published_at,expires_at,boost) values((now() at time zone 'Asia/Seoul')::date,2,2,now()-interval '3 hours',now()+interval '21 hours',.10);");assert.equal((await notify()).unread,1);
 // The reset refunds each investor once, even when rerun.
 await db.exec(`insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values('${u}',0,'long',1000,1000),('${other}',1,'short',2000,1000);insert into rebirth_private.players values('${other}','{"gold":5000}',0,now());`);
 const balances=(await db.query("select id,(state->>'gold')::numeric gold from rebirth_private.players order by id")).rows;
@@ -46,4 +55,4 @@ assert.equal((await db.query("select count(*) n from rebirth_private.coin_positi
 for(const c of (await db.query('select * from rebirth_private.coin_market')).rows){assert.equal(Number(c.price),10000);assert.equal(Number(c.day_base),10000);}
 assert.equal((await db.query('select count(*) n from rebirth_private.coin_candles')).rows[0].n,0);
 const after=(await db.query('select state from rebirth_private.players order by id')).rows;await db.exec(fs.readFileSync(new URL('./investment-reset.sql',import.meta.url),'utf8'));assert.deepEqual((await db.query('select state from rebirth_private.players order by id')).rows,after);
-console.log('PASS: buy/sell settlement, short rejection, 1% fee, idempotency, ownership, insufficient gold, stale quote, 72-hour limits, daily 2–4 news, private schedules, relative probability weighting and exact 24-hour expiry');await db.close();
+console.log('PASS: buy/sell settlement, short rejection, 1% fee, idempotency, ownership, insufficient gold, stale quote, 72-hour limits, daily 2–4 news, private schedules, relative probability weighting and exact 24-hour expiry, account-owned unread receipts');await db.close();

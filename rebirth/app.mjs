@@ -1,12 +1,13 @@
-import {investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-buy-5';
+import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
+import {investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=invest-unread-6';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-swords-95';
-import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=invest-1';
+import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=invest-unread-6';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=invest-1';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=invest-unread-6';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
-import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=invest-1';
+import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=invest-unread-6';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
 import {waveRewardBody} from './wave-ui.mjs?v=priest-potential-83';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
@@ -260,6 +261,15 @@ async function ensureToken() {
     try { await tokenRefresh; } finally { tokenRefresh = null; }
   }
 }
+let newsPollAt=0,newsPollPending=null;
+async function refreshNewsNotifications(force=false,seen=[]){
+ if(newsPollPending){if(!force)return;await newsPollPending;}
+ if(!session||!state||(!force&&Date.now()-newsPollAt<30000))return;
+ newsPollAt=Date.now();const account=session.user?.id;
+ newsPollPending=(async()=>{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_coin_news_notifications',{p_seen:seen});if(session?.user?.id!==account)return;setNewsNotifications(result);return result;})();
+ try{return await newsPollPending;}finally{newsPollPending=null;}
+}
+setInterval(()=>{if(session&&state&&!document.hidden&&navigator.onLine&&Date.now()>=retryAt)refreshNewsNotifications().catch(()=>{});},1000);
 let autoHuntPending=false;
 function requestAutoHunt(){autoHuntPending=true;flushAutoHunt();}
 function flushAutoHunt(){
@@ -891,6 +901,7 @@ function reward() {
   );
 }
 function clearAccountView() {
+  resetNewsNotifications();newsPollAt=0;
   closeWarriorLab();
   lottoData=null;lottoLoadedAt=0;clearLotto();investmentData=null;investmentLoadedAt=0;resetInvestment();
   clearDisclosureState();
@@ -1055,7 +1066,7 @@ document.addEventListener("click", async (e) => {
   try {
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
-    if(action==='investNews'){return open('코인 속보',investmentNewsView(investmentData)+btn('닫기','close','','gold'));}
+    if(action==='investNews'){b.disabled=true;try{const news=await refreshNewsNotifications(true);if(!news)return;open('코인 속보',investmentNewsView(news)+btn('닫기','close','','gold'));await refreshNewsNotifications(true,news.news.map(n=>n.id));}finally{b.disabled=false;}return;}
     if(action==='investCoin'){selectCoin(arg);return render();}
     if(action==='investPercent'){setInvestmentAmount(Math.floor(state.gold*Number(arg)/100/(investmentData?.coins[selectedCoin]?.price||10000)));return render();}
     if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||quantity*investmentData.coins[selectedCoin].price>state.gold)return toast('보유 골드 안에서 정수 수량을 입력해 주세요.');return await command('investBuy',{coin:selectedCoin,side:'long',quantity,tickAt:investmentData.coins[selectedCoin].tickAt});}
