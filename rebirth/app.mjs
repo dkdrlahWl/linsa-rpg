@@ -1,7 +1,7 @@
 import {shopView} from './shop-ui.mjs?v=shop-17';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=side-colors-19';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=news-8h-20';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-swords-95';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';

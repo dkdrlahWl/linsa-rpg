@@ -1,7 +1,7 @@
 -- Shared secret daily schedules. Only published headlines leave the server.
 create table if not exists rebirth_private.coin_news_catalog(id integer primary key,kind text not null check(kind in ('good','bad')),headline text not null);
 create table if not exists rebirth_private.coin_news_days(day date primary key);
-create table if not exists rebirth_private.coin_news(id uuid primary key default gen_random_uuid(),day date not null references rebirth_private.coin_news_days(day),coin integer not null references rebirth_private.coin_market(id),catalog integer not null references rebirth_private.coin_news_catalog(id),published_at timestamptz not null,expires_at timestamptz not null,applied_at timestamptz,instant_change numeric,boost numeric not null check(boost between .10 and .30),unique(day,published_at),check(expires_at=published_at+interval '24 hours'));
+create table if not exists rebirth_private.coin_news(id uuid primary key default gen_random_uuid(),day date not null references rebirth_private.coin_news_days(day),coin integer not null references rebirth_private.coin_market(id),catalog integer not null references rebirth_private.coin_news_catalog(id),published_at timestamptz not null,expires_at timestamptz not null,applied_at timestamptz,instant_change numeric,boost numeric not null check(boost between .10 and .30),unique(day,published_at),check(expires_at=published_at+interval '8 hours'));
 create index if not exists coin_news_time on rebirth_private.coin_news(coin,published_at,expires_at);
 create index if not exists coin_news_unapplied on rebirth_private.coin_news(coin,published_at) where applied_at is null;
 alter table rebirth_private.coin_news_catalog enable row level security;
@@ -216,14 +216,14 @@ begin
  perform pg_advisory_xact_lock(71823081);
  insert into rebirth_private.coin_news_days values(p_day) on conflict do nothing;
  if not found then return;end if;
- n:=2+floor(random()*3)::integer;first_minute:=greatest(0,least(1436,p_from));span:=1440-first_minute;
+ n:=3+floor(random()*4)::integer;first_minute:=greatest(0,least(1436,p_from));span:=1440-first_minute;
  for slot in 0..n-1 loop
   lo:=first_minute+floor(slot*span::numeric/n)::integer;hi:=first_minute+floor((slot+1)*span::numeric/n)::integer-1;
   margin:=least(60,greatest(0,(hi-lo)/2));lo:=lo+margin;hi:=hi-margin;
   minute:=lo+floor(random()*(hi-lo+1))::integer;
   at_time:=(p_day::timestamp at time zone 'Asia/Seoul')+minute*interval '1 minute';article:=1+floor(random()*200)::integer;
   insert into rebirth_private.coin_news(day,coin,catalog,published_at,expires_at,boost)
-  values(p_day,floor(random()*8)::integer,article,at_time,at_time+interval '24 hours',(.10+floor(random()*21)*.01));
+  values(p_day,floor(random()*8)::integer,article,at_time,at_time+interval '8 hours',(.10+floor(random()*21)*.01));
  end loop;
 end $$;
 revoke all on function rebirth_private.coin_news_schedule(date,integer) from public,anon,authenticated;
