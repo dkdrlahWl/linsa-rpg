@@ -6,6 +6,7 @@ create or replace function rebirth_private.coin_news_notifications(p_seen uuid[]
 declare u uuid; v_now timestamptz:=clock_timestamp(); headlines jsonb; unread integer;
 begin
  u:=rebirth_private.session_user();
+ perform rebirth_private.coin_tick();
  if cardinality(p_seen)>100 then raise exception 'INVALID_NEWS_RECEIPT';end if;
  insert into rebirth_private.coin_news_reads(user_id,news_id)
  select u,n.id from rebirth_private.coin_news n where n.id=any(p_seen) and n.published_at<=v_now on conflict do nothing;

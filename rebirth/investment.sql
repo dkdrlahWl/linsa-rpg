@@ -12,7 +12,7 @@ insert into rebirth_private.coin_market(id,name,price,day_base,day_key,tick_at)
 select i,n,10000,10000,(now() at time zone 'Asia/Seoul')::date,date_trunc('hour',now()) from unnest(array['도현코인','링구코인','원재코인','민정코인','지원코인','민지코인','성민코인','예찬코인']) with ordinality as a(n,k) cross join lateral (select (k-1)::integer i) q on conflict do nothing;
 create or replace function rebirth_private.coin_tick() returns void language plpgsql security definer set search_path='' as $$
 <<tick>>
-declare c rebirth_private.coin_market%rowtype; t timestamptz; target timestamptz:=date_trunc('hour',clock_timestamp()); d date; change numeric; old numeric; base numeric; next_price numeric; trend numeric; schedule_day date;
+declare c rebirth_private.coin_market%rowtype; ev record; t timestamptz; v_now timestamptz:=clock_timestamp(); target timestamptz:=date_trunc('hour',v_now); d date; old numeric; base numeric; next_price numeric; trend numeric; change numeric; schedule_day date;
 begin
  perform pg_advisory_xact_lock(71823081);
  for schedule_day in select generate_series(greatest((select min(tick_at)::date from rebirth_private.coin_market),(select min(day) from rebirth_private.coin_news_days)),(target at time zone 'Asia/Seoul')::date,interval '1 day')::date loop
@@ -20,19 +20,25 @@ begin
  end loop;
  for c in select * from rebirth_private.coin_market order by id for update loop
   t:=c.tick_at;old:=c.price;base:=c.day_base;d:=c.day_key;trend:=c.trend;
-  while t<target loop
-   t:=t+interval '1 hour';
-   if d<>(t at time zone 'Asia/Seoul')::date then
-    d:=(t at time zone 'Asia/Seoul')::date;base:=old;trend:=0;next_price:=old;
-   elsif old>=floor(base*1.3) or old<=ceil(base*.7) then
-    next_price:=old;
-   else
-   trend:=trend*.65+(random()-.5)*.008;
-   change:=greatest(-.05,least(.05,trend+(random()+random()-1)*.03));
-   change:=abs(change)*case when random()<rebirth_private.coin_up_chance(c.id,t) then 1 else -1 end;
-   next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
+  for ev in select * from (
+   select h as at,0 as kind_order,null::uuid as news_id,null::text as news_kind from generate_series(c.tick_at+interval '1 hour',target,interval '1 hour') h
+   union all
+   select n.published_at,1,n.id,cat.kind from rebirth_private.coin_news n join rebirth_private.coin_news_catalog cat on cat.id=n.catalog where n.coin=c.id and n.applied_at is null and n.published_at<=v_now
+  ) events order by at,kind_order,news_id loop
+   if d<>(ev.at at time zone 'Asia/Seoul')::date then d:=(ev.at at time zone 'Asia/Seoul')::date;base:=old;trend:=0;end if;
+   next_price:=old;
+   if old<floor(base*1.3) and old>ceil(base*.7) then
+    if ev.kind_order=1 then
+     change:=(.03+random()*.03)*case when ev.news_kind='good' then 1 else -1 end;
+     next_price:=greatest(1,ceil(base*.7),least(floor(base*1.3),round(old*(1+change))));
+    elsif extract(hour from ev.at at time zone 'Asia/Seoul')<>0 then
+     trend:=trend*.65+(random()-.5)*.008;
+     change:=abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.03)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end;
+     next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
+    end if;
    end if;
-   insert into rebirth_private.coin_candles values(c.id,t,old,next_price) on conflict do nothing;
+   insert into rebirth_private.coin_candles(coin,at,open,close) values(c.id,date_trunc('hour',ev.at),old,next_price) on conflict(coin,at) do update set close=excluded.close;
+   if ev.kind_order=1 then update rebirth_private.coin_news set applied_at=v_now,instant_change=case when old>0 then next_price/old-1 else 0 end where id=ev.news_id;else t:=ev.at;end if;
    old:=next_price;
   end loop;
   update rebirth_private.coin_market set price=old,day_base=base,day_key=d,tick_at=t,trend=tick.trend where id=c.id;
@@ -61,7 +67,7 @@ begin
    if p_action='buy' then
     if coalesce(p_args->>'coin','')!~'^[0-7]$' or coalesce(p_args->>'side','')<>'long' or coalesce(p_args->>'quantity','')!~'^[0-9]+$' then raise exception 'INVALID_INVESTMENT_ORDER';end if;
     select * into c from rebirth_private.coin_market where id=(p_args->>'coin')::integer;
-    if c.id is null or p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
+    if c.id is null or p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at or p_args->>'price' is null or (p_args->>'price')::numeric<>c.price then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
     amount:=(p_args->>'quantity')::numeric*c.price;
     if (p_args->>'quantity')::numeric<1 or amount>9007199254740991 or amount>coalesce((p.state->>'gold')::numeric,0) then raise exception 'INSUFFICIENT_GOLD';end if;
     insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values(u,c.id,p_args->>'side',amount,c.price) returning * into pos;
@@ -71,7 +77,7 @@ begin
     select * into pos from rebirth_private.coin_positions where id=(p_args->>'position')::uuid and user_id=u for update;
     if not found or pos.status<>'open' then raise exception 'INVALID_INVESTMENT_POSITION';end if;
     select * into c from rebirth_private.coin_market where id=pos.coin;
-    if p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
+    if p_args->>'tickAt' is null or (p_args->>'tickAt')::timestamptz<>c.tick_at or p_args->>'price' is null or (p_args->>'price')::numeric<>c.price then raise exception 'INVALID_INVESTMENT_PRICE_CHANGED';end if;
     gross:=greatest(0,pos.amount*c.price/pos.entry);
     fee:=ceil(gross*.01);payout:=greatest(0,floor(gross-fee));
     if coalesce((p.state->>'gold')::numeric,0)+payout>9007199254740991 then raise exception 'INVALID_INVESTMENT_GOLD_RANGE';end if;

@@ -1,8 +1,9 @@
 -- Shared secret daily schedules. Only published headlines leave the server.
 create table if not exists rebirth_private.coin_news_catalog(id integer primary key,kind text not null check(kind in ('good','bad')),headline text not null);
 create table if not exists rebirth_private.coin_news_days(day date primary key);
-create table if not exists rebirth_private.coin_news(id uuid primary key default gen_random_uuid(),day date not null references rebirth_private.coin_news_days(day),coin integer not null references rebirth_private.coin_market(id),catalog integer not null references rebirth_private.coin_news_catalog(id),published_at timestamptz not null,expires_at timestamptz not null,boost numeric not null check(boost between .10 and .30),unique(day,published_at),check(expires_at=published_at+interval '24 hours'));
+create table if not exists rebirth_private.coin_news(id uuid primary key default gen_random_uuid(),day date not null references rebirth_private.coin_news_days(day),coin integer not null references rebirth_private.coin_market(id),catalog integer not null references rebirth_private.coin_news_catalog(id),published_at timestamptz not null,expires_at timestamptz not null,applied_at timestamptz,instant_change numeric,boost numeric not null check(boost between .10 and .30),unique(day,published_at),check(expires_at=published_at+interval '24 hours'));
 create index if not exists coin_news_time on rebirth_private.coin_news(coin,published_at,expires_at);
+create index if not exists coin_news_unapplied on rebirth_private.coin_news(coin,published_at) where applied_at is null;
 alter table rebirth_private.coin_news_catalog enable row level security;
 alter table rebirth_private.coin_news_days enable row level security;
 alter table rebirth_private.coin_news enable row level security;
@@ -225,8 +226,9 @@ begin
 end $$;
 revoke all on function rebirth_private.coin_news_schedule(date,integer) from public,anon,authenticated;
 create or replace function rebirth_private.coin_up_chance(p_coin integer,p_at timestamptz) returns numeric language sql stable security definer set search_path='' as $$
+ with latest as(select c.kind from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog where n.coin=p_coin and n.published_at<=p_at order by n.published_at desc,n.id desc limit 1), cutoff as(select max(n.published_at) at from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog where n.coin=p_coin and n.published_at<=p_at and c.kind<>(select kind from latest))
  select greatest(.05,least(.95,.5*(1+coalesce(sum(case when c.kind='good' then n.boost else -n.boost end),0))))
  from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog
- where n.coin=p_coin and n.published_at<=p_at and n.expires_at>p_at
+ where n.coin=p_coin and n.published_at<=p_at and n.expires_at>p_at and c.kind=(select kind from latest) and ((select at from cutoff) is null or n.published_at>(select at from cutoff))
 $$;
 revoke all on function rebirth_private.coin_up_chance(integer,timestamptz) from public,anon,authenticated;

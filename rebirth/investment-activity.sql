@@ -4,6 +4,7 @@ declare u uuid; v_now timestamptz:=clock_timestamp(); items jsonb;
 begin
  u:=rebirth_private.session_user();
  if p_kind='news' then
+  perform rebirth_private.coin_tick();
   select coalesce(jsonb_agg(q order by q."publishedAt" desc,q.id desc),'[]'::jsonb) into items from (
    select n.id,n.coin,c.kind,c.headline,n.published_at as "publishedAt",n.expires_at as "expiresAt"
    from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog
