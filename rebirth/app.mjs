@@ -1,4 +1,4 @@
-import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-native-92';
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-range-93';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=lotto-85';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=priest-potential-83';
