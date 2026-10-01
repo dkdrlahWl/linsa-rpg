@@ -216,7 +216,7 @@ begin
  perform pg_advisory_xact_lock(71823081);
  insert into rebirth_private.coin_news_days values(p_day) on conflict do nothing;
  if not found then return;end if;
- n:=3+floor(random()*4)::integer;first_minute:=greatest(0,least(1436,p_from));span:=1440-first_minute;
+ n:=6+floor(random()*5)::integer;first_minute:=greatest(0,least(1430,p_from));span:=1440-first_minute;
  for slot in 0..n-1 loop
   lo:=first_minute+floor(slot*span::numeric/n)::integer;hi:=first_minute+floor((slot+1)*span::numeric/n)::integer-1;
   margin:=least(60,greatest(0,(hi-lo)/2));lo:=lo+margin;hi:=hi-margin;
