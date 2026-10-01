@@ -19,10 +19,15 @@ begin
   t:=c.tick_at;old:=c.price;base:=c.day_base;d:=c.day_key;trend:=c.trend;
   while t<target loop
    t:=t+interval '1 hour';
-   if d<>(t at time zone 'Asia/Seoul')::date then d:=(t at time zone 'Asia/Seoul')::date;base:=old;end if;
+   if d<>(t at time zone 'Asia/Seoul')::date then
+    d:=(t at time zone 'Asia/Seoul')::date;base:=old;trend:=0;next_price:=old;
+   elsif old>=floor(base*1.3) or old<=ceil(base*.7) then
+    next_price:=old;
+   else
    trend:=trend*.65+(random()-.5)*.008;
    change:=greatest(-.05,least(.05,trend+(random()+random()-1)*case when c.id in (1,3) then .02 when c.id in (5,7) then .045 else .03 end));
    next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
+   end if;
    insert into rebirth_private.coin_candles values(c.id,t,old,next_price) on conflict do nothing;
    update rebirth_private.coin_positions set status='liquidated',closed_at=t,payout=0,fee=0 where coin=c.id and status='open' and side='short' and next_price>=entry*2;
    old:=next_price;

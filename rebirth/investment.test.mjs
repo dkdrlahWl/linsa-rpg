@@ -14,4 +14,13 @@ await assert.rejects(()=>trade('buy',{coin:0,side:'long',quantity:1.5,tickAt:tic
 const rows=(await db.query('select * from rebirth_private.coin_candles order by coin,at')).rows;assert.equal(rows.length,576);for(const x of rows)assert.ok(Math.abs(Number(x.close)/Number(x.open)-1)<=.050001);
 const groups=new Map();for(const x of rows){const day=new Date(new Date(x.at).getTime()+9*3600000).toISOString().slice(0,10),key=x.coin+day;if(!groups.has(key))groups.set(key,Number(x.open));const base=groups.get(key);assert.ok(Number(x.close)>=base*.7-.00001&&Number(x.close)<=base*1.3+.00001);}
 await db.exec(`insert into rebirth_private.coin_positions(user_id,coin,side,amount,entry) values('${u}',0,'short',1000,1);update rebirth_private.coin_market set tick_at=tick_at-interval '1 hour';select rebirth_private.coin_tick();`);assert.equal((await db.query('select status from rebirth_private.coin_positions where entry=1')).rows[0].status,'liquidated');
+const source=fs.readFileSync(new URL('./investment.sql',import.meta.url),'utf8');
+const tickSQL=source.slice(source.indexOf('create or replace function rebirth_private.coin_tick()'),source.indexOf('revoke all on function rebirth_private.coin_tick()')).replace("clock_timestamp()","current_setting('test.coin_now')::timestamptz");
+await db.exec(tickSQL);
+await db.exec("select set_config('test.coin_now','2026-10-01 14:00:00+00',false);update rebirth_private.coin_market set day_key='2026-10-01',day_base=1000,price=case when id%2=0 then 1300 else 700 end,tick_at='2026-10-01 10:00:00+00';select rebirth_private.coin_tick();");
+for(const c of (await db.query('select * from rebirth_private.coin_market')).rows)assert.equal(Number(c.price),c.id%2===0?1300:700);
+await db.exec("select set_config('test.coin_now','2026-10-01 15:00:00+00',false);select rebirth_private.coin_tick();");
+for(const c of (await db.query('select * from rebirth_private.coin_market')).rows){assert.equal(Number(c.price),c.id%2===0?1300:700);assert.equal(Number(c.price),Number(c.day_base));assert.equal(new Date(c.day_key).toISOString().slice(0,10),'2026-10-02');}
+await db.exec("select set_config('test.coin_now','2026-10-01 16:00:00+00',false);select rebirth_private.coin_tick();");
+assert.equal((await db.query("select count(*) n from rebirth_private.coin_market where trend<>0")).rows[0].n,8);
 console.log('PASS: long/short settlement, 1% fee, idempotency, ownership, insufficient gold, stale quote, 72-hour limits and liquidation');await db.close();
