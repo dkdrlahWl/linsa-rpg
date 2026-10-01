@@ -14,7 +14,7 @@ begin
  elsif p_kind='trades' then
   select jsonb_build_object('profit',coalesce(sum(greatest(coalesce(h.payout,0)-h.amount,0)),0),'loss',coalesce(sum(greatest(h.amount-coalesce(h.payout,0),0)),0),'pnl',coalesce(sum(coalesce(h.payout,0)-h.amount),0)) into totals from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open';
   select coalesce(jsonb_agg(q order by q."closedAt" desc,q.id desc),'[]'::jsonb) into items from (
-   select h.id,h.coin,h.amount,h.entry,h.payout,h.fee,h.status,h.closed_reason as reason,h.closed_at as "closedAt"
+   select h.id,h.coin,h.side,h.amount,h.entry,h.payout,h.fee,h.status,h.closed_reason as reason,h.closed_at as "closedAt"
    from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open' and (p_before is null or (h.closed_at,h.id)<(p_before,coalesce(p_before_id,'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid)))
    order by h.closed_at desc,h.id desc limit 15
   ) q;

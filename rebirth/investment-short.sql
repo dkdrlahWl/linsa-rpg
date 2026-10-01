@@ -1,32 +1,4 @@
--- Half-hour shared game market. No real-money assets or external prices.
-create table if not exists rebirth_private.coin_market(id integer primary key check(id between 0 and 7), name text not null, price numeric not null check(price>0), day_base numeric not null, day_key date not null, tick_at timestamptz not null, trend numeric not null default 0);
-create table if not exists rebirth_private.coin_candles(coin integer not null references rebirth_private.coin_market(id), at timestamptz not null, open numeric not null, close numeric not null, primary key(coin,at));
-create table if not exists rebirth_private.coin_positions(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,coin integer not null references rebirth_private.coin_market(id),side text not null check(side in ('long','short')),amount numeric not null check(amount>0),entry numeric not null check(entry>0),opened_at timestamptz not null default now(),closed_at timestamptz,status text not null default 'open' check(status in ('open','sold','liquidated')),payout numeric,fee numeric,closed_reason text);
--- Preserve quantities separately so averaging never changes the held coins.
-alter table rebirth_private.coin_positions add column if not exists quantity numeric;
-update rebirth_private.coin_positions set quantity=amount/entry where quantity is null;
--- Fold existing open lots into their oldest row; completed trades stay untouched.
-with totals as (
- select user_id,coin,side,(array_agg(id order by opened_at,id))[1] keeper,sum(amount) cost,sum(quantity) units
- from rebirth_private.coin_positions where status='open' group by user_id,coin,side
-)
-update rebirth_private.coin_positions p set amount=t.cost,quantity=t.units,entry=t.cost/t.units
-from totals t where p.id=t.keeper;
-with keepers as (
- select (array_agg(id order by opened_at,id))[1] keeper,user_id,coin,side
- from rebirth_private.coin_positions where status='open' group by user_id,coin,side
-)
-delete from rebirth_private.coin_positions p using keepers k
-where p.status='open' and p.user_id=k.user_id and p.coin=k.coin and p.side=k.side and p.id<>k.keeper;
-create unique index if not exists coin_one_holding on rebirth_private.coin_positions(user_id,coin,side) where status='open';
-create index if not exists coin_owner_open on rebirth_private.coin_positions(user_id,status);
-create index if not exists coin_open on rebirth_private.coin_positions(coin) where status='open';
-alter table rebirth_private.coin_market enable row level security;
-alter table rebirth_private.coin_candles enable row level security;
-alter table rebirth_private.coin_positions enable row level security;
-revoke all on rebirth_private.coin_market,rebirth_private.coin_candles,rebirth_private.coin_positions from public,anon,authenticated;
-insert into rebirth_private.coin_market(id,name,price,day_base,day_key,tick_at)
-select i,n,10000,10000,(now() at time zone 'Asia/Seoul')::date,date_bin(interval '30 minutes',now(),timestamptz '2000-01-01 00:00:00+00') from unnest(array['도현코인','링구코인','원재코인','민정코인','지원코인','민지코인','성민코인','예찬코인']) with ordinality as a(n,k) cross join lateral (select (k-1)::integer i) q on conflict do nothing;
+begin;
 create or replace function rebirth_private.coin_tick() returns void language plpgsql security definer set search_path='' as $$
 <<tick>>
 declare c rebirth_private.coin_market%rowtype; ev record; t timestamptz; v_now timestamptz:=clock_timestamp(); target timestamptz:=date_bin(interval '30 minutes',v_now,timestamptz '2000-01-01 00:00:00+00'); d date; old numeric; base numeric; next_price numeric; trend numeric; change numeric; schedule_day date;
@@ -64,8 +36,6 @@ begin
  end loop;
  delete from rebirth_private.coin_candles where at<target-interval '30 days';
 end $$;
-revoke all on function rebirth_private.coin_tick() from public,anon,authenticated;
-grant execute on function rebirth_private.coin_tick() to service_role;
 create or replace function rebirth_private.investment(p_action text,p_args jsonb,p_request uuid) returns jsonb language plpgsql security definer set search_path='' as $$
 <<trade>>
 declare u uuid; p rebirth_private.players%rowtype; receipt rebirth_private.receipts%rowtype; fp jsonb:=jsonb_build_object('investment',p_action,'args',p_args); c rebirth_private.coin_market%rowtype; pos rebirth_private.coin_positions%rowtype; amount numeric; gross numeric; fee numeric; payout numeric; result jsonb:='{"events":[]}'::jsonb; market jsonb; positions jsonb; history jsonb; news jsonb; v_now timestamptz;
@@ -122,10 +92,28 @@ begin
  ) q;
  return jsonb_build_object('state',p.state,'revision',p.revision,'investment',jsonb_build_object('coins',market,'positions',positions,'history',history,'news',news,'serverNow',v_now,'nextAt',date_bin(interval '30 minutes',v_now,timestamptz '2000-01-01 00:00:00+00')+interval '30 minutes'),'result',result);
 end $$;
-revoke all on function rebirth_private.investment(text,jsonb,uuid) from public,anon;
-grant execute on function rebirth_private.investment(text,jsonb,uuid) to authenticated;
-create or replace function public.rebirth_investment(p_action text,p_args jsonb,p_request uuid) returns jsonb language sql security invoker set search_path='' as $$select rebirth_private.investment(p_action,p_args,p_request)$$;
-revoke all on function public.rebirth_investment(text,jsonb,uuid) from public,anon;
-grant execute on function public.rebirth_investment(text,jsonb,uuid) to authenticated;
+-- Cursor paging preserves older news and private realized trade history.
+create or replace function rebirth_private.coin_activity(p_kind text,p_before timestamptz default null,p_before_id uuid default null) returns jsonb language plpgsql security definer set search_path='' as $$
+declare u uuid; v_now timestamptz:=clock_timestamp(); items jsonb; totals jsonb;
+begin
+ u:=rebirth_private.session_user();
+ if p_kind='news' then
+  perform rebirth_private.coin_tick();
+  select coalesce(jsonb_agg(q order by q."publishedAt" desc,q.id desc),'[]'::jsonb) into items from (
+   select n.id,n.coin,c.kind,c.headline,n.published_at as "publishedAt",n.expires_at as "expiresAt"
+   from rebirth_private.coin_news n join rebirth_private.coin_news_catalog c on c.id=n.catalog
+   where n.published_at<=v_now and (p_before is null or (n.published_at,n.id)<(p_before,coalesce(p_before_id,'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid)))
+   order by n.published_at desc,n.id desc limit 15
+  ) q;
+ elsif p_kind='trades' then
+  select jsonb_build_object('profit',coalesce(sum(greatest(coalesce(h.payout,0)-h.amount,0)),0),'loss',coalesce(sum(greatest(h.amount-coalesce(h.payout,0),0)),0),'pnl',coalesce(sum(coalesce(h.payout,0)-h.amount),0)) into totals from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open';
+  select coalesce(jsonb_agg(q order by q."closedAt" desc,q.id desc),'[]'::jsonb) into items from (
+   select h.id,h.coin,h.side,h.amount,h.entry,h.payout,h.fee,h.status,h.closed_reason as reason,h.closed_at as "closedAt"
+   from rebirth_private.coin_positions h where h.user_id=u and h.status<>'open' and (p_before is null or (h.closed_at,h.id)<(p_before,coalesce(p_before_id,'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid)))
+   order by h.closed_at desc,h.id desc limit 15
+  ) q;
+ else raise exception 'INVALID_COIN_ACTIVITY';end if;
+ return jsonb_build_object('items',items,'serverNow',v_now,'totals',totals);
+end $$;
 
-select cron.schedule('ringu-hourly-coins','* * * * *','select rebirth_private.coin_tick();');
+commit;
