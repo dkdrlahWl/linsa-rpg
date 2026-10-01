@@ -1,3 +1,4 @@
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-3d-88';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=lotto-85';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=priest-potential-83';
@@ -632,7 +633,8 @@ function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 
 function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}
 function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 인원에 따른 난이도 변화 없음 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (4회 누적 46.41%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
 function bosses() {
-  const menu=`<div class="subnav">${[["raid","레이드"],["daily","일일"],["weekly","주간"],["coop","협동 균열"],["wave","협동 웨이브"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["raid","레이드"],["daily","일일"],["weekly","주간"],["coop","협동 균열"],["wave","협동 웨이브"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>입체 전사와 파수꾼 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
   if(bossTab==="raid")return menu+raidLobby(state,coopRoom,coopRooms);
   if(bossTab==="wave")return menu+coopLobby(state,coopRoom,coopRooms,"wave");
   if(bossTab==="coop")return menu+coopLobby(state,coopRoom,coopRooms);
@@ -878,6 +880,7 @@ function reward() {
   );
 }
 function clearAccountView() {
+  closeWarriorLab();
   lottoData=null;lottoLoadedAt=0;clearLotto();
   clearDisclosureState();
   if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
@@ -899,6 +902,7 @@ function authFailureMessage(err,register) {
   return (register?"계정 생성":"로그인")+"에 실패했습니다. "+(err.code||err.message);
 }
 function login() {
+  closeWarriorLab();
   document.body.classList.remove("pet-event-mode","tower-mode");
   app.innerHTML = `<div class="login panel"><div class="brand">링구 RPG<br><small>새로운 여정</small></div><p class="note">모바일로 이어가는 나만의 모험</p><form id="auth"><label>계정 이름<input name="username" autocomplete="username" pattern="[a-zA-Z0-9_]{3,32}" minlength="3" maxlength="32" required placeholder="영문·숫자·밑줄 3~32자"></label><label>비밀번호<input name="password" autocomplete="current-password" type="password" minlength="8" maxlength="256" required placeholder="8자 이상"></label><div class="two"><button type="submit" name="mode" value="login" class="gold">로그인</button><button type="submit" name="mode" value="register">새 계정 만들기</button></div><p id="auth-error" class="error" role="alert"></p></form><p class="footer-note">이전 게임 아이디·비밀번호도 그대로 로그인할 수 있습니다.<br>PC·모바일은 같은 계정으로 로그인하면 이어집니다.<br>이미 있는 아이디는 재가입하지 말고 ‘로그인’을 눌러 주세요.<br>계정 이름은 대소문자를 구분하지 않습니다.</p></div>`;
   $("#auth").onsubmit = async (e) => {
@@ -1101,6 +1105,7 @@ document.addEventListener("click", async (e) => {
       if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
       return;
     }
+    if(action==="warriorLab"){if(!state?.isAdmin)return;await command("sync",{},true,true);if(!state?.isAdmin||state.classId!=="warrior")return toast("관리자 전사만 입장할 수 있습니다.");modal.close();try{await openWarriorLab({getState:()=>state,onClose:()=>{sounds.setCombat(false);render();},sound:id=>sounds.play(id)});sounds.setCombat(true);}catch(e){toast(e.message||"3D 전투에 입장하지 못했습니다.");}return;}
     if (action === "bossSub") {bossTab=arg;render();if(["coop","wave","advancement","raid"].includes(arg))await refreshCoopRooms();return;}
     if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
