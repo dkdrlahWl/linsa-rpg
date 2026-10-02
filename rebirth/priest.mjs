@@ -51,5 +51,5 @@ export function supportTick(members,tick,numbers=[],effects=[],serial=()=>0){
  }}a.holySupport=[];}
  function heal(m,value,a){const actual=Math.min(m.power.hp-m.hp,Math.max(0,Math.round(value)));m.hp+=actual;a.healing=(a.healing||0)+actual;if(actual)numbers.push({id:serial(),value:actual,x:m.x,y:m.y-110,kind:'heal',start:tick,end:tick+9});}
 }
-export function absorbDamage(a,damage,tick){if(tick<(a.holyReductionUntil||0))damage*=.85;const shield=a.shieldPermanent||tick<(a.shieldUntil||0)?a.shield||0:0,absorbed=Math.min(shield,damage);a.shield=Math.max(0,shield-absorbed);a.absorbed=(a.absorbed||0)+absorbed;return Math.max(0,damage-absorbed);}
+export function absorbDamage(a,damage,tick){if(tick<(a.fifthGuardUntil||0))damage*=.8;if(tick<(a.holyReductionUntil||0))damage*=.85;const shield=a.shieldPermanent||tick<(a.shieldUntil||0)?a.shield||0:0,absorbed=Math.min(shield,damage);a.shield=Math.max(0,shield-absorbed);a.absorbed=(a.absorbed||0)+absorbed;return Math.max(0,damage-absorbed);}
 export function holyDamage(a,damage,tick=a.tick||0){return damage*(tick<(a.holyAttackUntil||0)?1.1:1)+(a.holyFlatDamage||0);}

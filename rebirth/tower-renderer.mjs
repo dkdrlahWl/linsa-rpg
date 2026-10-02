@@ -1,3 +1,4 @@
+import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth} from './fifth-effects.mjs?v=fifth-114';
 import {costumeMotionFrame} from './costume-motion.mjs?v=costume-motion-111';
 import COSTUME_MOTION_LAYOUT from './costume-motion-layout.mjs?v=costume-motion-111';
 import {costumeById} from './costumes.mjs?v=costume-motion-111';
@@ -9,7 +10,7 @@ import {damageRows} from './damage-stack.mjs?v=priest-potential-83';
 import {drawFourth,drawFourthGround,fourthAreaEffects} from './fourth-effects.mjs?v=priest-potential-83';
 import MOTION_LAYOUT from './motion-layout.mjs?v=priest-potential-83';
 import MOTION_BODY_LAYOUT from './motion-body-layout.mjs?v=priest-potential-83';
-import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=priest-potential-83';
+import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=fifth-114';
 const cache=new Map(),spriteBounds=new WeakMap(),decodedImages=new WeakSet();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
@@ -84,7 +85,7 @@ export function prepareCombatArt(classes,boss,costumeIds=[]){
  for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.classId]],[c.portrait,null]);}}
  tasks.push([asset(boss==='raid-2'?'raid-boss-2-portrait':'boss-'+boss),null]);image('tower/priest-orb-v1.png');if(String(boss).startsWith('raid-')){image(asset('raid-map-'+boss.slice(5)));image(asset('raid-boss-'+boss.slice(5)+'-portrait'));}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  image(motionAsset('second-sequence-atlas-v1'));
- const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
+ const secondLoads=[prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}))];
  if(classes.includes('priest'))secondLoads.push(preparePriestSkillArt());
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
   if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&costumeIds.some(id=>costumeById(id)?.atlas===src))cleanDirectionalAtlas(im,layout);}catch{preparations.delete(src);}})());
@@ -280,6 +281,8 @@ export class TowerRenderer {
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
     for(const e of fourthAreas)drawFourthGround(g,e,time);
+    const fifthAreas=fifthFields(b.effects,time),fifthOpacity=fifthAreas.length>3?.48:.8;
+    for(const field of fifthAreas){const e=field.mode==='tracking'?{...field,x:b.enemy.x,y:b.enemy.y}:field;drawFifthGround(g,e,time,e.owner&&e.owner!==b.actorId&&e.owner!==b.id?fifthOpacity:.9);}
     for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time);
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
@@ -327,7 +330,7 @@ export class TowerRenderer {
       const bossAge=clamp((time-(b.enemyAttackStart??(b.enemyAttackUntil-6)))/6),pulse=frame===2?Math.sin(bossAge*Math.PI):0;
       const step=Math.sin(((b.enemy.walk||0)+fraction)*1.3),angle=windup?Math.sin(time*.4)*.02:frame===2?Math.sin(bossAge*Math.PI)*.035:step*.012;
       const castPulse=windup?Math.sin(clamp((time-(b.enemyCastStart??(b.enemyCastUntil-10)))/10)*Math.PI):0;
-      this.sprite(asset('boss-'+f.art),f.art==='aureon'?1:3,1,f.art==='aureon'?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,245,245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
+      this.sprite(asset('boss-'+f.art),['aureon','astrael'].includes(f.art)?1:3,1,['aureon','astrael'].includes(f.art)?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,f.art==='astrael'?340:245,f.art==='astrael'?340:245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
     const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
@@ -350,6 +353,7 @@ export class TowerRenderer {
     for(const e of b.effects){
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
+      if(e.kind==='fifth'||e.kind==='fifth-field'){const target=b.waveMode?(b.monsters||[]).find(m=>m.id===e.targetId):b.enemy;const effect=e.kind==='fifth'&&['homing','tracking'].includes(e.mode)&&target?{...e,x:target.x,y:target.y}:e;drawFifth(g,effect,time,fifthOpacity);continue;}
       if(e.kind==='priest')continue;
       if(e.kind==='priest-orb'){const age=clamp((time-e.start)/(e.end-e.start)),x=mix(e.fromX,e.x,age),y=mix(e.fromY,e.y,age)-Math.sin(age*Math.PI)*45,orb=image('tower/priest-orb-v1.png');g.save();g.globalCompositeOperation='screen';for(let i=3;i>0;i--){const t=clamp(age-i*.07);g.globalAlpha=.16;g.fillStyle='#fff0ab';g.shadowColor='#fff2bf';g.shadowBlur=22;g.beginPath();g.arc(mix(e.fromX,e.x,t),mix(e.fromY,e.y,t)-Math.sin(t*Math.PI)*45,22+i*4,0,Math.PI*2);g.fill();}g.globalAlpha=1;g.shadowColor='#fff8cd';g.shadowBlur=38;if(orb.complete&&orb.naturalWidth)g.drawImage(orb,x-78,y-78,156,156);else{g.fillStyle='#fff8cf';g.beginPath();g.arc(x,y,35,0,Math.PI*2);g.fill();}g.restore();continue;}
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));

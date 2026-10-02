@@ -1,11 +1,11 @@
-import {supportTick} from './priest.mjs?v=priest-potential-83';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-potential-83';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=priest-potential-83';
+import {supportTick} from './priest.mjs?v=fifth-114';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=fifth-114';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.
 const sharedKeys=['enemy','hazards','projectiles','effects','numbers','serial','seed','nextPattern','phase','charge','enemyCastStart','enemyCastUntil','enemyAttackStart','enemyAttackUntil','enemyAttackDir','enemyHurtUntil'];
-const actorKeys=['holyAreas','holyAttackUntil','shieldPermanent','fifthCast','fifthReady','holyReductionUntil','shieldGiven','purifiedUntil','holySupport','shield','shieldUntil','shieldOwner','healing','holyHealTick','holyHealAmount','hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','firstCast','secondCast','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
+const actorKeys=['fifthGuardUntil','holyAreas','holyAttackUntil','shieldPermanent','fifthCast','fifthReady','holyReductionUntil','shieldGiven','purifiedUntil','holySupport','shield','shieldUntil','shieldOwner','healing','holyHealTick','holyHealAmount','hp','attackReady','skillReady','dashReady','ultimateReady','invulnerableUntil','hurtUntil','guardUntil','secondUntil','attackStart','attackUntil','skillStart','skillUntil','dashUntil','dashX','dashY','firstCast','secondCast','thirdReady','thirdCast','fourthReady','fourthCast','pendingMelee','pendingSkillHit','contactReady'];
 const copy=(to,from,keys)=>{for(const key of keys){if(from[key]===undefined)delete to[key];else to[key]=from[key];}};
 export function startTrialCoop(room,now){
  const trial=ADVANCEMENT_BOSSES[room.tier];

@@ -57,7 +57,7 @@ begin
  if cl='warrior' then hp:=floor(hp*1.30);def:=def*1.15;end if;
  if cl='mage' then atk:=atk*1.06;end if;
  crit_damage:=case when cl='rogue' then 1.9 else 1.6 end;
- if coalesce((s->>'firstAdvancement')::boolean,false) or coalesce((s->>'advancement')::int,0)>=1 then job_bonus:=power(1.1,1+least(4,coalesce((s->>'advancement')::int,0)));atk:=atk*job_bonus;hp:=floor(hp*power(1.1,1+least(4,coalesce((s->>'advancement')::int,0))));end if;
+ if coalesce((s->>'firstAdvancement')::boolean,false) or coalesce((s->>'advancement')::int,0)>=1 then job_bonus:=power(1.1,1+least(3,coalesce((s->>'advancement')::int,0)));atk:=atk*job_bonus;hp:=floor(hp*power(1.1,1+least(3,coalesce((s->>'advancement')::int,0))));end if;
  if cl='priest' then
  luk_rate:=least(.6,(hp/(1+hp_pct/100))*.166*.8/greatest(1,stat/(1+stat_pct/100)));
  atk:=(hp*.166+stat*luk_rate+gear_atk*job_bonus*.2)*(1+atk_pct/100*.05);

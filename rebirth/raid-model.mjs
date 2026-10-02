@@ -1,9 +1,10 @@
 import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest-potential-83';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest-potential-83';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fifth-114';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-potential-83';
-import {beginThird,stepThird} from './advancement.mjs?v=priest-potential-83';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-potential-83';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-potential-83';
+import {beginThird,stepThird} from './advancement.mjs?v=fifth-114';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-114';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
@@ -20,7 +21,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  for(;w.tick<upto&&w.status==='fighting';w.tick++){
  const t=w.tick,e=w.enemy,alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length){w.status='lost';break;}
  for(const f of frames)if(f.tick===t){const m=alive.find(m=>m.id===f.user);if(m){m.input=f.input;m.inputAt=w.started+t*100;}}
- w.effects=w.effects.filter(v=>v.end>t).slice(-70);w.numbers=w.numbers.filter(v=>v.end>t).slice(-48);w.hazards=w.hazards.filter(v=>v.end>t);w.projectiles=w.projectiles.filter(v=>v.end>t);
+ w.effects=boundedCombatEffects(w.effects,t,70);w.numbers=w.numbers.filter(v=>v.end>t).slice(-48);w.hazards=w.hazards.filter(v=>v.end>t);w.projectiles=w.projectiles.filter(v=>v.end>t);
  const target=alive[(Math.floor(t/80)+w.tier)%alive.length],enraged=w.hp<w.maxHp*.35;
  e.dir=towerFacing(target.x-e.x,target.y-e.y,e.dir);
  if(t>(w.enemyCastUntil||0)&&dist(e,target)>430){let angle=Math.atan2(target.y-e.y,target.x-e.x);raidMove(e,e.x+Math.cos(angle)*9,e.y+Math.sin(angle)*9,w.walls);e.walk++;}
@@ -43,7 +44,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
   const hit=(scale,extra=0)=>{if(w.hp<=0)return;const seed=((t*2654435761+(++w.serial)*1013904223)>>>0)/4294967296,crit=seed<Math.min(.95,m.power.crit+extra),value=Math.min(w.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(crit?m.power.critDamage:1),t)*m.power.boss)));w.hp-=value;m.damage+=value;w.enemyHurtUntil=t+2;w.numbers.push({id:++w.serial,value,x:e.x,y:e.y-140,kind:crit?'critical':'outgoing',start:t,end:t+12});};
   if((bits&1)&&t>=m.attackReady&&dist(m,e)<=(m.classId==='priest'?1500:c.range)&&!covered(m,e,w.walls)){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(e.x-m.x,e.y-m.y,m.dir);hit(c.cooldown/10*m.power.cadence);emit({kind:m.classId==='priest'?'priest-orb':'impact',slot:1,classId:m.classId,owner:m.id,fromX:m.x,fromY:m.y-90,x:e.x,y:e.y-90,size:180,start:t,end:t+8});}
   if(bits&8)beginCombatSkill(m,e,t,1);if(bits&2)beginCombatSkill(m,e,t,2);if(bits&16)beginThird(m,e,t);if(bits&32)beginFourth(m,e,t);
-  if(m.classId==='priest'){if(bits&64)beginPriest(m,e,t,5);stepPriest(m,[e],t,5,hit,emit);}
+  if(bits&64)beginFifth(m,e,t);stepFifth(m,[{...e,hp:w.hp,maxHp:w.maxHp}],t,hit,emit);
   stepCombatSkills(m,[e],t,hit,emit);stepThird(m,e,t,hit,emit);stepFourth(m,e,t,hit,emit);
  }
  supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
@@ -52,7 +53,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  if(t===w.judgmentAt){for(const m of alive)hurt(m,m.power.hp*(w.tier?.6:.3)+incomingDamage(b.attack,m.power.defense)*2,true);}
  for(const h of w.hazards)if(t===h.at){for(const m of alive){let inside;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,k=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy)));inside=Math.hypot(m.x-h.x-k*dx,m.y-h.y-k*dy)<h.width/2+25;}else inside=dist(m,h)<h.r+25&&dist(m,h)>=h.inner;if(inside&&!(h.cover&&covered(h.source,m,w.walls)))hurt(m,incomingDamage(b.attack,m.power.defense)*h.multiplier);}}
  for(const q of w.projectiles){if(t<q.at)continue;const old={x:q.x,y:q.y},next={x:q.x+q.dx,y:q.y+q.dy};if(covered(old,next,w.walls)){q.end=t;continue;}q.x=next.x;q.y=next.y;for(const m of alive)if(dist(m,q)<q.r+35){hurt(m,incomingDamage(b.attack,m.power.defense)*q.multiplier);q.end=t;break;}}
- if(w.hp<=0){w.status='won';w.chest={x:e.x,y:e.y};w.lootAt=now;w.effects=[];w.hazards=[];w.projectiles=[];for(const m of w.members){m.hp=Math.max(1,m.hp);m.input=[0,0,0];delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;}}
+ if(w.hp<=0){w.status='won';w.chest={x:e.x,y:e.y};w.lootAt=now;w.effects=[];w.hazards=[];w.projectiles=[];for(const m of w.members){m.hp=Math.max(1,m.hp);m.input=[0,0,0];delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}
  }
  if(w.tick>=b.seconds*10&&w.status==='fighting')w.status='lost';const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=input;me.inputAt=now;}return w;
 }

@@ -228,3 +228,14 @@
 /* Compact independent attack/skill toggles fit beside exit on mobile. */
 #tower-auto-skills:focus-visible{outline:2px solid #dce9bc;outline-offset:2px}
 @media(max-width:640px){.tower-footer{gap:5px;padding-left:8px;padding-right:8px}.tower-footer button{white-space:nowrap;padding-left:7px;padding-right:7px;font-size:10px}.tower-footer:has(#tower-chest:not([hidden])) #tower-auto-skills{display:none}}
+
+/* Fifth-job art uses the same compact scrolling skill row. */
+.fifth-skill-art{display:block;width:32px;height:32px;background-image:url('tower/fifth-warrior-v1.webp');background-size:200% 200%;background-position:0 0;filter:none}
+[data-class="mage"] .fifth-skill-art{background-image:url('tower/fifth-mage-v1.webp')}
+[data-class="archer"] .fifth-skill-art{background-image:url('tower/fifth-archer-v1.webp')}
+[data-class="rogue"] .fifth-skill-art{background-image:url('tower/fifth-rogue-v1.webp')}
+[data-class="pirate"] .fifth-skill-art{background-image:url('tower/fifth-pirate-v1.webp')}
+[data-class="priest"] .fifth-skill-art{background-image:url('tower/priest-skill-5-v2.png')}
+.fifth-skill{border-color:#e6c675!important}
+.skill-burst.fifth-burst{background-image:var(--fifth-art);background-size:200% 200%;background-position:100% 100%;animation:fifthBurst .85s ease-out both}
+@keyframes fifthBurst{0%{opacity:0;transform:scale(.35)}30%{opacity:.9}100%{opacity:0;transform:scale(1.45)}}

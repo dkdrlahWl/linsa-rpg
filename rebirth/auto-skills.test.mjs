@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {autoSkillBits,nextAutoSkill} from './auto-skills.mjs';
 import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-restore-57';
-import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';
+import {startCoop as startCoopRaw,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';
+const startCoop=(...args)=>{const w=startCoopRaw(...args);w.entryWaiting=false;return w;};
 for(const stage of [-1,0,1,2,3]){
  const p={attack:1,hp:1000000,defense:1000,boss:1,crit:0,critDamage:1.5,cadence:1,advancement:Math.max(0,stage),firstJob:stage>=0};
  const b=newTowerBattle(1,'mage',p,0,'auto',1,stage>=1);

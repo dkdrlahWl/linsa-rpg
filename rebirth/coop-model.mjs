@@ -1,17 +1,18 @@
 import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=fifth-114';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-potential-83';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-114';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=fifth-114';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
 export const coopEncounter=room=>room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=priest-potential-83';
-import {beginFourth,stepFourth} from './fourth-job.mjs';
-import {beginThird,stepThird} from './advancement.mjs';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=fifth-114';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
+import {beginThird,stepThird} from './advancement.mjs?v=fifth-114';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fifth-114';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=fifth-114';
 import {incomingDamage} from './journey-balance.mjs';
 import {COOP_TIERS} from './rift-rewards.mjs';
 export {COOP_TIERS};
@@ -40,7 +41,7 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
  for(;w.tick<upto&&w.status==='fighting';w.tick++){
   const t=w.tick;for(const f of frames){if(f.tick===t){const actor=w.members.find(m=>m.id===f.user&&!m.left);if(actor){actor.input=f.input;actor.inputAt=w.started+t*100;}}}
   const alive=w.members.filter(m=>m.hp>0&&!m.left);if(!alive.length){w.status='lost';break;}
-  w.effects=w.effects.filter(x=>x.end>t).slice(-50);w.numbers=w.numbers.filter(x=>x.end>t).slice(-40);w.projectiles=w.projectiles.filter(x=>x.end>t);
+  w.effects=boundedCombatEffects(w.effects,t,50);w.numbers=w.numbers.filter(x=>x.end>t).slice(-40);w.projectiles=w.projectiles.filter(x=>x.end>t);
   const target=alive.reduce((a,b)=>dist(a,w.enemy)<dist(b,w.enemy)?a:b),e=w.enemy;
   if(dist(e,target)>115){const a=Math.atan2(target.y-e.y,target.x-e.x);e.dir=towerFacing(target.x-e.x,target.y-e.y,e.dir??2);e.walk=(e.walk||0)+1;e.x=clamp(e.x+Math.cos(a)*15);e.y=clamp(e.y+Math.sin(a)*15);if(Math.abs(target.x-e.x)>45)e.face=target.x<e.x?-1:1;}
   // Frequent locked-target strikes, with room for melee players to sidestep.
@@ -72,13 +73,13 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
    stepCombatSkills(m,w.hp>0?[e]:[],t,(scale,crit)=>{if(w.hp>0)hit(scale,crit);},effect=>w.effects.push({...effect,id:++w.serial}));
    if(bits&32)beginFourth(m,e,t);stepFourth(m,e,t,scale=>hit(scale),effect=>w.effects.push({...effect,id:++w.serial}));
    if(bits&16)beginThird(m,e,t);stepThird(m,e,t,scale=>hit(scale),effect=>w.effects.push({...effect,id:++w.serial}));
-   if(m.classId==='priest'){if(bits&64)beginPriest(m,e,t,5);stepPriest(m,[e],t,5,scale=>hit(scale),effect=>w.effects.push({...effect,id:++w.serial}));}
+   if(bits&64)beginFifth(m,e,t);stepFifth(m,[{...e,hp:w.hp,maxHp:w.maxHp}],t,scale=>hit(scale),effect=>w.effects.push({...effect,id:++w.serial}));
    if(m.pendingSkill&&t>=m.pendingSkill.at){if(dist(m,e)<790){for(let i=0;i<m.pendingSkill.hits;i++)hit(m.pendingSkill.damage,m.pendingSkill.critAdd);fx('slash',e.x,e.y-50,310,Math.atan2(e.y-m.y,e.x-m.x));}delete m.pendingSkill;}
    if(t>=m.immune&&t>=m.hurtReady){const hazard=w.hazards.find(h=>t>=h.at&&t<h.end&&dist(m,h)<h.r&&dist(m,h)>=h.inner),mult=hazard?hazard.multiplier:0;if(mult){const damage=Math.max(1,Math.round(incomingDamage(tier.attack,m.power.defense)*mult*(first?.guard||1)*(second?.guard||1)));m.hp=Math.max(0,m.hp-absorbDamage(m,damage,t));if(!m.hp){delete m.firstCast;delete m.secondCast;}m.hurtReady=t+5;w.numbers.push({id:++w.serial,value:damage,x:m.x,y:m.y-100,kind:"incoming",start:t,end:t+9});fx("impact",m.x,m.y-40,110);}}
   }
   supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
   for(const q of w.projectiles){if(t>=q.at){q.x+=q.dx;q.y+=q.dy;}}
-  w.hazards=w.hazards.filter(h=>h.end>t);if(w.hp<=0){w.status='won';w.chest={x:e.x,y:e.y};w.lootAt=now;w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];for(const m of w.members){if(!m.left)m.hp=Math.max(1,m.hp);m.input=[0,0,0];m.attackUntil=0;m.skillUntil=0;m.dashUntil=0;delete m.pendingHit;delete m.pendingHits;delete m.pendingSkill;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;}}
+  w.hazards=w.hazards.filter(h=>h.end>t);if(w.hp<=0){w.status='won';w.chest={x:e.x,y:e.y};w.lootAt=now;w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];for(const m of w.members){if(!m.left)m.hp=Math.max(1,m.hp);m.input=[0,0,0];m.attackUntil=0;m.skillUntil=0;m.dashUntil=0;delete m.pendingHit;delete m.pendingHits;delete m.pendingSkill;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}
  }
  if(w.tick>=900&&w.status==='fighting')w.status='lost';
  const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){if(!Array.isArray(input)||input.length!==3||!input.every(Number.isFinite)||Math.abs(input[0])>1||Math.abs(input[1])>1||!Number.isInteger(input[2])||input[2]<0||input[2]>127)throw Error('INVALID_COOP_INPUT');me.input=input;me.inputAt=now;}

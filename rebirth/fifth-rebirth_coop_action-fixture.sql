@@ -1,59 +1,3 @@
--- One locked player state stores first-clear claims and the completed-run receipt.
-CREATE OR REPLACE FUNCTION rebirth_private.settle_wave_reward(st jsonb, w jsonb, run_id uuid, settled_at bigint)
-RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path TO '' AS $wave$
-DECLARE
- tiers jsonb := '[{"wave":10,"gold":10000,"fragment":50,"cube":[[0,0.9],[1,0.1]],"scroll":[[0,0.9],[1,0.1]]},{"wave":20,"gold":20000,"fragment":60,"cube":[[0,0.7],[1,0.3]],"scroll":[[0,0.8],[1,0.2]]},{"wave":30,"gold":30000,"fragment":70,"cube":[[0,0.7],[2,0.3]],"scroll":[[0,0.7],[1,0.3]]},{"wave":40,"gold":40000,"fragment":80,"cube":[[0,0.6],[3,0.4]],"scroll":[[0,0.5],[1,0.5]]},{"wave":50,"gold":50000,"fragment":90,"cube":[[0,0.5],[3,0.5]],"scroll":[[0,0.3],[1,0.7]]},{"wave":60,"gold":60000,"fragment":100,"cube":[[0,0.3],[3,0.7]],"scroll":[[1,1]]},{"wave":70,"gold":60000,"fragment":100,"cube":[[3,1]],"scroll":[[1,0.7],[2,0.3]]},{"wave":80,"gold":70000,"fragment":100,"cube":[[3,0.7],[4,0.3]],"scroll":[[1,0.5],[2,0.5]]},{"wave":90,"gold":80000,"fragment":120,"cube":[[4,0.7],[5,0.3]],"scroll":[[1,0.3],[2,0.7]]},{"wave":100,"gold":100000,"fragment":150,"cube":[[5,0.7],[6,0.3]],"scroll":[[2,0.7],[3,0.3]]},{"wave":110,"gold":110000,"fragment":160,"cube":[[6,0.7],[7,0.3]],"scroll":[[2,0.6],[3,0.4]]},{"wave":120,"gold":120000,"fragment":170,"cube":[[7,0.7],[8,0.3]],"scroll":[[2,0.5],[3,0.5]]},{"wave":130,"gold":130000,"fragment":180,"cube":[[8,0.7],[9,0.3]],"scroll":[[2,0.4],[3,0.6]]},{"wave":140,"gold":140000,"fragment":190,"cube":[[9,0.7],[10,0.3]],"scroll":[[2,0.3],[3,0.7]]},{"wave":150,"gold":150000,"fragment":200,"cube":[[10,0.7],[11,0.3]],"scroll":[[3,1]]},{"wave":160,"gold":160000,"fragment":210,"cube":[[11,0.7],[12,0.3]],"scroll":[[3,0.7],[4,0.3]]},{"wave":170,"gold":170000,"fragment":220,"cube":[[12,0.7],[13,0.3]],"scroll":[[3,0.6],[4,0.4]]},{"wave":180,"gold":180000,"fragment":230,"cube":[[13,0.7],[14,0.3]],"scroll":[[3,0.5],[4,0.5]]},{"wave":190,"gold":190000,"fragment":240,"cube":[[14,0.7],[15,0.3]],"scroll":[[3,0.3],[4,0.7]]},{"wave":200,"gold":250000,"fragment":300,"cube":[[16,0.7],[18,0.3]],"scroll":[[4,0.7],[5,0.3]]}]'::jsonb;
- cleared int := least(200,greatest(0,case when w->>'status'='won' and w->>'reason'='ending' then 200 else coalesce((w->>'wave')::int,1)-1 end));
- bracket int; entry jsonb; option jsonb; reward jsonb; firsts jsonb := '[]';
- claims jsonb := coalesce(st->'waveFirstClaims','[]'); prior jsonb;
- earned_gold bigint := 0; earned_fragment int := 0; earned_cube int := 0; earned_scroll int := 0;
- roll_value double precision; cumulative double precision;
-BEGIN
- -- A retry or a second settlement path must return the already committed award.
- SELECT value INTO prior FROM jsonb_array_elements(coalesce(st->'waveRewardHistory','[]')) WHERE value->>'runId'=run_id::text LIMIT 1;
- IF prior IS NOT NULL THEN RETURN jsonb_build_object('state',st,'reward',prior); END IF;
- bracket := (cleared/10)*10;
- FOR entry IN SELECT value FROM jsonb_array_elements(tiers) LOOP
-  IF (entry->>'wave')::int<=bracket AND NOT claims @> jsonb_build_array((entry->>'wave')::int) THEN
-   claims := claims || jsonb_build_array((entry->>'wave')::int);
-   earned_gold := earned_gold + (entry->>'gold')::bigint;
-   earned_fragment := earned_fragment + (entry->>'fragment')::int;
-   firsts := firsts || jsonb_build_array(jsonb_build_object('wave',entry->'wave','gold',entry->'gold','fragment',entry->'fragment'));
-  END IF;
- END LOOP;
- IF bracket>=10 THEN
-  entry := tiers->(bracket/10-1);
-  roll_value := random(); cumulative := 0;
-  FOR option IN SELECT value FROM jsonb_array_elements(entry->'cube') LOOP
-   cumulative := cumulative+(option->>1)::double precision;
-   earned_cube := (option->>0)::int;
-   EXIT WHEN roll_value<cumulative;
-  END LOOP;
-  roll_value := random(); cumulative := 0;
-  FOR option IN SELECT value FROM jsonb_array_elements(entry->'scroll') LOOP
-   cumulative := cumulative+(option->>1)::double precision;
-   earned_scroll := (option->>0)::int;
-   EXIT WHEN roll_value<cumulative;
-  END LOOP;
- END IF;
- reward := jsonb_build_object('type','coop','mode','wave','version',2,'runId',run_id,'settledAt',settled_at,
-  'wave',least(200,coalesce((w->>'wave')::int,1)),'cleared',cleared,'rewardTier',bracket,
-  'kills',coalesce((w->>'kills')::int,0),'reason',coalesce(w->>'reason','leave'),
-  'won',cleared=200,'ending',cleared=200,'gold',earned_gold,'fragment',earned_fragment,
-  'cube',earned_cube,'scroll',earned_scroll,'firstRewards',firsts,'credited',true);
- st := st || jsonb_build_object('gold',coalesce((st->>'gold')::bigint,0)+earned_gold,
-  'materials',coalesce(st->'materials','{}') || jsonb_build_object(
-   'fragment',coalesce((st#>>'{materials,fragment}')::bigint,0)+earned_fragment,
-   'cube',coalesce((st#>>'{materials,cube}')::bigint,0)+earned_cube,
-   'scroll',coalesce((st#>>'{materials,scroll}')::bigint,0)+earned_scroll),
-  'waveFirstClaims',claims,'waveBest',greatest(coalesce((st->>'waveBest')::int,0),least(200,coalesce((w->>'wave')::int,1))),
-  'waveClearedBest',greatest(coalesce((st->>'waveClearedBest')::int,0),cleared),
-  'waveEnding',coalesce((st->>'waveEnding')::boolean,false) or cleared=200);
- st := jsonb_set(st,'{waveRewardHistory}',(SELECT coalesce(jsonb_agg(value ORDER BY ord),'[]') FROM jsonb_array_elements(jsonb_build_array(reward)||coalesce(st->'waveRewardHistory','[]')) WITH ORDINALITY AS h(value,ord) WHERE ord<=10));
- RETURN jsonb_build_object('state',st,'reward',reward);
-END $wave$;
-REVOKE ALL ON FUNCTION rebirth_private.settle_wave_reward(jsonb,jsonb,uuid,bigint) FROM PUBLIC, anon, authenticated;
-
 CREATE OR REPLACE FUNCTION public.rebirth_coop_action(p jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -105,9 +49,9 @@ begin
    if room_mode not in ('rift','wave','advancement','raid') then raise exception 'INVALID_COOP_MODE';end if;
    if room_mode='raid' and tier not between 0 and 3 then raise exception 'INVALID_RAID';end if;
    if room_mode='advancement' then
-    if tier not between 0 and 4 then raise exception 'INVALID_TRIAL';end if;
-    trial_level:=(array[30,60,100,150,200])[tier+1];
-    current_stage:=case when coalesce((actor.state->>'firstAdvancement')::boolean,false) or coalesce((actor.state->>'advancement')::int,0)>=1 then least(5,coalesce((actor.state->>'advancement')::int,0)+1) else 0 end;
+    if tier not between 0 and 3 then raise exception 'INVALID_TRIAL';end if;
+    trial_level:=(array[30,60,100,150])[tier+1];
+    current_stage:=case when coalesce((actor.state->>'firstAdvancement')::boolean,false) or coalesce((actor.state->>'advancement')::int,0)>=1 then least(4,coalesce((actor.state->>'advancement')::int,0)+1) else 0 end;
     if coalesce((actor.state->>'level')::int,0)<trial_level then raise exception 'LEVEL_REQUIRED';end if;
     if current_stage<tier then raise exception 'ADVANCEMENT_REQUIRED';end if;
    end if;
@@ -169,12 +113,12 @@ begin
    end if;
    if action='start' and w->>'mode'='advancement' then
     tier:=(w->>'tier')::int;
-    if tier not between 0 and 4 or jsonb_array_length(w->'members') not between 1 and 2 then raise exception 'INVALID_TRIAL';end if;
+    if tier not between 0 and 3 or jsonb_array_length(w->'members') not between 1 and 2 then raise exception 'INVALID_TRIAL';end if;
     for member in select value from jsonb_array_elements(w->'members') loop
      select state into st from rebirth_private.players where id=(member->>'id')::uuid;
      if st->>'coopRoom' is distinct from rid::text then raise exception 'PARTY_NOT_FOUND';end if;
-     if coalesce((st->>'level')::int,0)<(array[30,60,100,150,200])[tier+1] then raise exception 'LEVEL_REQUIRED';end if;
-     current_stage:=case when coalesce((st->>'firstAdvancement')::boolean,false) or coalesce((st->>'advancement')::int,0)>=1 then least(5,coalesce((st->>'advancement')::int,0)+1) else 0 end;
+     if coalesce((st->>'level')::int,0)<(array[30,60,100,150])[tier+1] then raise exception 'LEVEL_REQUIRED';end if;
+     current_stage:=case when coalesce((st->>'firstAdvancement')::boolean,false) or coalesce((st->>'advancement')::int,0)>=1 then least(4,coalesce((st->>'advancement')::int,0)+1) else 0 end;
      if current_stage<tier then raise exception 'ADVANCEMENT_REQUIRED';end if;
     end loop;
    end if;
@@ -195,12 +139,12 @@ begin
      reward:=jsonb_build_object('type','coop','won',false,'gold',0);
      if w->>'mode'='advancement' then
       trial_stage:=(w->>'tier')::int;
-      current_stage:=case when coalesce((st->>'firstAdvancement')::boolean,false) or coalesce((st->>'advancement')::int,0)>=1 then least(5,coalesce((st->>'advancement')::int,0)+1) else 0 end;
+      current_stage:=case when coalesce((st->>'firstAdvancement')::boolean,false) or coalesce((st->>'advancement')::int,0)>=1 then least(4,coalesce((st->>'advancement')::int,0)+1) else 0 end;
       practice:=current_stage>trial_stage;
       reward:=jsonb_build_object('type','advancementTrial','stage',trial_stage,'won',w->>'status'='won','practice',practice,'seconds',(w->>'tick')::numeric/10);
       if w->>'status'='won' and not practice and not coalesce((member->>'left')::boolean,false) then
        if current_stage<>trial_stage then raise exception 'ADVANCEMENT_REQUIRED';end if;
-       if coalesce((st->>'level')::int,0)<(array[30,60,100,150,200])[trial_stage+1] then raise exception 'LEVEL_REQUIRED';end if;
+       if coalesce((st->>'level')::int,0)<(array[30,60,100,150])[trial_stage+1] then raise exception 'LEVEL_REQUIRED';end if;
        st:=st||jsonb_build_object('firstAdvancement',true,'advancement',trial_stage,'advancementVictories',coalesce(st->'advancementVictories','{}')||jsonb_build_object(trial_stage::text,ms));
       end if;
      end if;
@@ -222,4 +166,4 @@ begin
  select coalesce(jsonb_agg(jsonb_build_object('id',q.id,'tier',q.world->'tier','mode',coalesce(q.world->>'mode','rift'),'count',jsonb_array_length(q.world->'members'),'name',q.world->'members'->0->>'name')),'[]') into list from (select id,world from rebirth_private.coop_rooms where world->>'status'='waiting' and created_at>now()-interval '15 minutes' order by created_at desc limit 100) q;
  return jsonb_build_object('state',actor.state,'revision',actor.revision,'coop',case when r.id is null then null else r.world||jsonb_build_object('id',r.id,'revision',r.revision,'me',u) end,'coopRooms',list,'now',ms,'result',jsonb_build_object('events',events));
 end $function$
-
+;

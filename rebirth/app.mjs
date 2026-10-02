@@ -7,7 +7,7 @@ import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
 let investmentData=null,investmentLoadedAt=0;
-import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-fire-swords-103';
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-114';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=short-18';
@@ -18,20 +18,20 @@ import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.
 import {waveRewardBody} from './wave-ui.mjs?v=priest-potential-83';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
 import {raidLobby} from './raid-ui.mjs?v=priest-potential-83';
-import {nextAutoSkill} from './auto-skills.mjs?v=priest-potential-83';
+import {nextAutoSkill} from './auto-skills.mjs?v=fifth-114';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=costume-motion-111';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fifth-114';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube-mobile-84';
-import {TOWER_FLOORS} from './tower-model.mjs?v=priest-potential-83';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=costume-motion-111';
-import * as D from "./data.mjs?v=boss-drop-87";
+import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-114';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fifth-114';
+import * as D from "./data.mjs?v=fifth-114";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=shop-clean-105";
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=costume-shop-105";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-114";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -539,7 +539,7 @@ function regions() {
 function character() {
   const c = D.CLASSES.find((x) => x.id === state.classId),
     p = power(state);
-  return `${header("캐릭터", (state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}${btn("직업 변경","changeClass")}${btn("코스튬","costumeWardrobe")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${D.jobStage(state)?D.jobStage(state)+"차 직업":"견습 모험가"} · ${state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name}</strong><p class="note">1차 Lv.30 / 2차 Lv.60 / 3차 Lv.100 / 4차 Lv.150 · 전용 보스 처치 · 전직마다 공격력·HP +10%</p></div>${btn("전직 보스","advance","","gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="${portraitStyle(c.id,equippedCostume(state)?.id,portraitPosition(c.id))}" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+  return `${header("캐릭터", (state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}${btn("직업 변경","changeClass")}${btn("코스튬","costumeWardrobe")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${D.jobStage(state)?D.jobStage(state)+"차 직업":"견습 모험가"} · ${state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name}</strong><p class="note">1차 Lv.30 / 2차 Lv.60 / 3차 Lv.100 / 4차 Lv.150 / 5차 Lv.200 · 전용 보스 처치 · 전직마다 공격력·HP +10%</p></div>${btn("전직 보스","advance","","gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="${portraitStyle(c.id,equippedCostume(state)?.id,portraitPosition(c.id))}" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
     state.stats,
   )
     .map(
@@ -663,23 +663,23 @@ function combatSkillState(slot,party=false,tick){
  const r=party?partyRoom:state.battle,me=party?r.members.find(m=>m.mine):r;
  const seconds=party?r.seconds:battleEnemy(r).seconds;
  tick??=Math.min(seconds,r.tick+Math.max(0,Math.floor((Date.now()-lastSync)/1000)));
- const sk=slot===5?D.PRIEST_SKILLS[5]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];
+ const sk=slot===5?D.FIFTH_SKILLS[state.classId]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];
  const ready=slot===5?r.fifthReadyAt:slot===4?r.fourthReadyAt:slot===3?r.thirdReadyAt:slot===1?me?.skillReady:me?.secondReady;
  const remain=party?Math.max(0,Math.ceil((ready||0)-tick)):Math.max(0,Math.ceil(((ready||0)-r.started-tick*1000)/1000));
- const locked=slot===5?state.classId!=='priest'||state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;
+ const locked=slot===5?!D.fifthUnlocked(state):slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;
  return {sk,disabled:locked||remain>0||(party&&me?.hp<=0)||tick>=seconds,status:locked?'전직 필요':remain?remain+'초':'사용 가능'};
 }
 function combatSkillButtons(party=false) {
  const key=state.battle?.started;if(regularAutoBattle!==key){regularAutoBattle=key;regularAutoSkills=false;}
- return '<div class="regular-combat-skills">'+(state.classId==='priest'?[1,2,3,4,5]:[1,2,3,4]).map(slot=>{
+ return '<div class="regular-combat-skills">'+[1,2,3,4,5].map(slot=>{
  const {sk,disabled,status}=combatSkillState(slot,party);
  return '<button class="gold skill-button" data-illustrated="1" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(disabled?'disabled':'')+' title="'+esc(sk.description)+'"><span class="combat-skill-name">'+slot+'차 · '+esc(sk.name)+'</span><small data-skill-status>'+status+'</small></button>';}).join('')+(party?'':'<button data-illustrated="1" data-action="autoSkills" aria-pressed="'+regularAutoSkills+'"><span class="combat-skill-name">스킬 자동</span><small>'+(regularAutoSkills?'켜짐':'꺼짐')+'</small></button>')+'</div>';
 }
-function skillGuide(){return (state.classId==='priest'?'<p class="note">사제는 최대 HP가 평타와 모든 공격 스킬을 강화합니다. HP%는 최대 체력을 높이고 동일 수치만큼 추가 공격력%로도 반영됩니다(공격력% 잠재와 합산). 같은 수치의 HP%가 공격력%보다 유리하며, 주스탯 LUK%와 장비 공격력도 피해량에 반영됩니다. 공격력%·크리티컬%·보스 피해% 잠재는 표기 수치 그대로 적용됩니다.</p>':'')+'<div class="skill-guide">'+(state.classId==='priest'?[1,2,3,4,5]:[1,2,3,4]).map(slot=>{const sk=slot===5?D.PRIEST_SKILLS[5]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===5?state.level<200:slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===5?200:slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
+function skillGuide(){return (state.classId==='priest'?'<p class="note">사제는 최대 HP가 평타와 모든 공격 스킬을 강화합니다. HP%는 최대 체력을 높이고 동일 수치만큼 추가 공격력%로도 반영됩니다(공격력% 잠재와 합산). 같은 수치의 HP%가 공격력%보다 유리하며, 주스탯 LUK%와 장비 공격력도 피해량에 반영됩니다. 공격력%·크리티컬%·보스 피해% 잠재는 표기 수치 그대로 적용됩니다.</p>':'')+'<div class="skill-guide">'+[1,2,3,4,5].map(slot=>{const sk=slot===5?D.FIFTH_SKILLS[state.classId]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===5?!D.fifthUnlocked(state):slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===5?200:slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
 function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row">'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">◆</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
 
 function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}
-function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 인원에 따른 난이도 변화 없음 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (4회 누적 46.41%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
+function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨 · 5차 200레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 인원에 따른 난이도 변화 없음 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (5회 누적 61.05%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===4?D.FIFTH_SKILLS[state.classId].name:t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
 function bosses() {
   const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["raid","레이드"],["daily","일일"],["weekly","주간"],["coop","협동 균열"],["wave","협동 웨이브"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>이미지 전사와 파수꾼 · 캐릭터를 따라가는 위쪽 시점 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
@@ -728,7 +728,7 @@ function adminTransferDialog(id) {
 function rankings() {
   const combat=rankingMode==="combat",rankKey=combat?"combatRank":"levelRank",label=combat?"전투력":"레벨";
   const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
-  const className=r=>r.advancement>=3?D.FOURTH_NAMES[r.classId]:r.advancement>=2?D.THIRD_NAMES[r.classId]:r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name||"모험가";
+  const className=r=>r.advancement>=4?D.FIFTH_NAMES[r.classId]:r.advancement>=3?D.FOURTH_NAMES[r.classId]:r.advancement>=2?D.THIRD_NAMES[r.classId]:r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name||"모험가";
   const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
   const portrait=r=>`<div class="rank-portrait portrait ${r.classId==='priest'?'priest-portrait':''}" style="${portraitStyle(r.classId,r.costumeId,portraitPosition(r.classId))}" aria-hidden="true"></div>`;
   const podium=rows.slice(0,3).map(r=>`<article class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}">${esc(r.name)}</strong><small>${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
@@ -886,8 +886,9 @@ function showEvents(events) {
       if(e.slot===2&&arena&&!settings.low){playSecondOverlay(arena,state.classId);continue;}
       if (arena && !settings.low) {
         const flash = document.createElement("div");
-        flash.className = "skill-burst " + state.classId+(e.slot===4?" fourth-burst":e.slot===3?" third-burst":e.slot===1?" second-burst":"");if(e.slot===1)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);if(e.slot===3)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);
-        flash.textContent = (e.slot===4?D.FOURTH_SKILLS:e.slot===3?D.THIRD_SKILLS:e.slot===2?D.SECOND_SKILLS:D.CLASS_SKILLS)[state.classId].name;
+        flash.className = "skill-burst " + state.classId+(e.slot===5?" fifth-burst":e.slot===4?" fourth-burst":e.slot===3?" third-burst":e.slot===1?" second-burst":"");if(e.slot===1)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);if(e.slot===3)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);
+        flash.textContent = (e.slot===5?D.FIFTH_SKILLS:e.slot===4?D.FOURTH_SKILLS:e.slot===3?D.THIRD_SKILLS:e.slot===2?D.SECOND_SKILLS:D.CLASS_SKILLS)[state.classId].name;
+        if(e.slot===5)flash.style.setProperty('--fifth-art',"url('tower/fifth-"+state.classId+"-v1.webp')");
         arena.append(flash);
         setTimeout(()=>flash.remove(), e.slot===4?6000:e.slot===1?1200:900);
       }
@@ -909,7 +910,7 @@ function showEvents(events) {
     }
   }
 }
-function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.practice?(r.won?'전직 보스 연습 성공':'전직 보스 연습 종료'):r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.practice?'연습 전투입니다. 전직·능력치·보상은 추가로 지급되지 않습니다.':r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===3?D.FOURTH_SKILLS[state.classId].name:r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
+function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.practice?(r.won?'전직 보스 연습 성공':'전직 보스 연습 종료'):r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.practice?'연습 전투입니다. 전직·능력치·보상은 추가로 지급되지 않습니다.':r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===4?D.FIFTH_SKILLS[state.classId].name:r.stage===3?D.FOURTH_SKILLS[state.classId].name:r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G'+['fragment','cube','highCube','scroll'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+fmt(r[k])+'개').join(''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<10?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;

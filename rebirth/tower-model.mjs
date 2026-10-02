@@ -1,14 +1,15 @@
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest-potential-83';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-114';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-potential-83';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest-potential-83';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=priest-potential-83';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=priest-potential-83';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=fifth-114';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
-export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;delete b.firstCast;delete b.secondCast;delete b.thirdCast;delete b.fourthCast;return b;}
+export function clearVictoryEffects(b){b.effects=[];b.numbers=[];b.hazards=[];b.projectiles=[];for(const key of ['attackUntil','skillUntil','enemyCastUntil','enemyAttackUntil','guardUntil','secondUntil'])b[key]=0;delete b.pendingMelee;delete b.pendingSkillHit;delete b.firstCast;delete b.secondCast;delete b.thirdCast;delete b.fourthCast;delete b.fifthCast;return b;}
 
 export const TOWER_SIZE = {width:3200,height:3200};
 export const TOWER_BOUNDS = {left:150,right:3050,top:150,bottom:3050};
@@ -50,6 +51,15 @@ function fan(b,count=5){const a=Math.atan2(b.player.y-b.enemy.y,b.player.x-b.ene
 function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
  e.castDir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);e.dir=e.castDir;
  b.enemyCastStart=b.tick;b.enemyCastUntil=b.tick+10;b.enemyAttackStart=b.tick+10;b.enemyAttackUntil=b.tick+16;b.enemyAttackDir=e.castDir;
+ if(b.advancementStage===4){
+  const enraged=b.enemyHp<towerEncounter(b).hp*.35;
+  b.enemyCastUntil=b.tick+22;b.enemyAttackStart=b.tick+22;b.enemyAttackUntil=b.tick+29;
+  if(k%4===0){const a=k*Math.PI/8;for(const angle of [a,a+Math.PI/2])line(b,e.x-Math.cos(angle)*2500,e.y-Math.sin(angle)*2500,e.x+Math.cos(angle)*2500,e.y+Math.sin(angle)*2500,240,20,2.4);circle(b,p.x,p.y,290,30,1.8);}
+  else if(k%4===1){circle(b,e.x,e.y,4500,24,2.5,3,850);circle(b,e.x,e.y,450,24,2.5);}
+  else if(k%4===2){for(let i=0;i<3;i++){const v=facingVector(p.dir??6);circle(b,p.x+v.x*i*180,p.y+v.y*i*180,240,12+i*8,2);}fan(b,enraged?9:7);}
+  else {line(b,e.x,e.y,p.x,p.y,320,18,2.6);b.charge={x:p.x,y:p.y,at:b.tick+18,end:b.tick+23};circle(b,e.x,e.y,680,32,2.2);}
+  b.nextPattern=b.tick+(enraged?34:48);return;
+ }
  if(f===1){circle(b,p.x,p.y,130);circle(b,p.x+(p.x<1600?170:-170),p.y-170,120,19);}
  if(f===2){fan(b,5+k%3);if(k%2)circle(b,p.x,p.y,110,16);}
  if(f===3){line(b,p.x,TOWER_BOUNDS.top,p.x,TOWER_BOUNDS.bottom,110);line(b,TOWER_BOUNDS.left,p.y,TOWER_BOUNDS.right,p.y,110,16);}
@@ -79,7 +89,7 @@ export function towerStep(b,input,shared=null){
   if(b.tick<(b.dashUntil||0)){x=b.dashX*3;y=b.dashY*3;}p.x=clamp(p.x+x*TOWER_CLASSES[b.classId].speed,TOWER_BOUNDS.left,TOWER_BOUNDS.right);p.y=clamp(p.y+y*TOWER_CLASSES[b.classId].speed,TOWER_BOUNDS.top,TOWER_BOUNDS.bottom);return b;
  }
  if(b.ended)return b;upgradeTowerBattle(b);if(!b.sharedTrial)b.soloSupport=true;b.tick++;const f=towerEncounter(b),c=TOWER_CLASSES[b.classId],p=b.player,e=b.enemy;
- b.effects=b.effects.filter(x=>x.end>b.tick).slice(-40);b.numbers=b.numbers.filter(x=>x.end>b.tick).slice(-40);
+ b.effects=boundedCombatEffects(b.effects,b.tick,40);b.numbers=b.numbers.filter(x=>x.end>b.tick).slice(-40);
  let [mx,my,buttons]=input,n=Math.hypot(mx,my);if(n>1){mx/=n;my/=n;}p.moving=!!n;
  if(n>.01){p.dir=towerFacing(mx,my,p.dir??6);p.walk=(p.walk||0)+Math.min(1,n);if(mx)p.face=mx<0?-1:1;}
  if((buttons&4)&&b.tick>=b.dashReady){const v=facingVector(p.dir??6);b.dashReady=b.tick+TOWER_CLASSES[b.classId].dashCooldown;b.invulnerableUntil=b.tick+5;b.dashUntil=b.tick+3;b.dashX=n?mx/Math.hypot(mx,my):v.x;b.dashY=n?my/Math.hypot(mx,my):v.y;fx(b,'slash',p.x,p.y,170,6,Math.atan2(b.dashY,b.dashX));}
@@ -95,7 +105,7 @@ export function towerStep(b,input,shared=null){
  if(buttons&32){b.x=p.x;b.y=p.y;if(beginFourth(b,e,b.tick))p.skillDir=towerFacing(e.x-p.x,e.y-p.y,p.dir);}
  b.x=p.x;b.y=p.y;stepFourth(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
  b.x=p.x;b.y=p.y;stepThird(b,e,b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
- if(b.classId==='priest'){if(buttons&64)beginPriest(b,e,b.tick,5);stepPriest(b,[e],b.tick,5,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));}
+ if(buttons&64)beginFifth(b,e,b.tick);stepFifth(b,[{...e,hp:b.enemyHp,maxHp:f.hp}],b.tick,scale=>enemyDamage(b,scale),effect=>b.effects.push({...effect,id:++b.serial}));
  stepCombatSkills(b,[e],b.tick,(scale,crit)=>{if(b.enemyHp>0)enemyDamage(b,scale,crit);},effect=>b.effects.push({...effect,id:++b.serial}));
  if(b.enemyHp<=0){b.ended=true;b.won=true;return b;}
  if(!shared||shared.advanceEnemy){
