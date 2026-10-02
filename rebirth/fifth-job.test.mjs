@@ -44,3 +44,14 @@ s=execute(s,'advance',{},ctx).state;s.battle.ended=true;s.battle.won=true;s=exec
 assert.throws(()=>execute(s,'advance',{},ctx),/ALREADY_ADVANCED/);const stats=power(s);s=execute(s,'advancementStart',{stage:4},ctx).state;assert.equal(s.battle.advancementPractice,true);s.battle.won=true;s.battle.ended=true;s=execute(s,'sync',{},ctx).state;assert.deepEqual(power(s),stats);
 assert.equal(ADVANCEMENT_BOSSES[4].level,200);
 console.log('PASS fifth: exact totals, cooldown, level/victory gates, outside/death, execution, single-target arrows, guard, serialized replay, persistent fields, priest compatibility, solo/trial/raid and repeat victory safety');
+// Tracking keeps the live target, follows motion every tick, and reacquires nearest alive.
+const hunter=actor('rogue'),moving={id:'moving',x:3500,y:0,hp:1000,maxHp:1000};
+assert.equal(beginFifth(hunter,moving,0),true);
+const emitted=[];stepFifth(hunter,[moving],4,()=>{},e=>emitted.push(e));
+moving.x=4000;stepFifth(hunter,[moving],5,()=>{},e=>emitted.push(e));assert.equal(hunter.fifthCast.x,4000);
+const replacement={id:'replacement',x:4200,y:0,hp:1000,maxHp:1000},edge={id:'edge',x:6300,y:0,hp:1000,maxHp:1000},beyond={id:'beyond',x:6301,y:0,hp:1000,maxHp:1000};
+moving.hp=0;const hitIds=[];stepFifth(hunter,[moving,replacement,edge,beyond],8,(_,__,t)=>hitIds.push(t.id),e=>emitted.push(e));
+assert.equal(hunter.fifthCast.targetId,'replacement');assert.deepEqual(hitIds,['replacement','edge']);
+stepFifth(hunter,[moving,replacement],10,()=>{},e=>emitted.push(e));assert.equal(emitted.filter(e=>e.kind==='fifth').at(-1).targetId,'replacement');
+assert.equal(beginFifth(actor('rogue'),{...replacement,x:4401},0),false);
+console.log('PASS rogue: doubled tracking distance, +61.5% radius, live movement, dead-target reacquisition, matching visual IDs and exact radius edge');

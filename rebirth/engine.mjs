@@ -1,4 +1,4 @@
-import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-114';
+import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-follow-119';
 import {normalizeCostumes,equippedCostume,costumeCommand} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
@@ -12,7 +12,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=fifth-114';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
-import {applyBetaTool} from './beta-tools.mjs?v=fifth-114';
+import {applyBetaTool} from './beta-tools.mjs?v=fifth-follow-119';
 import {
   VERSION,
   normalizePotentialState,
@@ -50,9 +50,9 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=fifth-114";
+} from "./data.mjs?v=fifth-follow-119";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fifth-114';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fifth-follow-119';
 const fail = (message) => {
   throw new Error(message);
 };
