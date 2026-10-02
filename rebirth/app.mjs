@@ -1,7 +1,8 @@
-import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=costume-104';
+import {installPortraitIsolation} from './portrait-isolation.mjs?v=shop-clean-105';
+import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-clean-105';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-104';
 import {showAdminPositions} from './admin-positions.mjs?v=admin-direction-24';
-import {shopView} from './shop-ui.mjs?v=costume-104';
+import {shopView} from './shop-ui.mjs?v=shop-clean-105';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=minji-tiger-26';
@@ -27,7 +28,7 @@ import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube
 import {TOWER_FLOORS} from './tower-model.mjs?v=priest-potential-83';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=costume-104';
 import * as D from "./data.mjs?v=boss-drop-87";
-import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=priest-potential-83";
+import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=shop-clean-105";
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=costume-104";
@@ -45,6 +46,7 @@ const esc = (v) =>
   );
 const fmt = (n) => Math.floor(n || 0).toLocaleString("ko-KR");
 const pct = (n) => (n * 100).toLocaleString("ko-KR", {maximumFractionDigits: 4}) + "%";
+installPortraitIsolation();
 const portraitPosition = (id) => Math.max(0, ["warrior", "mage", "archer", "rogue", "pirate"].indexOf(id)) * 25;
 function requiredLevel(level, label = "Lv." + level) {
   return `<span data-required-level="${level}" class="required-level ${state&&state.level<level?"level-unmet":""}">${esc(label)}</span>`;
@@ -1114,7 +1116,7 @@ document.addEventListener("click", async (e) => {
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
       const c=costumeById(arg);if(!c)return;
-      open("코스튬 구매",`<div class="costume-card"><img src="${c.portrait}" alt="${c.name}"><strong>${c.name}</strong><span>5,000,000 G</span></div><p class="note">구매 후 해당 직업으로 장착할 수 있어요.</p><div class="actions">${btn("취소","close")}${btn("구매 확정","costumeBuyConfirm",c.id,"gold",true)}</div>`);return;
+      open("코스튬 구매",`<div class="costume-card" data-no-currency-art><img src="${c.portrait}" alt="${c.name}"><strong>${c.name}</strong><span>5,000,000 G</span></div><p class="note">구매 후 해당 직업으로 장착할 수 있어요.</p><div class="actions">${btn("취소","close")}${btn("구매 확정","costumeBuyConfirm",c.id,"gold",true)}</div>`);return;
     }
     if(action==='costumeBuyConfirm'){modal.close();return await command('costumeBuy',{id:arg});}
     if(action==='costumeEquip'||action==='costumeUnequip'){modal.close();return await command(action,{id:arg});}
