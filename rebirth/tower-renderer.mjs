@@ -1,4 +1,4 @@
-import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-range-117';
+import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-range-118';
 import {costumeMotionFrame} from './costume-motion.mjs?v=costume-motion-111';
 import COSTUME_MOTION_LAYOUT from './costume-motion-layout.mjs?v=costume-motion-111';
 import {costumeById} from './costumes.mjs?v=costume-motion-111';
@@ -359,10 +359,10 @@ export class TowerRenderer {
     for(const e of b.effects){
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
-      if(e.kind==='fifth-field'){if(e.classId==='mage')drawFifth(g,e,time,fifthOpacity);continue;}
+      if(e.kind==='fifth-field'){if(e.classId==='mage')drawFifth(g,e,time,(e.owner??null)===(b.actorId??b.id??null)?.85:fifthOpacity);continue;}
       if(e.kind==='fifth'){
-        const effect=resolveFifthVisual(e,effectTarget(e),time,this.fifthLandings);
-        drawFifth(g,effect,time,fifthOpacity);continue;
+        const mine=(e.owner??null)===(b.actorId??b.id??null),effect=resolveFifthVisual(e,effectTarget(e),time,this.fifthLandings);
+        drawFifth(g,{...effect,lowDetail:fifthAreas.length>3&&!mine},time,mine?.85:fifthOpacity);continue;
       }
       if(e.kind==='priest')continue;
       if(e.kind==='priest-orb'){const age=clamp((time-e.start)/(e.end-e.start)),x=mix(e.fromX,e.x,age),y=mix(e.fromY,e.y,age)-Math.sin(age*Math.PI)*45,orb=image('tower/priest-orb-v1.png');g.save();g.globalCompositeOperation='screen';for(let i=3;i>0;i--){const t=clamp(age-i*.07);g.globalAlpha=.16;g.fillStyle='#fff0ab';g.shadowColor='#fff2bf';g.shadowBlur=22;g.beginPath();g.arc(mix(e.fromX,e.x,t),mix(e.fromY,e.y,t)-Math.sin(t*Math.PI)*45,22+i*4,0,Math.PI*2);g.fill();}g.globalAlpha=1;g.shadowColor='#fff8cd';g.shadowBlur=38;if(orb.complete&&orb.naturalWidth)g.drawImage(orb,x-78,y-78,156,156);else{g.fillStyle='#fff8cf';g.beginPath();g.arc(x,y,35,0,Math.PI*2);g.fill();}g.restore();continue;}
