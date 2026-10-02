@@ -3,3 +3,6 @@
 .nav-custom-art{object-fit:contain;background:none!important;border:0!important;box-shadow:none!important}
 
 .boss-shop>.shop-merchant{margin-top:12px}
+.shop-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.boss-shop .shop-categories>button{min-height:44px;border:1px solid #786b50;border-radius:8px;background:linear-gradient(#192e3c,#0b1c29);color:#bec9d2;font-size:14px}
+.boss-shop .shop-categories>button.active{border-color:#e1bc72;background:linear-gradient(#735c32,#3c321f);color:#ffe8b3;box-shadow:inset 0 1px #fff3bd40}

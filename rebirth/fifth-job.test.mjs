@@ -20,7 +20,7 @@ for(const [i,cls] of ids.entries()){
  for(let tick=0;tick<100;tick++)stepFifth(a,[target],tick,s=>{sum+=s;hits.push(tick);},e=>visual.push(e));
  assert.ok(Math.abs(sum-[24,26,22,22,25][i])<1e-9,cls);
  assert.deepEqual(visual.filter(e=>e.kind==='fifth').map(e=>e.impact),hits);
- assert.ok(visual.filter(e=>e.kind==='fifth').every(e=>e.start===e.impact-(cls==='warrior'&&e.pulse>0?8:4)));
+ assert.ok(visual.filter(e=>e.kind==='fifth').every(e=>e.start===e.impact-(cls==='warrior'&&e.pulse>0?12:4)));
  assert.equal(FIFTH_SKILLS[cls].cooldown,40);assert.equal(a.fifthReady,400);
  assert.equal(beginFifth(a,target,399),false);assert.equal(beginFifth(a,target,400),true);
  const dead=actor(cls);beginFifth(dead,target,0);dead.hp=0;let damage=0;stepFifth(dead,[target],100,s=>damage+=s);assert.equal(damage,0);assert.equal(dead.fifthCast,undefined);
@@ -38,14 +38,15 @@ const priest=actor('priest');assert.equal(FIFTH_SKILLS.priest.cooldown,30);asser
 for(let direction=0;direction<8;direction++){
  const a=actor('warrior'),angle=direction*Math.PI/4,t={id:'aim',x:Math.cos(angle)*1000,y:Math.sin(angle)*1000,hp:1000,maxHp:1000};
  beginFifth(a,t,0);let total=0;const fx=[];
- for(let tick=0;tick<80;tick++)stepFifth(a,[t],tick,damage=>total+=damage,e=>fx.push(e));
+ for(let tick=0;tick<100;tick++)stepFifth(a,[t],tick,damage=>total+=damage,e=>fx.push(e));
  const waves=fx.filter(e=>e.kind==='fifth'&&e.pulse>0);assert.equal(waves.length,11);assert.ok(Math.abs(total-24)<1e-9);
+ assert.deepEqual(waves.map(e=>e.impact),Array.from({length:11},(_,i)=>28+i*6),'eleven waves at 0.6-second intervals');
  for(const wave of waves){assert.ok(fifthContains(wave,t));assert.ok(Math.abs(Math.sin(wave.angle-angle))<1e-9);}
 }
 // Aim again on release; a moving monster cannot redirect an already flying wave.
 const turn=actor('warrior'),mobile={id:'mobile',x:1000,y:0,hp:1000,maxHp:1000},turnFx=[];
-beginFifth(turn,mobile,0);for(let tick=0;tick<=12;tick++)stepFifth(turn,[mobile],tick,()=>{},e=>turnFx.push(e));
-mobile.x=0;mobile.y=-1000;for(let tick=13;tick<=15;tick++)stepFifth(turn,[mobile],tick,()=>{},e=>turnFx.push(e));
+beginFifth(turn,mobile,0);for(let tick=0;tick<=16;tick++)stepFifth(turn,[mobile],tick,()=>{},e=>turnFx.push(e));
+mobile.x=0;mobile.y=-1000;for(let tick=17;tick<=22;tick++)stepFifth(turn,[mobile],tick,()=>{},e=>turnFx.push(e));
 const turnWaves=turnFx.filter(e=>e.kind==='fifth'&&e.pulse>0);assert.equal(turnWaves[0].angle,0);assert.equal(turnWaves[1].angle,-Math.PI/2);
 assert.equal(fifthContains(turnWaves[0],mobile),false);assert.equal(fifthContains(turnWaves[1],mobile),true);
 for(const cls of ids){

@@ -19,11 +19,12 @@ const other={...e,owner:'other'};assert.equal(resolveFifthVisual(other,{x:600,y:
 const noGround=new Proxy({},{get(){throw Error('Rogue must not draw a ground seal or range circle');}});
 drawFifthGround(noGround,{classId:'rogue',mode:'tracking',start:0,end:60,radius:2100},20);
 for(let direction=0;direction<8;direction++){
- const angle=direction*Math.PI/4,e={x:35,y:-20,angle,length:2400,start:12,impact:20};
- const launch=warriorWaveFlight(e,12),end=warriorWaveFlight(e,20);
+ const angle=direction*Math.PI/4,e={x:35,y:-20,angle,length:2400,start:16,impact:28};
+ const launch=warriorWaveFlight(e,16),middle=warriorWaveFlight(e,22),end=warriorWaveFlight(e,28);
  assert.equal(launch.x,e.x);assert.equal(launch.y,e.y);
+ assert.equal(middle.distance,1200,'constant flight speed across the longer 1.2-second travel');
  assert.ok(Math.abs(end.x-(e.x+Math.cos(angle)*2400))<1e-9);assert.ok(Math.abs(end.y-(e.y+Math.sin(angle)*2400))<1e-9);
- let last=-1;for(let t=12;t<=20;t+=.05){const f=warriorWaveFlight(e,t);assert.ok(f.distance>=last&&f.distance<=2400);assert.ok(Number.isFinite(f.x)&&Number.isFinite(f.y));last=f.distance;}
+ let last=-1;for(let t=16;t<=28;t+=.05){const f=warriorWaveFlight(e,t);assert.ok(f.distance>=last&&f.distance<=2400);assert.ok(Number.isFinite(f.x)&&Number.isFinite(f.y));last=f.distance;}
 }
 for(const classId of ['warrior','mage','archer','rogue','pirate'])for(let t=0;t<100;t+=.05){const pose=fifthPose({classId,start:0,end:86},t);if(pose)assert.ok(pose.age>=0&&pose.age<=1&&Number.isFinite(pose.lunge));}
 const impact={...e,classId:'mage',final:true};assert.deepEqual(fifthFeedback([impact],7.99,'me'),{x:0,y:0});assert.deepEqual(fifthFeedback([impact],8.6,'other'),{x:0,y:0});assert.ok(Math.abs(fifthFeedback([impact],8.3,'me').x)<=10);assert.deepEqual(fifthFeedback([impact],10,'me'),{x:0,y:0});

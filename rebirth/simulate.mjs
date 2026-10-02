@@ -1,5 +1,5 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=fifth-aim-120';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=fifth-aim-120';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=fifth-impact-121';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=fifth-impact-121';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

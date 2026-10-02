@@ -1,6 +1,6 @@
 import {WAVE_REWARDS,WAVE_END} from './wave-rewards.mjs?v=priest-potential-83';
 import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
-import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=fifth-aim-120';
+import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=fifth-impact-121';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=priest-potential-83';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');

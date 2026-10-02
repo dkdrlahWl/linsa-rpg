@@ -1,13 +1,13 @@
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=costume-visible-108';
-import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=costume-shop-105';
+import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
-import {shopView} from './shop-ui.mjs?v=shop-order-106';
+import {shopView} from './shop-ui.mjs?v=shop-tabs-122';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
 let investmentData=null,investmentLoadedAt=0;
-import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-aim-120';
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=short-18';
@@ -15,24 +15,24 @@ import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=short-18';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
-import {waveRewardBody} from './wave-ui.mjs?v=fifth-aim-120';
+import {waveRewardBody} from './wave-ui.mjs?v=fifth-impact-121';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
-import {raidLobby} from './raid-ui.mjs?v=fifth-aim-120';
-import {nextAutoSkill} from './auto-skills.mjs?v=fifth-aim-120';
+import {raidLobby} from './raid-ui.mjs?v=fifth-impact-121';
+import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
-import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-aim-120';
+import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
 import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fifth-aim-120';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fifth-impact-121';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=fifth-aim-120';
-import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-aim-120';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fifth-aim-120';
-import * as D from "./data.mjs?v=fifth-aim-120";
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=fifth-impact-121';
+import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-impact-121';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fifth-impact-121';
+import * as D from "./data.mjs?v=fifth-impact-121";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=shop-clean-105";
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-aim-120";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-impact-121";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -79,6 +79,7 @@ let salvageMode=false;
 const salvageSelection=new Set();
 const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id;
 let partyBossId=null, partyPractice=false;
+let shopCategory="boss";
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0, lastBattleRequestAt = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
@@ -483,7 +484,7 @@ function render() {
       gear: inventory,
       boss: bosses,
       market: market,
-      shop:()=>shopView(state,D,gearMarkup),
+      shop:()=>shopView(state,D,gearMarkup,shopCategory),
       investment:()=>investmentView(state,investmentData),
     }[tab]();
   document.body.classList.toggle('investment-mode',tab==='investment'&&view==='game'&&!state.battle&&!state.coopRoom&&!state.partyRoom);
@@ -1096,7 +1097,7 @@ document.addEventListener("click", async (e) => {
   const action = b.dataset.action,
     arg = b.dataset.arg;
   sounds.start();sounds.music();
-  sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage'].includes(action)?'ui-tab':'ui-click');
+  sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage','shopCategory'].includes(action)?'ui-tab':'ui-click');
   if(action==='star')sounds.play('enhance-charge');
   try {
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
@@ -1113,6 +1114,7 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
+    if(action==='shopCategory'){shopCategory=arg==='costume'?'costume':'boss';return render();}
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
       const c=costumeById(arg);if(!c)return;

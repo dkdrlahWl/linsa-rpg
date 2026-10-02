@@ -1,6 +1,6 @@
 const TAU=Math.PI*2;
 const colors={warrior:'#ffbb50',mage:'#b28aff',archer:'#82f3ac',rogue:'#bc9aff',pirate:'#66e5df'};
-const atlases=new Map(),lights=new Map(),seals=new Map(),blasts=new Map(),waves=new Map();
+const atlases=new Map(),lights=new Map(),seals=new Map(),waves=new Map();
 const clamp=n=>Math.max(0,Math.min(1,n));
 const smooth=n=>{n=clamp(n);return n*n*(3-2*n);};
 const out=n=>1-(1-clamp(n))**3;
@@ -33,13 +33,18 @@ export async function prepareFifthArt(classes,image){
    q.fillStyle='#eee1ff';q.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?13:40;const x=Math.cos(a)*r,y=Math.sin(a)*r;i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();q.fill();seals.set(cls,seal);
   }
   if(cls==='warrior'){
-   const wall=document.createElement('canvas');wall.width=1024;wall.height=640;const q=wall.getContext('2d'),f=frames[3];
-   // One continuous impact texture, never a grid of identical explosions.
-   // Only the ground explosion: full frames also contain a tilted embedded sword.
-   q.drawImage(f.im,f.x,f.y+f.h*.74,f.w,f.h*.26,0,0,1024,640);blasts.set(cls,wall);
+   // Independent weapon-free explosion frames; never rotate or stretch a sword atlas.
+   const impact=image('tower/attack-burst-v2.png');try{await impact.decode();}catch{return;}
+   const explosions=[];
+   for(let cell=0;cell<4;cell++){
+    const canvas=document.createElement('canvas');canvas.width=canvas.height=512;const q=canvas.getContext('2d');
+    q.drawImage(impact,cell*impact.width/4,0,impact.width/4,impact.height,0,0,512,512);
+    explosions.push({im:canvas,x:0,y:0,w:512,h:512});
+   }
+   atlases.set('warrior-impact',explosions);
    const wave=document.createElement('canvas');wave.width=640;wave.height=768;const w=wave.getContext('2d');
    const fire=w.createLinearGradient(0,0,640,0);fire.addColorStop(0,'#ff440000');fire.addColorStop(.4,'#ff5e0040');fire.addColorStop(.8,'#ffae00cc');fire.addColorStop(1,'#fff8d4');
-   w.fillStyle=fire;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.quadraticCurveTo(330,600,355,384);w.quadraticCurveTo(330,165,25,35);w.fill();w.save();w.clip();w.globalAlpha=.5;w.drawImage(wall,0,0,640,768);w.restore();
+   w.fillStyle=fire;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.quadraticCurveTo(330,600,355,384);w.quadraticCurveTo(330,165,25,35);w.fill();
    for(let i=0;i<13;i++){const y=55+i*54,x=560-Math.abs(y-384)*.75;w.strokeStyle=i%2?'#ffbd3ca0':'#ff6c0090';w.lineWidth=8+i%3*4;w.beginPath();w.moveTo(30,y+Math.sin(i*2.4)*28);w.quadraticCurveTo(x*.55,y+(384-y)*.32,x,y+(384-y)*.48);w.stroke();}
    for(const [width,color] of [[25,'#ff6b0070'],[12,'#ffd75eee'],[4,'#fffbe4']]){w.lineWidth=width;w.strokeStyle=color;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.stroke();}waves.set(cls,wave);
   }
@@ -104,8 +109,6 @@ export function drawFifthGround(g,e,time,opacity=1){
  if(e.mode==='line'){
   g.rotate(e.angle);g.fillStyle=color;g.globalAlpha*=.035;g.fillRect(0,-e.width/2,e.length,e.width);
   g.globalAlpha=fade*opacity*.55;g.strokeStyle=color;g.lineWidth=4;g.strokeRect(0,-e.width/2,e.length,e.width);
-  const scorch=blasts.get(e.classId),age=time-e.start;
-  if(scorch&&age>=10&&opacity>=.6){g.globalAlpha=fade*opacity*(.12+Math.sin(age*.7)**2*.035);g.drawImage(scorch,0,-e.width/2,e.length,e.width);}
   g.globalAlpha=fade*opacity*.25;g.setLineDash([22,28]);g.beginPath();g.moveTo(0,0);g.lineTo(e.length,0);g.stroke();
  }else{
   g.fillStyle=color;g.globalAlpha*=.028;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
@@ -149,11 +152,12 @@ function warrior(g,e,time){
  const along=Math.max(0,Math.min(e.length,dx*Math.cos(e.angle)+dy*Math.sin(e.angle))),side=Math.max(-e.width/2,Math.min(e.width/2,-dx*Math.sin(e.angle)+dy*Math.cos(e.angle)));
  const x=e.x+Math.cos(e.angle)*along-Math.sin(e.angle)*side,y=e.y+Math.sin(e.angle)*along+Math.cos(e.angle)*side;
  if(e.pulse===0){
-  const travel=clamp((time-e.start)/(e.impact-e.start)),[width,height]=dimensions(e.classId,0,650,1800),tipY=y-(1-travel**3)*1100,alpha=age<0?smooth(travel*3):1-smooth((age-1)/3);
+  const travel=clamp((time-e.start)/(e.impact-e.start)),[width,height]=dimensions(e.classId,0,650,1800),tipY=y-(1-travel**3)*1100,alpha=age<0?smooth(travel*3):1-smooth(age/2);
   glow(g,e.classId,x,tipY-90,250,alpha*.45);sprite(g,e.classId,0,x,tipY-height/2,width,height,Math.PI,alpha);
   if(age>=0){
-   const fade=1-smooth((age-2)/5),spread=out(age/2),wall=blasts.get(e.classId);
-   if(wall&&!e.lowDetail){g.save();g.translate(e.x,e.y);g.rotate(e.angle);g.beginPath();g.rect(0,-e.width/2,e.length,e.width);g.clip();g.globalAlpha*=fade*.78;g.drawImage(wall,e.length*(1-spread)/2,-e.width*(.6+.4*spread)/2,e.length*spread,e.width*(.6+.4*spread));g.restore();}
+   const fade=1-smooth((age-3)/4),frame=age<1?0:age<2.5?1:age<5?2:3;
+   const size=(e.lowDetail?900:1700)*(.8+out(age/2)*.2);
+   sprite(g,'warrior-impact',frame,x,y-size*.29,size,size,0,fade*.95);
    glow(g,e.classId,x,y-30,e.lowDetail?350:700,fade*.35);ring(g,e.classId,x,y,80+out(age/7)*620,fade,8);sparks(g,e,x,y,age,true);
   }
  }else{
@@ -167,7 +171,7 @@ function warrior(g,e,time){
 }
 // A fire crescent faces +X in its cache, so the aim angle is also its rotation.
 export function warriorWaveFlight(e,time){
- const progress=clamp((time-e.start)/Math.max(1,e.impact-e.start)),distance=out(progress)*e.length;
+ const progress=clamp((time-e.start)/Math.max(1,e.impact-e.start)),distance=progress*e.length;
  return {progress,distance,x:e.x+Math.cos(e.angle)*distance,y:e.y+Math.sin(e.angle)*distance,angle:e.angle};
 }
 function mage(g,e,time){
