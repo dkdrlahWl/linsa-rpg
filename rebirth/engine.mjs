@@ -1,3 +1,4 @@
+import {normalizeCostumes,equippedCostume,costumeCommand} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=priest-potential-83';
@@ -109,6 +110,8 @@ export function initialState(classId, name, ctx) {
     xp: 0,
     points: 0,
     stats: { STR: 4, DEX: 4, INT: 4, LUK: 4 },
+    costumes: [],
+    equippedCostume: null,
     classBuilds: {},
     classStarters: [classId],
     gold: 500,
@@ -197,6 +200,7 @@ export function power(s) {
     return [key, {base:s.stats[key], growth, fixed:fixedStats[key], percent:pct[key], total:Math.floor(beforePercent * (1+pct[key]/100))}];
   }));
   return {
+    costumeId:equippedCostume(s)?.id||null,
     pet:s.equippedPet===PET_ID&&s.pets?.includes(PET_ID)?PET_ID:null,
     stats,
     bonuses: {...pct},
@@ -503,7 +507,7 @@ export function execute(input, command, args = {}, ctx) {
     ctx && Number.isFinite(ctx.now) && typeof ctx.random === "function",
     "INVALID_CONTEXT",
   );
-  const s = normalizePotentialState(structuredClone(input));
+  const s = normalizeCostumes(normalizePotentialState(structuredClone(input)));
   s.isAdmin = ctx.admin === true;
   if(s.isAdmin){s.gold=999999999999;for(const key of Object.keys(MATERIALS))s.materials[key]=999999999999;}
   check(s.version === VERSION, "VERSION_MISMATCH");
@@ -514,7 +518,7 @@ export function execute(input, command, args = {}, ctx) {
   check(!s.coopRoom || ["sync","ack"].includes(command), "BATTLE_IN_PROGRESS");
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
-  if(command==="shopSell")check(!s.battle,"BATTLE_IN_PROGRESS");
+  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
@@ -580,6 +584,9 @@ export function execute(input, command, args = {}, ctx) {
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "costumeBuy":
+    case "costumeEquip":
+    case "costumeUnequip": {events.push(costumeCommand(s,command,args.id));break;}
     case "petSummon": {
       check(!s.pendingCube,"먼저 큐브 옵션을 선택하세요.");
       events.push(summonPet(s,args.count,ctx,()=>{const mail={id:"lumi-chest-"+ctx.uuid(),kind:"lumiBossChest",title:"100레벨 랜덤 보스 장비 상자",sender:"달빛 소환",message:"받기를 누르면 상자를 열어 현재 직업의 랜덤 보스 장비를 획득합니다.",rewards:{},sentAt:new Date(ctx.now).toISOString()};s.rewardMailbox||=[];s.rewardMailbox.push(mail);s.systemMailbox||=[];s.systemMailbox.push(mail);return {mailId:mail.id};}));break;
@@ -627,6 +634,7 @@ export function execute(input, command, args = {}, ctx) {
       const allocated = Object.values(s.stats).reduce((total,value) => total + Math.max(0,value-4),0);
       s.points = Math.max(0,(s.level-1)*5-allocated);
       s.classId = target.id;
+      s.equippedCostume = null;
       s.equipped = {};
       s.hunting = false;
       s.huntRemainder = 0;
@@ -662,7 +670,7 @@ export function execute(input, command, args = {}, ctx) {
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "claimSystemMail": {
-      events.push(claimSystemMail(s,args.id,()=>{const item=makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx),stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
+      events.push(claimSystemMail(s,args.id,()=>{const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
       break;
     }
     case "claimMail": {
@@ -914,4 +922,5 @@ export function grantRaidChest(input,tier,ctx){
  Object.assign(reward,{weeklyUsed:weekly.used+(practice?0:1),weeklyLimit:weekly.limit,weeklyRemaining:Math.max(0,weekly.remaining-(practice?0:1))});
  delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
 }
+
 

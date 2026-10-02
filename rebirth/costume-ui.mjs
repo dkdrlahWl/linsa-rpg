@@ -1,0 +1,9 @@
+import {COSTUMES,costumeById,equippedCostume} from './costumes.mjs?v=costume-104';
+const classes={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
+export function portraitStyle(classId,id,position=0){const c=costumeById(id,classId);return c?`background-image:url('${c.portrait}')!important;background-size:contain!important;background-position:center!important;`:`background-position:${position}% 0`;}
+export function costumeCards(s,wardrobe=false){
+ const list=wardrobe?COSTUMES.filter(c=>s.costumes?.includes(c.id)):COSTUMES;
+ return `<div class="costume-grid">${list.map(c=>{const owned=s.costumes?.includes(c.id),equipped=equippedCostume(s)?.id===c.id,matching=c.classId===s.classId;return `<article class="costume-card ${equipped?'equipped':''}"><img src="${c.portrait}" alt="${c.name}" loading="lazy"><small>${classes[c.classId]} 전용</small><strong>${c.name}</strong><span>${owned?(equipped?'장착 중':'보유 중'):'5,000,000 G'}</span>${!owned?`<button data-action="costumeBuyPick" data-arg="${c.id}">구매</button>`:equipped?'<button data-action="costumeUnequip" data-write>해제</button>':`<button data-action="costumeEquip" data-arg="${c.id}" data-write ${matching?'':'disabled data-unavailable'}>${matching?'장착':classes[c.classId]+' 전용'}</button>`}</article>`;}).join('')||'<p class="note">보유한 코스튬이 없어요. 상점에서 구매할 수 있어요.</p>'}</div>`;
+}
+export function costumeShop(s){return `<section class="shop-sale-section costume-shop"><header><div><small>직업별 특별 의상</small><h2>코스튬 상점</h2></div><span>6종</span></header>${costumeCards(s)}<p class="shop-note">구매한 코스튬은 계속 보유하며, 해당 직업으로 장착할 수 있어요.</p></section>`;}
+export function costumeWardrobe(s){return `<p>현재 외형: <strong>${equippedCostume(s)?.name||'기본 의상'}</strong></p>${costumeCards(s,true)}<p class="note">코스튬은 캐릭터 외형만 변경합니다.</p>`;}
