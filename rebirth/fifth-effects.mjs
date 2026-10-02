@@ -35,10 +35,11 @@ export async function prepareFifthArt(classes,image){
   if(cls==='warrior'){
    const wall=document.createElement('canvas');wall.width=1024;wall.height=640;const q=wall.getContext('2d'),f=frames[3];
    // One continuous impact texture, never a grid of identical explosions.
-   q.drawImage(f.im,f.x,f.y+f.h*.46,f.w,f.h*.54,0,0,1024,640);blasts.set(cls,wall);
+   // Only the ground explosion: full frames also contain a tilted embedded sword.
+   q.drawImage(f.im,f.x,f.y+f.h*.74,f.w,f.h*.26,0,0,1024,640);blasts.set(cls,wall);
    const wave=document.createElement('canvas');wave.width=640;wave.height=768;const w=wave.getContext('2d');
    const fire=w.createLinearGradient(0,0,640,0);fire.addColorStop(0,'#ff440000');fire.addColorStop(.4,'#ff5e0040');fire.addColorStop(.8,'#ffae00cc');fire.addColorStop(1,'#fff8d4');
-   w.fillStyle=fire;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.quadraticCurveTo(330,600,355,384);w.quadraticCurveTo(330,165,25,35);w.fill();w.save();w.clip();w.globalAlpha=.5;w.drawImage(f.im,f.x,f.y+f.h*.46,f.w,f.h*.54,0,0,640,768);w.restore();
+   w.fillStyle=fire;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.quadraticCurveTo(330,600,355,384);w.quadraticCurveTo(330,165,25,35);w.fill();w.save();w.clip();w.globalAlpha=.5;w.drawImage(wall,0,0,640,768);w.restore();
    for(let i=0;i<13;i++){const y=55+i*54,x=560-Math.abs(y-384)*.75;w.strokeStyle=i%2?'#ffbd3ca0':'#ff6c0090';w.lineWidth=8+i%3*4;w.beginPath();w.moveTo(30,y+Math.sin(i*2.4)*28);w.quadraticCurveTo(x*.55,y+(384-y)*.32,x,y+(384-y)*.48);w.stroke();}
    for(const [width,color] of [[25,'#ff6b0070'],[12,'#ffd75eee'],[4,'#fffbe4']]){w.lineWidth=width;w.strokeStyle=color;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.stroke();}waves.set(cls,wave);
   }
@@ -94,10 +95,10 @@ function flight(g,e,time){
 }
 export function fifthFields(effects,time){
  const fields=effects.filter(e=>e.kind==='fifth-field'&&e.start<=time&&e.end>time);
- return fields.map(e=>{if(e.mode!=='tracking')return e;const pulses=effects.filter(p=>p.kind==='fifth'&&p.owner===e.owner&&p.classId===e.classId&&p.start>=e.start&&p.start<=time);const last=pulses.at(-1);return last?{...e,x:last.x,y:last.y,targetId:last.targetId}:e;});
+ return fields.map(e=>{if(!['tracking','line'].includes(e.mode))return e;const pulses=effects.filter(p=>p.kind==='fifth'&&p.owner===e.owner&&p.classId===e.classId&&p.start>=e.start&&p.start<=time);const last=pulses.at(-1);return last?{...e,x:last.x,y:last.y,angle:last.angle,targetId:last.targetId}:e;});
 }
 export function drawFifthGround(g,e,time,opacity=1){
- if(e.mode==='homing')return;
+ if(e.mode==='homing'||e.classId==='rogue')return;
  const fade=smooth((time-e.start)/5)*smooth((e.end-time)/5),r=e.radius,color=colors[e.classId];
  g.save();g.translate(e.x,e.y);g.globalAlpha=fade*opacity;
  if(e.mode==='line'){
@@ -114,7 +115,7 @@ export function drawFifthGround(g,e,time,opacity=1){
    const seal=seals.get(e.classId);if(seal){g.save();g.rotate(-(time-e.start)*.006);g.globalAlpha=fade*opacity*.6;g.drawImage(seal,-r*.62,-r*.62,r*1.24,r*1.24);g.restore();}
    glow(g,e.classId,0,0,r*.95,.13);
    g.globalAlpha=fade*opacity*.35;g.lineWidth=2;g.beginPath();g.arc(0,0,r-30,0,TAU);g.stroke();
-  }else if(e.classId==='rogue'&&opacity>=.6)sprite(g,e.classId,0,0,0,r*1.9,r*1.9,-(time-e.start)*.004,.2);
+  }
  }g.restore();
 }
 function field(g,e,time){
@@ -122,7 +123,7 @@ function field(g,e,time){
  if(e.classId==='warrior'&&t<11){
   const lift=smooth(t/6),release=1-smooth((t-7)/4);
   glow(g,e.classId,e.fromX,e.fromY-95,330,lift*release*.4);
-  for(let i=0;i<6;i++){const a=i*TAU/6,x=e.fromX+Math.cos(a)*130,y=e.fromY-95+Math.sin(a)*55-lift*110;sprite(g,e.classId,0,x,y,32,155,0,lift*release*.7);}
+  ring(g,e.classId,e.fromX,e.fromY,90+lift*80,lift*release*.6,5);
  }else if(e.classId==='mage'&&t<71){
   const charge=smooth(t/9),collapse=smooth((t-55)/12),size=mix(285+Math.sin(t*.25)*8,60,collapse),x=e.x,y=e.y-430+collapse*245;
   glow(g,e.classId,x,y,mix(480,210,collapse),charge*(.45+collapse*.2));sprite(g,e.classId,1,x,y,size,size,t*.018,charge*(1-collapse));
@@ -136,7 +137,7 @@ function field(g,e,time){
  }else if(e.classId==='archer'){
   const facing=Math.cos(e.angle)>=0?1:-1,charge=smooth(t/7),end=smooth((e.end-time)/5);
   glow(g,e.classId,e.fromX+facing*55,e.fromY-120,200,charge*end*.35);sprite(g,e.classId,0,e.fromX+facing*55,e.fromY-125,165,230,0,charge*end*.65,facing);
- }else if(e.classId==='rogue'&&t<8){sprite(g,e.classId,0,e.fromX,e.fromY-110,170,170,0,Math.sin(clamp(t/8)*Math.PI)*.7);
+ }else if(e.classId==='rogue'&&t<8){sprite(g,e.classId,1,e.fromX,e.fromY-110,170,210,0,Math.sin(clamp(t/8)*Math.PI));
  }else if(e.classId==='pirate'){
   for(let i=0;i<3;i++){const p=shipAnchor(e,i,t),appear=smooth((t-i*1.2)/6),last=12+i*5+Math.floor(Math.max(0,t-12-i*5)/15)*15,recoil=t>=last&&t-last<2?Math.sin((t-last)/2*Math.PI)*14:0;
    sprite(g,e.classId,0,p.x+(p.x<e.x?-recoil:recoil),p.y,400,245,0,appear*.56);glow(g,e.classId,p.x,p.y+45,320,appear*.1);
@@ -153,16 +154,21 @@ function warrior(g,e,time){
   if(age>=0){
    const fade=1-smooth((age-2)/5),spread=out(age/2),wall=blasts.get(e.classId);
    if(wall&&!e.lowDetail){g.save();g.translate(e.x,e.y);g.rotate(e.angle);g.beginPath();g.rect(0,-e.width/2,e.length,e.width);g.clip();g.globalAlpha*=fade*.78;g.drawImage(wall,e.length*(1-spread)/2,-e.width*(.6+.4*spread)/2,e.length*spread,e.width*(.6+.4*spread));g.restore();}
-   glow(g,e.classId,x,y-30,e.lowDetail?350:700,fade*.35);sprite(g,e.classId,3,x,y-85,e.lowDetail?600:1200,e.lowDetail?500:1000,0,fade*.65);ring(g,e.classId,x,y,80+out(age/7)*620,fade,8);sparks(g,e,x,y,age,true);
+   glow(g,e.classId,x,y-30,e.lowDetail?350:700,fade*.35);ring(g,e.classId,x,y,80+out(age/7)*620,fade,8);sparks(g,e,x,y,age,true);
   }
  }else{
-  const progress=clamp((time-e.start)/10),along=out(progress)*e.length,fade=smooth(progress*6)*(1-smooth((progress-.55)/.45)),wave=waves.get(e.classId);
+  const travel=warriorWaveFlight(e,time),progress=travel.progress,along=travel.distance,fade=smooth(progress*6)*(1-smooth((time-e.impact)/3)),wave=waves.get(e.classId);
   g.save();g.translate(e.x,e.y);g.rotate(e.angle);g.beginPath();g.rect(0,-e.width/2,e.length,e.width);g.clip();
   if(wave){g.globalAlpha*=fade*(e.lowDetail?.55:.95);g.drawImage(wave,along-620,-e.width/2,640,e.width);}
   g.restore();
-  if(age>=0){const fade=(1-clamp(age/7))**2;glow(g,e.classId,x,y-45,650,fade*.5);sprite(g,e.classId,2,x,y-75,850,700,0,fade*.7);sparks(g,e,x,y,age,e.final);}
+  if(age>=0){const fade=(1-clamp(age/7))**2;glow(g,e.classId,x,y-45,650,fade*.5);ring(g,e.classId,x,y,80+out(age/4)*320,fade*.5,5);sparks(g,e,x,y,age,e.final);}
 
  }
+}
+// A fire crescent faces +X in its cache, so the aim angle is also its rotation.
+export function warriorWaveFlight(e,time){
+ const progress=clamp((time-e.start)/Math.max(1,e.impact-e.start)),distance=out(progress)*e.length;
+ return {progress,distance,x:e.x+Math.cos(e.angle)*distance,y:e.y+Math.sin(e.angle)*distance,angle:e.angle};
 }
 function mage(g,e,time){
  const age=time-e.impact;
@@ -178,12 +184,12 @@ function mage(g,e,time){
 function rogue(g,e,time){
  const age=time-e.impact,side=e.pulse%2?1:-1,angle=side*Math.PI*.24;
  if(e.final){
-  if(age<0){const p=smooth((time-e.start)/4);sprite(g,e.classId,3,e.x-side*(1-p)*240,e.y-105-(1-p)*180,450+120*p,450+120*p,angle,p*.7);glow(g,e.classId,e.x,e.y-100,260,p*.45);}
-  else{const fade=(1-clamp(age/7))**2;sprite(g,e.classId,3,e.x+side*out(age/7)*100,e.y-105,590,590,angle,fade*.9);sparks(g,e,e.x,e.y-85,age,true);ring(g,e.classId,e.x,e.y,100+out(age/3)*(e.radius-100),fade*.65,8,1);}return;
+  if(age<0){const p=smooth((time-e.start)/4);sprite(g,e.classId,3,e.x-side*(1-p)*240,e.y-105-(1-p)*180,450+120*p,450+120*p,angle,p);glow(g,e.classId,e.x,e.y-100,260,p*.5);}
+  else{const fade=(1-clamp(age/7))**1.3;sprite(g,e.classId,3,e.x+side*out(age/7)*100,e.y-105,590,590,angle,fade);sparks(g,e,e.x,e.y-85,age,true);}return;
  }
  const p=clamp((time-e.start)/4),travel=age<0?smooth(p):1+out(age/3)*.25,from={x:e.x+side*450,y:e.y-175-side*100},to={x:e.x,y:e.y-110},fade=age<0?smooth(p*4)*(1-.15*p):.85*(1-smooth(age/3));
- for(let i=2;i>=0;i--){const t=Math.max(0,travel-i*.13);sprite(g,e.classId,1,mix(from.x,to.x,t),mix(from.y,to.y,t),150,210,0,fade*(i===0?.6:.12),-side);}
- if(age>=0){const fade=(1-clamp(age/7))**2;sprite(g,e.classId,2,e.x,e.y-105,620+out(age/7)*150,620+out(age/7)*150,angle,fade*.85);ring(g,e.classId,e.x,e.y,150+out(age/4)*(e.radius-150),fade*.32,5,1);sparks(g,e,e.x,e.y-95,age);}
+ for(let i=2;i>=0;i--){const t=Math.max(0,travel-i*.13);sprite(g,e.classId,1,mix(from.x,to.x,t),mix(from.y,to.y,t),150,210,0,fade*(i===0?1:.22),-side);}
+ if(age>=0){const fade=(1-clamp(age/7))**1.3;sprite(g,e.classId,2,e.x,e.y-105,620+out(age/7)*150,620+out(age/7)*150,angle,fade);sparks(g,e,e.x,e.y-95,age);}
 }
 function projectileImpact(g,e,time){
  const age=time-e.impact,ship=e.classId==='pirate',y=e.y-(ship?0:95);
@@ -194,7 +200,7 @@ function projectileImpact(g,e,time){
 }
 export function drawFifth(g,e,time,opacity=1){
  if(time<e.start||time>=e.end||!colors[e.classId])return;
- g.save();g.globalAlpha=opacity;
+ g.save();g.globalAlpha=e.classId==='rogue'&&opacity>=.6?Math.min(1,opacity*1.3):opacity;
  if(e.kind==='fifth-field')field(g,e,time);else if(e.classId==='warrior')warrior(g,e,time);else if(e.classId==='mage')mage(g,e,time);else if(e.classId==='rogue')rogue(g,e,time);else projectileImpact(g,e,time);
  g.restore();
 }
@@ -217,6 +223,7 @@ export function fifthFeedback(effects,time,owner){
 }
 
 export function resolveFifthVisual(e,target,time,landings){
+ if(e.mode==='line'&&e.targetX!==undefined)return e;
  const key=e.classId+':'+(e.owner||'self')+':'+e.start+':'+e.pulse;
  let point=landings.get(key);
  if(target&&(!point||!point.landed)){point={x:target.x,y:target.y,end:e.end,landed:time>=e.impact};landings.set(key,point);}

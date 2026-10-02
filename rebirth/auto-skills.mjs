@@ -1,4 +1,4 @@
-import {fifthUnlocked} from './fifth-job.mjs?v=fifth-follow-119';
+import {fifthUnlocked} from './fifth-job.mjs?v=fifth-aim-120';
 // Return existing input bits only; damage, cooldown and range remain server-owned.
 export function autoSkillBits(actor,tick,active=true){
  if(!active||!actor||actor.hp<=0||actor.left||actor.ended||actor.chest)return 0;

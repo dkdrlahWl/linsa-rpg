@@ -1,8 +1,8 @@
-import {autoSkillBits} from './auto-skills.mjs?v=fifth-follow-119';
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=fifth-follow-119';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,fifthUnlocked} from './data.mjs?v=fifth-follow-119';
-import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=fifth-follow-119';
-import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=fifth-follow-119';
+import {autoSkillBits} from './auto-skills.mjs?v=fifth-aim-120';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=fifth-aim-120';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,fifthUnlocked} from './data.mjs?v=fifth-aim-120';
+import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=fifth-aim-120';
+import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=fifth-aim-120';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -134,7 +134,7 @@ export class TowerController {
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){
       const bit=Number(el.dataset.towerButton);el.disabled=b.chest?(bit!==4&&bit!==1):(bit===8&&b.power.firstJob===false||bit===2&&!b.advanced||bit===16&&(b.power.advancement||0)<2||bit===32&&(b.power.advancement||0)<3||bit===64&&!fifthUnlocked(b));const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady',64:'fifthReady'}[bit];
-      const duration={1:c.cooldown,2:SECOND_SKILLS[b.classId].cooldown*10,4:35,8:CLASS_SKILLS[b.classId].cooldown*10,16:THIRD_SKILLS[b.classId].cooldown*10,32:FOURTH_SKILLS[b.classId].cooldown*10,64:300}[bit],remaining=Math.max(0,(b[key]||0)-b.tick-this.sampler.elapsed/100);
+      const duration={1:c.cooldown,2:SECOND_SKILLS[b.classId].cooldown*10,4:35,8:CLASS_SKILLS[b.classId].cooldown*10,16:THIRD_SKILLS[b.classId].cooldown*10,32:FOURTH_SKILLS[b.classId].cooldown*10,64:FIFTH_SKILLS[b.classId].cooldown*10}[bit],remaining=Math.max(0,(b[key]||0)-b.tick-this.sampler.elapsed/100);
       const label=el.querySelector('b'),value=bit!==1&&remaining>0?(remaining/10).toFixed(1):'';
       if(label.textContent!==value)label.textContent=value;
       el.style.setProperty('--cooldown',Math.min(100,remaining/duration*100)+'%');el.classList.toggle('cooldown',remaining>0&&bit!==1);

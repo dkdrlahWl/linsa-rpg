@@ -1,4 +1,4 @@
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=fifth-follow-119';
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=fifth-aim-120';
 export {PRIEST_SKILLS} from './priest.mjs?v=fifth-114';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fifth-114';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fifth-114';

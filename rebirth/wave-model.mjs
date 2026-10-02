@@ -1,8 +1,8 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-follow-119';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-aim-120';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fifth-follow-119';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=fifth-follow-119';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fifth-aim-120';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=fifth-aim-120';
 import {incomingDamage} from './journey-balance.mjs';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;

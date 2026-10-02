@@ -1,5 +1,5 @@
-import {beginFifth,stepFifth,boundedCombatEffects,FIFTH_SKILLS} from './fifth-job.mjs?v=fifth-follow-119';
-import {prepareFifthArt,drawFifth,drawFifthGround} from './fifth-effects.mjs?v=fifth-follow-119';
+import {beginFifth,stepFifth,boundedCombatEffects,FIFTH_SKILLS} from './fifth-job.mjs?v=fifth-aim-120';
+import {prepareFifthArt,drawFifth,drawFifthGround} from './fifth-effects.mjs?v=fifth-aim-120';
 const images=new Map(),overlays=new WeakMap();
 const image=src=>{if(!images.has(src)){const im=new Image();im.src=new URL(src,import.meta.url).href;images.set(src,im);}return images.get(src);};
 

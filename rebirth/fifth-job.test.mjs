@@ -20,8 +20,9 @@ for(const [i,cls] of ids.entries()){
  for(let tick=0;tick<100;tick++)stepFifth(a,[target],tick,s=>{sum+=s;hits.push(tick);},e=>visual.push(e));
  assert.ok(Math.abs(sum-[24,26,22,22,25][i])<1e-9,cls);
  assert.deepEqual(visual.filter(e=>e.kind==='fifth').map(e=>e.impact),hits);
- assert.ok(visual.filter(e=>e.kind==='fifth').every(e=>e.start===e.impact-4));
- assert.equal(beginFifth(a,target,299),false);assert.equal(beginFifth(a,target,300),true);
+ assert.ok(visual.filter(e=>e.kind==='fifth').every(e=>e.start===e.impact-(cls==='warrior'&&e.pulse>0?8:4)));
+ assert.equal(FIFTH_SKILLS[cls].cooldown,40);assert.equal(a.fifthReady,400);
+ assert.equal(beginFifth(a,target,399),false);assert.equal(beginFifth(a,target,400),true);
  const dead=actor(cls);beginFifth(dead,target,0);dead.hp=0;let damage=0;stepFifth(dead,[target],100,s=>damage+=s);assert.equal(damage,0);assert.equal(dead.fifthCast,undefined);
  const outside=actor(cls);beginFifth(outside,target,0);let missed=0;stepFifth(outside,[{...target,x:10000}],100,s=>missed+=s);assert.equal(missed,0,cls+' outside');
  const replay=actor(cls);beginFifth(replay,target,0);const cloned=JSON.parse(JSON.stringify(replay));let s1=0,s2=0;for(let t=0;t<100;t++){stepFifth(replay,[target],t,s=>s1+=s);stepFifth(cloned,[target],t,s=>s2+=s);}assert.equal(s1,s2);
@@ -32,6 +33,21 @@ const warrior=actor('warrior');beginFifth(warrior,weak,0);assert.equal(absorbDam
 assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:2400,y:800}),true);assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:-1,y:0}),false);
 const marker={kind:'fifth-field',end:100};assert.ok(boundedCombatEffects([marker,...Array.from({length:100},()=>({kind:'impact',end:100}))],50,40).includes(marker));
 assert.equal(fifthUnlocked({classId:'priest',power:{level:200,advancement:3}}),true);
+const priest=actor('priest');assert.equal(FIFTH_SKILLS.priest.cooldown,30);assert.equal(beginFifth(priest,weak,0),true);assert.equal(priest.fifthReady,300);
+// All eight bearings share identical totals, 11 waves and the visible line's hit area.
+for(let direction=0;direction<8;direction++){
+ const a=actor('warrior'),angle=direction*Math.PI/4,t={id:'aim',x:Math.cos(angle)*1000,y:Math.sin(angle)*1000,hp:1000,maxHp:1000};
+ beginFifth(a,t,0);let total=0;const fx=[];
+ for(let tick=0;tick<80;tick++)stepFifth(a,[t],tick,damage=>total+=damage,e=>fx.push(e));
+ const waves=fx.filter(e=>e.kind==='fifth'&&e.pulse>0);assert.equal(waves.length,11);assert.ok(Math.abs(total-24)<1e-9);
+ for(const wave of waves){assert.ok(fifthContains(wave,t));assert.ok(Math.abs(Math.sin(wave.angle-angle))<1e-9);}
+}
+// Aim again on release; a moving monster cannot redirect an already flying wave.
+const turn=actor('warrior'),mobile={id:'mobile',x:1000,y:0,hp:1000,maxHp:1000},turnFx=[];
+beginFifth(turn,mobile,0);for(let tick=0;tick<=12;tick++)stepFifth(turn,[mobile],tick,()=>{},e=>turnFx.push(e));
+mobile.x=0;mobile.y=-1000;for(let tick=13;tick<=15;tick++)stepFifth(turn,[mobile],tick,()=>{},e=>turnFx.push(e));
+const turnWaves=turnFx.filter(e=>e.kind==='fifth'&&e.pulse>0);assert.equal(turnWaves[0].angle,0);assert.equal(turnWaves[1].angle,-Math.PI/2);
+assert.equal(fifthContains(turnWaves[0],mobile),false);assert.equal(fifthContains(turnWaves[1],mobile),true);
 for(const cls of ids){
  const b=newTowerBattle(10,cls,P,0,'solo',1,true);towerStep(b,[0,0,64]);assert.ok(b.fifthCast,cls+' solo');assert.equal(autoSkillBits(b,1)&64,0);
  let w=startCoop({id:'trial',tier:4,mode:'advancement',status:'waiting',members:[{id:'me',classId:cls,power:P,advanced:true}]},0);w.entryWaiting=false;w=predictCoopStep(w,'me',[0,0,64]);assert.ok(w.members[0].fifthCast,cls+' trial');assert.ok(w.effects.some(e=>e.kind==='fifth-field'));

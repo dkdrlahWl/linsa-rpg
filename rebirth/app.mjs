@@ -7,7 +7,7 @@ import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
 let investmentData=null,investmentLoadedAt=0;
-import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-follow-119';
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-aim-120';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=short-18';
@@ -15,24 +15,24 @@ import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=short-18';
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
-import {waveRewardBody} from './wave-ui.mjs?v=fifth-follow-119';
+import {waveRewardBody} from './wave-ui.mjs?v=fifth-aim-120';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
-import {raidLobby} from './raid-ui.mjs?v=fifth-follow-119';
-import {nextAutoSkill} from './auto-skills.mjs?v=fifth-follow-119';
+import {raidLobby} from './raid-ui.mjs?v=fifth-aim-120';
+import {nextAutoSkill} from './auto-skills.mjs?v=fifth-aim-120';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
-import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-follow-119';
+import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-aim-120';
 import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fifth-follow-119';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fifth-aim-120';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
-import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=fifth-follow-119';
-import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-follow-119';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fifth-follow-119';
-import * as D from "./data.mjs?v=fifth-follow-119";
+import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=fifth-aim-120';
+import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-aim-120';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fifth-aim-120';
+import * as D from "./data.mjs?v=fifth-aim-120";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=shop-clean-105";
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-follow-119";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-aim-120";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -668,7 +668,7 @@ function combatSkillState(slot,party=false,tick){
  const ready=slot===5?r.fifthReadyAt:slot===4?r.fourthReadyAt:slot===3?r.thirdReadyAt:slot===1?me?.skillReady:me?.secondReady;
  const remain=party?Math.max(0,Math.ceil((ready||0)-tick)):Math.max(0,Math.ceil(((ready||0)-r.started-tick*1000)/1000));
  const locked=slot===5?!D.fifthUnlocked(state):slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;
- return {sk,disabled:locked||remain>0||(party&&me?.hp<=0)||tick>=seconds,status:locked?'전직 필요':remain?remain+'초':'사용 가능'};
+ return {sk,disabled:locked||remain>0||(party&&me?.hp<=0)||tick>=seconds,status:locked?'전직 필요':remain?remain+'초':slot===5?'사용 가능 · '+sk.cooldown+'초':'사용 가능'};
 }
 function combatSkillButtons(party=false) {
  const key=state.battle?.started;if(regularAutoBattle!==key){regularAutoBattle=key;regularAutoSkills=false;}
