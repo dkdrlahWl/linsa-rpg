@@ -1,4 +1,4 @@
--- Remove daily price caps without repricing holdings or replaying previous events.
+-- Increase future 30-minute moves to +/-10% and news jumps to 5-20%.
 begin;
 select pg_advisory_xact_lock(71823081);
 CREATE OR REPLACE FUNCTION rebirth_private.coin_tick()
@@ -44,19 +44,4 @@ begin
  delete from rebirth_private.coin_candles where at<target-interval '30 days';
 end $function$
 ;
-create or replace function rebirth_private.admin_coin_direction(p_coin integer,p_side text) returns jsonb
-language plpgsql security definer set search_path='' as $$
-declare actor uuid;c rebirth_private.coin_market%rowtype; due timestamptz;
-begin
- actor:=rebirth_private.session_user();
- if not exists(select 1 from auth.users where id=actor and raw_app_meta_data->>'ringu_admin'='true') then raise exception 'BETA_DISABLED';end if;
- if p_coin is null or p_coin not between 0 and 7 or p_side is null or p_side not in ('long','short') then raise exception 'INVALID_COIN_DIRECTION';end if;
- perform pg_advisory_xact_lock(71823081);
- perform rebirth_private.coin_tick();
- select * into c from rebirth_private.coin_market where id=p_coin;
- due:=c.tick_at+interval '30 minutes';
- insert into rebirth_private.coin_next_direction(coin,side,scheduled_at,administrator) values(p_coin,p_side,due,actor)
- on conflict(coin) do update set side=excluded.side,scheduled_at=excluded.scheduled_at,administrator=excluded.administrator,updated_at=clock_timestamp();
- return jsonb_build_object('coin',p_coin,'name',c.name,'side',p_side,'scheduledAt',due);
-end $$;
 commit;

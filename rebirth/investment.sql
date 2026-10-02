@@ -50,12 +50,12 @@ begin
    if ev.kind_order=0 then delete from rebirth_private.coin_next_direction where coin=c.id and scheduled_at<=ev.at returning side into forced_side;end if;
    next_price:=old;
     if ev.kind_order=1 then
-     change:=(.03+random()*.08)*case when ev.news_kind='good' then 1 else -1 end;
+     change:=(.05+random()*.15)*case when ev.news_kind='good' then 1 else -1 end;
      next_price:=greatest(1,round(old*(1+change)));
     elsif forced_side is not null or (ev.at at time zone 'Asia/Seoul')::time<>time '00:00' then
-     trend:=trend*.65+(random()-.5)*.008;
-     change:=case when forced_side is not null then (.01+random()*.04)*case when forced_side='long' then 1 else -1 end else abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.045)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end end;
-     next_price:=greatest(1,ceil(old*.95),least(floor(old*1.05),round(old*(1+change))));
+     trend:=trend*.65+(random()-.5)*.016;
+     change:=case when forced_side is not null then (.01+random()*.09)*case when forced_side='long' then 1 else -1 end else abs(greatest(-.10,least(.10,trend+(random()+random()-1)*.09)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end end;
+     next_price:=greatest(1,ceil(old*.90),least(floor(old*1.10),round(old*(1+change))));
     end if;
    insert into rebirth_private.coin_candles(coin,at,open,close) values(c.id,date_bin(interval '30 minutes',ev.at,timestamptz '2000-01-01 00:00:00+00'),old,next_price) on conflict(coin,at) do update set close=excluded.close;
    if ev.kind_order=1 then update rebirth_private.coin_news set applied_at=v_now,instant_change=case when old>0 then next_price/old-1 else 0 end where id=ev.news_id;else t:=ev.at;end if;
