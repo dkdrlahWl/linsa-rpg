@@ -122,9 +122,9 @@ export class TowerRenderer {
     const facing=Number.isInteger(dir)&&dir>=0&&dir<8?dir:6,g=this.g;
     const spriteSize=this.mobileActors.matches?215:180;
     const costume=costumeById(costumeId,classId);
-    // A failed motion sheet must never make an equipped character disappear.
-    const costumeMotion=costume?image(costume.atlas):null;
-    if(costume&&(!costumeMotion.complete||!costumeMotion.naturalWidth)){
+    // These motion sheets decode only partially in Chrome while still reporting
+    // naturalWidth. Render the complete portrait for every equipped costume.
+    if(costume){
       const portrait=image(costume.portrait);
       if(portrait.complete&&portrait.naturalWidth){
         const source=cleanDirectionalAtlas(portrait,{frames:[{x:0,y:0,w:portrait.naturalWidth,h:portrait.naturalHeight}]}),r=frameBounds(source,1,1)[0];
