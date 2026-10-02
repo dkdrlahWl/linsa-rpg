@@ -19,7 +19,7 @@ export async function openWarriorLab({getState,onClose,sound=()=>{}}){
  host.querySelector('.wl-close').onclick=()=>{closeWarriorLab();onClose?.();};
  try{
   const T=await import('./vendor/three/three.module.min.js');
-  const assets=await Promise.all(['arena','actors','effects','red-slash','orbit-sword','running'].map(name=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('전투 이미지를 불러오지 못했습니다.'));img.src=new URL('./lab-art/'+name+(name==='running'?'-real-v4.webp':'-real-v3.webp'),import.meta.url).href;})));
+  const assets=await Promise.all(['arena','actors','effects','red-slash','orbit-sword','running'].map(name=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('전투 이미지를 불러오지 못했습니다.'));img.src=new URL('./lab-art/'+name+(name==='running'?'-real-v4.webp':name==='orbit-sword'?'-fire-v5.webp':'-real-v3.webp'),import.meta.url).href;})));
   if(abandoned)return;
   if(!getState()?.isAdmin||getState()?.classId!=='warrior'){closeWarriorLab();return;}
   current=new Arena(T,host,{getState,onClose,sound,oldOverflow,assets});
