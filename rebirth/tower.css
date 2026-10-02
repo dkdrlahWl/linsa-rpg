@@ -238,3 +238,26 @@
 [data-class="priest"] .fifth-skill-art{background-image:url('tower/priest-skill-5-v2.png')}
 .fifth-skill{border-color:#e6c675!important}
 .fifth-sequence-overlay{inset:0;width:100%;height:100%;object-fit:fill;z-index:2;pointer-events:none;contain:strict}
+
+/* One narrow column of 1–5 skills directly above the attack button. */
+.tower-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto auto;gap:6px;pointer-events:none}
+.tower-skill-bar{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-flow:row;gap:4px;width:100%;overflow:visible;touch-action:none}
+.tower-skill-bar>.tower-button{width:100%;height:43.2px;min-height:0;padding:4px 3px;justify-content:center;pointer-events:auto;border-radius:9px}
+.tower-skill-bar .tower-button span{font-size:10px;line-height:1.1;position:relative;z-index:1}
+.tower-skill-bar :is(.fifth-skill-art,.fourth-skill-art){position:absolute;inset:0;left:auto;width:36px;height:36px;opacity:.3;pointer-events:none}
+.tower-core-actions{grid-column:1/-1;grid-row:2;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;pointer-events:none}
+.tower-core-actions>.tower-button{height:48px;min-height:0;pointer-events:auto}
+@media(max-width:759px) and (orientation:portrait){
+ .tower-controls{height:auto;min-height:0;align-items:flex-end}
+ .tower-buttons{flex:0 0 174px;width:174px;max-width:174px}
+ .tower-skill-bar>.tower-button{height:38.4px;border-radius:8px}
+ .tower-core-actions>.tower-button{height:51.2px}
+ .tower-skill-bar .tower-button span{font-size:10px;line-height:1.1}
+}
+@media(max-width:360px) and (orientation:portrait){.tower-buttons{flex-basis:158px;width:158px;max-width:158px}.tower-skill-bar .tower-button span{font-size:9px}}
+@media(orientation:landscape) and (max-height:600px){
+ .tower-controls{height:auto;align-items:flex-end}
+ .tower-skill-bar>.tower-button{height:min(43.2px,calc((100dvh - 235px)/5));padding:2px 3px}
+ .tower-skill-bar .tower-button small{display:none}
+ .tower-skill-bar .tower-button span{font-size:9px}
+}

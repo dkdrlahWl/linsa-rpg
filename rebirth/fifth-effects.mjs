@@ -1,6 +1,6 @@
 const TAU=Math.PI*2;
 const colors={warrior:'#ffbb50',mage:'#b28aff',archer:'#82f3ac',rogue:'#bc9aff',pirate:'#66e5df'};
-const atlases=new Map(),lights=new Map();
+const atlases=new Map(),lights=new Map(),seals=new Map(),blasts=new Map();
 const clamp=n=>Math.max(0,Math.min(1,n));
 const smooth=n=>{n=clamp(n);return n*n*(3-2*n);};
 const out=n=>1-(1-clamp(n))**3;
@@ -25,6 +25,18 @@ export async function prepareFifthArt(classes,image){
   const g=light.getContext('2d'),gradient=g.createRadialGradient(64,64,0,64,64,64);
   gradient.addColorStop(0,'#ffffffcc');gradient.addColorStop(.14,colors[cls]+'a0');gradient.addColorStop(.48,colors[cls]+'38');gradient.addColorStop(1,colors[cls]+'00');
   g.fillStyle=gradient;g.fillRect(0,0,128,128);lights.set(cls,light);
+  if(cls==='mage'){
+   const seal=document.createElement('canvas');seal.width=seal.height=768;const q=seal.getContext('2d');q.translate(384,384);q.strokeStyle='#d8c0ff';q.lineWidth=4;
+   for(const radius of [320,290,170,135,52]){q.beginPath();q.arc(0,0,radius,0,TAU);q.stroke();}
+   for(let side=0;side<2;side++){q.beginPath();for(let i=0;i<3;i++){const a=-Math.PI/2+side*Math.PI+i*TAU/3,x=Math.cos(a)*290,y=Math.sin(a)*290;i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();q.stroke();}
+   q.lineWidth=3;for(let i=0;i<12;i++){q.save();q.rotate(i*TAU/12);q.beginPath();q.moveTo(0,-190);q.lineTo(-12,-213);q.lineTo(0,-237);q.lineTo(12,-213);q.closePath();q.moveTo(0,-247);q.lineTo(0,-270);q.stroke();q.restore();}
+   q.fillStyle='#eee1ff';q.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?13:40;const x=Math.cos(a)*r,y=Math.sin(a)*r;i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();q.fill();seals.set(cls,seal);
+  }
+  if(cls==='warrior'){
+   const wall=document.createElement('canvas');wall.width=1024;wall.height=640;const q=wall.getContext('2d'),f=frames[3];
+   for(let row=0;row<2;row++)for(let col=0;col<3;col++){const scale=Math.min(460/f.w,430/f.h),w=f.w*scale,h=f.h*scale;q.drawImage(f.im,f.x,f.y,f.w,f.h,(col+.5)*1024/3-w/2,(row+.5)*320-h/2,w,h);}
+   blasts.set(cls,wall);
+  }
  }));
 }
 function dimensions(cls,cell,w,h){const f=atlases.get(cls)?.[cell];if(!f)return [w,h];const scale=Math.min(w/f.w,h/f.h);return [f.w*scale,f.h*scale];}
@@ -91,7 +103,9 @@ export function drawFifthGround(g,e,time,opacity=1){
   g.fillStyle=color;g.globalAlpha*=.028;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
   g.globalAlpha=fade*opacity*.65;g.strokeStyle=color;g.lineWidth=4;g.stroke();
   if(e.classId==='mage'){
-   sprite(g,e.classId,0,0,0,r*1.96,r*1.96,(time-e.start)*.009,.34);
+   sprite(g,e.classId,0,0,0,r*1.96,r*1.96,(time-e.start)*.009,.8);
+   const seal=seals.get(e.classId);if(seal){g.save();g.rotate(-(time-e.start)*.006);g.globalAlpha=fade*opacity*.6;g.drawImage(seal,-r*.62,-r*.62,r*1.24,r*1.24);g.restore();}
+   glow(g,e.classId,0,0,r*.95,.13);
    g.globalAlpha=fade*opacity*.35;g.lineWidth=2;g.beginPath();g.arc(0,0,r-30,0,TAU);g.stroke();
   }else if(e.classId==='rogue')sprite(g,e.classId,0,0,0,r*1.9,r*1.9,-(time-e.start)*.004,.2);
  }g.restore();
@@ -127,9 +141,13 @@ function warrior(g,e,time){
  const along=Math.max(0,Math.min(e.length,dx*Math.cos(e.angle)+dy*Math.sin(e.angle))),side=Math.max(-e.width/2,Math.min(e.width/2,-dx*Math.sin(e.angle)+dy*Math.cos(e.angle)));
  const x=e.x+Math.cos(e.angle)*along-Math.sin(e.angle)*side,y=e.y+Math.sin(e.angle)*along+Math.cos(e.angle)*side;
  if(e.pulse===0){
-  const travel=clamp((time-e.start)/(e.impact-e.start)),[width,height]=dimensions(e.classId,0,280,790),tipY=y-(1-travel**3)*850,alpha=age<0?smooth(travel*3):1-smooth((age-1)/3);
+  const travel=clamp((time-e.start)/(e.impact-e.start)),[width,height]=dimensions(e.classId,0,650,1800),tipY=y-(1-travel**3)*1100,alpha=age<0?smooth(travel*3):1-smooth((age-1)/3);
   glow(g,e.classId,x,tipY-90,250,alpha*.45);sprite(g,e.classId,0,x,tipY-height/2,width,height,Math.PI,alpha);
-  if(age>=0){const fade=(1-clamp(age/7))**2;sprite(g,e.classId,3,x,y-100,760,470,0,fade*.65);ring(g,e.classId,x,y,80+out(age/7)*620,fade,8);sparks(g,e,x,y,age,true);}
+  if(age>=0){
+   const fade=1-smooth((age-2)/5),spread=out(age/2),wall=blasts.get(e.classId);
+   if(wall){g.save();g.translate(e.x,e.y);g.rotate(e.angle);g.beginPath();g.rect(0,-e.width/2,e.length,e.width);g.clip();g.globalAlpha*=fade*.78;g.drawImage(wall,e.length*(1-spread)/2,-e.width*(.6+.4*spread)/2,e.length*spread,e.width*(.6+.4*spread));g.restore();}
+   glow(g,e.classId,x,y-30,700,fade*.35);sprite(g,e.classId,3,x,y-85,1200,1000,0,fade*.65);ring(g,e.classId,x,y,80+out(age/7)*620,fade,8);sparks(g,e,x,y,age,true);
+  }
  }else{
   const progress=clamp((time-e.start)/6),along=progress*e.length,width=e.width*.8;
   g.save();g.translate(e.x,e.y);g.rotate(e.angle);g.globalAlpha*=Math.sin(progress*Math.PI)*(age<0?.4:.7);g.strokeStyle=colors.warrior;g.lineWidth=18;g.lineCap='round';
@@ -141,12 +159,12 @@ function mage(g,e,time){
  const age=time-e.impact;
  if(!e.final){
   if(age<0){const p=clamp((time-e.start)/4);ring(g,e.classId,e.x,e.y-185,190*(1-p)+25,Math.sin(p*Math.PI)*.55,4,.72);}
-  else{glow(g,e.classId,e.x,e.y-185,190+out(age/7)*150,(1-clamp(age/7))**2*.55);sparks(g,e,e.x,e.y-170,age);}return;
+  else{const fade=1-clamp(age/7);glow(g,e.classId,e.x,e.y-185,190+out(age/7)*150,fade*fade*.55);ring(g,e.classId,e.x,e.y,120+out(age/4)*(e.radius-120),fade*.38,7,1);sparks(g,e,e.x,e.y-170,age);}return;
  }
  if(age<0){const p=clamp((time-e.start)/4);glow(g,e.classId,e.x,e.y-185,180*(1-p)+80,.7);ring(g,e.classId,e.x,e.y-185,280*(1-p)+20,.6,7,.75);return;}
- const grow=out(age/4),fade=(1-clamp(age/7))**1.6;
- glow(g,e.classId,e.x,e.y-85,450+grow*600,fade*.55);sprite(g,e.classId,3,e.x,e.y-100,420+grow*520,420+grow*520,0,fade*.8);
- ring(g,e.classId,e.x,e.y,100+out(age/7)*(e.radius-100),fade,12*(1-grow)+3,.75);sparks(g,e,e.x,e.y-75,age,true);
+ const grow=out(age/2),fade=1-smooth((age-2)/5),diameter=e.radius*2;
+ g.save();g.beginPath();g.arc(e.x,e.y,e.radius,0,TAU);g.clip();glow(g,e.classId,e.x,e.y,diameter*(.25+.75*grow),fade*.45);sprite(g,e.classId,3,e.x,e.y,diameter*(.2+.8*grow),diameter*(.2+.8*grow),0,fade*.9);g.restore();
+ ring(g,e.classId,e.x,e.y,100+grow*(e.radius-100),fade,14*(1-grow)+5,1);sparks(g,e,e.x,e.y-75,age,true);
 }
 function rogue(g,e,time){
  const age=time-e.impact,side=e.pulse%2?1:-1,angle=side*Math.PI*.24;
