@@ -1,7 +1,7 @@
 const {PGlite}=await import(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {investmentView,positionValue,positionLiquidation,setInvestmentLeverage,investmentMargin,resetInvestment} from './investment-ui.mjs';
+import {investmentView,positionValue,positionFee,positionPayout,positionLiquidation,setInvestmentLeverage,investmentMargin,resetInvestment} from './investment-ui.mjs';
 const db=new PGlite();
 const u='11111111-1111-4111-8111-111111111111';
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,raw_app_meta_data jsonb);insert into auth.users values('${u}','{}');create schema rebirth_private;create table rebirth_private.players(id uuid primary key,state jsonb,revision bigint default 0,updated_at timestamptz);create table rebirth_private.receipts(user_id uuid,request_id uuid,fingerprint jsonb,result jsonb,primary key(user_id,request_id));create function rebirth_private.session_user() returns uuid language sql as $$select '${u}'::uuid$$;insert into rebirth_private.players values('${u}','{"gold":1000000,"battle":null}',0,now());`);
@@ -18,6 +18,7 @@ async function trade(action,args={},request=crypto.randomUUID()){
 await trade('buy',{coin:0,side:'long',quantity:5});
 const original=(await db.query('select * from rebirth_private.coin_positions')).rows[0];
 await db.exec(fs.readFileSync(new URL('investment-leverage.sql',import.meta.url),'utf8'));
+await db.exec(fs.readFileSync(new URL('investment-leverage-fees.sql',import.meta.url),'utf8'));
 const preserved=(await db.query('select * from rebirth_private.coin_positions where id=$1',[original.id])).rows[0];
 assert.equal(preserved.leverage,1);assert.equal(preserved.amount,original.amount);assert.equal(preserved.entry,original.entry);
 const actualTick=(await db.query("select pg_get_functiondef('rebirth_private.coin_tick()'::regprocedure) d")).rows[0].d;
@@ -32,7 +33,9 @@ for(const side of ['long','short'])for(const leverage of [1,2,3]){
  const repeated=await trade('buy',args,request);assert.equal(repeated.state.gold,r.state.gold);assert.equal(repeated.investment.positions.find(x=>x.id===p.id).quantity,10*leverage);
  await db.exec(`update rebirth_private.coin_market set price=${side==='long'?1100:900} where id=1`);
  const sold=await trade('sell',{position:p.id});const gross=10000+1000*leverage;
- assert.equal(sold.result.events[0].amount,gross-Math.ceil(gross*.01));
+ assert.equal(sold.result.events[0].fee,Math.ceil(gross*.01*leverage));
+ assert.equal(sold.result.events[0].amount,gross-Math.ceil(gross*.01*leverage));
+ assert.equal(positionPayout(p,{price:side==='long'?1100:900}),sold.result.events[0].amount);
 }
 // Same leverage averages; another leverage stays independent.
 await db.exec('update rebirth_private.coin_market set price=1000 where id=2');
@@ -55,7 +58,17 @@ for(const side of ['long','short'])for(const leverage of [2,3]){
 for(const side of ['long','short'])for(const leverage of [1,2,3]){
  const p={amount:10000,entry:1000,quantity:10*leverage,side,leverage};assert.equal(positionValue(p,{price:side==='long'?1100:900}),10000+1000*leverage);assert.ok(positionLiquidation(p)>=0);
 }
+// Integer fee rounding, loss settlements, and legacy holdings without leverage.
+for(const leverage of [1,2,3]){
+ const p={amount:10000,entry:1000,quantity:10*leverage,side:'long',leverage},c={price:999.97};
+ const gross=positionValue(p,c);
+ assert.equal(positionFee(p,c),Math.ceil(gross*.01*leverage));
+ assert.equal(positionPayout(p,c),Math.max(0,Math.floor(gross-Math.ceil(gross*.01*leverage))));
+ assert.equal(positionFee(p,{price:0}),0);assert.equal(positionPayout(p,{price:0}),0);
+}
+assert.equal(positionFee({amount:10000,entry:1000,quantity:10,side:'long'},{price:1100}),110);
 setInvestmentLeverage(3);assert.equal(investmentMargin(30,1000),10000);
 const html=investmentView({gold:10000},null);assert.ok(html.includes('data-action="investLeverage" data-arg="2"'));assert.ok(html.includes('data-action="investLeverage" data-arg="3"'));assert.ok(html.includes('aria-pressed="true" class="selected">3배'));
+assert.ok(html.includes('판매 수수료: 1배 1% · 2배 2% · 3배 3%'));assert.ok(html.includes('판매 수수료 3%'));
 resetInvestment();assert.equal(investmentMargin(10,1000),10000);
 await db.close();console.log('PASS: preserved 1x holdings, six directional settlements, request replay, leverage-specific averaging, four liquidation boundaries, invalid multipliers and UI buttons.');
