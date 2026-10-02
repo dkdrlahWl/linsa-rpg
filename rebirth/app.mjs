@@ -1,11 +1,11 @@
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=costume-visible-108';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=costume-shop-105';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-shop-105';
-import {showAdminPositions} from './admin-positions.mjs?v=admin-direction-24';
+import {showAdminPositions} from './admin-positions.mjs?v=leverage-109';
 import {shopView} from './shop-ui.mjs?v=shop-order-106';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=minji-tiger-26';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=leverage-109';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-fire-swords-103';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
@@ -1090,7 +1090,7 @@ async function marketWrite(action, args) {
   sounds.play("purchase-complete");
   toast("거래가 완료되었습니다.");
 }
-document.addEventListener('input',e=>{if(e.target.id==='invest-amount'){setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent='예상 투자 '+fmt(Number(investmentAmount)*investmentData.coins[selectedCoin].price)+' G · 1배 · 진입 수수료 없음';}});
+document.addEventListener('input',e=>{if(e.target.id==='invest-amount'){setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);}});
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-action]");
   if (!b || b.disabled) return;
@@ -1106,8 +1106,9 @@ document.addEventListener("click", async (e) => {
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
     if(action==='investCoin'){selectCoin(arg);return render();}
-    if(action==='investPercent'){setInvestmentAmount(Math.floor(state.gold*Number(arg)/100/(investmentData?.coins[selectedCoin]?.price||10000)));return render();}
-    if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||quantity*investmentData.coins[selectedCoin].price>state.gold)return toast('보유 골드 안에서 정수 수량을 입력해 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
+    if(action==='investLeverage'){const old=investmentLeverage;setInvestmentAmount(document.querySelector('#invest-amount')?.value||investmentAmount);setInvestmentLeverage(arg);setInvestmentAmount(Math.floor(Number(investmentAmount)*investmentLeverage/old));return render();}
+    if(action==='investPercent'){setInvestmentAmount(Math.floor(state.gold*Number(arg)/100*investmentLeverage/(investmentData?.coins[selectedCoin]?.price||10000)));return render();}
+    if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||investmentMargin(quantity,investmentData.coins[selectedCoin].price)>state.gold)return toast('보유 골드 안에서 정수 수량을 입력해 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,leverage:investmentLeverage,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
     if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
     if(action==='eventPage'){eventPage=arg;tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
