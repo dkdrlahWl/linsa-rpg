@@ -103,7 +103,7 @@ function field(g,e,time){
   glow(g,e.classId,e.fromX,e.fromY-95,330,lift*release*.4);
   for(let i=0;i<6;i++){const a=i*TAU/6,x=e.fromX+Math.cos(a)*130,y=e.fromY-95+Math.sin(a)*55-lift*110;sprite(g,e.classId,0,x,y,32,155,0,lift*release*.7);}
  }else if(e.classId==='mage'&&t<71){
-  const charge=smooth(t/9),collapse=smooth((t-55)/12),size=mix(285+Math.sin(t*.25)*8,60,collapse),x=e.x,y=e.y-185;
+  const charge=smooth(t/9),collapse=smooth((t-55)/12),size=mix(285+Math.sin(t*.25)*8,60,collapse),x=e.x,y=e.y-430+collapse*245;
   glow(g,e.classId,x,y,mix(480,210,collapse),charge*(.45+collapse*.2));sprite(g,e.classId,1,x,y,size,size,t*.018,charge*(1-collapse));
   const vortexSize=mix(180,340,smooth((t-48)/10))*(1-collapse*.75);
   sprite(g,e.classId,2,x,y,vortexSize,vortexSize,-t*.045,charge*smooth((t-48)/10)*(1-smooth((t-66)/4))*.85);

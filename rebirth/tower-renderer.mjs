@@ -1,4 +1,4 @@
-import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-motion-115';
+import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-motion-116';
 import {costumeMotionFrame} from './costume-motion.mjs?v=costume-motion-111';
 import COSTUME_MOTION_LAYOUT from './costume-motion-layout.mjs?v=costume-motion-111';
 import {costumeById} from './costumes.mjs?v=costume-motion-111';
@@ -285,7 +285,7 @@ export class TowerRenderer {
     const fifthAreas=fifthFields(b.effects,time),fifthOpacity=fifthAreas.length>3?.38:.85;
     const effectTarget=e=>b.waveMode?(b.monsters||[]).find(m=>m.id===e.targetId&&m.hp>0):b.enemy;
     const selfField=fifthAreas.find(e=>e.classId===b.classId&&(!e.owner||e.owner===(b.actorId??b.id)));
-    for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);drawFifth(g,e,time,fifthOpacity);}
+    for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);}
     for(const [key,value] of this.fifthLandings)if(value.end<=time)this.fifthLandings.delete(key);
     for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time);
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
@@ -359,7 +359,7 @@ export class TowerRenderer {
     for(const e of b.effects){
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
-      if(e.kind==='fifth-field')continue;
+      if(e.kind==='fifth-field'){if(e.classId==='mage')drawFifth(g,e,time,fifthOpacity);continue;}
       if(e.kind==='fifth'){
         const effect=resolveFifthVisual(e,effectTarget(e),time,this.fifthLandings);
         drawFifth(g,effect,time,fifthOpacity);continue;
