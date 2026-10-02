@@ -16,16 +16,14 @@ begin
   ) events order by at,kind_order,news_id loop
    if d<>(ev.at at time zone 'Asia/Seoul')::date then d:=(ev.at at time zone 'Asia/Seoul')::date;base:=old;trend:=0;end if;
    next_price:=old;
-   if old<floor(base*1.3) and old>ceil(base*.7) then
     if ev.kind_order=1 then
      change:=(.03+random()*.08)*case when ev.news_kind='good' then 1 else -1 end;
-     next_price:=greatest(1,ceil(base*.7),least(floor(base*1.3),round(old*(1+change))));
+     next_price:=greatest(1,round(old*(1+change)));
     elsif (ev.at at time zone 'Asia/Seoul')::time<>time '00:00' then
      trend:=trend*.65+(random()-.5)*.008;
      change:=abs(greatest(-.05,least(.05,trend+(random()+random()-1)*.045)))*case when random()<rebirth_private.coin_up_chance(c.id,ev.at) then 1 else -1 end;
-     next_price:=greatest(1,ceil(base*.7),ceil(old*.95),least(floor(base*1.3),floor(old*1.05),round(old*(1+change))));
+     next_price:=greatest(1,ceil(old*.95),least(floor(old*1.05),round(old*(1+change))));
     end if;
-   end if;
    insert into rebirth_private.coin_candles(coin,at,open,close) values(c.id,date_bin(interval '30 minutes',ev.at,timestamptz '2000-01-01 00:00:00+00'),old,next_price) on conflict(coin,at) do update set close=excluded.close;
    if ev.kind_order=1 then update rebirth_private.coin_news set applied_at=v_now,instant_change=case when old>0 then next_price/old-1 else 0 end where id=ev.news_id;else t:=ev.at;end if;
    update rebirth_private.coin_positions set status='liquidated',closed_at=v_now,payout=0,fee=0,closed_reason='short_liquidation' where coin=c.id and side='short' and status='open' and next_price>=entry*2;

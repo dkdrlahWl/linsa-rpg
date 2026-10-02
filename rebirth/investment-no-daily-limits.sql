@@ -1,35 +1,12 @@
+-- Remove daily price caps without repricing holdings or replaying previous events.
 begin;
-create table if not exists rebirth_private.coin_next_direction(
- coin integer primary key references rebirth_private.coin_market(id),
- side text not null check(side in ('long','short')),
- scheduled_at timestamptz not null,
- administrator uuid not null references auth.users(id),
- updated_at timestamptz not null default now()
-);
-alter table rebirth_private.coin_next_direction enable row level security;
-revoke all on rebirth_private.coin_next_direction from public,anon,authenticated;
-create or replace function rebirth_private.admin_coin_direction(p_coin integer,p_side text) returns jsonb
-language plpgsql security definer set search_path='' as $$
-declare actor uuid;c rebirth_private.coin_market%rowtype; due timestamptz;
-begin
- actor:=rebirth_private.session_user();
- if not exists(select 1 from auth.users where id=actor and raw_app_meta_data->>'ringu_admin'='true') then raise exception 'BETA_DISABLED';end if;
- if p_coin is null or p_coin not between 0 and 7 or p_side is null or p_side not in ('long','short') then raise exception 'INVALID_COIN_DIRECTION';end if;
- perform pg_advisory_xact_lock(71823081);
- perform rebirth_private.coin_tick();
- select * into c from rebirth_private.coin_market where id=p_coin;
- due:=c.tick_at+interval '30 minutes';
- insert into rebirth_private.coin_next_direction(coin,side,scheduled_at,administrator) values(p_coin,p_side,due,actor)
- on conflict(coin) do update set side=excluded.side,scheduled_at=excluded.scheduled_at,administrator=excluded.administrator,updated_at=clock_timestamp();
- return jsonb_build_object('coin',p_coin,'name',c.name,'side',p_side,'scheduledAt',due);
-end $$;
-revoke all on function rebirth_private.admin_coin_direction(integer,text) from public,anon;
-grant execute on function rebirth_private.admin_coin_direction(integer,text) to authenticated;
-create or replace function public.rebirth_admin_coin_direction(p_coin integer,p_side text) returns jsonb
-language sql security invoker set search_path='' as $$select rebirth_private.admin_coin_direction(p_coin,p_side)$$;
-revoke all on function public.rebirth_admin_coin_direction(integer,text) from public,anon;
-grant execute on function public.rebirth_admin_coin_direction(integer,text) to authenticated;
-create or replace function rebirth_private.coin_tick() returns void language plpgsql security definer set search_path='' as $$
+select pg_advisory_xact_lock(71823081);
+CREATE OR REPLACE FUNCTION rebirth_private.coin_tick()
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
 <<tick>>
 declare c rebirth_private.coin_market%rowtype; ev record; t timestamptz; v_now timestamptz:=clock_timestamp(); target timestamptz:=date_bin(interval '30 minutes',v_now,timestamptz '2000-01-01 00:00:00+00'); d date; old numeric; base numeric; next_price numeric; trend numeric; change numeric; schedule_day date; forced_side text;
 begin
@@ -58,13 +35,28 @@ begin
     end if;
    insert into rebirth_private.coin_candles(coin,at,open,close) values(c.id,date_bin(interval '30 minutes',ev.at,timestamptz '2000-01-01 00:00:00+00'),old,next_price) on conflict(coin,at) do update set close=excluded.close;
    if ev.kind_order=1 then update rebirth_private.coin_news set applied_at=v_now,instant_change=case when old>0 then next_price/old-1 else 0 end where id=ev.news_id;else t:=ev.at;end if;
-   update rebirth_private.coin_positions set status='liquidated',closed_at=v_now,payout=0,fee=0,closed_reason='short_liquidation' where coin=c.id and side='short' and status='open' and next_price>=entry*2;
+   update rebirth_private.coin_positions set status='liquidated',closed_at=v_now,payout=0,fee=0,closed_reason=case when side='short' then 'short_liquidation' else 'long_liquidation' end where coin=c.id and status='open' and amount+quantity*(next_price-entry)*case when side='short' then -1 else 1 end<=0;
    old:=next_price;
   end loop;
-  update rebirth_private.coin_positions set status='liquidated',closed_at=v_now,payout=0,fee=0,closed_reason='short_liquidation' where coin=c.id and side='short' and status='open' and old>=entry*2;
+  update rebirth_private.coin_positions set status='liquidated',closed_at=v_now,payout=0,fee=0,closed_reason=case when side='short' then 'short_liquidation' else 'long_liquidation' end where coin=c.id and status='open' and amount+quantity*(old-entry)*case when side='short' then -1 else 1 end<=0;
   update rebirth_private.coin_market set price=old,day_base=base,day_key=d,tick_at=t,trend=tick.trend where id=c.id;
  end loop;
  delete from rebirth_private.coin_candles where at<target-interval '30 days';
+end $function$
+;
+create or replace function rebirth_private.admin_coin_direction(p_coin integer,p_side text) returns jsonb
+language plpgsql security definer set search_path='' as $$
+declare actor uuid;c rebirth_private.coin_market%rowtype; due timestamptz;
+begin
+ actor:=rebirth_private.session_user();
+ if not exists(select 1 from auth.users where id=actor and raw_app_meta_data->>'ringu_admin'='true') then raise exception 'BETA_DISABLED';end if;
+ if p_coin is null or p_coin not between 0 and 7 or p_side is null or p_side not in ('long','short') then raise exception 'INVALID_COIN_DIRECTION';end if;
+ perform pg_advisory_xact_lock(71823081);
+ perform rebirth_private.coin_tick();
+ select * into c from rebirth_private.coin_market where id=p_coin;
+ due:=c.tick_at+interval '30 minutes';
+ insert into rebirth_private.coin_next_direction(coin,side,scheduled_at,administrator) values(p_coin,p_side,due,actor)
+ on conflict(coin) do update set side=excluded.side,scheduled_at=excluded.scheduled_at,administrator=excluded.administrator,updated_at=clock_timestamp();
+ return jsonb_build_object('coin',p_coin,'name',c.name,'side',p_side,'scheduledAt',due);
 end $$;
-
 commit;

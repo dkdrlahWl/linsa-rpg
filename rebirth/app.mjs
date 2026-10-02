@@ -5,7 +5,7 @@ import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
 import {shopView} from './shop-ui.mjs?v=shop-order-106';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=leverage-fee-110';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-fire-swords-103';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
@@ -181,7 +181,6 @@ const errors = {
   SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
 };
 function message(e) {
-  if(e.message==='COIN_DAILY_LIMIT')return '오늘 상·하한가에 도달했습니다. 자정 이후에 지정해 주세요.';
   if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED')return '정각에 가격이 갱신됐어요. 새 가격을 확인하고 다시 거래해 주세요.';
   if(e.message==='INVALID_INVESTMENT_POSITION')return '이미 판매 또는 청산된 투자입니다. 투자 화면을 다시 열어 주세요.';
   const lotteryErrors={LOTTO_DUPLICATE:'이번 주에 이미 구매한 번호입니다.',LOTTO_DAILY_LIMIT:'오늘은 3장을 모두 구매했습니다.',LOTTO_ROUND_CHANGED:'추첨 회차가 바뀌었습니다. 로또 화면을 다시 열어주세요.',INVALID_LOTTO_NUMBERS:'1~18 중 서로 다른 번호 2개를 선택하세요.'};
@@ -373,7 +372,6 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
-    if(e.message==='COIN_DAILY_LIMIT')return '오늘 상·하한가에 도달했습니다. 자정 이후에 지정해 주세요.';
   if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
     if (e.status === 400) {localStorage.removeItem(pendingKey());recoverCharacter=!state&&!!session&&body?.command!=="sync";}
     if (e.status === 401) {
@@ -1077,7 +1075,6 @@ async function marketWrite(action, args) {
     await request("/rest/v1/rpc/rebirth_market", p);
     localStorage.removeItem(key);
   } catch (e) {
-    if(e.message==='COIN_DAILY_LIMIT')return '오늘 상·하한가에 도달했습니다. 자정 이후에 지정해 주세요.';
   if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
     if (e.status === 400) localStorage.removeItem(key);
     throw e;
