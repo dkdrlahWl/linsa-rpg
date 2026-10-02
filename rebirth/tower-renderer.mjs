@@ -1,4 +1,4 @@
-import {costumeById} from './costumes.mjs?v=costume-104';
+import {costumeById} from './costumes.mjs?v=costume-shop-105';
 import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-perf-86';
 import {drawSecondSequence} from './second-effects.mjs?v=priest-potential-83';
 import {drawWaveCreature} from './wave-motion.mjs?v=priest-potential-83';
@@ -77,7 +77,7 @@ function cleanDirectionalAtlas(im,layout=null){
 const preparations=new Map();
 export function prepareCombatArt(classes,boss,costumeIds=[]){
  const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-motion-v1.png',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
- for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,null]);if(c.classId==='warrior')tasks.push(['costumes/warrior-east-v1.webp',null]);}}
+ for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,null],[c.portrait,null]);if(c.classId==='warrior')tasks.push(['costumes/warrior-east-v1.webp',null]);}}
  tasks.push([asset(boss==='raid-2'?'raid-boss-2-portrait':'boss-'+boss),null]);image('tower/priest-orb-v1.png');if(String(boss).startsWith('raid-')){image(asset('raid-map-'+boss.slice(5)));image(asset('raid-boss-'+boss.slice(5)+'-portrait'));}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}));
@@ -120,6 +120,17 @@ export class TowerRenderer {
     const facing=Number.isInteger(dir)&&dir>=0&&dir<8?dir:6,g=this.g;
     const spriteSize=this.mobileActors.matches?215:180;
     const costume=costumeById(costumeId,classId);
+    // A failed motion sheet must never make an equipped character disappear.
+    const costumeMotion=costume?image(costume.atlas):null;
+    if(costume&&(!costumeMotion.complete||!costumeMotion.naturalWidth)){
+      const portrait=image(costume.portrait);
+      if(portrait.complete&&portrait.naturalWidth){
+        const source=cleanDirectionalAtlas(portrait,{frames:[{x:0,y:0,w:portrait.naturalWidth,h:portrait.naturalHeight}]}),r=frameBounds(source,1,1)[0];
+        const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=bodySize/r.h,bob=moving?Math.abs(Math.sin((walk||0)*1.6))*4:0;
+        g.save();try{g.translate(x,y-bob);g.scale([3,4,5].includes(facing)?-1:1,1);g.globalAlpha=alpha;g.rotate(acting?Math.sin((age||0)*Math.PI)*.06:0);g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-bodySize,r.w*scale,bodySize);}finally{g.restore();}
+        return;
+      }
+    }
     if(classId==='priest'){
       const im=image(costume?.atlas||'tower/priest-motion-v1.png');
       if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,phase=(walk||0)*.9,row=acting?(age<.3?3:age<.7?4:5):moving?[0,1,2,1][Math.floor(phase)%4]:0;g.save();try{g.translate(x,y);g.rotate(moving&&!acting?Math.sin(phase*Math.PI/2)*.025:0);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,facing*sw,row*sh,sw,sh,-spriteSize/2,-spriteSize,spriteSize,spriteSize);}finally{g.restore();}}
