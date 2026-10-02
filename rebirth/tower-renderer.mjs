@@ -40,6 +40,8 @@ function cleanDirectionalAtlas(im,layout=null){
     const canvas=document.createElement('canvas');canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
     const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
+    const w=canvas.width,h=canvas.height;
+    if(im.src?.includes('mage-portrait-v1.webp'))for(let y=Math.floor(h*.4);y<Math.ceil(h*.76);y++)for(let x=0;x<Math.ceil(w*.1);x++){const p=(y*w+x)*4;if(data[p]>data[p+1]*1.35&&data[p]>data[p+2]*1.15)data[p+3]=0;}
     const regions=layout?.frames||Array.from({length:16},(_,i)=>({x:i%4*canvas.width/4,y:Math.floor(i/4)*canvas.height/4,w:canvas.width/4,h:canvas.height/4}));
     for(const region of regions){
       const sw=Math.floor(region.w),sh=Math.floor(region.h),size=sw*sh,ox=Math.floor(region.x),oy=Math.floor(region.y),groups=[null];

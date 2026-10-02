@@ -8,6 +8,9 @@ async function isolated(src,index=null){
   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
   const g=canvas.getContext('2d',{willReadFrequently:true});g.drawImage(im,index===null?0:Math.round(index*im.naturalWidth/5),0,w,h,0,0,w,h);
   const pixels=g.getImageData(0,0,w,h),data=pixels.data,labels=new Int32Array(w*h),queue=new Int32Array(w*h),groups=[null];
+
+  // The mage's left edge contains a touching red warrior cape, not a detached group.
+  if(src.includes('mage-portrait-v1.webp'))for(let y=Math.floor(h*.4);y<Math.ceil(h*.76);y++)for(let x=0;x<Math.ceil(w*.1);x++){const p=(y*w+x)*4;if(data[p]>data[p+1]*1.35&&data[p]>data[p+2]*1.15)data[p+3]=0;}
   for(let start=0;start<w*h;start++){
    if(labels[start]||data[start*4+3]<=8)continue;
    const id=groups.length,group={size:0,left:w,right:0,top:h,bottom:0};groups.push(group);let first=0,last=0;queue[last++]=start;labels[start]=id;
