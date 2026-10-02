@@ -1,6 +1,6 @@
 import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=priest-potential-83';
 import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,firstJobUnlocked} from './data.mjs?v=priest-potential-83';
-export {TowerController} from './tower-controller.mjs?v=costume-visible-108';
+export {TowerController} from './tower-controller.mjs?v=costume-motion-111';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

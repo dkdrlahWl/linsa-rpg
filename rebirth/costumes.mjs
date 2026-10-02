@@ -6,7 +6,7 @@ export const COSTUMES=Object.freeze([
   {id:'blackmoon-assassin',classId:'rogue',name:'흑월 암살자'},
   {id:'golden-captain',classId:'pirate',name:'황금 함장'},
   {id:'bluemoon-priest',classId:'priest',name:'청월 사제'},
-].map(c=>Object.freeze({...c,price:COSTUME_PRICE,atlas:`costumes/${c.classId}-v1.webp`,portrait:`costumes/${c.classId}-portrait-v1.webp`})));
+].map(c=>Object.freeze({...c,price:COSTUME_PRICE,atlas:`costumes/${c.classId}-motion-v2.webp`,portrait:`costumes/${c.classId}-portrait-v1.webp`})));
 export function costumeById(id,classId){return COSTUMES.find(c=>c.id===id&&(!classId||c.classId===classId))||null;}
 export function equippedCostume(s){return Array.isArray(s.costumes)&&s.costumes.includes(s.equippedCostume)?costumeById(s.equippedCostume,s.classId):null;}
 export function normalizeCostumes(s){s.costumes=[...new Set((Array.isArray(s.costumes)?s.costumes:[]).filter(id=>costumeById(id)))];s.equippedCostume=equippedCostume(s)?.id||null;return s;}
