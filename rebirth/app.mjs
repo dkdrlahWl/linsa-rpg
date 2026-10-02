@@ -4,7 +4,7 @@ import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=minji-tiger-26';
 let investmentData=null,investmentLoadedAt=0;
-import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-slash-flip-100';
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=warrior-range-swords-101';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=short-18';
