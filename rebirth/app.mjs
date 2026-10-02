@@ -7,7 +7,7 @@ import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
 let investmentData=null,investmentLoadedAt=0;
-import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-114';
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-motion-115';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=short-18';
@@ -20,13 +20,14 @@ import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
 import {raidLobby} from './raid-ui.mjs?v=priest-potential-83';
 import {nextAutoSkill} from './auto-skills.mjs?v=fifth-114';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
+import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-motion-115';
 import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fifth-114';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=fifth-motion-115';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=cube-mobile-84';
 import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-114';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fifth-114';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=fifth-motion-115';
 import * as D from "./data.mjs?v=fifth-114";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=shop-clean-105";
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
@@ -883,12 +884,12 @@ function showEvents(events) {
     if (e.type === "skill") {
       const arena = $(".arena");
       if(state.classId==='priest'&&arena&&!settings.low){playHolyOverlay(arena,e.slot);continue;}
+      if(e.slot===5&&arena&&!settings.low){void playFifthOverlay(arena,state.classId);continue;}
       if(e.slot===2&&arena&&!settings.low){playSecondOverlay(arena,state.classId);continue;}
       if (arena && !settings.low) {
         const flash = document.createElement("div");
-        flash.className = "skill-burst " + state.classId+(e.slot===5?" fifth-burst":e.slot===4?" fourth-burst":e.slot===3?" third-burst":e.slot===1?" second-burst":"");if(e.slot===1)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);if(e.slot===3)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);
+        flash.className = "skill-burst " + state.classId+(e.slot===4?" fourth-burst":e.slot===3?" third-burst":e.slot===1?" second-burst":"");if(e.slot===1)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);if(e.slot===3)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);
         flash.textContent = (e.slot===5?D.FIFTH_SKILLS:e.slot===4?D.FOURTH_SKILLS:e.slot===3?D.THIRD_SKILLS:e.slot===2?D.SECOND_SKILLS:D.CLASS_SKILLS)[state.classId].name;
-        if(e.slot===5)flash.style.setProperty('--fifth-art',"url('tower/fifth-"+state.classId+"-v1.webp')");
         arena.append(flash);
         setTimeout(()=>flash.remove(), e.slot===4?6000:e.slot===1?1200:900);
       }
