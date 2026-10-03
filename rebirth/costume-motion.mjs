@@ -16,3 +16,11 @@ export function costumeMotionFrame(classId,dir,moving,acting,age=0,walk=0,costum
  if(acting&&classId==='warrior'&&direction===1&&phase===4)cell=3;
  return {layout,frame:layout.frames[row*8+cell],row,phase,flip:[3,4,5].includes(facing)?-1:1};
 }
+
+// Atlas poses were painted at slightly different body sizes. Match each pose
+// to the standing size while retaining an intentional costume size override.
+export function costumeMotionScale(pose,bodySize,renderBodyHeight){
+ const reference=renderBodyHeight||pose.layout.bodyHeight;
+ const frameBody=pose.frame.body>0?pose.frame.body:pose.layout.bodyHeight;
+ return bodySize/reference*pose.layout.bodyHeight/frameBody;
+}

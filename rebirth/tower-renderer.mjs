@@ -2,7 +2,7 @@ import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138
 import {healthSegments} from './health-bar.mjs?v=coop-smooth-136';
 import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-impact-121';
 import {drawWalkingSprite} from './walk-animation.mjs?v=walk-thickness-128';
-import {costumeMotionFrame} from './costume-motion.mjs?v=costume-motion-111';
+import {costumeMotionFrame,costumeMotionScale} from './costume-motion.mjs?v=costume-motion-111';
 import COSTUME_MOTION_LAYOUT from './costume-motion-layout.mjs?v=costume-motion-111';
 import {costumeById} from './costumes.mjs?v=costume-motion-111';
 import {drawPriestSkillArt,drawPriestRangeAura,drawPriestBuffAura,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-perf-86';
@@ -135,8 +135,8 @@ export class TowerRenderer {
       // from being treated as a usable motion sheet.
       if(decodedImages.has(im)&&pose&&im.naturalWidth===pose.layout.width&&im.naturalHeight===pose.layout.height){
         const source=cleanDirectionalAtlas(im,pose.layout),r=pose.frame;
-        const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=bodySize/(costume.renderBodyHeight||pose.layout.bodyHeight);
-        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(moving)drawWalkingSprite(g,source,r,[pose.layout.bodyHeight,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
+        const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=costumeMotionScale(pose,bodySize,costume.renderBodyHeight);
+        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(moving)drawWalkingSprite(g,source,r,[r.body,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
         return;
       }
       // Keep the costume visible only while its directional sheet is loading.
