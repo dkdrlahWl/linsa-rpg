@@ -1,4 +1,5 @@
 import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-impact-121';
+import {drawWalkingSprite} from './walk-animation.mjs?v=walk-alternate-125';
 import {costumeMotionFrame} from './costume-motion.mjs?v=costume-motion-111';
 import COSTUME_MOTION_LAYOUT from './costume-motion-layout.mjs?v=costume-motion-111';
 import {costumeById} from './costumes.mjs?v=costume-motion-111';
@@ -126,13 +127,13 @@ export class TowerRenderer {
     const spriteSize=this.mobileActors.matches?215:180;
     const costume=costumeById(costumeId,classId);
     if(costume){
-      const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,moving,acting,age,walk);
+      const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk);
       // Successful decoding and exact sheet dimensions prevent partial WebP data
       // from being treated as a usable motion sheet.
       if(decodedImages.has(im)&&pose&&im.naturalWidth===pose.layout.width&&im.naturalHeight===pose.layout.height){
         const source=cleanDirectionalAtlas(im,pose.layout),r=pose.frame;
         const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=bodySize/pose.layout.bodyHeight;
-        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
+        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(moving)drawWalkingSprite(g,source,r,[pose.layout.bodyHeight,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
         return;
       }
       // Keep the costume visible only while its directional sheet is loading.
@@ -146,7 +147,7 @@ export class TowerRenderer {
     }
     if(classId==='priest'){
       const im=image('tower/priest-motion-v1.png');
-      if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,phase=(walk||0)*.9,row=acting?(age<.3?3:age<.7?4:5):moving?[0,1,2,1][Math.floor(phase)%4]:0;g.save();try{g.translate(x,y);g.rotate(moving&&!acting?Math.sin(phase*Math.PI/2)*.025:0);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;g.drawImage(im,facing*sw,row*sh,sw,sh,-spriteSize/2,-spriteSize,spriteSize,spriteSize);}finally{g.restore();}}
+      if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,row=acting?(age<.3?3:age<.7?4:5):0;g.save();try{g.translate(x,y);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;if(moving)drawWalkingSprite(g,im,{x:facing*sw,y:row*sh,w:sw,h:sh},[sh*PRIEST_BODY_RATIO,sw/2,sh],spriteSize/sh,walk,facing,true);else g.drawImage(im,facing*sw,row*sh,sw,sh,-spriteSize/2,-spriteSize,spriteSize,spriteSize);}finally{g.restore();}}
       return;
     }
     const bodySize=spriteSize*PRIEST_BODY_RATIO;
@@ -157,11 +158,11 @@ export class TowerRenderer {
     };
     let name='hero-'+classId+'-motion-v4',layout=MOTION_LAYOUT[classId],row=[2,1,0,1,2,3,4,3][facing]+(acting?5:0);
     if(classId==='warrior'&&acting){if(facing===0||facing===4){name='hero-warrior-east-v4';layout=MOTION_LAYOUT.warriorEast;row=0;}else row=({1:6,2:5,3:6,5:7,6:8,7:7})[facing];}
-    const im=image(asset(name)),frame=acting?Math.min(7,Math.max(0,Math.floor((age||0)*9))):moving?((Math.floor((walk||0)*1.05)%8)+8)%8:0,r=layout?.frames?.[row*8+frame];
+    const im=image(asset(name)),frame=acting?Math.min(7,Math.max(0,Math.floor((age||0)*9))):0,r=layout?.frames?.[row*8+frame];
     if(!im.complete||!im.naturalWidth||!r||!Number.isFinite(r.foot)||r.w<=0||r.h<=0){fallback();return;}
     const atlasKey=name==='hero-warrior-east-v4'?'warriorEast':classId,body=MOTION_BODY_LAYOUT[atlasKey]?.[row*8+frame]||[layout.bodyHeight,r.w/2,r.foot];
     const flip=([3,4,5].includes(facing)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=bodySize/(ACTOR_BODY_REFERENCE[atlasKey]||layout.bodyHeight);
-    g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;g.drawImage(im,r.x,r.y,r.w,r.h,-body[1]*scale,-body[2]*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
+    g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;if(moving)drawWalkingSprite(g,im,r,[ACTOR_BODY_REFERENCE[atlasKey]||body[0],body[1],body[2]],scale,walk,flip<0?(4-facing+8)%8:facing);else g.drawImage(im,r.x,r.y,r.w,r.h,-body[1]*scale,-body[2]*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
   }
   thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){

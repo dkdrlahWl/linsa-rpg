@@ -9,7 +9,7 @@
 <footer>현재 게임과 같은 스킬 타격·이펙트 처리로 재생합니다. 훈련 표적은 움직이지 않습니다.</footer>
 </main><script type="module">
 import {newTowerBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
-import {TowerRenderer,prepareCombatArt,image,asset,motionAsset} from './tower-renderer.mjs?v=fifth-impact-121';
+import {TowerRenderer,prepareCombatArt,image,asset,motionAsset} from './tower-renderer.mjs?v=walk-alternate-125';
 import {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=priest-raids-27';
 const classes={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적'},$=id=>document.getElementById(id),renderer=new TowerRenderer($('scene'),{presentationScale:.9});
 let classId=new URLSearchParams(location.search).get('class')||'warrior',slot=Number(new URLSearchParams(location.search).get('slot'))||2,b,previous,started=0,pausedAt=null;
