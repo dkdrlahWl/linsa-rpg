@@ -1,5 +1,5 @@
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
-import {installPortraitIsolation} from './portrait-isolation.mjs?v=costume-visible-108';
+import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-polish-148';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
@@ -12,7 +12,7 @@ import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-1
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
-import {arenaView,startArenaReplay} from './arena-ui.mjs';
+import {arenaView,startArenaReplay} from './arena-ui.mjs?v=arena-polish-148';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=short-18';
@@ -486,7 +486,7 @@ function confirmClassChange(classId) {
 function shell(content) {
   if(document.body.classList.contains("tower-mode"))return `<div class="shell">${content}</div>`;
   const c = D.CLASSES.find(c=>c.id===state.classId);
-  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':`<nav class="pvp-dock" aria-label="아레나 하단 메뉴"><button data-action="tab" data-arg="hunt">⌂<span>홈</span></button><button data-action="arenaOpen" class="active"><img src="ui/arena-emblem.svg" alt=""><span>아레나</span></button><button data-action="tab" data-arg="gear">▣<span>가방</span></button><button data-action="gameMenu">☰<span>메뉴</span></button></nav>`:fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady());
+  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':`<nav class="pvp-dock" aria-label="아레나 하단 메뉴"><button data-illustrated="1" data-action="tab" data-arg="hunt"><span class="pvp-dock-icon" aria-hidden="true">⌂</span><span>홈</span></button><button data-illustrated="1" data-action="arenaOpen" class="active"><img src="ui/arena-emblem.svg" alt=""><span>아레나</span></button><button data-illustrated="1" data-action="tab" data-arg="gear"><span class="pvp-dock-icon" aria-hidden="true">▣</span><span>가방</span></button><button data-illustrated="1" data-action="gameMenu"><span class="pvp-dock-icon" aria-hidden="true">☰</span><span>메뉴</span></button></nav>`:fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady());
   return `<div class="shell fantasy-shell">${fantasyHeader(state,view==="arena"?"arena":view==="game"?tab:"")}<div class="fantasy-player-strip"><span><strong>${esc(state.name)}</strong> · Lv.${state.level} ${c.name}</span><span>전투력 <b>${fmt(power(state).combatPower)}</b></span></div><div id="connection-status" class="connection-status" role="status" ${connectionLost?"":"hidden"}>연결이 지연되고 있어요. ${btn("다시 연결","reconnect")}</div><main class="fantasy-content" data-screen="${esc(view==="game"?tab:view)}">${content}</main>${footer}</div>`;
 }
 

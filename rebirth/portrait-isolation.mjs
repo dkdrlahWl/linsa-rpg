@@ -42,7 +42,7 @@ export function installPortraitIsolation(){
    let src=match?.[1],index=null;
    if(!src&&node.classList.contains('priest-portrait'))src='tower/priest-portrait-v2.png';
    if(!src&&!node.classList.contains('priest-portrait')){src='characters-transparent-v1.png';index=Math.max(0,Math.min(4,Math.round(parseFloat(node.style.backgroundPosition||'0')/25)));}
-   if(!src)continue;node.dataset.portraitIsolated='1';if(src.endsWith('-portrait-v2.png'))continue;isolated(src,index).then(url=>{if(node.isConnected){node.style.setProperty('background-image',`url("${url}")`,'important');node.style.setProperty('background-size','contain','important');node.style.setProperty('background-position','center','important');}}).catch(()=>{});
+   if(!src)continue;node.dataset.portraitIsolated='1';if(src.endsWith('-portrait-v2.png')&&!node.classList.contains('priest-portrait'))continue;isolated(src,index).then(url=>{if(node.isConnected){node.style.setProperty('background-image',`url("${url}")`,'important');node.style.setProperty('background-size','contain','important');node.style.setProperty('background-position','center','important');}}).catch(()=>{});
   }
  };
  const observer=new MutationObserver(records=>{for(const r of records)for(const n of r.addedNodes)process(n);});

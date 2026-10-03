@@ -1,4 +1,10 @@
-import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,rollBaseStats} from './data.mjs';
+import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,firstJobUnlocked,rollBaseStats} from './data.mjs';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
+import {beginThird,stepThird} from './advancement.mjs';
+import {beginFourth,stepFourth} from './fourth-job.mjs';
+import {beginFifth,stepFifth,fifthUnlocked} from './fifth-job.mjs';
+import {supportTick,absorbDamage,holyDamage} from './priest.mjs';
+import {botName} from './arena-names.mjs?v=arena-polish-148';
 import {makeItem,power} from './engine.mjs';
 
 export const ARENA_BOT_COUNT=2000;
@@ -46,7 +52,7 @@ export function buildBot(meta){
    return item;
  });
  const stats={STR:4,DEX:4,INT:4,LUK:4};stats[primary]+=5*(level-1);
- return {name:meta.name||`투사${String(id).padStart(4,'0')}`,classId,level,stats,advancement:4,items,equipped:Object.fromEntries(items.map((item,i)=>[i,item.id])),costumes:[],equippedCostume:null,score,botId:id};
+ return {name:meta.name&&!/^투사\d+$/.test(meta.name)?meta.name:botName(id),classId,level,stats,advancement:4,items,equipped:Object.fromEntries(items.map((item,i)=>[i,item.id])),costumes:[],equippedCostume:null,score,botId:id};
 }
 export function arenaProfile(state,score=null,rank=null,id=null){
  const p=power(state);
@@ -60,25 +66,56 @@ export async function arenaOfferProfiles(arena,readPlayer){
  }));
 }
 function seedNumber(value){let h=2166136261;for(const c of String(value)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+// Use the same pulse, cooldown and support schedulers as the other combat modes.
 export function simulateArena(leftState,rightState,seed='arena'){
- const left=power(leftState),right=power(rightState);let rand=seedNumber(seed)||1;
+ let rand=seedNumber(seed)||1;
  const random=()=>{rand^=rand<<13;rand^=rand>>>17;rand^=rand<<5;return (rand>>>0)/4294967296;};
- const fighters=[{state:leftState,stats:left,hp:Math.max(1,left.hp*6),maxHp:Math.max(1,left.hp*6),nextBasic:0,nextFirst:3,nextSecond:7},{state:rightState,stats:right,hp:Math.max(1,right.hp*6),maxHp:Math.max(1,right.hp*6),nextBasic:.4,nextFirst:3.4,nextSecond:7.4}];
+ const states=[leftState,rightState],skillSets={1:CLASS_SKILLS,2:SECOND_SKILLS,3:THIRD_SKILLS,4:FOURTH_SKILLS,5:FIFTH_SKILLS};
+ const readyKeys={1:'ultimateReady',2:'skillReady',3:'thirdReady',4:'fourthReady',5:'fifthReady'};
+ const fighters=states.map((state,side)=>{
+  const stats=power(state),maxHp=Math.max(1,stats.hp*30);
+  return {id:side,classId:state.classId,advancement:state.advancement||0,level:state.level,x:side*400,y:0,hp:maxHp,maxHp,power:{...stats,hp:maxHp,level:state.level,firstJob:firstJobUnlocked(state)},nextBasic:side*4,nextCast:2+side*3,opening:{1:2+side*3,2:10+side*3,3:18+side*3,4:26+side*3,5:34+side*3},state};
+ });
  const frames=[];
- for(let time=0;time<=90&&fighters.every(f=>f.hp>0);time+=.2){
-   for(let side=0;side<2;side++){
-     const a=fighters[side],b=fighters[1-side];if(a.hp<=0||b.hp<=0)break;
-     let type='basic',skill=null,mult=1;
-     if(a.state.advancement>=2&&time>=a.nextSecond){skill=SECOND_SKILLS[a.state.classId];type='skill';a.nextSecond=time+Math.max(8,skill?.cooldown||14);}
-     else if(a.state.advancement>=1&&time>=a.nextFirst){skill=CLASS_SKILLS[a.state.classId];type='skill';a.nextFirst=time+Math.max(7,skill?.cooldown||10);}
-     else if(time<a.nextBasic)continue;
-     if(skill)mult=Math.min(5,Math.max(1,Number(skill.damage||1)*Number(skill.hits||1)));
-     a.nextBasic=time+1/Math.max(.6,a.stats.cadence||1);
-     const crit=random()<(a.stats.crit||.05),raw=a.stats.attack*mult*(crit?a.stats.critDamage||1.6:1),mitigation=1/(1+Math.max(0,b.stats.defense||0)/2600);
-     const damage=Math.max(1,Math.round(raw*mitigation*(.92+random()*.16)));
-     b.hp=Math.max(0,b.hp-damage);
-     frames.push({at:Math.round(time*1000),side,type,skill:skill?.name||null,damage,crit,leftHp:fighters[0].hp,rightHp:fighters[1].hp});
+ let currentTick=0;
+ const snapshot=(side,extra)=>frames.push({at:currentTick*100,side,leftHp:fighters[0].hp,rightHp:fighters[1].hp,leftShield:Math.round(fighters[0].shield||0),rightShield:Math.round(fighters[1].shield||0),...extra});
+ for(let tick=0;tick<=900&&fighters.every(f=>f.hp>0);tick++){
+  currentTick=tick;
+  for(let side=0;side<2;side++){
+   const a=fighters[side],b=fighters[1-side];if(a.hp<=0||b.hp<=0)break;
+   const hit=(scale,critAdd=0,target=b,slot=0)=>{
+    if(a.hp<=0||b.hp<=0)return;
+    const crit=random()<Math.min(.95,(a.power.crit||.05)+critAdd);
+    const raw=a.power.attack*scale*(crit?a.power.critDamage||1.6:1);
+    // Arena HP is thirtyfold for readable fights; HP-based offensive flat damage keeps its normal scale.
+    const flat=a.holyFlatDamage||0;a.holyFlatDamage=flat/30;
+    const modified=holyDamage(a,raw,tick);a.holyFlatDamage=flat;
+    const mitigation=1/(1+Math.max(0,b.power.defense||0)/2600);
+    const damage=Math.max(0,Math.round(absorbDamage(b,modified*mitigation*(.92+random()*.16),tick)));
+    b.hp=Math.max(0,b.hp-damage);
+    snapshot(side,{type:slot?'skill':'basic',slot,skill:slot?skillSets[slot][a.classId]?.name:null,damage,crit});
+   };
+   if(tick>=a.nextCast){
+    const unlocked=slot=>slot===5?fifthUnlocked(a):slot===1?firstJobUnlocked(a.state):a.advancement>=slot-1;
+    const available=slot=>unlocked(slot)&&tick>=a.opening[slot]&&tick>=(a[readyKeys[slot]]||0);
+    // Heal when injured, protect before heavy attacks, and use each unlocked offensive skill.
+    let order=[5,4,3,2,1];
+    if(a.classId==='priest')order=a.hp/a.maxHp<=.55?[5,2,3,4,1]:a.hp/a.maxHp<=.8?[2,3,4,5,1]:[3,4,1,5,2];
+    for(const slot of order){
+     if(!available(slot)||a.classId==='priest'&&[2,5].includes(slot)&&a.hp/a.maxHp>.82)continue;
+     const cast=slot<=2?beginCombatSkill(a,b,tick,slot):slot===3?beginThird(a,b,tick):slot===4?beginFourth(a,b,tick):beginFifth(a,b,tick);
+     if(cast){snapshot(side,{type:'cast',slot,skill:skillSets[slot][a.classId].name,damage:0,crit:false});a.nextCast=tick+7;break;}
+    }
    }
+   stepCombatSkills(a,[b],tick,hit);
+   stepThird(a,b,tick,(scale,critAdd=0)=>hit(scale,critAdd,b,3));
+   stepFourth(a,b,tick,(scale,critAdd=0)=>hit(scale,critAdd,b,4));
+   stepFifth(a,[b],tick,hit);
+   const hpBefore=a.hp,shieldBefore=a.shield||0;
+   supportTick([a],tick);
+   if(a.hp>hpBefore||(a.shield||0)>shieldBefore)snapshot(side,{type:'support',skill:(a.shield||0)>shieldBefore?'성역의 결계':'체력 회복',damage:0,heal:Math.round(a.hp-hpBefore),shield:Math.round((a.shield||0)-shieldBefore),crit:false});
+   if(tick>=a.nextBasic&&b.hp>0){hit(1);a.nextBasic=tick+Math.max(1,Math.round(10/Math.max(.6,a.power.cadence||1)));}
+  }
  }
  const won=fighters[1].hp<=0||(fighters[0].hp>0&&fighters[0].hp/fighters[0].maxHp>fighters[1].hp/fighters[1].maxHp);
  return {won,duration:frames.at(-1)?.at||0,frames,leftMaxHp:fighters[0].maxHp,rightMaxHp:fighters[1].maxHp,leftHp:fighters[0].hp,rightHp:fighters[1].hp};
