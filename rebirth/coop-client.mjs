@@ -7,7 +7,7 @@ import {WAVE_MONSTERS} from './wave-monsters.mjs?v=priest-potential-83';
 import {waveLobby,waveHud} from './wave-ui.mjs?v=wave-fifth-cd-124';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=priest-potential-83';
 import {TowerInput,projectPlayer} from './tower-input.mjs?v=fifth-impact-121';
-import {predictCoopStep} from './coop-model.mjs?v=fifth-impact-121';
+import {predictCoopStep,indexCoopFrames} from './coop-model.mjs?v=fifth-impact-121';
 import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=fifth-impact-121';
 import {towerArena} from './tower-client.mjs?v=fifth-impact-121';
 import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-thickness-128';
@@ -31,7 +31,11 @@ const keyBits={KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
 export class CoopController{
  constructor(host,room,send,sound){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'));this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
   window.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,dialog'))return;if(keyBits[e.code]||/^(Key[WASD]|Arrow)/.test(e.code)){e.preventDefault();if(!this.keys.has(e.code)&&keyBits[e.code])this.press(keyBits[e.code]);this.keys.add(e.code);}},opt);window.addEventListener('keyup',e=>this.keys.delete(e.code),opt);
-  const clear=()=>{this.keys.clear();this.pointers.clear();this.stick={x:0,y:0};this.auto=false;this.pendingBits=0;this.sampler.clear();};window.addEventListener('blur',clear,opt);document.addEventListener('visibilitychange',clear,opt);
+  const clear=()=>{this.keys.clear();this.pointers.clear();this.stick={x:0,y:0};this.auto=false;this.pendingBits=0;this.sampler.clear();};window.addEventListener('blur',clear,opt);
+  const resume=()=>{if(this.disposed)return;clear();this.needsResync=true;this.nextSend=0;this.lastDraw=0;void this.flush();};
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();else resume();},opt);
+  window.addEventListener('online',resume,opt);
+  window.addEventListener('offline',()=>{clear();this.needsResync=true;},opt);
   for(const b of host.querySelectorAll('[data-tower-button]')){b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);this.pointers.set(e.pointerId,Number(b.dataset.towerButton));this.press(Number(b.dataset.towerButton));},opt);for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,e=>this.pointers.delete(e.pointerId),opt);}
   const stick=host.querySelector('#tower-stick'),knob=host.querySelector('#tower-stick-knob');let pointer=null;
   const move=e=>{const r=stick.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)/(r.width*.4),y=(e.clientY-r.top-r.height/2)/(r.height*.4),n=Math.max(1,Math.hypot(x,y));this.stick={x:x/n,y:y/n};knob.style.transform='translate('+this.stick.x*r.width*.3+'px,'+this.stick.y*r.height*.3+'px)';};
@@ -56,34 +60,40 @@ export class CoopController{
  input(){if(this.artReady===false)return [0,0,0];if(['wave','advancement','raid'].includes(this.predicted?.mode)&&this.predicted.members.find(m=>m.id===this.room.me)?.hp<=0)return [0,0,0];if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=(this.auto?1:0)|(this.autoSkills?autoSkillBits(this.predicted.members.find(m=>m.id===this.room.me),this.predicted.tick,this.predicted.status==='fighting'):0);for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,this.room.entryWaiting?0:bits];}
  press(bits){if(!bits||this.room.entryWaiting||this.artReady===false)return;this.pendingBits|=bits;this.sampler.press(bits);this.lastHud=0;const now=performance.now();if(bits&4)this.hint.dash=now+110;else if(bits&1)this.hint.attack=now+110;else if(bits&122)this.hint.skill=now+110;}
  async flush(){
-  if(this.busy||this.disposed||performance.now()<this.nextSend)return;this.busy=true;const started=performance.now();
+  if(this.busy||this.disposed||document.hidden||navigator.onLine===false||performance.now()<this.nextSend)return;
+  this.busy=true;const started=performance.now(),taps=this.pendingBits,resync=!!this.needsResync;this.pendingBits=0;
   try{
-   const taps=this.pendingBits;this.pendingBits=0;
    const room=this.predicted,me=room.members.find(m=>m.id===room.me),chest=room.chest;
    const wantsOpen=room.status==='won'&&(taps&1)&&((me.damage>0||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0)))||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0)))&&chest&&Math.hypot(me.x-chest.x,me.y-chest.y)<=180;
    const confirmed=this.room.members.find(m=>m.id===room.me),open=wantsOpen&&this.room.status==='won'&&Math.hypot(confirmed.x-chest.x,confirmed.y-chest.y)<=180;
    if(wantsOpen&&!open)this.pendingBits|=1;
    const ack=this.room.members.find(m=>m.id===room.me)?.inputAck??-1;
-   const frames=this.frames.filter(f=>f.tick>ack).slice(-35);
+   const frames=resync?[]:this.frames.filter(f=>f.tick>ack).slice(-35);
    const direction=this.input(),entryInput=this.artReady&&this.entryMoveInput&&!confirmed.entryMoved&&Math.hypot(direction[0],direction[1])<=.01?this.entryMoveInput:direction;
-   const result=await this.send(open?'coopOpen':'coopInput',open?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true}:room.status==='won'?{input:direction,compact:true}:{frames,compact:true},!open);
+   const result=await this.send(open?'coopOpen':'coopInput',open?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:room.status==='won'?{input:direction,compact:true,protocol:2}:{frames,compact:true,protocol:2},!open);
    if(!result)this.pendingBits|=taps;
-   if(result){this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
-  }catch{this.failures=(this.failures||0)+1;}
-  finally{this.busy=false;this.nextSend=Math.max(started+Math.max(250,Math.min(650,(this.rtt||250)*.65)),performance.now()+(this.failures?Math.min(1200,150*this.failures):40));}
+   if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
+  }catch(error){this.pendingBits|=taps;this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
+  finally{this.busy=false;this.nextSend=Math.max(started+Math.max(250,Math.min(650,(this.rtt||250)*.65)),performance.now()+(this.failures?Math.min(1200,150*this.failures+Math.random()*100):40));}
  }
- accept(room){if(!room||room.id!==this.room.id||room.tick<this.room.tick||(room.revision??0)<(this.room.revision??0))return;const starting=this.room.entryWaiting&&!room.entryWaiting;this.previousRoom=this.room;this.room=room;this.received=performance.now();
- if(starting||room.entryWaiting){this.frames=[];this.sampler.clear();this.pendingBits=0;this.hint={attack:0,skill:0,dash:0};}
+ accept(room){if(!room||room.id!==this.room.id||(room.revision??0)<(this.room.revision??0)||((room.revision??0)===(this.room.revision??0)&&room.tick<this.room.tick))return;const starting=this.room.entryWaiting&&!room.entryWaiting,resync=!!this.needsResync;this.previousRoom=this.room;this.room=room;this.received=performance.now();
+ if(starting||room.entryWaiting||resync){this.frames=[];this.sampler.clear();this.pendingBits=0;this.hint={attack:0,skill:0,dash:0};}
  if(starting||room.members.find(m=>m.id===room.me)?.entryMoved)this.entryMoveInput=null;
- const target=room.entryWaiting||starting?room.tick:Math.max(room.tick,Math.min(this.predicted?.tick||room.tick,room.tick+20));
- const base=room.predictionBase||room;
+ const target=room.entryWaiting||starting||resync?room.tick:Math.max(room.tick,Math.min(this.predicted?.tick||room.tick,room.tick+20));
+ const base=!resync&&room.predictionBase||room;
  this.nextSend=Math.max(this.nextSend||0,performance.now()+80);
  this.frames=this.frames.filter(f=>f.tick>=base.tick);
- this.predicted=structuredClone(base);this.previousSim=motionSnapshot(this.predicted);
- delete this.predicted.predictionBase;
+ this.predicted=structuredClone(base);
+ if(room.protocol===2&&base!==room)for(const member of this.predicted.members){
+  const current=room.members.find(m=>m.id===member.id);if(current)Object.assign(member,{power:structuredClone(current.power),name:current.name,classId:current.classId,advanced:current.advanced});
+ }
+ this.previousSim=motionSnapshot(this.predicted);
+ this.remoteFrames=indexCoopFrames(room.predictionInputs||[]);
+ this.replayFrames=new Map(this.frames.map(f=>[f.tick,f.input]));
+ delete this.predicted.predictionBase;delete this.predicted.predictionInputs;
  this.reconcileTarget=room.status==='fighting'&&!room.entryWaiting?target:this.predicted.tick;
  this.lastHud=0;
- this.motion.reconcile();if(room.mode==='wave'){const block=Math.floor(((room.wave||1)-1)/10)%30;for(const i of [block,(block+1)%30]){void prepareWaveCreature(image(WAVE_MONSTERS[i].art),i);void prepareWaveCreature(image(WAVE_MONSTERS[i].eliteArt),i);}waveHud(this.host,room);return;}const t=coopEncounter(room),me=room.members.find(m=>m.id===room.me);this.host.querySelector('.tower-title-row h3').textContent=t.name;this.host.querySelector('#tower-enemy-hp').textContent=fmt(room.hp)+' / '+fmt(room.maxHp);this.host.querySelector('#tower-enemy-bar').style.width=room.hp/room.maxHp*100+'%';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp);this.host.querySelector('#tower-player-bar').style.width=me.hp/me.power.hp*100+'%';this.host.querySelector('#tower-clock').textContent=room.status==='won'?'개인 상자':Math.max(0,t.seconds-Math.floor(room.tick/10))+'초';this.host.querySelector('#tower-status').textContent=room.status==='won'?((me.damage>0||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0)))?'개인 상자로 이동한 뒤 공격 버튼을 눌러 여세요.':'피해를 주지 않아 보상이 없습니다. 나가기를 눌러주세요.'):me.hp>0?'탑과 같은 조작 · 붉은 예고 회피':'쓰러졌습니다 · 동료 전투 관전 중';this.host.querySelector('#tower-range').textContent='참가 '+room.members.filter(m=>!m.left&&m.hp>0).length+'명';const chest=this.host.querySelector('#tower-chest');chest.hidden=room.status!=='won'||!((me.damage>0||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0))));chest.disabled=!room.chest||Math.hypot(me.x-room.chest.x,me.y-room.chest.y)>180;chest.textContent=chest.disabled?'개인 상자 가까이 이동하세요':'개인 상자 열고 나가기';for(const b of this.host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady',64:'fifthReady'}[b.dataset.towerButton],left=Math.max(0,(me[key]||0)-room.tick);b.querySelector('b').textContent=left?Math.ceil(left/10)+'s':'';}}
+ this.motion.reconcile();if(room.mode==='wave'){const block=Math.floor(((room.wave||1)-1)/10)%30;if(this.waveArtBlock!==block){this.waveArtBlock=block;for(const i of [block,(block+1)%30]){void prepareWaveCreature(image(WAVE_MONSTERS[i].art),i);void prepareWaveCreature(image(WAVE_MONSTERS[i].eliteArt),i);}}waveHud(this.host,room);return;}const t=coopEncounter(room),me=room.members.find(m=>m.id===room.me);this.host.querySelector('.tower-title-row h3').textContent=t.name;this.host.querySelector('#tower-enemy-hp').textContent=fmt(room.hp)+' / '+fmt(room.maxHp);this.host.querySelector('#tower-enemy-bar').style.width=room.hp/room.maxHp*100+'%';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp);paintHealthBar(this.host,me,fmt);this.host.querySelector('#tower-clock').textContent=room.status==='won'?'개인 상자':Math.max(0,t.seconds-Math.floor(room.tick/10))+'초';this.host.querySelector('#tower-status').textContent=room.status==='won'?((me.damage>0||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0)))?'개인 상자로 이동한 뒤 공격 버튼을 눌러 여세요.':'피해를 주지 않아 보상이 없습니다. 나가기를 눌러주세요.'):me.hp>0?'탑과 같은 조작 · 붉은 예고 회피':'쓰러졌습니다 · 동료 전투 관전 중';this.host.querySelector('#tower-range').textContent='참가 '+room.members.filter(m=>!m.left&&m.hp>0).length+'명';const chest=this.host.querySelector('#tower-chest');chest.hidden=room.status!=='won'||!((me.damage>0||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0))));chest.disabled=!room.chest||Math.hypot(me.x-room.chest.x,me.y-room.chest.y)>180;chest.textContent=chest.disabled?'개인 상자 가까이 이동하세요':'개인 상자 열고 나가기';for(const b of this.host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady',64:'fifthReady'}[b.dataset.towerButton],left=Math.max(0,(me[key]||0)-room.tick);b.querySelector('b').textContent=left?Math.ceil(left/10)+'s':'';}}
  entryHud(){
   const waiting=!!this.room.entryWaiting;
   for(const button of this.host.querySelectorAll('[data-tower-button],#tower-auto,#tower-auto-skills')){
@@ -99,6 +109,11 @@ export class CoopController{
  }
  draw(now){
   if(this.disposed)return;
+  // Keep scheduling ahead of rendering, including a failed asset draw.
+  this.frame=requestAnimationFrame(t=>this.draw(t));
+  if(document.hidden){this.lastDraw=now;return;}
+  // High-refresh phones otherwise rebuild the entire multiplayer scene 120 times/s.
+  if(this.lastDraw&&now-this.lastDraw<1000/60-1)return;
   const dt=Math.min(100,this.lastDraw?now-this.lastDraw:16);this.lastDraw=now;
   // Loading clients keep polling, but cannot signal movement readiness yet.
   const input=this.input();
@@ -106,11 +121,11 @@ export class CoopController{
   // Reconcile a bounded amount per frame so one late response cannot block painting.
   const replayStarted=performance.now();
   for(let i=0;i<6&&this.predicted.tick<this.reconcileTarget&&this.predicted.status==='fighting';i++){
-   const frame=this.frames.find(f=>f.tick===this.predicted.tick)?.input||this.predicted.members.find(m=>m.id===this.room.me)?.input||[0,0,0];
-   this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true);
+   const frame=this.replayFrames.get(this.predicted.tick)||this.predicted.members.find(m=>m.id===this.room.me)?.input||[0,0,0];
+   this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true,this.remoteFrames.get(this.predicted.tick)||[]);
    if(performance.now()-replayStarted>=4)break;
   }
-  if(this.predicted.tick>=this.reconcileTarget&&now-this.received<8000&&!document.hidden)this.sampler.advance(dt*(this.room.mode==='wave'&&!this.room.entryWaiting&&this.room.waveSpeed===1.5?1.5:1),input,frame=>{
+  if(!this.needsResync&&navigator.onLine!==false&&this.predicted.tick>=this.reconcileTarget&&now-this.received<8000)this.sampler.advance(dt*(this.room.mode==='wave'&&!this.room.entryWaiting&&this.room.waveSpeed===1.5?1.5:1),input,frame=>{
    if(this.predicted.status==='fighting'&&!this.room.entryWaiting)this.frames.push({tick:this.predicted.tick,input:frame});
    this.frames=this.frames.slice(-35);
    this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true);
@@ -139,10 +154,8 @@ export class CoopController{
   const connection=this.host.querySelector('#tower-connection');connection.hidden=now-this.received<4500&&(this.failures||0)<2;connection.textContent='연결 지연 · 전투 재동기화 중';
   this.entryHud();
   }
-  if(w.mode==='wave'){b.enemy={x:player.x,y:player.y};const oldMonsters=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));b.monsters=w.monsters.map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}
+  if(w.mode==='wave'){b.enemy={x:player.x,y:player.y};if(this.monsterSnapshot!==this.previousSim){this.monsterSnapshot=this.previousSim;this.monsterPoints=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));}const oldMonsters=this.monsterPoints;b.monsters=w.monsters.map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}
   this.motion.end();
-  // Keep input and painting alive if an individual image frame cannot be drawn.
-  this.frame=requestAnimationFrame(t=>this.draw(t));
   this.renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},player,0,now,input,this.hint);
  }
  dispose(){this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.renderer.dispose();}

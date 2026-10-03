@@ -13,8 +13,9 @@ Deno.serve(async (req) => {
     "Access-Control-Allow-Methods": "POST,OPTIONS",
     "Access-Control-Max-Age": "3600",
   };
+  let coopProtocol=1;
   const reply = (data: unknown, status = 200) =>
-    new Response(JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:coopClientView(data.coop)}:data,(key,value)=>key==="_net"||key==="_queuedInputs"?undefined:value), {
+    new Response(JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:coopClientView(data.coop,coopProtocol)}:data,(key,value)=>key==="_net"||key==="_queuedInputs"?undefined:value), {
       status,
       headers: {
         ...cors,
@@ -46,12 +47,6 @@ Deno.serve(async (req) => {
     return data;
   };
   try {
-    const auth = await fetch(url + "/auth/v1/user", {
-      headers: { apikey: anon, Authorization: authorization },
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
-    const user = await auth.json();
     const raw = await req.text();
     if (raw.length > 16384) return reply({ error: "INVALID_BODY" }, 400);
     const body = JSON.parse(raw);
@@ -63,6 +58,25 @@ Deno.serve(async (req) => {
       Array.isArray(body.args)
     )
       return reply({ error: "INVALID_REQUEST" }, 400);
+    const fingerprint = { command: body.command, args: body.args };
+    const fastInput=body.command==='coopInput';
+    coopProtocol=body.args.protocol===2?2:1;
+    if(fastInput&&Object.hasOwn(body.args,'frames'))validateCoopFrames(body.args.frames);
+    // Both endpoints validate the bearer token. Read/queue the authenticated
+    // input concurrently with account lookup; authoritative writes still wait.
+    const [authResult,frameResult]=await Promise.allSettled([
+      fetch(url + "/auth/v1/user", {
+        headers: { apikey: anon, Authorization: authorization },
+        signal: AbortSignal.timeout(10000),
+      }),
+      fastInput?rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true}):Promise.resolve(null)
+    ]);
+    if(authResult.status==="rejected")throw authResult.reason;
+    const auth=authResult.value;
+    if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
+    const user = await auth.json();
+    if(frameResult.status==="rejected")throw frameResult.reason;
+    const initialFrameSnapshot=frameResult.value;
     if(['investList','investBuy','investSell'].includes(body.command)){
       return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
     }
@@ -73,11 +87,8 @@ Deno.serve(async (req) => {
       if(user.app_metadata?.ringu_admin!==true)throw new Error('BETA_DISABLED');
       return reply(await rpc('rebirth_admin_transfer',{p_args:body.args,p_request:body.requestId}));
     }
-    const fingerprint = { command: body.command, args: body.args };
-    const fastInput=body.command==='coopInput';
-    if(fastInput&&Object.hasOwn(body.args,'frames'))validateCoopFrames(body.args.frames);
     for (let retry = 0; retry < 3; retry++) {
-      const frameSnapshot=fastInput?await rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true}):null;
+      const frameSnapshot=fastInput?(retry===0?initialFrameSnapshot:await rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true})):null;
       const snap = frameSnapshot?.snapshot||await rpc("rebirth_snapshot", { p_request: body.requestId });
       if (snap.user !== user.id) throw new Error("LOGIN_REQUIRED");
       if(body.command.startsWith('coop')||(body.command==='sync'&&snap.state?.coopRoom)){
@@ -96,6 +107,7 @@ Deno.serve(async (req) => {
           if(!room&&["input","sync"].includes(action))return reply(current);
           if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
           const world=action==='sync'&&body.args.waveSpeed!==undefined?setWaveSpeed(room,user.id,body.args.waveSpeed,Number(current.now)):action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
+          if(action==='input'&&world===room)return reply(current);
           let claim=null;
           if(action==='open'){
             const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);

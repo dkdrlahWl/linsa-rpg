@@ -21,6 +21,10 @@ export class CoopMotion {
   if(!p){p={x:actor.x,y:actor.y,dx:0,dy:0,generation:this.generation};this.points.set(id,p);}
   if(p.generation!==this.generation){
    p.dx=p.x-actor.x;p.dy=p.y-actor.y;p.generation=this.generation;
+   // A long reconnect must not leave a visible ghost far from its hitbox.
+   const distance=Math.hypot(p.dx,p.dy),limit=local?320:520;
+   if(distance>1200){p.dx=0;p.dy=0;}
+   else if(distance>limit){p.dx*=limit/distance;p.dy*=limit/distance;}
   }else{
    const distance=Math.hypot(p.dx,p.dy),limit=(local?300:500)*this.seconds;
    const factor=distance?Math.min(1-Math.exp(-this.seconds/.18),limit/distance):0;

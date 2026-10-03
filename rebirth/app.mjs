@@ -283,7 +283,7 @@ async function refreshNewsNotifications(force=false,seen=[]){
  newsPollPending=(async()=>{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_coin_news_notifications',{p_seen:seen});if(session?.user?.id!==account)return;const known=new Set(investmentNewsSummary().news.map(n=>n.id)),arrived=result.news.some(n=>!known.has(n.id));setNewsNotifications(result);if(arrived&&view==='game'&&tab==='investment'&&!busy)await command('investList',{},true);return result;})();
  try{return await newsPollPending;}finally{newsPollPending=null;}
 }
-setInterval(()=>{if(session&&state&&!document.hidden&&navigator.onLine&&Date.now()>=retryAt)refreshNewsNotifications().catch(()=>{});},1000);
+setInterval(()=>{if(session&&state&&!coopController&&!document.hidden&&navigator.onLine&&Date.now()>=retryAt)refreshNewsNotifications().catch(()=>{});},1000);
 let activityVersion=0;
 async function openCoinActivity(kind){
  const version=++activityVersion,account=session?.user?.id;await ensureToken();
@@ -321,6 +321,12 @@ async function exitDungeon(action){
 }
 function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
 async function command(command, args = {}, quiet = false, freshSnapshot = false) {
+  // A short input request must not swallow leave/chest/speed button presses.
+  if(busy&&['coopLeave','coopOpen','coopSync'].includes(command)){
+    const roomAtClick=state?.coopRoom;
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    if(state?.coopRoom!==roomAtClick)return;
+  }
   if (busy || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
   busy = true;
   const streaming=command==="coopInput";
@@ -1618,14 +1624,14 @@ function updateCombatClock(){
 function unavailable() {
   app.innerHTML='<div class="login panel"><p class="eyebrow">링구 RPG</p><h2>잠시 연결을 기다리고 있어요</h2><p class="note">연결이 복구되면 저장된 모험을 이어갈 수 있어요.</p><div class="actions">'+btn("다시 연결","reconnect","","gold")+btn("로그인 복구","recoverLogin")+'</div></div>';
 }
-window.addEventListener("online",()=>{ if(session) command("sync",{},true).catch(()=>{}); });
+window.addEventListener("online",()=>{ if(session&&!coopController) command("sync",{},true).catch(()=>{}); });
 window.addEventListener("offline",()=>{connectionLost=true;const banner=$("#connection-status");if(banner)banner.hidden=false;});
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) sounds.pause();
   else {
     sounds.start();
     sounds.music();
-    if (session) command("sync", {}, true).then(()=>{if(view==="game"&&tab==="hunt")requestAutoHunt();}).catch(() => {});
+    if (session&&!coopController) command("sync", {}, true).then(()=>{if(view==="game"&&tab==="hunt")requestAutoHunt();}).catch(() => {});
   }
 });
 installCurrencyIcons();

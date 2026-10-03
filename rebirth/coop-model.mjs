@@ -88,27 +88,38 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
 
 // Stable RNG makes a replay of the same inputs yield the same damage.
 function coopRandom(w,t,id){let n=((t+1)*2654435761+(w.serial||0)*1013904223)>>>0;for(const c of id)n=Math.imul(n^c.charCodeAt(0),16777619)>>>0;return n/4294967296;}
-export function predictCoopStep(room,user,input,owned=false){
+export function predictCoopStep(room,user,input,owned=false,remoteFrames=[]){
  if(room.entryWaiting)return advanceCoopEntry(owned?room:structuredClone(room),user,input,(room.entryMotionAt??room.started)+100,false);
  if(room.status==='won')return advanceCoopRaw(room,user,input,(room.lootAt||room.started)+100,[],owned);
- return advanceCoopRaw(room,null,null,room.started+(room.tick+1)*100,[{user,tick:room.tick,input}],owned);
+ return advanceCoopRaw(room,null,null,room.started+(room.tick+1)*100,[...remoteFrames.filter(f=>f.tick===room.tick&&f.user!==user),{user,tick:room.tick,input}],owned);
 }
-const validFrame=f=>f&&Number.isInteger(f.tick)&&Array.isArray(f.input)&&f.input.length===3&&f.input.every(Number.isFinite)&&Math.abs(f.input[0])<=1&&Math.abs(f.input[1])<=1&&Number.isInteger(f.input[2])&&f.input[2]>=0&&f.input[2]<=127;
-const bare=w=>{const {_net,_queuedInputs,predictionBase,...core}=w;return structuredClone(core);};
+const validFrame=f=>f&&Number.isSafeInteger(f.tick)&&f.tick>=0&&Array.isArray(f.input)&&f.input.length===3&&f.input.every(Number.isFinite)&&Math.abs(f.input[0])<=1&&Math.abs(f.input[1])<=1&&Number.isInteger(f.input[2])&&f.input[2]>=0&&f.input[2]<=127;
+const bare=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,...core}=w;return structuredClone(core);};
 export function validateCoopFrames(frames){if(!Array.isArray(frames)||frames.length>40||!frames.every(validFrame))throw Error('INVALID_COOP_INPUT');return frames;}
 // Return a confirmed personal timeline as well as the shared room snapshot.
 // The client replays its still-unconfirmed inputs from here, not from a world
 // that has already advanced using an older held direction.
-export function coopClientView(room){
+export function coopClientView(room,protocol=1){
  if(!room)return room;const view=bare(room),net=room._net,me=room.members.find(m=>m.id===room.me);
  if(!net||room.entryWaiting||room.status!=='fighting'||!me)return view;
- const target=Math.min(room.tick,(me.inputAck??-1)+1);if(target===room.tick)return view;
+ const target=Math.min(room.tick,(me.inputAck??-1)+1);
+ const inputsFrom=tick=>net.frames.filter(f=>f.user!==room.me&&f.tick>=tick).map(f=>({user:f.user,tick:f.tick,input:f.input}));
+ if(target===room.tick){view.predictionInputs=inputsFrom(room.tick);return view;}
  const point=[...net.points].reverse().find(p=>p.tick<=target);
- if(!point)return view;
- let base=structuredClone(point);
- while(base.tick<target&&base.status==='fighting')base=advanceCoopRaw(base,null,null,base.started+(base.tick+1)*100,net.frames,true);
+ if(!point){view.predictionInputs=inputsFrom(room.tick);return view;}
+ let base=structuredClone(point);const framesByTick=indexCoopFrames(net.frames);
+ while(base.tick<target&&base.status==='fighting')base=advanceCoopRaw(base,null,null,base.started+(base.tick+1)*100,framesByTick.get(base.tick)||[],true);
  for(const m of base.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
- view.predictionBase={...base,id:room.id,me:room.me,owner:room.owner,revision:room.revision,waveSpeed:room.waveSpeed,speedAt:room.speedAt,speedTime:room.speedTime};return view;
+ view.predictionBase={...base,id:room.id,me:room.me,owner:room.owner,revision:room.revision,waveSpeed:room.waveSpeed,speedAt:room.speedAt,speedTime:room.speedTime};
+ view.predictionInputs=inputsFrom(base.tick);
+ if(protocol>=2){view.protocol=2;for(const member of view.predictionBase.members){delete member.power;delete member.name;delete member.classId;delete member.advanced;}}
+ return view;
+}
+// A tick lookup avoids scanning every player's entire replay history per step.
+export function indexCoopFrames(frames=[]){
+ const byTick=new Map();
+ for(const frame of frames){let group=byTick.get(frame.tick);if(!group){group=[];byTick.set(frame.tick,group);}group.push(frame);}
+ return byTick;
 }
 export function waveClock(room,now){
  if(room.mode!=='wave'||room.entryWaiting||room.speedAt==null)return now;
@@ -137,21 +148,23 @@ function advanceCoopTimeline(room,user,input,now){
   const movement=input.frames.find(f=>Math.hypot(f.input[0],f.input[1])>.01)?.input||input.frames.at(-1)?.input;
   return advanceCoopEntry(structuredClone(room),user,movement,now);
  }
- const upto=Math.min(room.mode==='wave'?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-room.started)/100))),net=structuredClone(room._net||{points:[bare(room)],frames:[]});
- let earliest=Infinity;
+ const upto=Math.min(room.mode==='wave'?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-room.started)/100))),net=room._net?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[bare(room)],frames:[]};
+ let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
   if(f.tick<Math.max(net.points[0].tick,upto-30))continue;
   if(f.tick>upto+2)throw Error('INVALID_COOP_FUTURE');
-  if(net.frames.some(old=>old.user===f.user&&old.tick===f.tick))continue;
+  const key=f.user+':'+f.tick;if(known.has(key))continue;known.add(key);
   net.frames.push({user:f.user,tick:f.tick,input:f.input});earliest=Math.min(earliest,f.tick);
  }
+ if(earliest===Infinity&&upto===room.tick)return room;
+ const framesByTick=indexCoopFrames(net.frames);
  let w=bare(room);
  if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=structuredClone(point);net.points=net.points.filter(p=>p.tick<=point.tick);}}
  // Membership changes are never undone by input replay.
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status==='fighting';){
-  w=advanceCoopRaw(w,null,null,w.started+(w.tick+1)*100,net.frames,true);
+  w=advanceCoopRaw(w,null,null,w.started+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
   if(w.tick%(['wave','raid'].includes(w.mode)?10:5)===0)net.points.push(bare(w));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
