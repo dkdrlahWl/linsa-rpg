@@ -63,8 +63,26 @@ export class TowerController {
     if(bit===4&&b.tick+1>=b.dashReady){this.hint.dash=now+110;}
   }
   async openChest(){
-    if(this.openingRequest||!canOpenChest(this.b))return;if(this.pending){this.chestQueued=true;return;}this.chestQueued=false;this.openingRequest=true;
-    try{await this.flush(true);if(this.error||this.frames.length||!canOpenChest(this.b))return;this.sound?.("chest-open");this.b.chest.openAt=performance.now();await new Promise(r=>setTimeout(r,650));if(!this.disposed){await this.send('towerOpen',{runId:this.b.runId});if(!this.disposed&&this.b.chest)delete this.b.chest.openAt;}}catch{if(this.b.chest)delete this.b.chest.openAt;}finally{this.openingRequest=false;}
+    if(this.openingRequest||this.disposed||!canOpenChest(this.b))return;
+    if(performance.now()<this.retryAfter){this.chestQueued=true;return;}
+    this.chestQueued=false;this.openingRequest=true;
+    this.openingAt=performance.now();this.b.chest.openAt=this.openingAt;this.sound?.("chest-open");
+    try{
+      // Let an already-sent input settle, then include all remaining movement
+      // in the claim. No extra input round trip or fixed animation delay.
+      if(this.pending)await this.inputDone;
+      if(this.disposed||!canOpenChest(this.b))return;
+      const result=await this.send('towerOpen',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,30)});
+      if(result){this.error='';this.failures=0;this.retryAfter=0;}
+      // The app may have recovered an earlier durable request first.
+      if(!this.disposed&&(!result||result.state?.battle?.runId===this.b.runId))this.chestQueued=true;
+    }catch{
+      this.error='연결 복구 중';this.failures++;this.chestQueued=true;
+      this.retryAfter=performance.now()+Math.min(4000,500*2**Math.min(3,this.failures-1));
+    }finally{
+      this.openingRequest=false;this.openingAt=undefined;
+      if(this.b.chest)delete this.b.chest.openAt;
+    }
   }
   input(){
     if(this.openingRequest)return [0,0,0];
@@ -86,6 +104,7 @@ export class TowerController {
     const before=projectPlayer(this.b,this.sampler),drop=b.tick-this.serverTick;
     if(drop>this.frames.length){this.frames=[];this.sampler.clear();}else this.frames.splice(0,drop);
     this.serverTick=b.tick;this.b=upgradeTowerBattle(structuredClone(b));
+    if(this.openingRequest&&this.b.chest)this.b.chest.openAt=this.openingAt;
     this.previous=snapshot(this.b);
     for(const input of this.frames){this.previous=snapshot(this.b);towerStep(this.b,input);}
     const after=projectPlayer(this.b,this.sampler);
@@ -93,14 +112,14 @@ export class TowerController {
   }
   async flush(force=false){
     if((this.b.chest?.openAt!==undefined&&!force)||this.pending||this.disposed||(!this.frames.length&&!force)||performance.now()<this.retryAfter)return;
-    this.pending=true;this.lastSend=performance.now();
+    this.pending=true;this.inputDone=new Promise(resolve=>{this.resolveInput=resolve;});this.lastSend=performance.now();
     try{
       const result=await this.send('towerInput',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,30)},true);
       // Main app accepts during render; preview accepts here. Same tick is safe.
       if(result?.state?.battle?.kind==='tower')this.accept(result.state.battle);
       if(result){this.error='';this.failures=0;}
     }catch{this.error='연결 복구 중';this.failures++;this.retryAfter=performance.now()+Math.min(4000,500*2**Math.min(3,this.failures-1));}
-    finally{this.pending=false;}
+    finally{this.pending=false;this.resolveInput?.();this.resolveInput=null;this.inputDone=null;}
   }
   loop(now){
     if(this.disposed)return;
@@ -108,7 +127,7 @@ export class TowerController {
     if(ready&&!this.loaded)this.last=now;this.loaded=ready;
     this.advance(now);this.options.audio?.(this.b);
     if(!this.openingRequest&&now-this.lastSend>350&&(this.frames.length||now-this.lastSend>2000))this.flush(true);
-    if(this.b.chest&&canOpenChest(this.b)&&this.chestQueued&&!this.pending)this.openChest();
+    if(this.b.chest&&canOpenChest(this.b)&&this.chestQueued&&!this.pending&&!this.openingRequest&&now>=this.retryAfter)this.openChest();
     this.draw(now);this.frame=requestAnimationFrame(t=>this.loop(t));
   }
   draw(now){
@@ -130,7 +149,7 @@ export class TowerController {
     const inRange=b.chest?canOpenChest(b):distance<=c.range;text('range',b.chest?(inRange?'상자 열기 가능':'상자에게 접근'):inRange?'공격 가능':'보스에게 접근');this.nodes.range.classList.toggle('in-range',inRange);
     const failed=this.required.some(src=>image(src).complete&&!image(src).naturalWidth),waiting=this.frames.length>=25;
     const casting=b.tick<b.enemyCastUntil;
-    text('status',b.chest?(canOpenChest(b)?'공격 버튼으로 상자를 열고 나가세요.':'이동 패드로 상자 가까이 가세요.'):failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
+    text('status',this.openingRequest?'상자를 여는 중…':b.chest?(canOpenChest(b)?'공격 버튼으로 상자를 열고 나가세요.':'이동 패드로 상자 가까이 가세요.'):failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
     this.nodes.status.hidden=!this.nodes.status.textContent;this.nodes.status.classList.toggle('danger',casting||b.hazards.length>0);
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){

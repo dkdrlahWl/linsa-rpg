@@ -327,6 +327,11 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
     if(state?.coopRoom!==roomAtClick)return;
   }
+  if(busy&&command==='towerOpen'){
+    const runAtClick=args.runId;
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    if(state?.battle?.runId!==runAtClick)return;
+  }
   if (busy || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
   busy = true;
   const streaming=command==="coopInput";

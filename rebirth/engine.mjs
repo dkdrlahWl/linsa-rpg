@@ -506,6 +506,17 @@ function towerFinish(s,ctx,events) {
  if(first){Object.assign(reward,f.reward);s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
  s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);
 }
+// Both movement and chest claims use the same server-validated input timeline.
+function applyTowerFrames(b,args,ctx){
+      check(args.runId===b.runId,'INVALID_TOWER_RUN');
+      check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
+      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,127)),'INVALID_TOWER_INPUT');
+      const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
+      for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&(!b.ended||b.chest);i++){
+        towerStep(b,args.frames[i]);
+        if(b.ended&&b.won&&b.weeklyBossId!==undefined&&!b.chest){b.chest={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);}
+      }
+}
 export function execute(input, command, args = {}, ctx) {
   check(
     ctx && Number.isFinite(ctx.now) && typeof ctx.random === "function",
@@ -529,6 +540,7 @@ export function execute(input, command, args = {}, ctx) {
     check(['sync','ack','towerInput','towerLeave','towerOpen'].includes(command),'BATTLE_IN_PROGRESS');
     if(!b.chest&&ctx.now-b.started>=towerEncounter(b).seconds*1000){b.ended=true;b.won=false;b.reason='timeout';}
     else if(command==='towerOpen'){
+      if(args.frames!==undefined)applyTowerFrames(b,args,ctx);
       check(args.runId===b.runId&&b.chest&&b.won&&b.weeklyBossId!==undefined,'INVALID_CHEST');
       check(canOpenChest(b),'ITEM_CHEST_TOO_FAR');
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
@@ -538,11 +550,7 @@ export function execute(input, command, args = {}, ctx) {
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){
-      check(args.runId===b.runId,'INVALID_TOWER_RUN');
-      check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
-      check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,127)),'INVALID_TOWER_INPUT');
-      const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
-      for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&(!b.ended||b.chest);i++)towerStep(b,args.frames[i]);
+      applyTowerFrames(b,args,ctx);
     }else if(command==='towerLeave'){check(!b.chest,'ITEM_CHEST_PENDING');b.ended=true;b.won=false;b.reason='leave';}
     towerFinish(s,ctx,events);if(command==='ack')s.lastReward=null;return {state:s,events};
   }
