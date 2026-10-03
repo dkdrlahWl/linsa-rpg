@@ -35,7 +35,7 @@ export function gearSpec(score){
 }
 export function buildBot(meta){
  const id=Number(meta.id),score=Number(meta.score??botScore(id)),classId=ARENA_CLASSES.includes(meta.classId)?meta.classId:ARENA_CLASSES[(id-1)%ARENA_CLASSES.length];
- const spec=gearSpec(score),level=clamp(spec.level+10,30,200),primary=CLASSES.find(c=>c.id===classId).stat;
+ const spec=gearSpec(score),level=200,primary=CLASSES.find(c=>c.id===classId).stat;
  const ctx={random:()=>.52,uuid:()=>crypto.randomUUID(),now:0};
  const items=Array.from({length:9},(_,slot)=>{
    const item=makeItem(spec.level,classId,slot,true,ctx,0);
@@ -46,7 +46,7 @@ export function buildBot(meta){
    return item;
  });
  const stats={STR:4,DEX:4,INT:4,LUK:4};stats[primary]+=5*(level-1);
- return {name:meta.name||`투사${String(id).padStart(4,'0')}`,classId,level,stats,advancement:level>=150?4:level>=100?3:level>=60?2:1,items,equipped:Object.fromEntries(items.map((item,i)=>[i,item.id])),costumes:[],equippedCostume:null,score,botId:id};
+ return {name:meta.name||`투사${String(id).padStart(4,'0')}`,classId,level,stats,advancement:4,items,equipped:Object.fromEntries(items.map((item,i)=>[i,item.id])),costumes:[],equippedCostume:null,score,botId:id};
 }
 export function arenaProfile(state,score=null,rank=null,id=null){
  const p=power(state);

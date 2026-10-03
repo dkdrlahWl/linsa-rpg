@@ -21,6 +21,9 @@ for(const [score,spec] of [[1200,gearSpec(1200)],[3000,gearSpec(3000)]]){
  assert(power(b).combatPower>0);
 }
 const low=buildBot({id:2000}),high=buildBot({id:1});
+assert.equal(low.level,high.level);
+assert.equal(low.advancement,high.advancement);
+assert(power(high).combatPower>power(low).combatPower);
 assert.deepEqual(simulateArena(low,high,'same'),simulateArena(low,high,'same'));
 
 const db=new PGlite();
