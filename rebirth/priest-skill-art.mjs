@@ -23,7 +23,7 @@ function sheet(slot){
 }
 
 export function preparePriestSkillArt(){
-  return Promise.all([1,2,3,4,5].map(slot=>sheet(slot).decode().catch(()=>{})));
+  return Promise.all([1,2,3,4,5].map(slot=>sheet(slot).decode().then(()=>renderSheet(slot,sheet(slot))).catch(()=>{})));
 }
 
 export function drawPriestSkillArt(g,e,time,options={}){

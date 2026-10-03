@@ -1,3 +1,5 @@
+import {CoopPredictor} from './coop-prediction.mjs?v=worker-138';
+import {CoopEffectMemory} from './coop-effect-memory.mjs?v=worker-138';
 import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';
 import {raidLobby} from './raid-ui.mjs?v=fifth-impact-121';
 import {raidMove} from './raid-content.mjs?v=priest-potential-83';
@@ -55,7 +57,21 @@ export class CoopController{
   }
   for(const cls of new Set(room.members.map(m=>m.classId))){if(cls==='priest')image('tower/priest-motion-v1.png');else{image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));}if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(asset('boss-'+coopEncounter(room).art));image(asset('effects'));image(asset('reward-chest'));
   this.artReady=false;Promise.all([prepareCombatArt(room.members.map(m=>m.classId),coopEncounter(room).art,room.members.map(m=>m.power?.costumeId)),image(room.mode==='raid'?asset('raid-map-'+room.tier):room.mode==='wave'?'wave/meadow-painted-v2.webp':motionAsset('arena-overhead-v3')).decode().catch(()=>{}),...(room.mode==='wave'?[image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].art).decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].eliteArt).decode().catch(()=>{})]:[])]).then(()=>{if(!this.disposed){this.artReady=true;this.entryHud();}});
-  this.accept(room);this.entryHud();this.nextSend=0;this.timer=setInterval(()=>this.flush(),80);this.frame=requestAnimationFrame(t=>this.draw(t));
+  this.effectMemory=new CoopEffectMemory(room.tick);this.accept(room);this.startPredictor();this.entryHud();this.nextSend=0;this.timer=setInterval(()=>this.flush(),80);this.frame=requestAnimationFrame(t=>this.draw(t));
+ }
+ startPredictor(){
+  this.predictor=new CoopPredictor({
+   ready:()=>{if(this.disposed)return;this.workerActive=true;this.accept(this.room);},
+   state:packet=>{
+    if(this.disposed)return;
+    this.predicted=packet.world;this.previousSim=packet.previous;
+    this.effectMemory.remember(packet.journal,packet.world.tick);
+    if(packet.reconciled)this.motion.reconcile();
+    if(packet.world.entryWaiting||packet.world.status!=='fighting')this.predictionTick=packet.world.tick;
+    this.lastHud=0;
+   },
+   fallback:()=>{if(this.disposed)return;this.workerActive=false;this.predictionTick=undefined;this.accept(this.room);}
+  });
  }
  input(){if(this.artReady===false)return [0,0,0];if(['wave','advancement','raid'].includes(this.predicted?.mode)&&this.predicted.members.find(m=>m.id===this.room.me)?.hp<=0)return [0,0,0];if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=(this.auto?1:0)|(this.autoSkills?autoSkillBits(this.predicted.members.find(m=>m.id===this.room.me),this.predicted.tick,this.predicted.status==='fighting'):0);for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,this.room.entryWaiting?0:bits];}
  press(bits){if(!bits||this.room.entryWaiting||this.artReady===false)return;this.pendingBits|=bits;this.sampler.press(bits);this.lastHud=0;const now=performance.now();if(bits&4)this.hint.dash=now+110;else if(bits&1)this.hint.attack=now+110;else if(bits&122)this.hint.skill=now+110;}
@@ -70,7 +86,7 @@ export class CoopController{
    const ack=this.room.members.find(m=>m.id===room.me)?.inputAck??-1;
    const frames=resync?[]:this.frames.filter(f=>f.tick>ack).slice(-35);
    const direction=this.input(),entryInput=this.artReady&&this.entryMoveInput&&!confirmed.entryMoved&&Math.hypot(direction[0],direction[1])<=.01?this.entryMoveInput:direction;
-   const result=await this.send(open?'coopOpen':'coopInput',open?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:room.status==='won'?{input:direction,compact:true,protocol:2}:{frames,compact:true,protocol:2},!open);
+   const result=await this.send(open?'coopOpen':'coopInput',open?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:this.room.status==='won'?{input:direction,compact:true,protocol:2}:{frames,compact:true,protocol:2},!open);
    if(!result)this.pendingBits|=taps;
    if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
   }catch(error){this.pendingBits|=taps;this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
@@ -79,10 +95,18 @@ export class CoopController{
  accept(room){if(!room||room.id!==this.room.id||(room.revision??0)<(this.room.revision??0)||((room.revision??0)===(this.room.revision??0)&&room.tick<this.room.tick))return;const starting=this.room.entryWaiting&&!room.entryWaiting,resync=!!this.needsResync;this.previousRoom=this.room;this.room=room;this.received=performance.now();
  if(starting||room.entryWaiting||resync){this.frames=[];this.sampler.clear();this.pendingBits=0;this.hint={attack:0,skill:0,dash:0};}
  if(starting||room.members.find(m=>m.id===room.me)?.entryMoved)this.entryMoveInput=null;
- const target=room.entryWaiting||starting||resync?room.tick:Math.max(room.tick,Math.min(this.predicted?.tick||room.tick,room.tick+20));
+ const target=room.entryWaiting||starting||resync?room.tick:Math.max(room.tick,Math.min(this.predictionTick??this.predicted?.tick??room.tick,room.tick+20));
  const base=!resync&&room.predictionBase||room;
  this.nextSend=Math.max(this.nextSend||0,performance.now()+80);
  this.frames=this.frames.filter(f=>f.tick>=base.tick);
+ this.reconcileTarget=room.status==='fighting'&&!room.entryWaiting?target:base.tick;
+ if(this.workerActive){
+  this.predictionTick=target;
+  this.predictor.reset({room,frames:this.frames,target,forceCurrent:resync});
+  if(starting||room.entryWaiting||resync||room.status!=='fighting'){
+   const {predictionBase,predictionInputs,...current}=room;this.predicted=structuredClone(current);this.previousSim=motionSnapshot(this.predicted);
+  }
+ }else{
  this.predicted=structuredClone(base);
  if(room.protocol===2&&base!==room)for(const member of this.predicted.members){
   const current=room.members.find(m=>m.id===member.id);if(current)Object.assign(member,{power:structuredClone(current.power),name:current.name,classId:current.classId,advanced:current.advanced});
@@ -92,6 +116,7 @@ export class CoopController{
  this.replayFrames=new Map(this.frames.map(f=>[f.tick,f.input]));
  delete this.predicted.predictionBase;delete this.predicted.predictionInputs;
  this.reconcileTarget=room.status==='fighting'&&!room.entryWaiting?target:this.predicted.tick;
+ }
  this.lastHud=0;
  this.motion.reconcile();if(room.mode==='wave'){const block=Math.floor(((room.wave||1)-1)/10)%30;if(this.waveArtBlock!==block){this.waveArtBlock=block;for(const i of [block,(block+1)%30]){void prepareWaveCreature(image(WAVE_MONSTERS[i].art),i);void prepareWaveCreature(image(WAVE_MONSTERS[i].eliteArt),i);}}waveHud(this.host,room);return;}const t=coopEncounter(room),me=room.members.find(m=>m.id===room.me);this.host.querySelector('.tower-title-row h3').textContent=t.name;this.host.querySelector('#tower-enemy-hp').textContent=fmt(room.hp)+' / '+fmt(room.maxHp);this.host.querySelector('#tower-enemy-bar').style.width=room.hp/room.maxHp*100+'%';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp);paintHealthBar(this.host,me,fmt);this.host.querySelector('#tower-clock').textContent=room.status==='won'?'개인 상자':Math.max(0,t.seconds-Math.floor(room.tick/10))+'초';this.host.querySelector('#tower-status').textContent=room.status==='won'?((me.damage>0||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0)))?'개인 상자로 이동한 뒤 공격 버튼을 눌러 여세요.':'피해를 주지 않아 보상이 없습니다. 나가기를 눌러주세요.'):me.hp>0?'탑과 같은 조작 · 붉은 예고 회피':'쓰러졌습니다 · 동료 전투 관전 중';this.host.querySelector('#tower-range').textContent='참가 '+room.members.filter(m=>!m.left&&m.hp>0).length+'명';const chest=this.host.querySelector('#tower-chest');chest.hidden=room.status!=='won'||!((me.damage>0||(room.mode==='raid'&&(me.healing>0||me.shieldGiven>0))));chest.disabled=!room.chest||Math.hypot(me.x-room.chest.x,me.y-room.chest.y)>180;chest.textContent=chest.disabled?'개인 상자 가까이 이동하세요':'개인 상자 열고 나가기';for(const b of this.host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady',64:'fifthReady'}[b.dataset.towerButton],left=Math.max(0,(me[key]||0)-room.tick);b.querySelector('b').textContent=left?Math.ceil(left/10)+'s':'';}}
  entryHud(){
@@ -118,6 +143,13 @@ export class CoopController{
   // Loading clients keep polling, but cannot signal movement readiness yet.
   const input=this.input();
   if(this.room.entryWaiting&&this.artReady&&Math.hypot(input[0],input[1])>.01)this.entryMoveInput=[input[0],input[1],0];
+  if(this.workerActive){
+   if(!this.needsResync&&navigator.onLine!==false&&now-this.received<8000)this.sampler.advance(dt*(this.room.mode==='wave'&&!this.room.entryWaiting&&this.room.waveSpeed===1.5?1.5:1),input,frame=>{
+    const tick=this.predictionTick??this.predicted.tick;
+    if(this.predicted.status==='fighting'&&!this.room.entryWaiting){this.frames.push({tick,input:frame});this.predictionTick=tick+1;}
+    this.frames=this.frames.slice(-35);this.predictor.step(tick,frame);
+   });
+  }else{
   // Reconcile a bounded amount per frame so one late response cannot block painting.
   const replayStarted=performance.now();
   for(let i=0;i<6&&this.predicted.tick<this.reconcileTarget&&this.predicted.status==='fighting';i++){
@@ -128,18 +160,28 @@ export class CoopController{
   if(!this.needsResync&&navigator.onLine!==false&&this.predicted.tick>=this.reconcileTarget&&now-this.received<8000)this.sampler.advance(dt*(this.room.mode==='wave'&&!this.room.entryWaiting&&this.room.waveSpeed===1.5?1.5:1),input,frame=>{
    if(this.predicted.status==='fighting'&&!this.room.entryWaiting)this.frames.push({tick:this.predicted.tick,input:frame});
    this.frames=this.frames.slice(-35);
-   this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true);
+   this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true,this.remoteFrames.get(this.predicted.tick)||[]);
   });
+  }
   const w=this.predicted;if(w.mode==='raid')w.walls=[];const me=w.members.find(m=>m.id===w.me),tier=coopEncounter(w);
+  const pendingTicks=this.workerActive?Math.max(0,(this.predictionTick??w.tick)-w.tick):0;
+  const visualFraction=Math.min(1,pendingTicks+this.sampler.elapsed/100);
+  let projectionInput=this.sampler;
+  if(pendingTicks&&this.frames.length){
+   const pending=this.frames.filter(f=>f.tick>=w.tick&&f.tick<(this.predictionTick??w.tick)).slice(0,2);
+   projectionInput={...this.sampler,elapsed:this.sampler.elapsed+pending.length*100,
+    x:this.sampler.x+pending.reduce((sum,f)=>sum+f.input[0]*100,0),y:this.sampler.y+pending.reduce((sum,f)=>sum+f.input[1]*100,0),
+    buttons:pending.reduce((bits,f)=>bits|f.input[2],this.sampler.buttons)};
+  }
   this.motion.begin(now);
-  const smooth=(actor,old,key)=>this.motion.sample(key,interpolateActor(actor,old,this.sampler.elapsed/100));
+  const smooth=(actor,old,key)=>this.motion.sample(key,interpolateActor(actor,old,visualFraction));
   const projection={waveMode:w.mode==='wave',player:me,classId:me.classId,tick:w.tick,dashReady:me.dashReady,dashUntil:me.dashUntil,dashX:me.dx,dashY:me.dy};
-  const point=projectPlayer(projection,this.sampler),player=this.motion.sample('player:'+me.id,{...me,...point},true),enemy=smooth(w.enemy,this.previousSim?.enemy,'enemy');
+  const point=projectPlayer(projection,projectionInput),player=this.motion.sample('player:'+me.id,{...me,...point},true),enemy=smooth(w.enemy,this.previousSim?.enemy,'enemy');
   this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:this.room.status==='won',ended:['won','lost'].includes(this.room.status)});
-  if(w.status==='won')this.auto=false;
+  if(this.room.status==='won')this.auto=false;
   if(w.mode==='raid'){const corrected={x:me.x,y:me.y};raidMove(corrected,player.x,player.y,w.walls);Object.assign(player,corrected);}
-  const b={...w,...me,raidMode:w.mode==='raid',advancementStage:w.mode==='advancement'?w.tier:undefined,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:tier,classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id),'player:'+m.id))};
-  b.tick=w.tick+this.sampler.elapsed/100;
+  const b={...w,...me,localSkillsOnly:true,raidMode:w.mode==='raid',advancementStage:w.mode==='advancement'?w.tier:undefined,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:tier,classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:this.effectMemory?.compose(w.effects||[],w.tick+visualFraction)||w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id),'player:'+m.id))};
+  b.tick=w.tick+visualFraction;
   if(!this.lastHud||now-this.lastHud>=100){this.lastHud=now;
   this.host.querySelector('#tower-enemy-hp').textContent=fmt(w.hp)+' / '+fmt(w.maxHp);
   this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp);
@@ -158,7 +200,7 @@ export class CoopController{
   this.motion.end();
   this.renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},player,0,now,input,this.hint);
  }
- dispose(){this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.renderer.dispose();}
+ dispose(){this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.predictor?.dispose();this.renderer.dispose();}
 }
 
 

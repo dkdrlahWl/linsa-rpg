@@ -13,21 +13,40 @@ export function fourthAreaEffects(effects){
  }
  return [...casts.values()];
 }
+const barragePlans=new Map(),groundPaths=new Map();
 export function fourthBarrage(e,time){
  const cfg=barrage[e.classId];if(!cfg)return [];
  const sk=FOURTH_SKILLS[e.classId],start=fourthCastStart(e),lastImpact=start+4+(sk.hits-1)*sk.interval;
  const age=time-start,seed=Math.floor(start*13+e.x*3+e.y*7+cfg.row*1009),particles=[];
+ const key=[e.classId,start,e.x,e.y,e.size].join(':');
+ let plan=barragePlans.get(key);
+ if(!plan){plan=new Map();barragePlans.set(key,plan);if(barragePlans.size>24)barragePlans.delete(barragePlans.keys().next().value);}
  const lastLaunch=lastImpact-3.6;
  const from=Math.max(0,Math.floor((age-9)/cfg.spacing)),to=Math.floor(Math.min(age,lastLaunch-start)/cfg.spacing);
  for(let i=from;i<=to;i++){
-  const random=k=>unit(seed+i*7919+k*104729),launch=start+i*cfg.spacing;
-  const flight=2.6+random(1)*1.6,impact=launch+flight,impactAge=time-impact,life=3.4;
-  if(impactAge>=life)continue;
-  const a=i*2.399963+random(2)*.65,rr=e.size/2*Math.sqrt(random(3))*.93;
-  const progress=Math.max(0,Math.min(1,(time-launch)/flight));
-  particles.push({id:i,x:Math.cos(a)*rr,y:Math.sin(a)*rr,launch,impact,impactAge,life,drop:(1-progress*progress)*(330+random(4)*190),scale:.74+random(5)*.42,tilt:(random(6)-.5)*.12});
+  let sample=plan.get(i);
+  if(!sample){
+   const random=k=>unit(seed+i*7919+k*104729),launch=start+i*cfg.spacing;
+   const flight=2.6+random(1)*1.6,impact=launch+flight;
+   const a=i*2.399963+random(2)*.65,rr=e.size/2*Math.sqrt(random(3))*.93;
+   sample={id:i,x:Math.cos(a)*rr,y:Math.sin(a)*rr,launch,impact,flight,life:3.4,height:330+random(4)*190,scale:.74+random(5)*.42,tilt:(random(6)-.5)*.12};
+   plan.set(i,sample);
+  }
+  const impactAge=time-sample.impact;if(impactAge>=sample.life)continue;
+  const progress=Math.max(0,Math.min(1,(time-sample.launch)/sample.flight));
+  particles.push({id:i,x:sample.x,y:sample.y,launch:sample.launch,impact:sample.impact,impactAge,life:sample.life,drop:(1-progress*progress)*sample.height,scale:sample.scale,tilt:sample.tilt});
  }
  return particles;
+}
+function groundGeometry(radius){
+ if(typeof Path2D==='undefined')return null;
+ if(!groundPaths.has(radius)){
+  const circle=new Path2D(),inner=new Path2D(),ticks=[];
+  circle.arc(0,0,radius,0,TAU);inner.arc(0,0,radius-8,0,TAU);
+  for(let i=0;i<20;i++){const a=i*TAU/20,p=new Path2D();p.moveTo(Math.cos(a)*(radius-18),Math.sin(a)*(radius-18));p.lineTo(Math.cos(a)*radius,Math.sin(a)*radius);ticks.push(p);}
+  groundPaths.set(radius,{circle,inner,ticks});if(groundPaths.size>24)groundPaths.delete(groundPaths.keys().next().value);
+ }
+ return groundPaths.get(radius);
 }
 export function drawFourthGround(g,e,time){
  if(!barrage[e.classId])return;
@@ -36,10 +55,14 @@ export function drawFourthGround(g,e,time){
  const [light,dark]=palette[e.classId];
  g.save();g.translate(e.x,e.y);
  // World-space circle exactly matches the unchanged Euclidean damage radius.
- g.fillStyle=dark;g.globalAlpha=.085*fade;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
- g.strokeStyle=dark;g.globalAlpha=.55*fade;g.lineWidth=5;g.stroke();
- g.strokeStyle=light;g.globalAlpha=.36*fade;g.lineWidth=2;g.beginPath();g.arc(0,0,r-8,0,TAU);g.stroke();
- for(let i=0;i<20;i++){const a=i*TAU/20;g.beginPath();g.moveTo(Math.cos(a)*(r-18),Math.sin(a)*(r-18));g.lineTo(Math.cos(a)*r,Math.sin(a)*r);g.stroke();}
+ const paths=groundGeometry(r);
+ g.fillStyle=dark;g.globalAlpha=.085*fade;
+ if(paths)g.fill(paths.circle);else{g.beginPath();g.arc(0,0,r,0,TAU);g.fill();}
+ g.strokeStyle=dark;g.globalAlpha=.55*fade;g.lineWidth=5;
+ if(paths)g.stroke(paths.circle);else g.stroke();
+ g.strokeStyle=light;g.globalAlpha=.36*fade;g.lineWidth=2;
+ if(paths){g.stroke(paths.inner);for(const path of paths.ticks)g.stroke(path);}
+ else{g.beginPath();g.arc(0,0,r-8,0,TAU);g.stroke();for(let i=0;i<20;i++){const a=i*TAU/20;g.beginPath();g.moveTo(Math.cos(a)*(r-18),Math.sin(a)*(r-18));g.lineTo(Math.cos(a)*r,Math.sin(a)*r);g.stroke();}}
  g.restore();
 }
 // Canvas-native animation: ornaments are visual only; one pulse owns one hit.

@@ -1,3 +1,4 @@
+import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
 import {healthSegments} from './health-bar.mjs?v=coop-smooth-136';
 import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-impact-121';
 import {drawWalkingSprite} from './walk-animation.mjs?v=walk-thickness-128';
@@ -13,8 +14,9 @@ import {drawFourth,drawFourthGround,fourthAreaEffects} from './fourth-effects.mj
 import MOTION_LAYOUT from './motion-layout.mjs?v=priest-potential-83';
 import MOTION_BODY_LAYOUT from './motion-body-layout.mjs?v=priest-potential-83';
 import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=fifth-impact-121';
+const arenaBackdrops=new WeakMap();
 const cache=new Map(),spriteBounds=new WeakMap(),decodedImages=new WeakSet();
-function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}spriteBounds.set(im,result);return result;}
+function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}result.maxWidth=Math.max(...result.map(v=>v.w));result.maxHeight=Math.max(...result.map(v=>v.h));spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
 export const motionAsset=name=>'tower/'+name+'.png';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=src;cache.set(src,im);im.decode().then(()=>decodedImages.add(im)).catch(()=>{});}return cache.get(src);}
@@ -121,7 +123,7 @@ export class TowerRenderer {
     const actorScale=this.mobileActors.matches?1.5:1;w*=actorScale;h*=actorScale;
     const g=this.g,source=im,sw=source.width/columns,sh=source.height/rows;
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
-    const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/Math.max(...frames.map(v=>v.w)),h/Math.max(...frames.map(v=>v.h)));g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
+    const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/frames.maxWidth,h/frames.maxHeight);g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
   actor(classId,dir,moving,acting,age,walk,x,y,alpha=1,costumeId=null){
     const facing=Number.isInteger(dir)&&dir>=0&&dir<8?dir:6,g=this.g;
@@ -197,12 +199,14 @@ export class TowerRenderer {
   }
   background(){
     const bg=image(motionAsset('arena-overhead-v3'));
+    this.backdrop=arenaBackdrops.get(bg)||this.backdrop;
     if(!this.backdrop&&bg.complete&&bg.naturalWidth){
       this.backdrop=document.createElement('canvas');this.backdrop.width=TOWER_SIZE.width;this.backdrop.height=TOWER_SIZE.height;
       const g=this.backdrop.getContext('2d');g.drawImage(bg,0,0,TOWER_SIZE.width,TOWER_SIZE.height);
       g.fillStyle='#1b100908';g.fillRect(0,0,TOWER_SIZE.width,TOWER_SIZE.height);
       const shade=g.createRadialGradient(1600,1600,900,1600,1600,2400);
       shade.addColorStop(0,'#160d0700');shade.addColorStop(1,'#120b0755');g.fillStyle=shade;g.fillRect(0,0,TOWER_SIZE.width,TOWER_SIZE.height);
+      arenaBackdrops.set(bg,this.backdrop);
     }
     if(this.backdrop)this.g.drawImage(this.backdrop,0,0);else{this.g.fillStyle='#101921';this.g.fillRect(0,0,TOWER_SIZE.width,TOWER_SIZE.height);}
   }
@@ -262,6 +266,7 @@ export class TowerRenderer {
     }
   }
   draw(b,previous,player,fraction,now,input,hint){
+    b=localSkillView(b);
     if(now<(this.nextFrame||0))return;this.nextFrame=Math.max(now,(this.nextFrame||now)+1000/60);
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
@@ -284,7 +289,7 @@ export class TowerRenderer {
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
     for(const e of fourthAreas)drawFourthGround(g,e,time);
-    const fifthAreas=fifthFields(b.effects,time),fifthOpacity=fifthAreas.length>3?.38:.85;
+    const fifthAreas=fifthFields(b.effects,time),fifthOpacity=.85;
     const effectTarget=e=>b.waveMode?(b.monsters||[]).find(m=>m.id===e.targetId&&m.hp>0):b.enemy;
     const selfField=fifthAreas.find(e=>e.classId===b.classId&&(!e.owner||e.owner===(b.actorId??b.id)));
     for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);}
@@ -322,8 +327,8 @@ export class TowerRenderer {
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
       if(b.classId==='priest'&&casting&&!b.fifthCast?.holy){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
-      if(b.shield>0&&(b.shieldPermanent||b.tick<b.shieldUntil))drawPriestSkillArt(g,{slot:3,x:player.x,y:player.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});
-      drawPriestBuffAura(g,{...b,x:player.x,y:player.y},time,holyEffects);
+      if(b.shield>0&&(!b.localSkillsOnly||b.shieldOwner===(b.actorId??b.id))&&(b.shieldPermanent||b.tick<b.shieldUntil))drawPriestSkillArt(g,{slot:3,x:player.x,y:player.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});
+      drawPriestBuffAura(g,{...(b.localSkillsOnly?ownPriestAura(b,time):b),x:player.x,y:player.y},time,holyEffects);
       this.actor(b.classId,pose?towerFacing(b.enemy.x-player.x,b.enemy.y-player.y,dir):dir,moving||dashing,!!pose||attacking||casting,pose?.age??(casting?skillAge:attackAge),(b.player.walk||0)+fraction,x,y,alpha,b.power?.costumeId);
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
@@ -342,7 +347,7 @@ export class TowerRenderer {
     };
     const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.slot!==5&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}
     // The fifth angel belongs to the lasting sanctuary, not to its damage pulses.
-    for(const actor of [{...b,x:player.x,y:player.y},...(b.allies||[])])if(actor.hp>0&&!actor.left)for(const area of actor.holyAreas||[])if(area.slot===5&&area.start<=time&&area.end>time){
+    for(const actor of [{...b,x:player.x,y:player.y},...(b.localSkillsOnly?[]:b.allies||[])])if(actor.hp>0&&!actor.left)for(const area of actor.holyAreas||[])if(area.slot===5&&area.start<=time&&area.end>time){
       holy.set((actor.id||'self')+':5',{kind:'priest',slot:5,owner:actor.id,x:actor.x,y:actor.y,size:area.r*2,start:area.start,end:area.end});
     }
     const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
@@ -350,8 +355,8 @@ export class TowerRenderer {
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.pet(m,m.x,m.y,time,m.id);
       const pose=!m.moving?fifthPose(fifthAreas.find(e=>e.owner===m.id),time):null;
-      this.shadow(m.x,m.y,25);if(m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId);
-      if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
+      this.shadow(m.x,m.y,25);if(!b.localSkillsOnly&&m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});if(!b.localSkillsOnly)drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId);
+      if(!b.localSkillsOnly&&b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       const labelY=m.y-(this.mobileActors.matches?215:180)-24;
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,labelY);g.fillStyle='#25312d';g.fillRect(m.x-40,labelY+11,80,6);const health=healthSegments(m);g.fillStyle='#bfc7cf';g.fillRect(m.x-40+80*health.health/100,labelY+11,80*health.shieldWidth/100,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,labelY+11,80*health.health/100,6);g.restore();
     }})),...(b.monsters||[]).filter(e=>visible(e.x,e.y)).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
@@ -369,7 +374,7 @@ export class TowerRenderer {
       if(e.kind==='fifth-field'){if(e.classId==='mage')drawFifth(g,e,time,(e.owner??null)===(b.actorId??b.id??null)?.85:fifthOpacity);continue;}
       if(e.kind==='fifth'){
         const mine=(e.owner??null)===(b.actorId??b.id??null),effect=resolveFifthVisual(e,effectTarget(e),time,this.fifthLandings);
-        drawFifth(g,{...effect,lowDetail:fifthAreas.length>3&&!mine},time,mine?.85:fifthOpacity);continue;
+        drawFifth(g,{...effect,lowDetail:false},time,mine?.85:fifthOpacity);continue;
       }
       if(e.kind==='priest')continue;
       if(e.kind==='priest-orb'){const age=clamp((time-e.start)/(e.end-e.start)),x=mix(e.fromX,e.x,age),y=mix(e.fromY,e.y,age)-Math.sin(age*Math.PI)*45,orb=image('tower/priest-orb-v1.png');g.save();g.globalCompositeOperation='screen';for(let i=3;i>0;i--){const t=clamp(age-i*.07);g.globalAlpha=.16;g.fillStyle='#fff0ab';g.shadowColor='#fff2bf';g.shadowBlur=22;g.beginPath();g.arc(mix(e.fromX,e.x,t),mix(e.fromY,e.y,t)-Math.sin(t*Math.PI)*45,22+i*4,0,Math.PI*2);g.fill();}g.globalAlpha=1;g.shadowColor='#fff8cd';g.shadowBlur=38;if(orb.complete&&orb.naturalWidth)g.drawImage(orb,x-78,y-78,156,156);else{g.fillStyle='#fff8cf';g.beginPath();g.arc(x,y,35,0,Math.PI*2);g.fill();}g.restore();continue;}

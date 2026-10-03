@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import {Worker} from 'node:worker_threads';
+import {once} from 'node:events';
+import {startCoop,predictCoopStep,advanceCoop,coopClientView} from './coop-model.mjs';
+import {CoopPredictor} from './coop-prediction.mjs';
+import {CoopEffectMemory} from './coop-effect-memory.mjs';
+import {localSkillView} from './combat-visibility.mjs';
+const power={attack:1,hp:1000000,defense:100,boss:1,crit:.25,critDamage:1.5,cadence:1,firstJob:true,advancement:4};
+const project=w=>{const c=structuredClone(w);for(const k of ['_net','_queuedInputs','predictionInputs','predictionBase','protocol','revision'])delete c[k];for(const m of c.members)delete m.inputAck;return JSON.parse(JSON.stringify(c));};
+const worker=new Worker("const {parentPort,workerData}=require('node:worker_threads');globalThis.self={postMessage:m=>parentPort.postMessage(m)};import(workerData).then(()=>parentPort.on('message',data=>self.onmessage({data})));",{eval:true,workerData:new URL('./coop-prediction-worker.mjs',import.meta.url).href});
+let sequence=0,generation=0;
+const send=async data=>{const reply=once(worker,'message');worker.postMessage({...data,generation,sequence:++sequence});const [packet]=await reply;assert.equal(packet.type,'state');return packet;};
+try{
+ const [ready]=await once(worker,'message');assert.equal(ready.type,'ready');
+ for(const mode of ['rift','raid','wave','advancement'])for(const classId of ['warrior','mage','archer','rogue','pirate','priest']){
+  let room=startCoop({id:mode,me:'a',owner:'a',revision:1,mode,tier:mode==='raid'?3:mode==='advancement'?4:mode==='wave'?0:5,status:'waiting',members:['a','b'].map(id=>({id,name:id,classId,power:{...power},advanced:true}))},1000);
+  room.entryWaiting=false;room.members.forEach((m,i)=>{m.entryMoved=true;m.x=room.enemy.x+(i?200:-200);m.y=room.enemy.y+100;});
+  const frames=Array.from({length:30},(_,tick)=>({tick,input:[tick%20<10?.4:-.4,0,1|(tick===4?8:0)|(tick===10?2:0)|(tick===16?16:0)|(tick===21?32:0)|(tick===25?64:0)]}));
+  const remote=frames.map(f=>({...f,user:'b'}));
+  const authoritative=advanceCoop({...room,_queuedInputs:remote},'a',{frames:frames.slice(0,10)},4000);
+  const view=coopClientView(authoritative,2);generation++;
+  const reset=await send({type:'reset',room:view,frames,target:30});
+  let reference=room;
+  for(const f of frames)reference=predictCoopStep(reference,'a',f.input,true,remote.filter(r=>r.tick===f.tick));
+  assert.deepEqual(project(reset.world),project(reference),mode+'/'+classId+' worker replay matches full combat');
+  const next=await send({type:'step',tick:30,input:[0,0,1]});reference=predictCoopStep(reference,'a',[0,0,1],true);
+  assert.deepEqual(project(next.world),project(reference),mode+'/'+classId+' ordered step matches combat');
+ }
+}finally{await worker.terminate();}
+const fake={postMessage(){},terminate(){this.terminated=true;}};let applied=0,fallback=0;
+const bridge=new CoopPredictor({ready(){},state(){applied++;},fallback(){fallback++;}},()=>fake);
+fake.onmessage({data:{type:'ready'}});bridge.reset({room:{}});const old=bridge.generation;bridge.reset({room:{}});
+fake.onmessage({data:{type:'state',generation:old,sequence:1}});assert.equal(applied,0);
+fake.onmessage({data:{type:'state',generation:bridge.generation,sequence:2}});assert.equal(applied,1);
+fake.onmessage({data:{type:'state',generation:bridge.generation,sequence:2}});assert.equal(applied,1);
+fake.onerror({preventDefault(){}});assert.equal(fallback,1);assert.equal(fake.terminated,true);bridge.dispose();
+const own={id:1,owner:'a',kind:'impact',start:1,end:3},ally={...own,id:2,owner:'b'},boss={...ally,id:3,hostile:true};
+const battle={localSkillsOnly:true,actorId:'a',effects:[own,ally,boss],allies:[{id:'b',hp:100,shield:30}]};
+assert.deepEqual(localSkillView(battle).effects,[own,boss]);assert.equal(battle.effects.length,3);assert.equal(localSkillView(battle).allies,battle.allies);
+const memory=new CoopEffectMemory(0);memory.remember([own],10);assert.equal(memory.compose([],10).length,1);assert.equal(memory.compose([],13).length,0);
+memory.remember([own],14);assert.equal(memory.compose([],14).length,0);
+memory.remember([{...own,id:4,kind:'priest',slot:5}],14);assert.equal(memory.compose([],14).length,0);
+console.log('PASS: actual module worker, 4 modes × 6 classes, remote replay, ordering/fallback, skill visibility and effect retention.');

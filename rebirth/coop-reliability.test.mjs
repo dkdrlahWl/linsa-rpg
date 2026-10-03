@@ -80,6 +80,18 @@ c.nextSend=0;c.needsResync=true;let args;
 c.send=async(_,value)=>{args=value;return {};};
 await c.flush();assert.equal(args.frames.length,0,'resume requests current state without stale buffered actions');
 assert.equal(args.protocol,2);assert.equal(c.needsResync,false);
+// A predicted killing blow must still reach the authoritative combat timeline.
+for(const mode of ['rift','raid','advancement']){
+ const fighting=fresh(mode);fighting.hp=1;
+ const finisher=controller(fighting);finisher.frames=[{tick:0,input:[0,0,2]}];
+ finisher.predicted.status='won';finisher.predicted.hp=0;
+ let payload;finisher.send=async(_,value)=>{payload=value;return {};};
+ await finisher.flush();
+ assert.equal(payload.frames.length,1,mode+' predicted victory keeps the unacknowledged killing input');
+ assert.equal(payload.input,undefined);
+ finisher.room.status='won';finisher.nextSend=0;await finisher.flush();
+ assert.ok(Array.isArray(payload.input),mode+' only confirmed victory switches to loot movement');
+}
 const motion=new CoopMotion();motion.begin(1);motion.sample('ally',{x:200,y:200});motion.end();motion.reconcile();motion.begin(17);
 assert.equal(motion.sample('ally',{x:2200,y:2200}).x,2200,'long reconnect does not drag an actor ghost across the arena');
 console.log('PASS: '+cases+' multiplayer modes; delayed/duplicate inputs, ally skills, compact compatibility, wave speed, controller reconciliation, offline/resume and failed interaction retry.');
