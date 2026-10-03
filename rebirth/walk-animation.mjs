@@ -9,7 +9,7 @@ export function walkingPose(walk,direction,bodyHeight){
   const step=Math.sin(phase)*side,lift=Math.max(0,Math.cos(phase)*side)*bodyHeight*.045;
   const hip={x:across.x*side*bodyHeight*.055,y:-bodyHeight*.18+across.y*side*bodyHeight*.055};
   const foot={x:hip.x+forward.x*step*bodyHeight*.115,y:forward.y*step*bodyHeight*.115-lift};
-  return {side,step,lift,hip,knee:{x:hip.x+(foot.x-hip.x)*.45,y:(hip.y+foot.y)*.5-lift*.35},foot,depth:forward.y*step+across.y*side*.15};
+  return {side,step,lift,hip,knee:{x:hip.x+(foot.x-hip.x)*.45,y:(hip.y+foot.y)*.5-lift*.35},foot,thickness:1+.45*Math.abs(Math.cos(angle)),depth:forward.y*step+across.y*side*.15};
  });
  return {feet:feet.sort((a,b)=>a.depth-b.depth),bob:Math.abs(Math.sin(phase*2))*bodyHeight*.012};
 }
@@ -50,13 +50,21 @@ function walkingRig(source,r,body,robe){
  const rig={canvas,leg,height,anchor,foot,length,width};cached.set(key,rig);return rig;
 }
 
+// Rotate the width axis perpendicular to the limb. A horizontal shear makes
+// diagonal/side strides collapse into thin strips as the foot moves forward.
+export function walkingLimbTransform(a,b,sourceLength){
+ const dx=b.x-a.x,dy=b.y-a.y,distance=Math.hypot(dx,dy)||1;
+ return [dy/distance,-dx/distance,dx/sourceLength,dy/sourceLength,a.x,a.y];
+}
+
 function limb(g,rig,pose){
  const {leg,length,width}=rig,middle=leg.height/2;
  const points=[pose.hip,pose.knee,pose.foot];
  for(let i=0;i<2;i++){
   const a=points[i],b=points[i+1],h=length/2;
-  g.save();g.transform(1,0,(b.x-a.x)/h,(b.y-a.y)/h,a.x,a.y);
-  g.drawImage(leg,0,i*middle,leg.width,middle,-width/2,0,width,h+.3);g.restore();
+  const thickness=width*pose.thickness;
+  g.save();g.transform(...walkingLimbTransform(a,b,h));
+  g.drawImage(leg,0,i*middle,leg.width,middle,-thickness/2,0,thickness,h+.3);g.restore();
  }
 }
 
