@@ -27,7 +27,7 @@ export function waveHud(host,w){
  host.querySelector('#tower-status').textContent=w.pendingOutcome?'종료 판정 확인 중…':me.hp<=0?`동료가 묘비 위에서 5초 대기하면 부활 · ${(me.reviveProgress/10).toFixed(1)} / 5초`:reviving?`동료 부활 중 ${(reviving.reviveProgress/10).toFixed(1)} / 5초 · 움직이면 중단`:count>=WAVE_LIMIT*.8?'위험! 몬스터 100마리가 쌓이면 종료됩니다.':`사방의 적을 처치하세요 · 정예 ${s.eliteCount}마리 등장`;
  host.querySelector('#tower-range').textContent=`생존 ${w.members.filter(m=>!m.left&&m.hp>0).length} / ${w.members.filter(m=>!m.left).length}`;
  host.querySelector('#tower-chest').hidden=true;
- for(const b of host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady'}[b.dataset.towerButton],left=Math.max(0,(me[key]||0)-w.tick);b.querySelector('b').textContent=left?(left/10).toFixed(1):'';}
+ for(const b of host.querySelectorAll('[data-tower-button]')){const key={1:'attackReady',2:'skillReady',4:'dashReady',8:'ultimateReady',16:'thirdReady',32:'fourthReady',64:'fifthReady'}[b.dataset.towerButton],left=Math.max(0,(me[key]||0)-w.tick);b.querySelector('b').textContent=left?(left/10).toFixed(1):'';}
 }
 
 

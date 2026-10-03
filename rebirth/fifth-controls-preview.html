@@ -1,18 +1,19 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>전투 버튼 배치 확인</title><link rel="stylesheet" href="style.css?v=field-fragment-13"><link rel="stylesheet" href="tower.css?v=fifth-range-118"><link rel="stylesheet" href="priest-raid.css?v=shared-controls-61"><style>body{margin:0}#device{width:min(100%,390px);margin:auto}#device iframe{display:block;width:100%;height:min(844px,calc(100dvh - 38px));border:0}#preview-title{height:38px;display:flex;align-items:center;justify-content:center;font:13px system-ui;color:#f5e9cd;background:#101923}</style></head><body><div id="root" class="shell"></div><script type="module">
+import {waveHud} from './wave-ui.mjs?v=wave-fifth-cd-124';
 import {towerArena} from './tower-client.mjs?v=fifth-impact-121';
 import {TowerRenderer,prepareCombatArt,image} from './tower-renderer.mjs?v=fifth-impact-121';
 import {newTowerBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
-const root=document.querySelector('#root');
+const root=document.querySelector('#root'),wave=new URLSearchParams(location.search).get('mode')==='wave';
 if(!new URLSearchParams(location.search).has('screen')){
- root.innerHTML='<div id="preview-title">모바일 · 스킬 1~5 세로 배치</div><div id="device"><iframe title="모바일 전투 버튼" src="?screen=1"></iframe></div>';
+ root.innerHTML='<div id="preview-title">모바일 · 스킬 1~5 세로 배치</div><div id="device"><iframe title="모바일 전투 버튼" src="?screen=1'+(wave?'&mode=wave':'')+'"></iframe></div>';
 }else{
  document.body.className='tower-mode';const P={level:200,advancement:4,firstJob:true,attack:100,hp:1e8,defense:1000,boss:1,crit:0,critDamage:1,cadence:1};
  let b,last=0,acc=0,bits=0;function reset(){b=newTowerBattle(10,'mage',P,performance.now(),'controls-preview',1,true);Object.assign(b,{advancementStage:4,encounter:ADVANCEMENT_BOSSES[4],enemyHp:18000000,nextPattern:1e9});last=acc=0;}
  reset();root.innerHTML=towerArena(b);const renderer=new TowerRenderer(document.querySelector('canvas'));await prepareCombatArt(['mage'],'astrael');await image('tower/arena-overhead-v3.png').decode().catch(()=>{});
  document.querySelector('#tower-status').hidden=true;document.querySelector('#tower-player-hp').textContent='200레벨 · 5차';document.querySelector('#tower-enemy-hp').textContent='전투 배치 미리보기';
  document.querySelectorAll('[data-tower-button]').forEach(el=>el.onclick=()=>{bits|=Number(el.dataset.towerButton);});
- function frame(now){requestAnimationFrame(frame);if(!last)last=now;acc+=Math.min(100,now-last);last=now;while(acc>=100){towerStep(b,[0,0,b.tick===0?64:bits]);bits=0;acc-=100;}renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},b.player,acc/100,now,[0,0,0],{});if(b.tick>100){reset();renderer.camera=null;renderer.fifthLandings.clear();}}
+ function frame(now){requestAnimationFrame(frame);if(!last)last=now;acc+=Math.min(100,now-last);last=now;while(acc>=100){towerStep(b,[0,0,b.tick===0?64:bits]);bits=0;acc-=100;}renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},b.player,acc/100,now,[0,0,0],{});if(wave)waveHud(root,{...b,me:'preview',owner:'preview',wave:1,nextWave:300,monsters:[],kills:0,status:'fighting',members:[{...b,id:'preview'}]});if(b.tick>(wave?450:100)){reset();renderer.camera=null;renderer.fifthLandings.clear();}}
  requestAnimationFrame(frame);
 }
 </script></body></html>
