@@ -83,7 +83,7 @@ function cleanDirectionalAtlas(im,layout=null){
 const preparations=new Map();
 export function prepareCombatArt(classes,boss,costumeIds=[]){
  const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-motion-v1.png',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
- for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.classId]],[c.portrait,null]);}}
+ for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.motionLayout||c.classId]],[c.portrait,null]);}}
  tasks.push([asset(boss==='raid-2'?'raid-boss-2-portrait':'boss-'+boss),null]);image('tower/priest-orb-v1.png');if(String(boss).startsWith('raid-')){image(asset('raid-map-'+boss.slice(5)));image(asset('raid-boss-'+boss.slice(5)+'-portrait'));}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}))];
@@ -127,7 +127,7 @@ export class TowerRenderer {
     const spriteSize=this.mobileActors.matches?215:180;
     const costume=costumeById(costumeId,classId);
     if(costume){
-      const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk);
+      const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
       // Successful decoding and exact sheet dimensions prevent partial WebP data
       // from being treated as a usable motion sheet.
       if(decodedImages.has(im)&&pose&&im.naturalWidth===pose.layout.width&&im.naturalHeight===pose.layout.height){

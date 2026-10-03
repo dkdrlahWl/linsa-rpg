@@ -69,3 +69,20 @@
 .tower-play[data-class="priest"] [data-tower-button="32"] i{background-image:url('tower/priest-skill-4-v2.png')}
 .tower-play[data-class="priest"] [data-tower-button="64"] i{background-image:url('tower/priest-skill-5-v2.png')}
 .tower-play[data-class="priest"] .tower-button.attack .tower-action-art{background-image:url("tower/priest-orb-v1.png");background-size:contain;background-position:center}
+
+/* Match visible portrait height for every job in selection and rankings.
+   A square art box gives the priest room without shrinking a wide silhouette. */
+.change-class-card .portrait{width:min(100%,116px);height:auto;aspect-ratio:1;margin-inline:auto}
+.class-choice .portrait{aspect-ratio:1;width:100%;background-position:center}
+.rank-portrait.portrait{aspect-ratio:1;width:70px;height:70px;background-position:center}
+.rank-podium .rank-portrait.portrait{width:min(100%,112px);height:auto;max-width:100%}
+.rank-podium.rank-place-1 .rank-portrait.portrait{width:min(100%,126px);height:auto}
+.rank-list-row{grid-template-columns:30px 53px minmax(0,1fr) auto}
+.rank-list-row .rank-portrait.portrait{width:53px;height:53px}
+@media(max-width:490px){.change-class-card .portrait{width:min(100%,95px);height:auto}}
+@media(max-width:420px){
+ .rank-podium .rank-portrait.portrait{width:min(100%,96px);height:auto}
+ .rank-podium.rank-place-1 .rank-portrait.portrait{width:min(100%,110px);height:auto}
+ .rank-list-row{grid-template-columns:22px 48px minmax(0,1fr) auto}
+ .rank-list-row .rank-portrait.portrait{width:48px;height:48px}
+}

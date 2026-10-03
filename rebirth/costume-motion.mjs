@@ -1,8 +1,8 @@
 import layouts from './costume-motion-layout.mjs?v=costume-motion-111';
 
 // Canvas facing: E, SE, S, SW, W, NW, N, NE. Left views mirror right views.
-export function costumeMotionFrame(classId,dir,moving,acting,age=0,walk=0){
- const layout=layouts[classId];if(!layout)return null;
+export function costumeMotionFrame(classId,dir,moving,acting,age=0,walk=0,costumeKey=null){
+ const layout=layouts[costumeKey]||layouts[classId];if(!layout)return null;
  const facing=Number.isInteger(dir)&&dir>=0&&dir<8?dir:6;
  const direction=[2,1,0,1,2,3,4,3][facing];
  // The priest sheet combines diagonal-front and side attacks into one row.

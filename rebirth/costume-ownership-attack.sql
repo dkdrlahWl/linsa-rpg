@@ -71,6 +71,6 @@ begin
  luk_rate:=least(.6,(hp/(1+hp_pct/100))*.166*.8/greatest(1,stat/(1+stat_pct/100)));
  atk:=(hp*.166+stat*luk_rate+gear_atk*job_bonus*.2)*(1+atk_pct/100*.05);
  end if;
- atk:=atk*(1+(select count(distinct value)*.01 from jsonb_array_elements_text(case when jsonb_typeof(s->'costumes')='array' then s->'costumes' else '[]'::jsonb end) where value=any(array['crimson-dragon','starlight-mage','snowmoon-ranger','blackmoon-assassin','golden-captain','bluemoon-priest'])));
+ atk:=atk*(1+(select count(distinct value)*.01 from jsonb_array_elements_text(case when jsonb_typeof(s->'costumes')='array' then s->'costumes' else '[]'::jsonb end) where value=any(array['crimson-dragon','starlight-mage','snowmoon-ranger','blackmoon-assassin','golden-captain','bluemoon-priest','frost-crown-knight','rose-queen-mage','forest-fairy-ranger','violet-moon-ninja','azure-naval-admiral','dawn-saint'])));
  return floor(atk*(1+crit*(crit_damage-1))*cadence*(1+boss_pct/100*offense_rate)+hp*(1+floor(def)/2600)*.1)::bigint;
 end $function$;

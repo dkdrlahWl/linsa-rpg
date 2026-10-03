@@ -20,6 +20,14 @@ async function isolated(src,index=null){
   }
   let main=1;for(let i=2;i<groups.length;i++)if(groups[i].size>groups[main].size)main=i;
   if(groups[main]){const keep=groups.map((v,i)=>i===main||v&&v.size>=groups[main].size*((v.left<8||v.right>w-9)? .28:.012));for(let p=0;p<w*h;p++)if(labels[p]&&!keep[labels[p]])data[p*4+3]=0;g.putImageData(pixels,0,0);}
+  // Trim empty portrait margins so every job uses the same visible height.
+  let left=w,right=-1,top=h,bottom=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(data[(y*w+x)*4+3]>8){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
+  if(right>=left&&bottom>=top){
+   const portrait=document.createElement('canvas');portrait.width=right-left+1;portrait.height=bottom-top+1;
+   portrait.getContext('2d').drawImage(canvas,left,top,portrait.width,portrait.height,0,0,portrait.width,portrait.height);
+   return portrait.toDataURL('image/png');
+  }
   return canvas.toDataURL('image/png');
  })();cache.set(key,work);work.catch(()=>cache.delete(key));return work;
 }
@@ -32,6 +40,7 @@ export function installPortraitIsolation(){
    if(node.tagName==='IMG'){const src=node.getAttribute('src');if(!src?.startsWith('costumes/'))continue;node.dataset.portraitIsolated='1';isolated(src).then(url=>{if(node.isConnected)node.src=url;}).catch(()=>{});continue;}
    const bg=node.style.backgroundImage,match=bg.match(/url\(["']?(costumes\/[^"')]+)["']?\)/);
    let src=match?.[1],index=null;
+   if(!src&&node.classList.contains('priest-portrait'))src='tower/priest-portrait-v2.png';
    if(!src&&!node.classList.contains('priest-portrait')){src='characters-transparent-v1.png';index=Math.max(0,Math.min(4,Math.round(parseFloat(node.style.backgroundPosition||'0')/25)));}
    if(!src)continue;node.dataset.portraitIsolated='1';isolated(src,index).then(url=>{if(node.isConnected){node.style.setProperty('background-image',`url("${url}")`,'important');node.style.setProperty('background-size','contain','important');node.style.setProperty('background-position','center','important');}}).catch(()=>{});
   }
