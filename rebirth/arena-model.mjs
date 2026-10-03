@@ -52,6 +52,13 @@ export function arenaProfile(state,score=null,rank=null,id=null){
  const p=power(state);
  return {id,name:state.name,classId:state.classId,score,rank,tier:tier(score,rank),combatPower:p.combatPower,costumeId:p.costumeId,level:state.level};
 }
+export async function arenaOfferProfiles(arena,readPlayer){
+ return Promise.all((arena.offers||[]).map(async offer=>{
+  const rank=(arena.top100||[]).find(row=>row.id===offer.id)?.rank||null;
+  const state=offer.kind==='bot'?buildBot({id:Number(offer.id.slice(4)),name:offer.name,classId:offer.classId,score:offer.score}):await readPlayer(offer.id.slice(7));
+  return {...arenaProfile(state,offer.score,rank,offer.id),used:offer.used===true};
+ }));
+}
 function seedNumber(value){let h=2166136261;for(const c of String(value)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
 export function simulateArena(leftState,rightState,seed='arena'){
  const left=power(leftState),right=power(rightState);let rand=seedNumber(seed)||1;

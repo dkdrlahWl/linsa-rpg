@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {initialState,power} from './engine.mjs';
-import {buildBot,botScore,gearSpec,simulateArena,tier} from './arena-model.mjs';
+import {buildBot,botScore,gearSpec,arenaOfferProfiles,simulateArena,tier} from './arena-model.mjs';
 
 assert.equal(botScore(1),3000);
 assert.equal(botScore(10),2600);
@@ -49,6 +49,8 @@ try{
  await login(a);
  const status=async()=>(await db.query('select public.rebirth_arena_status() s')).rows[0].s;
  let s=await status();assert.equal(s.score,null);assert.equal(s.offers.length,4);assert.equal(s.top100.length,100);assert.equal(s.top100[0].score,3000);
+ const listed=await arenaOfferProfiles(s,async()=>{throw Error('unexpected player offer')});
+ assert.equal(listed.length,4);assert(listed.every(o=>o.combatPower>0&&o.tier.label));
  assert.equal((await db.query('select count(*) n from rebirth_private.arena_bots')).rows[0].n,2000);
  const target=s.offers[0].id,request=randomUUID(),battle={won:true,frames:[]};
  await db.exec('set role service_role');

@@ -16,17 +16,19 @@ const self=initialState('warrior','검사',{now:0,uuid:()=>crypto.randomUUID()})
 const top100=Array.from({length:100},(_,i)=>({id:`bot:${i+1}`,name:`투사${String(i+1).padStart(4,'0')}`,classId:['warrior','mage','archer','rogue','pirate','priest'][i%6],score:botScore(i+1),rank:i+1}));
 const offers=[1,2,3,4].map((n)=>arenaProfile(buildBot({id:1000+n,score:1200+n}),1200+n,1000+n,`bot:${1000+n}`));
 const data={score:1250,rank:1100,wins:3,losses:1,offers,top100,seasonEndsAt:new Date(Date.now()+3*86400000).toISOString(),nextRefreshAt:new Date(Date.now()+7200000).toISOString(),history:[]};
+assert(arenaView({data:null,error:'서버 오류'}).includes('data-action="arenaRetry"'));
 const battle={self:arenaProfile(self,1250,1100,'self'),opponent:offers[0],battle:{won:true,leftMaxHp:10000,rightMaxHp:10000,frames:[{at:0,side:0,type:'basic',damage:200,crit:false,leftHp:10000,rightHp:9800}]} ,delta:120,scoreAfter:1370};
 const chrome='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const browser=await chromium.launch({headless:true,...(process.env.ARENA_BROWSER||existsSync(chrome)?{executablePath:process.env.ARENA_BROWSER||chrome}:{})});
 try{
  for(const [key,screen,result] of [['home','home',null],['opponents','opponents',null],['battle','battle',battle],['result','result',battle],['ranking','ranking',null],['rewards','rewards',null]]){
   const content=arenaView({data,page:screen,self,battle:result});
-  const footer=['battle','result'].includes(screen)?'':'<nav class="pvp-dock"><button>⌂<span>홈</span></button><button class="active">⚔<span>아레나</span></button><button>▣<span>가방</span></button><button>☰<span>메뉴</span></button></nav>';
+  const footer=['battle','result'].includes(screen)?'':'<nav class="pvp-dock"><button>⌂<span>홈</span></button><button class="active"><img src="ui/arena-emblem.svg" alt=""><span>아레나</span></button><button>▣<span>가방</span></button><button>☰<span>메뉴</span></button></nav>';
   await writeFile(preview,`<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="fantasy-theme.css"><link rel="stylesheet" href="arena.css"><body><div class="shell fantasy-shell">${fantasyHeader(self,'arena')}<div class="fantasy-player-strip"><span>검사 · Lv.1 전사</span><span>전투력 500</span></div><main class="fantasy-content" data-screen="arena">${content}</main>${footer}</div></body></html>`);
   const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
   await page.goto(pathToFileURL(preview).href);await page.screenshot({path:join(output,`implemented-${key}.png`),fullPage:true});
   assert.equal(await page.locator('.fantasy-arena-entry').count(),1);
+  assert.equal(await page.locator('.fantasy-arena-entry img').evaluate(img=>img.complete&&img.naturalWidth>0),true);
   assert((await page.locator('.pvp-screen').count())===1);
   if(key==='opponents'){
    assert.equal(await page.locator('.pvp-opponent').count(),4);

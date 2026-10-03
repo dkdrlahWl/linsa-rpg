@@ -12,8 +12,8 @@ const nav=active=>`<nav class="pvp-tabs" aria-label="아레나 메뉴">${[['home
 const badge=(score,rank)=>{const t=tier(score,rank);return `<span class="pvp-badge" style="--tier-color:${t.color}">◆ ${esc(t.label)}</span>`;};
 const rankingRow=(r)=>`<div class="pvp-ranking-row"><b class="pvp-place">${fmt(r.rank)}</b>${portrait(r)}<div class="pvp-ranking-name"><strong>${esc(r.name)}</strong><small>${esc(jobs[r.classId]||'모험가')} · ${fmt(r.score)}점</small></div>${badge(r.score,r.rank)}</div>`;
 
-export function arenaView({data,page='home',self,battle,frameIndex=0}){
- if(!data)return `<section class="pvp-screen">${heading('아레나')}<div class="pvp-panel pvp-empty">아레나 정보를 불러오는 중…</div></section>`;
+export function arenaView({data,page='home',self,battle,frameIndex=0,error=''}){
+ if(!data)return `<section class="pvp-screen">${heading('아레나')}<div class="pvp-panel pvp-empty">${error?`<p>아레나 정보를 불러오지 못했어요.</p><small>${esc(error)}</small>${button('다시 불러오기','arenaRetry','','pvp-primary')}`:'아레나 정보를 불러오는 중…'}</div></section>`;
  const season= `시즌 종료까지 ${countdown(data.seasonEndsAt)}`;
  if(page==='battle'&&battle)return battleView(battle,self,frameIndex);
  if(page==='result'&&battle)return resultView(battle,data);
@@ -35,7 +35,7 @@ export function arenaView({data,page='home',self,battle,frameIndex=0}){
  }else if(page==='history'){
    content=`${heading('전투 기록',season)}<div class="pvp-panel">${(data.history||[]).map(h=>`<div class="pvp-history-row"><b class="${h.battle?.won?'win':'loss'}">${h.battle?.won?'승리':'패배'}</b><span>${esc(h.opponent?.name||'상대')}</span><small>${h.delta>=0?'+':''}${fmt(h.delta)}점</small></div>`).join('')||'<p class="pvp-note">아직 전투 기록이 없어요.</p>'}</div>`;
  }
- return `<section class="pvp-screen">${content}<div class="pvp-history-link"><button data-action="arenaPage" data-arg="history">전투 기록 ›</button></div>${nav(page)}</section>`;
+ return `<section class="pvp-screen">${error?`<div class="pvp-panel pvp-load-error"><span>${esc(error)}</span>${button('다시 불러오기','arenaRetry')}</div>`:''}${content}<div class="pvp-history-link"><button data-action="arenaPage" data-arg="history">전투 기록 ›</button></div>${nav(page)}</section>`;
 }
 
 function battleView(result,self,index){
