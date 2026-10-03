@@ -1,3 +1,4 @@
+import {healthSegments} from './health-bar.mjs?v=coop-smooth-136';
 import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-impact-121';
 import {drawWalkingSprite} from './walk-animation.mjs?v=walk-thickness-128';
 import {costumeMotionFrame} from './costume-motion.mjs?v=costume-motion-111';
@@ -320,7 +321,7 @@ export class TowerRenderer {
       const lunge=pose?.lunge??(attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0);
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
-      if(b.classId==='priest'&&casting){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
+      if(b.classId==='priest'&&casting&&!b.fifthCast?.holy){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
       if(b.shield>0&&(b.shieldPermanent||b.tick<b.shieldUntil))drawPriestSkillArt(g,{slot:3,x:player.x,y:player.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});
       drawPriestBuffAura(g,{...b,x:player.x,y:player.y},time,holyEffects);
       this.actor(b.classId,pose?towerFacing(b.enemy.x-player.x,b.enemy.y-player.y,dir):dir,moving||dashing,!!pose||attacking||casting,pose?.age??(casting?skillAge:attackAge),(b.player.walk||0)+fraction,x,y,alpha,b.power?.costumeId);
@@ -339,7 +340,12 @@ export class TowerRenderer {
       this.sprite(asset('boss-'+f.art),['aureon','astrael'].includes(f.art)?1:3,1,['aureon','astrael'].includes(f.art)?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,f.art==='astrael'?340:245,f.art==='astrael'?340:245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
-    const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
+    const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.slot!==5&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}
+    // The fifth angel belongs to the lasting sanctuary, not to its damage pulses.
+    for(const actor of [{...b,x:player.x,y:player.y},...(b.allies||[])])if(actor.hp>0&&!actor.left)for(const area of actor.holyAreas||[])if(area.slot===5&&area.start<=time&&area.end>time){
+      holy.set((actor.id||'self')+':5',{kind:'priest',slot:5,owner:actor.id,x:actor.x,y:actor.y,size:area.r*2,start:area.start,end:area.end});
+    }
+    const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
     const actors=[{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.pet(m,m.x,m.y,time,m.id);
@@ -347,7 +353,7 @@ export class TowerRenderer {
       this.shadow(m.x,m.y,25);if(m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId);
       if(b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       const labelY=m.y-(this.mobileActors.matches?215:180)-24;
-      g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,labelY);g.fillStyle='#25312d';g.fillRect(m.x-40,labelY+11,80,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,labelY+11,80*Math.max(0,m.hp/m.power.hp),6);g.restore();
+      g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,labelY);g.fillStyle='#25312d';g.fillRect(m.x-40,labelY+11,80,6);const health=healthSegments(m);g.fillStyle='#bfc7cf';g.fillRect(m.x-40+80*health.health/100,labelY+11,80*health.shieldWidth/100,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,labelY+11,80*health.health/100,6);g.restore();
     }})),...(b.monsters||[]).filter(e=>visible(e.x,e.y)).map(e=>({y:e.y,draw:()=>this.waveMonster(e,time)})),...(b.graves||[]).map(m=>({y:m.y,draw:()=>this.grave(m)}))];actors.sort((a,b)=>a.y-b.y).forEach(a=>a.draw());
     for(const q of b.projectiles){
       if(b.tick<q.at)continue;

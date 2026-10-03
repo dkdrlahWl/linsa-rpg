@@ -1,3 +1,4 @@
+import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';
 import {autoSkillBits} from './auto-skills.mjs?v=fifth-impact-121';
 import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=fifth-impact-121';
 import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,fifthUnlocked} from './data.mjs?v=boss-relic-only-130';
@@ -121,7 +122,7 @@ export class TowerController {
     const b=this.b,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],input=this.input(),distance=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     const text=(id,value)=>{if(this.nodes[id].textContent!==value)this.nodes[id].textContent=value;};
     text('enemy-hp',`${format(b.enemyHp)} / ${format(f.hp)}`);text('player-hp',`${format(b.hp)} / ${format(b.power.hp)}`);
-    this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;const shield=Math.max(0,b.shield||0),barMax=Math.max(b.power.hp,b.hp+shield);this.nodes['player-bar'].style.transform=`scaleX(${b.hp/barMax})`;this.host.querySelector('#tower-player-shield').style.width=(b.hp+shield)/barMax*100+'%';
+    this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;paintHealthBar(this.host,b,format);
     this.host.classList.toggle('low-health',b.hp/b.power.hp<.3);
     const left=Math.max(0,f.seconds-Math.floor(b.tick/10));text('clock',b.chest?'토벌 완료':`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`);
     const chestButton=this.host.querySelector('#tower-chest');if(chestButton){chestButton.hidden=!b.chest;chestButton.disabled=!!b.chest&&!canOpenChest(b);chestButton.textContent=canOpenChest(b)?'상자 열고 보상 받기':'상자 가까이 이동하세요';}

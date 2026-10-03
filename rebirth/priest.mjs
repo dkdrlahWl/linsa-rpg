@@ -35,7 +35,7 @@ export function stepPriest(a,targets,tick,slot,hit,emit=()=>{}){
   if(slot>=2)(a.holySupport||=[]).push({slot,x:slot===4?cast.x:a.x,y:slot===4?cast.y:a.y,r:sk.radius,revive:slot===5&&cast.left===sk.hits,amount:a.power.hp*(slot===2?.20:slot===3?.30:slot===5?(cast.left===sk.hits?1:0):.05),at:cast.next});
   if(slot===5){cast.x=a.x;cast.y=a.y;}
   for(const target of targets)if(target&&Math.hypot(target.x-cast.x,target.y-cast.y)<=sk.radius){a.holyFlatDamage=a.power.hp*sk.hpRatio;try{hit(sk.damage,0,target,slot);}finally{a.holyFlatDamage=0;}}
-  emit({kind:'priest',slot,classId:'priest',owner:a.id,x:cast.x,y:cast.y,size:sk.radius*2,start:cast.next-(slot===1?3:0),end:slot>=4?Math.min(cast.start+80,cast.next+12):cast.next+18,pulse:sk.hits-cast.left});cast.left--;cast.next+=sk.interval;
+  if(slot!==5||cast.left===sk.hits)emit({kind:'priest',slot,classId:'priest',owner:a.id,x:cast.x,y:cast.y,size:sk.radius*2,start:slot===5?cast.start:cast.next-(slot===1?3:0),end:slot===5?cast.start+80:slot>=4?Math.min(cast.start+80,cast.next+12):cast.next+18,follow:slot===5,pulse:sk.hits-cast.left});cast.left--;cast.next+=sk.interval;
  }
  if(!cast.left)delete a[keys[slot]];return true;
 }

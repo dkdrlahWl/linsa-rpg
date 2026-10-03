@@ -102,7 +102,8 @@ export function validateCoopFrames(frames){if(!Array.isArray(frames)||frames.len
 export function coopClientView(room){
  if(!room)return room;const view=bare(room),net=room._net,me=room.members.find(m=>m.id===room.me);
  if(!net||room.entryWaiting||room.status!=='fighting'||!me)return view;
- const target=Math.min(room.tick,(me.inputAck??-1)+1),point=[...net.points].reverse().find(p=>p.tick<=target);
+ const target=Math.min(room.tick,(me.inputAck??-1)+1);if(target===room.tick)return view;
+ const point=[...net.points].reverse().find(p=>p.tick<=target);
  if(!point)return view;
  let base=structuredClone(point);
  while(base.tick<target&&base.status==='fighting')base=advanceCoopRaw(base,null,null,base.started+(base.tick+1)*100,net.frames,true);

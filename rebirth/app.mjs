@@ -216,7 +216,7 @@ async function request(path, body, auth = true) {
       ...(auth ? { Authorization: "Bearer " + session.access_token } : {}),
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(20000),
+    signal: AbortSignal.timeout(body?.command==='coopInput'?6000:20000),
   });
   const data = await r.json().catch(() => ({error: "SERVER_RETRY_REQUIRED"}));
   if (!r.ok) {
@@ -354,7 +354,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
     localStorage.removeItem(pendingKey());
     const audioPrevious=state;
-    state = D.normalizePotentialState(result.state);
+    if(Object.hasOwn(result,'state'))state = D.normalizePotentialState(result.state);
     if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}

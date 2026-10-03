@@ -86,3 +86,7 @@
  .rank-list-row{grid-template-columns:22px 48px minmax(0,1fr) auto}
  .rank-list-row .rank-portrait.portrait{width:48px;height:48px}
 }
+
+/* Shield changes are immediate; the grey segment follows the green HP segment. */
+.tower-player-hud .player-health #tower-player-shield{z-index:1;transition:none;background:linear-gradient(90deg,#87919c,#e0e4e9)}
+.tower-player-hud .player-health #tower-player-bar{z-index:2;transition:none}

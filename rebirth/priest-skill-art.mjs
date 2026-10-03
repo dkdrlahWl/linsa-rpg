@@ -31,10 +31,10 @@ export function drawPriestSkillArt(g,e,time,options={}){
   if(!source.complete||!source.naturalWidth)return false;
   const img=renderSheet(slot,source);
   const age=Math.max(0,Math.min(1,(time-e.start)/Math.max(1,e.end-e.start)));
-  const frame=options.frame??Math.min(3,Math.floor(age*4));
+  const frame=options.frame??(slot===5?(time-e.start<2?0:time-e.start<4?1:2):Math.min(3,Math.floor(age*4)));
   const sourceWidth=img.width/4,height=(heightBySlot[slot]||560)*(options.scale||1);
   const width=height*sourceWidth/img.height,color=colors[slot],impact=frame===2?1:.6;
-  const opacity=(options.opacity??(slot===5?.94:.91))*Math.min(1,(1-age)*4+.12);
+  const opacity=(options.opacity??(slot===5?.94:.91))*(slot===5?1:Math.min(1,(1-age)*4+.12));
   g.save();
   if(options.frame===undefined){
     const radius=Math.min(1500,Math.max(height*.42,(e.size||height)*.48));

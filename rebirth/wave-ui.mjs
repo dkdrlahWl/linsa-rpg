@@ -1,3 +1,4 @@
+import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';
 import {WAVE_REWARDS,WAVE_END} from './wave-rewards.mjs?v=priest-potential-83';
 import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
 import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=fifth-impact-121';
@@ -19,8 +20,7 @@ export function waveHud(host,w){
  host.querySelector('.tower-floor-tag').textContent='W'+w.wave;
  host.querySelector('#tower-enemy-hp').textContent=`남은 몬스터 ${count} / ${WAVE_LIMIT} · 처치 ${fmt(w.kills)}`;
  host.querySelector('#tower-enemy-bar').style.width=Math.min(100,count/WAVE_LIMIT*100)+'%';
- host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp);
- host.querySelector('#tower-player-bar').style.width=me.hp/me.power.hp*100+'%';
+ paintHealthBar(host,me,fmt);
  host.querySelector('#tower-clock').textContent=w.status==='won'?'200웨이브 완료':w.wave>=WAVE_END?'최종전 · 전부 처치':`다음 ${clock}초`;
  const dead=w.members.filter(m=>!m.left&&m.hp<=0),reviving=dead.find(m=>m.reviver===me.id);
  host.querySelector('#tower-status').hidden=!(w.pendingOutcome||me.hp<=0||reviving||count>=WAVE_LIMIT*.8);

@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     "Access-Control-Max-Age": "3600",
   };
   const reply = (data: unknown, status = 200) =>
-    new Response(JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:coopClientView(data.coop)}:data,(key,value)=>key==="_net"?undefined:value), {
+    new Response(JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:coopClientView(data.coop)}:data,(key,value)=>key==="_net"||key==="_queuedInputs"?undefined:value), {
       status,
       headers: {
         ...cors,
@@ -74,20 +74,23 @@ Deno.serve(async (req) => {
       return reply(await rpc('rebirth_admin_transfer',{p_args:body.args,p_request:body.requestId}));
     }
     const fingerprint = { command: body.command, args: body.args };
+    const fastInput=body.command==='coopInput';
+    if(fastInput&&Object.hasOwn(body.args,'frames'))validateCoopFrames(body.args.frames);
     for (let retry = 0; retry < 3; retry++) {
-      const snap = await rpc("rebirth_snapshot", { p_request: body.requestId });
+      const frameSnapshot=fastInput?await rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true}):null;
+      const snap = frameSnapshot?.snapshot||await rpc("rebirth_snapshot", { p_request: body.requestId });
       if (snap.user !== user.id) throw new Error("LOGIN_REQUIRED");
       if(body.command.startsWith('coop')||(body.command==='sync'&&snap.state?.coopRoom)){
-        if(!snap.state)throw new Error('CHARACTER_REQUIRED');
+        if(fastInput?!snap.hasCharacter:!snap.state)throw new Error('CHARACTER_REQUIRED');
         const action=body.command==='sync'?'sync':body.command.slice(4).toLowerCase();
         if(!['create','join','start','ready','input','sync','leave','list','open'].includes(action))throw new Error('INVALID_COOP_ACTION');
         const queueInput=action==='input'&&Array.isArray(body.args.frames);
         if(queueInput)validateCoopFrames(body.args.frames);
         const ctx={accountId:user.id,admin:user.app_metadata?.ringu_admin===true,accountCreatedAt:user.created_at,now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
-        const computed=execute(snap.state,'sync',{},ctx);
-        const base={queueInput,user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed.state,power:power(computed.state),args:body.args};
+        const computed=fastInput?null:execute(snap.state,'sync',{},ctx);
+        const base={queueInput,compact:fastInput&&body.args.compact===true,user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed?.state,power:computed?power(computed.state):undefined,args:body.args};
         try{
-          const current=await rpc('rebirth_coop_action',{p:{...base,action:'read'}},true);
+          const current=frameSnapshot?.current||await rpc('rebirth_coop_action',{p:{...base,action:'read'}},true);
           if(snap.receipt)return reply(current);
           const room=current.coop;
           if(!room&&["input","sync"].includes(action))return reply(current);
