@@ -22,7 +22,23 @@ export const motionAsset=name=>'tower/'+name+'.png';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=src;cache.set(src,im);im.decode().then(()=>decodedImages.add(im)).catch(()=>{});}return cache.get(src);}
 const mix=(a,b,t)=>a+(b-a)*t;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
-const format=n=>Math.floor(n).toLocaleString('ko-KR');
+const combatNumberFormat=new Intl.NumberFormat('ko-KR');
+const format=n=>combatNumberFormat.format(Math.floor(n));
+const damageLabels=new Map();
+function damageLabel(value,kind,size){
+  size=Math.round(size*2)/2;const key=[value,kind,size].join(':');
+  let label=damageLabels.get(key);if(label)return label;
+  const canvas=document.createElement('canvas'),g=canvas.getContext('2d');
+  const font=`900 ${size}px system-ui`;g.font=font;
+  canvas.width=Math.ceil(g.measureText(value).width)+16;canvas.height=Math.ceil(size*1.6)+16;
+  const baseline=Math.ceil(size*1.15)+8;
+  g.font=font;g.textAlign='center';g.lineWidth=7;g.strokeStyle='#071017';
+  g.fillStyle=kind==='incoming'?'#ff9994':kind==='heal'?'#8cffbb':kind==='critical'?'#ffe092':'#fff';
+  g.strokeText(value,canvas.width/2,baseline);g.fillText(value,canvas.width/2,baseline);
+  label={canvas,baseline};damageLabels.set(key,label);
+  if(damageLabels.size>256)damageLabels.delete(damageLabels.keys().next().value);
+  return label;
+}
 // The priest's front idle body occupies 157 px of its 181 px frame.
 const PRIEST_BODY_RATIO=157/181;
 // Use one standing-body scale for each source atlas, including every attack frame.
@@ -271,7 +287,7 @@ export class TowerRenderer {
   }
   draw(b,previous,player,fraction,now,input,hint){
     b=localSkillView(b);
-    if(now<(this.nextFrame||0))return;this.nextFrame=Math.max(now,(this.nextFrame||now)+1000/60);
+    if(this.last&&now-this.last<1000/60-1)return;
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
@@ -418,11 +434,9 @@ export class TowerRenderer {
     for(const n of [...rows,...personal]){
       const age=time-n.start,fade=clamp((n.end-time)/2),incoming=n.kind==='incoming';
       const row=rows.indexOf(n);
-      g.save();g.globalAlpha=fade;g.font=`900 ${row>=0?rowFont:43}px system-ui`;g.textAlign='center';g.lineWidth=7;g.strokeStyle='#071017';
-      g.fillStyle=incoming?'#ff9994':n.kind==='heal'?'#8cffbb':n.kind==='critical'?'#ffe092':'#fff';
       const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=row>=0&&!b.waveMode?stackTop+row*rowHeight:n.y-age*6,x=row>=0&&!b.waveMode?b.enemy.x:n.x;
-      g.shadowColor=n.kind==='critical'?'#ffae34':incoming?'#f74c4c':'#ffffff';g.shadowBlur=0;
-      g.strokeText(value,x,y);g.fillText(value,x,y);g.restore();
+      const label=damageLabel(value,n.kind,row>=0?rowFont:43);
+      g.save();g.globalAlpha=fade;g.drawImage(label.canvas,x-label.canvas.width/2,y-label.baseline);g.restore();
     }
     g.restore();
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}

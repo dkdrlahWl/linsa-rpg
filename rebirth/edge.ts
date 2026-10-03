@@ -8,21 +8,28 @@ const origin = "https://dkdrlahwl.github.io";
 Deno.serve(async (req) => {
   const cors = {
     "Access-Control-Allow-Origin": origin,
-    Vary: "Origin",
+    Vary: "Origin, Accept-Encoding",
     "Access-Control-Allow-Headers": "authorization,apikey,content-type",
     "Access-Control-Allow-Methods": "POST,OPTIONS",
     "Access-Control-Max-Age": "3600",
   };
   let coopProtocol=1;
-  const reply = (data: unknown, status = 200) =>
-    new Response(JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:coopClientView(data.coop,coopProtocol)}:data,(key,value)=>key==="_net"||key==="_queuedInputs"?undefined:value), {
+  const requestStarted=performance.now(),rpcTimes=[];
+  let requestCommand='';
+  const reply = (data: unknown, status = 200) => {
+    const json=JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:coopClientView(data.coop,coopProtocol)}:data,(key,value)=>key==="_net"||key==="_queuedInputs"?undefined:value);
+    const gzip=json.length>4096&&(req.headers.get('accept-encoding')||'').split(',').some(part=>part.trim().split(';')[0]==='gzip'&&!/;\s*q=0(?:\.0*)?\s*$/.test(part));
+    if(performance.now()-requestStarted>1500)console.warn('ringu-slow-request',JSON.stringify({command:requestCommand,ms:Math.round(performance.now()-requestStarted),rpc:rpcTimes,bytes:json.length}));
+    return new Response(gzip?new Blob([json]).stream().pipeThrough(new CompressionStream('gzip')):json, {
       status,
       headers: {
         ...cors,
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
+        ...(gzip?{"Content-Encoding":"gzip"}:{}),
       },
     });
+  };
   if (req.headers.get("origin") && req.headers.get("origin") !== origin)
     return reply({ error: "ORIGIN_NOT_ALLOWED" }, 403);
   if (req.method === "OPTIONS")
@@ -32,6 +39,7 @@ Deno.serve(async (req) => {
   if (!authorization?.startsWith("Bearer "))
     return reply({ error: "LOGIN_REQUIRED" }, 401);
   const rpc = async (name: string, body: unknown, admin = false) => {
+    const began=performance.now();
     const r = await fetch(url + "/rest/v1/rpc/" + name, {
       method: "POST",
       headers: {
@@ -42,7 +50,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(10000),
     });
-    const data = await r.json();
+    const data = await r.json().catch(()=>({message:'SERVER_RETRY_REQUIRED'}));
+    rpcTimes.push({name,ms:Math.round(performance.now()-began),status:r.status});
     if (!r.ok) throw new Error(!admin&&r.status===401?"LOGIN_REQUIRED":data.message || "SERVER_RETRY_REQUIRED");
     return data;
   };
@@ -50,6 +59,7 @@ Deno.serve(async (req) => {
     const raw = await req.text();
     if (raw.length > 16384) return reply({ error: "INVALID_BODY" }, 400);
     const body = JSON.parse(raw);
+    requestCommand=body.command;
     if (
       !/^[0-9a-f-]{36}$/i.test(body.requestId || "") ||
       typeof body.command !== "string" ||

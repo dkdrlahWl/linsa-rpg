@@ -12,11 +12,11 @@ const respond=(body,status=200)=>new Response(JSON.stringify(body),{status});
 
 test('raid polling bounds combined room traffic without slowing small parties',()=>{
  const room={mode:'raid',status:'fighting',members:Array.from({length:8},()=>({}))};
- assert.equal(coopInputInterval(room),480);
+ assert.equal(coopInputInterval(room),640);
  assert.ok(room.members.length*1000/coopInputInterval(room)<17);
  assert.equal(coopInputInterval({...room,entryWaiting:true}),250);
- assert.equal(coopInputInterval({...room,members:room.members.slice(0,4)}),250);
- assert.equal(coopInputInterval({...room,mode:'rift'}),250);
+ assert.equal(coopInputInterval({...room,members:room.members.slice(0,4)}),320);
+ assert.equal(coopInputInterval({...room,mode:'wave',members:room.members.slice(0,4)}),320);
 });
 
 test('combat input uses the session-validated RPC without a duplicate Auth request',async()=>{
@@ -43,4 +43,18 @@ test('concurrent entry input returns the newest room instead of three conflictin
  globalThis.fetch=async url=>{calls++;if(url.endsWith('/rebirth_coop_action'))return respond({message:'SAVE_CONFLICT'},400);return respond(snapshot({coop:calls===1?room:latest,now:1000}));};
  const response=await handler(request({input:[1,0,0],compact:true,protocol:2}));
  assert.equal(response.status,200);assert.equal((await response.json()).coop.revision,2);assert.equal(calls,3);
+});
+
+test('large combat responses compress without changing state or exposing history',async()=>{
+ const room={tick:12,mode:'wave',members:[],monsters:Array.from({length:80},(_,id)=>({id,x:1234,y:1500,hp:50000,maxHp:50000})),_net:{private:'history'},_queuedInputs:[{private:'input'}]};
+ globalThis.fetch=async url=>respond(url.endsWith('/rebirth_coop_frame_snapshot')?snapshot({coop:room,now:1000}):{coop:room,now:1000});
+ // No current member means advance is unnecessary for this transport-only fixture.
+ room.status='won';
+ const req=request({frames:[],compact:true,protocol:2});req.headers.set('accept-encoding','gzip, deflate');
+ const response=await handler(req);
+ assert.equal(response.status,200);assert.equal(response.headers.get('content-encoding'),'gzip');
+ const bytes=await response.arrayBuffer();
+ const body=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json();
+ assert.equal(body.coop.monsters.length,80);assert.equal(body.coop._net,undefined);assert.equal(body.coop._queuedInputs,undefined);
+ assert.ok(bytes.byteLength<JSON.stringify(body).length*.4);
 });

@@ -5,7 +5,8 @@ import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,fifth
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=fifth-impact-121';
 import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=walk-thickness-128';
 const codes={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
-const format=n=>Math.floor(n).toLocaleString('ko-KR');
+const combatNumberFormat=new Intl.NumberFormat('ko-KR');
+const format=n=>combatNumberFormat.format(Math.floor(n));
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const snapshot=b=>({enemy:{...b.enemy},projectiles:b.projectiles.map(q=>({...q}))});
 

@@ -4,7 +4,8 @@ import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
 import {waveStats,WAVE_LIMIT} from './wave-model.mjs?v=fifth-impact-121';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=priest-potential-83';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
+const combatNumberFormat=new Intl.NumberFormat('ko-KR');
+const fmt=n=>combatNumberFormat.format(Math.round(n||0));
 const button=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
 export function waveLobby(state,room,rooms=[]){
  if(room)return `<section class="panel pad wave-lobby"><p class="eyebrow">THE FINAL MEADOW</p><h2>협동 웨이브 · 준비실</h2><p>항상 1웨이브부터 시작 · 1~4명 · 4인 기준 난이도</p><div class="wave-members">${room.members.filter(m=>!m.left).map(m=>`<p>● ${esc(m.name)} ${m.id===room.owner?'· 방장':''} · ${m.ready?'준비 완료':'접속 대기'}<small>전투력 ${fmt(m.power.combatPower)}</small></p>`).join('')}</div><div class="actions">${button(room.members.every(m=>m.ready)?'1웨이브 시작':'모두 준비 후 시작','coopStart','',room.owner!==room.me||!room.members.every(m=>m.ready))}${button('새로고침','coopSync')}${button('나가기','coopLeave')}</div></section>`;

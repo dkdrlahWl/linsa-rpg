@@ -98,4 +98,8 @@ for(const mode of ['rift','raid','advancement']){
 }
 const motion=new CoopMotion();motion.begin(1);motion.sample('ally',{x:200,y:200});motion.end();motion.reconcile();motion.begin(17);
 assert.equal(motion.sample('ally',{x:2200,y:2200}).x,2200,'long reconnect does not drag an actor ghost across the arena');
-console.log('PASS: '+cases+' multiplayer modes; delayed/duplicate inputs, ally skills, compact compatibility, wave speed, controller reconciliation, offline/resume and failed interaction retry.');
+const disconnected=controller(fresh('wave'));disconnected.room.waveSpeed=1.5;disconnected.accept(disconnected.room);
+const clock=performance.now();
+for(let i=1;i<=60;i++)disconnected.draw(clock+i*100);
+assert.equal(disconnected.predicted.tick,disconnected.room.tick+30,'long gaps stop prediction at the recoverable replay window, including 1.5x waves');
+console.log('PASS: '+cases+' multiplayer modes; delayed/duplicate inputs, ally skills, compact compatibility, wave speed, controller reconciliation, offline/resume, bounded prediction and failed interaction retry.');

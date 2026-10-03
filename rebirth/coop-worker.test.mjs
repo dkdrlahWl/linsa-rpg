@@ -25,6 +25,10 @@ try{
   assert.deepEqual(project(reset.world),project(reference),mode+'/'+classId+' worker replay matches full combat');
   const next=await send({type:'step',tick:30,input:[0,0,1]});reference=predictCoopStep(reference,'a',[0,0,1],true);
   assert.deepEqual(project(next.world),project(reference),mode+'/'+classId+' ordered step matches combat');
+  const batch=Array.from({length:5},(_,i)=>({tick:31+i,input:[.2,0,i===2?8:1]}));
+  const batched=await send({type:'steps',frames:batch});
+  for(const f of batch)reference=predictCoopStep(reference,'a',f.input,true);
+  assert.deepEqual(project(batched.world),project(reference),mode+'/'+classId+' batched inputs preserve every skill and movement tick');
  }
 }finally{await worker.terminate();}
 const fake={postMessage(){},terminate(){this.terminated=true;}};let applied=0,fallback=0;
@@ -34,6 +38,18 @@ fake.onmessage({data:{type:'state',generation:old,sequence:1}});assert.equal(app
 fake.onmessage({data:{type:'state',generation:bridge.generation,sequence:2}});assert.equal(applied,1);
 fake.onmessage({data:{type:'state',generation:bridge.generation,sequence:2}});assert.equal(applied,1);
 fake.onerror({preventDefault(){}});assert.equal(fallback,1);assert.equal(fake.terminated,true);bridge.dispose();
+const sent=[],slow={postMessage:m=>sent.push(m),terminate(){}};
+const bounded=new CoopPredictor({ready(){},state(){},fallback(){assert.fail('temporary delay must not abandon worker');}},()=>slow);
+slow.onmessage({data:{type:'ready'}});bounded.reset({room:{tick:0}});
+for(let tick=0;tick<20;tick++)bounded.step(tick,[0,0,tick===5?8:1]);
+assert.equal(sent.length,1,'only one full world transfer can be in flight');
+slow.onmessage({data:{type:'state',generation:1,sequence:1}});
+assert.equal(sent.length,2);assert.equal(sent[1].type,'steps');assert.equal(sent[1].frames.length,20);assert.equal(sent[1].frames[5].input[2],8);
+bounded.reset({room:{tick:15}});bounded.reset({room:{tick:20}});
+assert.equal(sent.length,2,'obsolete resets wait outside the worker queue');
+slow.onmessage({data:{type:'state',generation:1,sequence:2}});
+assert.equal(sent.length,3);assert.equal(sent[2].room.tick,20,'only the newest authoritative rebase is sent');
+bounded.dispose();
 const own={id:1,owner:'a',kind:'impact',start:1,end:3},ally={...own,id:2,owner:'b'},boss={...ally,id:3,hostile:true};
 const battle={localSkillsOnly:true,actorId:'a',effects:[own,ally,boss],allies:[{id:'b',hp:100,shield:30}]};
 assert.deepEqual(localSkillView(battle).effects,[own,boss]);assert.equal(battle.effects.length,3);assert.equal(localSkillView(battle).allies,battle.allies);

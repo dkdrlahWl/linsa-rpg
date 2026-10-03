@@ -1,4 +1,4 @@
-import {CoopPredictor} from './coop-prediction.mjs?v=worker-138';
+import {CoopPredictor} from './coop-prediction.mjs?v=coop-steady-143';
 import {CoopEffectMemory} from './coop-effect-memory.mjs?v=worker-138';
 import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';
 import {raidLobby} from './raid-ui.mjs?v=fifth-impact-121';
@@ -14,7 +14,8 @@ import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=fifth-impact-121';
 import {towerArena} from './tower-client.mjs?v=fifth-impact-121';
 import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-thickness-128';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
+const combatNumberFormat=new Intl.NumberFormat('ko-KR');
+const fmt=n=>combatNumberFormat.format(Math.round(n||0));
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
 export function coopLobby(state,room,rooms=[],mode="rift"){
  if(room?.mode==='raid'||(!room&&mode==='raid'))return raidLobby(state,room,rooms);
@@ -31,10 +32,10 @@ export function coopLobby(state,room,rooms=[],mode="rift"){
 export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({advancementStage:room.mode==='advancement'?room.tier:undefined,floor:room.tier+1,encounter:coopEncounter(room),classId:me.classId,runId:room.id,advanced:!!me.advanced,power:me.power,third:(me.power?.advancement||0)>=2}).replaceAll('시련의 탑',room.mode==='raid'?'레이드':room.mode==='wave'?'협동 웨이브':room.mode==='advancement'?'전직 보스':'협동 균열').replace('>'+String(room.tier+1)+'F<','>'+String(coopEncounter(room).level)+'<').replace('towerLeaveConfirm','coopLeaveConfirm');}
 const keyBits={KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
 export function coopInputInterval(room,rtt=250){
- const players=room.mode==='raid'&&room.status==='fighting'&&!room.entryWaiting?room.members.filter(m=>!m.left).length:1;
+ const players=room.status==='fighting'&&!room.entryWaiting?room.members.filter(m=>!m.left).length:1;
  // Bound the room's combined polling load as participants join. Local movement
  // and combat prediction still run at 10 Hz between authoritative snapshots.
- return Math.max(250,Math.min(8,players)*60,Math.min(650,rtt*.65));
+ return Math.max(250,Math.min(8,players)*80,Math.min(800,rtt*.8));
 }
 export class CoopController{
  constructor(host,room,send,sound){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'));this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
@@ -161,7 +162,7 @@ export class CoopController{
     const tick=this.predictionTick??this.predicted.tick;
     if(this.predicted.status==='fighting'&&!this.room.entryWaiting){this.frames.push({tick,input:frame});this.predictionTick=tick+1;}
     this.frames=this.frames.slice(-35);this.predictor.step(tick,frame);
-   });
+   },()=>this.room.entryWaiting||this.room.status!=='fighting'||(this.predictionTick??this.predicted.tick)<this.room.tick+30);
   }else{
   // Reconcile a bounded amount per frame so one late response cannot block painting.
   const replayStarted=performance.now();
@@ -174,7 +175,7 @@ export class CoopController{
    if(this.predicted.status==='fighting'&&!this.room.entryWaiting)this.frames.push({tick:this.predicted.tick,input:frame});
    this.frames=this.frames.slice(-35);
    this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true,this.remoteFrames.get(this.predicted.tick)||[]);
-  });
+  },()=>this.room.entryWaiting||this.room.status!=='fighting'||this.predicted.tick<this.room.tick+30);
   }
   const w=this.predicted;if(w.mode==='raid')w.walls=[];const me=w.members.find(m=>m.id===w.me),tier=coopEncounter(w);
   const pendingTicks=this.workerActive?Math.max(0,(this.predictionTick??w.tick)-w.tick):0;
