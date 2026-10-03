@@ -56,7 +56,7 @@ const context={performance,structuredClone,Math,Map,Set,Promise,document,navigat
  paintHealthBar:()=>{},autoSkillBits:()=>0,prepareWaveCreature:()=>Promise.resolve(),image:()=>({}),WAVE_MONSTERS:Array.from({length:30},()=>({})),waveHud:()=>{},
  predictCoopStep,indexCoopFrames,coopEncounter,COOP_TIERS,motionSnapshot,interpolateActor,CoopMotion,TowerInput,
  projectPlayer:b=>({x:b.player.x,y:b.player.y}),raidMove:(m,x,y)=>Object.assign(m,{x,y})};
-const source=readFileSync(new URL('./coop-client.mjs',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace(/^export /gm,'');
+const source=readFileSync(new URL('./coop-client.mjs',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'').replace(/^export /gm,'');
 const Controller=vm.runInNewContext(source+'\nCoopController;',context);
 function controller(seed){
  const nodes=new Map(),host={querySelector:s=>{if(!nodes.has(s))nodes.set(s,{style:{},dataset:{},textContent:'',hidden:false,append(){}});return nodes.get(s);},querySelectorAll:()=>[]};
@@ -64,6 +64,10 @@ function controller(seed){
 }
 const seed=fresh('rift'),late=advanceCoop({...seed,_queuedInputs:remote},'a',{frames:local.slice(0,10)},3000),c=controller(seed);
 c.accept(coopClientView(late,2));
+const predicted=c.predicted,generation=c.motion.generation;
+c.accept(structuredClone(c.room));
+assert.equal(c.predicted,predicted,'duplicate room does not reset prediction');
+assert.equal(c.motion.generation,generation,'duplicate room does not restart motion correction');
 let now=performance.now();
 for(let i=0;i<30&&c.predicted.tick<30;i++)c.draw(now+=17);
 assert.equal(c.predicted.tick,30);

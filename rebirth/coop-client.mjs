@@ -30,6 +30,12 @@ export function coopLobby(state,room,rooms=[],mode="rift"){
 }
 export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({advancementStage:room.mode==='advancement'?room.tier:undefined,floor:room.tier+1,encounter:coopEncounter(room),classId:me.classId,runId:room.id,advanced:!!me.advanced,power:me.power,third:(me.power?.advancement||0)>=2}).replaceAll('시련의 탑',room.mode==='raid'?'레이드':room.mode==='wave'?'협동 웨이브':room.mode==='advancement'?'전직 보스':'협동 균열').replace('>'+String(room.tier+1)+'F<','>'+String(coopEncounter(room).level)+'<').replace('towerLeaveConfirm','coopLeaveConfirm');}
 const keyBits={KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
+export function coopInputInterval(room,rtt=250){
+ const players=room.mode==='raid'&&room.status==='fighting'&&!room.entryWaiting?room.members.filter(m=>!m.left).length:1;
+ // Bound the room's combined polling load as participants join. Local movement
+ // and combat prediction still run at 10 Hz between authoritative snapshots.
+ return Math.max(250,Math.min(8,players)*60,Math.min(650,rtt*.65));
+}
 export class CoopController{
  constructor(host,room,send,sound){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'));this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
   window.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,dialog'))return;if(keyBits[e.code]||/^(Key[WASD]|Arrow)/.test(e.code)){e.preventDefault();if(!this.keys.has(e.code)&&keyBits[e.code])this.press(keyBits[e.code]);this.keys.add(e.code);}},opt);window.addEventListener('keyup',e=>this.keys.delete(e.code),opt);
@@ -61,7 +67,7 @@ export class CoopController{
  }
  startPredictor(){
   this.predictor=new CoopPredictor({
-   ready:()=>{if(this.disposed)return;this.workerActive=true;this.accept(this.room);},
+   ready:()=>{if(this.disposed)return;this.workerActive=true;this.acceptedSignature=null;this.accept(this.room);},
    state:packet=>{
     if(this.disposed)return;
     this.predicted=packet.world;this.previousSim=packet.previous;
@@ -70,7 +76,7 @@ export class CoopController{
     if(packet.world.entryWaiting||packet.world.status!=='fighting')this.predictionTick=packet.world.tick;
     this.lastHud=0;
    },
-   fallback:()=>{if(this.disposed)return;this.workerActive=false;this.predictionTick=undefined;this.accept(this.room);}
+   fallback:()=>{if(this.disposed)return;this.workerActive=false;this.predictionTick=undefined;this.acceptedSignature=null;this.accept(this.room);}
   });
  }
  input(){if(this.artReady===false)return [0,0,0];if(['wave','advancement','raid'].includes(this.predicted?.mode)&&this.predicted.members.find(m=>m.id===this.room.me)?.hp<=0)return [0,0,0];if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=(this.auto?1:0)|(this.autoSkills?autoSkillBits(this.predicted.members.find(m=>m.id===this.room.me),this.predicted.tick,this.predicted.status==='fighting'):0);for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,this.room.entryWaiting?0:bits];}
@@ -90,9 +96,16 @@ export class CoopController{
    if(!result)this.pendingBits|=taps;
    if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
   }catch(error){this.pendingBits|=taps;this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
-  finally{this.busy=false;this.nextSend=Math.max(started+Math.max(250,Math.min(650,(this.rtt||250)*.65)),performance.now()+(this.failures?Math.min(1200,150*this.failures+Math.random()*100):40));}
+  finally{this.busy=false;this.nextSend=Math.max(started+coopInputInterval(this.room,this.rtt||250)+Math.random()*30,performance.now()+(this.failures?Math.min(1200,150*this.failures+Math.random()*100):40));}
  }
- accept(room){if(!room||room.id!==this.room.id||(room.revision??0)<(this.room.revision??0)||((room.revision??0)===(this.room.revision??0)&&room.tick<this.room.tick))return;const starting=this.room.entryWaiting&&!room.entryWaiting,resync=!!this.needsResync;this.previousRoom=this.room;this.room=room;this.received=performance.now();
+ accept(room){if(!room||room.id!==this.room.id||(room.revision??0)<(this.room.revision??0)||((room.revision??0)===(this.room.revision??0)&&room.tick<this.room.tick))return;
+ const signature=[room.revision??0,room.tick,room.status,!!room.entryWaiting,room.members.find(m=>m.id===room.me)?.inputAck??-1].join(':');
+ this.received=performance.now();
+ // Concurrent input requests can return the same confirmed room. Replaying
+ // it again resets interpolation and makes the whole party hitch in place.
+ if(this.acceptedSignature===signature&&!this.needsResync)return;
+ this.acceptedSignature=signature;
+ const starting=this.room.entryWaiting&&!room.entryWaiting,resync=!!this.needsResync;this.previousRoom=this.room;this.room=room;
  if(starting||room.entryWaiting||resync){this.frames=[];this.sampler.clear();this.pendingBits=0;this.hint={attack:0,skill:0,dash:0};}
  if(starting||room.members.find(m=>m.id===room.me)?.entryMoved)this.entryMoveInput=null;
  const target=room.entryWaiting||starting||resync?room.tick:Math.max(room.tick,Math.min(this.predictionTick??this.predicted?.tick??room.tick,room.tick+20));

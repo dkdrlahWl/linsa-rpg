@@ -9,13 +9,13 @@ globalThis.Image=class {complete=false;naturalWidth=0;decode(){return Promise.re
 const power={attack:1,hp:10000,defense:20,boss:1,crit:0,critDamage:1,cadence:1,firstJob:false};
 for(const mode of ['rift','wave','advancement']){
  const world=startCoop({id:mode,me:'me',tier:0,mode,status:'waiting',members:[{id:'me',classId:'warrior',power},{id:'other',classId:'warrior',power}]},0);
- const nodes=new Map(),host={querySelector:s=>{if(!nodes.has(s))nodes.set(s,{style:{},dataset:{},classList:{toggle(){}},textContent:'',innerHTML:''});return nodes.get(s);},querySelectorAll:()=>[]};
+ const nodes=new Map(),host={querySelector:s=>{if(!nodes.has(s))nodes.set(s,{style:{},dataset:{},classList:{toggle(){}},setAttribute(){},textContent:'',innerHTML:''});return nodes.get(s);},querySelectorAll:()=>[]};
  const controller=Object.assign(Object.create(CoopController.prototype),{host,room:world,predicted:structuredClone(world),frames:[],keys:new Set(),pointers:new Map(),stick:{x:0,y:0},motion:new CoopMotion(),sampler:new TowerInput(100),hint:{},received:performance.now(),renderer:{draw(b){controller.rendered=b;}}});
- controller.accept(world);let now=performance.now();controller.lastDraw=now;controller.draw(now);
+ controller.accept(world);let now=performance.now();controller.lastDraw=now-17;controller.draw(now);
  const before=controller.rendered,corrected=structuredClone(world);corrected.tick=1;
- for(const m of corrected.members){m.x+=400;m.y-=200;}corrected.enemy.x+=500;
- for(const m of corrected.monsters||[])m.x=Math.min(3080,m.x+600);
- controller.accept(corrected);controller.lastDraw=now;controller.draw(now);
+ for(const m of corrected.members){m.x+=200;m.y-=100;}corrected.enemy.x+=500;
+ for(const m of corrected.monsters||[])m.x=Math.min(3080,m.x+400);
+ controller.accept(corrected);controller.lastDraw=now-17;controller.draw(now);
  const after=controller.rendered;
  assert.equal(after.player.x,before.player.x,mode+' local');
  assert.equal(after.allies[0].x,before.allies[0].x,mode+' remote');

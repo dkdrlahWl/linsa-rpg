@@ -125,8 +125,12 @@ export class TowerRenderer {
     g.save();g.translate(x,y);g.rotate(rotation);g.scale(flip*width,1);g.transform(1,0,lean,1,0,0);g.globalAlpha=alpha;
     const frames=frameBounds(source,columns,rows),r=frames[((frame%frames.length)+frames.length)%frames.length],scale=Math.min(w/frames.maxWidth,h/frames.maxHeight);g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-r.h*scale,r.w*scale,r.h*scale);g.restore();
   }
-  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1,costumeId=null){
+  actor(classId,dir,moving,acting,age,walk,x,y,alpha=1,costumeId=null,detailedMotion=true){
     const facing=Number.isInteger(dir)&&dir>=0&&dir<8?dir:6,g=this.g;
+    // Remote actors keep their direction/attack frames without generating a
+    // pixel-readback walking rig for every new attack pose on the render thread.
+    const riggedWalk=moving&&detailedMotion;
+    if(moving&&!detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
     const spriteSize=this.mobileActors.matches?215:180;
     const costume=costumeById(costumeId,classId);
     if(costume){
@@ -136,7 +140,7 @@ export class TowerRenderer {
       if(decodedImages.has(im)&&pose&&im.naturalWidth===pose.layout.width&&im.naturalHeight===pose.layout.height){
         const source=cleanDirectionalAtlas(im,pose.layout),r=pose.frame;
         const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=costumeMotionScale(pose,bodySize,costume.renderBodyHeight);
-        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(moving)drawWalkingSprite(g,source,r,[r.body,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
+        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(riggedWalk)drawWalkingSprite(g,source,r,[r.body,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
         return;
       }
       // Keep the costume visible only while its directional sheet is loading.
@@ -150,7 +154,7 @@ export class TowerRenderer {
     }
     if(classId==='priest'){
       const im=image('tower/priest-motion-v1.png');
-      if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,row=acting?(age<.3?3:age<.7?4:5):0;g.save();try{g.translate(x,y);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=acting?16:6;if(moving)drawWalkingSprite(g,im,{x:facing*sw,y:row*sh,w:sw,h:sh},[sh*PRIEST_BODY_RATIO,sw/2,sh],spriteSize/sh,walk,facing,true);else g.drawImage(im,facing*sw,row*sh,sw,sh,-spriteSize/2,-spriteSize,spriteSize,spriteSize);}finally{g.restore();}}
+      if(im.complete&&im.naturalWidth){const sw=im.width/8,sh=im.height/6,row=acting?(age<.3?3:age<.7?4:5):0;g.save();try{g.translate(x,y);g.globalAlpha=alpha;g.shadowColor=acting?'#fff2b9':'#d7c888';g.shadowBlur=detailedMotion?(acting?16:6):0;if(riggedWalk)drawWalkingSprite(g,im,{x:facing*sw,y:row*sh,w:sw,h:sh},[sh*PRIEST_BODY_RATIO,sw/2,sh],spriteSize/sh,walk,facing,true);else g.drawImage(im,facing*sw,row*sh,sw,sh,-spriteSize/2,-spriteSize,spriteSize,spriteSize);}finally{g.restore();}}
       return;
     }
     const bodySize=spriteSize*PRIEST_BODY_RATIO;
@@ -165,7 +169,7 @@ export class TowerRenderer {
     if(!im.complete||!im.naturalWidth||!r||!Number.isFinite(r.foot)||r.w<=0||r.h<=0){fallback();return;}
     const atlasKey=name==='hero-warrior-east-v4'?'warriorEast':classId,body=MOTION_BODY_LAYOUT[atlasKey]?.[row*8+frame]||[layout.bodyHeight,r.w/2,r.foot];
     const flip=([3,4,5].includes(facing)?-1:1)*(classId==='mage'&&((!acting&&[1,2].includes(row))||(acting&&row===7&&frame===4)||(acting&&row===6&&![3,5,6].includes(frame)))?-1:1),scale=bodySize/(ACTOR_BODY_REFERENCE[atlasKey]||layout.bodyHeight);
-    g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;if(moving)drawWalkingSprite(g,im,r,[ACTOR_BODY_REFERENCE[atlasKey]||body[0],body[1],body[2]],scale,walk,flip<0?(4-facing+8)%8:facing);else g.drawImage(im,r.x,r.y,r.w,r.h,-body[1]*scale,-body[2]*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
+    g.save();try{g.translate(x,y);g.scale(flip,1);g.globalAlpha=alpha;if(riggedWalk)drawWalkingSprite(g,im,r,[ACTOR_BODY_REFERENCE[atlasKey]||body[0],body[1],body[2]],scale,walk,flip<0?(4-facing+8)%8:facing);else g.drawImage(im,r.x,r.y,r.w,r.h,-body[1]*scale,-body[2]*scale,r.w*scale,r.h*scale);}catch{g.restore();fallback();return;}g.restore();
   }
   thirdSprite(col,frame,x,y,w,h,angle=0,alpha=.8){const im=image(asset('third-job-atlas'));if(!im.complete||!im.naturalWidth)return;const g=this.g,sw=im.width/5,sh=im.height/4;g.save();g.translate(x,y);g.rotate(angle);g.globalAlpha=alpha;g.drawImage(im,col*sw,frame*sh,sw,sh,-w/2,-h/2,w,h);g.restore();}
   strip(src,frame,x,y,w,h,angle=0,alpha=1,filter='none'){
@@ -368,7 +372,7 @@ export class TowerRenderer {
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.pet(m,m.x,m.y,time,m.id);
       const pose=!m.moving?fifthPose(fifthAreas.find(e=>e.owner===m.id),time):null;
-      this.shadow(m.x,m.y,25);if(!b.localSkillsOnly&&m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});if(!b.localSkillsOnly)drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId);
+      this.shadow(m.x,m.y,25);if(!b.localSkillsOnly&&m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});if(!b.localSkillsOnly)drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId,false);
       if(!b.localSkillsOnly&&b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       const labelY=m.y-(this.mobileActors.matches?215:180)-24;
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,labelY);g.fillStyle='#25312d';g.fillRect(m.x-40,labelY+11,80,6);const health=healthSegments(m);g.fillStyle='#bfc7cf';g.fillRect(m.x-40+80*health.health/100,labelY+11,80*health.shieldWidth/100,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,labelY+11,80*health.health/100,6);g.restore();

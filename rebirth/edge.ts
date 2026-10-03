@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       signal: AbortSignal.timeout(10000),
     });
     const data = await r.json();
-    if (!r.ok) throw new Error(data.message || "SERVER_RETRY_REQUIRED");
+    if (!r.ok) throw new Error(!admin&&r.status===401?"LOGIN_REQUIRED":data.message || "SERVER_RETRY_REQUIRED");
     return data;
   };
   try {
@@ -62,21 +62,23 @@ Deno.serve(async (req) => {
     const fastInput=body.command==='coopInput';
     coopProtocol=body.args.protocol===2?2:1;
     if(fastInput&&Object.hasOwn(body.args,'frames'))validateCoopFrames(body.args.frames);
-    // Both endpoints validate the bearer token. Read/queue the authenticated
-    // input concurrently with account lookup; authoritative writes still wait.
-    const [authResult,frameResult]=await Promise.allSettled([
-      fetch(url + "/auth/v1/user", {
+    // PostgREST verifies the input bearer token, and frame_snapshot validates
+    // the active auth.sessions row before queuing any frames. Repeating the
+    // Auth HTTP lookup for every combat packet adds a second request per player.
+    let initialFrameSnapshot=null;
+    let user;
+    if(fastInput){
+      initialFrameSnapshot=await rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true});
+      if(!initialFrameSnapshot?.snapshot?.user||!initialFrameSnapshot.snapshot.session)throw new Error('LOGIN_REQUIRED');
+      user={id:initialFrameSnapshot.snapshot.user};
+    }else{
+      const auth=await fetch(url + "/auth/v1/user", {
         headers: { apikey: anon, Authorization: authorization },
         signal: AbortSignal.timeout(10000),
-      }),
-      fastInput?rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true}):Promise.resolve(null)
-    ]);
-    if(authResult.status==="rejected")throw authResult.reason;
-    const auth=authResult.value;
-    if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
-    const user = await auth.json();
-    if(frameResult.status==="rejected")throw frameResult.reason;
-    const initialFrameSnapshot=frameResult.value;
+      });
+      if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
+      user=await auth.json();
+    }
     if(['investList','investBuy','investSell'].includes(body.command)){
       return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
     }
@@ -118,7 +120,16 @@ Deno.serve(async (req) => {
           }
           const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim?.reward,rewardState:claim?.state}},true);
           return reply(result);
-        }catch(e){if(e.message==='SAVE_CONFLICT'&&retry<2)continue;throw e;}
+        }catch(e){
+          if(e.message==='SAVE_CONFLICT'&&fastInput){
+            // Entry movement and chest walking use held input rather than the
+            // frame queue. A concurrent participant may win the room revision;
+            // return the newest authenticated state and resend on the next poll.
+            const latest=await rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true});
+            return reply(latest.current);
+          }
+          if(e.message==='SAVE_CONFLICT'&&retry<2)continue;throw e;
+        }
       }
       if(snap.state?.coopRoom)throw new Error('BATTLE_IN_PROGRESS');
       if (snap.state?.battle?.kind === "tower" && body.command.startsWith("party")) throw new Error("BATTLE_IN_PROGRESS");
