@@ -1,3 +1,4 @@
+import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=costume-visible-108';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
@@ -28,7 +29,7 @@ import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=fifth-impact-121';
 import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=walk-thickness-128';
-import * as D from "./data.mjs?v=boss-relic-only-130";
+import * as D from "./data.mjs?v=gear-original-recovery-131";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-impact-121";
@@ -616,11 +617,21 @@ function atlasIcon(tier, n, label, size="") {
   const col=n%4,row=Math.floor(n/4),x=atlas.x[col],y=atlas.y[row],w=atlas.x[col+1]-x,h=atlas.y[row+1]-y;
   return `<svg class="gear-icon ${size}" role="img" aria-label="${esc(label)}" viewBox="${x} ${y} ${w} ${h}"><image href="gear-${tier}.svg" width="${atlas.w}" height="${atlas.h}" preserveAspectRatio="none"/></svg>`;
 }
+let gearClipId=0;
 function gearMarkup(it, size="") {
   if(!it) return "";
   const art = D.equipmentIdentity(it);
   const tier = D.equipmentTierLevel(it);
   const frameClass = `gear-frame ${size} ${it.boss ? "boss-gear" : ""} ${it.boss && tier >= 160 ? "boss-relic relic-" + tier : ""}`;
+  if(!art.standalone) {
+    const label=esc(it.boss ? "보스 장비 " + art.name : art.name);
+    if(art.grid)return `<span class="${frameClass}"><span class="gear-icon" role="img" aria-label="${label}" style="display:block;width:100%;height:100%;background-image:url('${art.art}');background-size:${art.columns*100}% ${art.rows*100}%;background-position:${art.column/(art.columns-1)*100}% ${art.row/(art.rows-1)*100}%;background-repeat:no-repeat"></span></span>`;
+    const bounds=equipmentBounds[art.art.split('/').pop()];
+    const ys=bounds.cellY[art.column],cell=bounds.cells?.[art.column]?.[art.row];
+    const [x,y,w,h]=cell||[bounds.x[art.column],ys[art.row],bounds.x[art.column+1]-bounds.x[art.column],ys[art.row+1]-ys[art.row]];
+    const clipId='gear-clip-'+(++gearClipId),clip=cell?.[4]?`<defs><clipPath id="${clipId}"><polygon points="${cell[4]}"/></clipPath></defs>`:'';
+    return `<span class="${frameClass}"><svg class="gear-icon" role="img" aria-label="${label}" viewBox="${[x,y,w,h].join(' ')}" overflow="hidden" preserveAspectRatio="xMidYMid meet"><svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${[x,y,w,h].join(' ')}" overflow="hidden"><image href="${art.art}" width="${bounds.width}" height="${bounds.height}" preserveAspectRatio="none" ${clip?'clip-path="url(#'+clipId+')"':''}/>${clip}</svg></svg></span>`;
+  }
   return `<span class="${frameClass}"><img class="gear-icon" src="${esc(art.art)}" alt="${esc(it.boss ? "보스 장비 " + art.name : art.name)}" width="256" height="256" decoding="async" draggable="false"></span>`;
 }
 function bossMarkup(b, size="") {
