@@ -880,7 +880,7 @@ function showEvents(events) {
     if(e.type==="coop"){tab="boss";bossTab=e.mode==="wave"?"wave":"coop";view="game";render();reward();continue;}
     if(e.type==="exchangeGear")open("장비 교환 완료",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
-    if(e.type==="costumeBuy")toast("코스튬을 구매했어요. 코스튬 메뉴에서 장착할 수 있어요.");
+    if(e.type==="costumeBuy")toast("코스튬 구매 완료! 보유 효과로 공격력 +1%가 적용됐어요.");
     if(e.type==="costumeEquip")toast("코스튬을 장착했어요.");
     if(e.type==="costumeUnequip")toast("기본 의상으로 변경했어요.");
     if(e.type==="shopSell")toast(`셀리아: 고마워! ${fmt(e.gold)} G를 지급했어.`);
@@ -1125,7 +1125,7 @@ document.addEventListener("click", async (e) => {
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
       const c=costumeById(arg);if(!c)return;
-      open("코스튬 구매",`<div class="costume-card" data-no-currency-art><img src="${c.portrait}" alt="${c.name}"><strong>${c.name}</strong><span>5,000,000 G</span></div><p class="note">구매 후 해당 직업으로 장착할 수 있어요.</p><div class="actions">${btn("취소","close")}${btn("구매 확정","costumeBuyConfirm",c.id,"gold",true)}</div>`);return;
+      open("코스튬 구매",`<div class="costume-card" data-no-currency-art><img src="${c.portrait}" alt="${c.name}"><strong>${c.name}</strong><span>5,000,000 G</span></div><p class="note">보유 효과: 공격력 +1%. 구매 즉시 적용되며, 장착하지 않아도 효과가 유지돼요. 외형은 해당 직업으로 장착할 수 있어요.</p><div class="actions">${btn("취소","close")}${btn("구매 확정","costumeBuyConfirm",c.id,"gold",true)}</div>`);return;
     }
     if(action==='costumeBuyConfirm'){modal.close();return await command('costumeBuy',{id:arg});}
     if(action==='costumeEquip'||action==='costumeUnequip'){modal.close();return await command(action,{id:arg});}

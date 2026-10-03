@@ -1,4 +1,5 @@
 export const COSTUME_PRICE=5_000_000;
+export const COSTUME_ATTACK_BONUS=1;
 export const COSTUMES=Object.freeze([
   {id:'crimson-dragon',classId:'warrior',name:'붉은 용기사'},
   {id:'starlight-mage',classId:'mage',name:'별빛 마도사'},
@@ -6,8 +7,10 @@ export const COSTUMES=Object.freeze([
   {id:'blackmoon-assassin',classId:'rogue',name:'흑월 암살자'},
   {id:'golden-captain',classId:'pirate',name:'황금 함장'},
   {id:'bluemoon-priest',classId:'priest',name:'청월 사제'},
-].map(c=>Object.freeze({...c,price:COSTUME_PRICE,atlas:`costumes/${c.classId}-motion-v2.webp`,portrait:`costumes/${c.classId}-portrait-v1.webp`})));
+].map(c=>Object.freeze({...c,price:COSTUME_PRICE,attackBonus:COSTUME_ATTACK_BONUS,atlas:`costumes/${c.classId}-motion-v2.webp`,portrait:`costumes/${c.classId}-portrait-v1.webp`})));
 export function costumeById(id,classId){return COSTUMES.find(c=>c.id===id&&(!classId||c.classId===classId))||null;}
+// Ownership bonuses include every class and do not require equipping the costume.
+export function costumeAttackBonus(s){return [...new Set(Array.isArray(s.costumes)?s.costumes:[])].reduce((total,id)=>total+(costumeById(id)?.attackBonus||0),0);}
 export function equippedCostume(s){return Array.isArray(s.costumes)&&s.costumes.includes(s.equippedCostume)?costumeById(s.equippedCostume,s.classId):null;}
 export function normalizeCostumes(s){s.costumes=[...new Set((Array.isArray(s.costumes)?s.costumes:[]).filter(id=>costumeById(id)))];s.equippedCostume=equippedCostume(s)?.id||null;return s;}
 export function costumeCommand(s,command,id){

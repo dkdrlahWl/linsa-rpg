@@ -1,5 +1,5 @@
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-impact-121';
-import {normalizeCostumes,equippedCostume,costumeCommand} from './costumes.mjs';
+import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=priest-potential-83';
@@ -193,6 +193,8 @@ export function power(s) {
   const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
   if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
   if(s.classId==="priest")flat=priestAttack(hp,primary,priestGearAttack*(firstJobUnlocked(s)?1.1**jobStage(s):1),pct.attack,pct.hp,pct.LUK);
+  const costumeBonus=costumeAttackBonus(s);
+  flat *= 1 + costumeBonus / 100;
   const boss=1+pct.boss/100*(s.classId==="priest"?PRIEST_OFFENSE_POTENTIAL_RATE:1);
   const dps = flat * (1 + crit * (critDamage - 1)) * cadence;
   const stats = Object.fromEntries(Object.keys(fixedStats).map(key => {
@@ -202,6 +204,7 @@ export function power(s) {
   }));
   return {
     costumeId:equippedCostume(s)?.id||null,
+    costumeAttackBonus:costumeBonus,
     pet:s.equippedPet===PET_ID&&s.pets?.includes(PET_ID)?PET_ID:null,
     stats,
     bonuses: {...pct},
