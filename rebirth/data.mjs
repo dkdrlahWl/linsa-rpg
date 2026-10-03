@@ -2,8 +2,8 @@ export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=fifth-im
 export {PRIEST_SKILLS} from './priest.mjs?v=fifth-114';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fifth-114';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fifth-114';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=boss-drop-87';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=boss-drop-87';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=boss-190-126';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=boss-190-126';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=priest-potential-83';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=priest-potential-83';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=priest-potential-83";
@@ -160,7 +160,7 @@ export const BOSSES = bosses.flatMap((list, r) =>
     id: r * 3 + j,
     name,
     region: r,
-    level: r === 9 && j === 2 ? 200 : Math.max(5, r * 20 + j * 6),
+    level: r === 9 && j === 2 ? 190 : Math.max(5, r * 20 + j * 6),
     hp: BOSS_BALANCE[r*3+j].hp,
     recommended: BOSS_BALANCE[r*3+j],
     gold: Math.round(4000*(r+1)*(j===2?2.5:1)),

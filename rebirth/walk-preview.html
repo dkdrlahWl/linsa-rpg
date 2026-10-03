@@ -2,7 +2,7 @@
 <style>body{margin:0;background:#132430;color:#fff0d6;font:14px system-ui}header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px}button,select{background:#243d4b;color:#fff;border:1px solid #ab925f;border-radius:6px;padding:8px}canvas{display:block;width:100%;max-width:1200px;margin:auto}p{padding:0 14px}</style>
 <header><strong>기본 캐릭터 · 코스튬 양발 걷기</strong><label>방향 <select id="direction"><option value="2">남</option><option value="1">남동</option><option value="0">동</option><option value="7">북동</option><option value="6">북</option><option value="5">북서</option><option value="4">서</option><option value="3">남서</option></select></label><button id="pause">일시정지</button><label>보폭 <input id="phase" type="range" min="0" max="8" step=".05" value="0" aria-label="걷기 주기"></label></header><p id="status">캐릭터 준비 중…</p><canvas width="1200" height="530"></canvas>
 <script type="module">
-import {TowerRenderer,prepareCombatArt} from './tower-renderer.mjs?v=walk-alternate-125';
+import {TowerRenderer,prepareCombatArt} from './tower-renderer.mjs?v=walk-two-legs-126';
 import {COSTUMES} from './costumes.mjs?v=costume-motion-111';
 const classes=['warrior','mage','archer','rogue','pirate','priest'],names=['전사','마법사','궁수','도적','해적','사제'],canvas=document.querySelector('canvas'),g=canvas.getContext('2d'),renderer=Object.create(TowerRenderer.prototype);
 renderer.g=g;renderer.mobileActors={matches:false};await prepareCombatArt(classes,'astrael',COSTUMES.map(c=>c.id));

@@ -9,7 +9,7 @@ import {TowerInput,projectPlayer} from './tower-input.mjs?v=fifth-impact-121';
 import {predictCoopStep} from './coop-model.mjs?v=fifth-impact-121';
 import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=fifth-impact-121';
 import {towerArena} from './tower-client.mjs?v=fifth-impact-121';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-alternate-125';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-two-legs-126';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.round(n||0).toLocaleString('ko-KR');
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';

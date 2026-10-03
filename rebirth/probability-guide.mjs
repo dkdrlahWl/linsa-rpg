@@ -1,4 +1,4 @@
-import * as D from './data.mjs?v=fifth-impact-121';
+import * as D from './data.mjs?v=boss-190-126';
 import {COOP_TIERS} from './rift-rewards.mjs?v=priest-potential-83';
 import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-impact-121';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';

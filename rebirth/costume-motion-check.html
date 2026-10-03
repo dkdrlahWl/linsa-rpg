@@ -2,7 +2,7 @@
 <style>body{margin:0;background:#12202b;color:#f7e5b5;font:16px system-ui}main{max-width:900px;margin:auto;padding:16px}header{display:flex;gap:8px;flex-wrap:wrap;align-items:center}select,button{font:inherit;padding:10px;border:1px solid #9b854e;border-radius:8px;background:#203445;color:inherit}button[aria-pressed=true]{background:#765424}canvas{width:100%;height:auto;background:#23313b;border-radius:14px;margin-top:12px}p{color:#b7c7ce}</style>
 <main><h1>코스튬 방향·모션</h1><header><select id="class" aria-label="코스튬"></select><button data-mode="idle" aria-pressed="false">대기</button><button data-mode="walk" aria-pressed="true">이동</button><button data-mode="attack" aria-pressed="false">공격</button></header><p id="status">모션 불러오는 중…</p><canvas width="900" height="540" aria-label="코스튬의 8방향 모습"></canvas><p>같은 캐릭터의 앞·옆·뒤 방향과 걸음·공격 자세를 표시합니다.</p></main>
 <script type="module">
-import {TowerRenderer,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-alternate-125';
+import {TowerRenderer,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-two-legs-126';
 import {COSTUMES} from './costumes.mjs?v=costume-motion-111';
 const select=document.querySelector('select'),canvas=document.querySelector('canvas'),g=canvas.getContext('2d'),status=document.querySelector('#status');
 select.innerHTML=COSTUMES.map(c=>`<option value="${c.classId}">${c.name}</option>`).join('');

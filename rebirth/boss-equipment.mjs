@@ -1,5 +1,5 @@
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-potential-83';
-import * as D from './data.mjs?v=fifth-impact-121';
+import * as D from './data.mjs?v=boss-190-126';
 const bossesFor=level=>D.BOSSES.filter(b=>b.gearLevel===level);
 const option=(value,label)=>'<option value="'+value+'">'+label+'</option>';
 document.querySelector('#class').innerHTML+=D.CLASSES.map(c=>option(c.id,c.name)).join('');

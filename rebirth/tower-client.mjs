@@ -1,6 +1,6 @@
 import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=fifth-impact-121';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,FIFTH_SKILLS,fifthUnlocked,firstJobUnlocked} from './data.mjs?v=fifth-impact-121';
-export {TowerController} from './tower-controller.mjs?v=walk-alternate-125';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,FIFTH_SKILLS,fifthUnlocked,firstJobUnlocked} from './data.mjs?v=boss-190-126';
+export {TowerController} from './tower-controller.mjs?v=walk-two-legs-126';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';
 export function towerLobby(state){

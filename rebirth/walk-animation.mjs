@@ -14,9 +14,9 @@ export function walkingPose(walk,direction,bodyHeight){
  return {feet:feet.sort((a,b)=>a.depth-b.depth),bob:Math.abs(Math.sin(phase*2))*bodyHeight*.012};
 }
 
-function walkingRig(source,r,body){
+function walkingRig(source,r,body,robe){
  let cached=rigs.get(source);if(!cached){cached=new Map();rigs.set(source,cached);}
- const key=[r.x,r.y,r.w,r.h,...body].join(':');if(cached.has(key))return cached.get(key);
+ const key=[r.x,r.y,r.w,r.h,...body,robe].join(':');if(cached.has(key))return cached.get(key);
  const canvas=document.createElement('canvas');canvas.width=Math.ceil(r.w);canvas.height=Math.ceil(r.h);
  const g=canvas.getContext('2d',{willReadFrequently:true});g.drawImage(source,r.x,r.y,r.w,r.h,0,0,r.w,r.h);
  const [height,anchor,foot]=body,length=height*.18;
@@ -31,8 +31,12 @@ function walkingRig(source,r,body){
  const q=leg.getContext('2d');q.drawImage(canvas,center-width/2,foot-length,width,length,0,0,leg.width,leg.height);
  const fade=q.createLinearGradient(0,0,0,leg.height);fade.addColorStop(0,'#0000');fade.addColorStop(.38,'#000');fade.addColorStop(1,'#000');q.globalCompositeOperation='destination-in';q.fillStyle=fade;q.fillRect(0,0,leg.width,leg.height);
  q.fillStyle='#000';q.beginPath();q.roundRect(0,0,leg.width,leg.height,leg.width*.3);q.fill();
- // Erase only the painted foot pixels, rather than cutting a rectangle out of a robe.
- g.globalCompositeOperation='destination-out';g.drawImage(leg,center-width/2,foot-length,width,length);g.globalCompositeOperation='source-over';
+ // Remove BOTH original legs, including their outlines. Erasing a boot-shaped
+ // clone at the average foot centre left the two standing legs on the torso.
+ g.globalCompositeOperation='destination-out';g.fillStyle='#000';
+ const cutoff=foot-height*(robe?.06:.15);
+ g.fillRect(anchor-height*.22,cutoff,height*.44,foot+height*.05-cutoff);
+ g.globalCompositeOperation='source-over';
  const rig={canvas,leg,height,anchor,foot,length,width};cached.set(key,rig);return rig;
 }
 
@@ -47,11 +51,10 @@ function limb(g,rig,pose){
 }
 
 export function drawWalkingSprite(g,source,r,body,scale,walk,direction,robe=false){
- const rig=walkingRig(source,r,body),pose=walkingPose(walk,direction,rig.height);
+ const rig=walkingRig(source,r,body,robe),pose=walkingPose(walk,direction,rig.height);
  g.save();g.scale(scale,scale);
  for(const foot of pose.feet)limb(g,rig,foot);
  // A single torso layer covers the joints, preserving coats and ghost opacity.
- if(robe)g.drawImage(source,r.x,r.y,r.w,r.h,-rig.anchor,-rig.foot-pose.bob,r.w,r.h);
- else g.drawImage(rig.canvas,-rig.anchor,-rig.foot-pose.bob);
+ g.drawImage(rig.canvas,-rig.anchor,-rig.foot-pose.bob);
  g.restore();
 }

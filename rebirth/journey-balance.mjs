@@ -23,10 +23,11 @@ export function balanceWorld(stages,bosses,raids){
  for(const b of bosses){
   const n=b.id%3;b.hp=Math.round(bossHP[b.region]*(1+n*.22));
   b.attack=Math.round(bossAttack[b.region]*(1+n*.12)*(n===2?3.5:1));b.hp=Math.round(b.hp*(n===2?1.35:1));b.seconds=90;
+  if(b.id===28){b.hp=Math.round(b.hp*1.25);b.attack=Math.round(b.attack*1.15);}
   b.patternEvery=Math.max(9,16-b.region);b.patternMultiplier=2.1+n*.2;
   b.gold=Math.round((1200+900*b.region)*(n===2?4:1));
   b.cubes=n===2?18:6;b.material=0;
-  b.level=b.id===29?200:b.region===0?1+n*5:Math.min(200,b.region*20+n*6);
+  b.level=b.id===29?190:b.region===0?1+n*5:Math.min(200,b.region*20+n*6);
   b.gearLevel=dropEquipmentLevel(b.level);
   b.dropChance=(n===2?.25:.10)*(b.gearLevel>=150?.5:1);
   b.recommended={...b.recommended,gear:Math.max(1,b.region*20),stars:Math.min(20,Math.round(b.region*2)),pot:b.region>=2,target:100};
