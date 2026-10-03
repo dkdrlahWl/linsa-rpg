@@ -99,6 +99,14 @@ Deno.serve(async (req) => {
       if(user.app_metadata?.ringu_admin!==true)throw new Error('BETA_DISABLED');
       return reply(await rpc('rebirth_admin_transfer',{p_args:body.args,p_request:body.requestId}));
     }
+    if(body.command==='goldTransfer'){
+      return reply(await rpc('rebirth_gold_transfer',{p_args:body.args,p_request:body.requestId}));
+    }
+    if(body.command==='goldTransferClaim'){
+      const id=body.args?.id;
+      if(typeof id!=='string'||!/^gold-transfer-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))throw new Error('MAIL_NOT_FOUND');
+      return reply(await rpc('rebirth_gold_transfer_claim',{p_mail:id.slice(14),p_request:body.requestId}));
+    }
     for (let retry = 0; retry < 3; retry++) {
       const frameSnapshot=fastInput?(retry===0?initialFrameSnapshot:await rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true})):null;
       const snap = frameSnapshot?.snapshot||await rpc("rebirth_snapshot", { p_request: body.requestId });

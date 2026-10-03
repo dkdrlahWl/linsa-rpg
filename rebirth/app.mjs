@@ -191,6 +191,9 @@ function message(e) {
   if(e.message==='SHOP_BOSS_ONLY')return '보스장비만 판매할 수 있어요.';
   if(e.message==='INVALID_TRANSFER_LIMIT')return '받는 계정의 보유 한도(9조)를 초과합니다. 수량을 줄여 주세요.';
   if(e.message==='INVALID_TRANSFER_RECIPIENT')return '받는 계정을 찾을 수 없습니다. 랭킹을 새로고침해 주세요.';
+  if(e.message==='INVALID_TRANSFER_AMOUNT')return '송금액은 1~999,999,999,999 G 사이의 정수로 입력해 주세요.';
+  if(e.message==='INVALID_TRANSFER_SELF')return '자신에게는 송금할 수 없습니다.';
+  if(e.message==='MAILBOX_FULL')return '받는 사람의 우편함이 가득 찼습니다.';
   if(e.message==='RAID_PRIEST_REQUIRED')return '사제 1명 이상이 있어야 레이드를 출발할 수 있습니다.';
   return (
     errors[e.message] ||
@@ -433,7 +436,7 @@ function header(title, kicker = "새로운 여정") {
 function systemInbox() {
   const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
   const labels={scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
-  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}"><img src="${currencyIconURL(key)}" alt=""><span>${esc(labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}개</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방의 보유 재료에서 확인할 수 있어요.</p></div>'}</div>`);
+  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}"><img src="${currencyIconURL(key)}" alt=""><span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":"개"}</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
 }
 function systemMailButton() {
   const count=state.systemMailbox?.length||0;
@@ -755,6 +758,11 @@ function adminTransferDialog(id) {
   const target=rankingRows.find(r=>r.id===id);if(!target)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
   open("관리자 송금",`<div class="stack"><p><strong>${esc(target.name)}</strong> · Lv.${target.level} · ${esc(D.CLASSES.find(c=>c.id===target.classId)?.name||"")}</p><label>재화 · 소비템<select id="transfer-resource">${Object.entries({gold:"골드",...D.MATERIALS}).map(([key,name])=>`<option value="${key}">${esc(name)}</option>`).join("")}</select></label><label>보낼 수량<input id="transfer-amount" type="number" inputmode="numeric" min="1" max="999999999999" step="1" value="1"></label><p class="note">수수료 없이 입력한 수량 전부가 상대방 보유량에 추가됩니다. 관리자 재화는 999,999,999,999로 유지됩니다.</p>${btn("송금하기","adminTransferSend",id,"gold",true)}</div>`);
 }
+function goldTransferDialog(id) {
+  const target=rankingRows.find(r=>r.id===id&&!r.isMe);
+  if(!target)return toast('랭킹을 새로고침한 뒤 선택해 주세요.');
+  open('골드 송금',`<div class="stack"><p><strong>${esc(target.name)}</strong>님에게 골드를 보냅니다.</p><p class="note">내 보유 골드 ${fmt(state.gold)} G · 수수료 없음</p><label>송금할 골드<input id="gold-transfer-amount" type="number" inputmode="numeric" min="1" max="999999999999" step="1" value="1"></label><p class="note">송금 즉시 내 골드가 차감되며 상대방은 우편함에서 직접 수령합니다.</p>${btn('송금 확인','goldTransferConfirm',id,'gold',true)}</div>`);
+}
 function rankings() {
   const combat=rankingMode==="combat",rankKey=combat?"combatRank":"levelRank",label=combat?"전투력":"레벨";
   const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
@@ -762,7 +770,7 @@ function rankings() {
   const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
   const portrait=r=>`<div class="rank-portrait portrait ${r.classId==='priest'?'priest-portrait':''}" style="${portraitStyle(r.classId,r.costumeId,portraitPosition(r.classId))}" aria-hidden="true"></div>`;
   const podium=rows.slice(0,3).map(r=>`<article class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}">${esc(r.name)}</strong><small>${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
-  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong>${esc(r.name)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><div class="rank-score"><b>${score(r)}</b>${state.isAdmin&&r.id?btn("송금","adminTransferOpen",r.id,"rank-transfer-button"):""}</div></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
+  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong>${esc(r.name)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><div class="rank-score"><b>${score(r)}</b>${!r.isMe&&r.id?(state.isAdmin?btn("관리자 송금","adminTransferOpen",r.id,"rank-transfer-button"):btn("골드 송금","goldTransferOpen",r.id,"rank-transfer-button")):""}</div></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
 }
 function journal() {
   const goals=[["첫 토벌",state.cleared.length,1,"보스 첫 처치"],["장비 수집가",state.collection.length,50,"서로 다른 장비 50종 발견"],["직업의 길",D.firstJobUnlocked(state)?1:0,1,requiredLevel(30)+" · 수정 문지기 처치 후 전직"],["숙련 모험가",state.level,100,requiredLevel(100,"100레벨 달성")],["왕좌를 넘어",state.cleared.length,30,"멸신왕 벨제리온 처치"],["새벽의 탐험가",state.dungeonClaims.relic?1:0,1,"여명의 폐허 클리어"]];
@@ -877,6 +885,8 @@ function showEvents(events) {
     if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
     if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
+    if(e.type==='goldTransfer'){modal.close();toast(`${e.recipientName}님에게 ${fmt(e.amount)} G를 우편으로 보냈습니다.`);continue;}
+    if(e.type==='goldTransferClaim'){toast(`우편에서 ${fmt(e.amount)} G를 받았습니다.`);continue;}
     if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
     if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
@@ -1187,10 +1197,11 @@ document.addEventListener("click", async (e) => {
     if (action === "reconnect") return await command("sync",{},false,true);
     if (action === "recoverLogin"){location.href="recover.html?v=request-recovery-2";return;}
     if (action === "attendance") return attendance();
-    if (action === "systemInbox") return systemInbox();
+    if (action === "systemInbox") {if(!busy)await command("sync",{},true);return systemInbox();}
     if (action === "claimSystemMail") {
       const chest=state.systemMailbox?.some(m=>m.id===arg&&m.kind==="lumiBossChest");
-      const result=await command("claimSystemMail",{id:arg});
+      const playerGold=state.systemMailbox?.some(m=>m.id===arg&&m.kind==="playerGold");
+      const result=await command(playerGold?"goldTransferClaim":"claimSystemMail",{id:arg});
       if(result&&!chest)systemInbox();
       return;
     }
@@ -1234,6 +1245,21 @@ document.addEventListener("click", async (e) => {
     if (action === "journal") {modal.close();view="journal";return render();}
     if (action === "ranking") {modal.close();view="ranking";return await loadRankings();}
     if(action==="adminTransferOpen")return adminTransferDialog(arg);
+    if(action==="goldTransferOpen")return goldTransferDialog(arg);
+    if(action==="goldTransferConfirm"){
+      if(busy||!state||state.isAdmin)return;
+      const amount=Number($("#gold-transfer-amount")?.value),target=rankingRows.find(r=>r.id===arg&&!r.isMe);
+      if(!target)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
+      if(!Number.isSafeInteger(amount)||amount<1||amount>999999999999)return toast("송금액은 1~999,999,999,999 G 사이의 정수로 입력해 주세요.");
+      if(amount>state.gold)return toast("골드가 부족합니다.");
+      return open("골드 송금 확인",`<p><strong>${esc(target.name)}</strong>님에게 <strong>${fmt(amount)} G</strong>를 우편으로 보냅니다.</p><p class="note">내 골드에서 즉시 차감됩니다. 송금 후 취소할 수 없습니다.</p>${btn("송금하기","goldTransferSend",arg+":"+amount,"gold",true)}`);
+    }
+    if(action==="goldTransferSend"){
+      if(busy||!state||state.isAdmin)return;
+      const [id,amountText]=arg.split(":"),amount=Number(amountText);
+      if(!rankingRows.some(r=>r.id===id&&!r.isMe)||!Number.isSafeInteger(amount)||amount<1||amount>999999999999)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
+      return await command("goldTransfer",{recipient:id,amount});
+    }
     if(action==="adminTransferSend"){
       if(busy||!state?.isAdmin)return;
       const amount=Number($("#transfer-amount")?.value),resource=$("#transfer-resource")?.value;
