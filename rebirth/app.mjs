@@ -11,7 +11,8 @@ let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=short-18';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-season-145';
+import {arenaView,startArenaReplay} from './arena-ui.mjs';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=short-18';
@@ -79,6 +80,7 @@ let salvageMode=false;
 const salvageSelection=new Set();
 const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id;
 let partyBossId=null, partyPractice=false;
+let arenaData=null,arenaPage='home',arenaBattle=null,arenaPlayback=null;
 let shopCategory="boss";
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0, lastBattleRequestAt = 0;
@@ -371,6 +373,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if(Object.hasOwn(result,'state'))state = D.normalizePotentialState(result.state);
     if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
+    if(result.arena)arenaData=result.arena;
+    if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
     if(result.coopRooms)coopRooms=result.coopRooms;
@@ -467,7 +471,8 @@ function confirmClassChange(classId) {
 function shell(content) {
   if(document.body.classList.contains("tower-mode"))return `<div class="shell">${content}</div>`;
   const c = D.CLASSES.find(c=>c.id===state.classId);
-  return `<div class="shell fantasy-shell">${fantasyHeader(state,view==="game"?tab:"")}<div class="fantasy-player-strip"><span><strong>${esc(state.name)}</strong> · Lv.${state.level} ${c.name}</span><span>전투력 <b>${fmt(power(state).combatPower)}</b></span></div><div id="connection-status" class="connection-status" role="status" ${connectionLost?"":"hidden"}>연결이 지연되고 있어요. ${btn("다시 연결","reconnect")}</div><main class="fantasy-content" data-screen="${esc(view==="game"?tab:view)}">${content}</main>${fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady())}</div>`;
+  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':`<nav class="pvp-dock" aria-label="아레나 하단 메뉴"><button data-action="tab" data-arg="hunt">⌂<span>홈</span></button><button data-action="arenaOpen" class="active">⚔<span>아레나</span></button><button data-action="tab" data-arg="gear">▣<span>가방</span></button><button data-action="gameMenu">☰<span>메뉴</span></button></nav>`:fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady());
+  return `<div class="shell fantasy-shell">${fantasyHeader(state,view==="arena"?"arena":view==="game"?tab:"")}<div class="fantasy-player-strip"><span><strong>${esc(state.name)}</strong> · Lv.${state.level} ${c.name}</span><span>전투력 <b>${fmt(power(state).combatPower)}</b></span></div><div id="connection-status" class="connection-status" role="status" ${connectionLost?"":"hidden"}>연결이 지연되고 있어요. ${btn("다시 연결","reconnect")}</div><main class="fantasy-content" data-screen="${esc(view==="game"?tab:view)}">${content}</main>${footer}</div>`;
 }
 
 function render() {
@@ -487,6 +492,7 @@ function render() {
   if(coopFight)content=coopArena(coopRoom);
   else if(state.coopRoom)content=coopLobby(state,coopRoom,coopRooms);
   else if (towerBattle) content=towerArena(towerBattle);
+  else if (view === "arena") content=arenaView({data:arenaData,page:arenaPage,self:state,battle:arenaBattle});
   else if (view === "ranking") content = rankings();
   else if (state.partyRoom) content = partyPanel();
   else if (view === "journal") content = journal();
@@ -507,6 +513,7 @@ function render() {
   document.body.classList.toggle("pet-event-mode",eventScreen&&eventPage!=="lotto");
   document.body.classList.toggle("lotto-mode",eventScreen&&eventPage==="lotto");
   replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
+  if(view==='arena'&&arenaPage==='battle'&&arenaBattle&&!arenaPlayback){arenaPlayback=startArenaReplay(arenaBattle,()=>{arenaPlayback=null;arenaPage='result';render();});}
   window.scrollTo({top:preservedScroll,behavior:"instant"});
   updatePetCountdown();
   updateInvestmentClock(investmentData,investmentLoadedAt);
@@ -1138,6 +1145,11 @@ document.addEventListener("click", async (e) => {
   sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage','shopCategory'].includes(action)?'ui-tab':'ui-click');
   if(action==='star')sounds.play('enhance-charge');
   try {
+    if(action==='arenaOpen'){modal.close();view='arena';arenaPage='home';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}render();while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));await command('arenaList',{},true);return;}
+    if(action==='arenaPage'){if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}arenaPage=['home','opponents','ranking','rewards','history'].includes(arg)?arg:'home';view='arena';render();if(!arenaData||Date.now()>=new Date(arenaData.nextRefreshAt).getTime()){while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));await command('arenaList',{},true);}return;}
+    if(action==='arenaChallenge'){if(busy||!arenaData?.offers?.some(o=>o.id===arg&&!o.used))return;b.disabled=true;b.textContent='전투 준비 중…';try{await command('arenaFight',{opponentId:arg});}catch{b.disabled=false;b.textContent='도전';}return;}
+    if(action==='arenaSkip'){arenaPlayback?.skip();return;}
+    if(action==='arenaSpeed'){const speed=arenaPlayback?.speed();b.textContent=speed===2?'1배속':'2배속';return;}
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
     if(action==='adminCoinDirection'){if(!state.isAdmin||b.disabled)return;const [coin,side]=arg.split(':');b.disabled=true;try{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_admin_coin_direction',{p_coin:Number(coin),p_side:side});toast(`${result.name} · ${new Date(result.scheduledAt).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'})} 봉 ${side==='long'?'상승':'하락'} 1회 지정`);}finally{b.disabled=false;}return;}
@@ -1675,6 +1687,7 @@ function unavailable() {
 }
 window.addEventListener("online",()=>{ if(session&&!coopController) command("sync",{},true).catch(()=>{}); });
 window.addEventListener("offline",()=>{connectionLost=true;const banner=$("#connection-status");if(banner)banner.hidden=false;});
+setInterval(()=>{const el=document.querySelector('[data-arena-countdown]');if(!el)return;const remaining=Math.max(0,new Date(el.dataset.arenaCountdown).getTime()-Date.now());el.textContent=`${Math.floor(remaining/3600000)}시간 ${String(Math.floor(remaining%3600000/60000)).padStart(2,'0')}분`;if(!remaining&&view==='arena'&&arenaPage==='opponents'&&!busy)command('arenaList',{},true).catch(()=>{});},30000);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) sounds.pause();
   else {

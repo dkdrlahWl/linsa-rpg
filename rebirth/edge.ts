@@ -1,6 +1,7 @@
 import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
 import { initialState, execute, power, grantCoopChest, grantRaidChest } from "./engine.mjs";
+import {buildBot,arenaProfile,simulateArena,tier} from './arena-model.mjs';
 const url = Deno.env.get("SUPABASE_URL")!;
 const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -106,6 +107,30 @@ Deno.serve(async (req) => {
       const id=body.args?.id;
       if(typeof id!=='string'||!/^gold-transfer-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))throw new Error('MAIL_NOT_FOUND');
       return reply(await rpc('rebirth_gold_transfer_claim',{p_mail:id.slice(14),p_request:body.requestId}));
+    }
+    if(body.command==='arenaList'||body.command==='arenaFight'){
+      const arena=await rpc('rebirth_arena_status',{});
+      const enrich=async(raw:any,board:any[]=arena.top100)=>{
+        const rank=board.find((r:any)=>r.id===raw.id)?.rank||null;
+        const other=raw.kind==='bot'?buildBot({id:Number(raw.id.slice(4)),name:raw.name,classId:raw.classId,score:raw.score}):await rpc('rebirth_arena_opponent_snapshot',{p_user:raw.id.slice(7)},true);
+        return {...arenaProfile(other,raw.score,rank,raw.id),used:raw.used===true};
+      };
+      const offers=await Promise.all(arena.offers.map(enrich));
+      if(body.command==='arenaList')return reply({arena:{...arena,offers}});
+      const target=body.args?.opponentId;
+      if(typeof target!=='string'||!/^((bot:[1-9]\d{0,3})|(player:[0-9a-f-]{36}))$/.test(target))throw new Error('INVALID_ARENA_OPPONENT');
+      const previous=await rpc('rebirth_arena_receipt',{p_request:body.requestId});
+      if(previous){if(previous.opponentId!==target)throw new Error('REQUEST_ID_REUSED');return reply({arena:{...arena,offers},battle:previous});}
+      const opponent=arena.offers.find((o:any)=>o.id===target&&!o.used);
+      if(!opponent)throw new Error('ARENA_OPPONENT_UNAVAILABLE');
+      const snap=await rpc('rebirth_snapshot',{p_request:body.requestId});
+      if(snap.user!==user.id||!snap.state)throw new Error('CHARACTER_REQUIRED');
+      if(snap.state.battle||snap.state.coopRoom)throw new Error('BATTLE_IN_PROGRESS');
+      const enemy=opponent.kind==='bot'?buildBot({id:Number(target.slice(4)),name:opponent.name,classId:opponent.classId,score:opponent.score}):await rpc('rebirth_arena_opponent_snapshot',{p_user:target.slice(7)},true);
+      const battle=simulateArena(snap.state,enemy,body.requestId);
+      const saved=await rpc('rebirth_arena_commit',{p_user:user.id,p_session:snap.session,p_request:body.requestId,p_target:target,p_result:{battle,opponent:arenaProfile(enemy,opponent.score,arena.top100.find((r:any)=>r.id===target)?.rank||null,target),self:arenaProfile(snap.state,arena.score,arena.rank,'self')}},true);
+      const latest=await rpc('rebirth_arena_status',{});
+      return reply({arena:{...latest,offers:await Promise.all(latest.offers.map((o:any)=>enrich(o,latest.top100)))},battle:saved});
     }
     for (let retry = 0; retry < 3; retry++) {
       const frameSnapshot=fastInput?(retry===0?initialFrameSnapshot:await rpc('rebirth_coop_frame_snapshot',{p_request:body.requestId,p_fingerprint:fingerprint,p_args:body.args,p_compact:body.args.compact===true})):null;
@@ -227,7 +252,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : "SERVER_RETRY_REQUIRED";
     const business =
-      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_|DAILY_|COOP_|BETA_|SHOP_|PRIME_|LOTTO_)/.test(
+      /^(INVALID_|INSUFFICIENT_|ITEM_|LEVEL_|STARS_|PREVIOUS_|MAX_|ALREADY_|NO_|SKILL_|POTENTIAL_|BOSS_|DUNGEON_|BATTLE_|INVENTORY_|UNKNOWN_|REQUEST_|CHARACTER_|MAIL_|PARTY_|RAID_|ADVANCEMENT_|DAILY_|COOP_|BETA_|SHOP_|PRIME_|LOTTO_|ARENA_)/.test(
         message,
       );
     if(!business)console.error("ringu-request-failed",message);
