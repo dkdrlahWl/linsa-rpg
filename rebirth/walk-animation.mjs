@@ -22,11 +22,14 @@ function walkingRig(source,r,body,robe){
  const [height,anchor,foot]=body,length=height*.18;
  // Reuse the painted boot, including its colours and outlines, for both limbs.
  const data=g.getImageData(0,0,canvas.width,canvas.height).data;
- let mass=0,weight=0;
- for(let y=Math.max(0,Math.floor(foot-height*.075));y<Math.min(canvas.height,Math.ceil(foot));y++)for(let x=Math.max(0,Math.floor(anchor-height*.13));x<Math.min(canvas.width,Math.ceil(anchor+height*.13));x++){
-  const a=data[(y*canvas.width+x)*4+3];if(a>30){mass+=x*a;weight+=a;}
+ const width=height*.09,columns=new Float64Array(canvas.width);
+ for(let y=Math.max(0,Math.floor(foot-height*.045));y<Math.min(canvas.height,Math.ceil(foot));y++)for(let x=0;x<canvas.width;x++)columns[x]+=data[(y*canvas.width+x)*4+3];
+ // Sample an actual boot, not the transparent gap between the two boots.
+ let center=anchor,best=-1;
+ for(let x=Math.max(0,Math.floor(anchor-height*.35));x<Math.min(canvas.width,Math.ceil(anchor+height*.35));x++){
+  let score=0;for(let k=Math.max(0,Math.floor(x-width/2));k<Math.min(canvas.width,Math.ceil(x+width/2));k++)score+=columns[k];
+  score-=Math.abs(x-anchor)*.01;if(score>best){best=score;center=x;}
  }
- const center=weight?mass/weight:anchor,width=height*.09;
  const leg=document.createElement('canvas');leg.width=Math.ceil(width);leg.height=Math.ceil(length);
  const q=leg.getContext('2d');q.drawImage(canvas,center-width/2,foot-length,width,length,0,0,leg.width,leg.height);
  const fade=q.createLinearGradient(0,0,0,leg.height);fade.addColorStop(0,'#0000');fade.addColorStop(.38,'#000');fade.addColorStop(1,'#000');q.globalCompositeOperation='destination-in';q.fillStyle=fade;q.fillRect(0,0,leg.width,leg.height);
@@ -34,8 +37,15 @@ function walkingRig(source,r,body,robe){
  // Remove BOTH original legs, including their outlines. Erasing a boot-shaped
  // clone at the average foot centre left the two standing legs on the torso.
  g.globalCompositeOperation='destination-out';g.fillStyle='#000';
- const cutoff=foot-height*(robe?.06:.15);
- g.fillRect(anchor-height*.22,cutoff,height*.44,foot+height*.05-cutoff);
+ const cutoff=foot-height*(robe?.06:.15),halfWidth=height*.42;
+ // The mask follows the hip-to-boot silhouette. Its narrow top preserves
+ // garments; the wide bottom includes the offset feet in side/attack poses.
+ g.beginPath();g.moveTo(anchor-height*.22,cutoff);
+ g.lineTo(anchor+height*.22,cutoff);
+ g.lineTo(anchor+halfWidth,foot-height*.065);
+ g.lineTo(anchor+halfWidth,foot+height*.05);
+ g.lineTo(anchor-halfWidth,foot+height*.05);
+ g.lineTo(anchor-halfWidth,foot-height*.065);g.closePath();g.fill();
  g.globalCompositeOperation='source-over';
  const rig={canvas,leg,height,anchor,foot,length,width};cached.set(key,rig);return rig;
 }

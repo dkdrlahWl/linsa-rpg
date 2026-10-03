@@ -1,5 +1,5 @@
 import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-impact-121';
-import {drawWalkingSprite} from './walk-animation.mjs?v=walk-two-legs-126';
+import {drawWalkingSprite} from './walk-animation.mjs?v=walk-two-legs-127';
 import {costumeMotionFrame} from './costume-motion.mjs?v=costume-motion-111';
 import COSTUME_MOTION_LAYOUT from './costume-motion-layout.mjs?v=costume-motion-111';
 import {costumeById} from './costumes.mjs?v=costume-motion-111';
