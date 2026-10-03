@@ -185,6 +185,8 @@ const errors = {
   SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
 };
 function message(e) {
+  const arenaErrors={ARENA_OFFERS_EXPIRED:'상대 목록이 갱신됐어요. 새 상대를 확인해 주세요.',ARENA_OPPONENT_UNAVAILABLE:'이미 도전한 상대예요. 다른 상대를 골라 주세요.',INVALID_ARENA_OPPONENT:'상대를 다시 선택해 주세요.',ARENA_OPPONENT_MISSING:'상대 정보를 불러올 수 없어요. 잠시 후 다시 시도해 주세요.'};
+  if(arenaErrors[e.message])return arenaErrors[e.message];
   if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED')return '정각에 가격이 갱신됐어요. 새 가격을 확인하고 다시 거래해 주세요.';
   if(e.message==='INVALID_INVESTMENT_POSITION')return '이미 판매 또는 청산된 투자입니다. 투자 화면을 다시 열어 주세요.';
   const lotteryErrors={LOTTO_DUPLICATE:'이번 주에 이미 구매한 번호입니다.',LOTTO_DAILY_LIMIT:'오늘은 3장을 모두 구매했습니다.',LOTTO_ROUND_CHANGED:'추첨 회차가 바뀌었습니다. 로또 화면을 다시 열어주세요.',INVALID_LOTTO_NUMBERS:'1~18 중 서로 다른 번호 2개를 선택하세요.'};
@@ -1147,7 +1149,7 @@ document.addEventListener("click", async (e) => {
   try {
     if(action==='arenaOpen'){modal.close();view='arena';arenaPage='home';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}render();while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));await command('arenaList',{},true);return;}
     if(action==='arenaPage'){if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}arenaPage=['home','opponents','ranking','rewards','history'].includes(arg)?arg:'home';view='arena';render();if(!arenaData||Date.now()>=new Date(arenaData.nextRefreshAt).getTime()){while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));await command('arenaList',{},true);}return;}
-    if(action==='arenaChallenge'){if(busy||!arenaData?.offers?.some(o=>o.id===arg&&!o.used))return;b.disabled=true;b.textContent='전투 준비 중…';try{await command('arenaFight',{opponentId:arg});}catch{b.disabled=false;b.textContent='도전';}return;}
+    if(action==='arenaChallenge'){if(busy||!arenaData?.offers?.some(o=>o.id===arg&&!o.used))return;b.disabled=true;b.textContent='전투 준비 중…';try{await command('arenaFight',{opponentId:arg});}catch(e){b.disabled=false;b.textContent='도전';if(['ARENA_OFFERS_EXPIRED','ARENA_OPPONENT_UNAVAILABLE'].includes(e.message))await command('arenaList',{},true).catch(()=>{});}return;}
     if(action==='arenaSkip'){arenaPlayback?.skip();return;}
     if(action==='arenaSpeed'){const speed=arenaPlayback?.speed();b.textContent=speed===2?'1배속':'2배속';return;}
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
