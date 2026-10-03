@@ -36,6 +36,16 @@ begin
   perform public.rebirth_coop_action(p1);
  end loop;
  elapsed:=extract(epoch from clock_timestamp()-beg)*1000;
+ -- A peer has moved the room revision while this player's reward was computed.
+ w:=w||jsonb_build_object('mode','raid','status','won','chest',jsonb_build_object('x',1500,'y',1500),'members',jsonb_build_array(jsonb_build_object('id',u1,'damage',10,'x',1500,'y',1500),jsonb_build_object('id',u2,'damage',10,'x',1500,'y',1500)));
+ update rebirth_private.coop_rooms set world=w,revision=revision+5 where id=rid;
+ p1:=p1||jsonb_build_object('action','open','roomRevision',0,'reward',jsonb_build_object('type','coop','gold',42),'rewardState',jsonb_build_object('gold',42,'coopRoom',rid));
+ r1:=public.rebirth_coop_action(p1);
+ assert (r1->'state'->>'gold')::int=42,'stale room revision does not reject an eligible chest';
+ assert not (r1->'state' ? 'coopRoom'),'claim exits room';
+ r1:=public.rebirth_coop_action(p1);
+ assert (r1->'state'->>'gold')::int=42,'receipt prevents duplicate chest reward';
+ assert not exists(select 1 from rebirth_private.coop_input_frames where room_id=rid),'finished combat clears queue';
  insert into coop_queue_check values(jsonb_build_object('passed',true,'packets',80,'total_ms',elapsed,'mean_ms',elapsed/80,'world_bytes',length(w::text)));
 end $test$;
 select * from coop_queue_check;
