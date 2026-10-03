@@ -50,7 +50,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
-} from "./data.mjs?v=boss-190-126";
+} from "./data.mjs?v=boss-relic-only-130";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fifth-impact-121';
 const fail = (message) => {

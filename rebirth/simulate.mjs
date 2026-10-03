@@ -1,5 +1,5 @@
 import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=fifth-impact-121';
-import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=boss-190-126';
+import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=boss-relic-only-130';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.
 const ctx={now:0,uuid:()=>crypto.randomUUID()};

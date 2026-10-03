@@ -53,3 +53,6 @@ dialog{width:min(94vw,440px);max-height:86dvh;padding:14px;border:1px solid #ba9
 /* Keep the village visible through the character artwork. */
 .portrait{background-image:url('characters-transparent-v1.png');background-color:transparent}
 .hero .portrait{mask-image:none}
+
+/* Isolated equipment artwork preserves its complete silhouette in every UI. */
+.gear-frame>img.gear-icon{display:block;object-fit:contain;object-position:center;overflow:hidden;background:none;border:0;padding:0!important;min-width:0;min-height:0;pointer-events:none}

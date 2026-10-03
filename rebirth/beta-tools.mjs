@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=boss-190-126';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=boss-relic-only-130';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

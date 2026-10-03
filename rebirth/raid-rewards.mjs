@@ -1,5 +1,5 @@
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-potential-83';
-import {weekKey} from './data.mjs?v=boss-190-126';
+import {weekKey} from './data.mjs?v=boss-relic-only-130';
 
 export const RAID_WEEKLY_LIMIT=3;
 export function raidWeeklyStatus(state,now=Date.now()){

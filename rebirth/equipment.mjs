@@ -44,6 +44,15 @@ export const designCount=(level,classId,slot,boss=false)=>boss?1:2;
 export const designWeights=count=>count===1?[100]:[50,50];
 export function designItem(level,classId,slot,boss,design=0){return normalizeEquipment({level:Math.max(10,Math.floor(Math.min(200,level)/10)*10),classId,slot,boss,design});}
 export function selectDesign(level,classId,slot,boss,random=Math.random){return designItem(level,classId,slot,boss,boss?2:Math.min(1,Math.floor(random()*2)));}
-export function designIdentity(item){if(item.classId==='priest'){const level=equipmentTierLevel(item),design=canonicalDesign(item),tier=level/10-1,nouns=["성향로","성서","홀"],prefixes=["수련","순례","달빛","수림","수정","성당","여명","불꽃","진혼","왕실","설원","빙하","사막","태양","천공","성좌","시간","균열","심연","대천사"],styles=["기도의","축복의","심판의"];return {key:equipmentKey(item),name:prefixes[tier]+" "+styles[design]+" "+(item.slot===0?nouns[design]:NOUNS.priest[item.slot+2]),art:`equipment/priest-${level}.webp`,grid:true,columns:9,rows:3,column:item.slot,row:design,type:equipmentType(item)};}const level=equipmentTierLevel(item),design=canonicalDesign(item),column=item.slot===0?design:item.slot+2;const art=legacyIdentity({...item,level,design:undefined,weaponVariant:item.slot===0?design:0});return {...art,key:equipmentKey(item),name:level+'레벨 '+(item.boss?'토벌자의 ':design===0?'개척자의 ':'수호자의 ')+NOUNS[item.classId][column],row:(Math.floor((level-10)/20)+(design===1?5:0)+column*3)%art.rows,type:equipmentType({...item,weaponVariant:design})};}
+function atlasIdentity(item){if(item.classId==='priest'){const level=equipmentTierLevel(item),design=canonicalDesign(item),tier=level/10-1,nouns=["성향로","성서","홀"],prefixes=["수련","순례","달빛","수림","수정","성당","여명","불꽃","진혼","왕실","설원","빙하","사막","태양","천공","성좌","시간","균열","심연","대천사"],styles=["기도의","축복의","심판의"];return {key:equipmentKey(item),name:prefixes[tier]+" "+styles[design]+" "+(item.slot===0?nouns[design]:NOUNS.priest[item.slot+2]),art:`equipment/priest-${level}.webp`,grid:true,columns:9,rows:3,column:item.slot,row:design,type:equipmentType(item)};}const level=equipmentTierLevel(item),design=canonicalDesign(item),column=item.slot===0?design:item.slot+2;const art=legacyIdentity({...item,level,design:undefined,weaponVariant:item.slot===0?design:0});return {...art,key:equipmentKey(item),name:level+'레벨 '+(item.boss?'토벌자의 ':design===0?'개척자의 ':'수호자의 ')+NOUNS[item.classId][column],row:(Math.floor((level-10)/20)+(design===1?5:0)+column*3)%art.rows,type:equipmentType({...item,weaponVariant:design})};}
+// Every equipment identity resolves to a single padded image. No atlas is rendered in UI.
+export function designIdentity(item) {
+  const identity = atlasIdentity(item), level = equipmentTierLevel(item);
+  const design = canonicalDesign(item);
+  const art = item.boss && level >= 160
+    ? `equipment/reforged/${level}-${design}-${item.classId}-${item.slot}.svg`
+    : `equipment/isolated/${identity.art.split('/').pop().replace(/\.[^.]+$/, '')}-c${identity.column}-r${identity.row}.svg`;
+  return {...identity, art, standalone:true, grid:false, column:0, row:0, columns:1, rows:1};
+}
 export const equipmentIdentity=designIdentity;
 export const EQUIPMENT_CATALOG=CLASSES.flatMap(classId=>LEVELS.flatMap(level=>Array.from({length:9},(_,slot)=>Array.from({length:3},(_,design)=>designItem(level,classId,slot,design===2,design))).flat()));

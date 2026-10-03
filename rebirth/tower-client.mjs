@@ -1,5 +1,5 @@
 import {towerEncounter,TOWER_FLOORS} from './tower-model.mjs?v=fifth-impact-121';
-import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,FIFTH_SKILLS,fifthUnlocked,firstJobUnlocked} from './data.mjs?v=boss-190-126';
+import {CLASS_SKILLS,SECOND_SKILLS,FOURTH_SKILLS,THIRD_SKILLS,FIFTH_SKILLS,fifthUnlocked,firstJobUnlocked} from './data.mjs?v=boss-relic-only-130';
 export {TowerController} from './tower-controller.mjs?v=walk-thickness-128';
 const format=n=>Math.floor(n).toLocaleString('ko-KR');
 const asset=name=>'tower/'+name+'.webp';

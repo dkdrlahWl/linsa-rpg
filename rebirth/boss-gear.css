@@ -14,3 +14,19 @@
 .bag-grid .bag-slot.boss-gear{padding:4px 1px 2px}
 .gear-cell.boss-gear:focus-visible,.bag-grid .bag-slot.boss-gear:focus-visible,.market-compact-card.boss-gear:focus-visible,.market-picker-layout .market-inventory-item.boss-gear:focus-visible{outline:3px solid #fff0b2;outline-offset:2px}
 .enhance-item-head>.gear-frame.boss-gear,.market-picked-head>.gear-frame.boss-gear{border:2px solid #f2c975;background:linear-gradient(135deg,#58366d,#241b33 62%,#684325)}
+
+/* High-level boss relics: the aura sits behind the complete item silhouette. */
+.gear-frame.boss-relic{--relic-light:#72eed8;--relic-shadow:#16584e;isolation:isolate;border-color:var(--relic-light);background:radial-gradient(ellipse at center,var(--relic-shadow),#0b1022 76%);box-shadow:inset 0 0 9px var(--relic-shadow),0 0 5px var(--relic-light)}
+.gear-frame.relic-170{--relic-light:#ffe09b;--relic-shadow:#745023}
+.gear-frame.relic-180{--relic-light:#cbb1ff;--relic-shadow:#55377d}
+.gear-frame.relic-190{--relic-light:#ff829e;--relic-shadow:#6a183b}
+.gear-frame.boss-relic>.gear-icon{position:relative;z-index:2;filter:drop-shadow(0 0 2px var(--relic-light))}
+.gear-frame.boss-relic:before{content:"";position:absolute;inset:12%;border:1px solid var(--relic-light);border-radius:50%;opacity:.3;box-shadow:0 0 9px var(--relic-light),inset 0 0 7px var(--relic-light);pointer-events:none;z-index:0}
+.gear-frame.relic-200{--relic-light:#ffe8a2;--relic-shadow:#2e3d77;border-color:#fff3cc;background:radial-gradient(ellipse at center,#4567a5 0,#242047 45%,#080e20 78%);box-shadow:inset 0 0 0 1px #7de5ff88,inset 0 0 12px #6f95ef66,0 0 0 1px #d7b76a,0 0 8px #ffd87999}
+.gear-frame.relic-200>.gear-icon{filter:drop-shadow(0 0 2px #fff0bc) drop-shadow(0 0 3px #a5caff)}
+.gear-frame.relic-200:before{inset:8%;border:2px double #ffe8ae;border-left-color:#78dfff;border-right-color:#bfacff;opacity:.75;box-shadow:0 0 7px #f5d490,inset 0 0 6px #85bfff;animation:relic-halo-turn 12s linear infinite}
+.gear-frame.relic-200:after{content:"";position:absolute;inset:4%;pointer-events:none;z-index:3;background:radial-gradient(circle at 19% 23%,#fffbe3 0 1px,transparent 2px),radial-gradient(circle at 78% 17%,#98eeff 0 1px,transparent 2px),radial-gradient(circle at 85% 73%,#fff6ce 0 1.5px,transparent 3px),radial-gradient(circle at 24% 85%,#d3b8ff 0 1px,transparent 2px);animation:relic-starlight 3s ease-in-out infinite alternate}
+.gear-frame.relic-200.big-item:before{border-width:3px;box-shadow:0 0 12px #ffe2a4,inset 0 0 13px #8adfff}
+@keyframes relic-halo-turn{to{transform:rotate(360deg)}}
+@keyframes relic-starlight{from{opacity:.45;transform:rotate(-8deg) scale(.92)}to{opacity:1;transform:rotate(8deg) scale(1)}}
+@media(prefers-reduced-motion:reduce){.gear-frame.relic-200:before,.gear-frame.relic-200:after{animation:none}}
