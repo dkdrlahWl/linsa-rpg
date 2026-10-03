@@ -37,12 +37,12 @@ export function installPortraitIsolation(){
   const nodes=[...(root.matches('.costume-card img,.field-costume,.portrait')?[root]:[]),...root.querySelectorAll('.costume-card img,.field-costume,.portrait')];
   for(const node of nodes){
    if(node.dataset.portraitIsolated)continue;
-   if(node.tagName==='IMG'){const src=node.getAttribute('src');if(!src?.startsWith('costumes/'))continue;node.dataset.portraitIsolated='1';isolated(src).then(url=>{if(node.isConnected)node.src=url;}).catch(()=>{});continue;}
+   if(node.tagName==='IMG'){const src=node.getAttribute('src');if(!src?.startsWith('costumes/'))continue;node.dataset.portraitIsolated='1';if(src.endsWith('-portrait-v2.png'))continue;isolated(src).then(url=>{if(node.isConnected)node.src=url;}).catch(()=>{});continue;}
    const bg=node.style.backgroundImage,match=bg.match(/url\(["']?(costumes\/[^"')]+)["']?\)/);
    let src=match?.[1],index=null;
    if(!src&&node.classList.contains('priest-portrait'))src='tower/priest-portrait-v2.png';
    if(!src&&!node.classList.contains('priest-portrait')){src='characters-transparent-v1.png';index=Math.max(0,Math.min(4,Math.round(parseFloat(node.style.backgroundPosition||'0')/25)));}
-   if(!src)continue;node.dataset.portraitIsolated='1';isolated(src,index).then(url=>{if(node.isConnected){node.style.setProperty('background-image',`url("${url}")`,'important');node.style.setProperty('background-size','contain','important');node.style.setProperty('background-position','center','important');}}).catch(()=>{});
+   if(!src)continue;node.dataset.portraitIsolated='1';if(src.endsWith('-portrait-v2.png'))continue;isolated(src,index).then(url=>{if(node.isConnected){node.style.setProperty('background-image',`url("${url}")`,'important');node.style.setProperty('background-size','contain','important');node.style.setProperty('background-position','center','important');}}).catch(()=>{});
   }
  };
  const observer=new MutationObserver(records=>{for(const r of records)for(const n of r.addedNodes)process(n);});

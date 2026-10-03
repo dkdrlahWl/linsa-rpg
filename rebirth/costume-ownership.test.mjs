@@ -28,11 +28,11 @@ for(const {classId} of COSTUMES){
  }
 }
 
-let s=initialState('warrior','구매효과검증',ctx);s.hunting=false;s.gold=COSTUME_PRICE*6;
+let s=initialState('warrior','구매효과검증',ctx);s.hunting=false;s.gold=COSTUME_PRICE*ids.length;
 for(let i=0;i<ids.length;i++){
  s=execute(s,'costumeBuy',{id:ids[i]},ctx).state;
  assert.equal(power(s).costumeAttackBonus,i+1);
- assert.equal(s.gold,COSTUME_PRICE*(5-i));
+ assert.equal(s.gold,COSTUME_PRICE*(ids.length-1-i));
 }
 assert.throws(()=>execute(s,'costumeBuy',{id:ids[0]},ctx),/COSTUME_OWNED/);
 const owned=power(s);
@@ -40,8 +40,8 @@ s=execute(s,'costumeEquip',{id:ids[0]},ctx).state;
 assert.equal(power(s).dps,owned.dps);
 s=execute(s,'costumeUnequip',{},ctx).state;
 assert.equal(power(s).dps,owned.dps);
-assert.match(costumeShop(s),/보유 효과 합계: 공격력 \+6%/);
-assert.match(costumeWardrobe(s),/공격력 \+6%/);
-assert.equal((costumeShop(s).match(/보유 효과: 공격력 \+1%/g)||[]).length,6);
+assert.match(costumeShop(s),new RegExp(`보유 효과 합계: 공격력 \\+${ids.length}%`));
+assert.match(costumeWardrobe(s),new RegExp(`공격력 \\+${ids.length}%`));
+assert.equal((costumeShop(s).match(/보유 효과: 공격력 \+1%/g)||[]).length,ids.length);
 assert.doesNotMatch(costumeWardrobe(s),/외형만 변경/);
-console.log('PASS: ownership attack across six jobs, stacking, duplicates, purchase, equip/unequip, and UI totals.');
+console.log(`PASS: ownership attack across six jobs and ${ids.length} costumes, stacking, duplicates, purchase, equip/unequip, and UI totals.`);

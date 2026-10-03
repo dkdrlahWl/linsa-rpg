@@ -133,7 +133,7 @@ export class TowerRenderer {
       // from being treated as a usable motion sheet.
       if(decodedImages.has(im)&&pose&&im.naturalWidth===pose.layout.width&&im.naturalHeight===pose.layout.height){
         const source=cleanDirectionalAtlas(im,pose.layout),r=pose.frame;
-        const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=bodySize/pose.layout.bodyHeight;
+        const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=bodySize/(costume.renderBodyHeight||pose.layout.bodyHeight);
         g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(moving)drawWalkingSprite(g,source,r,[pose.layout.bodyHeight,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
         return;
       }
