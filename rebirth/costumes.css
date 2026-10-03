@@ -10,7 +10,7 @@ img[src="costumes/rogue-portrait-v1.webp"]{mask:url("costumes/rogue-portrait-mas
 img[src="costumes/pirate-portrait-v1.webp"]{mask:url("costumes/pirate-portrait-mask.svg") center/contain no-repeat;-webkit-mask:url("costumes/pirate-portrait-mask.svg") center/contain no-repeat}
 img[src="costumes/priest-portrait-v1.webp"]{mask:url("costumes/priest-portrait-mask.svg") center/contain no-repeat;-webkit-mask:url("costumes/priest-portrait-mask.svg") center/contain no-repeat}
 
-.costume-shop .costume-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.costume-shop .costume-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .costume-shop .costume-card{padding:8px 5px;gap:6px}
 .costume-shop .costume-card>img{height:clamp(72px,18vw,145px)}
 .costume-shop .costume-card strong{font-size:12px;overflow-wrap:anywhere}
