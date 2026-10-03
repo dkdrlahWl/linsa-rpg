@@ -27,8 +27,8 @@ import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=walk-thick
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, potentialPanel, cubeGuide } from './cube-ui.mjs?v=fifth-impact-121';
-import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-impact-121';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=walk-thickness-128';
+import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=dummy-dps-141';
 import * as D from "./data.mjs?v=boss-200-stats-132";
 import { installCurrencyIcons, currencyIconURL } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
@@ -61,7 +61,7 @@ function refreshLevelRequirements() {
   });
 }
 const combatFrames = [];
-let towerController=null,bagPage=0,coopController=null,coopRoom=null,coopRooms=[],dialogScroll=new Map();
+let towerController=null,dummyBattle=null,bagPage=0,coopController=null,coopRoom=null,coopRooms=[],dialogScroll=new Map();
 let coopListAttempt=0,coopListPending=null;
 function coopLobbyVisible(){return view==="game"&&tab==="boss"&&["coop","wave","advancement","raid"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
 async function refreshCoopRooms(){
@@ -468,14 +468,15 @@ function shell(content) {
 }
 
 function render() {
-  sounds.setCombat(state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
+  if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
+  sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
-  const towerBattle=state?.battle?.kind==='tower'?state.battle:null;
+  const towerBattle=dummyBattle||(state?.battle?.kind==='tower'?state.battle:null);
   const coopFight=state?.coopRoom&&['fighting','won'].includes(coopRoom?.status);
   document.body.classList.toggle('tower-mode',!!towerBattle||!!coopFight);
   if(coopFight&&coopController?.room.id===coopRoom.id){coopController.accept(coopRoom);return;}
   if(coopController){coopController.dispose();coopController=null;}
-  if(towerBattle&&towerController?.b.runId===towerBattle.runId){towerController.accept(towerBattle);return;}
+  if(towerBattle&&towerController?.b.runId===towerBattle.runId){if(!dummyBattle)towerController.accept(towerBattle);return;}
   if(towerController){towerController.dispose();towerController=null;}
   if (!session) return login();
   if (!state) return createScreen();
@@ -508,7 +509,15 @@ function render() {
   updateInvestmentClock(investmentData,investmentLoadedAt);
   refreshLevelRequirements();
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
-  if(towerBattle){towerController=new TowerController(app.querySelector('.tower-play'),towerBattle,command,kind=>sounds.play(kind),{audio:b=>sounds.battle(b)});return;}
+  if(towerBattle){
+    const send=dummyBattle?async(_action,args)=>{
+      if(!dummyBattle||dummyBattle.runId!==args.runId)return null;
+      const skip=Math.max(0,dummyBattle.tick-args.from);
+      for(const frame of args.frames.slice(skip))towerStep(dummyBattle,frame);
+      return {state:{battle:structuredClone(dummyBattle)}};
+    }:command;
+    towerController=new TowerController(app.querySelector('.tower-play'),towerBattle,send,kind=>sounds.play(kind),{audio:b=>sounds.battle(b),preview:!!dummyBattle});return;
+  }
   if(state?.battle||state?.partyRoom)updateCombatClock();
   if (state.pendingCube && !modal.open) cubeChoice();
   else if(["coop","advancementTrial"].includes(state.lastReward?.type)&&!modal.open)reward();
@@ -701,13 +710,14 @@ function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 
 function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}
 function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨 · 5차 200레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 인원에 따른 난이도 변화 없음 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (5회 누적 61.05%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===4?D.FIFTH_SKILLS[state.classId].name:t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
 function bosses() {
-  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["raid","레이드"],["daily","일일"],["weekly","주간"],["coop","협동 균열"],["wave","협동 웨이브"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["raid","레이드"],["daily","일일"],["weekly","주간"],["training","허수아비"],["coop","협동 균열"],["wave","협동 웨이브"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>이미지 전사와 파수꾼 · 캐릭터를 따라가는 위쪽 시점 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
   if(bossTab==="raid")return menu+raidLobby(state,coopRoom,coopRooms);
   if(bossTab==="wave")return menu+coopLobby(state,coopRoom,coopRooms,"wave");
   if(bossTab==="coop")return menu+coopLobby(state,coopRoom,coopRooms);
   if(bossTab==="tower")return menu+towerLobby(state);
   if(bossTab==="advancement")return menu+advancementLobby();
+  if(bossTab==="training")return menu+header("허수아비 훈련장","DAMAGE TEST")+`<p class="note compact-note">실제 이동·공격·스킬로 60초 동안 측정합니다. 최근 5초 DPS와 전체 평균 DPS를 실시간으로 볼 수 있습니다. 입장 비용·보상·도전 횟수 차감은 없습니다.</p><div class="boss-list">${[["normal","일반몹 허수아비","일반 몬스터 대상 피해를 측정합니다."],["boss","보스용 허수아비","보스 피해 증가 효과를 포함해 측정합니다."]].map(([mode,name,description])=>`<section class="panel boss-card dummy-card"><div class="dummy-card-art ${mode}" aria-hidden="true"><i></i></div><div class="boss-card-body"><strong>${name}</strong><p>${description}</p><small>60초 · 직접 조작 · 무제한 재도전</small><div class="actions">${disabledBtn("측정 시작","dummyStart",mode,!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</div></div></section>`).join("")}</div>`;
   return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">입장 조건 없음 · 주간 보스별 주 1회 보상 · 월요일 00시 갱신 · 일일 보스별 하루 1회 도전 · 매일 00시 갱신</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
 }
 function bossCard(b) {
@@ -1162,6 +1172,14 @@ document.addEventListener("click", async (e) => {
     if(action==='itemGroup')return itemGroup(arg);
     if(action==='towerOpen')return await command('towerOpen',{runId:state.battle?.runId});
     if(action==='towerStart'){modal.close();tab='boss';bossTab='tower';view='game';return await command('towerStart',{floor:Number(arg)});}
+    if(action==='dummyStart'||action==='dummyRestart'){
+      if(state.battle||state.coopRoom||state.partyRoom)return toast('진행 중인 전투를 먼저 종료해 주세요.');
+      const mode=action==='dummyRestart'?dummyBattle?.dummyMode:arg;
+      if(mode!=='normal'&&mode!=='boss')return;
+      dummyBattle=newTrainingBattle(mode,state.classId,power(state),Date.now(),crypto.randomUUID(),state.advancement>=1);
+      tab='boss';bossTab='training';view='game';render();return;
+    }
+    if(action==='dummyLeave'){dummyBattle=null;render();return;}
     if(action==='towerAck'){modal.close();return await command('ack');}
     if(action==='towerLeaveConfirm')return open('전투에서 나가기',`<p>현재 층의 도전을 종료합니다. 획득한 이전 층 보상과 기록은 유지됩니다.</p>${btn('나가기','towerLeave','','danger',true)}`);
     if(action==='towerLeave'){modal.close();return await command('towerLeave');}

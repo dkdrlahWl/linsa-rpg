@@ -334,6 +334,19 @@ export class TowerRenderer {
     };
     const drawBoss=()=>{
       if(b.waveMode)return;
+      if(b.dummyMode){
+        const x=enemy.x,y=enemy.y,large=b.dummyMode==='boss',radius=large?88:74;
+        g.save();g.translate(x,y);g.fillStyle='#30211a';g.fillRect(-15,-184,30,188);
+        g.fillStyle='#8a542e';g.fillRect(-11,-181,22,180);
+        g.fillStyle='#4b3020';g.fillRect(-98,-147,196,24);
+        g.fillStyle='#a46d3e';g.fillRect(-96,-151,192,16);
+        g.fillStyle='#c29a5a';g.beginPath();g.arc(0,-129,radius+7,0,Math.PI*2);g.fill();
+        for(const [r,color] of [[radius,'#3c2925'],[radius*.77,large?'#873c37':'#547448'],[radius*.52,'#d8bb79'],[radius*.29,large?'#a84940':'#658650'],[radius*.11,'#f3e1a7']]){g.fillStyle=color;g.beginPath();g.arc(0,-129,r,0,Math.PI*2);g.fill();}
+        g.strokeStyle='#e0c58b';g.lineWidth=3;g.beginPath();g.moveTo(-radius-8,-129);g.lineTo(radius+8,-129);g.moveTo(0,-129-radius-8);g.lineTo(0,-129+radius+8);g.stroke();
+        g.fillStyle='#4e3523';g.fillRect(-65,-6,130,14);g.fillStyle='#ae7845';g.fillRect(-65,-10,130,8);
+        if(b.tick<(b.enemyHurtUntil||0)){g.fillStyle='#fff6d080';g.beginPath();g.arc(0,-129,radius+10,0,Math.PI*2);g.fill();}
+        g.restore();return;
+      }
       if(b.raidMode&&!b.chest){const frame=b.tick<b.enemyCastUntil?4:b.tick<b.enemyAttackUntil?5:b.tick<(b.enemyHurtUntil||0)?6:Math.floor(time/8)%2,src=asset('boss-'+f.art),im=image(src);if(im.complete&&im.naturalWidth)this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);else{const portrait=image(asset('raid-boss-'+b.tier+'-portrait'));if(portrait.complete&&portrait.naturalWidth){g.save();g.shadowColor='#fff2c0';g.shadowBlur=18;g.drawImage(portrait,enemy.x-195,enemy.y-390,390,390);g.restore();}}return;}
       if(b.chest){const x=b.chest.x,y=b.chest.y,opening=b.chest.openAt!==undefined,frame=opening?Math.min(3,Math.floor((now-b.chest.openAt)/160)):0;this.shadow(x,y,62);const im=image(asset('reward-chest'));if(im.complete&&im.naturalWidth){const sw=im.width/4;g.save();g.shadowColor='#f9d47d';g.shadowBlur=12;g.drawImage(im,frame*sw,0,sw,im.height,x-110,y-170,220,190);g.restore();}g.save();g.fillStyle='#fff2c0';g.font='bold 22px sans-serif';g.textAlign='center';g.fillText(opening?'상자 여는 중…':'가까이서 공격해 열기',x,y-185);g.restore();return;}
 

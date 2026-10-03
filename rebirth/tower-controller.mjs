@@ -1,6 +1,6 @@
 import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';
 import {autoSkillBits} from './auto-skills.mjs?v=fifth-impact-121';
-import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle} from './tower-model.mjs?v=fifth-impact-121';
+import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle,trainingDps} from './tower-model.mjs?v=fifth-impact-121';
 import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,fifthUnlocked} from './data.mjs?v=boss-relic-only-130';
 import {TowerInput,stickVector,projectPlayer} from './tower-input.mjs?v=fifth-impact-121';
 import {TowerRenderer,image,asset,motionAsset,prepareCombatArt} from './tower-renderer.mjs?v=walk-thickness-128';
@@ -23,7 +23,7 @@ export class TowerController {
     this.required.push(asset('third-job-atlas'));if(b.classId==='warrior')this.required.push(asset('hero-warrior-east-v4'));this.required.forEach(image);
     image(asset('reward-chest'));image(asset('second-job-atlas'));if(b.classId==='priest')image('tower/priest-motion-v1.png');else image(asset('hero-'+b.classId+'-motion-v4'));
     host.querySelector('#tower-chest')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();this.openChest();},{signal:this.abort.signal});
-    this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','auto-skills','range','connection'].map(id=>[id,host.querySelector('#tower-'+id)]));
+    this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','auto-skills','range','connection','dummy-recent','dummy-average','dummy-total'].map(id=>[id,host.querySelector('#tower-'+id)]));
     this.buttons=[...host.querySelectorAll('[data-tower-button]')];
     const signal={signal:this.abort.signal};
     window.addEventListener('keydown',e=>{
@@ -139,17 +139,18 @@ export class TowerController {
   }
   updateHud(){
     const b=this.b,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],input=this.input(),distance=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
-    const text=(id,value)=>{if(this.nodes[id].textContent!==value)this.nodes[id].textContent=value;};
-    text('enemy-hp',`${format(b.enemyHp)} / ${format(f.hp)}`);text('player-hp',`${format(b.hp)} / ${format(b.power.hp)}`);
-    this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;paintHealthBar(this.host,b,format);
+    const text=(id,value)=>{if(this.nodes[id]&&this.nodes[id].textContent!==value)this.nodes[id].textContent=value;};
+    if(b.dummyMode){const dps=trainingDps(b);text('dummy-recent',format(dps.recent));text('dummy-average',format(dps.average));text('dummy-total',format(b.dummyTotalDamage||0));}
+    else {text('enemy-hp',`${format(b.enemyHp)} / ${format(f.hp)}`);this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;}
+    text('player-hp',`${format(b.hp)} / ${format(b.power.hp)}`);paintHealthBar(this.host,b,format);
     this.host.classList.toggle('low-health',b.hp/b.power.hp<.3);
     const left=Math.max(0,f.seconds-Math.floor(b.tick/10));text('clock',b.chest?'토벌 완료':`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`);
     const chestButton=this.host.querySelector('#tower-chest');if(chestButton){chestButton.hidden=!b.chest;chestButton.disabled=!!b.chest&&!canOpenChest(b);chestButton.textContent=canOpenChest(b)?'상자 열고 보상 받기':'상자 가까이 이동하세요';}
-    this.host.querySelector('[data-action="towerLeaveConfirm"]').hidden=!!b.chest;
-    const inRange=b.chest?canOpenChest(b):distance<=c.range;text('range',b.chest?(inRange?'상자 열기 가능':'상자에게 접근'):inRange?'공격 가능':'보스에게 접근');this.nodes.range.classList.toggle('in-range',inRange);
+    const leaveButton=this.host.querySelector('[data-action="towerLeaveConfirm"]');if(leaveButton)leaveButton.hidden=!!b.chest;
+    const inRange=b.chest?canOpenChest(b):distance<=c.range;text('range',b.chest?(inRange?'상자 열기 가능':'상자에게 접근'):inRange?'공격 가능':b.dummyMode?'허수아비에게 접근':'보스에게 접근');this.nodes.range.classList.toggle('in-range',inRange);
     const failed=this.required.some(src=>image(src).complete&&!image(src).naturalWidth),waiting=this.frames.length>=25;
     const casting=b.tick<b.enemyCastUntil;
-    text('status',this.openingRequest?'상자를 여는 중…':b.chest?(canOpenChest(b)?'공격 버튼으로 상자를 열고 나가세요.':'이동 패드로 상자 가까이 가세요.'):failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
+    text('status',b.dummyMode?(b.ended?'측정 완료 · 다시 측정하거나 나가세요':!this.loaded?'훈련장 준비 중…':this.paused()?'조작 일시 중지':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':''):this.openingRequest?'상자를 여는 중…':b.chest?(canOpenChest(b)?'공격 버튼으로 상자를 열고 나가세요.':'이동 패드로 상자 가까이 가세요.'):failed?'이미지 연결 실패 · 나갔다 다시 도전해 주세요':!this.loaded?'전투 준비 중…':this.paused()?'조작 일시 중지 · 제한 시간은 계속됩니다':waiting?'연결을 기다리는 중…':b.ended?(this.options.preview?(b.won?'토벌 성공! 다시 도전할 수 있어요':'도전 종료 · 다시 도전해 보세요'):'결과를 저장하는 중…'):casting?f.pattern+' · 피하세요!':b.hazards.length?'붉은 영역 밖으로 이동하세요':(input[2]&1)&&!inRange?'공격이 닿지 않아요 · 더 가까이 이동하세요':'');
     this.nodes.status.hidden=!this.nodes.status.textContent;this.nodes.status.classList.toggle('danger',casting||b.hazards.length>0);
     text('connection',this.error||waiting?'연결 지연':'');this.nodes.connection.hidden=!this.nodes.connection.textContent;
     for(const el of this.buttons){

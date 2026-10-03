@@ -56,3 +56,9 @@ dialog{width:min(94vw,440px);max-height:86dvh;padding:14px;border:1px solid #ba9
 
 /* Isolated equipment artwork preserves its complete silhouette in every UI. */
 .gear-frame>img.gear-icon{display:block;object-fit:contain;object-position:center;overflow:hidden;background:none;border:0;padding:0!important;min-width:0;min-height:0;pointer-events:none}
+.dummy-card{grid-template-columns:84px minmax(0,1fr);align-items:center;min-height:106px}
+.dummy-card-art{position:relative;width:76px;height:86px;border-radius:8px;background:radial-gradient(circle at 50% 35%,#75603c,#1b2730 70%);overflow:hidden}
+.dummy-card-art:before{content:"";position:absolute;width:8px;height:46px;left:34px;bottom:0;background:#8c5a32;box-shadow:0 0 0 2px #4d3322}
+.dummy-card-art i{position:absolute;left:13px;top:8px;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle,#f0dfa6 0 10%,#597d54 11% 29%,#dfbf78 30% 48%,#443329 49% 66%,#c8a364 67%);box-shadow:0 2px 7px #0009}
+.dummy-card-art.boss i{background:radial-gradient(circle,#f0dfa6 0 10%,#a84940 11% 29%,#dfbf78 30% 48%,#443329 49% 66%,#c8a364 67%)}
+.dummy-card .boss-card-body p{font-size:11px;color:#cfbea4;margin:4px 0}

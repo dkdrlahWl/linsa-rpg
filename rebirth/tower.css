@@ -228,6 +228,12 @@
 /* Compact independent attack/skill toggles fit beside exit on mobile. */
 #tower-auto-skills:focus-visible{outline:2px solid #dce9bc;outline-offset:2px}
 @media(max-width:640px){.tower-footer{gap:5px;padding-left:8px;padding-right:8px}.tower-footer button{white-space:nowrap;padding-left:7px;padding-right:7px;font-size:10px}.tower-footer:has(#tower-chest:not([hidden])) #tower-auto-skills{display:none}}
+.tower-play[data-dummy-mode] .tower-floor-tag{font-size:12px;letter-spacing:0}
+.dummy-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.dummy-metrics>div{min-width:0;padding:5px 8px;border:1px solid #bfa16a65;border-radius:6px;background:#0b171dcc}
+.dummy-metrics small{display:block;color:#b8c4bf;font-size:10px}
+.dummy-metrics strong{display:block;color:#f5d68d;font-size:16px;line-height:1.35;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){.dummy-metrics{gap:4px;margin-top:5px}.dummy-metrics>div{padding:3px 5px}.dummy-metrics small{font-size:9px}.dummy-metrics strong{font-size:12px}}
 
 /* Fifth-job art uses the same compact scrolling skill row. */
 .fifth-skill-art{display:block;width:32px;height:32px;background-image:url('tower/fifth-warrior-v1.webp');background-size:200% 200%;background-position:0 0;filter:none}
