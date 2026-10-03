@@ -269,9 +269,11 @@ export function gearAttributes(item,stars=item.stars) {
  return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier]));
 }
 export function starCost(item) {
-  return Math.round(
+  const base = Math.round(
     45 * (1 + item.level / 25) ** 1.3 * (item.stars + 1) ** 1.35 * (1 + Math.max(0,item.stars-15)*0.5),
   );
+  // Keep the late-star price curve increasing after the 20-star boundary.
+  return base * (item.boss && item.level >= 150 ? 3 : 1);
 }
 export function starOdds(stars) {
  const success=stars>=25?0:STAR_SUCCESS[stars];return {success,keep:1-success,down:0,destroy:0};
