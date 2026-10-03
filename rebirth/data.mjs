@@ -6,8 +6,8 @@ import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=boss-190-126';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=priest-potential-83';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=priest-potential-83';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=gear-original-recovery-131";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=gear-original-recovery-131";
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=boss-200-stats-132";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=boss-200-stats-132";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -256,11 +256,17 @@ export function rollBaseStats(item,random=Math.random) {
   return [key,r.min+Math.min(r.max-r.min,Math.floor(fraction*(r.max-r.min+1)))];
  }));
 }
-export function gearAttributes(item,stars=item.stars) {
+// Apply the endgame balance bonus at calculation time, preserving every stored roll.
+export const gearStatMultiplier = item => item.boss && Number(item.level) === 200 ? 1.5 : 1;
+function unbuffedGearAttributes(item,stars=item.stars) {
  const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
  const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
  return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};
+}
+export function gearAttributes(item,stars=item.stars) {
+ const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item);
+ return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier]));
 }
 export function starCost(item) {
   return Math.round(
