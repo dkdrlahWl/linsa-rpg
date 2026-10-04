@@ -1,4 +1,4 @@
-import * as D from './data.mjs?v=star-price-140';
+import * as D from './data.mjs?v=prime-choice-158';
 import {COOP_TIERS} from './rift-rewards.mjs?v=priest-potential-83';
 import {TOWER_FLOORS} from './tower-model.mjs?v=fifth-impact-121';
 const pct=n=>(n*100).toLocaleString('ko-KR',{maximumFractionDigits:10})+'%';
@@ -26,10 +26,10 @@ table(['항목','확률·비용'],[['초기 잠재','3줄 잠금 · 잠재 해�
 '<p>잠재 해금 시 레드·레어 표로 3줄을 추첨합니다. 잠재 해금 주문서는 협동 균열 개인 상자에서 획득합니다. 기존 개방 잠재는 유지합니다. 확장석은 삭제되었으며 기존 확장석만 1개당 파편 20개로 전환합니다. 장비 제작은 삭제되었습니다. 보스 장비는 보스 드롭으로 생성되며, 유저 간 거래도 가능합니다.</p>');
 html+=section('cube','4. 큐브 등급·모든 옵션',
 table(['큐브','레어→에픽','에픽→유니크','유니크→레전더리','기능'],Object.entries(D.CUBES).map(([k,c])=>[c.name,...[2,3,4].map(g=>pct(c.up[g])),c.choose?'기존/새 결과 선택':c.prime?'최소 에픽 · 3줄 전체 즉시 적용':'3줄 전체 즉시 적용']))+
-'<p>사용당 큐브 1개, 추가 골드 0. 모든 큐브는 장비 잠재 등급과 같은 등급의 옵션을 세 줄 모두 부여합니다. 레드 큐브는 최대 유니크이며 레전더리 장비에는 사용할 수 없습니다. 프라임은 레어→에픽 확정, 이후 레전더리까지 확률로 상승합니다. 첫 줄 고정 없음.</p>'+
+'<p>사용당 큐브 1개, 추가 골드 0. 모든 큐브는 장비 잠재 등급과 같은 등급의 옵션을 세 줄 모두 부여합니다. 레드 큐브는 최대 유니크이며 레전더리 장비에는 사용할 수 없습니다. 프라임은 레어→에픽 확정, 이후 레전더리까지 확률로 상승합니다. 첫 줄 고정 없음. 블랙·프라임은 기존/새 결과의 등급과 옵션을 함께 선택합니다.</p>'+
 '<p>장비 레벨·직업·부위와 무관하게 동일한 옵션 종류·수치·확률입니다. 아래 레벨·부위 선택을 바꾸어도 옵션 확률은 같습니다. STR/DEX/INT/LUK는 각각 별도 능력치이며, 능력치별 확률은 아래 표를 따릅니다. 보스 피해의 두 수치 35%·40%는 해당 능력치 확률을 절반씩 나눕니다. 메이플 공식 확률이 아닌 현재 게임 공통 설정입니다.</p>'+
 table(['큐브','첫 줄','둘째 줄','셋째 줄','보장 시도'],[['레드','같은 등급 100%','같은 등급 100%','같은 등급 100%','레어 26번째 / 에픽 84번째 / 유니크에서 승급 불가'],['블랙','같은 등급 100%','같은 등급 100%','같은 등급 100%','레어 11번째 / 에픽 43번째 / 유니크 108번째'],['프라임','같은 등급 100%','같은 등급 100%','같은 등급 100%','레어 즉시 / 에픽 43번째 / 유니크 108번째']])+
-'<p>보장 횟수는 캐릭터의 큐브 종류·현재 등급별 누적. 승급 결과 생성 시 초기화되며 블랙에서 기존 결과를 선택해도 되돌려지지 않습니다. 기존 장비의 옵션은 큐브 사용 전까지 유지됩니다.</p>'+
+'<p>보장 횟수는 캐릭터의 큐브 종류·현재 등급별 누적. 승급 결과 생성 시 초기화되며 블랙·프라임에서 기존 결과를 선택해도 되돌려지지 않습니다. 기존 장비의 옵션은 큐브 사용 전까지 유지됩니다.</p>'+
 '<div class="filters">'+select('cube-kind','큐브',Object.entries(D.CUBES).map(([k,c])=>[k,c.name]))+select('cube-grade','결과 등급',[2,3,4,5].map(g=>[g,D.RARITIES[g]]))+select('cube-level','장비 레벨 (확률 동일)',levels.map(l=>[l,l]))+select('cube-slot','장비 부위 (확률 동일)',D.SLOTS.map((s,i)=>[i,s]))+'</div><p id="cube-mapping"></p><div id="cube-rows"></div><button id="cube-csv">전체 큐브 옵션 확률 CSV 다운로드</button>'+
 '<p>에픽 이상 공격력%·보스 피해%는 기존 등장 확률의 60%로 조정되었으며, 치명타 확률 옵션은 이번 조정 직전의 50%로 낮췄습니다. 공격력%·보스 피해% 확률은 유지하고 치확에서 빠진 확률은 그 외 옵션에 배분합니다. 옵션 표는 승급 후 각 줄의 생성 확률입니다. 3줄은 독립 추첨하고 같은 옵션 중복을 허용합니다. 기존 3줄과 등급·옵션·수치가 모두 같으면 전체 재추첨합니다. 최종 결과 확률은 해당 전체 결과 생성 확률 ÷ (1−기존 전체 결과 생성 확률)로 조건화됩니다. 최대 256회 모두 같으면 결제 취소.</p>');
 html+='<section class="panel pad"><h2>신규 레이드</h2><p>6인 기준 고정 난이도 · 최대 8인 · 레벨 제한 없음 · 사제 필수 · 보스별 주 1회 개인 보상(월요일 갱신).</p><p>60 / 100 / 150 / 200레벨 보스 장비 각각 25% · 직업 1/6 · 부위 1/9 · 보스 디자인 1종. 골드 24,000 / 42,000 / 65,000 / 100,000 · 레드 큐브 12 / 18 / 24 / 30 · 블랙 큐브 2 / 3 / 4 / 6.</p></section>';
@@ -80,3 +80,4 @@ for(const id of ['gear-level','gear-class','gear-slot','gear-boss'])document.get
 document.getElementById('cube-csv').onclick=()=>{const rows=[];for(const kind of Object.keys(D.CUBES))for(const grade of [2,3,4,5].filter(g=>g<=D.CUBES[kind].maxGrade&&(!D.CUBES[kind].prime||g>=3)))for(const level of levels)for(let slot=0;slot<9;slot++)rows.push(...cubeRows(kind,grade,level,slot).map(r=>[...r.slice(0,8),r[8]*100]));csv('링구-전체-큐브-옵션.csv',['큐브','장비등급','장비레벨','매핑레벨','부위','줄','옵션등급','옵션','생성확률(%)'],rows);};
 document.getElementById('gear-csv').onclick=()=>{const rows=[];for(const level of levels)for(const c of D.CLASSES)for(let slot=0;slot<9;slot++)for(const boss of [false,true])for(const {it,w,ranges} of gearRows(level,c.id,slot,boss))rows.push([level,c.name,D.SLOTS[slot],boss?'보스':'일반',D.gearName(it),D.equipmentType(it),w,...Object.values(ranges).flatMap(r=>[r.min,r.max])]);csv('링구-전체-장비.csv',['레벨','직업','부위','종류','장비명','무기종류','디자인확률(%)','공격최소','공격최대','스탯최소','스탯최대','HP최소','HP최대','방어최소','방어최대'],rows);};
 drawCube();drawGear();
+

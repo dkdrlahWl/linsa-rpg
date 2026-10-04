@@ -1,5 +1,5 @@
 import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
-import * as D from './data.mjs?v=boss-relic-only-130';
+import * as D from './data.mjs?v=prime-choice-158';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const pct=n=>(n*100).toFixed(6).replace(/\.?0+$/,'')+'%';
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
@@ -20,7 +20,7 @@ export function renderCubePanel(it,state,kind,lastResult,protectedReason=''){
  const blocked=protectedReason||(invalid?(kind==='cube'?'레드 큐브는 유니크까지만 사용 가능합니다. 레전더리는 블랙·프라임 큐브를 사용해 주세요.':c.prime?'잠재 3줄이 개방된 장비가 필요합니다.':'이 큐브로 재설정할 수 없는 등급입니다.'):(state.materials[key]||0)<1?'재료가 부족합니다.':state.gold<cost?'골드가 부족합니다.':'');
  const limit=c.pity[it.grade],failures=state.cubePity?.[kind+':'+it.grade]||0;
  return `<div class="cube-compact"><div class="enhance-intro"><span>POTENTIAL</span><small>장비 등급 · 옵션 재설정</small></div>${lastResult?.id===it.id?`<div class="enhance-result success" role="status"><strong>${lastResult.up?'등급 상승 결과를 확인하세요':'잠재능력을 재설정했습니다'}</strong></div>`:''}${potentialPanel(it)}
- ${opened?`<div class="cube-picker maple-cube-picker" role="group" aria-label="사용할 큐브 선택">${Object.entries(D.CUBES).map(([k,r])=>`<button class="cube-card ${kind===k?'selected':''}" data-action="cubeKind" data-arg="${k}" aria-pressed="${kind===k}"><img class="cube-item-art" src="${currencyIconURL(k)}" alt=""><span><strong>${r.name}</strong><small>${r.prime?'최소 에픽 · 3줄 전체 재설정':r.choose?'이전 / 이후 선택':'최대 유니크 · 즉시 적용'}</small><b>보유 ${fmt(state.materials[k])}개</b></span></button>`).join('')}</div>
+ ${opened?`<div class="cube-picker maple-cube-picker" role="group" aria-label="사용할 큐브 선택">${Object.entries(D.CUBES).map(([k,r])=>`<button class="cube-card ${kind===k?'selected':''}" data-action="cubeKind" data-arg="${k}" aria-pressed="${kind===k}"><img class="cube-item-art" src="${currencyIconURL(k)}" alt=""><span><strong>${r.name}</strong><small>${r.prime?'최소 에픽 · 이전 / 이후 선택':r.choose?'이전 / 이후 선택':'최대 유니크 · 즉시 적용'}</small><b>보유 ${fmt(state.materials[k])}개</b></span></button>`).join('')}</div>
  <p class="enhance-wallet">${D.MATERIALS[key]} ${fmt(state.materials[key])}개 · 필요 1개${cost?' + '+fmt(cost)+' G':''}</p>
  ${button(c.name+' 사용하기','cubeUse',it.id,!!blocked)}
  <p class="enhance-help">${blocked||(opened?(c.choose?'이전/이후 중 등급과 옵션을 함께 선택합니다.':c.prime?'최소 에픽, 레전더리까지 승급 가능. 3줄 전체 결과가 즉시 적용됩니다.':'새 결과가 즉시 적용됩니다. 이전 옵션으로 되돌릴 수 없습니다.'):'')}</p>
@@ -30,5 +30,6 @@ export function renderCubePanel(it,state,kind,lastResult,protectedReason=''){
 </div>`;
 }
 export function cubeGuide(){
- return `<div class="panel pad"><h3>잠재능력 · 큐브 3종</h3><p>장비 잠재 등급과 세 줄의 옵션 등급이 항상 같습니다. 레어면 세 줄 레어, 에픽이면 세 줄 에픽, 유니크면 세 줄 유니크, 레전더리면 세 줄 레전더리입니다.</p><p>모든 장비의 레벨·직업·부위와 관계없이 동일한 옵션 종류·수치·확률을 사용합니다. 같은 옵션이 세 줄 모두 나올 수 있습니다. 레전더리 STR +12% 세 줄도 가능합니다.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.values(D.CUBES).map(c=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${pct(c.up[g])}</td>`).join('')}</tr>`).join('')}</table><p>레드: 최대 유니크, 레전더리 장비 사용 불가, 3줄 즉시 적용 · 블랙: 이전/이후 선택 · 프라임: 최소 에픽, 레전더리까지 승급, 첫 줄 고정 없이 3줄 즉시 적용. 사용당 큐브 1개, 추가 골드 없음.</p><p>기존 잠재 옵션은 큐브를 쓰기 전까지 유지됩니다. 새 장비는 잠재 해금 주문서 1개로 3줄을 개방합니다. 해금 결과는 세 줄 모두 레어입니다.</p></div>`;
+ return `<div class="panel pad"><h3>잠재능력 · 큐브 3종</h3><p>장비 잠재 등급과 세 줄의 옵션 등급이 항상 같습니다. 레어면 세 줄 레어, 에픽이면 세 줄 에픽, 유니크면 세 줄 유니크, 레전더리면 세 줄 레전더리입니다.</p><p>모든 장비의 레벨·직업·부위와 관계없이 동일한 옵션 종류·수치·확률을 사용합니다. 같은 옵션이 세 줄 모두 나올 수 있습니다. 레전더리 STR +12% 세 줄도 가능합니다.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.values(D.CUBES).map(c=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${pct(c.up[g])}</td>`).join('')}</tr>`).join('')}</table><p>레드: 최대 유니크, 레전더리 장비 사용 불가, 3줄 즉시 적용 · 블랙: 이전/이후 선택 · 프라임: 최소 에픽, 레전더리까지 승급, 첫 줄 고정 없이 3줄 재설정 후 이전/이후 선택. 사용당 큐브 1개, 추가 골드 없음.</p><p>기존 잠재 옵션은 큐브를 쓰기 전까지 유지됩니다. 새 장비는 잠재 해금 주문서 1개로 3줄을 개방합니다. 해금 결과는 세 줄 모두 레어입니다.</p></div>`;
 }
+

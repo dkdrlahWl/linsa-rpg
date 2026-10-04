@@ -3,7 +3,7 @@ const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0
 export const CUBES={
  cube:rule('레드 큐브','red',4,[.060000002444,.018,0],[1,1,1],{pity:[0,0,25,83,0]}),
  highCube:rule('블랙 큐브','black',5,[.30,.07,.028],[1,1,1],{choose:true,pity:[0,0,10,42,107]}),
- primeCube:rule('프라임 큐브','black',5,[1,.105,.042],[1,1,1],{prime:true,pity:[0,0,0,42,107]}),
+ primeCube:rule('프라임 큐브','black',5,[1,.105,.042],[1,1,1],{prime:true,choose:true,pity:[0,0,0,42,107]}),
 };
 export const cubeLineRates=(kind,grade)=>Array.isArray(CUBES[kind].same)?CUBES[kind].same:CUBES[kind].same[grade];
 export function cubeCost(){return 0;}
@@ -43,3 +43,4 @@ export function cubeUpgrade(state,kind,grade,random){
  if(limit)state.cubePity[key]=up?0:failures+1;
  return grade+Number(!!up);
 }
+

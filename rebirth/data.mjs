@@ -4,8 +4,8 @@ export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fifth-114';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fifth-114';
 import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=boss-190-126';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=boss-190-126';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=priest-potential-83';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=priest-potential-83';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=prime-choice-158';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=prime-choice-158';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=boss-200-stats-132";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=boss-200-stats-132";
 // Shared public balance data. The server is authoritative for RNG and ownership.
@@ -386,3 +386,4 @@ export function weekKey(ms) {
 }
 
 balanceWorld(STAGES,BOSSES,RAID_BOSSES);
+
