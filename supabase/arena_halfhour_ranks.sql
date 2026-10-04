@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION rebirth_private.arena_status()
 AS $function$
 declare u uuid:=rebirth_private.session_user(); v_season timestamptz:=rebirth_private.arena_season_start(); v_bucket bigint:=floor(extract(epoch from now())/1800)::bigint; v_player rebirth_private.arena_players%rowtype; v_rank integer; v_top jsonb; v_history jsonb; v_offers jsonb; v_target integer;
 begin
+ perform rebirth_private.arena_refresh_daily_bots();
  if not exists(select 1 from rebirth_private.players where id=u and state is not null) then raise exception 'CHARACTER_REQUIRED'; end if;
  insert into rebirth_private.arena_players(user_id,season_start) values(u,v_season) on conflict do nothing;
  select * into v_player from rebirth_private.arena_players where user_id=u and season_start=v_season for update;
