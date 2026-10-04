@@ -4,13 +4,13 @@ import {beginThird,stepThird} from './advancement.mjs';
 import {beginFourth,stepFourth} from './fourth-job.mjs';
 import {beginFifth,stepFifth,fifthUnlocked} from './fifth-job.mjs';
 import {supportTick,absorbDamage,holyDamage} from './priest.mjs';
-import {botName} from './arena-names.mjs?v=arena-ranks-150';
+import {botName} from './arena-names.mjs?v=arena-points-151';
 import {makeItem,power} from './engine.mjs';
 
 export const ARENA_BOT_COUNT=2000;
 export const ARENA_CLASSES=['warrior','mage','archer','rogue','pirate','priest'];
-export const ARENA_WIN_POINTS=120;
-export const ARENA_LOSS_POINTS=80;
+export const ARENA_WIN_POINTS=30;
+export const ARENA_LOSS_POINTS=20;
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 
 export function botScore(id){

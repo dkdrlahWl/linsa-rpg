@@ -1,5 +1,5 @@
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
-import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-ranks-150';
+import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-points-151';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
@@ -12,7 +12,7 @@ import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-1
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
-import {arenaView,startArenaReplay} from './arena-ui.mjs?v=arena-ranks-150';
+import {arenaView,startArenaReplay} from './arena-ui.mjs?v=arena-points-151';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=short-18';

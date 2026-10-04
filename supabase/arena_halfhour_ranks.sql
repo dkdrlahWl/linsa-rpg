@@ -71,7 +71,7 @@ begin
  if not found or v_arena.offer_bucket is distinct from v_bucket then raise exception 'ARENA_OFFERS_EXPIRED'; end if;
  if not exists(select 1 from jsonb_array_elements(v_arena.offers) offer where offer->>'id'=p_target and offer->>'used'='false') then raise exception 'ARENA_OPPONENT_UNAVAILABLE'; end if;
  if jsonb_typeof(p_result)<>'object' or jsonb_typeof(p_result->'battle')<>'object' or jsonb_typeof(p_result->'battle'->'won')<>'boolean' then raise exception 'INVALID_ARENA_RESULT'; end if;
- v_delta:=case when (p_result->'battle'->>'won')::boolean then 120 else -80 end;
+ v_delta:=case when (p_result->'battle'->>'won')::boolean then 30 else -20 end;
  v_score:=greatest(0,coalesce(v_arena.score,0)+v_delta);
  v_saved:=p_result||jsonb_build_object('opponentId',p_target,'scoreBefore',v_arena.score,'scoreAfter',v_score,'delta',v_score-coalesce(v_arena.score,0),'at',now());
  update rebirth_private.arena_players set score=v_score,wins=wins+case when v_delta>0 then 1 else 0 end,losses=losses+case when v_delta<0 then 1 else 0 end,
