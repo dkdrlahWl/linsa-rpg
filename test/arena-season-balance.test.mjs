@@ -14,20 +14,22 @@ try{
  create function rebirth_private.session_user() returns uuid language sql stable as $$select current_setting('test.uid')::uuid$$;`);
  await db.exec(await readFile(new URL('../supabase/migrations/20261003180315_arena_season.sql',import.meta.url),'utf8'));
  await db.exec('alter table rebirth_private.arena_bots drop constraint arena_bots_score_check;alter table rebirth_private.arena_bots add check(score>=0)');
- const sql=(await readFile(new URL('../supabase/arena_season_growth_balance.sql',import.meta.url),'utf8')).split('select cron.schedule')[0];await db.exec(sql);
+ const sql=(await readFile(new URL('../supabase/arena_season_growth_balance.sql',import.meta.url),'utf8')).split('-- Daily ladder refresh')[0];await db.exec(sql);
  const start=arenaSeasonStart(Date.parse('2026-10-05T00:00:00+09:00'))/1800000;
  assert.equal(arenaSeasonStart(Date.parse('2026-10-04T23:59:59+09:00')),Date.parse('2026-09-28T00:00:00+09:00'));
  assert.equal(arenaSeasonStart(Date.parse('2026-10-05T00:00:00+09:00')),Date.parse('2026-10-05T00:00:00+09:00'));
- let first,last,shifted;
- for(const bucket of [start,start+1,start+200,start+335,start+336]){
+ let first,last,shifted,nextDay;
+ for(const bucket of [start,start+1,start+47,start+48,start+200,start+335,start+336]){
   const rows=(await db.query('select * from rebirth_private.arena_halfhour_bot_order($1) order by bot_rank',[bucket])).rows;
   assert.equal(rows.length,2000);assert.equal(new Set(rows.map(r=>r.id)).size,2000);
   for(const r of rows)assert.equal(r.score,botScore(r.id,bucket),'SQL/client ladder parity');
   assert(rows.every((r,i)=>i===0||r.score<=rows[i-1].score));
-  if(bucket===start)first=rows;if(bucket===start+1)shifted=rows;if(bucket===start+335)last=rows;
+  if(bucket===start)first=rows;if(bucket===start+1)shifted=rows;if(bucket===start+335)last=rows;if(bucket===start+48)nextDay=rows;if(bucket===start+47)assert.deepEqual(rows,first);
  }
  assert(first[99].score<2200);assert(last[99].score>=2500);
- assert.notDeepEqual(first.slice(0,100).map(r=>[r.id,r.score]),shifted.slice(0,100).map(r=>[r.id,r.score]));
+ assert.deepEqual(first,shifted,'Scores/ranks must stay fixed within the Korea day');
+ assert.notDeepEqual(first,nextDay,'Scores/ranks must refresh at Korea midnight');
+ assert.equal(last[0].score,botScore(last[0].id,start+288));
  for(const score of [null,0,2199,2200,2500,50000])for(const won of [true,false])assert.equal((await db.query('select rebirth_private.arena_match_delta($1,$2) d',[score,won])).rows[0].d,arenaPointDelta(score,won));
  const a={id:randomUUID(),sid:randomUUID()},b={id:randomUUID(),sid:randomUUID()};
  for(const [u,name] of [[a,'본인'],[b,'실제마스터']]){
@@ -53,6 +55,6 @@ try{
   await assert.rejects(()=>db.query('select public.rebirth_arena_commit($1,$2,$3,$4,$5)',[a.id,a.sid,randomUUID(),target,args[4]]),/ARENA_OPPONENT_UNAVAILABLE/);
  }
  await db.exec('set role anon');await assert.rejects(()=>db.query('select public.rebirth_arena_status()'),/permission denied/);await assert.rejects(()=>db.query('select public.rebirth_arena_commit(null,null,null,null,null)'),/permission denied/);await db.exec('reset role');
- console.log('PASS season growth, 2,000 score parity, 30-minute variation, Monday rollover, Master ±25, uncapped scoring, matching, actual user tiers, receipts and one-use offers.');
+ console.log('PASS season growth, 2,000 score parity, daily growth/ranks and 30-minute offers, Monday rollover, Master ±25, uncapped scoring, matching, actual user tiers, receipts and one-use offers.');
  console.log(JSON.stringify({mondayRank100:first[99].score,sundayRank100:last[99].score,mondayFirst:first[0].score,sundayFirst:last[0].score}));
 }finally{await db.close();}

@@ -12,7 +12,7 @@ import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-1
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
-import {arenaView,startArenaReplay} from './arena-ui.mjs?v=arena-balance-153';
+import {arenaView,startArenaReplay} from './arena-ui.mjs?v=arena-daily-155';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
 import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=short-18';

@@ -27,9 +27,9 @@ export function arenaRandom(seed,id,salt){
 }
 export function botScore(id,bucket=Math.floor(Date.now()/1800000)){
  if(!Number.isInteger(id)||id<1||id>ARENA_BOT_COUNT)throw Error('INVALID_ARENA_BOT');
- const seasonBucket=Math.floor(arenaSeasonStart(bucket*1800000)/1800000),elapsed=bucket-seasonBucket,growth=Math.floor(elapsed*700/335);
- if(id<=120)return 2000+arenaRandom(seasonBucket,id,1)%1001+growth+arenaRandom(bucket,id,2)%161-80;
- return Math.max(0,Math.min(1949+growth,Math.floor((2000-id)*(1949+growth)/1879)+arenaRandom(bucket,id,3)%41-20));
+ const seasonBucket=Math.floor(arenaSeasonStart(bucket*1800000)/1800000),elapsed=bucket-seasonBucket,day=Math.floor(elapsed/48),dailyBucket=seasonBucket+day*48,growth=Math.floor(day*700/6);
+ if(id<=120)return 2000+arenaRandom(seasonBucket,id,1)%1001+growth+arenaRandom(dailyBucket,id,2)%161-80;
+ return Math.max(0,Math.min(1949+growth,Math.floor((2000-id)*(1949+growth)/1879)+arenaRandom(dailyBucket,id,3)%41-20));
 }
 export const ARENA_ELITE_MIN_SCORE=2600;
 export function tier(score,rank){

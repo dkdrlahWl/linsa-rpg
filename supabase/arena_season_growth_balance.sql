@@ -1,4 +1,4 @@
--- Arena ladder: Korea Monday 00:00, half-hour variation, season growth, real score/rank profiles.
+-- Arena ladder: Korea Monday 00:00, daily score/rank variation and growth, real score/rank profiles.
 -- Keep points uncapped and preserve authentication, receipt and single-use offer checks.
 create or replace function rebirth_private.arena_random(p_seed bigint,p_id integer,p_salt integer)
 returns bigint language sql immutable set search_path='' as $$
@@ -12,13 +12,15 @@ returns table(id integer,score integer,bot_rank integer)
 language sql immutable set search_path='' as $$
  with season as (
   select floor(extract(epoch from (date_trunc('week',to_timestamp(p_bucket*1800) at time zone 'Asia/Seoul') at time zone 'Asia/Seoul'))/1800)::bigint as start_bucket
+ ), daily as (
+  select start_bucket,start_bucket+((p_bucket-start_bucket)/48)*48 as daily_bucket,((p_bucket-start_bucket)/48)::integer as season_day from season
  ), scored as (
   select i as id,case when i<=120 then
    2000+(rebirth_private.arena_random(s.start_bucket,i,1)%1001)::integer
-   +floor((p_bucket-s.start_bucket)*700.0/335)::integer
-   +(rebirth_private.arena_random(p_bucket,i,2)%161)::integer-80
-  else greatest(0,least(1949+floor((p_bucket-s.start_bucket)*700.0/335)::integer,floor((2000-i)*(1949+floor((p_bucket-s.start_bucket)*700.0/335))/1879)::integer+(rebirth_private.arena_random(p_bucket,i,3)%41)::integer-20)) end as score
-  from generate_series(1,2000) i cross join season s
+   +floor(s.season_day*700.0/6)::integer
+   +(rebirth_private.arena_random(s.daily_bucket,i,2)%161)::integer-80
+  else greatest(0,least(1949+floor(s.season_day*700.0/6)::integer,floor((2000-i)*(1949+floor(s.season_day*700.0/6))/1879)::integer+(rebirth_private.arena_random(s.daily_bucket,i,3)%41)::integer-20)) end as score
+  from generate_series(1,2000) i cross join daily s
  )
  select id,score,row_number() over(order by score desc,'bot:'||id)::integer from scored
 $$;
@@ -142,7 +144,8 @@ begin
  return v_saved;
 end $function$
 ;
--- Existing cron name remains stable; schedule remains every thirty minutes.
-select cron.schedule('ringu-arena-halfhour-ai','*/30 * * * *','select rebirth_private.arena_refresh_daily_bots();');
+-- Daily ladder refresh at Korea midnight (15:00 UTC); opponent offers still refresh every 30 minutes.
+select cron.unschedule(jobid) from cron.job where jobname in ('ringu-arena-halfhour-ai','ringu-arena-daily-ai','ringu-arena-daily-ladder');
+select cron.schedule('ringu-arena-daily-ladder','0 15 * * *','select rebirth_private.arena_refresh_daily_bots();');
 select rebirth_private.arena_refresh_daily_bots();
 
