@@ -36,8 +36,10 @@ try{
   if(screen==='opponents')assert.equal(await page.locator('.pvp-opponent').count(),4);
   if(screen==='ranking')assert.equal(await page.locator('.pvp-ranking-row').count(),100);
   if(screen==='battle'){
-   await page.evaluate(()=>window.controller=window.replay());await page.waitForTimeout(1300);
+   await page.evaluate(()=>window.controller=window.replay());
+   await page.waitForFunction(()=>document.querySelector('[data-arena-log]')?.textContent.includes('시전'),{},{timeout:10000});
    assert((await page.locator('[data-arena-log]').innerText()).includes('시전'));
+   assert.deepEqual(errors,[]);
    await page.evaluate(()=>window.controller.stop());
   }
   await page.screenshot({path:`${output}/${screen}.png`,fullPage:screen!=='ranking'});await page.close();

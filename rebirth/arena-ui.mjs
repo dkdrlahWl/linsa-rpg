@@ -1,5 +1,6 @@
 import {tier,arenaPointDelta} from './arena-model.mjs?v=arena-daily-155';
 import {portraitStyle} from './costume-ui.mjs';
+import {prepareArenaEffects,drawArenaEffect} from './arena-effects.mjs?v=arena-transparent-156';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>Math.floor(Number(v)||0).toLocaleString('ko-KR');
 const jobs={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
@@ -54,12 +55,6 @@ function resultView(result,data){const won=result.battle.won,delta=result.delta?
  return `<section class="pvp-screen pvp-result-screen"><div class="pvp-result-hero">${portrait(result.self||{},'pvp-result-portrait')}<div class="pvp-result-crown">${won?'❖ 승리! ❖':'⚔ 패배'}</div></div><div class="pvp-panel pvp-result-detail"><h2>${won?'아레나 승리':'다음 전투를 준비하세요'}</h2><p>${badge(score,data.rank)}</p><div class="pvp-result-change"><span>${fmt(before)}점</span><b>→</b><strong>${fmt(score)}점</strong></div><div class="pvp-result-delta ${won?'win':'loss'}">${delta>=0?'+':''}${fmt(delta)}점</div><div class="pvp-result-opponent">${portrait(result.opponent||{})}<span>${esc(result.opponent?.name||'상대')}<small>${esc(jobs[result.opponent?.classId]||'모험가')} · ${fmt(result.opponent?.score)}점</small></span><strong>${won?'제압':'승리'}</strong></div><div class="pvp-result-summary"><div><small>전투 시간</small><b>${Math.floor(duration/60)}:${String(duration%60).padStart(2,'0')}</b></div><div><small>가한 피해</small><b>${fmt(damage)}</b></div><div><small>사용 스킬</small><b>${fmt(skills)}회</b></div></div></div><div class="pvp-result-actions">${button('⚔ 다음 상대','arenaPage','opponents','pvp-primary')}${button('아레나 홈','arenaPage','home')}</div></section>`;
 }
 
-const effectArt=(cls,slot)=>{
- const col=Math.max(0,['warrior','mage','archer','rogue','pirate'].indexOf(cls));
- if(cls==='priest')return {url:`tower/priest-skill-${slot}-v2.png`,cols:4,rows:1,col:0,row:0};
- if(slot===5)return {url:`tower/fifth-${cls}-v1.webp`,cols:2,rows:2,col:1,row:1};
- return {url:slot===4?'tower/fourth-job-atlas.webp':slot===3?'tower/third-job-atlas.webp':slot===2?'tower/second-sequence-atlas-v1.png':'tower/second-job-atlas.webp',cols:5,rows:slot===4?1:slot===2?3:4,col,row:slot===4?0:2};
-};
 export function startArenaReplay(result,onFinish){
  const frames=result?.battle?.frames||[];let index=0,speed=1,stopped=false,timer;const cleanups=new Set(),timeouts=new Set();
  const later=(fn,ms)=>{const id=setTimeout(()=>{timeouts.delete(id);fn();},ms);timeouts.add(id);};
@@ -78,8 +73,9 @@ export function startArenaReplay(result,onFinish){
     const label=document.createElement('span');label.className=`pvp-skill-callout ${acting}`;label.textContent=f.type==='support'?f.heal?'HP +'+fmt(f.heal):'보호막 +'+fmt(f.shield):f.skill;add(stage,label,1200);
    }
    if(f.type==='cast'||f.type==='skill'){
-    const art=effectArt(profile?.classId||'warrior',Math.max(1,f.slot||1)),vfx=document.createElement('div');
-    vfx.className=`pvp-skill-vfx ${acting} ${profile?.classId==='priest'?'holy':''}`;vfx.style.backgroundImage=`url('${art.url}')`;vfx.style.backgroundSize=`${art.cols*100}% ${art.rows*100}%`;vfx.style.backgroundPosition=`${art.cols>1?art.col/(art.cols-1)*100:0}% ${art.rows>1?art.row/(art.rows-1)*100:0}%`;add(stage,vfx,f.type==='cast'?950:450);
+    const vfx=document.createElement('canvas');
+    vfx.className=`pvp-skill-vfx ${acting} ${profile?.classId==='priest'?'holy':''}`;vfx.setAttribute('aria-hidden','true');
+    drawArenaEffect(vfx,profile?.classId||'warrior',Math.max(1,f.slot||1));add(stage,vfx,f.type==='cast'?950:450);
    }
    if(f.damage>0){
     stage.classList.remove('pvp-hit-left','pvp-hit-right');void stage.offsetWidth;stage.classList.add(f.side===0?'pvp-hit-right':'pvp-hit-left');
@@ -91,6 +87,6 @@ export function startArenaReplay(result,onFinish){
   timer=setTimeout(step,Math.min(1500,wait)/speed);
  };
  const stop=()=>{stopped=true;clearTimeout(timer);for(const id of timeouts)clearTimeout(id);for(const node of cleanups)node.remove();timeouts.clear();cleanups.clear();};
- timer=setTimeout(step,450);
+ prepareArenaEffects(result).then(()=>{if(!stopped)timer=setTimeout(step,450);});
  return {stop,skip:()=>{stop();onFinish();},speed:()=>{speed=speed===1?2:1;return speed;}};
 }
