@@ -5,7 +5,7 @@ import {initialState} from '../rebirth/engine.mjs';
 assert.equal(new Set(ARENA_BOT_NAMES).size,2000);
 assert(ARENA_BOT_NAMES.every(name=>name.length>0&&!/[0-9_]/.test(name)),'Bot names must not use numeric or underscore suffixes');
 for(const cls of ['warrior','mage','archer','rogue','pirate','priest']){
- const a=buildBot({id:1,classId:cls}),r=simulateArena(a,a,'check');
+ const a=buildBot({id:1,classId:cls,score:1200}),r=simulateArena(a,a,'check');
  assert.deepEqual(r,simulateArena(a,a,'check'));
  assert(r.frames.every(f=>f.leftHp>=0&&f.leftHp<=r.leftMaxHp&&f.rightHp>=0&&f.rightHp<=r.rightMaxHp));
  assert.deepEqual([...new Set(r.frames.filter(f=>f.type==='cast').map(f=>f.slot))].sort(),[1,2,3,4,5]);
