@@ -1,4 +1,4 @@
-import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=coop-steady-143';
+import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=raid-steady-160';
 const prediction=new CoopPredictionCore();let generation=0;
 self.onmessage=({data})=>{
  try{

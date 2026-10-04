@@ -1,4 +1,4 @@
-import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=worker-138';
+import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=raid-steady-160';
 export const FIFTH_NAMES={warrior:'천검의 창세자',mage:'별의 창조주',archer:'천궁의 인도자',rogue:'월식의 처형자',pirate:'망령함대의 제독',priest:'대천사'};
 const make=(name,mode,radius,pulses,description)=>({name,type:'attack',mode,radius,range:2200,cooldown:40,hits:pulses.length,pulses,seconds:pulses.at(-1).at/10,description:description+' · 재사용 40초'});
 const pulse=(at,damage,final=false)=>({at,damage,final});

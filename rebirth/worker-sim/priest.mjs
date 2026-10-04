@@ -1,4 +1,4 @@
-import {petHealTick} from './pet-event.mjs?v=worker-138';
+import {petHealTick} from './pet-event.mjs?v=raid-steady-160';
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
 export const PRIEST_HP_ATTACK_RATIO=.166;
 export const PRIEST_LUK_ATTACK_RATIO=.6;
@@ -13,11 +13,11 @@ export function priestAttack(hp,luk,gearAttack,attackPercent,hpPercent=0,lukPerc
  return (hp*PRIEST_HP_ATTACK_RATIO+luk*lukRate+gearAttack*PRIEST_GEAR_ATTACK_RATIO)*(1+(attackPercent+hpPercent)/100);
 }
 export const PRIEST_SKILLS={
- 1:{name:'성광 심판',type:'attack',cooldown:10,range:2100,radius:650,hits:3,damage:.6,interval:2,hpRatio:.01,description:'성광 3발 · 총 공격력 180% + 사제 최대 HP 3%'},
- 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:1500,radius:1500,hits:1,damage:2,interval:1,hpRatio:.02,description:'주변 아군 각각 사제 최대 HP 20% 즉시 회복 · 공격력 200% + 최대 HP 2% 피해'},
- 3:{name:'성역의 결계',type:'attack',cooldown:24,range:1500,radius:1500,hits:1,damage:4.5,interval:1,hpRatio:.05,art:5,description:'주변 아군 각각 사제 최대 HP 30% 보호막 · 보호막이 남아 있는 동안 받는 피해 70% 감소 · 중첩 가능 · 피해로 소진될 때까지 유지 · 공격력 450% + 최대 HP 5% 피해'},
- 5:{name:'대천사 강림',type:'attack',cooldown:30,range:1500,radius:1550,hits:8,damage:1.75,interval:10,hpRatio:.01875,description:'200레벨 · 사제를 따라오는 8초 성역 · 시전 시 아군 각각 사제 최대 HP 100% 즉시 회복 · 시전 시 범위 내 사망한 아군을 각자 최대 HP 50%로 부활 · 공격력 1400% + 최대 HP 15% 피해'},
- 4:{name:'천상의 심판',type:'attack',cooldown:30,range:2100,radius:1250,hits:8,damage:1.25,interval:10,hpRatio:.0125,art:5,description:'8초 성광 폭격 · 범위 내 아군 매초 사제 최대 HP 5%씩 총 8회 회복 · 범위 내 공격력 10% 증가 · 공격력 1000% + 최대 HP 10% 피해'}
+ 1:{name:'성광 심판',type:'attack',cooldown:10,range:2100,radius:650,hits:3,damage:.6,interval:2,hpRatio:.007,description:'성광 3발 · 총 공격력 180% + 사제 최대 HP 2.1%'},
+ 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:1500,radius:1500,hits:1,damage:2,interval:1,hpRatio:.014,description:'주변 아군 각각 사제 최대 HP 20% 즉시 회복 · 공격력 200% + 최대 HP 1.4% 피해'},
+ 3:{name:'성역의 결계',type:'attack',cooldown:24,range:1500,radius:1500,hits:1,damage:4.5,interval:1,hpRatio:.035,art:5,description:'주변 아군 각각 사제 최대 HP 30% 보호막 · 보호막이 남아 있는 동안 받는 피해 10% 감소 · 중첩 가능 · 피해로 소진될 때까지 유지 · 공격력 450% + 최대 HP 3.5% 피해'},
+ 5:{name:'대천사 강림',type:'attack',cooldown:30,range:1500,radius:1550,hits:8,damage:1.75,interval:10,hpRatio:.013125,description:'200레벨 · 사제를 따라오는 8초 성역 · 시전 시 아군 각각 사제 최대 HP 100% 즉시 회복 · 시전 시 범위 내 사망한 아군을 각자 최대 HP 50%로 부활 · 공격력 1400% + 최대 HP 10.5% 피해'},
+ 4:{name:'천상의 심판',type:'attack',cooldown:30,range:2100,radius:1250,hits:8,damage:1.25,interval:10,hpRatio:.00875,art:5,description:'8초 성광 폭격 · 범위 내 아군 매초 사제 최대 HP 5%씩 총 8회 회복 · 범위 내 공격력 10% 증가 · 공격력 1000% + 최대 HP 7% 피해'}
 };
 const keys={1:'firstCast',2:'secondCast',3:'thirdCast',4:'fourthCast',5:'fifthCast'},ready={1:'ultimateReady',2:'skillReady',3:'thirdReady',4:'fourthReady',5:'fifthReady'};
 export function beginPriest(a,target,tick,slot){
@@ -60,5 +60,5 @@ export function supportTick(members,tick,numbers=[],effects=[],serial=()=>0){
  }}a.holySupport=[];}
  function heal(m,value,a){const actual=Math.min(m.power.hp-m.hp,Math.max(0,Math.round(value)));m.hp+=actual;a.healing=(a.healing||0)+actual;if(actual)numbers.push({id:serial(),value:actual,x:m.x,y:m.y-110,kind:'heal',start:tick,end:tick+9});}
 }
-export function absorbDamage(a,damage,tick){if(tick<(a.fifthGuardUntil||0))damage*=.8;const shield=a.shieldPermanent||tick<(a.shieldUntil||0)?a.shield||0:0;if(shield>0)damage*=.30;const absorbed=Math.min(shield,damage);a.shield=Math.max(0,shield-absorbed);a.absorbed=(a.absorbed||0)+absorbed;return Math.max(0,damage-absorbed);}
+export function absorbDamage(a,damage,tick){if(tick<(a.fifthGuardUntil||0))damage*=.8;const shield=a.shieldPermanent||tick<(a.shieldUntil||0)?a.shield||0:0;if(shield>0)damage*=.90;const absorbed=Math.min(shield,damage);a.shield=Math.max(0,shield-absorbed);a.absorbed=(a.absorbed||0)+absorbed;return Math.max(0,damage-absorbed);}
 export function holyDamage(a,damage,tick=a.tick||0){return damage*(tick<(a.holyAttackUntil||0)?1.1:1)+(a.holyFlatDamage||0);}

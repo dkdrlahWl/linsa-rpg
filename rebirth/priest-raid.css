@@ -90,3 +90,5 @@
 /* Shield changes are immediate; the grey segment follows the green HP segment. */
 .tower-player-hud .player-health #tower-player-shield{z-index:1;transition:none;background:linear-gradient(90deg,#87919c,#e0e4e9)}
 .tower-player-hud .player-health #tower-player-bar{z-index:2;transition:none}
+
+#tower-status.raid-danger{color:#fff0ee;background:#6c152bd9;border:1px solid #ff6075;padding:5px 8px;font-weight:800}

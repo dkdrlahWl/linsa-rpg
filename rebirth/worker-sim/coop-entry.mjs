@@ -1,4 +1,4 @@
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=worker-138';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=raid-steady-160';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){

@@ -1,11 +1,11 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=worker-138';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=worker-138';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=worker-138';
-import {beginThird,stepThird} from './advancement.mjs?v=worker-138';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=worker-138';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=worker-138';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=worker-138';
-import {incomingDamage} from './journey-balance.mjs?v=worker-138';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=raid-steady-160';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=raid-steady-160';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=raid-steady-160';
+import {beginThird,stepThird} from './advancement.mjs?v=raid-steady-160';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=raid-steady-160';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=raid-steady-160';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=raid-steady-160';
+import {incomingDamage} from './journey-balance.mjs?v=raid-steady-160';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>8)throw Error('INVALID_COOP_ROOM');
@@ -25,18 +25,19 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  const target=alive[(Math.floor(t/80)+w.tier)%alive.length],enraged=w.hp<w.maxHp*.35;
  e.dir=towerFacing(target.x-e.x,target.y-e.y,e.dir);
  if(t>(w.enemyCastUntil||0)&&dist(e,target)>430){let angle=Math.atan2(target.y-e.y,target.x-e.x);raidMove(e,e.x+Math.cos(angle)*9,e.y+Math.sin(angle)*9,w.walls);e.walk++;}
- const circle=(x,y,r,delay,mult,inner=0)=>w.hazards.push({type:'circle',x,y,r,inner,at:t+delay,end:t+delay+3,multiplier:mult});
- if(t>=w.nextBasic){circle(target.x,target.y,150,10,1.5);w.nextBasic=t+(enraged?17:23);w.enemyAttackStart=t+10;w.enemyAttackUntil=t+15;}
+ const circle=(x,y,r,delay,mult,inner=0,extra={})=>w.hazards.push({type:'circle',x,y,r,inner,start:t,at:t+delay,end:t+delay+3,multiplier:mult,...extra});
+ if(t>=w.nextBasic){circle(target.x,target.y,150,10,1.5,0,{basic:true,label:'평타'});w.nextBasic=t+(enraged?17:23);w.enemyAttackStart=t+10;w.enemyAttackUntil=t+15;w.enemyAttackDir=e.dir;}
  if(t>=w.nextPattern){
   const phase=w.phase++;w.enemyCastStart=t;w.enemyCastUntil=t+22;w.enemyAttackStart=t+22;w.enemyAttackUntil=t+30;
   if(phase%3===0){w.announcement='탄막 · 발사체 사이로 피하세요';w.announcementUntil=t+70;const angle=Math.atan2(target.y-e.y,target.x-e.x),count=16+w.tier*8;for(let i=0;i<count;i++){const a=angle+i*Math.PI*2/count;w.projectiles.push({id:++w.serial,side:'enemy',x:e.x,y:e.y,dx:Math.cos(a)*46,dy:Math.sin(a)*46,r:34,at:t+22,end:t+120,multiplier:5});}}
   else if(w.tier===0){circle(e.x,e.y,1250,25,3.5,phase%2?470:0);w.announcement=phase%2?'조류 고리 · 보스 가까이':'해일 · 바깥으로';w.announcementUntil=t+28;}
   else if(w.tier===1){for(const m of alive.slice(0,4))circle(m.x,m.y,260,23,4);w.announcement='용철 낙하 · 서로 떨어지세요';w.announcementUntil=t+26;}
-  else if(w.tier===2){const a=phase*Math.PI/4;w.hazards.push({type:'line',x:e.x-Math.cos(a)*2200,y:e.y-Math.sin(a)*2200,tx:e.x+Math.cos(a)*2200,ty:e.y+Math.sin(a)*2200,width:260,at:t+25,end:t+29,multiplier:5,cover:true,source:{...e}});for(const m of alive.slice(0,3))circle(m.x,m.y,210,32,3);w.announcement='성좌 절단 · 광선과 장판 회피';w.announcementUntil=t+35;}
-  else {if(phase%2){circle(1600,1600,4500,26,5,850);circle(1600,1600,500,26,5);}else for(const dx of [-650,650])w.hazards.push({type:'line',x:1600+dx,y:100,tx:1600-dx,ty:3100,width:320,at:t+24,end:t+28,multiplier:5,cover:true,source:{x:1600+dx,y:100}});w.announcement='시간 붕괴 · 안전 고리 / 교차 광선';w.announcementUntil=t+30;}
+  else if(w.tier===2){const a=phase*Math.PI/4;w.hazards.push({type:'line',x:e.x-Math.cos(a)*2200,y:e.y-Math.sin(a)*2200,tx:e.x+Math.cos(a)*2200,ty:e.y+Math.sin(a)*2200,width:260,start:t,label:'성좌 절단',at:t+25,end:t+29,multiplier:5,cover:true,source:{...e}});for(const m of alive.slice(0,3))circle(m.x,m.y,210,32,3,0,{label:'별빛 낙하'});w.announcement='성좌 절단 · 광선과 장판 회피';w.announcementUntil=t+35;}
+  else {if(phase%2){circle(1600,1600,4500,26,5,850,{label:'시간 붕괴'});circle(1600,1600,500,26,5,0,{label:'시간 붕괴'});}else for(const dx of [-650,650])w.hazards.push({type:'line',x:1600+dx,y:100,tx:1600-dx,ty:3100,width:320,start:t,label:'교차 광선',at:t+24,end:t+28,multiplier:5,cover:true,source:{x:1600+dx,y:100}});w.announcement='시간 붕괴 · 안전 고리 / 교차 광선';w.announcementUntil=t+30;}
   w.nextPattern=t+(enraged?70:100);
  }
- if(t>=w.nextJudgment){w.judgmentAt=t+35;w.announcement=w.tier?'대붕괴 · 사제 보호막 준비':'심해 침식 · 사제 치유 준비';w.announcementUntil=t+40;w.nextJudgment=t+300;}
+ if(t<w.nextCorruption&&t>=w.nextCorruption-30&&w.corruptionWarningAt!==w.nextCorruption){w.corruptionWarningAt=w.nextCorruption;circle(1600,1600,4500,w.nextCorruption-t,0,0,{warningOnly:true,kind:'corruption',label:'침식 · 회복 준비'});}
+ if(t>=w.nextJudgment){w.judgmentAt=t+35;w.announcement=w.tier?'대붕괴 · 사제 보호막 준비':'심해 침식 · 사제 치유 준비';w.announcementUntil=t+40;circle(1600,1600,4500,35,0,0,{warningOnly:true,kind:'judgment',label:w.announcement});w.nextJudgment=t+300;}
  supportTick(w.members,t);
  for(const m of alive){const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0],len=Math.max(1,Math.hypot(x,y));x/=len;y/=len;m.moving=Math.hypot(x,y)>.01;m.dir=towerFacing(x,y,m.dir);if(m.moving)m.walk++;
   let speed=c.speed;if((bits&4)&&t>=m.dashReady){const v=facingVector(m.dir);m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;m.dx=m.moving?x:v.x;m.dy=m.moving?y:v.y;}if(t<(m.dashUntil||0)){x=m.dx;y=m.dy;speed*=3;}raidMove(m,m.x+x*speed,m.y+y*speed,w.walls);
@@ -51,10 +52,9 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  const hurt=(m,value,unavoidable=false)=>{if(m.hp<=0||m.left||(!unavoidable&&(t<m.immune||t<m.hurtReady)))return;const damage=absorbDamage(m,Math.max(1,Math.round(value)),t);m.hp=Math.max(0,m.hp-damage);if(!unavoidable)m.hurtReady=t+5;w.numbers.push({id:++w.serial,value:damage,x:m.x,y:m.y-110,kind:'incoming',start:t,end:t+9});};
  if(t>=w.nextCorruption){for(const m of alive){m.corruption=t<(m.purifiedUntil||0)?0:(m.corruption||0)+1;hurt(m,m.power.hp*(.10+m.corruption*.035),true);}w.nextCorruption=t+120;}
  if(t===w.judgmentAt){for(const m of alive)hurt(m,m.power.hp*(w.tier?.6:.3)+incomingDamage(b.attack,m.power.defense)*2,true);}
- for(const h of w.hazards)if(t===h.at){for(const m of alive){let inside;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,k=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy)));inside=Math.hypot(m.x-h.x-k*dx,m.y-h.y-k*dy)<h.width/2+25;}else inside=dist(m,h)<h.r+25&&dist(m,h)>=h.inner;if(inside&&!(h.cover&&covered(h.source,m,w.walls)))hurt(m,incomingDamage(b.attack,m.power.defense)*h.multiplier);}}
+ for(const h of w.hazards)if(!h.warningOnly&&t===h.at){for(const m of alive){let inside;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,k=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy)));inside=Math.hypot(m.x-h.x-k*dx,m.y-h.y-k*dy)<h.width/2+25;}else inside=dist(m,h)<h.r+25&&dist(m,h)>=h.inner;if(inside&&!(h.cover&&covered(h.source,m,w.walls)))hurt(m,incomingDamage(b.attack,m.power.defense)*h.multiplier);}}
  for(const q of w.projectiles){if(t<q.at)continue;const old={x:q.x,y:q.y},next={x:q.x+q.dx,y:q.y+q.dy};if(covered(old,next,w.walls)){q.end=t;continue;}q.x=next.x;q.y=next.y;for(const m of alive)if(dist(m,q)<q.r+35){hurt(m,incomingDamage(b.attack,m.power.defense)*q.multiplier);q.end=t;break;}}
  if(w.hp<=0){w.status='won';w.chest={x:e.x,y:e.y};w.lootAt=now;w.effects=[];w.hazards=[];w.projectiles=[];for(const m of w.members){m.hp=Math.max(1,m.hp);m.input=[0,0,0];delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}
  }
  if(w.tick>=b.seconds*10&&w.status==='fighting')w.status='lost';const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=input;me.inputAt=now;}return w;
 }
-

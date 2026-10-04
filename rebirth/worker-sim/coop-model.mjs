@@ -1,20 +1,20 @@
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=worker-138';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=worker-138';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=worker-138';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=worker-138';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=worker-138';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=worker-138';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=worker-138';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=worker-138';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=raid-steady-160';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=raid-steady-160';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=raid-steady-160';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=raid-steady-160';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=raid-steady-160';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=raid-steady-160';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=raid-steady-160';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=raid-steady-160';
 export const coopEncounter=room=>room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=worker-138';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=worker-138';
-import {beginThird,stepThird} from './advancement.mjs?v=worker-138';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=worker-138';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=worker-138';
-import {incomingDamage} from './journey-balance.mjs?v=worker-138';
-import {COOP_TIERS} from './rift-rewards.mjs?v=worker-138';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=raid-steady-160';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=raid-steady-160';
+import {beginThird,stepThird} from './advancement.mjs?v=raid-steady-160';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=raid-steady-160';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=raid-steady-160';
+import {incomingDamage} from './journey-balance.mjs?v=raid-steady-160';
+import {COOP_TIERS} from './rift-rewards.mjs?v=raid-steady-160';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -95,6 +95,10 @@ export function predictCoopStep(room,user,input,owned=false,remoteFrames=[]){
 }
 const validFrame=f=>f&&Number.isSafeInteger(f.tick)&&f.tick>=0&&Array.isArray(f.input)&&f.input.length===3&&f.input.every(Number.isFinite)&&Math.abs(f.input[0])<=1&&Math.abs(f.input[1])<=1&&Number.isInteger(f.input[2])&&f.input[2]>=0&&f.input[2]<=127;
 const bare=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,...core}=w;return structuredClone(core);};
+// Equipment and identity are immutable during a fight. Store them once in
+// the current world instead of duplicating all eight builds in every rewind.
+const historyPoint=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,...core}=w;return structuredClone({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});};
+const restorePoint=(point,room)=>{const w=structuredClone(point);for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
 export function validateCoopFrames(frames){if(!Array.isArray(frames)||frames.length>40||!frames.every(validFrame))throw Error('INVALID_COOP_INPUT');return frames;}
 // Return a confirmed personal timeline as well as the shared room snapshot.
 // The client replays its still-unconfirmed inputs from here, not from a world
@@ -107,7 +111,7 @@ export function coopClientView(room,protocol=1){
  if(target===room.tick){view.predictionInputs=inputsFrom(room.tick);return view;}
  const point=[...net.points].reverse().find(p=>p.tick<=target);
  if(!point){view.predictionInputs=inputsFrom(room.tick);return view;}
- let base=structuredClone(point);const framesByTick=indexCoopFrames(net.frames);
+ let base=restorePoint(point,room);const framesByTick=indexCoopFrames(net.frames);
  while(base.tick<target&&base.status==='fighting')base=advanceCoopRaw(base,null,null,base.started+(base.tick+1)*100,framesByTick.get(base.tick)||[],true);
  for(const m of base.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  view.predictionBase={...base,id:room.id,me:room.me,owner:room.owner,revision:room.revision,waveSpeed:room.waveSpeed,speedAt:room.speedAt,speedTime:room.speedTime};
@@ -148,7 +152,7 @@ function advanceCoopTimeline(room,user,input,now){
   const movement=input.frames.find(f=>Math.hypot(f.input[0],f.input[1])>.01)?.input||input.frames.at(-1)?.input;
   return advanceCoopEntry(structuredClone(room),user,movement,now);
  }
- const upto=Math.min(room.mode==='wave'?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-room.started)/100))),net=room._net?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[bare(room)],frames:[]};
+ const upto=Math.min(room.mode==='wave'?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-room.started)/100))),net=room._net?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[historyPoint(room)],frames:[]};
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
@@ -160,12 +164,12 @@ function advanceCoopTimeline(room,user,input,now){
  if(earliest===Infinity&&upto===room.tick)return room;
  const framesByTick=indexCoopFrames(net.frames);
  let w=bare(room);
- if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=structuredClone(point);net.points=net.points.filter(p=>p.tick<=point.tick);}}
+ if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=restorePoint(point,room);net.points=net.points.filter(p=>p.tick<=point.tick);}}
  // Membership changes are never undone by input replay.
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status==='fighting';){
   w=advanceCoopRaw(w,null,null,w.started+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
-  if(w.tick%(['wave','raid'].includes(w.mode)?10:5)===0)net.points.push(bare(w));
+  if(w.tick%(['wave','raid'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
  net.frames=net.frames.filter(f=>f.tick>=net.points[0].tick);
@@ -173,6 +177,3 @@ function advanceCoopTimeline(room,user,input,now){
  if(w.status==='lost'&&upto-w.tick<30&&(room.mode==='wave'||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
  w._net=net;return w;
 }
-
-
-

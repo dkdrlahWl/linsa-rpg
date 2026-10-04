@@ -1,4 +1,6 @@
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
+import {raidBossSource,raidDamageRows,drawRaidWarning,drawRaidShotWarning,drawRaidProjectile} from './raid-presentation.mjs?v=raid-steady-160';
+import {transparentEffectAtlas} from './effect-alpha.mjs?v=priest-potential-83';
 import {healthSegments} from './health-bar.mjs?v=coop-smooth-136';
 import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-impact-121';
 import {drawWalkingSprite} from './walk-animation.mjs?v=walk-thickness-128';
@@ -16,7 +18,7 @@ import MOTION_BODY_LAYOUT from './motion-body-layout.mjs?v=priest-potential-83';
 import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER_SIZE} from './tower-model.mjs?v=fifth-impact-121';
 const arenaBackdrops=new WeakMap();
 const cache=new Map(),spriteBounds=new WeakMap(),decodedImages=new WeakSet();
-function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h});}result.maxWidth=Math.max(...result.map(v=>v.w));result.maxHeight=Math.max(...result.map(v=>v.h));spriteBounds.set(im,result);return result;}
+function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h,empty:true});}result.maxWidth=Math.max(...result.map(v=>v.w));result.maxHeight=Math.max(...result.map(v=>v.h));spriteBounds.set(im,result);return result;}
 export const asset=name=>'tower/'+name+'.webp';
 export const motionAsset=name=>'tower/'+name+'.png';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=src;cache.set(src,im);im.decode().then(()=>decodedImages.add(im)).catch(()=>{});}return cache.get(src);}
@@ -103,23 +105,24 @@ const preparations=new Map();
 export function prepareCombatArt(classes,boss,costumeIds=[]){
  const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-motion-v1.png',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
  for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.motionLayout||c.classId]],[c.portrait,null]);}}
- tasks.push([asset(boss==='raid-2'?'raid-boss-2-portrait':'boss-'+boss),null]);image('tower/priest-orb-v1.png');if(String(boss).startsWith('raid-')){image(asset('raid-map-'+boss.slice(5)));image(asset('raid-boss-'+boss.slice(5)+'-portrait'));}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
- image(motionAsset('second-sequence-atlas-v1'));
- const secondLoads=[prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}))];
+ const raid=String(boss).startsWith('raid-'),raidTier=raid?Number(boss.slice(5)):null;
+ tasks.push([raid?raidBossSource(raidTier):asset('boss-'+boss),null]);image('tower/priest-orb-v1.png');if(raid){tasks.push([asset('raid-map-'+raidTier),null],[asset('raid-boss-'+raidTier+'-portrait'),null]);}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
+ const secondAtlas=image(motionAsset('second-sequence-atlas-v1'));
+ const secondLoads=[secondAtlas.decode().then(()=>transparentEffectAtlas(secondAtlas)).catch(()=>{}),prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}))];
  if(classes.includes('priest'))secondLoads.push(preparePriestSkillArt());
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
-  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&costumeIds.some(id=>costumeById(id)?.atlas===src))cleanDirectionalAtlas(im,layout);}catch{preparations.delete(src);}})());
+  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&costumeIds.some(id=>costumeById(id)?.atlas===src))cleanDirectionalAtlas(im,layout);if(raid&&src===raidBossSource(raidTier)&&raidTier!==2)frameBounds(im,4,2);}catch{preparations.delete(src);}})());
   return preparations.get(src);
  })]);
 }
 
 export class TowerRenderer {
   constructor(canvas,options={}){
-    this.presentationScale=options.presentationScale;
+    this.presentationScale=options.presentationScale;this.maxFps=options.maxFps||60;
     this.mobileActors=matchMedia('(pointer: coarse)');
     this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.fifthLandings=new Map();this.shake=0;this.flash=0;this.zoom=0;
-    this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
+    this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,options.pixelRatio||1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
   }
   pet(actor,x,y,time,key='self'){
     if(actor.power?.pet!=='moonfox-lumi'||actor.hp<=0)return;
@@ -230,7 +233,8 @@ export class TowerRenderer {
     }
     if(this.backdrop)this.g.drawImage(this.backdrop,0,0);else{this.g.fillStyle='#101921';this.g.fillRect(0,0,TOWER_SIZE.width,TOWER_SIZE.height);}
   }
-  hazard(h,time){
+  hazard(h,time,raid=false){
+    if(raid){drawRaidWarning(this.g,h,time);return;}
     const bossScale=this.mobileActors.matches?1.5:1;
     const g=this.g,active=time>=h.at,progress=clamp(1-(h.at-time)/12);
     g.save();g.lineWidth=active?7:4;g.strokeStyle=active?'#fff0b9':'#ff8575';
@@ -287,7 +291,7 @@ export class TowerRenderer {
   }
   draw(b,previous,player,fraction,now,input,hint){
     b=localSkillView(b);
-    if(this.last&&now-this.last<1000/60-1)return;
+    if(this.last&&now-this.last<1000/this.maxFps-1)return;
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
@@ -314,7 +318,7 @@ export class TowerRenderer {
     const selfField=fifthAreas.find(e=>e.classId===b.classId&&(!e.owner||e.owner===(b.actorId??b.id)));
     for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);}
     for(const [key,value] of this.fifthLandings)if(value.end<=time)this.fifthLandings.delete(key);
-    for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time);
+    for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time,b.raidMode);
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
     const casting=b.tick<b.skillUntil||hint.skill>now,attacking=b.tick<b.attackUntil||hint.attack>now;
@@ -367,7 +371,19 @@ export class TowerRenderer {
         if(b.tick<(b.enemyHurtUntil||0)){g.fillStyle='#fff6d080';g.beginPath();g.arc(0,-129,radius+10,0,Math.PI*2);g.fill();}
         g.restore();return;
       }
-      if(b.raidMode&&!b.chest){const frame=b.tick<b.enemyCastUntil?4:b.tick<b.enemyAttackUntil?5:b.tick<(b.enemyHurtUntil||0)?6:Math.floor(time/8)%2,src=asset('boss-'+f.art),im=image(src);if(im.complete&&im.naturalWidth)this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);else{const portrait=image(asset('raid-boss-'+b.tier+'-portrait'));if(portrait.complete&&portrait.naturalWidth){g.save();g.shadowColor='#fff2c0';g.shadowBlur=18;g.drawImage(portrait,enemy.x-195,enemy.y-390,390,390);g.restore();}}return;}
+      if(b.raidMode&&!b.chest){
+        const tier=f.id??b.tier,casting=b.tick>=(b.enemyCastStart??0)&&b.tick<(b.enemyCastUntil||0),attacking=b.tick>=(b.enemyAttackStart??Infinity)&&b.tick<(b.enemyAttackUntil||0),hurt=b.tick<(b.enemyHurtUntil||0);
+        const frame=casting?4:attacking?5:hurt?6:Math.floor(time/8)%2,src=raidBossSource(tier),im=image(src);
+        // The level-150 atlas is truncated. Its complete painted body stays
+        // visible during idle, movement, casting, attack and hurt animations.
+        if(tier!==2&&decodedImages.has(im)&&im.naturalWidth&&!frameBounds(im,4,2)[frame]?.empty){this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);return;}
+        const portrait=image(asset('raid-boss-'+tier+'-portrait'));
+        if(decodedImages.has(portrait)&&portrait.naturalWidth){
+          const age=clamp((time-(b.enemyAttackStart??time))/5),pulse=attacking?Math.sin(age*Math.PI):0;
+          g.save();g.globalAlpha=1;g.translate(enemy.x,enemy.y+Math.sin(time*.2)*4+pulse*12);g.rotate(casting?Math.sin(time*.25)*.015:attacking?pulse*.04:0);
+          g.drawImage(portrait,-195,-390,390,390);g.restore();
+        }return;
+      }
       if(b.chest){const x=b.chest.x,y=b.chest.y,opening=b.chest.openAt!==undefined,frame=opening?Math.min(3,Math.floor((now-b.chest.openAt)/160)):0;this.shadow(x,y,62);const im=image(asset('reward-chest'));if(im.complete&&im.naturalWidth){const sw=im.width/4;g.save();g.shadowColor='#f9d47d';g.shadowBlur=12;g.drawImage(im,frame*sw,0,sw,im.height,x-110,y-170,220,190);g.restore();}g.save();g.fillStyle='#fff2c0';g.font='bold 22px sans-serif';g.textAlign='center';g.fillText(opening?'상자 여는 중…':'가까이서 공격해 열기',x,y-185);g.restore();return;}
 
       const windup=b.tick<b.enemyCastUntil,frame=windup?1:b.tick<b.enemyAttackUntil?2:0;
@@ -397,6 +413,8 @@ export class TowerRenderer {
       if(b.tick<q.at)continue;
       const old=previous.projectiles.find(p=>p.id===q.id)||{x:q.x-q.dx,y:q.y-q.dy};
       const x=mix(old.x,q.x,fraction),y=mix(old.y,q.y,fraction),enemyShot=q.side==='enemy';
+      if(!visible(x,y,200))continue;
+      if(b.raidMode&&enemyShot){drawRaidProjectile(g,q,x,y);continue;}
       const cls=q.classId||b.classId;if(!enemyShot&&cls==='priest'){const orb=image('tower/priest-orb-v1.png');if(orb.complete&&orb.naturalWidth){g.save();g.globalCompositeOperation='screen';g.shadowColor='#fff4b5';g.shadowBlur=25;g.drawImage(orb,x-65,y-65,130,130);g.restore();}continue;}const src=enemyShot?motionAsset('attack-beam-v2'):motionAsset(cls==='pirate'?'attack-beam-v2':'attack-bolt-v2');
       const filter=enemyShot?'hue-rotate(330deg)':cls==='mage'?'hue-rotate(72deg)':cls==='archer'?'hue-rotate(-95deg)':'none';
       this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125*(this.mobileActors.matches?1.5:1):cls==='pirate'?140:120,enemyShot?60*(this.mobileActors.matches?1.5:1):62,Math.atan2(q.dy,q.dx),.95,filter);
@@ -426,7 +444,9 @@ export class TowerRenderer {
       this.strip(motionAsset(src),frame,e.x,e.y,e.size*1.8,e.size*1.3,(e.angle||0)+(e.kind==='slash'?age*.45:0),1-age*.75,filter);
     }
     this.drawImpacts(now,dt);
-    const rows=damageRows(b.numbers,time),personal=b.numbers.filter(n=>n.end>time&&(n.kind==='incoming'||n.kind==='heal')).slice(-3);
+    // Warning edges and labels stay visible even under the party's skill effects.
+    if(b.raidMode){for(const h of b.hazards)if(h.type==='line'||visible(h.x,h.y,h.r))drawRaidWarning(g,h,time,true);for(const q of b.projectiles)drawRaidShotWarning(g,q,time);}
+    const rows=b.raidMode?raidDamageRows(b.numbers,time):damageRows(b.numbers,time),personal=b.numbers.filter(n=>n.end>time&&(n.kind==='incoming'||n.kind==='heal')).slice(-3);
     const room=Math.max(0,b.enemy.y-155-(this.camera.y+65));
     const rowHeight=Math.min(this.mobileActors.matches?58:42,room/Math.max(1,rows.length-1));
     const rowFont=Math.min(this.mobileActors.matches?52:36,Math.max(16,rowHeight*.85));
@@ -434,7 +454,7 @@ export class TowerRenderer {
     for(const n of [...rows,...personal]){
       const age=time-n.start,fade=clamp((n.end-time)/2),incoming=n.kind==='incoming';
       const row=rows.indexOf(n);
-      const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=row>=0&&!b.waveMode?stackTop+row*rowHeight:n.y-age*6,x=row>=0&&!b.waveMode?b.enemy.x:n.x;
+      const value=(n.kind==='heal'?'+':incoming?'−':'')+format(n.value),y=row>=0&&!b.waveMode?stackTop+row*rowHeight:n.y-age*6,x=row>=0&&!b.waveMode?b.enemy.x+(b.raidMode?300:0):n.x;
       const label=damageLabel(value,n.kind,row>=0?rowFont:43);
       g.save();g.globalAlpha=fade;g.drawImage(label.canvas,x-label.canvas.width/2,y-label.baseline);g.restore();
     }
