@@ -4,7 +4,7 @@ import {beginThird,stepThird} from './advancement.mjs';
 import {beginFourth,stepFourth} from './fourth-job.mjs';
 import {beginFifth,stepFifth,fifthUnlocked} from './fifth-job.mjs';
 import {supportTick,absorbDamage,holyDamage} from './priest.mjs';
-import {botName} from './arena-names.mjs?v=arena-daily-149';
+import {botName} from './arena-names.mjs?v=arena-ranks-150';
 import {makeItem,power} from './engine.mjs';
 
 export const ARENA_BOT_COUNT=2000;
@@ -20,12 +20,15 @@ export function botScore(id){
  if(id<=100)return 2200+Math.floor((100-id)*399/89);
  return Math.floor((2000-id)*2199/1899);
 }
+export const ARENA_ELITE_MIN_SCORE=2600;
 export function tier(score,rank){
  if(score===null||score===undefined)return {name:'언랭크',step:'',label:'언랭크',color:'#a7b0c7'};
  const s=Math.max(0,Math.floor(score));
- if(s>=3000&&rank===1)return {name:'챌린저',step:'',label:'챌린저',color:'#f7d588'};
- if(s>=2600&&rank>=2&&rank<=10){const step=['IV','III','II','I'][clamp(Math.floor((s-2600)/100),0,3)];return {name:'그랜드 마스터',step,label:`그랜드 마스터 ${step}`,color:'#eabb82'};}
- if(s>=2200&&rank>=11&&rank<=100){const step=['IV','III','II','I'][clamp(Math.floor((s-2200)/100),0,3)];return {name:'마스터',step,label:`마스터 ${step}`,color:'#d3a6f5'};}
+ if(s>=ARENA_ELITE_MIN_SCORE&&Number.isInteger(rank)&&rank>=1&&rank<=10){
+  const name=rank===1?'챔피언':rank<=3?'챌린저':'그랜드 마스터';
+  return {name,step:'',label:name,color:name==='챔피언'?'#ffdc86':name==='챌린저'?'#f7d588':'#eabb82'};
+ }
+ if(s>=2200){const step=['IV','III','II','I'][clamp(Math.floor((s-2200)/100),0,3)];return {name:'마스터',step,label:`마스터 ${step}`,color:'#d3a6f5'};}
  const bands=[['브론즈',0,400,'#c89c80'],['실버',400,800,'#d7dfe9'],['골드',800,1200,'#f0cf75'],['플래티넘',1200,1600,'#8cdbdc'],['다이아',1600,2200,'#8ebaff']];
  const [name,min,max,color]=bands.find(([,lo,,],i)=>s<bands[i][2])||bands.at(-1);
  const step=['IV','III','II','I'][clamp(Math.floor((s-min)/((max-min)/4)),0,3)];
