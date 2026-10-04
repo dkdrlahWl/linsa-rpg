@@ -1,4 +1,4 @@
-import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=raid-steady-160';
+import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=raid-steady-162';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',4,[.060000002444,.018,0],[1,1,1],{pity:[0,0,25,83,0]}),
@@ -43,4 +43,3 @@ export function cubeUpgrade(state,kind,grade,random){
  if(limit)state.cubePity[key]=up?0:failures+1;
  return grade+Number(!!up);
 }
-
