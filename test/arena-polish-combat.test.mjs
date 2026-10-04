@@ -3,6 +3,7 @@ import {buildBot,simulateArena} from '../rebirth/arena-model.mjs';
 import {ARENA_BOT_NAMES} from '../rebirth/arena-names.mjs';
 import {initialState} from '../rebirth/engine.mjs';
 assert.equal(new Set(ARENA_BOT_NAMES).size,2000);
+assert(ARENA_BOT_NAMES.every(name=>name.length>0&&!/[0-9_]/.test(name)),'Bot names must not use numeric or underscore suffixes');
 for(const cls of ['warrior','mage','archer','rogue','pirate','priest']){
  const a=buildBot({id:1,classId:cls}),r=simulateArena(a,a,'check');
  assert.deepEqual(r,simulateArena(a,a,'check'));

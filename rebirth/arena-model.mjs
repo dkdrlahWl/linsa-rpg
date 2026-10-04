@@ -4,7 +4,7 @@ import {beginThird,stepThird} from './advancement.mjs';
 import {beginFourth,stepFourth} from './fourth-job.mjs';
 import {beginFifth,stepFifth,fifthUnlocked} from './fifth-job.mjs';
 import {supportTick,absorbDamage,holyDamage} from './priest.mjs';
-import {botName} from './arena-names.mjs?v=arena-polish-148';
+import {botName} from './arena-names.mjs?v=arena-daily-149';
 import {makeItem,power} from './engine.mjs';
 
 export const ARENA_BOT_COUNT=2000;
