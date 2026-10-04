@@ -4,13 +4,13 @@ export const PRIEST_HP_ATTACK_RATIO=.166;
 export const PRIEST_LUK_ATTACK_RATIO=.6;
 export const PRIEST_OFFENSE_POTENTIAL_RATE=1;
 export const PRIEST_GEAR_ATTACK_RATIO=.2;
+export const PRIEST_HP_POTENTIAL_ATTACK_RATE=.7;
 export function priestAttack(hp,luk,gearAttack,attackPercent,hpPercent=0,lukPercent=0){
- // HP% also grants an equal additive attack bonus. Attack% keeps full value;
- // an equal HP% line additionally scales HP damage, healing and shields.
- // Keep a same-tier HP line ahead of LUK even on low-level, highly starred gear.
+ // HP potential retains its full health benefit. Its attack increase is linear
+ // at 70% of an equal attack potential, without scaling the HP term twice.
  const baseHP=hp/(1+hpPercent/100),baseLUK=luk/(1+lukPercent/100);
  const lukRate=Math.min(PRIEST_LUK_ATTACK_RATIO,baseHP*PRIEST_HP_ATTACK_RATIO*.8/Math.max(1,baseLUK));
- return (hp*PRIEST_HP_ATTACK_RATIO+luk*lukRate+gearAttack*PRIEST_GEAR_ATTACK_RATIO)*(1+(attackPercent+hpPercent)/100);
+ return (baseHP*PRIEST_HP_ATTACK_RATIO+luk*lukRate+gearAttack*PRIEST_GEAR_ATTACK_RATIO)*(1+(attackPercent+hpPercent*PRIEST_HP_POTENTIAL_ATTACK_RATE)/100);
 }
 export const PRIEST_SKILLS={
  1:{name:'성광 심판',type:'attack',cooldown:10,range:2100,radius:650,hits:3,damage:.6,interval:2,hpRatio:.007,description:'성광 3발 · 총 공격력 180% + 사제 최대 HP 2.1%'},
