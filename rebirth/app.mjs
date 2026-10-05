@@ -85,6 +85,8 @@ let shopCategory="boss";
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0, lastBattleRequestAt = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
+// Market and lotto responses do not settle field rewards.
+let lastHuntSettlement = 0;
 let session,
   settings = { sound: 0.3, music: 0.18, low: false },
   state = null,
@@ -372,7 +374,11 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
     localStorage.removeItem(pendingKey());
     const audioPrevious=state;
-    if(Object.hasOwn(result,'state'))state = D.normalizePotentialState(result.state);
+    const previousHuntAt = state?.lastAt;
+    if(Object.hasOwn(result,'state')){
+      state = D.normalizePotentialState(result.state);
+      if(state&&(body.command==='sync'||state.lastAt!==previousHuntAt))lastHuntSettlement=Date.now();
+    }
     if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(result.arena){arenaData=result.arena;arenaError='';}
@@ -1004,7 +1010,7 @@ function clearAccountView() {
   if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
   state=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
   marketKind="all";marketRows=[];marketRequest++;marketPage=0;mine=false;selected=null;view="game";tab="hunt";sub="bag";
-  chosenClass="warrior";characterName="";combatFrames.length=0;connectionLost=false;retryAt=0;retryFailures=0;
+  chosenClass="warrior";characterName="";combatFrames.length=0;connectionLost=false;retryAt=0;retryFailures=0;lastHuntSettlement=0;
 }
 function authFailureMessage(err,register) {
   const code=err.code||err.message;
@@ -1588,6 +1594,8 @@ window.addEventListener("popstate", () => {
 setInterval(() => {
   if (!session || document.hidden || busy || !state || !navigator.onLine || Date.now() < retryAt) return;
   if(state.battle?.kind==='tower'||coopController)return;
+  // Keep reward settlement independent from successful market/lotto refreshes.
+  if(state.hunting&&!state.battle&&!state.coopRoom&&!state.partyRoom&&Date.now()-lastHuntSettlement>=30000){command('sync',{},true).catch(()=>{});return;}
   if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=3000){refreshCoopRooms().catch(()=>{});return;}
   if(regularAutoSkills&&state.battle&&state.battle.started===regularAutoBattle&&!modal.open){const slot=nextAutoSkill(state,Date.now());if(slot!==null){command('skill',{slot}).catch(()=>{});return;}}
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
