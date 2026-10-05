@@ -4,7 +4,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const btn=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
 function rewardDetails(raid){
  const extras=[['highCube','블랙 큐브'],['primeCube','프라임 큐브'],['scroll','잠재 해금 주문서']];
- return `<p>확정 보상 · 레드 큐브 ${raid.cubes}개 · 장비 파편 ${raid.fragment}개 · ${raid.gold.toLocaleString('ko-KR')} G</p><p>${extras.map(([key,name])=>`${name} ${raid[key]}개 · ${Math.round(raid[key+'Chance']*100)}%`).join('<br>')}</p><p><strong>Lv.${raid.level} 랜덤 보스 장비 1개 · 60%</strong><br>전체 직업 장비 · 직업과 부위 무작위 · 개인별 추첨</p><small>항목별 독립 추첨 · 개인별 보상 지급</small>`;
+ return `<p>확정 보상 · 레드 큐브 ${raid.cubes}개 · 장비 파편 ${raid.fragment}개 · ${raid.gold.toLocaleString('ko-KR')} G</p><p>${extras.map(([key,name])=>`${name} ${raid[key]}개 · ${Math.round(raid[key+'Chance']*100)}%`).join('<br>')}</p><p><strong>Lv.${raid.level} 랜덤 보스 장비 1개 · ${Math.round((raid.bossGearChance??.6)*100)}%</strong><br>전체 직업 장비 · 직업과 부위 무작위 · 개인별 추첨</p><small>항목별 독립 추첨 · 개인별 보상 지급</small>`;
 }
 export function raidLobby(state,room,rooms=[]){
  const weekly=raidWeeklyStatus(state),progress=`이번 주 개인 보상 ${weekly.used}/${weekly.limit}회 · ${weekly.remaining?`남은 보상 ${weekly.remaining}회`:'보상 소진 · 연습 가능'}`;
