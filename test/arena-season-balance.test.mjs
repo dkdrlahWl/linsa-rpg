@@ -15,6 +15,7 @@ try{
  await db.exec(await readFile(new URL('../supabase/migrations/20261003180315_arena_season.sql',import.meta.url),'utf8'));
  await db.exec('alter table rebirth_private.arena_bots drop constraint arena_bots_score_check;alter table rebirth_private.arena_bots add check(score>=0)');
  const sql=(await readFile(new URL('../supabase/arena_season_growth_balance.sql',import.meta.url),'utf8')).split('-- Daily ladder refresh')[0];await db.exec(sql);
+ await db.exec(await readFile(new URL('../supabase/arena_five_minute_refresh.sql',import.meta.url),'utf8'));
  const start=arenaSeasonStart(Date.parse('2026-10-05T00:00:00+09:00'))/1800000;
  assert.equal(arenaSeasonStart(Date.parse('2026-10-04T23:59:59+09:00')),Date.parse('2026-09-28T00:00:00+09:00'));
  assert.equal(arenaSeasonStart(Date.parse('2026-10-05T00:00:00+09:00')),Date.parse('2026-10-05T00:00:00+09:00'));
@@ -39,7 +40,7 @@ try{
  }
  await db.query("select set_config('test.uid',$1,false)",[a.id]);
  const status=async()=>(await db.query('select public.rebirth_arena_status() s')).rows[0].s;
- let s=await status();assert.equal(s.top100.length,100);assert.equal(s.offers.length,4);assert(s.offers.every(o=>Math.abs(o.score-s.score)<=120));
+ let s=await status();assert.equal(Date.parse(s.nextRefreshAt)%300000,0);assert(Date.parse(s.nextRefreshAt)>Date.now()&&Date.parse(s.nextRefreshAt)<=Date.now()+300000);assert.equal(s.top100.length,100);assert.equal(s.offers.length,4);assert(s.offers.every(o=>Math.abs(o.score-s.score)<=120));
  // Force an old, wrong Silver snapshot to prove player scores and ranks are refreshed within a bucket.
  await db.query('update rebirth_private.arena_players set offers=$2 where user_id=$1',[a.id,JSON.stringify([{id:'player:'+b.id,name:'이전이름',classId:'mage',score:450,rank:1900,kind:'player',used:false}])]);
  s=await status();assert.equal(s.offers[0].score,2300);assert.equal(s.offers[0].name,'실제마스터');
@@ -54,7 +55,13 @@ try{
   assert.deepEqual((await db.query('select public.rebirth_arena_commit($1,$2,$3,$4,$5) r',args)).rows[0].r,result);
   await assert.rejects(()=>db.query('select public.rebirth_arena_commit($1,$2,$3,$4,$5)',[a.id,a.sid,randomUUID(),target,args[4]]),/ARENA_OPPONENT_UNAVAILABLE/);
  }
+ // An offer from the preceding five-minute window cannot be reused, and refresh resets availability.
+ await db.query('update rebirth_private.arena_players set offer_bucket=floor(extract(epoch from now())/300)::bigint-1 where user_id=$1',[a.id]);
+ await assert.rejects(()=>db.query('select public.rebirth_arena_commit($1,$2,$3,$4,$5)',[a.id,a.sid,randomUUID(),target,JSON.stringify({battle:{won:true,frames:[]}})]),/ARENA_OFFERS_EXPIRED/);
+ s=await status();assert.equal(s.offers.length,4);assert(s.offers.every(o=>o.used===false));
+ const bucket=(await db.query('select offer_bucket from rebirth_private.arena_players where user_id=$1',[a.id])).rows[0].offer_bucket;
+ assert.equal(Number(bucket),Math.floor(Date.parse(s.nextRefreshAt)/300000)-1);
  await db.exec('set role anon');await assert.rejects(()=>db.query('select public.rebirth_arena_status()'),/permission denied/);await assert.rejects(()=>db.query('select public.rebirth_arena_commit(null,null,null,null,null)'),/permission denied/);await db.exec('reset role');
- console.log('PASS season growth, 2,000 score parity, daily growth/ranks and 30-minute offers, Monday rollover, Master ±25, uncapped scoring, matching, actual user tiers, receipts and one-use offers.');
+ console.log('PASS season growth, 2,000 score parity, daily growth/ranks and 5-minute offers, Monday rollover, Master ±25, uncapped scoring, matching, actual user tiers, receipts and one-use offers.');
  console.log(JSON.stringify({mondayRank100:first[99].score,sundayRank100:last[99].score,mondayFirst:first[0].score,sundayFirst:last[0].score}));
 }finally{await db.close();}
