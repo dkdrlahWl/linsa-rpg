@@ -584,7 +584,7 @@ function regions() {
       )
         .map(
           (s) =>
-            `<div class="stage-row"><div>${r.id===10?`<img class="endgame-field-thumb" src="${D.fieldMonster(s.id).art}" alt="${esc(D.fieldMonster(s.id).name)}" loading="lazy">`:""}<strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 입장 제한 없음${r.id===10?` · ${esc(D.fieldMonster(s.id).name)}`:""}<br>경험치 ${fmt(s.xp)} · ${fmt(s.gold)} G / 처치<br>${gearLevelRange(Math.max(10,s.dropLevel))} 일반 장비${state.stage===s.id?" · 현재 사냥터":""}</small></div>${disabledBtn("입장", "enterStage", s.id, false)}</div>`,
+            `<div class="stage-row"><div><strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 입장 제한 없음<br>경험치 ${fmt(s.xp)} · ${fmt(s.gold)} G / 처치<br>${gearLevelRange(Math.max(10,s.dropLevel))} 일반 장비${state.stage===s.id?" · 현재 사냥터":""}</small></div>${disabledBtn("입장", "enterStage", s.id, false)}</div>`,
         )
         .join("")}</section>`,
   ).join("")}</div>`;

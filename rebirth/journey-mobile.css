@@ -65,4 +65,3 @@ html{scrollbar-gutter:stable}button{touch-action:manipulation}dialog{overscroll-
 @media(max-width:359px){
  .subnav{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-.endgame-field-thumb{float:left;width:54px;height:66px;object-fit:contain;margin-right:10px;filter:drop-shadow(0 2px 5px #0008)}

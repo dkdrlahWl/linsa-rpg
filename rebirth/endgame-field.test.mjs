@@ -12,7 +12,7 @@ assert.equal(MONSTERS.length,63);
 for(let stage=0;stage<30;stage++)for(let kills=0;kills<4;kills++)
   assert.equal(fieldMonster(stage,kills).id,stage*2+kills%2,'existing two-monster rotation');
 
-const expected=[{level:195,hp:180000,attack:6890},{level:200,hp:200000,attack:7420},{level:205,hp:220000,attack:7950}];
+const expected=[{level:195,hp:270000,attack:10335,xp:1172,gold:728},{level:200,hp:300000,attack:11130,xp:1268,gold:792},{level:205,hp:330000,attack:11925,xp:1365,gold:857}];
 for(const [index,values] of expected.entries()) {
   const id=30+index,stage=STAGES[id],ctx=context(100+index);
   for(const [key,value] of Object.entries(values))assert.equal(stage[key],value);
