@@ -500,7 +500,7 @@ function towerFinish(s,ctx,events) {
  if(b.won){if(first)s.tower.cleared.push(b.floor);s.tower.best[b.floor]=Math.min(s.tower.best[b.floor]||Infinity,b.tick/10);}
  const reward={type:'tower',floor:b.floor,won:b.won,first,seconds:b.tick/10,reason:b.reason||'',gold:0,fragment:0,cube:0,highCube:0};
  if(first){s.daily.tower++;}
- if(first){Object.assign(reward,f.reward);s.gold+=reward.gold;for(const key of ['fragment','cube','highCube'])s.materials[key]+=reward[key];}
+ if(first){Object.assign(reward,f.reward);s.gold+=reward.gold;for(const key of ['fragment','cube','highCube','primeCube'])s.materials[key]=(s.materials[key]||0)+(reward[key]||0);}
  s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);
 }
 // Both movement and chest claims use the same server-validated input timeline.
@@ -672,7 +672,7 @@ export function execute(input, command, args = {}, ctx) {
       break;
     }
     case 'towerStart': {
-      check(int(args.floor,1,10),'INVALID_TOWER_FLOOR');
+      check(int(args.floor,1,TOWER_FLOORS.length)&&!!TOWER_FLOORS[args.floor-1],'INVALID_TOWER_FLOOR');
       check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.tower ||= {cleared:[],best:{}};
       s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);

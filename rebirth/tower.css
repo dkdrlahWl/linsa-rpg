@@ -267,3 +267,5 @@
  .tower-skill-bar .tower-button small{display:none}
  .tower-skill-bar .tower-button span{font-size:9px}
 }
+
+.tower-portrait.single-boss-art{background-size:contain;background-position:center}
