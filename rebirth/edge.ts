@@ -108,6 +108,12 @@ Deno.serve(async (req) => {
       if(typeof id!=='string'||!/^gold-transfer-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))throw new Error('MAIL_NOT_FOUND');
       return reply(await rpc('rebirth_gold_transfer_claim',{p_mail:id.slice(14),p_request:body.requestId}));
     }
+    if(body.command==='arenaRewardClaim'){
+      const id=body.args?.id;
+      if(typeof id!=='string'||!/^arena-season-\d{8}$/.test(id))throw new Error('MAIL_NOT_FOUND');
+      const date=id.slice(13),season=date.slice(0,4)+'-'+date.slice(4,6)+'-'+date.slice(6,8)+'T00:00:00+09:00';
+      return reply(await rpc('rebirth_arena_reward_claim',{p_season:season,p_request:body.requestId}));
+    }
     if(body.command==='arenaList'||body.command==='arenaFight'){
       const arena=await rpc('rebirth_arena_status',{});
       const readPlayer=(id:string)=>rpc('rebirth_arena_opponent_snapshot',{p_user:id},true);
@@ -277,4 +283,3 @@ function sort(value: any): any {
       ? value.map(sort)
       : value;
 }
-

@@ -36,11 +36,17 @@ try{
    const text=await page.locator('.pvp-opponents').innerText();assert(!text.includes('AI')&&!text.includes('유저')&&!text.includes('장비'));
   }
   if(key==='ranking')assert.equal(await page.locator('.pvp-ranking-row').count(),100);
-  if(key==='rewards')assert(!(await page.locator('.pvp-season-panel').innerText()).includes('골드'));
+  if(key==='rewards'){
+   assert.equal(await page.locator('.pvp-reward-group').count(),9);
+   assert.equal(await page.locator('.pvp-reward-row').count(),27);
+   assert((await page.locator('.pvp-reward-hero').innerText()).includes('골드'));
+   assert.equal(await page.locator('.pvp-screen img[src*="gold."]').count(),0);
+   await page.locator('.pvp-reward-group').evaluateAll(groups=>groups.forEach(group=>group.open=true));
+  }
   assert((await page.evaluate(()=>document.documentElement.scrollWidth))<=390,`${key} horizontal overflow`);
   await page.setViewportSize({width:320,height:700});
   assert((await page.evaluate(()=>document.documentElement.scrollWidth))<=320,`${key} horizontal overflow at 320px`);
   await page.close();
  }
- console.log('PASS arena mobile UI at 320px and 390px: six screens, four clean opponent cards, top 100, blank rewards, no horizontal overflow.');
+ console.log('PASS arena mobile UI at 320px and 390px: six screens, four clean opponent cards, top 100, 27 rewards, no gold icons or horizontal overflow.');
 }finally{await browser.close();await unlink(preview).catch(()=>{});}
