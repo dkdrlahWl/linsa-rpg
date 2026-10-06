@@ -3,7 +3,9 @@ import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
-import {shopView} from './shop-ui.mjs?v=shop-tabs-122';
+import {shopView} from './shop-ui.mjs?v=luck-potion-175';
+import {consumableView,updateLuckTimers} from './consumable-ui.mjs?v=luck-potion-175';
+import {LUCK_POTION} from './consumables.mjs?v=luck-potion-175';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
@@ -137,6 +139,8 @@ const errors = {
   COSTUME_NOT_OWNED: "먼저 코스튬을 구매해 주세요.",
   COSTUME_CLASS_MISMATCH: "현재 직업의 코스튬만 장착할 수 있습니다.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
+  INSUFFICIENT_CONSUMABLE: "행운 물약이 없습니다. 상점 → 소모품에서 구매하세요.",
+  ITEM_CONSUMABLE_COOLDOWN: "행운 물약의 재사용 대기시간이 남아 있습니다.",
   INSUFFICIENT_CUBE: "레드 큐브가 부족합니다.",
   INSUFFICIENT_HIGHCUBE: "블랙 큐브가 부족합니다.",
   COOP_CHEST_TOO_FAR: "개인 상자 가까이 이동한 뒤 공격 버튼을 눌러주세요.",
@@ -537,6 +541,7 @@ function render() {
   if(view==='arena'&&arenaPage==='battle'&&arenaBattle&&!arenaPlayback){arenaPlayback=startArenaReplay(arenaBattle,()=>{arenaPlayback=null;arenaPage='result';render();});}
   window.scrollTo({top:view==='arena'&&['opponents','battle'].includes(arenaPage)?0:preservedScroll,behavior:"instant"});
   updatePetCountdown();
+  updateLuckTimers(state);
   updateInvestmentClock(investmentData,investmentLoadedAt);
   refreshLevelRequirements();
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
@@ -644,16 +649,16 @@ function inventory() {
   const groups = inventoryGroups(state.items, D.CLASSES, state.classId, Object.values(state.equipped), filterClass, filterSlot);
   return `${header("가방", "INVENTORY")}<div class="subnav">${[
     ["bag", "가방"],
+    ["consumables", "소모품"],
     ["pets", "펫"],
     ["exchange", "교환소"],
     ["mail", "보관함"],
-    ["collection", "도감"],
     ["odds", "확률표"],
   ]
     .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
     .join(
       "",
-    )}</div>${sub === "pets" ? petInventory(state) : sub === "exchange" ? gearExchange() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : sub === "collection" ? collection() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
+    )}</div>${sub === "consumables" ? consumableView(state) : sub === "pets" ? petInventory(state) : sub === "exchange" ? gearExchange() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
 }
 function gearExchange(){
  const classId=exchangeClass||state.classId;
@@ -1187,7 +1192,13 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
-    if(action==='shopCategory'){shopCategory=arg==='costume'?'costume':'boss';return render();}
+    if(action==='shopCategory'){shopCategory=['boss','costume','consumable'].includes(arg)?arg:'boss';return render();}
+    if(action==='consumableBuyPick'){
+      if(busy||arg!==LUCK_POTION.id)return;
+      open('행운 물약 구매',consumableView(state,true).replace('data-action="consumableBuyPick"','data-action="consumableBuyConfirm"')+'<p class="note">행운 물약 1개를 5,000,000 G에 구매합니다.</p>');return;
+    }
+    if(action==='consumableBuyConfirm'){if(busy)return;modal.close();await command('consumableBuy',{id:arg});toast('행운 물약을 구매했어요. 가방 → 소모품에서 사용하세요.');return;}
+    if(action==='consumableUse'){if(busy)return;await command('consumableUse',{id:arg});toast('5분간 행운 +50% · 보스 보상 확률이 1.5배로 증가합니다.');return;}
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
       const c=costumeById(arg);if(!c)return;
@@ -1733,3 +1744,4 @@ installMenuIcons();
 
 
 setInterval(updatePetCountdown,1000);
+setInterval(()=>{if(state&&!document.hidden)updateLuckTimers(state);},1000);

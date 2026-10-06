@@ -1,6 +1,7 @@
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-impact-121';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
+import {consumableCommand,rewardChance} from './consumables.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=priest-potential-83';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
@@ -469,7 +470,7 @@ function bossSettle(s, ctx, events) {
       s.materials.highCube+=2;
 
     }
-    if (ctx.random() < boss.dropChance) {
+    if (ctx.random() < rewardChance(boss.dropChance,s,ctx.now)) {
         const it = makeLootItem(
           boss.gearLevel,
           pick(CLASSES, ctx).id,
@@ -530,7 +531,7 @@ export function execute(input, command, args = {}, ctx) {
   check(!s.coopRoom || ["sync","ack"].includes(command), "BATTLE_IN_PROGRESS");
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   const events = [];
-  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
+  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","consumableBuy","consumableUse"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
@@ -543,7 +544,7 @@ export function execute(input, command, args = {}, ctx) {
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
-      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<boss.dropChance){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
+      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<rewardChance(boss.dropChance,s,ctx.now)){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){
@@ -593,6 +594,8 @@ export function execute(input, command, args = {}, ctx) {
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
   switch (command) {
+    case "consumableBuy":
+    case "consumableUse": {events.push(consumableCommand(s,command,args.id,ctx.now));break;}
     case "costumeBuy":
     case "costumeEquip":
     case "costumeUnequip": {events.push(costumeCommand(s,command,args.id));break;}
@@ -917,11 +920,11 @@ export function grantCoopChest(input,tier,ctx){
 
 export function grantRaidChest(input,tier,ctx){
  const s=normalizePotentialState(structuredClone(input)),raid=RAID_ENCOUNTERS[tier];check(raid,'INVALID_RAID');const weekly=raidWeeklyStatus(s,ctx.now),practice=weekly.remaining===0;
- const reward=practice?{type:'coop',mode:'raid',name:raid.name,won:true,practice:true,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]}:rollRaidReward(tier,ctx.random);
+ const reward=practice?{type:'coop',mode:'raid',name:raid.name,won:true,practice:true,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]}:rollRaidReward(tier,ctx.random,s,ctx.now);
  if(!practice){
   s.gold+=reward.gold;
   for(const key of ['cube','highCube','primeCube','fragment','scroll'])s.materials[key]=(s.materials[key]||0)+reward[key];
-  if(ctx.random()<(raid.bossGearChance??0.6)){
+  if(ctx.random()<rewardChance(raid.bossGearChance??0.6,s,ctx.now)){
    const level=raid.level,classId=pick(CLASSES,ctx).id,slot=balanceBossGearSlot(Math.floor(ctx.random()*SLOTS.length),ctx),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
    const stored=s.items.length>=300;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;

@@ -1,5 +1,6 @@
 import {RAID_ENCOUNTERS} from './raid-content.mjs?v=priest-potential-83';
 import {weekKey} from './data.mjs?v=boss-relic-only-130';
+import {rewardChance} from './consumables.mjs';
 
 export const RAID_WEEKLY_LIMIT=3;
 export function raidWeeklyStatus(state,now=Date.now()){
@@ -10,11 +11,11 @@ export function raidWeeklyStatus(state,now=Date.now()){
  return {week,used,limit:RAID_WEEKLY_LIMIT,remaining:RAID_WEEKLY_LIMIT-used};
 }
 
-export function rollRaidReward(tier,random){
+export function rollRaidReward(tier,random,state,now){
  const raid=RAID_ENCOUNTERS[tier];if(!raid)throw Error('INVALID_RAID');
  const reward={type:'coop',mode:'raid',name:raid.name,won:true,practice:false,gold:raid.gold,cube:raid.cubes,fragment:raid.fragment,highCube:0,primeCube:0,scroll:0,items:[]};
  for(const key of ['highCube','primeCube','scroll']){
-  const chance=raid[key+'Chance'];
+  const chance=rewardChance(raid[key+'Chance'],state,now);
   if(chance>=1||(chance>0&&random()<chance))reward[key]=raid[key];
  }
  return reward;
