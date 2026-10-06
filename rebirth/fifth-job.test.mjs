@@ -55,7 +55,7 @@ for(const cls of ids){
  let raid=startRaid({id:'raid',tier:3,status:'waiting',members:[{id:'me',classId:cls,power:P,advanced:true}]},0);raid.members[0].x=1600;raid.members[0].y=1600;raid=advanceRaidRaw(raid,'me',[0,0,64],0);raid=advanceRaidRaw(raid,'me',null,100);assert.ok(raid.members[0].fifthCast,cls+' raid');
 }
 const ctx={now:1000000,random:()=>.5,uuid:randomUUID};let s=initialState('warrior','5차시험',ctx);Object.assign(s,{level:199,firstAdvancement:true,advancement:3,hunting:false});
-assert.throws(()=>execute(s,'advance',{},ctx),/LEVEL_REQUIRED/);s.level=200;const before=power(s);s=execute(s,'advance',{},ctx).state;assert.equal(s.battle.advancementStage,4);assert.equal(s.battle.enemyHp,18000000);
+assert.throws(()=>execute(s,'advance',{},ctx),/LEVEL_REQUIRED/);s.level=200;const before=power(s);s=execute(s,'advance',{},ctx).state;assert.equal(s.battle.advancementStage,4);assert.equal(s.battle.enemyHp,ADVANCEMENT_BOSSES[4].hp);
 s.battle.ended=true;s.battle.won=false;s=execute(s,'sync',{},ctx).state;assert.equal(s.advancement,3);
 s=execute(s,'advance',{},ctx).state;s.battle.ended=true;s.battle.won=true;s=execute(s,'sync',{},ctx).state;assert.equal(s.advancement,4);assert.equal(jobStage(s),5);assert.ok(Math.abs(power(s).attack/before.attack-1.1)<.02);
 assert.throws(()=>execute(s,'advance',{},ctx),/ALREADY_ADVANCED/);const stats=power(s);s=execute(s,'advancementStart',{stage:4},ctx).state;assert.equal(s.battle.advancementPractice,true);s.battle.won=true;s.battle.ended=true;s=execute(s,'sync',{},ctx).state;assert.deepEqual(power(s),stats);

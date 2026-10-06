@@ -1,7 +1,7 @@
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
-const root=dirname(fileURLToPath(import.meta.url)),version='raid-200-166',visited=new Set();
+const root=dirname(fileURLToPath(import.meta.url)),version='fifth-trial-171',visited=new Set();
 await mkdir(resolve(root,'worker-sim'),{recursive:true});
 async function copy(name){
  if(visited.has(name))return;visited.add(name);
