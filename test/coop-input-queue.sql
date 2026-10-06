@@ -2,7 +2,7 @@
 begin;
 create temp table coop_queue_check(result jsonb);
 do $test$
-declare u1 uuid:=gen_random_uuid();u2 uuid:=gen_random_uuid();s1 uuid:=gen_random_uuid();s2 uuid:=gen_random_uuid();rid uuid:=gen_random_uuid();ep uuid;ms bigint:=floor(extract(epoch from clock_timestamp())*1000);w jsonb;p1 jsonb;p2 jsonb;r1 jsonb;r2 jsonb;original_world jsonb;beg timestamptz;elapsed numeric;i int;
+declare u1 uuid:=gen_random_uuid();u2 uuid:=gen_random_uuid();s1 uuid:=gen_random_uuid();s2 uuid:=gen_random_uuid();rid uuid:=gen_random_uuid();ep uuid;ms bigint:=floor(extract(epoch from clock_timestamp())*1000);w jsonb;p1 jsonb;p2 jsonb;r1 jsonb;r2 jsonb;original_world jsonb;beg timestamptz;elapsed numeric;i int;before_locks int;after_locks int;
 begin
  select epoch into ep from rebirth_private.release limit 1;
  insert into auth.users(id,email) values(u1,u1::text||'@perf-test.invalid'),(u2,u2::text||'@perf-test.invalid');
@@ -13,7 +13,10 @@ begin
  insert into rebirth_private.coop_rooms(id,world) values(rid,w);original_world:=w;
  p1:=jsonb_build_object('user',u1,'session',s1,'epoch',ep,'revision',0,'request',gen_random_uuid(),'fingerprint','{}'::jsonb,'queueInput',true,'compact',true,'action','read','args',jsonb_build_object('frames',jsonb_build_array(jsonb_build_object('tick',10,'input',jsonb_build_array(1,0,1)))));
  p2:=p1||jsonb_build_object('user',u2,'session',s2,'request',gen_random_uuid());
+ select count(*) into before_locks from pg_locks where pid=pg_backend_pid() and locktype='advisory';
  r1:=public.rebirth_coop_action(p1);r2:=public.rebirth_coop_action(p2);
+ select count(*) into after_locks from pg_locks where pid=pg_backend_pid() and locktype='advisory';
+ assert after_locks=before_locks,'read/enqueue must not acquire the room advisory lock';
  assert jsonb_array_length(r2->'coop'->'_queuedInputs')=2,'two players queued';
  assert (r2->'coop'->>'revision')::int=0,'queue cannot change revision';
  assert (select world=original_world from rebirth_private.coop_rooms where id=rid),'enqueuing must not rewrite history';

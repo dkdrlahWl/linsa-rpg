@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
           const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim?.reward,rewardState:claim?.state}},true);
           return reply(result);
         }catch(e){
-          if(e.message==='SAVE_CONFLICT'&&fastInput){
+          if(fastInput&&(e.message==='SAVE_CONFLICT'||/lock timeout|deadlock detected/i.test(e.message))){
             // Entry movement and chest walking use held input rather than the
             // frame queue. A concurrent participant may win the room revision;
             // return the newest authenticated state and resend on the next poll.

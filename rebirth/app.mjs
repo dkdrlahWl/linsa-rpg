@@ -1,5 +1,6 @@
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance-153';
+import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
@@ -219,7 +220,7 @@ function persist() {
     localStorage.setItem("ringu_rebirth_session", JSON.stringify(session));
   else localStorage.removeItem("ringu_rebirth_session");
 }
-async function request(path, body, auth = true) {
+async function request(path, body, auth = true, signal = null) {
   if (auth && !session?.access_token) throw endSession();
   const r = await fetch(config.url + path, {
     method: "POST",
@@ -229,7 +230,7 @@ async function request(path, body, auth = true) {
       ...(auth ? { Authorization: "Bearer " + session.access_token } : {}),
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(body?.command==='coopInput'?6000:20000),
+    signal: signal?AbortSignal.any([signal,AbortSignal.timeout(body?.command==='coopInput'?6000:20000)]):AbortSignal.timeout(body?.command==='coopInput'?6000:20000),
   });
   const data = await r.json().catch(() => ({error: "SERVER_RETRY_REQUIRED"}));
   if (!r.ok) {
@@ -327,16 +328,19 @@ const commandIdleWaiters=[];
 async function exitDungeon(action){
   if(pendingDungeonExit)return pendingDungeonExit;
   pendingDungeonExit=(async()=>{
+    if(action==='coopLeave')activeCoopInput?.abort();
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
     return command(action);
   })();
   try{return await pendingDungeonExit;}finally{pendingDungeonExit=null;}
 }
 function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
-async function command(command, args = {}, quiet = false, freshSnapshot = false) {
+let activeCoopInput=null;
+async function command(command, args = {}, quiet = false, freshSnapshot = false, signal = null) {
   // A short input request must not swallow leave/chest/speed button presses.
   if(busy&&['coopLeave','coopOpen','coopSync'].includes(command)){
     const roomAtClick=state?.coopRoom;
+    activeCoopInput?.abort();
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
     if(state?.coopRoom!==roomAtClick)return;
   }
@@ -348,13 +352,18 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
   if (busy || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
   busy = true;
   const streaming=command==="coopInput";
+  const accountAtSend=session?.user?.id;
+  const inputAbort=streaming?new AbortController():null;
+  if(inputAbort)activeCoopInput=inputAbort;
+  const requestSignal=inputAbort?(signal?AbortSignal.any([signal,inputAbort.signal]):inputAbort.signal):signal;
   if(!streaming)document
     .querySelectorAll("button[data-write]")
     .forEach((b) => {if(!dungeonExitActions.has(b.dataset.action))b.disabled=true;});
   let body, recoverCharacter = false;
   const recoverySync=command==="sync"&&(!state||freshSnapshot);
   try {
-    await ensureToken();
+    await abortable(ensureToken(),requestSignal);
+    if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
     if(!recoverySync){
       try{body=JSON.parse(localStorage.getItem(pendingKey())||"null");}catch{body=null;}
       if(body?.command==="coopInput"){localStorage.removeItem(pendingKey());body=null;}
@@ -373,7 +382,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     }
     const sentAt=performance.now();
     if(state?.battle?.kind==='boss'||body.command==='boss')lastBattleRequestAt=Date.now();
-    const result = await request("/functions/v1/ringu-rebirth", body);
+    const result = await request("/functions/v1/ringu-rebirth", body,true,requestSignal);
+    if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
     if(result.coop)result.coop._rtt=performance.now()-sentAt;
     if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
     localStorage.removeItem(pendingKey());
@@ -404,6 +414,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
+    if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
   if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
     if (e.status === 400) {localStorage.removeItem(pendingKey());recoverCharacter=!state&&!!session&&body?.command!=="sync";}
     if (e.status === 401) {
@@ -420,6 +431,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false)
     if (!quiet || !state) toast(message(e));
     throw e;
   } finally {
+    if(activeCoopInput===inputAbort)activeCoopInput=null;
     busy = false;
     commandIdleWaiters.splice(0).forEach(resolve=>resolve());
     if(command!=='coopReady'&&coopRoom?.status==='waiting'&&coopRoom.members.some(m=>m.id===coopRoom.me&&!m.ready))
@@ -1009,6 +1021,9 @@ function reward() {
   );
 }
 function clearAccountView() {
+  activeCoopInput?.abort();
+  if(coopController){coopController.dispose();coopController=null;}
+  coopRoom=null;coopRooms=[];
   resetNewsNotifications();newsPollAt=0;
   closeWarriorLab();
   lottoData=null;lottoLoadedAt=0;clearLotto();investmentData=null;investmentLoadedAt=0;resetInvestment();

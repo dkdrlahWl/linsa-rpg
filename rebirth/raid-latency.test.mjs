@@ -58,3 +58,14 @@ test('large combat responses compress without changing state or exposing history
  assert.equal(body.coop.monsters.length,80);assert.equal(body.coop._net,undefined);assert.equal(body.coop._queuedInputs,undefined);
  assert.ok(bytes.byteLength<JSON.stringify(body).length*.4);
 });
+
+test('a blocked world write returns the newest snapshot and preserves queued input',async()=>{
+ for(const message of ['canceling statement due to lock timeout','deadlock detected']){
+  const power={attack:1,hp:10000,defense:20,boss:1,crit:0,critDamage:1,cadence:1};
+  const room=startCoop({id:'room',me:'a',owner:'a',revision:1,mode:'raid',tier:0,status:'waiting',members:[{id:'a',classId:'warrior',power}]},0);
+  const latest={...room,revision:2};let calls=0;
+  globalThis.fetch=async url=>{calls++;if(url.endsWith('/rebirth_coop_action'))return respond({message},400);return respond(snapshot({coop:calls===1?room:latest,now:1000}));};
+  const response=await handler(request({input:[1,0,0],compact:true,protocol:2}));
+  assert.equal(response.status,200);assert.equal((await response.json()).coop.revision,2);assert.equal(calls,3);
+ }
+});

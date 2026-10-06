@@ -59,7 +59,7 @@ export class CoopController{
    speed.addEventListener('click',async()=>{
     if(this.speedBusy||this.room.owner!==this.room.me||this.room.entryWaiting||this.room.status!=='fighting')return;
     this.speedBusy=true;speed.disabled=true;
-    try{await this.send('coopSync',{waveSpeed:this.room.waveSpeed===1.5?1:1.5});}
+    try{await this.send('coopSync',{waveSpeed:this.room.waveSpeed===1.5?1:1.5},false,false,this.abort.signal);}
     finally{this.speedBusy=false;if(!this.disposed)waveHud(this.host,this.room);}
    },opt);
   }
@@ -94,13 +94,14 @@ export class CoopController{
    const ack=this.room.members.find(m=>m.id===room.me)?.inputAck??-1;
    const frames=resync?[]:this.frames.filter(f=>f.tick>ack).slice(-35);
    const direction=this.input(),entryInput=this.artReady&&this.entryMoveInput&&!confirmed.entryMoved&&Math.hypot(direction[0],direction[1])<=.01?this.entryMoveInput:direction;
-   const result=await this.send(open?'coopOpen':'coopInput',open?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:this.room.status==='won'?{input:direction,compact:true,protocol:2}:{frames,compact:true,protocol:2},!open);
+   const result=await this.send(open?'coopOpen':'coopInput',open?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:this.room.status==='won'?{input:direction,compact:true,protocol:2}:{frames,compact:true,protocol:2},!open,false,this.abort?.signal);
+   if(this.disposed)return;
    if(!result)this.pendingBits|=taps;
    if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
-  }catch(error){this.pendingBits|=taps;this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
+  }catch(error){if(this.disposed)return;this.pendingBits|=taps;this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
   finally{this.busy=false;this.nextSend=Math.max(started+coopInputInterval(this.room,this.rtt||250)+Math.random()*30,performance.now()+(this.failures?Math.min(1200,150*this.failures+Math.random()*100):40));}
  }
- accept(room){if(!room||room.id!==this.room.id||(room.revision??0)<(this.room.revision??0)||((room.revision??0)===(this.room.revision??0)&&room.tick<this.room.tick))return;
+ accept(room){if(this.disposed||!room||room.id!==this.room.id||(room.revision??0)<(this.room.revision??0)||((room.revision??0)===(this.room.revision??0)&&room.tick<this.room.tick))return;
  const signature=[room.revision??0,room.tick,room.status,!!room.entryWaiting,room.members.find(m=>m.id===room.me)?.inputAck??-1].join(':');
  this.received=performance.now();
  // Concurrent input requests can return the same confirmed room. Replaying
@@ -214,5 +215,5 @@ export class CoopController{
   this.motion.end();
   this.renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},player,0,now,input,this.hint);
  }
- dispose(){this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.predictor?.dispose();this.renderer.dispose();}
+ dispose(){if(this.disposed)return;this.disposed=true;clearInterval(this.timer);cancelAnimationFrame(this.frame);this.abort.abort();this.predictor?.dispose();this.renderer.dispose();this.frames=[];this.keys.clear();this.pointers.clear();this.effectMemory?.pending.clear();this.effectMemory?.seen.clear();}
 }
