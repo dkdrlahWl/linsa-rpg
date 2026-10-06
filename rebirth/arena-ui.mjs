@@ -12,7 +12,7 @@ const button=(label,action,arg='',extra='')=>`<button class="pvp-button ${extra}
 const heading=(title,sub='')=>`<header class="pvp-title"><span>✦</span><h1>${title}</h1><span>✦</span>${sub?`<small>${sub}</small>`:''}</header>`;
 const nav=active=>`<nav class="pvp-tabs" aria-label="아레나 메뉴">${[['home','홈'],['opponents','상대'],['ranking','순위'],['rewards','시즌 보상']].map(([key,label])=>`<button data-action="arenaPage" data-arg="${key}" ${key===active?'class="active" aria-current="page"':''}>${label}</button>`).join('')}</nav>`;
 const tierKeys={'언랭크':'unranked','브론즈':'bronze','실버':'silver','골드':'gold','플래티넘':'platinum','다이아':'diamond','마스터':'master','그랜드 마스터':'grandmaster','챌린저':'challenger','챔피언':'champion'};
-export const tierArt=t=>`arena-art/tier-${tierKeys[t.name]||'unranked'}-v1.webp`;
+export const tierArt=t=>`arena-art/tier-${tierKeys[t.name]||'unranked'}-${t.name==='다이아'?'v2':'v1'}.webp`;
 export function arenaTierIcon(score,rank){const t=tier(score,rank);return `<span class="rank-arena-icon" data-no-currency-art title="아레나 · ${esc(t.label)}" aria-label="아레나 ${esc(t.label)}"><img src="${tierArt(t)}" alt="" width="26" height="26" loading="lazy">${t.step?`<small>${esc(t.step)}</small>`:''}</span>`;}
 const rewardAmount=(key,value)=>`<div class="pvp-reward-amount" data-no-currency-art>${key==='gold'?'<span class="pvp-reward-text-label">골드</span>':`<img src="currencies/${key==='highCube'?'cube-black-v2.png':'cube-prime-v2.png'}" alt=""><span>${key==='highCube'?'블랙 큐브':'프라임 큐브'}</span>`}<strong>${fmt(value)}<small>${key==='gold'?' G':'개'}</small></strong></div>`;
 function seasonRewards(data,seasonName,season){
