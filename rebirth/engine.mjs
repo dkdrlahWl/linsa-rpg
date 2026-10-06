@@ -22,21 +22,17 @@ import {
   SLOTS,
   TIERS,
   STAGES,
+  fieldDropRates,
   BOSSES,
   REGIONS,
   MATERIALS,
   OPTIONS,
   STAR_SUCCESS,
-  EQUIP_DROP,
-  FIELD_BOSS_DROP,
   rollBaseStats,
   selectDesign,
   rollEquipmentLevel,
   salvageYield,
-  CUBE_DROP,
-  FRAGMENT_DROP,
   fillPotentialLines,
-  SCROLL_DROP,
   xpNeeded,
   starCost,
   gearAttributes,
@@ -345,7 +341,8 @@ export function settle(s, ctx) {
   s.goldRemainder = Math.max(0,goldExact - gold);
   s.gold += gold;
   const drops = [], loot=[];
-  const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, EQUIP_DROP, ctx),bossGearCount=rollCount(kills,FIELD_BOSS_DROP,ctx),gearCount=normalGearCount+bossGearCount;
+  const rates=fieldDropRates(STAGES[s.stage]);
+  const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, rates.equipment, ctx),bossGearCount=rollCount(kills,rates.bossEquipment,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
     const item = makeLootItem(
       STAGES[s.stage].dropLevel,
@@ -358,9 +355,9 @@ export function settle(s, ctx) {
     drops.push(item.id);loot.push({kind:"gear",item:{...item},quantity:1});
   }
   const fragments =
-      rollCount(kills, FRAGMENT_DROP, ctx),
-    cubes = rollCount(kills, CUBE_DROP, ctx),
-    scrolls = rollCount(kills, SCROLL_DROP, ctx);
+      rollCount(kills, rates.fragment, ctx),
+    cubes = rollCount(kills, rates.cube, ctx),
+    scrolls = rollCount(kills, rates.scroll, ctx);
   s.materials.fragment += fragments;
   s.materials.cube += cubes;
 
@@ -701,7 +698,7 @@ export function execute(input, command, args = {}, ctx) {
       s.lastAt = ctx.now;
       break;
     case "stage": {
-      check(int(args.id, 0, 29), "INVALID_STAGE");
+      check(int(args.id, 0, STAGES.length-1)&&!!STAGES[args.id], "INVALID_STAGE");
       s.stage = args.id;
       s.huntRemainder = 0;
       s.lastAt = ctx.now;
@@ -934,4 +931,3 @@ export function grantRaidChest(input,tier,ctx){
  Object.assign(reward,{weeklyUsed:weekly.used+(practice?0:1),weeklyLimit:weekly.limit,weeklyRemaining:Math.max(0,weekly.remaining-(practice?0:1))});
  delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
 }
-

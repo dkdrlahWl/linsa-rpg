@@ -3,6 +3,7 @@ export {PRIEST_SKILLS} from './priest.mjs?v=fifth-114';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fifth-114';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fifth-114';
 import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=boss-190-126';
+import {extendEndgameFields} from './endgame-field.mjs?v=fallen-star-172';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=boss-190-126';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=prime-choice-158';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=prime-choice-158';
@@ -241,6 +242,14 @@ export const salvageYield = item => Math.floor((4+Math.floor(item.level/20)+(ite
 export const CUBE_DROP = 0.0002;
 export const SCROLL_DROP = 0;
 export const FRAGMENT_DROP = 0.003;
+export function fieldDropRates(stage) {
+  return {equipment:stage?.drops?.equipment??EQUIP_DROP,bossEquipment:stage?.drops?.bossEquipment??FIELD_BOSS_DROP,
+    cube:stage?.drops?.cube??CUBE_DROP,fragment:stage?.drops?.fragment??FRAGMENT_DROP,scroll:stage?.drops?.scroll??SCROLL_DROP};
+}
+export function fieldMonster(stageId,kills=0) {
+  const rows=MONSTERS.filter(m=>m.stage===stageId);
+  return rows[Math.max(0,Math.floor(kills))%rows.length];
+}
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
   return journeyXP(level);
@@ -386,4 +395,4 @@ export function weekKey(ms) {
 }
 
 balanceWorld(STAGES,BOSSES,RAID_BOSSES);
-
+extendEndgameFields(REGIONS,STAGES,MONSTERS);
