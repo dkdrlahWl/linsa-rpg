@@ -561,6 +561,9 @@ export function execute(input, command, args = {}, ctx) {
   }
   const bossResult = bossSettle(s, ctx, events);
   if (bossResult) events.push(bossResult);
+  // Queued combat controls can arrive after a lethal tick or a finished sync.
+  // Keep the settled reward instead of throwing and rolling back the victory.
+  if (!s.battle && ["skill","battlePotion","abandon"].includes(command)) return {state:s,events};
   if (command === "sync") return { state: s, events };
   if (command === "ack") {
     s.lastReward = null;
@@ -589,6 +592,11 @@ export function execute(input, command, args = {}, ctx) {
       supportTick([b],b.tick*10);
     }
     events.push({type:'skill',slot});
+    // Priest skills can deal lethal damage immediately, before the next tick.
+    if (b.enemyHp <= 0) {
+      const reward = bossSettle(s, ctx, events);
+      if (reward) events.push(reward);
+    }
     return { state: s, events };
   }
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
