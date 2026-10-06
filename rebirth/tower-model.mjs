@@ -4,6 +4,7 @@ import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-po
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
 import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
+import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=tower20-174';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
 import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=boss-relic-only-130';
 export const TOWER_STEP = 100;
@@ -18,6 +19,7 @@ const arts=['moss','moth','crab','wolf','knight','witch','scorpion','seraph','cl
 const patterns=['대지 분쇄','달빛 탄막','십자 수정파','화염 돌진','망령 참격','빙창 감옥','맹독 웅덩이','심판의 고리','시간의 회전침','공허의 종언'];
 const guides=['발밑의 문양이 폭발하기 전에 벗어나세요.','부채꼴로 퍼지는 달빛 탄을 비껴가세요.','십자로 갈라지는 수정의 길을 피하세요.','돌진 방향을 확인하고 옆으로 회피하세요.','긴 참격의 경로와 뒤따르는 망령을 피하세요.','연속으로 내려오는 빙창 사이로 이동하세요.','독이 남은 바닥을 피해 전장을 넓게 쓰세요.','안쪽 폭발과 바깥쪽 심판을 구분하세요.','시간차로 회전하는 광선의 빈틈을 찾으세요.','여러 패턴이 겹칩니다. 체력이 낮아지면 광폭화합니다.'];
 export const TOWER_FLOORS=names.map((name,i)=>({floor:i+1,name,art:arts[i],pattern:patterns[i],guide:guides[i],level:(i+1)*20,hp:[26000,65000,150000,300000,550000,950000,1500000,2250000,3200000,4500000][i],attack:[200,340,520,780,1100,1450,1800,2200,2650,3200][i]*2.5,seconds:90,reward:{gold:3*Math.round(3000*(i+1)**1.3),fragment:0,cube:6*(i+1),highCube:(i+1)%5===0?6:0}}));
+TOWER_FLOORS.push(...UPPER_TOWER_FLOORS);
 export const towerEncounter=b=>b.encounter?(b.advancementStage!==undefined?{...b.encounter,seconds:120,art:ADVANCEMENT_BOSSES.find(t=>t.stage===b.advancementStage)?.art||b.encounter.art}:b.encounter):TOWER_FLOORS[b.floor-1];
 export const TOWER_CLASSES={
  priest:{range:560,cooldown:10,speed:25,dashCooldown:35},
@@ -64,6 +66,7 @@ function fan(b,count=5){const a=Math.atan2(b.player.y-b.enemy.y,b.player.x-b.ene
 function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
  e.castDir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);e.dir=e.castDir;
  b.enemyCastStart=b.tick;b.enemyCastUntil=b.tick+10;b.enemyAttackStart=b.tick+10;b.enemyAttackUntil=b.tick+16;b.enemyAttackDir=e.castDir;
+ if(upperTowerPattern(b,{circle,line},towerEncounter(b)))return;
  if(b.advancementStage===4){
   const enraged=b.enemyHp<towerEncounter(b).hp*.35;
   b.enemyCastUntil=b.tick+22;b.enemyAttackStart=b.tick+22;b.enemyAttackUntil=b.tick+29;

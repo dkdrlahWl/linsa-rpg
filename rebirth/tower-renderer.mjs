@@ -319,6 +319,10 @@ export class TowerRenderer {
     for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);}
     for(const [key,value] of this.fifthLandings)if(value.end<=time)this.fifthLandings.delete(key);
     for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time,b.raidMode);
+    for(const q of b.projectiles)if(q.upperTower&&time<q.at){
+      const length=Math.hypot(q.dx,q.dy)||1,dx=q.dx/length,dy=q.dy/length;
+      g.save();g.strokeStyle='#ff784d88';g.lineWidth=q.r*2;g.setLineDash([30,24]);g.beginPath();g.moveTo(q.x+dx*75,q.y+dy*75);g.lineTo(q.x+dx*900,q.y+dy*900);g.stroke();g.setLineDash([]);g.strokeStyle='#ffce7c';g.lineWidth=4;g.beginPath();g.moveTo(q.x+dx*160-dy*22,q.y+dy*160+dx*22);g.lineTo(q.x+dx*195,q.y+dy*195);g.lineTo(q.x+dx*160+dy*22,q.y+dy*160-dx*22);g.stroke();g.restore();
+    }
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
     const casting=b.tick<b.skillUntil||hint.skill>now,attacking=b.tick<b.attackUntil||hint.attack>now;
@@ -391,7 +395,8 @@ export class TowerRenderer {
       const bossAge=clamp((time-(b.enemyAttackStart??(b.enemyAttackUntil-6)))/6),pulse=frame===2?Math.sin(bossAge*Math.PI):0;
       const step=Math.sin(((b.enemy.walk||0)+fraction)*1.3),angle=windup?Math.sin(time*.4)*.02:frame===2?Math.sin(bossAge*Math.PI)*.035:step*.012;
       const castPulse=windup?Math.sin(clamp((time-(b.enemyCastStart??(b.enemyCastUntil-10)))/10)*Math.PI):0;
-      this.sprite(asset('boss-'+f.art),['aureon','astrael'].includes(f.art)?1:3,1,['aureon','astrael'].includes(f.art)?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,f.art==='astrael'?340:245,f.art==='astrael'?340:245,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
+      const single=f.artFrames===1||['aureon','astrael'].includes(f.art),size=f.artSize||(f.art==='astrael'?340:245);
+      this.sprite(asset('boss-'+f.art),single?1:3,1,single?0:frame,enemy.x+toward.x*pulse*24,enemy.y+toward.y*pulse*15+Math.abs(step)*2,size,size,[3,4,5].includes(bossDir)?-1:1,angle,b.tick<(b.enemyHurtUntil||0)?.82:1);
       if(windup)this.effect('rune',enemy.x+toward.x*75,enemy.y-75+toward.y*32,75+castPulse*35,75+castPulse*35,time*.03,.35+castPulse*.28);
     };
     const holy=new Map();for(const e of b.effects||[])if(e.kind==='priest'&&e.slot!==5&&e.start<=time&&e.end>time){const key=(e.owner||'')+':'+e.slot,old=holy.get(key);if(!old||e.start>old.start||e.id>old.id)holy.set(key,e);}

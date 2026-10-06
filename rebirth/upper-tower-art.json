@@ -1,0 +1,76 @@
+{
+  "generator": "Built-in imagegen",
+  "version": "tower20-174",
+  "bosses": [
+    {
+      "floor": 11,
+      "name": "철쇄 집행관 카르둠",
+      "asset": "tower/boss-chain-judge.webp",
+      "generatedFile": "exec-9cbad2c7-f9a2-4eaf-af2f-17e8d81d5af4.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: a massive four-armed iron executioner, enclosed bronze prison helmet, rust-black plate armor, four heavy hooked chains coiled from its arms, glowing amber furnace chest, squat powerful legs. Palette: rust bronze, near-black, amber. Unique boss for floor 11. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 12,
+      "name": "뇌우 가오리 네프라",
+      "asset": "tower/boss-storm-manta.webp",
+      "generatedFile": "exec-95fc9e86-8831-49ae-8ca2-c5978cb12e1a.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: an enormous hovering storm manta ray, indigo skin, silver-edged crescent wings, electric cyan veins, two long ribbon tails carrying small thunder orbs, menacing horned central head. Palette: indigo, silver, electric cyan. Unique boss for floor 12. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 13,
+      "name": "혈월 인형사 벨루아",
+      "asset": "tower/boss-blood-marionette.webp",
+      "generatedFile": "exec-214cbfb6-367f-4b32-acf3-c021c6cb838d.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: a sinister regal porcelain marionette puppeteer, faceless cracked ivory mask, crimson velvet ribbons, six long articulated puppet arms, hovering gilded control cross above its own crown, sharp jointed shoes. Palette: ivory, burgundy, antique gold. Unique boss for floor 13. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 14,
+      "name": "사막의 거울뱀 사르카",
+      "asset": "tower/boss-mirror-cobra.webp",
+      "generatedFile": "exec-729642ab-8e25-443a-b437-26462ebeca54.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: a towering coiled cobra sovereign, huge spread hood made of mirrored golden scales, emerald glass fangs, faceted mirror mosaic down its segmented body, blue sapphire eyes, entire long coiled tail. Palette: gold, sapphire, emerald. Unique boss for floor 14. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 15,
+      "name": "심해 종지기 울모르",
+      "asset": "tower/boss-abyss-bell.webp",
+      "generatedFile": "exec-7e652bbc-6dc1-4d21-9dff-bcf2d409f447.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: an ancient abyssal nautilus mollusk with a huge dark turquoise spiral shell shaped into a weathered cathedral bell, barnacled bronze bell mouth, powerful octopus tentacles, glowing pale lantern eyes, sinister pearl core. Palette: dark teal, weathered bronze, pearl. Unique boss for floor 15. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 16,
+      "name": "철혈 악보장 메르칸",
+      "asset": "tower/boss-iron-maestro.webp",
+      "generatedFile": "exec-47fae198-9be1-4682-a78b-822fce711cde.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: a bizarre hulking gothic pipe-organ automaton, black iron torso, many organ pipes rising like an uneven crown, red brass conductor baton arms, spiked wheel feet, furnace red key-shaped eyes, heavy mechanical baroque body. Palette: black iron, red brass, fiery red. Unique boss for floor 16. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 17,
+      "name": "포식화 여제 네크시아",
+      "asset": "tower/boss-devouring-orchid.webp",
+      "generatedFile": "exec-8c393bce-800c-4869-adc7-25cc452b70be.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: a giant carnivorous orchid monster empress, huge layered purple-red flower maw, green thorny claw vines, three root legs, venom pearl glands, jagged ivory teeth hidden inside petals, regal terrifying floral silhouette. Palette: violet, crimson, poison green. Unique boss for floor 17. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 18,
+      "name": "무중력 해파리 미리온",
+      "asset": "tower/boss-gravity-jelly.webp",
+      "generatedFile": "exec-065e724f-54ed-43cb-8945-f3d058e10362.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: a colossal cosmic jellyfish sovereign, translucent opaline dome with a dark star core and bright pink eye, six flowing thick tentacles, floating rings and small crystal satellites integrated around the dome, alien crown ridges. Palette: opal white, midnight violet, hot pink. Unique boss for floor 18. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 19,
+      "name": "황혼의 도서군주 리브론",
+      "asset": "tower/boss-living-grimoire.webp",
+      "generatedFile": "exec-3a42b5aa-6a09-48d0-a1d6-93f7aa720b43.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: a monstrous levitating ancient grimoire, thick oxblood leather cover with a central golden staring eye, layered pages forming razor feather wings, bronze book clasp mandibles, twisting parchment scroll appendages. Palette: oxblood, parchment cream, antique gold. Unique boss for floor 19. The full character must remain well inside frame and not touch any edge."
+    },
+    {
+      "floor": 20,
+      "name": "종언의 별룡 오르테온",
+      "asset": "tower/boss-star-wyrm.webp",
+      "generatedFile": "exec-c389789c-70a4-410a-9262-75b2dbd6d86a.png",
+      "prompt": "Use case: stylized-concept. Asset type: original Korean fantasy RPG boss game sprite. Create exactly one NEW distinct boss, standalone full-body character cutout on genuinely transparent background. Rich hand-painted 2.5D fantasy game illustration, crisp silhouette, dramatic readable material shading, high detail suited to a polished mobile RPG. Three-quarter front view, threatening ready pose facing slightly right. Keep entire body, every appendage, tail, wing, chain and effect inside the central 72% of the square canvas; at least 12% transparent padding on all sides. No background, ground, environment, text, letters, numbers, watermark, UI, frame, grid, sprite sheet or duplicate poses. This is an original design, not a character from any existing game. Subject: an ultimate serpentine celestial dragon, elegant silver ivory armor scales, four angular luminous wings, dark navy underside, a golden fractured star crown and violet star core in chest, curled long tail, imposing complete body. Palette: silver ivory, midnight blue, gold, violet. Unique boss for floor 20. The full character must remain well inside frame and not touch any edge."
+    }
+  ]
+}
