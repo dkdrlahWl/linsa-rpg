@@ -1,0 +1,49 @@
+// Isolated local UI test. No live credentials or player writes.
+import fs from 'node:fs';import path from 'node:path';import http from 'node:http';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';
+import {initialState,execute} from './engine.mjs';import {normalizeFishing} from './fishing-model.mjs';
+const root=path.resolve('.'),out=path.resolve('test-artifacts/fishing');fs.mkdirSync(out,{recursive:true});
+let nowOffset=0,rng=42,state;const random=()=>((rng=(Math.imul(rng,1664525)+1013904223)>>>0)/2**32);
+function reset(rod=1){state=initialState('warrior','낚시여행',{now:Date.now(),random,uuid:randomUUID});state.level=200;state.hunting=false;state.gold=1e9;const f=normalizeFishing(state,Date.now());f.rod=rod;f.diamonds=500;f.bait={worm:50,shrimp:50,pearl:50,star:50};f.fish=[{id:'qa-fish-1',species:'fish-01',weight:200},{id:'qa-fish-2',species:'fish-50',weight:120000}];}
+reset();const misses=[];
+const server=http.createServer(async(req,res)=>{try{
+ const url=new URL(req.url,'http://local'),p=url.pathname;
+ const json=(data,status=200)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
+ if(p==='/favicon.ico'){res.writeHead(204);return res.end();}
+ if(p==='/cloud-config.js'){res.setHeader('Content-Type','text/javascript');return res.end('window.RinguCloudConfig='+JSON.stringify({url:'http://127.0.0.1:'+server.address().port,publishableKey:'local-qa',base:'/'}));}
+ if(p==='/rest/v1/rpc/rebirth_coin_news_notifications')return json({news:[],unread:0});
+ if(p==='/functions/v1/ringu-rebirth'){let data='';for await(const part of req)data+=part;const body=JSON.parse(data);try{if(body.command==='lottoList')return json({lotto:{tickets:[],history:[],todayCount:0,minPrize:0,maxPrize:0,sales:0,carryIn:0,drawAt:new Date(Date.now()+86400000).toISOString()}});const result=execute(state,body.command,body.args,{now:Date.now()+nowOffset,random,uuid:randomUUID});state=result.state;return json({state,revision:1,result:{events:result.events}});}catch(e){return json({error:e.message},400);}}
+ if(p.startsWith('/auth/'))return json({id:'local-qa'});
+ const file=path.resolve(root,'.'+decodeURIComponent(p)+(p.endsWith('/')?'index.html':''));if(!file.startsWith(root+path.sep))throw Error('Invalid path');
+ let data=fs.readFileSync(file);if(file.endsWith('/rebirth/index.html')){data=Buffer.from(data.toString().replace('<head>',`<head><script>window.qaErrors=[];addEventListener('error',e=>{if(e.message)qaErrors.push(e.message)});localStorage.setItem('ringu_rebirth_session',JSON.stringify({access_token:'local-qa',refresh_token:'local-qa',user:{id:'local-qa'},expires_at:Date.now()/1000+3600}));</script>`));}
+ res.setHeader('Content-Type',/\.m?js$/.test(file)?'text/javascript':file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':file.endsWith('.webp')?'image/webp':file.endsWith('.png')?'image/png':'application/octet-stream');res.end(data);
+ }catch(e){misses.push(req.url);res.writeHead(404);res.end();}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const {chromium}=await import('playwright');
+const browser=await chromium.launch({headless:true,...(process.env.QA_BROWSER_BIN?{executablePath:process.env.QA_BROWSER_BIN}:{}),args:['--no-sandbox','--disable-dev-shm-usage']});
+const page=await browser.newPage({viewport:{width:390,height:940}});
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+async function wait(fn,timeout=10000){const start=Date.now();while(Date.now()-start<timeout){if(await fn())return;await delay(100);}throw Error('Wait timed out');}
+const evaluate=(script,args=[])=>page.evaluate(({script,args})=>new Function(script).apply(null,args),{script,args});
+const click=selector=>page.locator(selector).first().click();
+const shot=name=>page.screenshot({path:path.join(out,name+'.png'),fullPage:true});
+try{
+ await page.goto('http://127.0.0.1:'+server.address().port+'/rebirth/');
+ await wait(()=>evaluate('return !!document.querySelector(".fantasy-dock")'));await click('.fantasy-dock [data-arg="event"]');await wait(()=>evaluate('return !!document.querySelector(".fishing-screen")'));
+ await wait(()=>evaluate('return document.querySelector(".fishing-scene-art").complete && document.querySelector(".fishing-scene-art").naturalWidth>0'));
+ await click('[data-action="fishSpot"][data-arg="moon"]');assert.equal(await evaluate('return document.querySelector(".fishing-scene").dataset.site'),'brook');
+ await click('[data-action="fishPanel"][data-arg="rod"]');const gold=state.gold;await click('[data-action="fishTrain"]').then(()=>wait(()=>state.fishing.xp>0));assert.ok(state.gold<gold);await page.locator('[data-action="fishTrain"]').last().click();await wait(()=>state.fishing.xp===20000);await click('[data-action="fishUpgrade"]');await wait(()=>state.fishing.rod===2);assert.equal(state.fishing.diamonds,498);
+ await click('[data-action="fishPanel"][data-arg="shop"]');const bait=state.fishing.bait.worm;await click('[data-action="fishBaitBuy"][data-arg="worm"]');await wait(()=>state.fishing.bait.worm===bait+10);
+ await click('[data-action="fishPanel"][data-arg="fish"]');await click('[data-action="fishAquariumAdd"][data-arg="qa-fish-1"]');await wait(()=>state.fishing.aquarium.length===1);
+ await click('[data-action="fishPanel"][data-arg="tank"]');assert.ok((await evaluate('return document.querySelector(".fishing-panel").textContent')).includes('1/3'));
+ await click('[data-action="fishAquariumRemove"][data-arg="qa-fish-1"]');await wait(()=>state.fishing.aquarium.length===0);
+ await click('[data-action="fishPanel"][data-arg="fish"]');await click('[data-action="fishSell"][data-arg="qa-fish-1"]');await wait(()=>!state.fishing.fish.some(x=>x.id==='qa-fish-1'));
+ // A real hold/release UI playthrough, with pointer actions following the visible target.
+ await click('[data-action="fishCast"]');await wait(()=>!!state.fishing.cast);await wait(()=>evaluate('const p=document.querySelector("[data-fish-pull]");return !!p&&!p.disabled'));
+ const pos=await evaluate('const r=document.querySelector("[data-fish-pull]").getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}');
+ await page.mouse.move(pos.x,pos.y);
+ let held=false,loops=0;while(state.fishing.cast&&loops++<320){const want=await evaluate('const s=document.querySelector("[data-fish-safe]"),c=document.querySelector("[data-fish-cursor]");return parseFloat(c.style.left)<parseFloat(s.style.left)+parseFloat(s.style.width)/2');if(want!==held){if(want)await page.mouse.down();else await page.mouse.up();held=want;}await delay(95);}
+ await page.mouse.up();assert.equal(state.fishing.cast,null);assert.equal(state.fishing.lastCatch.won,true);console.log('PASS real UI catch with server replay');
+ reset(50);await page.goto('http://127.0.0.1:'+server.address().port+'/rebirth/');await wait(()=>evaluate('return !!document.querySelector(".fantasy-dock")'));await click('.fantasy-dock [data-arg="event"]');await wait(()=>evaluate('return !!document.querySelector(".fishing-screen")'));
+ for(const width of [320,390,1280]){await page.setViewportSize({width,height:1050});for(const id of ['brook','moon','canyon','coral','abyss']){await click('[data-action="fishSpot"][data-arg="'+id+'"]');await wait(()=>evaluate('const e=document.querySelector(".fishing-scene-art");return e.complete&&e.naturalWidth>0'));await delay(150);assert.ok(await evaluate('return document.documentElement.scrollWidth<=innerWidth+1'));await shot(id+'-'+width);}for(const panel of ['fish','tank','rod','shop','quests','collection']){await click('[data-action="fishPanel"][data-arg="'+panel+'"]');assert.ok(await evaluate('return document.documentElement.scrollWidth<=innerWidth+1'));assert.doesNotMatch(await evaluate('return document.querySelector(".fishing-panel").textContent'),/undefined|NaN/);}console.log('PASS 5 backgrounds, 6 panels, no overflow',width);}
+ assert.deepEqual(await evaluate('return qaErrors'),[]);assert.deepEqual(misses,[]);console.log('PASS no JS errors or missing local assets');
+}catch(e){await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});console.log('QA failure UI',await page.locator('body').innerText());console.log('QA errors',await evaluate('return qaErrors'));throw e;}finally{await browser.close();server.close();}
