@@ -61,7 +61,6 @@ export function mountFishing(root,state,send){
  const c=localCast;pendingCastStarted=null;
  if(cast.hookAt&&!c.hooked){c.hooked=true;c.hooking=false;c.next=Date.now()+100;}
  const els={scene:root.querySelector('.fishing-scene'),angler:root.querySelector('.fishing-angler'),notice:root.querySelector('[data-fish-notice]'),status:root.querySelector('[data-fish-status]'),safe:root.querySelector('[data-fish-safe]'),cursor:root.querySelector('[data-fish-cursor]'),progress:root.querySelector('[data-fish-progress]'),bar:root.querySelector('[data-fish-progressbar]'),strain:root.querySelector('[data-fish-strain]'),pull:root.querySelector('[data-fish-pull]'),label:root.querySelector('[data-fish-pull-label]'),meter:root.querySelector('.fishing-meter')};
- sceneController=mountFishingScene(els.scene,c.visualStarted);
  let held=false,raf=0,disposed=false;
  const phase=(name,pose,text,label)=>{els.scene.dataset.phase=name;els.angler.dataset.pose=String(pose);els.status.textContent=text;if(label)els.label.textContent=label;};
  const hook=async()=>{
@@ -105,4 +104,6 @@ export function mountFishing(root,state,send){
  window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);window.addEventListener('blur',up);document.addEventListener('visibilitychange',visibility);
  controller={dispose(){disposed=true;cancelAnimationFrame(raf);els.pull.removeEventListener('pointerdown',down);els.pull.removeEventListener('pointerup',up);els.pull.removeEventListener('pointercancel',up);els.pull.removeEventListener('lostpointercapture',up);els.pull.removeEventListener('click',click);window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',up);document.removeEventListener('visibilitychange',visibility);}};
  raf=requestAnimationFrame(frame);
+ // Update the pose before the scene RAF computes the rod tip for that frame.
+ sceneController=mountFishingScene(els.scene,c.visualStarted);
 }
