@@ -359,7 +359,7 @@ function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
 let activeCoopInput=null;
 let fishingRequest=null;
 async function fishingCommandRequest(action,args={}){
- if(fishingRequest||state?.isAdmin!==true)return;
+ if(fishingRequest||!state)return;
  const account=session?.user?.id,root=app.querySelector('.fishing-screen');
  fishingUI.pending=action;showFishingPending(root,action);
  const work=(async()=>{
