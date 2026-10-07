@@ -14,8 +14,9 @@ let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
-import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending} from './fishing-ui.mjs?v=fishing-tap-187';
-import {SPOTS,BAITS,resourceName} from './fishing-data.mjs?v=fishing-tap-187';
+import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
+import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
+import {SPOTS,BAITS,resourceName} from './fishing-data.mjs?v=fishing-perf-188';
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
@@ -95,6 +96,7 @@ let lastHuntSettlement = 0;
 let session,
   settings = { sound: 0.3, music: 0.18, low: false },
   state = null,
+  stateRevision = null,
   tab = "hunt",
   sub = "bag",
   busy = false,
@@ -356,13 +358,14 @@ async function exitDungeon(action){
   try{return await pendingDungeonExit;}finally{pendingDungeonExit=null;}
 }
 function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
-let activeCoopInput=null;
+let activeCoopInput=null,activeBackgroundSync=null;
 let fishingRequest=null;
 async function fishingCommandRequest(action,args={}){
  if(fishingRequest||!state)return;
  const account=session?.user?.id,root=app.querySelector('.fishing-screen');
  fishingUI.pending=action;showFishingPending(root,action);
  const work=(async()=>{
+  activeBackgroundSync?.abort();
   while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
   if(session?.user?.id!==account||!state)return;
   for(let attempt=0;attempt<3;attempt++){
@@ -375,6 +378,7 @@ async function fishingCommandRequest(action,args={}){
  try{return await work;}catch(error){render();throw error;}finally{
   fishingRequest=null;fishingUI.pending=null;
   const current=app.querySelector('.fishing-screen');current?.removeAttribute('aria-busy');
+  current?.querySelectorAll('.fishing-sites button').forEach(b=>{b.disabled=!!state?.fishing?.cast;});
   current?.querySelectorAll('[data-fish-write]').forEach(b=>{b.disabled=b.hasAttribute('data-unavailable');b.classList.remove('fishing-pending');});
   const text=current?.querySelector('[data-fish-transaction]');if(text)text.textContent='';
  }
@@ -396,10 +400,13 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
   busy = true;
   const streaming=command==="coopInput";
   const accountAtSend=session?.user?.id;
-  const inputAbort=streaming?new AbortController():null;
-  if(inputAbort)activeCoopInput=inputAbort;
+  let storedRequest=null;try{storedRequest=JSON.parse(localStorage.getItem(pendingKey())||'null');}catch{}
+  const background=command==='sync'&&quiet&&state&&(!storedRequest||storedRequest.command==='sync');
+  const inputAbort=streaming||background?new AbortController():null;
+  if(streaming)activeCoopInput=inputAbort;
+  if(background)activeBackgroundSync=inputAbort;
   const requestSignal=inputAbort?(signal?AbortSignal.any([signal,inputAbort.signal]):inputAbort.signal):signal;
-  if(!streaming)document
+  if(!streaming&&!background)document
     .querySelectorAll("button[data-write]")
     .forEach((b) => {if(!dungeonExitActions.has(b.dataset.action))b.disabled=true;});
   let body, recoverCharacter = false;
@@ -420,7 +427,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
       if(!quiet)toast("이전 요청을 먼저 복구합니다.");
     }
     if (!body) {
-      body = { command, args, requestId: crypto.randomUUID() };
+      body = { command, args:command.startsWith('fish')?{...args,_compact:true,_stateRevision:stateRevision}:args, requestId: crypto.randomUUID() };
       if(!recoverySync&&!streaming)localStorage.setItem(pendingKey(), JSON.stringify(body));
     }
     const sentAt=performance.now();
@@ -432,8 +439,16 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     localStorage.removeItem(pendingKey());
     const audioPrevious=state;
     const previousHuntAt = state?.lastAt;
+    if(result.statePatch){
+      if(result.statePatch.baseRevision===stateRevision)result.state=applyFishingPatch(state,stateRevision,result.statePatch);
+      else{
+        const snapshot=await request('/functions/v1/ringu-rebirth',{command:'sync',args:{},requestId:crypto.randomUUID()},true,requestSignal);
+        result.state=snapshot.state;result.revision=snapshot.revision;delete result.statePatch;
+      }
+    }
     if(Object.hasOwn(result,'state')){
-      state = D.normalizePotentialState(result.state);
+      state = result.statePatch?result.state:D.normalizePotentialState(result.state);
+      stateRevision=Number.isSafeInteger(result.revision)?result.revision:null;
       if(state&&(body.command==='sync'||state.lastAt!==previousHuntAt))lastHuntSettlement=Date.now();
     }
     if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
@@ -457,7 +472,10 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
-    if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
+    if(requestSignal?.aborted||session?.user?.id!==accountAtSend){
+      if(background&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(pendingKey())||'null')?.requestId===body.requestId)localStorage.removeItem(pendingKey());}catch{}}
+      return;
+    }
   if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
     if (e.status === 400) {localStorage.removeItem(pendingKey());recoverCharacter=!state&&!!session&&body?.command!=="sync";}
     if (e.status === 401) {
@@ -475,6 +493,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     throw e;
   } finally {
     if(activeCoopInput===inputAbort)activeCoopInput=null;
+    if(background&&requestSignal?.aborted&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(pendingKey())||'null')?.requestId===body.requestId)localStorage.removeItem(pendingKey());}catch{}}
+    if(activeBackgroundSync===inputAbort)activeBackgroundSync=null;
     busy = false;
     commandIdleWaiters.splice(0).forEach(resolve=>resolve());
     if(command!=='coopReady'&&coopRoom?.status==='waiting'&&coopRoom.members.some(m=>m.id===coopRoom.me&&!m.ready))
@@ -556,7 +576,7 @@ function shell(content) {
 }
 
 function render() {
-  stopFishing();
+  if(!(session&&state&&view==='game'&&tab==='event'&&eventPage==='fishing'&&!state.coopRoom&&!state.partyRoom&&!dummyBattle&&state.battle?.kind!=='tower'))stopFishing();
   if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
   sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
@@ -594,14 +614,21 @@ function render() {
   document.body.classList.toggle("pet-event-mode",false);
   document.body.classList.toggle("fishing-mode",eventScreen&&eventPage!=="lotto");
   document.body.classList.toggle("lotto-mode",eventScreen&&eventPage==="lotto");
-  replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
+  if(eventScreen&&eventPage!=='lotto')updateFishingView(app,content,state.fishing?.cast?.id);
+  else replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
   if(view==='arena'&&arenaPage==='battle'&&arenaBattle&&!arenaPlayback){arenaPlayback=startArenaReplay(arenaBattle,()=>{arenaPlayback=null;arenaPage='result';render();});}
   window.scrollTo({top:view==='arena'&&['opponents','battle'].includes(arenaPage)?0:preservedScroll,behavior:"instant"});
   updatePetCountdown();
   updateLuckTimers(state);
   updateInvestmentClock(investmentData,investmentLoadedAt);
   refreshLevelRequirements();
-  if(eventScreen&&eventPage!=='lotto')mountFishing(app.querySelector('.fishing-screen'),state,fishingCommandRequest);
+  if(eventScreen&&eventPage!=='lotto'){
+    const fishingRoot=app.querySelector('.fishing-screen');mountFishing(fishingRoot,state,fishingCommandRequest);
+    if(fishingUI.pending)showFishingPending(fishingRoot,fishingUI.pending,{animate:false});
+    let banner=fishingRoot.querySelector('#connection-status');
+    if(!banner){banner=document.createElement('div');banner.id='connection-status';banner.className='connection-status';banner.setAttribute('role','status');banner.innerHTML='연결이 지연되고 있어요. <button data-action="reconnect">다시 연결</button>';fishingRoot.querySelector('.fishing-scroll').prepend(banner);}
+    banner.hidden=!connectionLost;
+  }
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
   if(towerBattle){
     const send=dummyBattle?async(_action,args)=>{
@@ -1079,7 +1106,7 @@ function clearAccountView() {
   lottoData=null;lottoLoadedAt=0;clearLotto();investmentData=null;investmentLoadedAt=0;resetInvestment();
   clearDisclosureState();
   if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
-  state=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
+  state=null;stateRevision=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
   marketKind="all";marketRows=[];marketRequest++;marketPage=0;mine=false;selected=null;view="game";tab="hunt";sub="bag";
   chosenClass="warrior";characterName="";combatFrames.length=0;connectionLost=false;retryAt=0;retryFailures=0;lastHuntSettlement=0;
 }
@@ -1259,7 +1286,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
     if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:3});}
-    if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:BAITS.find(x=>x.id===arg)?.pack||20,currency:'diamonds'});
+    if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:BAITS.find(x=>x.id===arg)?.pack||20,currency:BAITS.find(x=>x.id===arg)?.gold?'gold':'diamonds'});
     if(action==='fishTrain')return await fishingCommandRequest(action,{gold:Number(arg)});
     if(action==='fishSell')return await fishingCommandRequest(action,{ids:[arg]});
     if(action==='fishSellAll'){if(!state.fishing?.fish.length)return;open('물고기 전부 판매',`<p>가방의 물고기 ${state.fishing.fish.length}마리를 모두 판매할까요?</p><p class="note">수족관에 있는 물고기는 포함되지 않아요.</p>${btn('전부 판매','fishSellAllConfirm','','gold')}`);return;}

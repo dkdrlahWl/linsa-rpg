@@ -16,7 +16,7 @@ const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
 export function fishingDifficulty(species,rod,size){
  const powerNeed=Math.max(species.level,RARITIES[species.rarity].gate+Math.max(0,species.rarity-2)),advantage=clamp((rod-species.level)/18,0,1);
  const challenge=species.rarity+size*.9+Math.max(0,6-(rod-species.level))*.08-advantage*.8;
- return {powerNeed,rod,band:clamp(.125-challenge*.014,.035,.125),speed:.85+challenge*.18,drift:.018+challenge*.003,tap:.042-species.rarity*.0015+advantage*.006,strainLimit:36-species.rarity*3,required:.50+species.rarity*.035+size*.04,ticks:100+species.rarity*20+Math.round(size*20)};
+ return {powerNeed,rod,band:clamp(.125-challenge*.014,.035,.125),speed:.85+challenge*.18,drift:.014+challenge*.0016,tap:.072-species.rarity*.001+advantage*.006,strainLimit:36-species.rarity*3,required:.50+species.rarity*.035+size*.04,ticks:100+species.rarity*20+Math.round(size*20)};
 }
 export function fishingTarget(cast,tick){
  if(cast.protocol===3)return .5+Math.sin(tick*.055*cast.speed+cast.seed)*.20+Math.sin(tick*.11*cast.speed+cast.seed*2)*.065;
@@ -88,11 +88,12 @@ export function fishingCommand(s,command,args,ctx){
  }
  if(command==='fishBaitBuy'){
   const bait=BAITS.find(x=>x.id===args.bait);require(bait&&integer(args.count,1,100),'INVALID_FISHING_BAIT');
-  require(args.currency==='diamonds','FISHING_REFRESH_REQUIRED');
+  const currency=bait.gold?'gold':'diamonds';require(args.currency===currency,'FISHING_REFRESH_REQUIRED');
   require(args.count%bait.pack===0,'INVALID_FISHING_BAIT');
   require(f.rod>=bait.level,'FISHING_ROD_REQUIRED');require((f.bait[bait.id]||0)+args.count<=10000,'FISHING_BAIT_LIMIT');
-  const cost=baitDiamondCost(bait,args.count);require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');
-  f.diamonds-=cost;f.bait[bait.id]=(f.bait[bait.id]||0)+args.count;return {type:'fishBaitBuy',count:args.count,diamonds:cost,currency:'diamonds'};
+  const cost=bait.gold?bait.gold*(args.count/bait.pack):baitDiamondCost(bait,args.count);
+  if(currency==='gold')spendGold(s,cost);else{require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');f.diamonds-=cost;}
+  f.bait[bait.id]=(f.bait[bait.id]||0)+args.count;return {type:'fishBaitBuy',count:args.count,[currency]:cost,currency};
  }
  if(command==='fishTrain'){
   require(f.rod<50,'FISHING_MAX_LEVEL');const cost=rodGoldCost(f.rod);
