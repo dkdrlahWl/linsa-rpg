@@ -18,8 +18,8 @@ const adminCast=execute(s,'fishCast',{spot:'brook',bait:'worm',protocol:3},{...c
 assert.equal(FISH.length,50);assert.equal(new Set(FISH.map(x=>x.id)).size,50);
 assert.deepEqual(RARITIES.map((_,i)=>FISH.filter(x=>x.rarity===i).length),[12,11,10,10,5,2]);
 assert.deepEqual(SPOTS.map(x=>x.level),[1,10,20,30,40]);assert.ok(Math.abs(REWARD_RATES.reduce((n,x)=>n+x.chance,0)-1)<1e-12);
-assert.equal(REWARD_RATES.find(x=>x.id==='primeCube').chance,.01);
-assert.equal(REWARD_RATES.find(x=>x.id==='fish').chance,.93);
+assert.equal(REWARD_RATES.find(x=>x.id==='primeCube').chance,.01);assert.equal(REWARD_RATES.find(x=>x.id==='highCube').chance,.01);
+assert.equal(REWARD_RATES.find(x=>x.id==='fish').chance,.92);
 for(let level=1;level<50;level++)assert.equal(rodGoldCost(level),Math.round(20000*1.17**(level-1)/100)*100*(level>=10&&level<30?5:1));
 // Existing paid XP retains its gold value, but the old full bar cannot bypass the new cost.
 const trained=fresh();trained.fishing.rod=10;trained.fishing.xp=82200;trained.fishing.diamonds=50;
@@ -30,7 +30,7 @@ assert.equal(trained.gold,trainingGold-328800);assert.equal(trained.fishing.xp,4
 fishingCommand(trained,'fishUpgrade',{}, {...ctx(),admin:true});
 assert.equal(trained.fishing.rod,11);assert.equal(trained.fishing.xp,0);assert.equal(trained.fishing.diamonds,trainingDiamonds-4);
 // Prime reward owns exactly the interval between 96.5% and 97.5% of the server draw.
-for(const [draw,reward] of [[.9649999,'cube'],[.9650001,'primeCube'],[.9749999,'primeCube'],[.9750001,'scroll']]){
+for(const [draw,reward] of [[.9549999,'cube'],[.9550001,'highCube'],[.9649999,'highCube'],[.9650001,'primeCube'],[.9749999,'primeCube'],[.9750001,'scroll']]){
  const sample=fresh(),draws=[0,0,draw,0,0];
  fishingCommand(sample,'fishCast',{spot:'brook',bait:'worm',protocol:3},{...ctx(),admin:true,random:()=>draws.shift()});
  assert.equal(sample.fishing.cast.reward,reward);
@@ -42,11 +42,13 @@ const before=s.gold;run('fishTrain',{gold:rodGoldCost(1)});assert.equal(s.gold,b
 s.fishing.diamonds=10;run('fishUpgrade');assert.equal(s.fishing.rod,2);assert.equal(s.fishing.diamonds,10-rodDiamondCost(1));assert.equal(s.fishing.xp,0);
 const baitGold=s.gold,baitDiamonds=s.fishing.diamonds;
 assert.throws(()=>run('fishBaitBuy',{bait:'worm',count:10}),/FISHING_REFRESH_REQUIRED/);
-assert.throws(()=>run('fishBaitBuy',{bait:'worm',count:1,currency:'diamonds'}),/INVALID_FISHING_BAIT/);
-run('fishBaitBuy',{bait:'worm',count:50,currency:'diamonds'});assert.equal(s.fishing.bait.worm,70);assert.equal(s.gold,baitGold);assert.equal(s.fishing.diamonds,baitDiamonds-1);
+assert.throws(()=>run('fishBaitBuy',{bait:'worm',count:1,currency:'gold'}),/INVALID_FISHING_BAIT/);
+assert.throws(()=>run('fishBaitBuy',{bait:'worm',count:50,currency:'diamonds'}),/FISHING_REFRESH_REQUIRED/);
+run('fishBaitBuy',{bait:'worm',count:50,currency:'gold',gold:1});assert.equal(s.fishing.bait.worm,70);assert.equal(s.gold,baitGold-50000);assert.equal(s.fishing.diamonds,baitDiamonds);
+const poor=fresh();poor.gold=49999;const poorBefore=structuredClone(poor);assert.throws(()=>fishingCommand(poor,'fishBaitBuy',{bait:'worm',count:50,currency:'gold'},ctx()),/GOLD/);assert.deepEqual(poor,poorBefore);
 assert.throws(()=>run('fishBaitBuy',{bait:'star',count:20,currency:'diamonds'}),/FISHING_ROD_REQUIRED/);
 const saved=structuredClone(s);s.fishing.rod=50;
-for(const bait of BAITS){s.fishing.diamonds=bait.diamonds;const amount=s.fishing.bait[bait.id]||0;const gold=s.gold;run('fishBaitBuy',{bait:bait.id,count:bait.pack,currency:'diamonds'});assert.equal(s.fishing.diamonds,0);assert.equal(s.fishing.bait[bait.id],amount+bait.pack);assert.equal(s.gold,gold);const snapshot=structuredClone(s);assert.throws(()=>run('fishBaitBuy',{bait:bait.id,count:bait.pack,currency:'diamonds'}),/FISHING_DIAMONDS_REQUIRED/);assert.deepEqual(s,snapshot);}
+for(const bait of BAITS.filter(x=>!x.gold)){s.fishing.diamonds=bait.diamonds;const amount=s.fishing.bait[bait.id]||0;const gold=s.gold;run('fishBaitBuy',{bait:bait.id,count:bait.pack,currency:'diamonds'});assert.equal(s.fishing.diamonds,0);assert.equal(s.fishing.bait[bait.id],amount+bait.pack);assert.equal(s.gold,gold);const snapshot=structuredClone(s);assert.throws(()=>run('fishBaitBuy',{bait:bait.id,count:bait.pack,currency:'diamonds'}),/FISHING_DIAMONDS_REQUIRED/);assert.deepEqual(s,snapshot);}
 s=saved;
 run('fishCast',{spot:'brook',bait:'worm',protocol:3});let c=s.fishing.cast;assert.equal(s.fishing.bait.worm,69);
 assert.throws(()=>run('fishCast',{spot:'brook',bait:'worm',protocol:3}),/FISHING_CAST_ACTIVE/);
@@ -72,6 +74,13 @@ for(const rarity of [0,1,2,3,4,5]){
   assert.equal(p.m.failed,false);assert.ok(p.m.hits/challenge.ticks>=challenge.required);
  }
 }
+// At the starter rod, a paced controller never exceeds 5 clicks/second.
+for(let seed=0;seed<100;seed++){
+ const challenge={protocol:3,seed:seed*Math.PI/50,...fishingDifficulty(easySpecies,1,1)},m=fishingMeter();let last=-10;
+ while(!m.finished){const tap=m.tick-last>=2&&fishingTarget(challenge,m.tick+1)-m.cursor+challenge.drift>challenge.tap/2?1:0;if(tap)last=m.tick;fishingStep(challenge,tap,m);}
+ assert.equal(m.failed,false);assert.ok(m.hits/challenge.ticks>=challenge.required);
+}
+assert.ok(easy.tap/easy.drift>4,'A single tap offsets several passive drift frames');
 const underpowered=fresh();underpowered.fishing.rod=45;
 const weakCast={id:randomUUID(),species:mythic.id,weight:mythic.max,reward:'fish',hookAt:now-30000,expires:now+30000,protocol:3,seed:0,...weak};
 underpowered.fishing.cast=weakCast;

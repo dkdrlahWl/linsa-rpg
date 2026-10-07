@@ -23,3 +23,6 @@
 .fishing-scene[data-phase="casting"] .fishing-splash{animation:fish-splash .5s ease-out infinite}
 .fishing-play .fishing-catch-notice{z-index:2;bottom:7px;min-height:27px;background:#091e2bcc}
 @media(max-height:680px){.fishing-play .fishing-angler{width:42%;bottom:40px}}
+
+/* Move meter markers without relaying out the scene on every frame. */
+.fishing-scene,.fishing-meter{contain:layout paint}.fishing-safe,.fishing-meter i{will-change:transform}.fish-card{content-visibility:auto;contain-intrinsic-size:auto 220px}

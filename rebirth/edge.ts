@@ -1,3 +1,4 @@
+import {fishingStateReply} from './fishing-sync.mjs';
 import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
 import { initialState, execute, power, grantCoopChest, grantRaidChest } from "./engine.mjs";
@@ -240,11 +241,9 @@ Deno.serve(async (req) => {
         const latest = await rpc("rebirth_snapshot", {
           p_request: body.requestId,
         });
-        return reply({
-          state: latest.state,
-          revision: latest.revision,
-          result,
-        });
+        return reply(body.command.startsWith('fish')
+          ?fishingStateReply(snap,latest,result,body.args._stateRevision,body.args._compact)
+          :{state:latest.state,revision:latest.revision,result});
       } catch (e) {
         if (e.message === "SAVE_CONFLICT" && retry < 2) continue;
         throw e;
