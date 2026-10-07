@@ -181,6 +181,8 @@ export const BOSSES = bosses.flatMap((list, r) =>
   })),
 );
 export const MATERIALS = {
+  potentialLock: "잠재 잠금석",
+  dungeonKey: "던전 열쇠",
   scroll: "잠재 해금 주문서",
   fragment: "장비 파편",
   cube: "레드 큐브",

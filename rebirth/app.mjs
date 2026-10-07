@@ -13,7 +13,9 @@ import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentN
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
-let eventPage='lotto',lottoData=null,lottoLoadedAt=0;
+let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
+import {fishingView,fishingUI,mountFishing,stopFishing} from './fishing-ui.mjs?v=fishing-177';
+import {SPOTS,resourceName} from './fishing-data.mjs?v=fishing-177';
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
@@ -130,6 +132,20 @@ function toast(text) {
   toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
 }
 const errors = {
+  FISHING_CAST_ACTIVE: "이미 찌를 던졌어요. 포획을 마치거나 그만두기를 눌러주세요.",
+  FISHING_CAST_MISSING: "입질이 끝났어요. 다시 낚싯대를 던져주세요.",
+  FISHING_ROD_REQUIRED: "낚싯대 레벨이 부족해요.",
+  FISHING_BAIT_REQUIRED: "미끼가 없어요. 낚시 상점에서 구매해 주세요.",
+  FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
+  FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
+  FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시 상자와 일일퀘스트에서 얻을 수 있어요.",
+  FISHING_XP_REQUIRED: "골드로 낚싯대 경험치를 먼저 채워주세요.",
+  FISHING_XP_FULL: "경험치가 가득 찼어요. 다이아로 레벨업해 주세요.",
+  FISHING_NO_INCOME: "아직 받을 골드가 없어요.",
+  FISHING_QUEST_CLAIMED: "이미 받은 일일 보상이에요.",
+  FISHING_SUMMON_REMOVED: "루미 소환이 종료됐어요. 이벤트에서 낚시를 즐겨주세요.",
+  INSUFFICIENT_POTENTIALLOCK: "잠재 잠금석이 부족해요.",
+  POTENTIAL_LOCK_EPIC_REQUIRED: "레어 장비를 프라임 큐브로 승급할 때는 줄을 잠글 수 없어요.",
   REBIRTH_MAINTENANCE:
     "새로운 여정을 준비하고 있어요. 서비스가 열리면 시작할 수 있습니다.",
   LOGIN_REQUIRED: "다시 로그인해 주세요.",
@@ -513,6 +529,7 @@ function shell(content) {
 }
 
 function render() {
+  stopFishing();
   if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
   sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
@@ -536,7 +553,7 @@ function render() {
   else if (view === "regions") content = regions();
   else
     content = {
-      event:()=>eventPage==='lotto'?lottoView(state,lottoData):petEventView(state).replace('<div class="pet-scene">','<div class="pet-scene"><button class="pet-lotto-link" data-action="eventPage" data-arg="lotto" data-illustrated="1">주간 로또 ›</button>'),
+      event:()=>eventPage==='lotto'?lottoView(state,lottoData):fishingView(state),
       hunt: hunt,
       character: character,
       gear: inventory,
@@ -547,7 +564,8 @@ function render() {
     }[tab]();
   document.body.classList.toggle('investment-mode',tab==='investment'&&view==='game'&&!state.battle&&!state.coopRoom&&!state.partyRoom);
   const eventScreen=tab==="event"&&view==="game"&&!state.coopRoom&&!towerBattle&&!state.partyRoom;
-  document.body.classList.toggle("pet-event-mode",eventScreen&&eventPage!=="lotto");
+  document.body.classList.toggle("pet-event-mode",false);
+  document.body.classList.toggle("fishing-mode",eventScreen&&eventPage!=="lotto");
   document.body.classList.toggle("lotto-mode",eventScreen&&eventPage==="lotto");
   replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
   if(view==='arena'&&arenaPage==='battle'&&arenaBattle&&!arenaPlayback){arenaPlayback=startArenaReplay(arenaBattle,()=>{arenaPlayback=null;arenaPage='result';render();});}
@@ -556,6 +574,7 @@ function render() {
   updateLuckTimers(state);
   updateInvestmentClock(investmentData,investmentLoadedAt);
   refreshLevelRequirements();
+  if(eventScreen&&eventPage!=='lotto')mountFishing(app.querySelector('.fishing-screen'),state,command);
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
   if(towerBattle){
     const send=dummyBattle?async(_action,args)=>{
@@ -927,6 +946,10 @@ function cubeChoice() {
 function showEvents(events) {
   for (const e of events) {
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
+    if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
+    if(['fishSell','fishAquariumClaim'].includes(e.type)){toast(fmt(e.gold)+' G 받았어요.');continue;}
+    if(e.type==='fishQuestClaim'){toast('일일퀘스트 · 다이아 '+e.diamonds+'개 받았어요.');continue;}
+    if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
     if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
     if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
@@ -1047,8 +1070,9 @@ function authFailureMessage(err,register) {
   return (register?"계정 생성":"로그인")+"에 실패했습니다. "+(err.code||err.message);
 }
 function login() {
+  stopFishing();
   closeWarriorLab();
-  document.body.classList.remove("pet-event-mode","tower-mode");
+  document.body.classList.remove("pet-event-mode","tower-mode","fishing-mode");
   app.innerHTML = `<div class="login panel"><div class="brand">링구 RPG<br><small>새로운 여정</small></div><p class="note">모바일로 이어가는 나만의 모험</p><form id="auth"><label>계정 이름<input name="username" autocomplete="username" pattern="[a-zA-Z0-9_]{3,32}" minlength="3" maxlength="32" required placeholder="영문·숫자·밑줄 3~32자"></label><label>비밀번호<input name="password" autocomplete="current-password" type="password" minlength="8" maxlength="256" required placeholder="8자 이상"></label><div class="two"><button type="submit" name="mode" value="login" class="gold">로그인</button><button type="submit" name="mode" value="register">새 계정 만들기</button></div><p id="auth-error" class="error" role="alert"></p></form><p class="footer-note">이전 게임 아이디·비밀번호도 그대로 로그인할 수 있습니다.<br>PC·모바일은 같은 계정으로 로그인하면 이어집니다.<br>이미 있는 아이디는 재가입하지 말고 ‘로그인’을 눌러 주세요.<br>계정 이름은 대소문자를 구분하지 않습니다.</p></div>`;
   $("#auth").onsubmit = async (e) => {
     e.preventDefault();
@@ -1130,7 +1154,7 @@ function updateSellPrice() {
 }
 function consumableSellDialog(key=null){
  if(!key){
-  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(D.MATERIALS).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${state.materials[k]>0?"":"disabled"}><img class="material-tile-image" src="${currencyIconURL(k)}" alt=""><strong class="market-card-name">${name}</strong><small>보유 ${fmt(state.materials[k])}개</small><span class="market-card-status">${state.materials[k]>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
+  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(D.MATERIALS).filter(([k])=>!["potentialLock","dungeonKey"].includes(k)).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${state.materials[k]>0?"":"disabled"}><img class="material-tile-image" src="${currencyIconURL(k)}" alt=""><strong class="market-card-name">${name}</strong><small>보유 ${fmt(state.materials[k])}개</small><span class="market-card-status">${state.materials[k]>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
   return;
  }
  if(!Object.hasOwn(D.MATERIALS,key)||!(state.materials[key]>0))return;
@@ -1203,7 +1227,17 @@ document.addEventListener("click", async (e) => {
     if(action==='investPercent'){setInvestmentAmount(Math.floor(state.gold*Number(arg)/100*investmentLeverage/(investmentData?.coins[selectedCoin]?.price||10000)));return render();}
     if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||investmentMargin(quantity,investmentData.coins[selectedCoin].price)>state.gold)return toast('보유 골드 안에서 정수 수량을 입력해 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,leverage:investmentLeverage,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
     if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
-    if(action==='eventPage'){eventPage=arg;tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
+    if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
+    if(action==='fishPanel'){fishingUI.panel=arg;render();return;}
+    if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
+    if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
+    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await command('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait});}
+    if(action==='fishBaitBuy')return await command(action,{bait:arg,count:10});
+    if(action==='fishTrain')return await command(action,{gold:Number(arg)});
+    if(action==='fishSell')return await command(action,{ids:[arg]});
+    if(action==='fishSellAll'){if(!state.fishing?.fish.length)return;open('물고기 전부 판매',`<p>가방의 물고기 ${state.fishing.fish.length}마리를 모두 판매할까요?</p><p class="note">수족관에 있는 물고기는 포함되지 않아요.</p>${btn('전부 판매','fishSellAllConfirm','','gold')}`);return;}
+    if(action==='fishSellAllConfirm'){modal.close();return await command('fishSell',{ids:state.fishing.fish.map(x=>x.id)});}
+    if(['fishCancel','fishUpgrade','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim'].includes(action))return await command(action,{id:arg});
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
@@ -1470,7 +1504,7 @@ document.addEventListener("click", async (e) => {
       return itemDetail(arg);
     }
     if (action === "potentialUnlock") return await command("potential", {id:arg});
-    if (action === "cubeUse") return await command("cube", {id:arg,kind:cubeKind});
+    if (action === "cubeUse") return await command("cube", {id:arg,kind:cubeKind,lock:Number(document.querySelector('#cube-lock')?.value??-1)});
     if (["lock", "star"].includes(action)) {
       await command(action, { id: arg });
       if (action !== "star") itemDetail(arg);
@@ -1485,7 +1519,7 @@ document.addEventListener("click", async (e) => {
       if(!result||state.pendingCube)return;
       lastCubeResult=null;
       itemDetail(id,"potential");
-      return await command("cube",{id,kind});
+      return await command("cube",{id,kind,lock:pending.lock??-1});
     }
     if (action === "cubeChoose") {
       await command("cubeChoose", { apply: arg === "yes" });
@@ -1588,6 +1622,7 @@ document.addEventListener("click", async (e) => {
 });
 document.addEventListener("input", e=>{if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
+  if(e.target.id==='fishing-bait'){fishingUI.bait=e.target.value;render();return;}
   if(e.target.id==="exchange-class"){exchangeClass=e.target.value;render();return;}
   if(e.target.id==="exchange-level"){exchangeLevel=Number(e.target.value);render();return;}
   if(e.target.id==="material-sell-key"){updateMaterialSale();return;}

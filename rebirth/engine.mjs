@@ -1,3 +1,4 @@
+import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-impact-121';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
@@ -530,6 +531,7 @@ export function execute(input, command, args = {}, ctx) {
   if(s.daily?.day!==dailyDay)s.daily={day:dailyDay,hunt:0,boss:0,tower:0,claimed:[]};
   check(!s.coopRoom || ["sync","ack"].includes(command), "BATTLE_IN_PROGRESS");
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
+  normalizeFishing(s,ctx.now);
   const events = [];
   if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","consumableBuy","consumableUse"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
@@ -601,16 +603,14 @@ export function execute(input, command, args = {}, ctx) {
   }
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
+  if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   switch (command) {
     case "consumableBuy":
     case "consumableUse": {events.push(consumableCommand(s,command,args.id,ctx.now));break;}
     case "costumeBuy":
     case "costumeEquip":
     case "costumeUnequip": {events.push(costumeCommand(s,command,args.id));break;}
-    case "petSummon": {
-      check(!s.pendingCube,"먼저 큐브 옵션을 선택하세요.");
-      events.push(summonPet(s,args.count,ctx,()=>{const mail={id:"lumi-chest-"+ctx.uuid(),kind:"lumiBossChest",title:"100레벨 랜덤 보스 장비 상자",sender:"달빛 소환",message:"받기를 누르면 상자를 열어 현재 직업의 랜덤 보스 장비를 획득합니다.",rewards:{},sentAt:new Date(ctx.now).toISOString()};s.rewardMailbox||=[];s.rewardMailbox.push(mail);s.systemMailbox||=[];s.systemMailbox.push(mail);return {mailId:mail.id};}));break;
-    }
+    case "petSummon": {throw Error("FISHING_SUMMON_REMOVED");}
     case "petEquip": {equipPet(s,args.id);break;}
     case "exchangeGear": {
       check(int(args.level,10,180)&&args.level%10===0,"INVALID_GEAR_LEVEL");
@@ -860,10 +860,21 @@ export function execute(input, command, args = {}, ctx) {
       check(Object.hasOwn(CUBES,kind),"INVALID_CUBE");
       const rule=CUBES[kind],previousGrade=it.grade;
       check(it.grade<=rule.maxGrade,"INVALID_CUBE_GRADE");
-      const grade=cubeUpgrade(s,kind,it.grade,ctx.random);
-      const lines=rerollCube(kind,it,grade,ctx.random);
+      const locking=args.lock!==undefined&&args.lock!==null&&args.lock!==-1;
+      check(!locking||!(rule.prime&&it.grade<3),"POTENTIAL_LOCK_EPIC_REQUIRED");
+      const grade=locking?it.grade:cubeUpgrade(s,kind,it.grade,ctx.random);
+      const lock=args.lock===undefined||args.lock===null?-1:args.lock;
+      check(Number.isInteger(lock)&&lock>=-1&&lock<it.lines.length,"INVALID_POTENTIAL_LOCK");
+      if(lock>=0){check(grade===previousGrade,"POTENTIAL_LOCK_GRADE_CHANGED");spend(s,"potentialLock",1);}
+      let lines;
+      for(let attempt=0;attempt<256;attempt++){
+        lines=rerollCube(kind,it,grade,ctx.random);
+        if(lock>=0)lines[lock]=structuredClone(it.lines[lock]);
+        if(JSON.stringify(lines.map(l=>[l.key,l.value,l.grade]))!==JSON.stringify(it.lines.map(l=>[l.key,l.value,l.grade])))break;
+        check(attempt<255,"CUBE_RANDOM_RETRY");
+      }
       spend(s,kind,1);spend(s,"gold",cubeCost(kind,it));
-      if(rule.choose)s.pendingCube={id:it.id,kind,grade,previousGrade,lines,potentialVersion:4};
+      if(rule.choose)s.pendingCube={id:it.id,kind,grade,previousGrade,lines,potentialVersion:4,lock};
       else {it.grade=grade;it.lines=lines;}
       events.push({type:"cube",id:it.id,kind,high:rule.choose,up:grade>previousGrade});break;
     }
