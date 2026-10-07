@@ -1,4 +1,4 @@
-import {FISH,SPOTS,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost} from './fishing-data.mjs';
+import {FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost} from './fishing-data.mjs';
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
 const koreanDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
@@ -12,11 +12,20 @@ export function normalizeFishing(s,now){
 export function aquariumBank(f,now){const hours=Math.min(12,Math.max(0,now-f.bankAt)/3600000);return Math.min(1e9,f.bank+f.aquarium.reduce((n,x)=>n+fishYield(x),0)*hours);}
 function settleAquarium(f,now){f.bank=aquariumBank(f,now);f.bankAt=now;}
 const spendGold=(s,n)=>{require(integer(n,0,1e12),'INVALID_FISHING_COST');require(s.gold>=n,'INSUFFICIENT_GOLD');s.gold-=n;};
-export function fishingTarget(cast,tick){return .5+Math.sin(tick*.047+cast.seed)*.19+Math.sin(tick*.103+cast.seed*2)*.09;}
+const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+export function fishingDifficulty(species,rod,size){
+ const powerNeed=Math.max(species.level,RARITIES[species.rarity].gate+Math.max(0,species.rarity-2)),advantage=clamp((rod-species.level)/18,0,1);
+ const challenge=species.rarity+size*.9+Math.max(0,6-(rod-species.level))*.08-advantage*.8;
+ return {powerNeed,rod,band:clamp(.125-challenge*.014,.035,.125),speed:.85+challenge*.18,drift:.018+challenge*.003,tap:.042-species.rarity*.0015+advantage*.006,strainLimit:36-species.rarity*3,required:.50+species.rarity*.035+size*.04,ticks:100+species.rarity*20+Math.round(size*20)};
+}
+export function fishingTarget(cast,tick){
+ if(cast.protocol===3)return .5+Math.sin(tick*.055*cast.speed+cast.seed)*.20+Math.sin(tick*.11*cast.speed+cast.seed*2)*.065;
+ return .5+Math.sin(tick*.047+cast.seed)*.19+Math.sin(tick*.103+cast.seed*2)*.09;
+}
 export function fishingStep(cast,input,meter){
  meter.tick++;
  const target=fishingTarget(cast,meter.tick);
- meter.cursor=Math.min(.98,Math.max(.02,meter.cursor+(input?1:-1)*.012));
+ meter.cursor=clamp(meter.cursor+(cast.protocol===3?input*cast.tap-cast.drift:(input?1:-1)*.012),.02,.98);
  const inside=Math.abs(meter.cursor-target)<=cast.band;
  if(inside)meter.hits++;
  meter.strain=Math.max(0,meter.strain+(inside?-1.5:1));
@@ -27,10 +36,10 @@ export function fishingStep(cast,input,meter){
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
 export function fishingCommand(s,command,args,ctx){
- require(ctx.admin===true,'FISHING_ADMIN_ONLY');
  const f=normalizeFishing(s,ctx.now);settleAquarium(f,ctx.now);
  s.materials??={};
  if(command==='fishCast'){
+  require(args.protocol===3,'FISHING_REFRESH_REQUIRED');
   require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<150,'FISHING_BAG_FULL');
   const spot=SPOTS.find(x=>x.id===args.spot),bait=BAITS.find(x=>x.id===args.bait);
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
@@ -44,7 +53,7 @@ export function fishingCommand(s,command,args,ctx){
   let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance;if(roll<0){reward=r.id;break;}}
   const biteAt=ctx.now+4000+Math.floor(ctx.random()*3000);
   f.bait[bait.id]--;
-  f.cast={protocol:2,id:ctx.uuid(),spot:spot.id,bait:bait.id,species:species.id,weight,reward,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+8000,hookAt:null,expires:biteAt+8000,ticks:80+species.rarity*24+Math.round(size*30),band:Math.max(.055,.21-species.rarity*.023-size*.035),strainLimit:42-species.rarity*3,required:.45+species.rarity*.055+size*.06};
+  f.cast={protocol:3,id:ctx.uuid(),spot:spot.id,bait:bait.id,species:species.id,weight,reward,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+8000,hookAt:null,expires:biteAt+8000,...fishingDifficulty(species,f.rod,size)};
   return {type:'fishCast',castId:f.cast.id};
  }
  if(command==='fishCancel'){require(!f.cast||f.cast.id===args.id,'FISHING_CAST_MISSING');f.cast=null;return {type:'fishCancel'};}
@@ -52,18 +61,20 @@ export function fishingCommand(s,command,args,ctx){
   const c=f.cast;require(c&&c.id===args.id,'FISHING_CAST_MISSING');
   require(!c.hookAt,'FISHING_ALREADY_HOOKED');require(ctx.now>=c.biteAt,'FISHING_TOO_EARLY');
   require(ctx.now<=(c.hookDeadline||c.biteAt+8000),'FISHING_BITE_MISSED');
-  c.protocol=2;c.hookAt=ctx.now;c.expires=ctx.now+60000;
+  c.protocol=c.protocol===3?3:2;c.hookAt=ctx.now;c.expires=ctx.now+60000;
   return {type:'fishHook',castId:c.id};
  }
  if(command==='fishFinish'){
   const c=f.cast;require(c&&c.id===args.id,'FISHING_CAST_MISSING');
-  require(c.protocol!==2||c.hookAt,'FISHING_HOOK_REQUIRED');
-  require(Array.isArray(args.frames)&&args.frames.length>0&&args.frames.length<=c.ticks&&args.frames.every(x=>x===0||x===1),'INVALID_FISHING_INPUT');
+  require(c.protocol<2||c.hookAt,'FISHING_HOOK_REQUIRED');
+  require(Array.isArray(args.frames)&&args.frames.length>0&&args.frames.length<=c.ticks&&args.frames.every(x=>integer(x,0,c.protocol===3?3:1)),'INVALID_FISHING_INPUT');
   require(args.frames.length<=Math.floor((ctx.now-(c.hookAt||c.biteAt))/100),'FISHING_TOO_EARLY');
   const meter=fishingMeter();for(const input of args.frames){require(!meter.finished,'INVALID_FISHING_INPUT');fishingStep(c,input,meter);}
   require(meter.finished,'FISHING_NOT_FINISHED');f.cast=null;
-  const won=!meter.failed&&meter.hits/c.ticks>=c.required;
+  const underpowered=c.protocol===3&&c.rod<c.powerNeed;
+  const won=!underpowered&&!meter.failed&&meter.hits/c.ticks>=c.required;
   const result={type:'fishCatch',at:ctx.now,won,species:c.species,weight:c.weight,reward:won?c.reward:null};
+  if(underpowered){result.reason='rodPower';result.requiredRod=c.powerNeed;}
   if(won){
    if(c.reward==='fish'){
     const item={id:ctx.uuid(),species:c.species,weight:c.weight,caughtAt:ctx.now};f.fish.push(item);

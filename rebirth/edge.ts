@@ -90,9 +90,6 @@ Deno.serve(async (req) => {
       if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
       user=await auth.json();
     }
-    if(body.command.startsWith('fish')&&user.app_metadata?.ringu_admin!==true){
-      return reply({error:'FISHING_ADMIN_ONLY'},403);
-    }
     if(['investList','investBuy','investSell'].includes(body.command)){
       return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
     }
