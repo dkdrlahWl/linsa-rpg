@@ -21,6 +21,23 @@ const adminCast=execute(s,'fishCast',{spot:'brook',bait:'worm'},{...ctx(),admin:
 assert.equal(FISH.length,50);assert.equal(new Set(FISH.map(x=>x.id)).size,50);
 assert.deepEqual(RARITIES.map((_,i)=>FISH.filter(x=>x.rarity===i).length),[12,11,10,10,5,2]);
 assert.deepEqual(SPOTS.map(x=>x.level),[1,10,20,30,40]);assert.ok(Math.abs(REWARD_RATES.reduce((n,x)=>n+x.chance,0)-1)<1e-12);
+assert.equal(REWARD_RATES.find(x=>x.id==='primeCube').chance,.01);
+assert.equal(REWARD_RATES.find(x=>x.id==='fish').chance,.93);
+for(let level=1;level<50;level++)assert.equal(rodGoldCost(level),Math.round(20000*1.17**(level-1)/100)*100*(level>=10&&level<30?5:1));
+// Existing paid XP retains its gold value, but the old full bar cannot bypass the new cost.
+const trained=fresh();trained.fishing.rod=10;trained.fishing.xp=82200;trained.fishing.diamonds=50;
+assert.throws(()=>fishingCommand(trained,'fishUpgrade',{}, {...ctx(),admin:true}),/FISHING_XP_REQUIRED/);
+const trainingGold=trained.gold,trainingDiamonds=trained.fishing.diamonds;
+fishingCommand(trained,'fishTrain',{gold:328800},{...ctx(),admin:true});
+assert.equal(trained.gold,trainingGold-328800);assert.equal(trained.fishing.xp,411000);
+fishingCommand(trained,'fishUpgrade',{}, {...ctx(),admin:true});
+assert.equal(trained.fishing.rod,11);assert.equal(trained.fishing.xp,0);assert.equal(trained.fishing.diamonds,trainingDiamonds-4);
+// Prime reward owns exactly the interval between 96.5% and 97.5% of the server draw.
+for(const [draw,reward] of [[.9649999,'cube'],[.9650001,'primeCube'],[.9749999,'primeCube'],[.9750001,'scroll']]){
+ const sample=fresh(),draws=[0,0,draw,0,0];
+ fishingCommand(sample,'fishCast',{spot:'brook',bait:'worm'},{...ctx(),admin:true,random:()=>draws.shift()});
+ assert.equal(sample.fishing.cast.reward,reward);
+}
 for(const d of FISH){assert.ok(fishPrice({species:d.id,weight:d.max})>fishPrice({species:d.id,weight:d.min}));assert.ok(d.level>=SPOTS.find(x=>x.id===d.spot).level);if(d.rarity===5)assert.equal(d.level,45);}
 const original=structuredClone(s);assert.throws(()=>run('fishCast',{spot:'moon',bait:'worm'}),/FISHING_ROD_REQUIRED/);assert.deepEqual(s,original);
 assert.throws(()=>run('fishTrain',{gold:-1}),/INVALID_FISHING_COST/);

@@ -19,10 +19,11 @@ export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+Stri
 export const BAITS=[{id:'worm',name:'숲 지렁이',pack:50,diamonds:1,level:1,luck:0},{id:'shrimp',name:'반짝 새우',pack:40,diamonds:1,level:10,luck:.25},{id:'pearl',name:'진주 미끼',pack:30,diamonds:1,level:25,luck:.65},{id:'star',name:'별가루 미끼',pack:20,diamonds:1,level:40,luck:1}];
 export const baitDiamondCost=(bait,count)=>bait.diamonds*count/bait.pack;
 export const FISHING_QUESTS=[{id:'catch',name:'물고기 10마리 잡기',goal:10,diamonds:3},{id:'rare',name:'희귀 이상 물고기 3마리',goal:3,diamonds:2},{id:'sell',name:'물고기 5마리 판매',goal:5,diamonds:2}];
-export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.94},{id:'diamondChest',name:'다이아 상자',chance:.015},{id:'cube',name:'레드 큐브',chance:.020},{id:'scroll',name:'잠재 해금 주문서',chance:.010},{id:'potentialLock',name:'잠재 잠금석',chance:.010},{id:'dungeonKey',name:'던전 열쇠',chance:.005}];
-export const rodGoldCost=level=>Math.round(20000*1.17**(level-1)/100)*100;
+export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.93},{id:'diamondChest',name:'다이아 상자',chance:.015},{id:'cube',name:'레드 큐브',chance:.020},{id:'primeCube',name:'블랙 프라임 큐브',chance:.010},{id:'scroll',name:'잠재 해금 주문서',chance:.010},{id:'potentialLock',name:'잠재 잠금석',chance:.010},{id:'dungeonKey',name:'던전 열쇠',chance:.005}];
+// Lv.10→11 through Lv.29→30 costs five times the original gold requirement.
+export const rodGoldCost=level=>Math.round(20000*1.17**(level-1)/100)*100*(level>=10&&level<30?5:1);
 export const rodDiamondCost=level=>2+Math.floor(level/5);
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.round(RARITIES[d.rarity].price*(.55+1.45*fish.weight/d.max)):0;};
 export const fishYield=fish=>Math.max(1,Math.floor(fishPrice(fish)*.015)); // gold/hour, 12-hour offline cap
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
-export const resourceName=id=>({diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',scroll:'잠재 해금 주문서'}[id]||id);
+export const resourceName=id=>({diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',primeCube:'블랙 프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
