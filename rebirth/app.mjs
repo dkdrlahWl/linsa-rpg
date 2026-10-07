@@ -14,8 +14,8 @@ let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
-import {fishingView,fishingUI,mountFishing,stopFishing} from './fishing-ui.mjs?v=fishing-admin-178';
-import {SPOTS,resourceName} from './fishing-data.mjs?v=fishing-admin-178';
+import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending} from './fishing-ui.mjs?v=fishing-motion-179';
+import {SPOTS,resourceName} from './fishing-data.mjs?v=fishing-motion-179';
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
@@ -132,6 +132,9 @@ function toast(text) {
   toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
 }
 const errors = {
+  FISHING_HOOK_REQUIRED: "입질이 오면 먼저 챔질해 주세요.",
+  FISHING_BITE_MISSED: "입질을 놓쳤어요. 다시 던져주세요.",
+  FISHING_ALREADY_HOOKED: "이미 챔질했어요.",
   FISHING_ADMIN_ONLY: "현재 낚시는 관리자 계정만 이용할 수 있어요.",
   FISHING_CAST_ACTIVE: "이미 찌를 던졌어요. 포획을 마치거나 그만두기를 눌러주세요.",
   FISHING_CAST_MISSING: "입질이 끝났어요. 다시 낚싯대를 던져주세요.",
@@ -353,6 +356,28 @@ async function exitDungeon(action){
 }
 function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
 let activeCoopInput=null;
+let fishingRequest=null;
+async function fishingCommandRequest(action,args={}){
+ if(fishingRequest||state?.isAdmin!==true)return;
+ const account=session?.user?.id,root=app.querySelector('.fishing-screen');
+ fishingUI.pending=action;showFishingPending(root,action);
+ const work=(async()=>{
+  while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+  if(session?.user?.id!==account||state?.isAdmin!==true)return;
+  for(let attempt=0;attempt<3;attempt++){
+   const result=await command(action,args);
+   if(result?.result?.events?.some(e=>e.type===action||(action==='fishFinish'&&e.type==='fishCatch')))return result;
+   if(!result)return;
+  }
+  throw Error('SERVER_RETRY_REQUIRED');
+ })();fishingRequest=work;
+ try{return await work;}catch(error){render();throw error;}finally{
+  fishingRequest=null;fishingUI.pending=null;
+  const current=app.querySelector('.fishing-screen');current?.removeAttribute('aria-busy');
+  current?.querySelectorAll('[data-fish-write]').forEach(b=>{b.disabled=b.hasAttribute('data-unavailable');b.classList.remove('fishing-pending');});
+  const text=current?.querySelector('[data-fish-transaction]');if(text)text.textContent='';
+ }
+}
 async function command(command, args = {}, quiet = false, freshSnapshot = false, signal = null) {
   // A short input request must not swallow leave/chest/speed button presses.
   if(busy&&['coopLeave','coopOpen','coopSync'].includes(command)){
@@ -575,7 +600,7 @@ function render() {
   updateLuckTimers(state);
   updateInvestmentClock(investmentData,investmentLoadedAt);
   refreshLevelRequirements();
-  if(eventScreen&&eventPage!=='lotto')mountFishing(app.querySelector('.fishing-screen'),state,command);
+  if(eventScreen&&eventPage!=='lotto')mountFishing(app.querySelector('.fishing-screen'),state,fishingCommandRequest);
   if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
   if(towerBattle){
     const send=dummyBattle?async(_action,args)=>{
@@ -1233,13 +1258,13 @@ document.addEventListener("click", async (e) => {
     if(action==='fishPanel'){fishingUI.panel=arg;render();return;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
-    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await command('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait});}
-    if(action==='fishBaitBuy')return await command(action,{bait:arg,count:10});
-    if(action==='fishTrain')return await command(action,{gold:Number(arg)});
-    if(action==='fishSell')return await command(action,{ids:[arg]});
+    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait});}
+    if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:10});
+    if(action==='fishTrain')return await fishingCommandRequest(action,{gold:Number(arg)});
+    if(action==='fishSell')return await fishingCommandRequest(action,{ids:[arg]});
     if(action==='fishSellAll'){if(!state.fishing?.fish.length)return;open('물고기 전부 판매',`<p>가방의 물고기 ${state.fishing.fish.length}마리를 모두 판매할까요?</p><p class="note">수족관에 있는 물고기는 포함되지 않아요.</p>${btn('전부 판매','fishSellAllConfirm','','gold')}`);return;}
-    if(action==='fishSellAllConfirm'){modal.close();return await command('fishSell',{ids:state.fishing.fish.map(x=>x.id)});}
-    if(['fishCancel','fishUpgrade','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim'].includes(action))return await command(action,{id:arg});
+    if(action==='fishSellAllConfirm'){modal.close();return await fishingCommandRequest('fishSell',{ids:state.fishing.fish.map(x=>x.id)});}
+    if(['fishCancel','fishUpgrade','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim'].includes(action))return await fishingCommandRequest(action,{id:arg});
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
@@ -1659,6 +1684,7 @@ window.addEventListener("popstate", () => {
 setInterval(() => {
   if (!session || document.hidden || busy || !state || !navigator.onLine || Date.now() < retryAt) return;
   if(state.battle?.kind==='tower'||coopController)return;
+  if(view==='game'&&tab==='event'&&eventPage==='fishing'&&(fishingUI.pending||state.fishing?.cast))return;
   // Keep reward settlement independent from successful market/lotto refreshes.
   if(state.hunting&&!state.battle&&!state.coopRoom&&!state.partyRoom&&Date.now()-lastHuntSettlement>=30000){command('sync',{},true).catch(()=>{});return;}
   if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=3000){refreshCoopRooms().catch(()=>{});return;}
