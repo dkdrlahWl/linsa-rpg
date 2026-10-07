@@ -1,4 +1,4 @@
-import {FISH,SPOTS,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost} from './fishing-data.mjs';
+import {FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost} from './fishing-data.mjs';
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
 const koreanDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
@@ -14,7 +14,7 @@ function settleAquarium(f,now){f.bank=aquariumBank(f,now);f.bankAt=now;}
 const spendGold=(s,n)=>{require(integer(n,0,1e12),'INVALID_FISHING_COST');require(s.gold>=n,'INSUFFICIENT_GOLD');s.gold-=n;};
 const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
 export function fishingDifficulty(species,rod,size){
- const powerNeed=species.level+Math.max(0,species.rarity-2),advantage=clamp((rod-species.level)/18,0,1);
+ const powerNeed=Math.max(species.level,RARITIES[species.rarity].gate+Math.max(0,species.rarity-2)),advantage=clamp((rod-species.level)/18,0,1);
  const challenge=species.rarity+size*.9+Math.max(0,6-(rod-species.level))*.08-advantage*.8;
  return {powerNeed,rod,band:clamp(.125-challenge*.014,.035,.125),speed:.85+challenge*.18,drift:.018+challenge*.003,tap:.042-species.rarity*.0015+advantage*.006,strainLimit:36-species.rarity*3,required:.50+species.rarity*.035+size*.04,ticks:100+species.rarity*20+Math.round(size*20)};
 }

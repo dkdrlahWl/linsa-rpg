@@ -62,6 +62,9 @@ const mythic=FISH.at(-1),weak=fishingDifficulty(mythic,45,1),strong=fishingDiffi
 assert.equal(weak.powerNeed,48);assert.ok(weak.band<strong.band);assert.ok(weak.speed>strong.speed);
 assert.ok(weak.band<easy.band);assert.ok(weak.speed>easy.speed);assert.ok(weak.required>easy.required);
 assert.ok(fishingDifficulty(easySpecies,1,1).band<easy.band);
+// Every newly unlocked area offers catchable fish; strength gates only block stronger species.
+for(const spot of SPOTS)assert.ok(FISH.some(x=>x.spot===spot.id&&fishingDifficulty(x,spot.level,0).powerNeed<=spot.level));
+for(const species of FISH)assert.ok(fishingDifficulty(species,50,1).powerNeed<=50);
 for(const rarity of [0,1,2,3,4,5]){
  const species=FISH.find(x=>x.rarity===rarity),rod=species.level+Math.max(0,rarity-2);
  for(const size of [0,.5,1])for(let seed=0;seed<24;seed++){
