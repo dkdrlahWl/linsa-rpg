@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,execute} from './engine.mjs';
-import {FISH,SPOTS,RARITIES,REWARD_RATES,rodGoldCost,rodDiamondCost,fishPrice,fishYield} from './fishing-data.mjs';
+import {FISH,SPOTS,RARITIES,BAITS,REWARD_RATES,rodGoldCost,rodDiamondCost,fishPrice,fishYield} from './fishing-data.mjs';
 import {fishingCommand,normalizeFishing,fishingMeter,fishingStep,fishingTarget,aquariumBank} from './fishing-model.mjs';
 let now=Date.parse('2026-10-07T03:00:00Z'),seed=42;
 const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
@@ -26,8 +26,15 @@ const original=structuredClone(s);assert.throws(()=>run('fishCast',{spot:'moon',
 assert.throws(()=>run('fishTrain',{gold:-1}),/INVALID_FISHING_COST/);
 const before=s.gold;run('fishTrain',{gold:rodGoldCost(1)});assert.equal(s.gold,before-rodGoldCost(1));assert.throws(()=>run('fishUpgrade'),/FISHING_DIAMONDS_REQUIRED/);
 s.fishing.diamonds=10;run('fishUpgrade');assert.equal(s.fishing.rod,2);assert.equal(s.fishing.diamonds,10-rodDiamondCost(1));assert.equal(s.fishing.xp,0);
-run('fishBaitBuy',{bait:'worm',count:10});assert.equal(s.fishing.bait.worm,30);assert.throws(()=>run('fishBaitBuy',{bait:'star',count:1}),/FISHING_ROD_REQUIRED/);
-run('fishCast',{spot:'brook',bait:'worm'});let c=s.fishing.cast;assert.equal(s.fishing.bait.worm,29);
+const baitGold=s.gold,baitDiamonds=s.fishing.diamonds;
+assert.throws(()=>run('fishBaitBuy',{bait:'worm',count:10}),/FISHING_REFRESH_REQUIRED/);
+assert.throws(()=>run('fishBaitBuy',{bait:'worm',count:1,currency:'diamonds'}),/INVALID_FISHING_BAIT/);
+run('fishBaitBuy',{bait:'worm',count:50,currency:'diamonds'});assert.equal(s.fishing.bait.worm,70);assert.equal(s.gold,baitGold);assert.equal(s.fishing.diamonds,baitDiamonds-1);
+assert.throws(()=>run('fishBaitBuy',{bait:'star',count:20,currency:'diamonds'}),/FISHING_ROD_REQUIRED/);
+const saved=structuredClone(s);s.fishing.rod=50;
+for(const bait of BAITS){s.fishing.diamonds=bait.diamonds;const amount=s.fishing.bait[bait.id]||0;const gold=s.gold;run('fishBaitBuy',{bait:bait.id,count:bait.pack,currency:'diamonds'});assert.equal(s.fishing.diamonds,0);assert.equal(s.fishing.bait[bait.id],amount+bait.pack);assert.equal(s.gold,gold);const snapshot=structuredClone(s);assert.throws(()=>run('fishBaitBuy',{bait:bait.id,count:bait.pack,currency:'diamonds'}),/FISHING_DIAMONDS_REQUIRED/);assert.deepEqual(s,snapshot);}
+s=saved;
+run('fishCast',{spot:'brook',bait:'worm'});let c=s.fishing.cast;assert.equal(s.fishing.bait.worm,69);
 assert.throws(()=>run('fishCast',{spot:'brook',bait:'worm'}),/FISHING_CAST_ACTIVE/);
 assert.throws(()=>run('fishHook',{id:c.id}),/FISHING_TOO_EARLY/);assert.throws(()=>run('fishFinish',{id:c.id,frames:[1]}),/FISHING_HOOK_REQUIRED/);now=c.biteAt+50;run('fishHook',{id:c.id});c=s.fishing.cast;assert.throws(()=>run('fishHook',{id:c.id}),/FISHING_ALREADY_HOOKED/);assert.throws(()=>run('fishFinish',{id:c.id,frames:[1]}),/FISHING_TOO_EARLY/);assert.throws(()=>run('fishFinish',{id:c.id,frames:[2]}),/INVALID_FISHING_INPUT/);
 function optimal(c){const m=fishingMeter(),frames=[];while(!m.finished){const input=m.cursor<fishingTarget(c,m.tick+1)?1:0;frames.push(input);fishingStep(c,input,m);}return {frames,m};}
