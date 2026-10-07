@@ -74,6 +74,8 @@ export function showFishingPending(root,action,{animate=true}={}){
  if(action==='fishCast')root.querySelectorAll('.fishing-sites button').forEach(b=>{b.disabled=true;});
  if(action==='fishCast'&&animate){
   const scene=root.querySelector('.fishing-scene');if(!scene)return;scene.dataset.phase='casting';
+  scene.querySelector('.fishing-result-fish')?.remove();
+  scene.querySelector('[data-fish-notice]').textContent='낚싯대를 던지는 중…';
   const angler=scene.querySelector('.fishing-angler');angler.dataset.pose='1';
   pendingCastStarted=Date.now();sceneController?.dispose();sceneController=mountFishingScene(scene,pendingCastStarted);
   setTimeout(()=>{if(scene.isConnected&&scene.dataset.phase==='casting')angler.dataset.pose='2';},220);
@@ -122,7 +124,7 @@ export function mountFishing(root,state,send){
    els.meter.classList.add('idle');
    if(c.hooking){phase('hooking',3,'챔질! 줄을 거는 중…','챔질 중…');els.pull.disabled=true;}
    else if(now<c.visualStarted+900){phase('casting',now-c.visualStarted<220?1:2,'낚싯대를 던지는 중…','던지는 중…');els.pull.disabled=true;}
-   else if(now<cast.biteAt){phase('waiting',0,'찌를 바라보며 입질을 기다려요','입질 기다리기');els.pull.disabled=true;}
+   else if(now<cast.biteAt){phase('waiting',0,'찌를 바라보며 입질을 기다려요','입질 기다리기');setText(els.notice,'찌를 바라보며 입질을 기다려요');els.pull.disabled=true;}
    else{phase('bite',3,'입질! 지금 챔질하세요','지금 챔질하기');setText(els.notice,'찌가 잠겼어요! 버튼을 눌러 챔질하세요');els.pull.disabled=false;}
   }else{
    els.meter.classList.remove('idle');

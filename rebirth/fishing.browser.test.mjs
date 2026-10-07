@@ -52,6 +52,7 @@ try{
  admin=false;reset();await page.goto('http://127.0.0.1:'+server.address().port+'/rebirth/');await wait(()=>evaluate('return !!document.querySelector(".fantasy-dock")'));await click('.fantasy-dock [data-arg="event"]');await wait(()=>evaluate('return !!document.querySelector(".fishing-scene-art")'));
  await click('[data-action="fishCast"]');await wait(()=>!!state.fishing.cast);assert.equal(state.isAdmin,false);assert.equal(state.fishing.cast.protocol,3);await click('[data-action="fishCancel"]');await wait(()=>state.fishing.cast===null);
  // A slow periodic snapshot must yield immediately to a fishing button.
+ await wait(()=>evaluate('const b=document.querySelector("[data-action=fishCast]");return b&&!b.disabled&&!document.querySelector(".fishing-screen").hasAttribute("aria-busy")'));
  syncDelay=3000;const started=syncStarted;
  await evaluate('window.qaClock=Date.now;Date.now=()=>qaClock()+31000');
  await wait(()=>syncStarted>started);await evaluate('Date.now=qaClock');
