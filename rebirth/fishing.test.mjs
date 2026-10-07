@@ -2,12 +2,22 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,execute} from './engine.mjs';
 import {FISH,SPOTS,RARITIES,REWARD_RATES,rodGoldCost,rodDiamondCost,fishPrice,fishYield} from './fishing-data.mjs';
-import {normalizeFishing,fishingMeter,fishingStep,fishingTarget,aquariumBank} from './fishing-model.mjs';
+import {fishingCommand,normalizeFishing,fishingMeter,fishingStep,fishingTarget,aquariumBank} from './fishing-model.mjs';
 let now=Date.parse('2026-10-07T03:00:00Z'),seed=42;
 const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
 const ctx=()=>({now,random,uuid:randomUUID});
 const fresh=()=>{const s=initialState('warrior','낚시검증',ctx());s.hunting=false;s.gold=1e9;normalizeFishing(s,now);return s;};
-let s=fresh();const run=(command,args={})=>{const r=execute(s,command,args,ctx());s=r.state;return r.events.find(e=>e.type===command||e.type==='fishCatch');};
+let s=fresh();const run=(command,args={})=>{const next=structuredClone(s);const r=command.startsWith('fish')?{state:next,events:[fishingCommand(next,command,args,{...ctx(),admin:true})]}:execute(s,command,args,ctx());s=r.state;return r.events.find(e=>e.type===command||e.type==='fishCatch');};
+const restrictedCommands=['fishCast','fishFinish','fishCancel','fishBaitBuy','fishTrain','fishUpgrade','fishSell','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim'];
+for(const command of restrictedCommands){
+ const normal={...structuredClone(s),isAdmin:true},before=structuredClone(normal);
+ for(const admin of [false,undefined,'true',1]){
+  assert.throws(()=>execute(normal,command,{}, {...ctx(),admin}),/FISHING_ADMIN_ONLY/);
+  assert.throws(()=>fishingCommand(normal,command,{}, {...ctx(),admin}),/FISHING_ADMIN_ONLY/);
+  assert.deepEqual(normal,before);
+ }
+}
+const adminCast=execute(s,'fishCast',{spot:'brook',bait:'worm'},{...ctx(),admin:true});assert.ok(adminCast.state.fishing.cast);assert.equal(adminCast.state.isAdmin,true);
 assert.equal(FISH.length,50);assert.equal(new Set(FISH.map(x=>x.id)).size,50);
 assert.deepEqual(RARITIES.map((_,i)=>FISH.filter(x=>x.rarity===i).length),[12,11,10,10,5,2]);
 assert.deepEqual(SPOTS.map(x=>x.level),[1,10,20,30,40]);assert.ok(Math.abs(REWARD_RATES.reduce((n,x)=>n+x.chance,0)-1)<1e-12);
