@@ -364,7 +364,7 @@ async function fishingCommandRequest(action,args={}){
  fishingUI.pending=action;showFishingPending(root,action);
  const work=(async()=>{
   while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
-  if(session?.user?.id!==account||state?.isAdmin!==true)return;
+  if(session?.user?.id!==account||!state)return;
   for(let attempt=0;attempt<3;attempt++){
    const result=await command(action,args);
    if(result?.result?.events?.some(e=>e.type===action||(action==='fishFinish'&&e.type==='fishCatch')))return result;
