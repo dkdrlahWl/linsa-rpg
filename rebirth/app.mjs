@@ -14,8 +14,8 @@ let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
-import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending} from './fishing-ui.mjs?v=fishing-line-180';
-import {SPOTS,resourceName} from './fishing-data.mjs?v=fishing-motion-179';
+import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending} from './fishing-ui.mjs?v=fishing-bait-181';
+import {SPOTS,BAITS,resourceName} from './fishing-data.mjs?v=fishing-bait-181';
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
@@ -132,6 +132,8 @@ function toast(text) {
   toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
 }
 const errors = {
+  FISHING_REFRESH_REQUIRED: "미끼 가격이 다이아로 변경됐어요. 새로고침 후 다시 구매해 주세요.",
+  INVALID_FISHING_BAIT: "미끼 구매 수량이 올바르지 않아요. 새로고침 후 다시 구매해 주세요.",
   FISHING_HOOK_REQUIRED: "입질이 오면 먼저 챔질해 주세요.",
   FISHING_BITE_MISSED: "입질을 놓쳤어요. 다시 던져주세요.",
   FISHING_ALREADY_HOOKED: "이미 챔질했어요.",
@@ -1259,7 +1261,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
     if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait});}
-    if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:10});
+    if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:BAITS.find(x=>x.id===arg)?.pack||20,currency:'diamonds'});
     if(action==='fishTrain')return await fishingCommandRequest(action,{gold:Number(arg)});
     if(action==='fishSell')return await fishingCommandRequest(action,{ids:[arg]});
     if(action==='fishSellAll'){if(!state.fishing?.fish.length)return;open('물고기 전부 판매',`<p>가방의 물고기 ${state.fishing.fish.length}마리를 모두 판매할까요?</p><p class="note">수족관에 있는 물고기는 포함되지 않아요.</p>${btn('전부 판매','fishSellAllConfirm','','gold')}`);return;}

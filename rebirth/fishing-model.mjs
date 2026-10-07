@@ -1,4 +1,4 @@
-import {FISH,SPOTS,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost} from './fishing-data.mjs';
+import {FISH,SPOTS,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost} from './fishing-data.mjs';
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
 const koreanDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
@@ -77,8 +77,11 @@ export function fishingCommand(s,command,args,ctx){
  }
  if(command==='fishBaitBuy'){
   const bait=BAITS.find(x=>x.id===args.bait);require(bait&&integer(args.count,1,100),'INVALID_FISHING_BAIT');
+  require(args.currency==='diamonds','FISHING_REFRESH_REQUIRED');
+  require(args.count%bait.pack===0,'INVALID_FISHING_BAIT');
   require(f.rod>=bait.level,'FISHING_ROD_REQUIRED');require((f.bait[bait.id]||0)+args.count<=10000,'FISHING_BAIT_LIMIT');
-  spendGold(s,bait.cost*args.count);f.bait[bait.id]=(f.bait[bait.id]||0)+args.count;return {type:'fishBaitBuy',count:args.count};
+  const cost=baitDiamondCost(bait,args.count);require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');
+  f.diamonds-=cost;f.bait[bait.id]=(f.bait[bait.id]||0)+args.count;return {type:'fishBaitBuy',count:args.count,diamonds:cost,currency:'diamonds'};
  }
  if(command==='fishTrain'){
   require(f.rod<50,'FISHING_MAX_LEVEL');const cost=rodGoldCost(f.rod);
