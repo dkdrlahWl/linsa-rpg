@@ -521,6 +521,7 @@ export function execute(input, command, args = {}, ctx) {
     ctx && Number.isFinite(ctx.now) && typeof ctx.random === "function",
     "INVALID_CONTEXT",
   );
+  if(command.startsWith("fish"))check(ctx.admin===true,"FISHING_ADMIN_ONLY");
   const s = normalizeCostumes(normalizePotentialState(structuredClone(input)));
   s.isAdmin = ctx.admin === true;
   if(s.isAdmin){s.gold=999999999999;for(const key of Object.keys(MATERIALS))s.materials[key]=999999999999;}

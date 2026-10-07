@@ -26,6 +26,7 @@ function panelBody(s,f){
  return `<div class="fishing-panel-title"><div><h2>물고기 도감</h2><small>50종 · 전설 5종 · 신화 2종 · 발견 ${Object.keys(f.collection).length}/50</small></div></div><div class="fishing-site-filter">${SPOTS.map(x=>button(x.name,'fishCollectionSpot',x.id,false,x.id===spot.id?'active':'')).join('')}</div><div class="fish-grid collection">${FISH.filter(x=>x.spot===spot.id).map(d=>{const weight=f.collection[d.id],r=RARITIES[d.rarity];return `<article class="fish-card ${weight?'discovered':'undiscovered'}" style="--rarity:${r.color}"><div class="fish-portrait">${image(d.id,'',d.name)}<span>${r.name}</span></div><strong>${d.name}</strong><small>낚싯대 Lv.${d.level}</small><b>${weight?'최대 '+fishWeight(weight):'아직 만나지 못했어요'}</b><small>${fishWeight(d.min)} ~ ${fishWeight(d.max)}</small></article>`;}).join('')}</div>`;
 }
 export function fishingView(s){
+ if(s.isAdmin!==true)return `<section class="fishing-screen" data-currency-label>${fantasyHeader(s,'event')}<div class="fishing-scroll"><section class="panel pad" aria-label="낚시 이용 제한"><h2>관리자 전용 낚시</h2><p>현재 낚시는 관리자 계정만 이용할 수 있어요.</p>${button('주간 로또','eventPage','lotto')}</section></div>${fantasyFooter('event')}</section>`;
  const f=normalizeFishing({fishing:s.fishing?structuredClone(s.fishing):undefined},Date.now());
  const spot=SPOTS.find(x=>x.id===(f.cast?.spot||fishingUI.spot))||SPOTS[0];
  if(!BAITS.some(x=>x.id===fishingUI.bait&&x.level<=f.rod))fishingUI.bait='worm';
@@ -35,7 +36,7 @@ export function fishingView(s){
 let controller=null,localCast=null;
 export function stopFishing(){controller?.dispose();controller=null;}
 export function mountFishing(root,state,send){
- stopFishing();const cast=state.fishing?.cast;if(!root||!cast){if(!cast)localCast=null;return;}
+ stopFishing();if(state.isAdmin!==true){localCast=null;return;}const cast=state.fishing?.cast;if(!root||!cast){if(!cast)localCast=null;return;}
  if(!localCast||localCast.id!==cast.id)localCast={id:cast.id,frames:[],meter:fishingMeter(),next:Math.max(Date.now(),cast.biteAt)+100,sending:false,error:false,retryAt:0};
  const c=localCast,els={status:root.querySelector('[data-fish-status]'),safe:root.querySelector('[data-fish-safe]'),cursor:root.querySelector('[data-fish-cursor]'),progress:root.querySelector('[data-fish-progress]'),bar:root.querySelector('[data-fish-progressbar]'),strain:root.querySelector('[data-fish-strain]'),pull:root.querySelector('[data-fish-pull]')};
  let held=false,raf=0,disposed=false;

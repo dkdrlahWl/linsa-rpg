@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: node rebirth/fishing.test.mjs && node rebirth/consumables.test.mjs && node rebirth/shop.test.mjs
+      - run: node rebirth/fishing.test.mjs && node --experimental-strip-types rebirth/fishing-access.test.mjs && node rebirth/consumables.test.mjs && node rebirth/shop.test.mjs
       - run: node rebirth/fishing.browser.test.mjs
         env:
           QA_BROWSER_BIN: /opt/google/chrome/chrome

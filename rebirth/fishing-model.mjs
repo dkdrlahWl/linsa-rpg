@@ -27,6 +27,7 @@ export function fishingStep(cast,input,meter){
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
 export function fishingCommand(s,command,args,ctx){
+ require(ctx.admin===true,'FISHING_ADMIN_ONLY');
  const f=normalizeFishing(s,ctx.now);settleAquarium(f,ctx.now);
  s.materials??={};
  if(command==='fishCast'){
