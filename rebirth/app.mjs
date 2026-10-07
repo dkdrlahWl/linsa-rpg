@@ -14,7 +14,7 @@ let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
-import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending} from './fishing-ui.mjs?v=fishing-motion-179';
+import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending} from './fishing-ui.mjs?v=fishing-line-180';
 import {SPOTS,resourceName} from './fishing-data.mjs?v=fishing-motion-179';
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
