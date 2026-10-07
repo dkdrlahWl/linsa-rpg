@@ -77,6 +77,11 @@ assert.equal(weakResult.won,false);assert.equal(weakResult.reason,'rodPower');as
 const stale=fresh(),staleBait=stale.fishing.bait.worm;
 assert.throws(()=>fishingCommand(stale,'fishCast',{spot:'brook',bait:'worm'},{...ctx(),admin:false}),/FISHING_REFRESH_REQUIRED/);
 assert.equal(stale.fishing.bait.worm,staleBait);
+// Already hooked protocol-2 casts retain their original hold/release physics.
+const legacy=fresh(),legacyCast={protocol:2,id:randomUUID(),species:easySpecies.id,weight:easySpecies.min,reward:'fish',seed:0,hookAt:now-20000,expires:now+30000,ticks:80,band:.21,strainLimit:42,required:.45};
+legacy.fishing.cast=legacyCast;const legacyPlay=optimal(legacyCast);
+assert.ok(legacyPlay.frames.every(x=>x===0||x===1));
+assert.equal(fishingCommand(legacy,'fishFinish',{id:legacyCast.id,frames:legacyPlay.frames},{...ctx(),admin:false}).won,true);
 const {frames,m}=optimal(c);now=c.hookAt+frames.length*100+5;const reward=run('fishFinish',{id:c.id,frames});assert.equal(reward.won,true);assert.ok(m.hits/c.ticks>=c.required);assert.equal(s.fishing.cast,null);
 const rewarded=structuredClone(s);assert.throws(()=>run('fishFinish',{id:c.id,frames}),/FISHING_CAST_MISSING/);assert.deepEqual(s,rewarded);
 // Both successful and failed frame streams are replayed by the server; client cannot name a reward.

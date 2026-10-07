@@ -132,12 +132,11 @@ function toast(text) {
   toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
 }
 const errors = {
-  FISHING_REFRESH_REQUIRED: "미끼 가격이 다이아로 변경됐어요. 새로고침 후 다시 구매해 주세요.",
+  FISHING_REFRESH_REQUIRED: "낚시가 업데이트됐어요. 새로고침 후 다시 시도해 주세요.",
   INVALID_FISHING_BAIT: "미끼 구매 수량이 올바르지 않아요. 새로고침 후 다시 구매해 주세요.",
   FISHING_HOOK_REQUIRED: "입질이 오면 먼저 챔질해 주세요.",
   FISHING_BITE_MISSED: "입질을 놓쳤어요. 다시 던져주세요.",
   FISHING_ALREADY_HOOKED: "이미 챔질했어요.",
-  FISHING_ADMIN_ONLY: "현재 낚시는 관리자 계정만 이용할 수 있어요.",
   FISHING_CAST_ACTIVE: "이미 찌를 던졌어요. 포획을 마치거나 그만두기를 눌러주세요.",
   FISHING_CAST_MISSING: "입질이 끝났어요. 다시 낚싯대를 던져주세요.",
   FISHING_ROD_REQUIRED: "낚싯대 레벨이 부족해요.",
