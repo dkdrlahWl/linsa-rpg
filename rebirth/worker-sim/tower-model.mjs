@@ -1,11 +1,11 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-trial-171';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-trial-171';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=fifth-trial-171';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-trial-171';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-trial-171';
-import {incomingDamage} from './journey-balance.mjs?v=fifth-trial-171';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=gear-hp-182';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=gear-hp-182';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=gear-hp-182';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=gear-hp-182';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=gear-hp-182';
+import {incomingDamage} from './journey-balance.mjs?v=gear-hp-182';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=fifth-trial-171';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=gear-hp-182';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

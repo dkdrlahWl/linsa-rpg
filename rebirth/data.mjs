@@ -267,8 +267,14 @@ export function rollBaseStats(item,random=Math.random) {
   return [key,r.min+Math.min(r.max-r.min,Math.floor(fraction*(r.max-r.min+1)))];
  }));
 }
-// Apply the endgame balance bonus at calculation time, preserving every stored roll.
-export const gearStatMultiplier = item => item.boss && Number(item.level) === 200 ? 1.5 : 1;
+// Apply equipment balance at calculation time, preserving every stored roll.
+export const gearStatMultiplier = item => {
+ const level=Number(item.level);
+ const endgame=level===200?1.5:1;
+ const classBonus=item.classId!=='priest'&&level>=160?1.2:1;
+ return endgame*classBonus;
+};
+export const gearHPMultiplier = item => item.classId==='priest'&&Number(item.level)>=160?.7:1;
 function unbuffedGearAttributes(item,stars=item.stars) {
  const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
@@ -277,7 +283,7 @@ function unbuffedGearAttributes(item,stars=item.stars) {
 }
 export function gearAttributes(item,stars=item.stars) {
  const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item);
- return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier]));
+ return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier*(key==='hp'?gearHPMultiplier(item):1)]));
 }
 export function starCost(item) {
   const base = Math.round(

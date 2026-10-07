@@ -1,13 +1,13 @@
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=fifth-trial-171';
-export {PRIEST_SKILLS} from './priest.mjs?v=fifth-trial-171';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fifth-trial-171';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fifth-trial-171';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=fifth-trial-171';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=fifth-trial-171';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=fifth-trial-171';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=fifth-trial-171';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=fifth-trial-171";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=fifth-trial-171";
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=gear-hp-182';
+export {PRIEST_SKILLS} from './priest.mjs?v=gear-hp-182';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=gear-hp-182';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=gear-hp-182';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=gear-hp-182';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=gear-hp-182';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=gear-hp-182';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=gear-hp-182';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=gear-hp-182";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=gear-hp-182";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -66,7 +66,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=fifth-trial-171';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=gear-hp-182';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
@@ -257,7 +257,13 @@ export function rollBaseStats(item,random=Math.random) {
  }));
 }
 // Apply the endgame balance bonus at calculation time, preserving every stored roll.
-export const gearStatMultiplier = item => item.boss && Number(item.level) === 200 ? 1.5 : 1;
+export const gearStatMultiplier = item => {
+ const level=Number(item.level);
+ const endgame=level===200?1.5:1;
+ const classBonus=item.classId!=='priest'&&level>=160?1.2:1;
+ return endgame*classBonus;
+};
+export const gearHPMultiplier = item => item.classId==='priest'&&Number(item.level)>=160?.7:1;
 function unbuffedGearAttributes(item,stars=item.stars) {
  const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
@@ -266,7 +272,7 @@ function unbuffedGearAttributes(item,stars=item.stars) {
 }
 export function gearAttributes(item,stars=item.stars) {
  const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item);
- return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier]));
+ return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier*(key==='hp'?gearHPMultiplier(item):1)]));
 }
 export function starCost(item) {
   const base = Math.round(
