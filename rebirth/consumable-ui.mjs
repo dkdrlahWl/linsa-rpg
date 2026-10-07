@@ -1,6 +1,7 @@
-import {LUCK_POTION,potionCount,luckStatus} from './consumables.mjs?v=luck-potion-175';
+import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumable,shopConsumableCount,potionCount,luckStatus} from './consumables.mjs?v=shop-cubes-185';
 export const potionTime=ms=>{const seconds=Math.ceil(Math.max(0,ms)/1000);return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');};
 export function consumableView(state,shop=false){
+ if(shop)return consumableShopView(state);
  const status=luckStatus(state),blocked=!!(state.battle||state.coopRoom||state.partyRoom);
  return `<section class="consumable-panel"><header><h3>${shop?'소모품 상점':'내 소모품'}</h3><span>행운 물약 ${potionCount(state).toLocaleString('ko-KR')}개 보유</span></header><article class="consumable-card" data-no-currency-art><img class="consumable-art" src="${LUCK_POTION.art}" alt="초록빛 행운 물약"><div><h3>행운 물약</h3><strong>5분간 행운 +50%</strong><p>${LUCK_POTION.description}</p><p class="consumable-detail">확률형 보상 획득 확률 ×1.5 · 최대 100%<br>지속시간 5분 · 재사용 대기시간 5분</p><div class="consumable-times"><span>효과 <b data-luck-duration>${potionTime(status.remaining)}</b></span><span>쿨타임 <b data-luck-cooldown>${potionTime(status.cooldown)}</b></span></div>${shop?'<b class="consumable-price">5,000,000 G</b>':''}<button class="gold" data-action="${shop?'consumableBuyPick':'consumableUse'}" data-arg="luckPotion" ${shop?(blocked||state.gold<LUCK_POTION.price?'disabled':''):(blocked||!potionCount(state)||status.cooldown||status.active?'disabled':'')}>${shop?'구매':status.cooldown?'재사용 대기 중':'사용'}</button></div></article><p class="note">${shop?'구매한 물약은 가방 → 소모품에서 사용하세요.':'보스 입장 전에 사용하세요. 로그아웃 중에도 지속시간과 쿨타임이 흐릅니다.'}</p></section>`;
 }
@@ -14,3 +15,12 @@ export function updateLuckTimers(state,now=Date.now(),root=document){
  if(!bar&&host){bar=root.createElement('div');bar.className='luck-buff-status';bar.setAttribute('role','status');bar.innerHTML=`<img src="${LUCK_POTION.art}" alt=""><strong>행운 +50%</strong><span>효과 <b data-luck-duration></b></span><span>쿨타임 <b data-luck-cooldown></b></span>`;host.append(bar);}
  if(bar){bar.hidden=!status.active&&!status.cooldown;bar.querySelector('[data-luck-duration]').textContent=potionTime(status.remaining);bar.querySelector('[data-luck-cooldown]').textContent=potionTime(status.cooldown);bar.querySelector('strong').textContent=status.active?'행운 +50%':'행운 물약';}
 }
+
+export function consumableShopCard(state,item,confirm=false){
+ const blocked=!!(state.battle||state.coopRoom||state.partyRoom),potion=item.id===LUCK_POTION.id;
+ return `<article class="consumable-shop-card" data-no-currency-art><img class="consumable-shop-art" src="${item.art}" alt="${item.name}"><h3>${item.name}</h3><span class="consumable-owned">보유 ${shopConsumableCount(state,item.id).toLocaleString('ko-KR')}개</span><p>${potion?'5분간 행운 +50%':item.description}</p>${potion?`<details><summary>효과 자세히</summary><p>${item.description}<br>확률형 보상 확률 ×1.5 · 최대 100%<br>지속시간 5분 · 재사용 대기시간 5분</p></details>`:''}<b class="consumable-price">${item.price.toLocaleString('ko-KR')} G <small>/ 1개</small></b><button class="gold" data-action="${confirm?'consumableBuyConfirm':'consumableBuyPick'}" data-arg="${item.id}" ${blocked||state.gold<item.price?'disabled':''}>${confirm?'구매 확정':'구매'}</button></article>`;
+}
+export function consumableShopView(state){
+ return `<section class="consumable-panel consumable-shop-panel"><header><h3>소모품 상점</h3></header><div class="consumable-shop-grid">${SHOP_CONSUMABLES.map(item=>consumableShopCard(state,item)).join('')}</div><p class="note">물약은 가방 → 소모품에서, 큐브는 장비 → 잠재에서 사용하세요.</p></section>`;
+}
+export function consumablePurchaseView(state,id){const item=shopConsumable(id);return item?consumableShopCard(state,item,true):'';}

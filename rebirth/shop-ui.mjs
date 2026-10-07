@@ -1,11 +1,11 @@
 import {costumeShop} from './costume-ui.mjs?v=shop-tabs-122';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
-import {consumableView} from './consumable-ui.mjs?v=luck-potion-175';
+import {consumableView} from './consumable-ui.mjs?v=shop-cubes-185';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('ko-KR');
 export function shopView(s,D,art,page='boss'){
  const costume=page==='costume',consumable=page==='consumable',category=consumable?'consumable':costume?'costume':'boss';
- return `<section class="boss-shop" data-currency-label="gold"><div class="shop-heading"><span>셀리아의 상점</span><h1>상점</h1></div><nav class="shop-categories" aria-label="상점 카테고리">${[['boss','보스장비'],['costume','코스튬'],['consumable','소모품']].map(([id,label])=>`<button type="button" data-action="shopCategory" data-arg="${id}" aria-pressed="${category===id}" class="${category===id?'active':''}">${label}</button>`).join('')}</nav><div class="shop-merchant"><div class="shop-npc-copy"><small>${consumable?'모험을 돕는 소모품':costume?'직업별 특별 의상':'보스장비 수집가'}</small><h2>셀리아</h2><p>${consumable?'행운을 담은 물약이야!':costume?'새로운 의상을 골라봐!':'좋은 보스장비 있어?'}</p><span>${consumable?'보스에 도전하기 전에 사용해봐.':costume?'마음에 드는 코스튬으로 모험해봐.':'가져온 장비를 골드로 바꿔줄게.'}</span></div><img src="shop/celia-v1.png" alt="상점 주인 셀리아의 상반신" class="shop-npc" fetchpriority="high"></div>${consumable?consumableView(s,true):costume?costumeShop(s):bossShop(s,D,art)}</section>`;
+ return `<section class="boss-shop" data-currency-label="gold"><div class="shop-heading"><span>셀리아의 상점</span><h1>상점</h1></div><nav class="shop-categories" aria-label="상점 카테고리">${[['boss','보스장비'],['costume','코스튬'],['consumable','소모품']].map(([id,label])=>`<button type="button" data-action="shopCategory" data-arg="${id}" aria-pressed="${category===id}" class="${category===id?'active':''}">${label}</button>`).join('')}</nav><div class="shop-merchant"><div class="shop-npc-copy"><small>${consumable?'모험을 돕는 소모품':costume?'직업별 특별 의상':'보스장비 수집가'}</small><h2>셀리아</h2><p>${consumable?'물약과 큐브를 골라봐!':costume?'새로운 의상을 골라봐!':'좋은 보스장비 있어?'}</p><span>${consumable?'모험과 장비 강화에 필요한 소모품이야.':costume?'마음에 드는 코스튬으로 모험해봐.':'가져온 장비를 골드로 바꿔줄게.'}</span></div><img src="shop/celia-v1.png" alt="상점 주인 셀리아의 상반신" class="shop-npc" fetchpriority="high"></div>${consumable?consumableView(s,true):costume?costumeShop(s):bossShop(s,D,art)}</section>`;
 }
 function bossShop(s,D,art){
  const items=s.items.filter(it=>it.boss===true).sort((a,b)=>b.level-a.level||a.slot-b.slot);

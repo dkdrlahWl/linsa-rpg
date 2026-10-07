@@ -43,3 +43,13 @@ assert.deepEqual(grantCoopChest(player(),0,ctx(.7)).reward,grantCoopChest(booste
 const blocked=player();blocked.battle={kind:'tower'};
 assert.throws(()=>execute(blocked,'consumableUse',{id:'luckPotion'},ctx()),/BATTLE_IN_PROGRESS/);
 console.log('PASS fixed purchase price, owned count, 5-minute duration/cooldown, reconnect persistence, expiration, daily/weekly/raid RNG, 100% cap, no rift/practice buff');
+
+for(const [id,price] of [['cube',200000],['highCube',500000]]){
+ const source=player(),before=source.materials[id]||0;source.gold=price;
+ const bought=execute(source,'consumableBuy',{id,price:0,quantity:1000},ctx());
+ assert.equal(bought.state.gold,0);assert.equal(bought.state.materials[id],before+1);assert.equal(bought.events.find(e=>e.type==='consumableBuy').gold,price);
+ assert.throws(()=>execute(bought.state,'consumableBuy',{id},ctx()),/INSUFFICIENT_GOLD/);
+ assert.throws(()=>execute(bought.state,'consumableUse',{id},ctx()),/INVALID_CONSUMABLE/);
+ const full=player();full.materials[id]=1000000;assert.throws(()=>execute(full,'consumableBuy',{id},ctx()),/INVENTORY_CONSUMABLE_LIMIT/);
+}
+console.log('PASS cube purchases: exact server prices, one item added to existing materials, insufficient gold, forged args, inventory cap, potion-only use');

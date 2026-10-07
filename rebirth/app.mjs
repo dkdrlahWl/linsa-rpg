@@ -4,9 +4,9 @@ import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
-import {shopView} from './shop-ui.mjs?v=luck-potion-175';
-import {consumableView,updateLuckTimers} from './consumable-ui.mjs?v=luck-potion-175';
-import {LUCK_POTION} from './consumables.mjs?v=luck-potion-175';
+import {shopView} from './shop-ui.mjs?v=shop-cubes-185';
+import {consumableView,consumablePurchaseView,updateLuckTimers} from './consumable-ui.mjs?v=shop-cubes-185';
+import {LUCK_POTION,shopConsumable} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
@@ -1272,10 +1272,10 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
     if(action==='shopCategory'){shopCategory=['boss','costume','consumable'].includes(arg)?arg:'boss';return render();}
     if(action==='consumableBuyPick'){
-      if(busy||arg!==LUCK_POTION.id)return;
-      open('행운 물약 구매',consumableView(state,true).replace('data-action="consumableBuyPick"','data-action="consumableBuyConfirm"')+'<p class="note">행운 물약 1개를 5,000,000 G에 구매합니다.</p>');return;
+      const item=shopConsumable(arg);if(!item)return;
+      open(item.name+' 구매',consumablePurchaseView(state,arg)+`<p class="note">${item.name} 1개를 ${fmt(item.price)} G에 구매합니다.</p>`);return;
     }
-    if(action==='consumableBuyConfirm'){if(busy)return;modal.close();await command('consumableBuy',{id:arg});toast('행운 물약을 구매했어요. 가방 → 소모품에서 사용하세요.');return;}
+    if(action==='consumableBuyConfirm'){if(busy)return;const item=shopConsumable(arg);if(!item)return;modal.close();await command('consumableBuy',{id:arg});toast(item.name+' 1개를 구매했어요.');return;}
     if(action==='consumableUse'){if(busy)return;await command('consumableUse',{id:arg});toast('5분간 행운 +50% · 보스 보상 확률이 1.5배로 증가합니다.');return;}
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
