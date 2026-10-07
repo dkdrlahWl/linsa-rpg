@@ -42,20 +42,28 @@ export function fishingCommand(s,command,args,ctx){
   for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
   const species=available[index],size=ctx.random()**1.65,weight=Math.round(species.min+(species.max-species.min)*size);
   let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance;if(roll<0){reward=r.id;break;}}
-  const biteAt=ctx.now+2000+Math.floor(ctx.random()*2000);
+  const biteAt=ctx.now+4000+Math.floor(ctx.random()*3000);
   f.bait[bait.id]--;
-  f.cast={id:ctx.uuid(),spot:spot.id,bait:bait.id,species:species.id,weight,reward,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,expires:biteAt+60000,ticks:80+species.rarity*24+Math.round(size*30),band:Math.max(.055,.21-species.rarity*.023-size*.035),strainLimit:42-species.rarity*3,required:.45+species.rarity*.055+size*.06};
+  f.cast={protocol:2,id:ctx.uuid(),spot:spot.id,bait:bait.id,species:species.id,weight,reward,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+8000,hookAt:null,expires:biteAt+8000,ticks:80+species.rarity*24+Math.round(size*30),band:Math.max(.055,.21-species.rarity*.023-size*.035),strainLimit:42-species.rarity*3,required:.45+species.rarity*.055+size*.06};
   return {type:'fishCast',castId:f.cast.id};
  }
- if(command==='fishCancel'){require(f.cast&&f.cast.id===args.id,'FISHING_CAST_MISSING');f.cast=null;return {type:'fishCancel'};}
+ if(command==='fishCancel'){require(!f.cast||f.cast.id===args.id,'FISHING_CAST_MISSING');f.cast=null;return {type:'fishCancel'};}
+ if(command==='fishHook'){
+  const c=f.cast;require(c&&c.id===args.id,'FISHING_CAST_MISSING');
+  require(!c.hookAt,'FISHING_ALREADY_HOOKED');require(ctx.now>=c.biteAt,'FISHING_TOO_EARLY');
+  require(ctx.now<=(c.hookDeadline||c.biteAt+8000),'FISHING_BITE_MISSED');
+  c.protocol=2;c.hookAt=ctx.now;c.expires=ctx.now+60000;
+  return {type:'fishHook',castId:c.id};
+ }
  if(command==='fishFinish'){
   const c=f.cast;require(c&&c.id===args.id,'FISHING_CAST_MISSING');
+  require(c.protocol!==2||c.hookAt,'FISHING_HOOK_REQUIRED');
   require(Array.isArray(args.frames)&&args.frames.length>0&&args.frames.length<=c.ticks&&args.frames.every(x=>x===0||x===1),'INVALID_FISHING_INPUT');
-  require(args.frames.length<=Math.floor((ctx.now-c.biteAt)/100),'FISHING_TOO_EARLY');
+  require(args.frames.length<=Math.floor((ctx.now-(c.hookAt||c.biteAt))/100),'FISHING_TOO_EARLY');
   const meter=fishingMeter();for(const input of args.frames){require(!meter.finished,'INVALID_FISHING_INPUT');fishingStep(c,input,meter);}
   require(meter.finished,'FISHING_NOT_FINISHED');f.cast=null;
   const won=!meter.failed&&meter.hits/c.ticks>=c.required;
-  const result={type:'fishCatch',won,species:c.species,weight:c.weight,reward:won?c.reward:null};
+  const result={type:'fishCatch',at:ctx.now,won,species:c.species,weight:c.weight,reward:won?c.reward:null};
   if(won){
    if(c.reward==='fish'){
     const item={id:ctx.uuid(),species:c.species,weight:c.weight,caughtAt:ctx.now};f.fish.push(item);

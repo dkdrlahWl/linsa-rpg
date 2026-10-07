@@ -14,7 +14,7 @@ globalThis.fetch=async(url,options)=>{
 };
 try{
  await import('./edge.ts');
- const commands=['fishCast','fishFinish','fishCancel','fishBaitBuy','fishTrain','fishUpgrade','fishSell','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim'];
+ const commands=['fishCast','fishHook','fishFinish','fishCancel','fishBaitBuy','fishTrain','fishUpgrade','fishSell','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim'];
  for(const command of commands){
   for(const flag of [false,undefined,'true',1]){
    user={id:'test',app_metadata:{ringu_admin:flag},user_metadata:{ringu_admin:true}};calls=[];
