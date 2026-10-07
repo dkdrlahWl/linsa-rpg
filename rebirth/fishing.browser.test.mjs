@@ -38,7 +38,7 @@ try{
  await click('[data-action="fishAquariumRemove"][data-arg="qa-fish-1"]');await wait(()=>state.fishing.aquarium.length===0);
  await click('[data-action="fishPanel"][data-arg="fish"]');await click('[data-action="fishSell"][data-arg="qa-fish-1"]');await wait(()=>!state.fishing.fish.some(x=>x.id==='qa-fish-1'));
  // A real hold/release UI playthrough, with pointer actions following the visible target.
- await click('[data-action="fishCast"]');await wait(()=>!!state.fishing.cast);await wait(()=>evaluate('return !document.querySelector("[data-fish-pull]").disabled'));
+ await click('[data-action="fishCast"]');await wait(()=>!!state.fishing.cast);await wait(()=>evaluate('const p=document.querySelector("[data-fish-pull]");return !!p&&!p.disabled'));
  const pos=await evaluate('const r=document.querySelector("[data-fish-pull]").getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}');
  await page.mouse.move(pos.x,pos.y);
  let held=false,loops=0;while(state.fishing.cast&&loops++<320){const want=await evaluate('const s=document.querySelector("[data-fish-safe]"),c=document.querySelector("[data-fish-cursor]");return parseFloat(c.style.left)<parseFloat(s.style.left)+parseFloat(s.style.width)/2');if(want!==held){if(want)await page.mouse.down();else await page.mouse.up();held=want;}await delay(95);}
@@ -46,4 +46,4 @@ try{
  reset(50);await page.goto('http://127.0.0.1:'+server.address().port+'/rebirth/');await wait(()=>evaluate('return !!document.querySelector(".fantasy-dock")'));await click('.fantasy-dock [data-arg="event"]');await wait(()=>evaluate('return !!document.querySelector(".fishing-screen")'));
  for(const width of [320,390,1280]){await page.setViewportSize({width,height:1050});for(const id of ['brook','moon','canyon','coral','abyss']){await click('[data-action="fishSpot"][data-arg="'+id+'"]');await wait(()=>evaluate('const e=document.querySelector(".fishing-scene-art");return e.complete&&e.naturalWidth>0'));await delay(150);assert.ok(await evaluate('return document.documentElement.scrollWidth<=innerWidth+1'));await shot(id+'-'+width);}for(const panel of ['fish','tank','rod','shop','quests','collection']){await click('[data-action="fishPanel"][data-arg="'+panel+'"]');assert.ok(await evaluate('return document.documentElement.scrollWidth<=innerWidth+1'));assert.doesNotMatch(await evaluate('return document.querySelector(".fishing-panel").textContent'),/undefined|NaN/);}console.log('PASS 5 backgrounds, 6 panels, no overflow',width);}
  assert.deepEqual(await evaluate('return qaErrors'),[]);assert.deepEqual(misses,[]);console.log('PASS no JS errors or missing local assets');
-}finally{await browser.close();server.close();}
+}catch(e){await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});console.log('QA failure UI',await page.locator('body').innerText());console.log('QA errors',await evaluate('return qaErrors'));throw e;}finally{await browser.close();server.close();}
