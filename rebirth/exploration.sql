@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION public.rebirth_coop_action(p jsonb)
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare u uuid:=(p->>'user')::uuid; sess uuid:=(p->>'session')::uuid; actor rebirth_private.players%rowtype; r rebirth_private.coop_rooms%rowtype; old rebirth_private.receipts%rowtype; action text:=p->>'action'; rid uuid; w jsonb; member jsonb; members jsonb; st jsonb; reward jsonb; claim text:=to_char(now() at time zone 'Asia/Seoul','YYYY-MM-DD'); count_claim int; tier int; list jsonb; events jsonb:='[]'; ms bigint:=floor(extract(epoch from clock_timestamp())*1000); member_user_id uuid; trial_stage int; trial_level int; current_stage int; practice boolean; room_mode text; cleared int; earned_gold bigint; earned_cube int; earned_scroll int;
+declare u uuid:=(p->>'user')::uuid; sess uuid:=(p->>'session')::uuid; actor rebirth_private.players%rowtype; r rebirth_private.coop_rooms%rowtype; old rebirth_private.receipts%rowtype; action text:=p->>'action'; rid uuid; w jsonb; member jsonb; members jsonb; st jsonb; reward jsonb; claim text:=to_char(now() at time zone 'Asia/Seoul','YYYY-MM-DD'); count_claim int; tier int; list jsonb; events jsonb:='[]'; ms bigint:=floor(extract(epoch from clock_timestamp())*1000); member_user_id uuid; trial_stage int; trial_level int; current_stage int; practice boolean; room_mode text; cleared int; earned_gold bigint; earned_cube int; earned_scroll int; key_payer uuid; key_charged boolean:=false;
 begin
  -- Reads and input enqueueing use MVCC; only world/reward writes serialize.
  if action not in ('read','list') then
@@ -54,7 +54,7 @@ begin
    room_mode:=case when action='create' then coalesce(p->'args'->>'mode','rift') else coalesce(w->>'mode','rift') end;
    if room_mode not in ('rift','wave','advancement','raid','exploration') then raise exception 'INVALID_COOP_MODE';end if;
    if room_mode='exploration' and tier not between 0 and 2 then raise exception 'INVALID_EXPLORATION';end if;
-   if room_mode='exploration' and tier>0 and not (coalesce(actor.state->'exploration'->'cleared','[]'::jsonb) @> jsonb_build_array(tier-1)) then raise exception 'EXPLORATION_PREVIOUS_REQUIRED';end if;
+ if room_mode='exploration' and tier>0 and not (coalesce(actor.state->'exploration'->'cleared','[]'::jsonb) @> jsonb_build_array(tier-1)) then raise exception 'EXPLORATION_PREVIOUS_REQUIRED';end if;
    if room_mode='raid' and tier not between 0 and 3 then raise exception 'INVALID_RAID';end if;
    if room_mode='advancement' then
     if tier not between 0 and 4 then raise exception 'INVALID_TRIAL';end if;
@@ -65,7 +65,9 @@ begin
    end if;
    member:=jsonb_build_object('id',u,'name',actor.state->>'name','classId',actor.state->>'classId','power',p->'power','advanced',coalesce((actor.state->>'advancement')::int,0)>=1,'left',false,'ready',false);
    if action='create' then
+    if room_mode='exploration' then if coalesce((actor.state->'materials'->>'dungeonKey')::bigint,0)<1+(select count(*) from rebirth_private.coop_rooms q where q.world->>'keyOwner'=u::text and q.world->>'status' in ('waiting','fighting') and (q.world->>'status'='fighting' or q.created_at>now()-interval '15 minutes') and (rid is null or q.id<>rid)) then raise exception 'EXPLORATION_KEY_REQUIRED';end if; end if;
     w:=jsonb_build_object('mode',room_mode,'riftVersion',2,'status','waiting','owner',u,'tier',tier,'members',jsonb_build_array(member),'created',ms);
+    if room_mode='exploration' then w:=w||jsonb_build_object('keyOwner',u,'keyConsumed',false);end if;
     insert into rebirth_private.coop_rooms(world) values(w) returning * into r;rid:=r.id;
    else
     if w is null or w->>'status'<>'waiting' or jsonb_array_length(w->'members')>=(case when w->>'mode'='advancement' then 2 when w->>'mode'='raid' then 8 else 4 end) or ms-(w->>'created')::bigint>900000 then raise exception 'PARTY_NOT_FOUND';end if;
@@ -87,6 +89,7 @@ begin
     if w->>'status'='waiting' then select coalesce(jsonb_agg(value),'[]') into members from jsonb_array_elements(w->'members') where value->>'id'<>u::text;
     else select jsonb_agg(case when value->>'id'=u::text then value||'{"left":true,"hp":0}'::jsonb else value end) into members from jsonb_array_elements(w->'members');end if;
     w:=jsonb_set(w,'{members}',members);
+    if w->>'status'='waiting' and w->>'keyOwner'=u::text then w:=w-'keyOwner';end if;
     if w->>'owner'=u::text then w:=jsonb_set(w,'{owner}',coalesce(members->0->'id','null'));end if;
     if not exists(select 1 from jsonb_array_elements(members) where not coalesce((value->>'left')::boolean,false)) then w:=jsonb_set(w,'{status}','"lost"');end if;
    end if;
@@ -119,14 +122,14 @@ begin
    if action='start' and exists(select 1 from jsonb_array_elements(w->'members') where not coalesce((value->>'ready')::boolean,false)) then raise exception 'COOP_NOT_READY';end if;
    if action='start' and w->>'mode'='exploration' and ((w->>'tier')::int not between 0 and 2 or jsonb_array_length(w->'members') not between 1 and 4) then raise exception 'INVALID_EXPLORATION';end if;
    if action='start' and w->>'mode'='exploration' then
-    tier:=(w->>'tier')::int;
-    for member in select value from jsonb_array_elements(w->'members') loop
-     select state into st from rebirth_private.players where id=(member->>'id')::uuid;
-     if st->>'coopRoom' is distinct from rid::text then raise exception 'PARTY_NOT_FOUND';end if;
-     if tier>0 and not (coalesce(st->'exploration'->'cleared','[]'::jsonb) @> jsonb_build_array(tier-1)) then raise exception 'EXPLORATION_PREVIOUS_REQUIRED';end if;
-    end loop;
-   end if;
-   if action='start' and w->>'mode'='raid' then
+ tier:=(w->>'tier')::int;
+ for member in select value from jsonb_array_elements(w->'members') loop
+ select state into st from rebirth_private.players where id=(member->>'id')::uuid;
+ if st->>'coopRoom' is distinct from rid::text then raise exception 'PARTY_NOT_FOUND';end if;
+ if tier>0 and not (coalesce(st->'exploration'->'cleared','[]'::jsonb) @> jsonb_build_array(tier-1)) then raise exception 'EXPLORATION_PREVIOUS_REQUIRED';end if;
+ end loop;
+ end if;
+ if action='start' and w->>'mode'='raid' then
     if (w->>'tier')::int not between 0 and 3 or jsonb_array_length(w->'members') not between 1 and 8 then raise exception 'INVALID_RAID';end if;
 
    end if;
@@ -142,6 +145,7 @@ begin
     end loop;
    end if;
    if w->>'status' in ('fighting','won') or action='start' then w:=p->'world';end if;
+   if r.world->>'mode'='exploration' then w:=(w-'keyOwner'-'keyConsumed')||jsonb_build_object('keyOwner',case when action='start' then to_jsonb(u) else r.world->'keyOwner' end,'keyConsumed',coalesce(r.world->'keyConsumed','false'::jsonb));end if;
   else raise exception 'INVALID_COOP_ACTION';end if;
   if rid is not null and w is not null then
    if w->>'status'='fighting' then
@@ -159,6 +163,14 @@ begin
     delete from rebirth_private.coop_input_frames where room_id=rid and tick<coalesce((w->>'tick')::int,0)-35;
    else
     delete from rebirth_private.coop_input_frames where room_id=rid;
+   end if;
+   -- Charge the recorded host exactly once, in the same transaction as victory.
+   if w->>'mode'='exploration' and w->>'status'='won' and w->>'keyOwner' is not null and not coalesce((w->>'keyConsumed')::boolean,false) then
+    key_payer:=(w->>'keyOwner')::uuid;
+    select state into st from rebirth_private.players where id=key_payer for update;
+    if coalesce((st->'materials'->>'dungeonKey')::bigint,0)<1 then raise exception 'EXPLORATION_KEY_REQUIRED';end if;
+    update rebirth_private.players set state=jsonb_set(state,'{materials,dungeonKey}',to_jsonb((state->'materials'->>'dungeonKey')::bigint-1)),revision=revision+1,updated_at=now() where id=key_payer;
+    w:=w||'{"keyConsumed":true}'::jsonb;key_charged:=true;
    end if;
    update rebirth_private.coop_rooms set world=w,revision=revision+1 where id=rid returning * into r;
    if w->>'status'='lost' or (w->>'mode' in ('advancement','wave') and w->>'status'='won') then
@@ -203,8 +215,8 @@ begin
   r.world:=jsonb_set(r.world,'{_queuedInputs}',coalesce(r.world->'_queuedInputs','[]')||members);
  end if;
  return jsonb_build_object('revision',actor.revision,'coop',case when r.id is null then null else r.world||jsonb_build_object('id',r.id,'revision',r.revision,'me',u) end,'now',ms,'result',jsonb_build_object('events',events))
-  ||case when coalesce((p->>'compact')::boolean,false) and r.id is not null and r.world->>'status' in ('fighting','won') and jsonb_array_length(events)=0
+  ||case when coalesce((p->>'compact')::boolean,false) and r.id is not null and r.world->>'status' in ('fighting','won') and jsonb_array_length(events)=0 and not key_charged
      then '{"stateUnchanged":true}'::jsonb else jsonb_build_object('state',actor.state) end
   ||case when list is null then '{}'::jsonb else jsonb_build_object('coopRooms',list) end;
 end $function$
-
+;

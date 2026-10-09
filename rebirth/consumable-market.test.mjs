@@ -8,6 +8,7 @@ const db=new PGlite();
 try {
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id),created_at timestamptz default now());create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function auth.jwt() returns jsonb language sql as $$select jsonb_build_object('session_id',current_setting('test.sid',true))$$;`);
 await db.exec(await readFile(new URL('schema.sql',import.meta.url),'utf8'));
+await db.exec('create table rebirth_private.coop_rooms(id uuid primary key default gen_random_uuid(),world jsonb,created_at timestamptz default now())');
 await db.exec(await readFile(new URL('consumable-market.sql',import.meta.url),'utf8'));
 await db.exec(await readFile(new URL('individual-gear-market.sql',import.meta.url),'utf8'));
 await db.exec('update rebirth_private.release set enabled=true');
@@ -24,15 +25,22 @@ assert.deepEqual(await market('buy',{id,quantity:3},rid),r);assert.equal((await 
 await assert.rejects(()=>market('cancel',{id}),/NOT_OWNER/);
 for(const quantity of [0,-1,1.5,8])await assert.rejects(()=>market('buy',{id,quantity}),/INVALID_QUANTITY/);
 await auth(users[0]);assert.equal((await snap()).state.gold,100285);assert.equal((await market('cancel',{id})).quantity,7);assert.equal((await snap()).state.materials.cube,97);await assert.rejects(()=>market('cancel',{id}),/LISTING_UNAVAILABLE/);
-for(const material of Object.keys(MATERIALS)){
+for(const material of ["primeCube","cube","highCube","scroll","fragment","potentialLock","dungeonKey"]){
  await auth(users[0]);const {listed}=await market('sell',{material,quantity:4,price:31});await auth(users[1]);await market('buy',{id:listed,quantity:1});await auth(users[2]);await market('buy',{id:listed,quantity:3});const l=await stock(listed);assert.equal(l.status,'sold');assert.equal(l.item.quantity,0);assert.equal(Number(l.fee_paid),6);await assert.rejects(()=>market('buy',{id:listed,quantity:1}),/LISTING_UNAVAILABLE/);
 }
+await auth(users[0]);
+const keyCount=(await snap()).state.materials.dungeonKey;
+const roomId=randomUUID();await db.query("insert into rebirth_private.coop_rooms(id,world) values($1,$2)",[roomId,JSON.stringify({mode:'exploration',status:'fighting',keyOwner:users[0].id})]);
+await assert.rejects(()=>market('sell',{material:'dungeonKey',quantity:keyCount,price:1}),/EXPLORATION_KEY_RESERVED/);
+const {listed:spareKey}=await market('sell',{material:'dungeonKey',quantity:keyCount-1,price:1});await market('cancel',{id:spareKey});
+await db.query("update rebirth_private.coop_rooms set world=world||'{\"status\":\"lost\"}'::jsonb where id=$1",[roomId]);
+const {listed:releasedKey}=await market('sell',{material:'dungeonKey',quantity:keyCount,price:1});await market('cancel',{id:releasedKey});
 await auth(users[0]);const {listed:split}=await market('sell',{material:'scroll',quantity:20,price:1});await auth(users[1]);for(let i=0;i<20;i++)await market('buy',{id:split,quantity:1});assert.equal(Number((await stock(split)).fee_paid),1);
 await auth(users[0]);for(const args of [{material:'hack',quantity:1,price:1},{material:'cube',quantity:101,price:1},{material:'cube',quantity:1.5,price:1},{material:'cube',quantity:1,price:0},{material:'cube',quantity:2,price:1000000000}])await assert.rejects(()=>market('sell',args),/INVALID|INSUFFICIENT/);
-const {listed:expired}=await market('sell',{material:'expand',quantity:2,price:100});await db.query("update rebirth_private.listings set expires_at=now()-interval '1 second' where id=$1",[expired]);await auth(users[1]);await assert.rejects(()=>market('buy',{id:expired,quantity:1}),/LISTING_UNAVAILABLE/);await auth(users[0]);await market('cancel',{id:expired});
-const {listed:expensive}=await market('sell',{material:'expand',quantity:1,price:1000000});await auth(users[1]);const before=(await snap()).state;await assert.rejects(()=>market('buy',{id:expensive,quantity:1}),/INSUFFICIENT_GOLD/);assert.deepEqual((await snap()).state,before);
+const {listed:expired}=await market('sell',{material:'scroll',quantity:2,price:100});await db.query("update rebirth_private.listings set expires_at=now()-interval '1 second' where id=$1",[expired]);await auth(users[1]);await assert.rejects(()=>market('buy',{id:expired,quantity:1}),/LISTING_UNAVAILABLE/);await auth(users[0]);await market('cancel',{id:expired});
+const {listed:expensive}=await market('sell',{material:'scroll',quantity:1,price:1000000});await auth(users[1]);const before=(await snap()).state;await assert.rejects(()=>market('buy',{id:expensive,quantity:1}),/INSUFFICIENT_GOLD/);assert.deepEqual((await snap()).state,before);
 await auth(users[0]);const item=(await snap()).state.items[0];const {listed:gear}=await market('sell',{itemId:item.id,price:1000});await auth(users[1]);await market('buy',{id:gear});assert.equal((await snap()).state.items.find(x=>x.id===item.id).quality,98);
 assert.ok((await market('list',{kind:'consumable'})).every(x=>x.item.kind==='consumable'));assert.ok((await market('list',{kind:'gear'})).every(x=>x.item.kind!=='consumable'));
 await db.exec('set role authenticated');await assert.rejects(()=>db.query('select * from rebirth_private.listings'),/permission denied/);await db.exec('reset role');
-console.log('PASS consumable SQL: all eleven materials, escrow, partial/multiple buyers, exact replay, quantity validation, cumulative 5% fee, cancellation remainder, expiry, gold, gear quality and permissions');
+console.log('PASS consumable SQL: tradable materials including dungeon keys and potential locks, escrow, partial/multiple buyers, exact replay, quantity validation, cumulative 5% fee, cancellation remainder, expiry, gold, gear quality and permissions');
 } finally {await db.close();}

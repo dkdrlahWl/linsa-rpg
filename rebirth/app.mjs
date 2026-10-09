@@ -157,6 +157,8 @@ const errors = {
   REBIRTH_MAINTENANCE:
     "새로운 여정을 준비하고 있어요. 서비스가 열리면 시작할 수 있습니다.",
   LOGIN_REQUIRED: "다시 로그인해 주세요.",
+  EXPLORATION_KEY_REQUIRED: "방장은 던전 열쇠 1개가 있어야 탐험 방을 만들고 시작할 수 있습니다.",
+  EXPLORATION_KEY_RESERVED: "진행 중인 탐험에 필요한 던전 열쇠 1개는 판매할 수 없습니다.",
   SESSION_ENDED: "종료된 로그인입니다. 다시 로그인해 주세요.",
   SESSION_REPLACED: "다른 기기에서 로그인했어요.",
   INVALID_COSTUME: "코스튬을 찾을 수 없습니다.",
@@ -1211,7 +1213,7 @@ function updateSellPrice() {
 }
 function consumableSellDialog(key=null){
  if(!key){
-  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(D.MATERIALS).filter(([k])=>!["potentialLock","dungeonKey"].includes(k)).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${state.materials[k]>0?"":"disabled"}><img class="material-tile-image" src="${currencyIconURL(k)}" alt=""><strong class="market-card-name">${name}</strong><small>보유 ${fmt(state.materials[k])}개</small><span class="market-card-status">${state.materials[k]>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
+  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(D.MATERIALS).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${state.materials[k]>0?"":"disabled"}><img class="material-tile-image" src="${currencyIconURL(k)}" alt=""><strong class="market-card-name">${name}</strong><small>보유 ${fmt(state.materials[k])}개</small><span class="market-card-status">${state.materials[k]>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
   return;
  }
  if(!Object.hasOwn(D.MATERIALS,key)||!(state.materials[key]>0))return;

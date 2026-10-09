@@ -3,7 +3,12 @@ alter table rebirth_private.listings drop constraint if exists listings_price_ch
 alter table rebirth_private.listings add constraint listings_price_check check(price between 1 and 1000000000);
 alter table rebirth_private.listings add column if not exists gross_sold bigint not null default 0;
 alter table rebirth_private.listings add column if not exists fee_paid bigint not null default 0;
-create or replace function rebirth_private.market(p_action text,p_args jsonb,p_request uuid) returns jsonb language plpgsql security definer set search_path='' as $$
+CREATE OR REPLACE FUNCTION rebirth_private.market(p_action text, p_args jsonb, p_request uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
 declare u uuid; p rebirth_private.players%rowtype; v_seller rebirth_private.players%rowtype; l rebirth_private.listings%rowtype; it jsonb; result jsonb; old rebirth_private.receipts%rowtype; fingerprint jsonb:=jsonb_build_object('market',p_action,'args',p_args); v_price bigint; item_id text; page integer; filter_slot integer; filter_class text; collection_key text; material_key text; quantity bigint; remaining bigint; total_price bigint; v_fee bigint;
 begin
  -- Acquire the shared market lock before session_user can lock a player row.
@@ -24,11 +29,12 @@ begin
  if p_action='sell' then
   if p_args->>'material' is not null then
    material_key:=p_args->>'material';
-   if material_key not in ('primeCube','cube','highCube','scroll','expand','fragment') then raise exception 'INVALID_MATERIAL';end if;
+   if material_key not in ('primeCube','cube','highCube','fragment','scroll') then raise exception 'INVALID_MATERIAL';end if;
    if coalesce(p_args->>'quantity','')!~'^[0-9]+$' or coalesce(p_args->>'price','')!~'^[0-9]+$' then raise exception 'INVALID_QUANTITY';end if;
    quantity:=(p_args->>'quantity')::bigint;v_price:=(p_args->>'price')::bigint;
    if quantity<1 or quantity>1000000 or v_price<1 or v_price>1000000000 or v_price*quantity>1000000000 then raise exception 'INVALID_PRICE';end if;
    if coalesce((p.state->'materials'->>material_key)::bigint,0)<quantity then raise exception 'INSUFFICIENT_MATERIAL';end if;
+   if material_key='dungeonKey' and coalesce((p.state->'materials'->>'dungeonKey')::bigint,0)-quantity<(select count(*) from rebirth_private.coop_rooms q where q.world->>'keyOwner'=u::text and q.world->>'status' in ('waiting','fighting') and (q.world->>'status'='fighting' or q.created_at>now()-interval '15 minutes')) then raise exception 'EXPLORATION_KEY_RESERVED';end if;
    if (select count(*) from rebirth_private.listings where seller=u and status='open')>=20 then raise exception 'LISTING_LIMIT';end if;
    it:=jsonb_build_object('kind','consumable','key',material_key,'quantity',quantity,'originalQuantity',quantity);
    update rebirth_private.players set state=jsonb_set(state,array['materials',material_key],to_jsonb((state->'materials'->>material_key)::bigint-quantity)),revision=revision+1,updated_at=now() where id=u;
@@ -82,6 +88,7 @@ begin
    update rebirth_private.players set state=jsonb_set(jsonb_set(state,'{items}',(state->'items')||jsonb_build_array(l.item)),'{gold}',to_jsonb((state->>'gold')::bigint-l.price)),revision=revision+1,updated_at=now() where id=u;
    collection_key:=concat_ws(':',greatest(1,((l.item->>'level')::int/10)*10)::text,l.item->>'classId',l.item->>'slot',l.item->>'boss');
    if l.item->>'slot'='0' and coalesce(l.item->>'weaponVariant','0') in ('1','2') then collection_key:=collection_key||':'||(l.item->>'weaponVariant'); end if;
+   if l.item ? 'design' then collection_key:=concat_ws(':','v3',l.item->>'level',l.item->>'classId',l.item->>'slot',l.item->>'boss',l.item->>'design'); end if;
    update rebirth_private.players set state=jsonb_set(state,'{collection}',coalesce(state->'collection','[]'::jsonb)||jsonb_build_array(collection_key)) where id=u and not coalesce(state->'collection','[]'::jsonb) ? collection_key;
    update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::bigint+floor(l.price*.95)::bigint)),revision=revision+1,updated_at=now() where id=l.seller;
    update rebirth_private.listings set status='sold',buyer=u where id=l.id;result:=jsonb_build_object('bought',l.id,'fee',l.price-floor(l.price*.95));
@@ -89,6 +96,5 @@ begin
   end if;
  else raise exception 'INVALID_ACTION';end if;
  insert into rebirth_private.receipts(user_id,request_id,fingerprint,result) values(u,p_request,fingerprint,result);return result;
-end $$;
-revoke all on function rebirth_private.market(text,jsonb,uuid) from public,anon;
-grant execute on function rebirth_private.market(text,jsonb,uuid) to authenticated;
+end $function$
+;

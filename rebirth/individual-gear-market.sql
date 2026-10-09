@@ -24,11 +24,13 @@ begin
  if p_action='sell' then
   if p_args->>'material' is not null then
    material_key:=p_args->>'material';
-   if material_key not in ('primeCube','cube','highCube','fragment','scroll') then raise exception 'INVALID_MATERIAL';end if;
+   if material_key not in ('primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey') then raise exception 'INVALID_MATERIAL';end if;
    if coalesce(p_args->>'quantity','')!~'^[0-9]+$' or coalesce(p_args->>'price','')!~'^[0-9]+$' then raise exception 'INVALID_QUANTITY';end if;
    quantity:=(p_args->>'quantity')::bigint;v_price:=(p_args->>'price')::bigint;
    if quantity<1 or quantity>1000000 or v_price<1 or v_price>1000000000 or v_price*quantity>1000000000 then raise exception 'INVALID_PRICE';end if;
    if coalesce((p.state->'materials'->>material_key)::bigint,0)<quantity then raise exception 'INSUFFICIENT_MATERIAL';end if;
+   if material_key='dungeonKey' and coalesce((p.state->'materials'->>'dungeonKey')::bigint,0)-quantity<(select count(*) from rebirth_private.coop_rooms q where q.world->>'keyOwner'=u::text and q.world->>'status' in ('waiting','fighting') and (q.world->>'status'='fighting' or q.created_at>now()-interval '15 minutes')) then raise exception 'EXPLORATION_KEY_RESERVED';end if;
+
    if (select count(*) from rebirth_private.listings where seller=u and status='open')>=20 then raise exception 'LISTING_LIMIT';end if;
    it:=jsonb_build_object('kind','consumable','key',material_key,'quantity',quantity,'originalQuantity',quantity);
    update rebirth_private.players set state=jsonb_set(state,array['materials',material_key],to_jsonb((state->'materials'->>material_key)::bigint-quantity)),revision=revision+1,updated_at=now() where id=u;
