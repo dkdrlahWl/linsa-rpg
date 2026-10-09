@@ -1,3 +1,4 @@
+import {drawExplorationDungeon,drawExplorationFog,drawExplorationMinimap} from './exploration-renderer.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
 import {raidBossSource,raidDamageRows,drawRaidWarning,drawRaidShotWarning,drawRaidProjectile} from './raid-presentation.mjs?v=raid-steady-162';
@@ -137,7 +138,7 @@ export class TowerRenderer {
     g.save();g.translate(p.x,p.y-bob);g.scale(face,1);g.drawImage(im,r.x,r.y,r.w,r.h,-r.w*scale/2,-size,r.w*scale,size);g.restore();
     if(time<(actor.petHealUntil||0)){this.effect('rune',x,y-15,90,60,time*.04,.65);g.save();g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#a4ffdf';g.fillText('+'+Math.round(actor.petHealAmount||0),x,y-120-(12-(actor.petHealUntil-time))*3);g.restore();}
   }
-  dispose(){this.resize.disconnect();}
+  dispose(){this.resize.disconnect();this.dungeonLayer=null;}
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
     const actorScale=this.mobileActors.matches?1.5:1;w*=actorScale;h*=actorScale;
@@ -310,7 +311,7 @@ export class TowerRenderer {
     g.fillStyle='#08131c';g.fillRect(0,0,1000,height);
     const feedback=fifthFeedback(b.effects,time,b.actorId??b.id);
     g.save();g.translate(500,height/2);g.scale(scale,scale);g.translate(feedback.x,feedback.y);
-    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.explorationMode){const bg=image(EXPLORATIONS[b.tier].map);if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
+    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.explorationMode){const bg=image(EXPLORATIONS[b.tier].map);if(!drawExplorationDungeon(this,b,bg)&&bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(!b.dungeon&&b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
     for(const e of fourthAreas)drawFourthGround(g,e,time);
@@ -464,8 +465,9 @@ export class TowerRenderer {
       const label=damageLabel(value,n.kind,row>=0?rowFont:43);
       g.save();g.globalAlpha=fade;g.drawImage(label.canvas,x-label.canvas.width/2,y-label.baseline);g.restore();
     }
+    if(b.explorationMode)drawExplorationFog(g,b,this.camera,viewWidth,viewHeight);
     g.restore();
-    if(b.explorationMode){g.save();const x=835,y=20,size=145;g.fillStyle='#081420db';g.fillRect(x,y,size,size);g.strokeStyle='#b1d2ba';g.lineWidth=2;g.strokeRect(x,y,size,size);for(const e of b.monsters||[]){g.fillStyle=e.boss?'#ffd368':'#ff796f';g.beginPath();g.arc(x+e.x/3200*size,y+e.y/3200*size,e.boss?5:3,0,7);g.fill();}for(const m of [player,...(b.allies||[])]){g.fillStyle=m.id===player.id?'#ffffff':'#82dfbf';g.beginPath();g.arc(x+m.x/3200*size,y+m.y/3200*size,4,0,7);g.fill();}if(b.exitOpen){g.fillStyle='#80ffd1';g.fillRect(x+b.exit.x/3200*size-4,y+b.exit.y/3200*size-4,8,8);}g.restore();}
+    if(b.explorationMode)drawExplorationMinimap(g,b,player);
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}
   }
 }

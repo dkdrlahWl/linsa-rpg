@@ -16,5 +16,6 @@ jobs:
         with:
           node-version: '24'
       - run: node rebirth/exploration.test.mjs
+      - run: node rebirth/exploration-dungeon.test.mjs
       - run: node rebirth/coop-worker.test.mjs
       - run: node rebirth/raid-latency.test.mjs

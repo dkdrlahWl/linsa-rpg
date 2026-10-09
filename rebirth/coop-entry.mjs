@@ -1,3 +1,4 @@
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs';
 import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=fifth-impact-121';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
@@ -24,11 +25,11 @@ export function advanceCoopEntry(w,user,input,now,allowStart=true){
     if(m.left||m.hp<=0)continue;
     let [x,y]=now-m.inputAt<1500?m.input:[0,0];const length=Math.max(1,Math.hypot(x,y));x/=length;y/=length;
     m.moving=Math.hypot(x,y)>.01;m.dir=towerFacing(x,y,m.dir??6);
-    m.x=bound(m.x+x*TOWER_CLASSES[m.classId].speed*10*dt);
-    m.y=bound(m.y+y*TOWER_CLASSES[m.classId].speed*10*dt);
+    if(w.mode==='exploration')dungeonMove(w.dungeon,m,x*TOWER_CLASSES[m.classId].speed*10*dt,y*TOWER_CLASSES[m.classId].speed*10*dt);else{m.x=bound(m.x+x*TOWER_CLASSES[m.classId].speed*10*dt);m.y=bound(m.y+y*TOWER_CLASSES[m.classId].speed*10*dt);}
     if(m.moving)m.walk=(m.walk||0)+dt*10;
     if(x)m.face=x<0?-1:1;
   }
+  if(w.mode==='exploration')revealDungeon(w);
   const members=w.members.filter(m=>!m.left&&m.hp>0);
   if(allowStart&&members.length&&members.every(m=>m.entryMoved)){
     w.entryWaiting=false;w.combatStartedAt=now;w.started=now;w.tick=0;

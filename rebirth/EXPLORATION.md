@@ -1,6 +1,6 @@
 # 링구의 탐험
 
-Three new generated-art themes: moonlit forest ruins (10 floors), volcanic crystal mine (11 floors), celestial abyss temple (12 floors). One player can start; maximum four. Every resident must be defeated before the north exit opens. The last floor includes three guards and a unique boss. No timed reinforcements or surviving monsters are skipped. Regular floors allow 180 seconds; final floor allows 120. Moving to the next floor restores 20% max HP and clears casts. Existing five-second teammate revival and all five job skills remain available.
+Three new generated-art themes: moonlit forest ruins (10 floors), volcanic crystal mine (11 floors), celestial abyss temple (12 floors). One player can start; maximum four. Every resident must be defeated before the stair opens. The last floor includes three guards and a unique boss. No timed reinforcements or surviving monsters are skipped. Regular floors allow 180 seconds; final floor allows 180 seconds of exploration, with a fresh 120-second timer when its boss engages. Moving to the next floor restores 20% max HP and clears casts. Existing five-second teammate revival and all five job skills remain available.
 
 ## Calibration
 
@@ -25,3 +25,9 @@ Built-in ImageGen created all three 1024×1024 painted top-down backgrounds and 
 `node rebirth/coop-worker.test.mjs`: actual worker equivalence for five modes and six classes. Existing raid latency, eight-player repeated-raid soak, and request lifecycle checks also pass. Legacy `coop-replay.test.mjs` fails its pre-entry movement setup on unchanged main as well; this feature has independent late-input coverage. Managed preview lacks the required control-browser capability, so browser visual QA is unavailable in this environment.
 
 다음 테마는 직전 테마의 최종 보스를 처치하고 개인 보상을 수령한 후 해금됩니다. 잠긴 테마의 방 생성·참가·시작은 서버에서도 차단합니다.
+
+## Room-and-corridor dungeon update
+
+Each floor now has six tile rooms linked by two-tile corridors, branches and a loop. Seeded floor rotation and room dimensions vary across depths. Shared geometry enforces wall collision for entry movement, normal walking, dash, monster pursuit and post-win chest walking. Line of sight blocks attacks through walls. Monsters spawn in separate rooms and use cached breadth-first navigation through corridors. Shared discovery fog and an outlined minimap reveal explored rooms, enemies, allies and locked/active stairs. The existing generated backgrounds provide themed floor texture under rock walls. One half-resolution cached background per renderer bounds canvas memory.
+
+`node rebirth/exploration-dungeon.test.mjs` validates 108 connected layouts, stairs reachable by navigation, dash collision, valid spawns, discovery, monster pursuit, and the final boss timer. Worker equivalence and prior floor progression tests remain required.

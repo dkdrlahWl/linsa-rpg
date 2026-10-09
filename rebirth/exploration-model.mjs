@@ -1,3 +1,4 @@
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs';
 import {initializeExploration,explorationProgress} from './exploration-data.mjs';
 import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-impact-121';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
@@ -15,7 +16,7 @@ export {initializeExploration};
 function number(w,value,a,kind){w.numbers.push({id:++w.serial,value,x:a.x,y:a.y-90,kind,start:w.tick,end:w.tick+16});}
 function damage(w,m,targets,scale,critAdd=0){
  const first=w.tick<(m.guardUntil||0)&&CLASS_SKILLS[m.classId].type==='buff'?CLASS_SKILLS[m.classId]:null;
- for(const enemy of targets){if(enemy.hp<=0)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(enemy.boss?m.power.boss:1)*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
+ for(const enemy of targets){if(enemy.hp<=0||!dungeonSight(w.dungeon,m,enemy))continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(enemy.boss?m.power.boss:1)*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
 }
 function pulse(w,m,cast,sk){
  const aim=sk.mode==='orbit'?m:sk.mode==='volley'?(w.monsters.filter(e=>e.hp>0&&distance(e,m)<=sk.range+150).sort((a,b)=>distance(a,m)-distance(b,m))[0]||cast):cast;
@@ -40,9 +41,9 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const m of alive){
    const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0];const n=Math.max(1,Math.hypot(x,y));x/=n;y/=n;m.dir=towerFacing(x,y,m.dir);m.moving=Math.hypot(x,y)>.01;if(m.moving)m.walk++;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}
-   const dashing=t<(m.dashUntil||0),speed=c.speed;m.x=bound(m.x+(dashing?m.dx*3:x)*speed);m.y=bound(m.y+(dashing?m.dy*3:y)*speed);if(x)m.face=x<0?-1:1;
+   const dashing=t<(m.dashUntil||0),speed=c.speed;dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(x)m.face=x<0?-1:1;
 
-   const targets=w.monsters.filter(e=>e.hp>0).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
+   const targets=w.monsters.filter(e=>e.hp>0&&dungeonSight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
    if(target&&(bits&1)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
     // Small cleave keeps all five starter classes viable against a crowd.
     const victims=targets.filter(e=>distance(e,m)<=c.range&&distance(e,target)<(c.range<300?230:140)).slice(0,3);
@@ -73,18 +74,19 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const e of w.monsters){
    alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length)break;
    const target=alive.reduce((a,b)=>distance(a,e)<distance(b,e)?a:b),d=distance(target,e);
-   e.moving=false;if(!e.aggro&&(d<760||e.hp<e.maxHp||e.boss))e.aggro=true;if(!e.aggro)continue;if(!e.strike&&!e.skill&&d>70){const dx=(target.x-e.x)/d,dy=(target.y-e.y)/d;e.x=bound(e.x+dx*e.speed);e.y=bound(e.y+dy*e.speed);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
-   if(!e.strike&&!e.skill&&d<150&&t>=e.ready){e.strike={x:target.x,y:target.y,at:t+(e.elite?7:5)};e.castStart=t;e.attackStart=e.strike.at;e.attackUntil=e.attackStart+4;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);e.ready=t+(e.elite?20:25);w.hazards.push({type:'circle',x:target.x,y:target.y,r:e.elite?135:95,inner:0,at:e.strike.at,end:e.strike.at+2});}
-   if(e.elite&&!e.strike&&!e.skill&&d<950&&t>=(e.skillReady||40)){
+   e.moving=false;const sight=dungeonSight(w.dungeon,e,target);if(!e.aggro&&((d<760&&sight)||e.hp<e.maxHp))e.aggro=true;if(!e.aggro)continue;if(e.boss&&w.bossBattleAt===undefined){w.bossBattleAt=t;w.floorDeadline=t+1200;}if(!e.strike&&!e.skill&&d>70){const goal=dungeonRoute(w.dungeon,e,target),length=Math.max(1,distance(goal,e)),dx=(goal.x-e.x)/length,dy=(goal.y-e.y)/length;dungeonMove(w.dungeon,e,dx*Math.min(length,e.speed),dy*Math.min(length,e.speed),26);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
+   if(!e.strike&&!e.skill&&d<150&&sight&&t>=e.ready){e.strike={x:target.x,y:target.y,at:t+(e.elite?7:5)};e.castStart=t;e.attackStart=e.strike.at;e.attackUntil=e.attackStart+4;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);e.ready=t+(e.elite?20:25);w.hazards.push({type:'circle',x:target.x,y:target.y,r:e.elite?135:95,inner:0,at:e.strike.at,end:e.strike.at+2});}
+   if(e.elite&&!e.strike&&!e.skill&&d<950&&sight&&t>=(e.skillReady||40)){
     const type=(e.species+w.tier+Math.floor(t/85))%3===1?'line':'circle',at=t+(e.boss?18:13);
     e.skill=type==='line'?{type,x:e.x,y:e.y,tx:target.x,ty:target.y,width:e.boss?240:130,at,end:at+3}:{type,x:e.species%3===2?e.x:target.x,y:e.species%3===2?e.y:target.y,r:e.boss?420:e.species%3===2?240:170,inner:0,at,end:at+3};
     w.hazards.push({...e.skill});e.skillReady=t+(e.boss?55:85);e.castStart=t;e.attackStart=at;e.attackUntil=at+5;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);
    }
-   if(e.skill&&t>=e.skill.at){const h=e.skill;for(const m of alive){let inside=distance(m,h)<=h.r;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,q=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy||1)));inside=Math.hypot(m.x-h.x-q*dx,m.y-h.y-q*dy)<=h.width/2;}if(!inside||t<m.immune||t<m.hurtReady)continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*1.65*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}delete e.skill;}
-   if(e.strike&&t>=e.strike.at){for(const m of alive){if(t<m.immune||t<m.hurtReady||distance(m,e.strike)>(e.elite?135:95))continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}
+   if(e.skill&&t>=e.skill.at){const h=e.skill;for(const m of alive){let inside=distance(m,h)<=h.r;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,q=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy||1)));inside=Math.hypot(m.x-h.x-q*dx,m.y-h.y-q*dy)<=h.width/2;}if(!inside||!dungeonSight(w.dungeon,e,m)||t<m.immune||t<m.hurtReady)continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*1.65*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}delete e.skill;}
+   if(e.strike&&t>=e.strike.at){for(const m of alive){if(!dungeonSight(w.dungeon,e,m)||t<m.immune||t<m.hurtReady||distance(m,e.strike)>(e.elite?135:95))continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}
     delete e.strike;
    }
   }
+  if(t%5===0)revealDungeon(w);
   alive=w.members.filter(m=>!m.left&&m.hp>0);
   if(!alive.length){w.status='lost';w.reason='dead';w.endedTick=t;break;}
   for(const dead of w.members.filter(m=>!m.left&&m.hp<=0)){

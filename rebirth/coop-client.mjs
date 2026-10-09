@@ -1,3 +1,4 @@
+import {dungeonMove,dungeonSeen} from './exploration-dungeon.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {explorationLobby,explorationHud,prepareExplorationArt} from './exploration-ui.mjs?v=exploration-190';
 import {CoopPredictor} from './coop-prediction.mjs?v=coop-steady-143';
@@ -200,6 +201,7 @@ export class CoopController{
   this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:this.room.status==='won',ended:['won','lost'].includes(this.room.status)});
   if(this.room.status==='won')this.auto=false;
   if(w.mode==='raid'){const corrected={x:me.x,y:me.y};raidMove(corrected,player.x,player.y,w.walls);Object.assign(player,corrected);}
+  if(w.mode==='exploration'){const corrected={x:me.x,y:me.y};dungeonMove(w.dungeon,corrected,player.x-me.x,player.y-me.y);Object.assign(player,corrected);}
   const b={...w,...me,localSkillsOnly:true,raidMode:w.mode==='raid',advancementStage:w.mode==='advancement'?w.tier:undefined,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:tier,classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:this.effectMemory?.compose(w.effects||[],w.tick+visualFraction)||w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id),'player:'+m.id))};
   b.tick=w.tick+visualFraction;
   if(!this.lastHud||now-this.lastHud>=100){this.lastHud=now;
@@ -216,7 +218,7 @@ export class CoopController{
   const connection=this.host.querySelector('#tower-connection');connection.hidden=now-this.received<4500&&(this.failures||0)<2;connection.textContent='연결 지연 · 전투 재동기화 중';
   this.entryHud();
   }
-  if(['wave','exploration'].includes(w.mode)){b.explorationMode=w.mode==='exploration';b.enemy={x:player.x,y:player.y};if(this.monsterSnapshot!==this.previousSim){this.monsterSnapshot=this.previousSim;this.monsterPoints=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));}const oldMonsters=this.monsterPoints;b.monsters=w.monsters.map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}
+  if(['wave','exploration'].includes(w.mode)){b.explorationMode=w.mode==='exploration';b.explorationFloor=w.floor;b.enemy={x:player.x,y:player.y};if(this.monsterSnapshot!==this.previousSim){this.monsterSnapshot=this.previousSim;this.monsterPoints=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));}const oldMonsters=this.monsterPoints;b.monsters=w.monsters.filter(e=>!b.explorationMode||dungeonSeen(w.dungeon,e.x,e.y)).map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}
   this.motion.end();
   this.renderer.draw(b,{enemy:b.enemy,projectiles:b.projectiles},player,0,now,input,this.hint);
  }
