@@ -1,3 +1,4 @@
+import {grantExplorationChest} from './exploration-rewards.mjs';
 import {fishingStateReply} from './fishing-sync.mjs';
 import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
@@ -160,9 +161,9 @@ Deno.serve(async (req) => {
           if(action==='open'){
             const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);
             if(room?.status!=='won'||!member||!room.chest)throw new Error('COOP_CHEST_NOT_READY');
-            if(!(member.damage>0||(room.mode==='raid'&&((member.healing||0)+(member.shieldGiven||0)>0))))throw new Error('COOP_DAMAGE_REQUIRED');
+            if(!(member.damage>0||(['raid','exploration'].includes(room.mode)&&((member.healing||0)+(member.shieldGiven||0)>0))))throw new Error('COOP_DAMAGE_REQUIRED');
             if(Math.hypot(member.x-room.chest.x,member.y-room.chest.y)>180)throw new Error('COOP_CHEST_TOO_FAR');
-            claim=room.mode==='raid'?grantRaidChest(computed.state,room.tier,ctx):grantCoopChest(computed.state,room.tier,ctx);
+            claim=room.mode==='exploration'?grantExplorationChest(computed.state,room,ctx):room.mode==='raid'?grantRaidChest(computed.state,room.tier,ctx):grantCoopChest(computed.state,room.tier,ctx);
           }
           const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim?.reward,rewardState:claim?.state}},true);
           return reply(result);

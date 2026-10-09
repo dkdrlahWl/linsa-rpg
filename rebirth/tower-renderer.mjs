@@ -1,3 +1,4 @@
+import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
 import {raidBossSource,raidDamageRows,drawRaidWarning,drawRaidShotWarning,drawRaidProjectile} from './raid-presentation.mjs?v=raid-steady-162';
 import {transparentEffectAtlas} from './effect-alpha.mjs?v=priest-potential-83';
@@ -106,7 +107,7 @@ export function prepareCombatArt(classes,boss,costumeIds=[]){
  const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-motion-v1.png',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
  for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.motionLayout||c.classId]],[c.portrait,null]);}}
  const raid=String(boss).startsWith('raid-'),raidTier=raid?Number(boss.slice(5)):null;
- tasks.push([raid?raidBossSource(raidTier):asset('boss-'+boss),null]);image('tower/priest-orb-v1.png');if(raid){tasks.push([asset('raid-map-'+raidTier),null],[asset('raid-boss-'+raidTier+'-portrait'),null]);}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
+ tasks.push([String(boss).startsWith('exploration-')?explorationArt(Number(String(boss).slice(12)),3,true):raid?raidBossSource(raidTier):asset('boss-'+boss),null]);image('tower/priest-orb-v1.png');if(raid){tasks.push([asset('raid-map-'+raidTier),null],[asset('raid-boss-'+raidTier+'-portrait'),null]);}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  const secondAtlas=image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[secondAtlas.decode().then(()=>transparentEffectAtlas(secondAtlas)).catch(()=>{}),prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}))];
  if(classes.includes('priest'))secondLoads.push(preparePriestSkillArt());
@@ -211,11 +212,11 @@ export class TowerRenderer {
     g.save();g.strokeStyle='#d7cd9870';g.lineWidth=3;g.strokeRect(110,110,2980,2980);g.restore();
   }
   waveMonster(e,time){
-    const g=this.g,size=(e.elite?150:105)*(this.mobileActors.matches?1.65:1),bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
+    const g=this.g,size=(e.boss?240:e.elite?150:105)*(this.mobileActors.matches?1.65:1),bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
     this.shadow(e.x,e.y,e.elite?43:29);
     if(e.elite){g.save();g.strokeStyle='#ffd880';g.lineWidth=3;g.beginPath();g.ellipse(e.x,e.y,58,24,0,0,7);g.stroke();g.restore();}
-    drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);
-    g.save();g.fillStyle='#18221be6';g.fillRect(e.x-35,e.y-size-9,70,5);g.fillStyle=e.elite?'#ffcf6a':'#de7065';g.fillRect(e.x-35,e.y-size-9,70*e.hp/e.maxHp,5);if(e.elite){g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#fff0ac';g.fillText('정예',e.x,e.y-size-16);}g.restore();
+    if(e.explorationTier!==undefined){const im=image(explorationArt(e.explorationTier,e.species,e.boss)),h=size;if(im.complete&&im.naturalWidth){g.save();g.translate(e.x,e.y);g.scale(e.face||1,1);g.rotate(e.moving?Math.sin(e.walk*.8)*.055:0);g.drawImage(im,-h/2,-h-bob,h,h);g.restore();}}else drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);
+    g.save();g.fillStyle='#18221be6';g.fillRect(e.x-35,e.y-size-9,70,5);g.fillStyle=e.elite?'#ffcf6a':'#de7065';g.fillRect(e.x-35,e.y-size-9,70*e.hp/e.maxHp,5);if(e.elite){g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#fff0ac';g.fillText(e.boss?'보스':'정예',e.x,e.y-size-16);}g.restore();
   }
   grave(m){
     const g=this.g;g.save();g.translate(m.x,m.y);this.shadow(0,0,32);g.fillStyle='#73878b';g.strokeStyle='#d2ded3';g.lineWidth=3;g.beginPath();g.roundRect(-27,-68,54,68,[22,22,3,3]);g.fill();g.stroke();g.strokeStyle='#283b40';g.lineWidth=5;g.beginPath();g.moveTo(0,-53);g.lineTo(0,-18);g.moveTo(-12,-40);g.lineTo(12,-40);g.stroke();g.font='bold 21px sans-serif';g.textAlign='center';g.lineWidth=4;g.strokeStyle='#142b21';g.fillStyle='#fff2d2';g.strokeText(m.name,0,-83);g.fillText(m.name,0,-83);g.beginPath();g.arc(0,-30,55,-Math.PI/2,-Math.PI/2+Math.PI*2*(m.reviveProgress||0)/50);g.strokeStyle='#92f3bc';g.lineWidth=6;g.stroke();g.restore();
@@ -309,7 +310,7 @@ export class TowerRenderer {
     g.fillStyle='#08131c';g.fillRect(0,0,1000,height);
     const feedback=fifthFeedback(b.effects,time,b.actorId??b.id);
     g.save();g.translate(500,height/2);g.scale(scale,scale);g.translate(feedback.x,feedback.y);
-    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.waveMode)this.meadow();else this.background();
+    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.explorationMode){const bg=image(EXPLORATIONS[b.tier].map);if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
     for(const e of fourthAreas)drawFourthGround(g,e,time);
@@ -464,6 +465,7 @@ export class TowerRenderer {
       g.save();g.globalAlpha=fade;g.drawImage(label.canvas,x-label.canvas.width/2,y-label.baseline);g.restore();
     }
     g.restore();
+    if(b.explorationMode){g.save();const x=835,y=20,size=145;g.fillStyle='#081420db';g.fillRect(x,y,size,size);g.strokeStyle='#b1d2ba';g.lineWidth=2;g.strokeRect(x,y,size,size);for(const e of b.monsters||[]){g.fillStyle=e.boss?'#ffd368':'#ff796f';g.beginPath();g.arc(x+e.x/3200*size,y+e.y/3200*size,e.boss?5:3,0,7);g.fill();}for(const m of [player,...(b.allies||[])]){g.fillStyle=m.id===player.id?'#ffffff':'#82dfbf';g.beginPath();g.arc(x+m.x/3200*size,y+m.y/3200*size,4,0,7);g.fill();}if(b.exitOpen){g.fillStyle='#80ffd1';g.fillRect(x+b.exit.x/3200*size-4,y+b.exit.y/3200*size-4,8,8);}g.restore();}
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}
   }
 }

@@ -1,13 +1,14 @@
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=gear-hp-182';
-export {PRIEST_SKILLS} from './priest.mjs?v=gear-hp-182';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=gear-hp-182';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=gear-hp-182';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=gear-hp-182';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=gear-hp-182';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=gear-hp-182';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=gear-hp-182';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=gear-hp-182";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=gear-hp-182";
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=exploration-190';
+export {PRIEST_SKILLS} from './priest.mjs?v=exploration-190';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=exploration-190';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=exploration-190';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=exploration-190';
+import {extendEndgameFields} from './endgame-field.mjs?v=exploration-190';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=exploration-190';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=exploration-190';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=exploration-190';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=exploration-190";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=exploration-190";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -66,7 +67,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=gear-hp-182';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=exploration-190';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
@@ -180,6 +181,8 @@ export const BOSSES = bosses.flatMap((list, r) =>
   })),
 );
 export const MATERIALS = {
+  potentialLock: "잠재 잠금석",
+  dungeonKey: "던전 열쇠",
   scroll: "잠재 해금 주문서",
   fragment: "장비 파편",
   cube: "레드 큐브",
@@ -241,6 +244,14 @@ export const salvageYield = item => Math.floor((4+Math.floor(item.level/20)+(ite
 export const CUBE_DROP = 0.0002;
 export const SCROLL_DROP = 0;
 export const FRAGMENT_DROP = 0.003;
+export function fieldDropRates(stage) {
+  return {equipment:stage?.drops?.equipment??EQUIP_DROP,bossEquipment:stage?.drops?.bossEquipment??FIELD_BOSS_DROP,
+    cube:stage?.drops?.cube??CUBE_DROP,fragment:stage?.drops?.fragment??FRAGMENT_DROP,scroll:stage?.drops?.scroll??SCROLL_DROP};
+}
+export function fieldMonster(stageId,kills=0) {
+  const rows=MONSTERS.filter(m=>m.stage===stageId);
+  return rows[Math.max(0,Math.floor(kills))%rows.length];
+}
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
   return journeyXP(level);
@@ -256,7 +267,7 @@ export function rollBaseStats(item,random=Math.random) {
   return [key,r.min+Math.min(r.max-r.min,Math.floor(fraction*(r.max-r.min+1)))];
  }));
 }
-// Apply the endgame balance bonus at calculation time, preserving every stored roll.
+// Apply equipment balance at calculation time, preserving every stored roll.
 export const gearStatMultiplier = item => {
  const level=Number(item.level);
  const endgame=level===200?1.5:1;
@@ -392,4 +403,4 @@ export function weekKey(ms) {
 }
 
 balanceWorld(STAGES,BOSSES,RAID_BOSSES);
-
+extendEndgameFields(REGIONS,STAGES,MONSTERS);

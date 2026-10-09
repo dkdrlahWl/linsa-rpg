@@ -12,8 +12,8 @@ let sequence=0,generation=0;
 const send=async data=>{const reply=once(worker,'message');worker.postMessage({...data,generation,sequence:++sequence});const [packet]=await reply;assert.equal(packet.type,'state');return packet;};
 try{
  const [ready]=await once(worker,'message');assert.equal(ready.type,'ready');
- for(const mode of ['rift','raid','wave','advancement'])for(const classId of ['warrior','mage','archer','rogue','pirate','priest']){
-  let room=startCoop({id:mode,me:'a',owner:'a',revision:1,mode,tier:mode==='raid'?3:mode==='advancement'?4:mode==='wave'?0:5,status:'waiting',members:['a','b'].map(id=>({id,name:id,classId,power:{...power},advanced:true}))},1000);
+ for(const mode of ['rift','raid','wave','advancement','exploration'])for(const classId of ['warrior','mage','archer','rogue','pirate','priest']){
+  let room=startCoop({id:mode,me:'a',owner:'a',revision:1,mode,tier:mode==='raid'?3:mode==='advancement'?4:['wave','exploration'].includes(mode)?0:5,status:'waiting',members:['a','b'].map(id=>({id,name:id,classId,power:{...power},advanced:true}))},1000);
   room.entryWaiting=false;room.members.forEach((m,i)=>{m.entryMoved=true;m.x=room.enemy.x+(i?200:-200);m.y=room.enemy.y+100;});
   const frames=Array.from({length:30},(_,tick)=>({tick,input:[tick%20<10?.4:-.4,0,1|(tick===4?8:0)|(tick===10?2:0)|(tick===16?16:0)|(tick===21?32:0)|(tick===25?64:0)]}));
   const remote=frames.map(f=>({...f,user:'b'}));
@@ -56,4 +56,4 @@ assert.deepEqual(localSkillView(battle).effects,[own,boss]);assert.equal(battle.
 const memory=new CoopEffectMemory(0);memory.remember([own],10);assert.equal(memory.compose([],10).length,1);assert.equal(memory.compose([],13).length,0);
 memory.remember([own],14);assert.equal(memory.compose([],14).length,0);
 memory.remember([{...own,id:4,kind:'priest',slot:5}],14);assert.equal(memory.compose([],14).length,0);
-console.log('PASS: actual module worker, 4 modes × 6 classes, remote replay, ordering/fallback, skill visibility and effect retention.');
+console.log('PASS: actual module worker, 5 modes × 6 classes, remote replay, ordering/fallback, skill visibility and effect retention.');

@@ -1,3 +1,5 @@
+import {EXPLORATIONS} from './exploration-data.mjs';
+import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs';
 import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs';
 import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=fifth-impact-121';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
@@ -6,7 +8,7 @@ import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=fifth-impact-121';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
-export const coopEncounter=room=>room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
+export const coopEncounter=room=>room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
 import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=fifth-impact-121';
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
@@ -19,13 +21,14 @@ export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startCoop(room,now){return beginCoopEntry(startCoopCombat(room,now),now);}
-function startCoopCombat(room,now){if(room.mode==='raid')return startRaid(room,now);if(room.mode==='advancement')return startTrialCoop(room,now);const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=tier.hp;w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return w.mode==='wave'?initializeWave(w):w;}
+function startCoopCombat(room,now){if(room.mode==='raid')return startRaid(room,now);if(room.mode==='advancement')return startTrialCoop(room,now);const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=tier.hp;w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return w.mode==='exploration'?initializeExploration(w):w.mode==='wave'?initializeWave(w):w;}
 export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
  const w=owned?room:structuredClone(room);
  if(input&&(!Array.isArray(input)||input.length!==3||!input.every(Number.isFinite)||Math.abs(input[0])>1||Math.abs(input[1])>1||!Number.isInteger(input[2])||input[2]<0||input[2]>127))throw Error('INVALID_COOP_INPUT');
  if(w.entryWaiting&&w.status==='fighting')return advanceCoopEntry(w,user,input,now);
  if(w.mode==='raid')return advanceRaidRaw(w,user,input,now,frames);
  if(w.mode==='advancement')return advanceTrialCoopRaw(w,user,input,now,frames);
+ if(w.mode==='exploration'&&w.status==='fighting')return advanceExplorationRaw(w,user,input,now,frames,true);
  if(w.mode==='wave')return advanceWaveRaw(w,user,input,now,frames,true);
  if(w.status==='won'){
   if(input){const m=w.members.find(m=>m.id===user&&!m.left);if(m){m.input=input;m.inputAt=now;}}
@@ -152,7 +155,7 @@ function advanceCoopTimeline(room,user,input,now){
   const movement=input.frames.find(f=>Math.hypot(f.input[0],f.input[1])>.01)?.input||input.frames.at(-1)?.input;
   return advanceCoopEntry(structuredClone(room),user,movement,now);
  }
- const upto=Math.min(room.mode==='wave'?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-room.started)/100))),net=room._net?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[historyPoint(room)],frames:[]};
+ const upto=Math.min(['wave','exploration'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-room.started)/100))),net=room._net?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[historyPoint(room)],frames:[]};
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
@@ -169,11 +172,11 @@ function advanceCoopTimeline(room,user,input,now){
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status==='fighting';){
   w=advanceCoopRaw(w,null,null,w.started+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
-  if(w.tick%(['wave','raid'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w));
+  if(w.tick%(['wave','raid','exploration'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
  net.frames=net.frames.filter(f=>f.tick>=net.points[0].tick);
  for(const m of w.members)m.inputAck=Math.max(m.inputAck??-1,...net.frames.filter(f=>f.user===m.id).map(f=>f.tick));
- if(w.status==='lost'&&upto-w.tick<30&&(room.mode==='wave'||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
+ if(w.status==='lost'&&upto-w.tick<30&&(['wave','exploration'].includes(room.mode)||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
  w._net=net;return w;
 }

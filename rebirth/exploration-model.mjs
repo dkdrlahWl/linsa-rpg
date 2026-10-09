@@ -1,42 +1,21 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=exploration-190';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=exploration-190';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=exploration-190';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=exploration-190';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=exploration-190';
-import {incomingDamage} from './journey-balance.mjs?v=exploration-190';
+import {initializeExploration,explorationProgress} from './exploration-data.mjs';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-impact-121';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fifth-impact-121';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=boss-relic-only-130';
+import {incomingDamage} from './journey-balance.mjs';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const bound=x=>Math.max(120,Math.min(3080,x));
 function random(w){w.seed=(Math.imul(w.seed,1664525)+1013904223)>>>0;return w.seed/4294967296;}
 function spawnRandom(w){w.spawnSeed=(Math.imul(w.spawnSeed??((w.started>>>0)||1),1664525)+1013904223)>>>0;return w.spawnSeed/4294967296;}
-export function waveStats(wave){
- const level=Math.max(1,wave)*2,block=Math.floor((wave-1)/10);
- // Four similarly equipped players share ~24 seconds of single-target work.
- return {level,species:block%30,eliteCount:block+1,hp:Math.round(55+level*11+level*level*1.2),attack:Math.round(7+level*2.1+level*level*.025),speed:22};
-}
-function emitWaveSpawn(w){
- const plan=w.spawnPlan;if(!plan)return;const s=waveStats(w.wave),age=w.tick-plan.at;
- const spawn=(side,elite)=>{const p=200+spawnRandom(w)*2800,x=side===1?3040:side===3?160:p,y=side===0?160:side===2?3040:p;w.serial++;const ordinal=elite?plan.elites:plan.regular[side],id=-(w.wave*100000+(elite?50000:side*10000)+ordinal+1);w.monsters.push({id,x,y,side,elite,species:s.species,level:s.level,hp:s.hp*(elite?4:1),maxHp:s.hp*(elite?4:1),attack:s.attack*(elite?1.7:1),speed:elite?23:s.speed,ready:w.tick+10,walk:0,face:1});};
- // Reinforcements arrive during the first ten seconds, so later waves do not
- // automatically lose merely because their total spawn budget exceeds the arena limit.
- for(let side=0;side<4;side++){const due=Math.min(w.spawnCounts[side],1+Math.floor(age/10));while(plan.regular[side]<due&&w.monsters.length<WAVE_LIMIT){spawn(side,false);plan.regular[side]++;}}
- const elitesDue=Math.min(s.eliteCount,1+Math.floor(age*s.eliteCount/100));while(plan.elites<elitesDue&&w.monsters.length<WAVE_LIMIT){spawn(Math.floor(spawnRandom(w)*4),true);plan.elites++;}
- if(w.monsters.length>=WAVE_LIMIT){w.status='lost';w.reason='overrun';w.endedTick=w.tick;}
-}
-export function spawnWave(w){
- if(w.wave>=WAVE_END){w.wave=WAVE_END;w.status='won';w.reason='ending';w.cleared=WAVE_END;w.endedTick=w.tick;w.nextWave=w.tick;return;}
- w.wave++;w.nextWave=w.tick+WAVE_SECONDS*10;w.spawnCounts=Array.from({length:4},()=>5+Math.floor(spawnRandom(w)*6));w.spawnPlan={at:w.tick,regular:[0,0,0,0],elites:0};emitWaveSpawn(w);
-}
-export function initializeWave(w){
- Object.assign(w,{wave:0,nextWave:0,monsters:[],kills:0,spawnSeed:(w.started>>>0)||1,seed:(w.started>>>0)||1});
- for(const m of w.members){m.x=1450+w.members.indexOf(m)*100;m.y=1600;m.reviveProgress=0;}
- spawnWave(w);return w;
-}
+export {initializeExploration};
 function number(w,value,a,kind){w.numbers.push({id:++w.serial,value,x:a.x,y:a.y-90,kind,start:w.tick,end:w.tick+16});}
 function damage(w,m,targets,scale,critAdd=0){
  const first=w.tick<(m.guardUntil||0)&&CLASS_SKILLS[m.classId].type==='buff'?CLASS_SKILLS[m.classId]:null;
- for(const enemy of targets){if(enemy.hp<=0)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
+ for(const enemy of targets){if(enemy.hp<=0)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(enemy.boss?m.power.boss:1)*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
 }
 function pulse(w,m,cast,sk){
  const aim=sk.mode==='orbit'?m:sk.mode==='volley'?(w.monsters.filter(e=>e.hp>0&&distance(e,m)<=sk.range+150).sort((a,b)=>distance(a,m)-distance(b,m))[0]||cast):cast;
@@ -45,7 +24,7 @@ function pulse(w,m,cast,sk){
  if(cast.kind!=='fourth')w.effects.push({id:++w.serial,kind:cast.kind,classId:m.classId,owner:m.id,x:aim.x,y:aim.y,size:sk.radius*2,orbit:sk.mode==='orbit',pulse:sk.hits-cast.left,start:w.tick,impact:w.tick,end:w.tick+Math.max(4,Math.min(10,sk.interval)),fromX:m.x,fromY:m.y,volley:sk.mode==='volley'});
  cast.left--;cast.next+=sk.interval;
 }
-export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
+export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false){
  const w=owned?room:structuredClone(room);if(w.status!=='fighting')return w;
  const upto=Math.max(w.tick,Math.floor((now-w.started)/100));
  // A disconnected arena cannot be kept alive by skipping simulation time.
@@ -55,7 +34,7 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
   for(const f of frames)if(f.tick===t){const m=w.members.find(a=>a.id===f.user&&!a.left);if(m){m.input=f.input;m.inputAt=w.started+t*100;}}
   let alive=w.members.filter(m=>!m.left&&m.hp>0);
   if(!alive.length){w.status='lost';w.reason='dead';w.endedTick=t;break;}
-  if(t>=w.nextWave&&w.wave<WAVE_END)spawnWave(w);else emitWaveSpawn(w);if(w.status==='lost')break;
+  explorationProgress(w);if(w.status!=='fighting')break;
   w.effects=boundedCombatEffects(w.effects,t,70);w.numbers=w.numbers.filter(e=>e.end>t).slice(-35);w.hazards=w.hazards.filter(h=>h.end>t);w.projectiles=[];
   supportTick(w.members,t);
   for(const m of alive){
@@ -89,18 +68,17 @@ export function advanceWaveRaw(room,user,input,now,frames=[],owned=false){
   supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
   w.monsters=w.monsters.filter(e=>e.hp>0);
   // A cleared full spawn budget advances immediately, without waiting for the clock.
-  const plan=w.spawnPlan;
-  if(!w.monsters.length&&plan&&plan.regular.every((n,i)=>n>=w.spawnCounts[i])&&plan.elites>=waveStats(w.wave).eliteCount)spawnWave(w);
+  explorationProgress(w);
   if(w.status==='won')break;
   for(const e of w.monsters){
    alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length)break;
    const target=alive.reduce((a,b)=>distance(a,e)<distance(b,e)?a:b),d=distance(target,e);
-   e.moving=false;if(!e.strike&&!e.skill&&d>70){const dx=(target.x-e.x)/d,dy=(target.y-e.y)/d;e.x=bound(e.x+dx*e.speed);e.y=bound(e.y+dy*e.speed);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
+   e.moving=false;if(!e.aggro&&(d<760||e.hp<e.maxHp||e.boss))e.aggro=true;if(!e.aggro)continue;if(!e.strike&&!e.skill&&d>70){const dx=(target.x-e.x)/d,dy=(target.y-e.y)/d;e.x=bound(e.x+dx*e.speed);e.y=bound(e.y+dy*e.speed);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
    if(!e.strike&&!e.skill&&d<150&&t>=e.ready){e.strike={x:target.x,y:target.y,at:t+(e.elite?7:5)};e.castStart=t;e.attackStart=e.strike.at;e.attackUntil=e.attackStart+4;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);e.ready=t+(e.elite?20:25);w.hazards.push({type:'circle',x:target.x,y:target.y,r:e.elite?135:95,inner:0,at:e.strike.at,end:e.strike.at+2});}
    if(e.elite&&!e.strike&&!e.skill&&d<950&&t>=(e.skillReady||40)){
-    const type=e.species%3===1?'line':'circle',at=t+13;
-    e.skill=type==='line'?{type,x:e.x,y:e.y,tx:target.x,ty:target.y,width:130,at,end:at+3}:{type,x:e.species%3===2?e.x:target.x,y:e.species%3===2?e.y:target.y,r:e.species%3===2?240:170,inner:0,at,end:at+3};
-    w.hazards.push({...e.skill});e.skillReady=t+85;e.castStart=t;e.attackStart=at;e.attackUntil=at+5;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);
+    const type=(e.species+w.tier+Math.floor(t/85))%3===1?'line':'circle',at=t+(e.boss?18:13);
+    e.skill=type==='line'?{type,x:e.x,y:e.y,tx:target.x,ty:target.y,width:e.boss?240:130,at,end:at+3}:{type,x:e.species%3===2?e.x:target.x,y:e.species%3===2?e.y:target.y,r:e.boss?420:e.species%3===2?240:170,inner:0,at,end:at+3};
+    w.hazards.push({...e.skill});e.skillReady=t+(e.boss?55:85);e.castStart=t;e.attackStart=at;e.attackUntil=at+5;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);
    }
    if(e.skill&&t>=e.skill.at){const h=e.skill;for(const m of alive){let inside=distance(m,h)<=h.r;if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,q=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy||1)));inside=Math.hypot(m.x-h.x-q*dx,m.y-h.y-q*dy)<=h.width/2;}if(!inside||t<m.immune||t<m.hurtReady)continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*1.65*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}delete e.skill;}
    if(e.strike&&t>=e.strike.at){for(const m of alive){if(t<m.immune||t<m.hurtReady||distance(m,e.strike)>(e.elite?135:95))continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.max(1,Math.round(incomingDamage(e.attack,m.power.defense)*guard));m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+3;number(w,value,m,'incoming');if(!m.hp){m.reviveProgress=0;delete m.firstCast;delete m.secondCast;delete m.thirdCast;delete m.fourthCast;delete m.fifthCast;}}
