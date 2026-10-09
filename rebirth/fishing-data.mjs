@@ -24,6 +24,6 @@ export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.92},{id:'diamondC
 export const rodGoldCost=level=>Math.round(20000*1.17**(level-1)/100)*100*(level>=10&&level<30?5:1);
 export const rodDiamondCost=level=>2+Math.floor(level/5);
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.round(RARITIES[d.rarity].price*(.55+1.45*fish.weight/d.max)):0;};
-export const fishYield=fish=>Math.max(1,Math.floor(fishPrice(fish)*.015)); // gold/hour, 12-hour offline cap
+export const fishYield=fish=>3*Math.max(1,Math.floor(fishPrice(fish)*.015)); // 3x gold/hour, 12-hour offline cap
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
 export const resourceName=id=>({diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
