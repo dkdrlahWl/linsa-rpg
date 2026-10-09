@@ -1,0 +1,35 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "path": "rebirth/exploration/terrain-0-193.webp",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "layout": "3 columns × 2 rows: floor, wall A, wall B, ornament A, ornament B, staircase",
+      "theme": "moonlit woodland dungeon, warm earthy mossy footpaths, blue slate craggy cavern walls with hanging ivy and ferns, gentle luminous teal flowers, ancient overgrown stone staircase",
+      "prompt": "Production top-down hand-painted moonlit woodland dungeon 3×2 atlas. Opaque seamless earthy stone floor in top left; isolated alpha crag walls covered in ivy and ferns in top middle/right; ruined pillar, teal mineral cluster and carved stone stair in bottom row. Six equal square cells, no labels, no HUD, no visible grid, no characters."
+    },
+    {
+      "path": "rebirth/exploration/terrain-1-193.webp",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "layout": "3 columns × 2 rows: floor, wall A, wall B, ornament A, ornament B, staircase",
+      "theme": "volcanic crystal mine dungeon, warm worn dark basalt footpaths with natural gravel, massive jagged charcoal rocks with dim amber lava fissures and ruby crystals, old iron mining lantern and broken rail ore pile, basalt staircase descending into darkness",
+      "prompt": "Use case: stylized-concept. Asset type: real game production top-down fantasy dungeon environment tileset atlas, not a screenshot. A precisely aligned 3-column by 2-row atlas, 1536x1024 aspect ratio 3:2, six equal square cells, no gutters or visible grid. Theme: volcanic crystal mine dungeon, warm worn dark basalt footpaths with natural gravel, massive jagged charcoal rocks with dim amber lava fissures and ruby crystals, old iron mining lantern and broken rail ore pile, basalt staircase descending into darkness. Rich hand painted Japanese dungeon RPG style, natural irregular material detail, soft dimensional shadows, 3/4 top-down view. TOP LEFT cell: opaque seamless tileable WALKABLE DARK BASALT AND GRAVEL FLOOR texture only, no objects and no border, restrained readable charcoal-brown with subtle ember fissures at edges, compatible seamless edges. TOP MIDDLE: isolated massive irregular jagged basalt rock wall outcrop with small ruby crystals and subtle amber cracks. TOP RIGHT: another variant of the same rocky wall mass with warm mineral veins. BOTTOM LEFT: isolated old mining lantern with tiny broken rail and ore pile. BOTTOM MIDDLE: isolated rich ruby/amber glowing crystal cluster in black volcanic rock. BOTTOM RIGHT: isolated ancient chipped basalt staircase descending into a dark square cave hole, stone rim organic and uneven, stair from top-down. All five isolated props centered with 8 percent alpha-clear margin per own cell and no overlaps. Background outside isolated assets must be actual transparent alpha, not a painted backdrop; floor texture square is opaque. NO words, no labels, no HUD, no characters, no boxes, no wireframes, no tile grid lines. This is a playable high quality atmospheric dungeon tileset with visible artwork, no geometric placeholders."
+    },
+    {
+      "path": "rebirth/exploration/terrain-2-193.webp",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "layout": "3 columns × 2 rows: floor, wall A, wall B, ornament A, ornament B, staircase",
+      "theme": "celestial ruined temple dungeon, worn dusty lavender stone paths with subtle fine cracks, massive craggy deep indigo stones with amethyst deposits and pale vines, broken ornate silver column and glowing azure crystal flower, ancient purple stone staircase descending into darkness",
+      "prompt": "Use case: stylized-concept. Asset type: real game production top-down fantasy dungeon environment tileset atlas, not a screenshot. A precisely aligned 3-column by 2-row atlas, 1536x1024 aspect ratio 3:2, six equal square cells, no gutters or visible grid. Theme: celestial ruined temple dungeon, worn dusty lavender stone paths with subtle fine cracks, massive craggy deep indigo stones with amethyst deposits and pale vines, broken ornate silver column and glowing azure crystal flower, ancient purple stone staircase descending into darkness. Rich hand painted Japanese dungeon RPG style, natural irregular material detail, soft dimensional shadows, 3/4 top-down view. TOP LEFT cell: opaque seamless tileable WALKABLE WEATHERED LAVENDER STONE FLOOR texture only, fine organically irregular worn slabs and dust with fine cracks, no border, no large objects, restrained and quiet readable walking surface, compatible seamless edges. TOP MIDDLE: isolated massive irregular jagged deep indigo ancient stone wall outcrop with amethyst and pale silver vines. TOP RIGHT: another variant of the same rocky wall mass with gentle blue mineral luminescence. BOTTOM LEFT: isolated broken ornate ancient silver-purple temple column draped in pale vines. BOTTOM MIDDLE: isolated rich azure/amethyst glowing crystal flower cluster embedded in indigo stone. BOTTOM RIGHT: isolated ancient chipped lavender stone staircase descending into a dark square cave hole, stone rim organic and uneven, stair from top-down. All five isolated props centered with 8 percent alpha-clear margin per own cell and no overlaps. Background outside isolated assets must be actual transparent alpha, not a painted backdrop; floor texture square is opaque. NO words, no labels, no HUD, no characters, no boxes, no wireframes, no tile grid lines. This is a playable high quality atmospheric dungeon tileset with visible artwork, no geometric placeholders."
+    }
+  ]
+}

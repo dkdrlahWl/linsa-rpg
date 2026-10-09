@@ -1,47 +1,56 @@
-import {dungeonTile,dungeonSeen} from './exploration-dungeon.mjs';
-const palettes=[
- {void:'#101923',wall:'#273d49',edge:'#536b6d',floor:'#475856',room:'#56665e',light:'#87a799',accent:'#a8ddb0'},
- {void:'#21141f',wall:'#49303c',edge:'#89525a',floor:'#61504c',room:'#705a4e',light:'#af8365',accent:'#f4af65'},
- {void:'#15152c',wall:'#313448',edge:'#686989',floor:'#454962',room:'#555c79',light:'#939bbd',accent:'#b5c6ff'},
-];
-export function drawExplorationDungeon(renderer,b,image){
+import {dungeonSeen} from './exploration-dungeon.mjs';
+export const explorationTerrainSource=tier=>'exploration/terrain-'+tier+'-193.webp';
+const moods=[{base:'#242a25',fog:'#101c25',glow:'#70eeb0'},{base:'#2b211e',fog:'#211520',glow:'#ff963f'},{base:'#292838',fog:'#13182c',glow:'#a4b0ff'}];
+function cell(g,im,index,x,y,width,height=width,flip=false){
+ const sw=im.naturalWidth/3,sh=im.naturalHeight/2;
+ g.save();g.translate(x,y);if(flip)g.scale(-1,1);
+ g.drawImage(im,(index%3)*sw,Math.floor(index/3)*sh,sw,sh,-width/2,-height/2,width,height);g.restore();
+}
+function floorPattern(im){
+ // Mirrored texture edges join without a tile outline or repeated rectangular seams.
+ const tile=document.createElement('canvas');tile.width=tile.height=800;const g=tile.getContext('2d'),sw=im.naturalWidth/3,sh=im.naturalHeight/2;
+ for(let y=0;y<2;y++)for(let x=0;x<2;x++){g.save();g.translate(x*400+(x?400:0),y*400+(y?400:0));g.scale(x?-1:1,y?-1:1);g.drawImage(im,0,0,sw,sh,0,0,400,400);g.restore();}
+ return tile;
+}
+export function drawExplorationDungeon(renderer,b,im){
  const g=renderer.g,d=b.dungeon;if(!d)return false;
- const p=palettes[b.tier]||palettes[0],loaded=image.complete&&image.naturalWidth>0;
+ const mood=moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
  if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
-  // One half-resolution background per renderer, released/replaced between floors.
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=1600;const c=canvas.getContext('2d');c.scale(.5,.5);
-  c.fillStyle=p.void;c.fillRect(0,0,3200,3200);
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1600;const c=canvas.getContext('2d');c.scale(.5,.5);c.fillStyle=mood.base;c.fillRect(0,0,3200,3200);
+  const pattern=loaded?c.createPattern(floorPattern(im),'repeat'):mood.base;
+  c.fillStyle=pattern;c.fillRect(0,0,3200,3200);c.fillStyle=mood.fog+'e8';c.fillRect(0,0,3200,3200);
   const floor=new Path2D();for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]!=='0')floor.rect(x*100,y*100,100,100);
-  c.save();c.clip(floor);c.fillStyle=p.floor;c.fillRect(0,0,3200,3200);
-  for(const r of d.rooms){c.fillStyle=p.room;c.fillRect(r.x*100,r.y*100,r.w*100,r.h*100);}
-  if(loaded){c.globalAlpha=.24;c.drawImage(image,0,0,3200,3200);c.globalAlpha=1;}
-  for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]!=='0'){
-   c.strokeStyle='#07131a24';c.lineWidth=2;c.strokeRect(x*100+2,y*100+2,96,96);
-   const hash=(x*83+y*137+b.floor*23)%19;
-   if(hash<4){c.strokeStyle=p.light+'38';c.lineWidth=2;c.beginPath();c.moveTo(x*100+17,y*100+58);c.lineTo(x*100+43,y*100+49);c.lineTo(x*100+63,y*100+57);c.stroke();}
-  }
+  c.save();c.clip(floor);c.fillStyle=pattern;c.fillRect(0,0,3200,3200);
+  for(const r of d.rooms){const x=(r.x+r.w/2)*100,y=(r.y+r.h/2)*100,light=c.createRadialGradient(x,y,30,x,y,460);light.addColorStop(0,'#ffe2aa16');light.addColorStop(1,'#ffe2aa00');c.fillStyle=light;c.fillRect(r.x*100,r.y*100,r.w*100,r.h*100);}
   c.restore();
-  // Rock faces and bright floor outlines make solid walls and doorways readable.
-  for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]==='0'){
-   const adjacent=[[0,1],[0,-1],[1,0],[-1,0]].some(([dx,dy])=>d.tiles[y+dy]?.[x+dx]&&d.tiles[y+dy][x+dx]!=='0');if(!adjacent)continue;
-   c.fillStyle=p.wall;c.fillRect(x*100+3,y*100+3,94,94);c.strokeStyle=p.edge;c.lineWidth=4;c.strokeRect(x*100+9,y*100+9,82,82);
-   c.fillStyle='#05091248';c.fillRect(x*100+5,y*100+67,90,28);
-   if(d.tiles[y+1]?.[x]&&d.tiles[y+1][x]!=='0'){c.fillStyle=p.edge;c.fillRect(x*100,y*100+86,100,14);}
+  if(loaded){
+   // Painted cliffs overlap and vary naturally. No floor grid or rectangular wall frames.
+   for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]==='0'){
+    const adjacent=[[0,1],[0,-1],[1,0],[-1,0]].some(([dx,dy])=>d.tiles[y+dy]?.[x+dx]&&d.tiles[y+dy][x+dx]!=='0');if(!adjacent)continue;
+    const hash=(x*83+y*137+(b.explorationFloor||b.floor)*23)%101,width=168+hash%19;
+    c.save();c.shadowColor='#00000090';c.shadowBlur=18;c.shadowOffsetY=14;cell(c,im,1+hash%2,x*100+50+(hash%9-4),y*100+48+(hash%11-5),width,165+hash%17,hash%3===0);c.restore();
+   }
+   for(const r of d.rooms){
+    for(const [i,x,y] of [[3,r.x-.5,r.y+1],[4,r.x+r.w+.5,r.y+r.h-1]]){
+     if(d.tiles[Math.floor(y)]?.[Math.floor(x)]!=='0')continue;
+     const glow=c.createRadialGradient(x*100,y*100,0,x*100,y*100,160);glow.addColorStop(0,mood.glow+'28');glow.addColorStop(1,mood.glow+'00');c.fillStyle=glow;c.fillRect(x*100-160,y*100-160,320,320);cell(c,im,i,x*100,y*100,200,215);
+    }
+   }
   }
-  c.save();c.clip(floor);c.strokeStyle=p.accent+'78';c.lineWidth=6;c.stroke(floor);c.restore();
   renderer.dungeonLayer={id:d.id,canvas,loaded};
  }
  g.drawImage(renderer.dungeonLayer.canvas,0,0,3200,3200);
- // The stair exists physically from entry; it activates only after all enemies die.
- const {x,y}=b.exit;g.save();g.translate(x,y);g.fillStyle='#121b27';g.strokeStyle=b.exitOpen?'#a0ffd1':'#75828d';g.lineWidth=5;g.fillRect(-70,-62,140,124);g.strokeRect(-70,-62,140,124);
- for(let i=0;i<5;i++){g.fillStyle=b.exitOpen?['#4e927d','#6ea992'][i%2]:['#46515b','#5b6870'][i%2];g.fillRect(-56+i*7,-46+i*20,112-i*14,13);}
- g.font='bold 26px sans-serif';g.textAlign='center';g.fillStyle=b.exitOpen?'#ccffe3':'#ccd3d9';g.fillText(b.status==='won'?'보상 상자':b.exitOpen?'다음 층 ↑':'계단 잠김',0,-90);g.restore();
+ if(loaded){const {x,y}=b.exit;g.save();if(b.exitOpen){const glow=g.createRadialGradient(x,y,0,x,y,180);glow.addColorStop(0,mood.glow+'55');glow.addColorStop(1,mood.glow+'00');g.fillStyle=glow;g.fillRect(x-180,y-180,360,360);}cell(g,im,5,x,y,235,235);g.font='bold 24px sans-serif';g.textAlign='center';g.lineWidth=5;g.strokeStyle='#10141b';g.fillStyle=b.exitOpen?'#ccffe3':'#d9d5cb';const label=b.status==='won'?'보상 상자':b.exitOpen?'다음 층 ↑':'계단 잠김';g.strokeText(label,x,y-135);g.fillText(label,x,y-135);g.restore();}
  return true;
 }
-export function drawExplorationFog(g,b,camera,width,height){
- const d=b.dungeon;if(!d)return;
- g.fillStyle='#0b101cf2';const left=Math.max(0,Math.floor(camera.x/100)),right=Math.min(31,Math.ceil((camera.x+width)/100)),top=Math.max(0,Math.floor(camera.y/100)),bottom=Math.min(31,Math.ceil((camera.y+height)/100));
- for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++)if(d.seen[y][x]!=='1')g.fillRect(x*100,y*100,101,101);
+export function drawExplorationFog(g,b,camera,width,height,renderer){
+ const d=b.dungeon;if(!d)return;const key=d.id+':'+d.seen.join('');
+ if(renderer.dungeonFog?.key!==key){
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1600;const c=canvas.getContext('2d');c.scale(.5,.5);const path=new Path2D();
+  for(let y=0;y<32;y++){let start=-1;for(let x=0;x<=32;x++){if(x<32&&d.seen[y][x]!=='1'){if(start<0)start=x;}else if(start>=0){path.rect(start*100-1,y*100-1,(x-start)*100+2,102);start=-1;}}}
+  c.filter='blur(14px)';c.fillStyle=(moods[b.tier]||moods[0]).fog+'fa';c.fill(path);renderer.dungeonFog={key,canvas};
+ }
+ g.drawImage(renderer.dungeonFog.canvas,0,0,3200,3200);
 }
 export function drawExplorationMinimap(g,b,player){
  const d=b.dungeon;if(!d)return;const x=790,y=20,size=190,scale=size/32;

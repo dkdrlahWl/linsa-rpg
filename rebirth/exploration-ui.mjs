@@ -20,4 +20,4 @@ export function explorationHud(host,w){
  const chest=host.querySelector('#tower-chest');chest.hidden=w.status!=='won';chest.disabled=!w.chest||Math.hypot(me.x-w.chest.x,me.y-w.chest.y)>180;
  chest.textContent=chest.disabled?'개인 상자 가까이 이동하세요':'개인 상자 받고 나가기';
 }
-export function prepareExplorationArt(tier,image){return Promise.all([image(EXPLORATIONS[tier].map),...Array.from({length:3},(_,i)=>image(explorationArt(tier,i))),image(explorationArt(tier,3,true))].map(im=>im.decode()));}
+export function prepareExplorationArt(tier,image){return Promise.all([image(EXPLORATIONS[tier].map),image('exploration/terrain-'+tier+'-193.webp'),...Array.from({length:3},(_,i)=>image(explorationArt(tier,i))),image(explorationArt(tier,3,true))].map(im=>im.decode()));}
