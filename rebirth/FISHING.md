@@ -32,7 +32,8 @@ dungeons; this release does not implement a new key dungeon.
 
 Fish bag capacity 150; aquarium starts with three slots and expands to ten.
 Fish move between bag/tank, cannot be sold while in the tank, and disappear
-when sold. Aquarium hourly income is floor(sale price × 1.5%), minimum 1 G.
+when sold. Aquarium hourly income is 3 × max(1, floor(sale price × 1.5%)),
+exactly triple the original income for every fish.
 Offline accrual caps at twelve hours; settle before changing tank residents,
 retain fractional gold after claims. Expansion costs 100,000 × 3^(slots−3).
 
