@@ -23,3 +23,5 @@ Built-in ImageGen created all three 1024×1024 painted top-down backgrounds and 
 `node rebirth/exploration.test.mjs`: all-kill gating, 10/11/12 floors, final boss, monotonic floor transition, frozen party difficulty, exact theme scaling, timeout, chest movement/reward, delayed replay, bounded four-player combat.
 
 `node rebirth/coop-worker.test.mjs`: actual worker equivalence for five modes and six classes. Existing raid latency, eight-player repeated-raid soak, and request lifecycle checks also pass. Legacy `coop-replay.test.mjs` fails its pre-entry movement setup on unchanged main as well; this feature has independent late-input coverage. Managed preview lacks the required control-browser capability, so browser visual QA is unavailable in this environment.
+
+다음 테마는 직전 테마의 최종 보스를 처치하고 개인 보상을 수령한 후 해금됩니다. 잠긴 테마의 방 생성·참가·시작은 서버에서도 차단합니다.

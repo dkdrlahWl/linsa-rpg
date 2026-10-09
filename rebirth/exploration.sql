@@ -54,6 +54,7 @@ begin
    room_mode:=case when action='create' then coalesce(p->'args'->>'mode','rift') else coalesce(w->>'mode','rift') end;
    if room_mode not in ('rift','wave','advancement','raid','exploration') then raise exception 'INVALID_COOP_MODE';end if;
    if room_mode='exploration' and tier not between 0 and 2 then raise exception 'INVALID_EXPLORATION';end if;
+   if room_mode='exploration' and tier>0 and not (coalesce(actor.state->'exploration'->'cleared','[]'::jsonb) @> jsonb_build_array(tier-1)) then raise exception 'EXPLORATION_PREVIOUS_REQUIRED';end if;
    if room_mode='raid' and tier not between 0 and 3 then raise exception 'INVALID_RAID';end if;
    if room_mode='advancement' then
     if tier not between 0 and 4 then raise exception 'INVALID_TRIAL';end if;
@@ -117,6 +118,14 @@ begin
    if action='start' and (w->>'owner'<>u::text or w->>'status'<>'waiting') then raise exception 'INVALID_COOP_START';end if;
    if action='start' and exists(select 1 from jsonb_array_elements(w->'members') where not coalesce((value->>'ready')::boolean,false)) then raise exception 'COOP_NOT_READY';end if;
    if action='start' and w->>'mode'='exploration' and ((w->>'tier')::int not between 0 and 2 or jsonb_array_length(w->'members') not between 1 and 4) then raise exception 'INVALID_EXPLORATION';end if;
+   if action='start' and w->>'mode'='exploration' then
+    tier:=(w->>'tier')::int;
+    for member in select value from jsonb_array_elements(w->'members') loop
+     select state into st from rebirth_private.players where id=(member->>'id')::uuid;
+     if st->>'coopRoom' is distinct from rid::text then raise exception 'PARTY_NOT_FOUND';end if;
+     if tier>0 and not (coalesce(st->'exploration'->'cleared','[]'::jsonb) @> jsonb_build_array(tier-1)) then raise exception 'EXPLORATION_PREVIOUS_REQUIRED';end if;
+    end loop;
+   end if;
    if action='start' and w->>'mode'='raid' then
     if (w->>'tier')::int not between 0 and 3 or jsonb_array_length(w->'members') not between 1 and 8 then raise exception 'INVALID_RAID';end if;
 
