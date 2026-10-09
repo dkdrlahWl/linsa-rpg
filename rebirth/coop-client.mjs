@@ -1,3 +1,4 @@
+import {EXPLORATION_MOVE_SPEED} from './exploration-data.mjs';
 import {dungeonMove,dungeonSeen} from './exploration-dungeon.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {explorationLobby,explorationHud,prepareExplorationArt} from './exploration-ui.mjs?v=exploration-190';
@@ -197,7 +198,7 @@ export class CoopController{
   this.motion.begin(now);
   const smooth=(actor,old,key)=>this.motion.sample(key,interpolateActor(actor,old,visualFraction));
   const projection={waveMode:['wave','exploration'].includes(w.mode),player:me,classId:me.classId,tick:w.tick,dashReady:me.dashReady,dashUntil:me.dashUntil,dashX:me.dx,dashY:me.dy};
-  const point=projectPlayer(projection,projectionInput),player=this.motion.sample('player:'+me.id,{...me,...point},true),enemy=smooth(w.enemy,this.previousSim?.enemy,'enemy');
+  const point=projectPlayer(projection,projectionInput);if(w.mode==='exploration'){point.x=me.x+(point.x-me.x)*EXPLORATION_MOVE_SPEED;point.y=me.y+(point.y-me.y)*EXPLORATION_MOVE_SPEED;}const player=this.motion.sample('player:'+me.id,{...me,...point},true),enemy=smooth(w.enemy,this.previousSim?.enemy,'enemy');
   this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:this.room.status==='won',ended:['won','lost'].includes(this.room.status)});
   if(this.room.status==='won')this.auto=false;
   if(w.mode==='raid'){const corrected={x:me.x,y:me.y};raidMove(corrected,player.x,player.y,w.walls);Object.assign(player,corrected);}

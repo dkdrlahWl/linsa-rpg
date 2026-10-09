@@ -1,5 +1,5 @@
 import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs';
-import {EXPLORATIONS} from './exploration-data.mjs';
+import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs';
 import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs';
 import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs';
 import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=fifth-impact-121';
@@ -34,8 +34,8 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
  if(w.status==='won'){
   if(input){const m=w.members.find(m=>m.id===user&&!m.left);if(m){m.input=input;m.inputAt=now;}}
   const dt=Math.max(0,Math.min(1000,now-(w.lootAt??now)))/1000;w.lootAt=now;w.tick+=dt*10;
-  for(const m of w.members){if(m.left)continue;let [x,y]=now-m.inputAt<1500?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y));if(w.mode==='exploration')dungeonMove(w.dungeon,m,x/n*TOWER_CLASSES[m.classId].speed*10*dt,y/n*TOWER_CLASSES[m.classId].speed*10*dt);else{m.x=clamp(m.x+x/n*TOWER_CLASSES[m.classId].speed*10*dt);m.y=clamp(m.y+y/n*TOWER_CLASSES[m.classId].speed*10*dt);}m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?dt*10:0);if(x)m.face=x<0?-1:1;}
-  if(w.mode==='exploration')revealDungeon(w);
+  for(const m of w.members){if(m.left)continue;let [x,y]=now-m.inputAt<1500?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y));if(w.mode==='exploration')dungeonMove(w.dungeon,m,x/n*TOWER_CLASSES[m.classId].speed*10*dt*EXPLORATION_MOVE_SPEED,y/n*TOWER_CLASSES[m.classId].speed*10*dt*EXPLORATION_MOVE_SPEED);else{m.x=clamp(m.x+x/n*TOWER_CLASSES[m.classId].speed*10*dt);m.y=clamp(m.y+y/n*TOWER_CLASSES[m.classId].speed*10*dt);}m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?dt*10:0);if(x)m.face=x<0?-1:1;}
+  if(w.mode==='exploration'){collectExplorationHearts(w);revealDungeon(w);}
   const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=[input[0],input[1],0];me.inputAt=now;}return w;
  }
  if(w.status!=='fighting')return w;

@@ -1,5 +1,5 @@
 import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs';
-import {initializeExploration,explorationProgress} from './exploration-data.mjs';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs';
 import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-impact-121';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
@@ -41,7 +41,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const m of alive){
    const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0];const n=Math.max(1,Math.hypot(x,y));x/=n;y/=n;m.dir=towerFacing(x,y,m.dir);m.moving=Math.hypot(x,y)>.01;if(m.moving)m.walk++;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}
-   const dashing=t<(m.dashUntil||0),speed=c.speed;dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(x)m.face=x<0?-1:1;
+   const dashing=t<(m.dashUntil||0),speed=c.speed*EXPLORATION_MOVE_SPEED;dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(x)m.face=x<0?-1:1;
 
    const targets=w.monsters.filter(e=>e.hp>0&&dungeonSight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
    if(target&&(bits&1)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
@@ -67,6 +67,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
    }
   }
   supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
+  collectExplorationHearts(w);
   w.monsters=w.monsters.filter(e=>e.hp>0);
   // A cleared full spawn budget advances immediately, without waiting for the clock.
   explorationProgress(w);

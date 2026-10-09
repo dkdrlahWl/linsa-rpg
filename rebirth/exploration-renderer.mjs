@@ -12,7 +12,7 @@ function floorPattern(im){
  for(let y=0;y<2;y++)for(let x=0;x<2;x++){g.save();g.translate(x*400+(x?400:0),y*400+(y?400:0));g.scale(x?-1:1,y?-1:1);g.drawImage(im,0,0,sw,sh,0,0,400,400);g.restore();}
  return tile;
 }
-export function drawExplorationDungeon(renderer,b,im){
+export function drawExplorationDungeon(renderer,b,im,heart){
  const g=renderer.g,d=b.dungeon;if(!d)return false;
  const mood=moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
  if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
@@ -41,6 +41,7 @@ export function drawExplorationDungeon(renderer,b,im){
  }
  g.drawImage(renderer.dungeonLayer.canvas,0,0,3200,3200);
  if(loaded){const {x,y}=b.exit;g.save();if(b.exitOpen){const glow=g.createRadialGradient(x,y,0,x,y,180);glow.addColorStop(0,mood.glow+'55');glow.addColorStop(1,mood.glow+'00');g.fillStyle=glow;g.fillRect(x-180,y-180,360,360);}cell(g,im,5,x,y,235,235);g.font='bold 24px sans-serif';g.textAlign='center';g.lineWidth=5;g.strokeStyle='#10141b';g.fillStyle=b.exitOpen?'#ccffe3':'#d9d5cb';const label=b.status==='won'?'보상 상자':b.exitOpen?'다음 층 ↑':'계단 잠김';g.strokeText(label,x,y-135);g.fillText(label,x,y-135);g.restore();}
+ if(heart?.complete&&heart.naturalWidth){for(const h of b.hearts||[]){if(!dungeonSeen(d,h.x,h.y))continue;g.save();const bob=Math.sin((b.tick||0)*.12+h.id)*6;g.shadowColor='#ff588e';g.shadowBlur=16;g.drawImage(heart,h.x-42,h.y-62-bob,84,84);g.shadowBlur=0;g.font='bold 23px sans-serif';g.textAlign='center';g.strokeStyle='#17212c';g.lineWidth=4;g.fillStyle='#ffbed1';g.strokeText('+10%',h.x,h.y+43);g.fillText('+10%',h.x,h.y+43);g.restore();}}
  return true;
 }
 export function drawExplorationFog(g,b,camera,width,height,renderer){
@@ -62,6 +63,7 @@ export function drawExplorationMinimap(g,b,player){
   }
  }
  const dot=(m,color,r)=>{g.fillStyle=color;g.beginPath();g.arc(x+m.x/3200*size,y+m.y/3200*size,r,0,Math.PI*2);g.fill();};
+ for(const h of b.hearts||[])if(dungeonSeen(d,h.x,h.y))dot(h,'#ffb0d0',3);
  for(const e of b.monsters||[])if(dungeonSeen(d,e.x,e.y))dot(e,e.boss?'#ffc963':'#ff747d',e.boss?4:2.4);
  for(const m of b.allies||[])dot(m,'#84e2d0',3);dot(player,'#ffffff',3.6);
  if(dungeonSeen(d,b.exit.x,b.exit.y))dot(b.exit,b.exitOpen?'#85ffc1':'#b1a79b',4);

@@ -10,7 +10,7 @@ Theme multipliers are exactly 1, 1.5, 2.25. Floor depth runs from 48% to 100% of
 
 ## Multiplayer and rewards
 
-Uses existing coop rooms, durable validated input queues, bounded late-input replay, acknowledgements, worker prediction, and idempotent personal chest receipts. Monotonic global tick survives floors. At most eleven creatures, four players, seventy active combat effects, and thirty-five damage numbers per tick. No per-monster network requests. Only local player skill effects are drawn as in the existing raid.
+Uses existing coop rooms, durable validated input queues, bounded late-input replay, acknowledgements, worker prediction, and idempotent personal chest receipts. Monotonic global tick survives floors. At most thirty creatures, four players, seventy active combat effects, and thirty-five damage numbers per tick. No per-monster network requests. Only local player skill effects are drawn as in the existing raid.
 
 Final personal chest: 100,000/150,000/225,000 gold; 3/4/5 red cubes; 1/2/3 black cubes. Each character receives its own chest after contributing damage or priest healing/shields. No partial floor rewards. Clear/best-time records persist on the player state. SQL public entry remains executable only by postgres and service_role, keeping session/epoch/readiness/membership and receipt checks intact.
 
@@ -35,3 +35,7 @@ Each floor now has six tile rooms linked by two-tile corridors, branches and a l
 ## Painted environment art replacement
 
 Replaces geometric floor grids and outlined wall cells with three newly generated transparent 3×2 environment atlases: woodland earth/slate/ivy, volcanic basalt/ruby/lantern, and celestial lavender stone/amethyst/columns. Each atlas includes seamless floor, two rock wall variants, two ornaments and painted stairs. The renderer mirrors floor texture edges, overlaps varied rock sprites along solid boundaries, decorates only solid cells, and caches a blurred discovery fog mask. Map topology and authoritative collision/combat are unchanged. Generated source prompts and production assets are documented in `exploration/terrain-art-193.json`.
+
+## Density, speed and healing pickups
+
+Exploration player walking, dash, loading entry and post-win movement are 1.3× their prior speed. Frontend fractional movement projection uses the same factor. Normal residents multiply by 2 in the first ceil(totalFloors/2) floors and 3 thereafter; final guards multiply by 3 while keeping one final boss. Spawns use distinct reachable cells in the five non-entry rooms. Per floor there is a 30% chance of no heart, 55% of one, 15% of two, from an independent deterministic spawn stream. A living injured character within 85 units receives min(missing HP, round(max HP × 0.1)), and the heart disappears for everyone. Full-health and dead players leave it untouched. Replay and server/worker prediction use identical collection order. Heart art: built-in image_gen, red ruby heart with gold rim, transparent fantasy RPG pickup sprite, no text/badge/pedestal; production `exploration/heal-heart-194.webp`.
