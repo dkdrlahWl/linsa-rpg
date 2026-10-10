@@ -1,7 +1,7 @@
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
-const root=dirname(fileURLToPath(import.meta.url)),version='terrain-cubes-movement-202',visited=new Set();
+const root=dirname(fileURLToPath(import.meta.url)),version='exploration-steady-212',visited=new Set();
 await mkdir(resolve(root,'worker-sim'),{recursive:true});
 async function copy(name){
  if(visited.has(name))return;visited.add(name);

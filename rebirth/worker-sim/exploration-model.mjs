@@ -1,11 +1,11 @@
-import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=terrain-cubes-movement-202';
-import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=terrain-cubes-movement-202';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=terrain-cubes-movement-202';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=terrain-cubes-movement-202';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=terrain-cubes-movement-202';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=terrain-cubes-movement-202';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=terrain-cubes-movement-202';
-import {incomingDamage} from './journey-balance.mjs?v=terrain-cubes-movement-202';
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=exploration-steady-212';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=exploration-steady-212';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=exploration-steady-212';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=exploration-steady-212';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=exploration-steady-212';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=exploration-steady-212';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=exploration-steady-212';
+import {incomingDamage} from './journey-balance.mjs?v=exploration-steady-212';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -100,4 +100,3 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
  const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=input;me.inputAt=now;}
  return w;
 }
-

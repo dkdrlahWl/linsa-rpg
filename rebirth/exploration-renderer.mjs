@@ -50,21 +50,28 @@ export function drawExplorationDungeon(renderer,b,im,heart){
 export function drawExplorationFog(g,b,camera,width,height,renderer){
  const d=b.dungeon;if(!d||d.arena)return;const key=d.id+':'+d.seen.join('');
  if(renderer.dungeonFog?.key!==key){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=1600;const c=canvas.getContext('2d');c.scale(.5,.5);const path=new Path2D();
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=800;const c=canvas.getContext('2d');c.scale(.25,.25);const path=new Path2D();
   for(let y=0;y<32;y++){let start=-1;for(let x=0;x<=32;x++){if(x<32&&d.seen[y][x]!=='1'){if(start<0)start=x;}else if(start>=0){path.rect(start*100-1,y*100-1,(x-start)*100+2,102);start=-1;}}}
-  c.filter='blur(14px)';c.fillStyle=(moods[b.tier]||moods[0]).fog+'fa';c.fill(path);renderer.dungeonFog={key,canvas};
+  c.filter='blur(7px)';c.fillStyle=(moods[b.tier]||moods[0]).fog+'fa';c.fill(path);renderer.dungeonFog={key,canvas};
  }
  g.drawImage(renderer.dungeonFog.canvas,0,0,3200,3200);
 }
+const minimapLayers=new WeakMap();
 export function drawExplorationMinimap(g,b,player){
  const d=b.dungeon;if(!d)return;const x=790,y=20,size=190,scale=size/32;
  g.save();g.fillStyle='#111221e8';g.fillRect(x-8,y-8,size+16,size+36);g.strokeStyle='#abc3d0';g.lineWidth=2;g.strokeRect(x-8,y-8,size+16,size+36);
+ const key=d.id+':'+d.seen.join('');let layer=minimapLayers.get(g);
+ if(layer?.key!==key){
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');
  for(let row=0;row<32;row++)for(let col=0;col<32;col++)if(d.seen[row][col]==='1'&&d.tiles[row][col]!=='0'){
-  g.fillStyle=d.tiles[row][col]==='2'?'#424c61':'#65738a';g.fillRect(x+col*scale,y+row*scale,scale+.3,scale+.3);
-  g.strokeStyle='#e1e3d3';g.lineWidth=1;for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]])if(!d.tiles[row+dy]?.[col+dx]||d.tiles[row+dy][col+dx]==='0'){
-   g.beginPath();if(dx){const px=x+(col+(dx>0?1:0))*scale;g.moveTo(px,y+row*scale);g.lineTo(px,y+(row+1)*scale);}else{const py=y+(row+(dy>0?1:0))*scale;g.moveTo(x+col*scale,py);g.lineTo(x+(col+1)*scale,py);}g.stroke();
+  c.fillStyle=d.tiles[row][col]==='2'?'#424c61':'#65738a';c.fillRect(col*scale,row*scale,scale+.3,scale+.3);
+  c.strokeStyle='#e1e3d3';c.lineWidth=1;for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]])if(!d.tiles[row+dy]?.[col+dx]||d.tiles[row+dy][col+dx]==='0'){
+   c.beginPath();if(dx){const px=(col+(dx>0?1:0))*scale;c.moveTo(px,row*scale);c.lineTo(px,(row+1)*scale);}else{const py=(row+(dy>0?1:0))*scale;c.moveTo(col*scale,py);c.lineTo((col+1)*scale,py);}c.stroke();
   }
  }
+  layer={key,canvas};minimapLayers.set(g,layer);
+ }
+ g.drawImage(layer.canvas,x,y);
  const dot=(m,color,r)=>{g.fillStyle=color;g.beginPath();g.arc(x+m.x/3200*size,y+m.y/3200*size,r,0,Math.PI*2);g.fill();};
  for(const h of b.hearts||[])if(dungeonSeen(d,h.x,h.y))dot(h,'#ffb0d0',3);
  for(const e of b.monsters||[])if(dungeonSeen(d,e.x,e.y))dot(e,e.boss?'#ffc963':'#ff747d',e.boss?4:2.4);

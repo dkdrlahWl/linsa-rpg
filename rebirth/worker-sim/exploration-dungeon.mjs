@@ -80,12 +80,13 @@ export function dungeonRoute(d,from,target){
  return point;
 }
 export function revealDungeon(w){
- const d=w.dungeon;if(!d)return;
+ const d=w.dungeon;if(!d||d.arena)return;
  const seen=d.seen.map(row=>row.split(''));
  for(const m of w.members){if(m.left||m.hp<=0)continue;const x=Math.floor(m.x/CELL),y=Math.floor(m.y/CELL);
   for(let yy=Math.max(0,y-6);yy<=Math.min(SIZE-1,y+6);yy++)for(let xx=Math.max(0,x-6);xx<=Math.min(SIZE-1,x+6);xx++){
-   if(Math.hypot(xx-x,yy-y)>6)continue;
-   const p={x:(xx+.5)*CELL,y:(yy+.5)*CELL};if(dungeonSight(d,m,p))seen[yy][xx]='1';
+   if((xx-x)**2+(yy-y)**2>36)continue;
+   // Exploration is monotonic: previously revealed cells need no ray cast.
+   if(seen[yy][xx]!=='1'&&dungeonSight(d,m,{x:(xx+.5)*CELL,y:(yy+.5)*CELL}))seen[yy][xx]='1';
    // Reveal the wall outline directly beside a visible floor tile.
    if(seen[yy][xx]==='1'&&d.tiles[yy][xx]!=='0')for(const [dx,dy] of directions)if(d.tiles[yy+dy]?.[xx+dx]==='0')seen[yy+dy][xx+dx]='1';
   }
