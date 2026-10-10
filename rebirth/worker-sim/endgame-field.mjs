@@ -1,4 +1,4 @@
-import {journeyXP,levelHours} from './journey-balance.mjs?v=exploration-arena-196';
+import {journeyXP,levelHours} from './journey-balance.mjs?v=terrain-cubes-movement-202';
 // Continue the final field's slope, then increase only these new fields by 50%.
 export const ENDGAME_FIELD_VERSION = 'fallen-star-173';
 const FIELD_MULTIPLIER = 1.5;

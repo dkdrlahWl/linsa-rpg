@@ -850,8 +850,9 @@ export function execute(input, command, args = {}, ctx) {
     case "potential": {
       const it=gear(s,args.id);writable(s,it);check(!it.lines.length,"POTENTIAL_ALREADY_OPEN");
       check(!s.pendingCube,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
-      it.potentialUnlocked=true;it.potentialVersion=5;fillPotentialLines(it,ctx.random);
-      events.push({type:"potential",id:it.id});break;
+      const chance=it.level>=200?.3:1,success=chance===1||ctx.random()<chance;
+      if(success){it.potentialUnlocked=true;it.potentialVersion=5;fillPotentialLines(it,ctx.random);}
+      events.push({type:"potential",id:it.id,success,chance});break;
     }
     case "cube": {
       const it=gear(s,args.id);writable(s,it);
@@ -861,7 +862,7 @@ export function execute(input, command, args = {}, ctx) {
       const rule=CUBES[kind],previousGrade=it.grade;
       check(it.grade<=rule.maxGrade,"INVALID_CUBE_GRADE");
       const locking=args.lock!==undefined&&args.lock!==null&&args.lock!==-1;
-      check(!locking||!(rule.prime&&it.grade<3),"POTENTIAL_LOCK_EPIC_REQUIRED");
+      check(!locking||!(rule.choose&&it.grade<3),"POTENTIAL_LOCK_EPIC_REQUIRED");
       const grade=locking?it.grade:cubeUpgrade(s,kind,it.grade,ctx.random);
       const lock=args.lock===undefined||args.lock===null?-1:args.lock;
       check(Number.isInteger(lock)&&lock>=-1&&lock<it.lines.length,"INVALID_POTENTIAL_LOCK");

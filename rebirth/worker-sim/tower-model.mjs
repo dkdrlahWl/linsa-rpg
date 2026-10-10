@@ -1,12 +1,12 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=exploration-arena-196';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=exploration-arena-196';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=exploration-arena-196';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=exploration-arena-196';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=exploration-arena-196';
-import {incomingDamage} from './journey-balance.mjs?v=exploration-arena-196';
-import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=exploration-arena-196';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=terrain-cubes-movement-202';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=terrain-cubes-movement-202';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=terrain-cubes-movement-202';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=terrain-cubes-movement-202';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=terrain-cubes-movement-202';
+import {incomingDamage} from './journey-balance.mjs?v=terrain-cubes-movement-202';
+import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=terrain-cubes-movement-202';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=exploration-arena-196';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=terrain-cubes-movement-202';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

@@ -14,7 +14,7 @@ function floorPattern(im){
 }
 export function drawExplorationDungeon(renderer,b,im,heart){
  const g=renderer.g,d=b.dungeon;if(!d)return false;
- if(d.arena){const arena=renderer.arenaImage?.(b.tier);g.fillStyle=(moods[b.tier]||moods[0]).fog;g.fillRect(-5000,-5000,13000,13000);if(arena?.complete&&arena.naturalWidth)g.drawImage(arena,900,900,1400,1400);drawExplorationHearts(g,b,d,heart);return true;}
+ if(d.arena){const arena=renderer.arenaImage?.(b.tier);g.fillStyle=(moods[b.tier]||moods[0]).fog;g.fillRect(-5000,-5000,13000,13000);if(arena?.complete&&arena.naturalWidth)g.drawImage(arena,d.arenaBounds?.x??900,d.arenaBounds?.y??900,d.arenaBounds?.width??1400,d.arenaBounds?.height??1400);drawExplorationHearts(g,b,d,heart);return true;}
  const mood=moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
  if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=1600;const c=canvas.getContext('2d');c.scale(.5,.5);c.fillStyle=mood.base;c.fillRect(0,0,3200,3200);
@@ -25,7 +25,8 @@ export function drawExplorationDungeon(renderer,b,im,heart){
   for(const r of d.rooms){const x=(r.x+r.w/2)*100,y=(r.y+r.h/2)*100,light=c.createRadialGradient(x,y,30,x,y,460);light.addColorStop(0,'#ffe2aa16');light.addColorStop(1,'#ffe2aa00');c.fillStyle=light;c.fillRect(r.x*100,r.y*100,r.w*100,r.h*100);}
   c.restore();
   if(loaded){
-   // Painted cliffs overlap and vary naturally. No floor grid or rectangular wall frames.
+   // Keep painted solid terrain inside the same blocked cells used for collision.
+   c.save();const blocked=new Path2D();for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]==='0')blocked.rect(x*100,y*100,100,100);c.clip(blocked);
    for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]==='0'){
     const adjacent=[[0,1],[0,-1],[1,0],[-1,0]].some(([dx,dy])=>d.tiles[y+dy]?.[x+dx]&&d.tiles[y+dy][x+dx]!=='0');if(!adjacent)continue;
     const hash=(x*83+y*137+(b.explorationFloor||b.floor)*23)%101,width=168+hash%19;
@@ -37,6 +38,7 @@ export function drawExplorationDungeon(renderer,b,im,heart){
      const glow=c.createRadialGradient(x*100,y*100,0,x*100,y*100,160);glow.addColorStop(0,mood.glow+'28');glow.addColorStop(1,mood.glow+'00');c.fillStyle=glow;c.fillRect(x*100-160,y*100-160,320,320);cell(c,im,i,x*100,y*100,200,215);
     }
    }
+   c.restore();
   }
   renderer.dungeonLayer={id:d.id,canvas,loaded};
  }

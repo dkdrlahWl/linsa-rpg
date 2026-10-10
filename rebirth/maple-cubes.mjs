@@ -2,7 +2,7 @@ import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=priest-potential-83'
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',4,[.060000002444,.018,0],[1,1,1],{pity:[0,0,25,83,0]}),
- highCube:rule('블랙 큐브','black',5,[.30,.07,.028],[1,1,1],{choose:true,pity:[0,0,10,42,107]}),
+ highCube:rule('블랙 큐브','black',5,[1,.07,.028],[1,1,1],{choose:true,pity:[0,0,0,42,107]}),
  primeCube:rule('프라임 큐브','black',5,[1,.105,.042],[1,1,1],{prime:true,choose:true,pity:[0,0,0,42,107]}),
 };
 export const cubeLineRates=(kind,grade)=>Array.isArray(CUBES[kind].same)?CUBES[kind].same:CUBES[kind].same[grade];
@@ -35,7 +35,7 @@ export function rerollCube(kind,item,grade,random){
 }
 export function cubeUpgrade(state,kind,grade,random){
  const rule=CUBES[kind];if(!rule||grade>rule.maxGrade||grade<2)throw Error('INVALID_CUBE_GRADE');
- if(rule.prime&&grade<3)return 3;
+ if(rule.choose&&grade<3)return 3;
  if(grade===rule.maxGrade)return grade;
  state.cubePity??={};
  const key=kind+':'+grade,failures=state.cubePity[key]||0,limit=rule.pity[grade];

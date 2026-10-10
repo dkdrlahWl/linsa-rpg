@@ -153,7 +153,7 @@ const errors = {
   FISHING_QUEST_CLAIMED: "이미 받은 일일 보상이에요.",
   FISHING_SUMMON_REMOVED: "루미 소환이 종료됐어요. 이벤트에서 낚시를 즐겨주세요.",
   INSUFFICIENT_POTENTIALLOCK: "잠재 잠금석이 부족해요.",
-  POTENTIAL_LOCK_EPIC_REQUIRED: "레어 장비를 프라임 큐브로 승급할 때는 줄을 잠글 수 없어요.",
+  POTENTIAL_LOCK_EPIC_REQUIRED: "레어 장비를 블랙·프라임 큐브로 승급할 때는 줄을 잠글 수 없어요.",
   REBIRTH_MAINTENANCE:
     "새로운 여정을 준비하고 있어요. 서비스가 열리면 시작할 수 있습니다.",
   LOGIN_REQUIRED: "다시 로그인해 주세요.",
@@ -1063,7 +1063,7 @@ function showEvents(events) {
       else itemDetail(e.id);
     } else if (["craft", "potential", "restore"].includes(e.type)) {
       if(e.type==="restore")lastStarResult=null;
-      if(e.type==="potential")lastCubeResult=null;
+      if(e.type==="potential"){lastCubeResult=null;if(e.success===false)toast("잠재 해금 실패 · 주문서 1개 소모 (성공 확률 30%)");}
       itemDetail(e.id);
     }
   }

@@ -38,3 +38,10 @@ body:not(.tower-mode) #modal.cube-dialog .cube-choice-controls button{min-width:
 #modal.cube-dialog .cube-extra,#modal.cube-dialog .cube-probabilities{margin:7px 0;font-size:10px}
 #modal.cube-dialog .cube-extra summary,#modal.cube-dialog .cube-probabilities summary{padding:4px 0}
 @media(max-width:350px){#modal.cube-dialog .cube-card .cube-item-art{display:none}#modal.cube-dialog .cube-choice-controls button{font-size:11px}#modal.cube-dialog .cube-comparison .option-line{font-size:10px}#modal.cube-dialog .cube-comparison .option-line strong{font-size:11px}}
+
+#modal.cube-dialog .cube-card{min-width:0;box-sizing:border-box;overflow:hidden}
+#modal.cube-dialog .cube-compact .cube-card{flex-direction:column;gap:2px}
+#modal.cube-dialog .cube-card>span{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
+#modal.cube-dialog .cube-card strong,#modal.cube-dialog .cube-card b{max-width:100%;line-height:1.3}
+#modal.cube-dialog .line-grade{display:block;margin:0 0 3px;line-height:1.2}
+#modal.cube-dialog .option-line>span:nth-child(2){min-width:0;line-height:1.35}

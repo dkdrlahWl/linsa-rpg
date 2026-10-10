@@ -1,14 +1,22 @@
 // Deterministic tile geometry shared by the server and prediction worker.
-export const DUNGEON_VERSION='exploration-dungeon-192';
+export const DUNGEON_VERSION='exploration-terrain-202';
 const SIZE=32,CELL=100;
 const directions=[[-1,0],[1,0],[0,-1],[0,1]];
 export const dungeonTile=(d,x,y)=>d?.tiles[Math.floor(y/CELL)]?.[Math.floor(x/CELL)]||'0';
 export const dungeonSeen=(d,x,y)=>!d||d.seen?.[Math.floor(y/CELL)]?.[Math.floor(x/CELL)]==='1';
+const arenaFloors=[
+ [[.30,.17],[.63,.17],[.77,.22],[.84,.35],[.86,.55],[.76,.68],[.72,.83],[.55,.90],[.35,.82],[.22,.72],[.18,.56],[.20,.35]],
+ [[.40,.13],[.62,.13],[.76,.20],[.83,.33],[.85,.52],[.83,.67],[.70,.80],[.56,.85],[.38,.81],[.22,.71],[.16,.52],[.19,.34],[.28,.22]],
+ [[.41,.17],[.65,.18],[.80,.29],[.85,.46],[.81,.65],[.69,.79],[.53,.87],[.35,.79],[.22,.67],[.16,.48],[.22,.31]]
+];
+function insidePolygon(points,x,y){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const [a,b]=points[i],[c,d]=points[j];if((b>y)!==(d>y)&&x<(c-a)*(y-b)/(d-b)+a)inside=!inside;}return inside;}
 export function makeExplorationArena(tier,floor,seed=1){
- const tiles=Array.from({length:SIZE},(_,y)=>Array.from({length:SIZE},(_,x)=>x>=9&&x<23&&y>=9&&y<23?'2':'0').join(''));
- // Virtual spawn zones share one continuous floor, without interior walls.
- const rooms=[{id:3,x:13,y:18,w:6,h:5},{id:4,x:9,y:10,w:5,h:7},{id:1,x:18,y:10,w:5,h:7},{id:2,x:13,y:9,w:6,h:7}];
- return {id:'exploration-arena-196:'+tier+':'+floor+':'+seed,arena:true,size:SIZE,cell:CELL,tiles,rooms,start:{x:1600,y:2050},exit:{x:1600,y:1350},seen:Array.from({length:SIZE},()=> '1'.repeat(SIZE))};
+ const width=tier===0?2800:1400,bounds={x:(3200-width)/2,y:(3200-width)/2,width,height:width},polygon=arenaFloors[tier]||arenaFloors[0];
+ const onFloor=(x,y)=>insidePolygon(polygon,(x-bounds.x)/width,(y-bounds.y)/width);
+ const tiles=Array.from({length:SIZE},(_,y)=>Array.from({length:SIZE},(_,x)=>onFloor((x+.5)*CELL,(y+.5)*CELL)?'2':'0').join(''));
+ const zone=(id,left,top,right,bottom)=>({id,x:Math.floor((bounds.x+left*width)/CELL)-1,y:Math.floor((bounds.y+top*width)/CELL)-1,w:Math.ceil((right-left)*width/CELL)+2,h:Math.ceil((bottom-top)*width/CELL)+2,spawnBounds:{left:bounds.x+left*width,top:bounds.y+top*width,right:bounds.x+right*width,bottom:bounds.y+bottom*width}});
+ const rooms=[zone(3,.36,.65,.64,.79),zone(4,.22,.30,.42,.58),zone(1,.60,.30,.78,.58),zone(2,.42,.20,.60,.40)];
+ return {id:'exploration-terrain-202:'+tier+':'+floor+':'+seed,arena:true,arenaBounds:bounds,arenaPolygon:polygon,size:SIZE,cell:CELL,tiles,rooms,start:{x:1600,y:bounds.y+.70*width},exit:{x:1600,y:bounds.y+.43*width},seen:Array.from({length:SIZE},()=> '1'.repeat(SIZE))};
 }
 export function makeExplorationDungeon(tier,floor,seed=1){
  let n=(seed^Math.imul(floor,2654435761)^Math.imul(tier+1,1597334677))>>>0;
@@ -36,7 +44,10 @@ export function makeExplorationDungeon(tier,floor,seed=1){
 }
 export function dungeonWalkable(d,x,y,radius=30){
  if(!d)return x>=120&&x<=3080&&y>=120&&y<=3080;
- return [[-radius,-radius],[radius,-radius],[-radius,radius],[radius,radius]].every(([a,b])=>dungeonTile(d,x+a,y+b)!=='0');
+ return [[-radius,-radius],[radius,-radius],[-radius,radius],[radius,radius]].every(([a,b])=>{
+  if(d.arenaPolygon){const r=d.arenaBounds;return insidePolygon(d.arenaPolygon,(x+a-r.x)/r.width,(y+b-r.y)/r.height);}
+  return dungeonTile(d,x+a,y+b)!=='0';
+ });
 }
 export function dungeonMove(d,actor,dx,dy,radius=30){
  const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/25));

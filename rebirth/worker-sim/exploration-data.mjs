@@ -1,10 +1,10 @@
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon} from './exploration-dungeon.mjs?v=exploration-arena-196';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable} from './exploration-dungeon.mjs?v=terrain-cubes-movement-202';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
- {id:0,name:'달빛 수림의 유적',floors:10,multiplier:1,level:200,art:'exploration-0',map:'exploration/map-0.webp',boss:'월림의 수호왕 아르보른',monsters:['달가시 늑대','이끼 갑옷돌','달밤 버섯'],seconds:1800,gold:100000,cube:3,highCube:1},
- {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:150000,cube:4,highCube:2},
- {id:2,name:'별의 심연 성전',floors:12,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:225000,cube:5,highCube:3},
+ {id:0,name:'달빛 수림의 유적',floors:10,multiplier:1,level:200,art:'exploration-0',map:'exploration/map-0.webp',boss:'월림의 수호왕 아르보른',monsters:['달가시 늑대','이끼 갑옷돌','달밤 버섯'],seconds:1800,gold:50000},
+ {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:70000},
+ {id:2,name:'별의 심연 성전',floors:12,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:100000},
 ];
 export const EXPLORATION_MOVE_SPEED=1.3;
 export const explorationMonsterMultiplier=(tier,floor)=>floor<=Math.ceil(EXPLORATIONS[tier].floors/2)?2:3;
@@ -22,7 +22,7 @@ export function explorationFloor(w){
  const rooms=w.dungeon.rooms.filter(r=>r.id!==3),multiplier=explorationMonsterMultiplier(w.tier,w.floor);
  let spawnSeed=((w.started>>>0)^Math.imul(w.floor,2654435761)^Math.imul(w.tier+1,1597334677))>>>0;
  const random=()=>{spawnSeed=(Math.imul(spawnSeed,1664525)+1013904223)>>>0;return spawnSeed/4294967296;};
- const slots=new Map(w.dungeon.rooms.map(r=>{const points=[];for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(!final||Math.hypot((x+.5)*100-w.exit.x,(y+.5)*100-w.exit.y)>90)points.push([(x+.5)*100,(y+.5)*100]);for(let i=points.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[points[i],points[j]]=[points[j],points[i]];}return [r.id,points];}));
+ const slots=new Map(w.dungeon.rooms.map(r=>{const points=[];for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if((!r.spawnBounds||((x+.5)*100>=r.spawnBounds.left&&(x+.5)*100<r.spawnBounds.right&&(y+.5)*100>=r.spawnBounds.top&&(y+.5)*100<r.spawnBounds.bottom))&&dungeonWalkable(w.dungeon,(x+.5)*100,(y+.5)*100)&&(!final||Math.hypot((x+.5)*100-w.exit.x,(y+.5)*100-w.exit.y)>90))points.push([(x+.5)*100,(y+.5)*100]);for(let i=points.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[points[i],points[j]]=[points[j],points[i]];}return [r.id,points];}));
  const count=(final?3:6+Math.min(4,Math.floor((w.floor-1)/3)))*multiplier;
  for(let i=0;i<count;i++){const stats=explorationStats(w.tier,w.floor,w.population),room=final?w.dungeon.rooms.find(r=>r.id===[4,1,2][i%3]):rooms[(i+w.floor-1)%rooms.length],species=i%3;
   const [x,y]=slots.get(room.id).pop();w.monsters.push({id:-(w.floor*100+i+1),x,y,species,explorationTier:w.tier,level:theme.level,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,ready:w.tick+15,walk:0,face:1,elite:(i+w.floor)%4===0});

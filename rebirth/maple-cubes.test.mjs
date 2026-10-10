@@ -8,7 +8,7 @@ let seed=1234567;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>
 const ctx=(rng=random)=>({now:0,random:rng,uuid:randomUUID});
 function fixture(grade=2){const s=initialState('mage','큐브검증',ctx());s.hunting=false;s.gold=1e7;for(const k of Object.keys(CUBES))s.materials[k]=20;s.items[0].potentialUnlocked=true;s.items[0].level=200;s.items[0].grade=grade;s.items[0].lines=[{key:'INT',value:6,grade},{key:'STR',value:3,grade:grade-1},{key:'flatHP',value:100,grade:grade-1}];return s;}
 for(const[k,c]of Object.entries(CUBES))for(let g=2;g<c.maxGrade;g++){
- if(c.prime)continue;assert.equal(cubeUpgrade({},k,g,()=>c.up[g]-1e-12),g+1);assert.equal(cubeUpgrade({},k,g,()=>c.up[g]),g);
+ if(c.prime)continue;if(c.choose&&g===2){assert.equal(cubeUpgrade({},k,g,()=>.999),3);continue;}assert.equal(cubeUpgrade({},k,g,()=>c.up[g]-1e-12),g+1);assert.equal(cubeUpgrade({},k,g,()=>c.up[g]),g);
  if(c.pity[g]){const s={cubePity:{[k+':'+g]:c.pity[g]-1}};assert.equal(cubeUpgrade(s,k,g,()=>.999),g);assert.equal(cubeUpgrade(s,k,g,()=>.999),g+1);assert.equal(s.cubePity[k+':'+g],0);}
 }
 for(const[k,c]of Object.entries(CUBES))for(let g=c.prime?5:2;g<=c.maxGrade;g++)for(let slot=0;slot<9;slot++)for(const level of [1,10,30,70,110,120,200]){

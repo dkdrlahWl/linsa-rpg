@@ -1,6 +1,6 @@
-import {EXPLORATION_MOVE_SPEED} from './exploration-data.mjs?v=exploration-arena-196';
-import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=exploration-arena-196';
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=exploration-arena-196';
+import {EXPLORATION_MOVE_SPEED} from './exploration-data.mjs?v=terrain-cubes-movement-202';
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=terrain-cubes-movement-202';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=terrain-cubes-movement-202';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){

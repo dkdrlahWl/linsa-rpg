@@ -1,4 +1,4 @@
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon} from './exploration-dungeon.mjs';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable} from './exploration-dungeon.mjs';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
@@ -22,7 +22,7 @@ export function explorationFloor(w){
  const rooms=w.dungeon.rooms.filter(r=>r.id!==3),multiplier=explorationMonsterMultiplier(w.tier,w.floor);
  let spawnSeed=((w.started>>>0)^Math.imul(w.floor,2654435761)^Math.imul(w.tier+1,1597334677))>>>0;
  const random=()=>{spawnSeed=(Math.imul(spawnSeed,1664525)+1013904223)>>>0;return spawnSeed/4294967296;};
- const slots=new Map(w.dungeon.rooms.map(r=>{const points=[];for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(!final||Math.hypot((x+.5)*100-w.exit.x,(y+.5)*100-w.exit.y)>90)points.push([(x+.5)*100,(y+.5)*100]);for(let i=points.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[points[i],points[j]]=[points[j],points[i]];}return [r.id,points];}));
+ const slots=new Map(w.dungeon.rooms.map(r=>{const points=[];for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if((!r.spawnBounds||((x+.5)*100>=r.spawnBounds.left&&(x+.5)*100<r.spawnBounds.right&&(y+.5)*100>=r.spawnBounds.top&&(y+.5)*100<r.spawnBounds.bottom))&&dungeonWalkable(w.dungeon,(x+.5)*100,(y+.5)*100)&&(!final||Math.hypot((x+.5)*100-w.exit.x,(y+.5)*100-w.exit.y)>90))points.push([(x+.5)*100,(y+.5)*100]);for(let i=points.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[points[i],points[j]]=[points[j],points[i]];}return [r.id,points];}));
  const count=(final?3:6+Math.min(4,Math.floor((w.floor-1)/3)))*multiplier;
  for(let i=0;i<count;i++){const stats=explorationStats(w.tier,w.floor,w.population),room=final?w.dungeon.rooms.find(r=>r.id===[4,1,2][i%3]):rooms[(i+w.floor-1)%rooms.length],species=i%3;
   const [x,y]=slots.get(room.id).pop();w.monsters.push({id:-(w.floor*100+i+1),x,y,species,explorationTier:w.tier,level:theme.level,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,ready:w.tick+15,walk:0,face:1,elite:(i+w.floor)%4===0});

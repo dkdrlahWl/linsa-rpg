@@ -94,7 +94,8 @@ for(const mode of ['rift','raid','advancement']){
  assert.equal(payload.frames.length,1,mode+' predicted victory keeps the unacknowledged killing input');
  assert.equal(payload.input,undefined);
  finisher.room.status='won';finisher.nextSend=0;await finisher.flush();
- assert.ok(Array.isArray(payload.input),mode+' only confirmed victory switches to loot movement');
+ assert.ok(Array.isArray(payload.frames),mode+' confirmed victory keeps acknowledged movement frames');
+ assert.equal(payload.input,undefined);
 }
 const motion=new CoopMotion();motion.begin(1);motion.sample('ally',{x:200,y:200});motion.end();motion.reconcile();motion.begin(17);
 assert.equal(motion.sample('ally',{x:2200,y:2200}).x,2200,'long reconnect does not drag an actor ghost across the arena');

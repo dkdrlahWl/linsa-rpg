@@ -1,4 +1,4 @@
-import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=exploration-arena-196';
+import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=terrain-cubes-movement-202';
 const prediction=new CoopPredictionCore();let generation=0;
 self.onmessage=({data})=>{
  try{

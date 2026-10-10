@@ -1,4 +1,4 @@
-import {petHealTick} from './pet-event.mjs?v=exploration-arena-196';
+import {petHealTick} from './pet-event.mjs?v=terrain-cubes-movement-202';
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
 export const PRIEST_HP_ATTACK_RATIO=.166;
 export const PRIEST_LUK_ATTACK_RATIO=.6;

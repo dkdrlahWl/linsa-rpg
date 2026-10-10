@@ -1,4 +1,4 @@
-import {predictCoopStep,indexCoopFrames} from './worker-sim/coop-model.mjs?v=exploration-pickups-194';
+import {predictCoopStep,indexCoopFrames} from './worker-sim/coop-model.mjs?v=terrain-cubes-movement-202';
 export const effectKey=e=>[e.owner||'',e.kind,e.id,e.start,e.slot??'',e.pulse??''].join(':');
 const positions=w=>({enemy:{...w.enemy},members:w.members.map(m=>({id:m.id,x:m.x,y:m.y})),monsters:(w.monsters||[]).map(m=>({id:m.id,x:m.x,y:m.y}))});
 export class CoopPredictionCore{
@@ -11,7 +11,7 @@ export class CoopPredictionCore{
   }
   this.remote=indexCoopFrames(room.predictionInputs||[]);
   this.frames=new Map(frames.map(f=>[f.tick,f.input]));this.journal=new Map();this.previous=positions(this.world);this.capture();
-  while(this.world.tick<target&&this.world.status==='fighting'&&!this.world.entryWaiting){
+  while(this.world.tick<target&&['fighting','won'].includes(this.world.status)&&!this.world.entryWaiting){
    const tick=this.world.tick,input=this.frames.get(tick)||this.world.members.find(m=>m.id===this.user)?.input||[0,0,0];
    this.advance(input);if(this.world.tick<=tick)break;
   }
@@ -30,10 +30,10 @@ export class CoopPredictionCore{
  step(tick,input){
   if(!this.world)return null;
   this.journal=new Map();
-  if(this.world.status==='fighting'&&!this.world.entryWaiting){
+  if(['fighting','won'].includes(this.world.status)&&!this.world.entryWaiting){
    if(tick<this.world.tick)return this.result();
    // Messages are ordered. A gap can only follow a rebase: replay retained input.
-   while(this.world.tick<tick&&this.world.status==='fighting'){
+   while(this.world.tick<tick&&['fighting','won'].includes(this.world.status)){
     const before=this.world.tick;this.advance(this.frames.get(before)||this.world.members.find(m=>m.id===this.user)?.input||[0,0,0]);
     if(this.world.tick<=before)break;
    }
