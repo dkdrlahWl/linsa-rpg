@@ -23,6 +23,7 @@ jobs:
       - run: node rebirth/exploration.test.mjs
       - run: node rebirth/exploration-dungeon.test.mjs
       - run: node rebirth/exploration-pickups.test.mjs
+      - run: node rebirth/citadel-path.test.mjs
       - run: node rebirth/citadel-zero.test.mjs
       - run: node rebirth/citadel-balance.test.mjs
       - run: node rebirth/citadel-latency.test.mjs

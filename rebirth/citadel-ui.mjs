@@ -8,7 +8,7 @@ export function citadelLobby(state,room,rooms=[]){
 }
 export function citadelHud(host,w){
  const stage=citadelStage(w.floor),me=w.members.find(m=>m.id===w.me),bosses=w.monsters.filter(e=>e.boss&&e.hp>0),hp=bosses.reduce((n,e)=>n+e.hp,0),max=bosses.reduce((n,e)=>n+e.maxHp,0),set=(selector,text)=>{const el=host.querySelector(selector);if(el)el.textContent=text;};
- set('.tower-floor-tag','NG 0');set('.tower-title-row h3',stage.name+' · '+w.floor+' / 21');
+ set('.tower-floor-tag','NG 0');set('.tower-title-row h3',stage.name);
  set('#tower-clock',w.status==='won'?'원정 완료':Math.floor(w.tick/600)+'분 '+Math.floor(w.tick/10)%60+'초');
  set('#tower-range',w.members.filter(m=>!m.left&&m.hp>0).length+'명 생존 · '+(stage.boss?CITADEL_BOSSES[stage.boss]:'미지의 길'));
  set('#tower-status',w.status==='won'?'최후의 화신을 처치했습니다. 나가기를 눌러 원정을 마치세요.':me.hp<=0?'쓰러졌습니다. 동료의 구조를 기다리세요.':bosses.length?CITADEL_BOSSES[stage.boss]+' · 공격 예고를 피하세요.':w.exitOpen?'출구를 찾아 다음 구역으로 이동하세요.':'전투 중');

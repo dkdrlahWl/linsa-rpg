@@ -1,4 +1,4 @@
-import {dungeonMove} from './exploration-dungeon.mjs?v=citadel-independent-214';
+import {dungeonMove} from './exploration-dungeon.mjs?v=citadel-path-216';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
 export const CITADEL_TIER=3,CITADEL_VERSION='citadel-independent-214';

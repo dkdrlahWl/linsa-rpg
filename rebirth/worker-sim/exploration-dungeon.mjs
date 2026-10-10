@@ -1,9 +1,10 @@
 // Deterministic tile geometry shared by the server and prediction worker.
-export const DUNGEON_VERSION='exploration-terrain-202';
+export const DUNGEON_VERSION='citadel-path-216';
+export const dungeonFloorTile=tile=>tile==='1'||tile==='2'||tile==='3';
 const SIZE=32,CELL=100;
 const directions=[[-1,0],[1,0],[0,-1],[0,1]];
-export const dungeonTile=(d,x,y)=>d?.tiles[Math.floor(y/CELL)]?.[Math.floor(x/CELL)]||'0';
-export const dungeonSeen=(d,x,y)=>!d||d.seen?.[Math.floor(y/CELL)]?.[Math.floor(x/CELL)]==='1';
+export const dungeonTile=(d,x,y)=>d?.tiles[Math.floor(y/(d.cell||CELL))]?.[Math.floor(x/(d.cell||CELL))]||'0';
+export const dungeonSeen=(d,x,y)=>!d||d.citadel||d.seen?.[Math.floor(y/CELL)]?.[Math.floor(x/CELL)]==='1';
 const arenaFloors=[
  [[.30,.17],[.63,.17],[.77,.22],[.84,.35],[.86,.55],[.76,.68],[.72,.83],[.55,.90],[.35,.82],[.22,.72],[.18,.56],[.20,.35]],
  [[.40,.13],[.62,.13],[.76,.20],[.83,.33],[.85,.52],[.83,.67],[.70,.80],[.56,.85],[.38,.81],[.22,.71],[.16,.52],[.19,.34],[.28,.22]],
@@ -44,10 +45,12 @@ export function makeExplorationDungeon(tier,floor,seed=1){
 }
 export function dungeonWalkable(d,x,y,radius=30){
  if(!d)return x>=120&&x<=3080&&y>=120&&y<=3080;
- return [[-radius,-radius],[radius,-radius],[-radius,radius],[radius,radius]].every(([a,b])=>{
-  if(d.arenaPolygon){const r=d.arenaBounds;return insidePolygon(d.arenaPolygon,(x+a-r.x)/r.width,(y+b-r.y)/r.height);}
-  return dungeonTile(d,x+a,y+b)!=='0';
- });
+ if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(radius)||radius<0)return false;
+ if(d.arenaPolygon){const r=d.arenaBounds;return [[-radius,-radius],[radius,-radius],[-radius,radius],[radius,radius]].every(([a,b])=>insidePolygon(d.arenaPolygon,(x+a-r.x)/r.width,(y+b-r.y)/r.height));}
+ const cell=d.cell||CELL;
+ // Every tile touched by the character body must be floor, including its edges.
+ for(let yy=Math.floor((y-radius)/cell);yy<=Math.floor((y+radius)/cell);yy++)for(let xx=Math.floor((x-radius)/cell);xx<=Math.floor((x+radius)/cell);xx++)if(!dungeonFloorTile(d.tiles[yy]?.[xx]))return false;
+ return true;
 }
 export function dungeonMove(d,actor,dx,dy,radius=30){
  const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/25));
@@ -81,7 +84,7 @@ export function dungeonRoute(d,from,target){
  return point;
 }
 export function revealDungeon(w){
- const d=w.dungeon;if(!d||d.arena)return;
+ const d=w.dungeon;if(!d||d.arena||d.citadel)return;
  const SIZE=d.size||32,CELL=d.cell||100;
  const seen=d.seen.map(row=>row.split(''));
  for(const m of w.members){if(m.left||m.hp<=0)continue;const x=Math.floor(m.x/CELL),y=Math.floor(m.y/CELL);

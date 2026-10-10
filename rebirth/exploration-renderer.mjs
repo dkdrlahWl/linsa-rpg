@@ -1,5 +1,5 @@
 import {CITADEL_BIOMES,citadelAsset,citadelStage} from './citadel-zero.mjs';
-import {dungeonSeen} from './exploration-dungeon.mjs';
+import {dungeonSeen,dungeonFloorTile} from './exploration-dungeon.mjs';
 export const explorationTerrainSource=(tier,floor=1)=>tier===3?citadelAsset('terrain',citadelStage(floor).biome):'exploration/terrain-'+tier+'-193.webp';
 const moods=[{base:'#242a25',fog:'#101c25',glow:'#70eeb0'},{base:'#2b211e',fog:'#211520',glow:'#ff963f'},{base:'#292838',fog:'#13182c',glow:'#a4b0ff'}];
 function cell(g,im,index,x,y,width,height=width,flip=false){
@@ -13,15 +13,23 @@ function floorPattern(im){
  for(let y=0;y<2;y++)for(let x=0;x<2;x++){g.save();g.translate(x*400+(x?400:0),y*400+(y?400:0));g.scale(x?-1:1,y?-1:1);g.drawImage(im,0,0,sw,sh,0,0,400,400);g.restore();}
  return tile;
 }
+function citadelPathPattern(biome){
+ // Ground contains no painted trees, walls or transparent gaps. The same tile
+ // mask used by collision clips this continuous surface into paths and clearings.
+ const tile=document.createElement('canvas');tile.width=tile.height=800;const g=tile.getContext('2d');
+ const colors=[['#6d6549','#8a805a','#524d39'],['#554d42','#6f6657','#3f3c36'],['#686354','#88816b','#504e44'],['#55565b','#717078','#3d4149'],['#5a5651','#79736a','#45423e'],['#65594e','#87725d','#4c443d'],['#666273','#837d91','#4b4858'],['#484552','#635c72','#35333e']][biome]||['#6d6549','#8a805a','#524d39'];
+ g.fillStyle=colors[0];g.fillRect(0,0,800,800);let seed=3571+biome*179;
+ for(let i=0;i<4200;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=seed%800;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=seed%800;g.globalAlpha=.10+(seed%9)/100;g.fillStyle=colors[1+(i%2)];g.fillRect(x,y,3+(seed%8),2+(seed%4));}g.globalAlpha=1;return tile;
+}
 export function drawExplorationDungeon(renderer,b,im,heart){
  const g=renderer.g,d=b.dungeon;if(!d)return false;const size=d.size||32,world=size*100;
  if(d.arena){const arena=renderer.arenaImage?.(b.tier);g.fillStyle=(moods[b.tier]||moods[0]).fog;g.fillRect(-5000,-5000,13000,13000);if(arena?.complete&&arena.naturalWidth)g.drawImage(arena,d.arenaBounds?.x??900,d.arenaBounds?.y??900,d.arenaBounds?.width??1400,d.arenaBounds?.height??1400);drawExplorationHearts(g,b,d,heart);return true;}
  const biome=CITADEL_BIOMES[d.biome],mood=d.citadel?{base:biome.color,fog:biome.color,glow:biome.light}:moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
  if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=Math.min(2048,world/2);const c=canvas.getContext('2d');c.scale(canvas.width/world,canvas.height/world);c.fillStyle=mood.base;c.fillRect(0,0,world,world);
-  const pattern=loaded?c.createPattern(floorPattern(im),'repeat'):mood.base;
+  const pattern=d.citadel?c.createPattern(citadelPathPattern(d.biome),'repeat'):loaded?c.createPattern(floorPattern(im),'repeat'):mood.base;
   c.fillStyle=pattern;c.fillRect(0,0,world,world);c.fillStyle=mood.fog+'e8';c.fillRect(0,0,world,world);
-  const floor=new Path2D();for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(d.tiles[y][x]!=='0')floor.rect(x*100,y*100,100,100);
+  const floor=new Path2D();for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(dungeonFloorTile(d.tiles[y][x]))floor.rect(x*100,y*100,100,100);
   c.save();c.clip(floor);c.fillStyle=pattern;c.fillRect(0,0,world,world);
   for(const r of d.rooms){const x=(r.x+r.w/2)*100,y=(r.y+r.h/2)*100,light=c.createRadialGradient(x,y,30,x,y,460);light.addColorStop(0,'#ffe2aa16');light.addColorStop(1,'#ffe2aa00');c.fillStyle=light;c.fillRect(r.x*100,r.y*100,r.w*100,r.h*100);}
   c.restore();
@@ -45,12 +53,12 @@ export function drawExplorationDungeon(renderer,b,im,heart){
  }
  g.drawImage(renderer.dungeonLayer.canvas,0,0,world,world);
  if(d.citadel){g.save();g.fillStyle='#503874bb';for(const wall of d.shadowWalls||[])g.fillRect(wall.x,wall.y,100,100);for(const trap of b.traps||[]){if(!dungeonSeen(d,trap.x,trap.y))continue;g.strokeStyle='#b19cad';g.lineWidth=4;g.beginPath();g.arc(trap.x,trap.y,45,0,Math.PI*2);g.stroke();}g.restore();}
- if(loaded&&b.status!=='won'){const {x,y}=b.exit;g.save();if(b.exitOpen){const glow=g.createRadialGradient(x,y,0,x,y,180);glow.addColorStop(0,mood.glow+'55');glow.addColorStop(1,mood.glow+'00');g.fillStyle=glow;g.fillRect(x-180,y-180,360,360);}cell(g,im,5,x,y,235,235);g.font='bold 24px sans-serif';g.textAlign='center';g.lineWidth=5;g.strokeStyle='#10141b';g.fillStyle=b.exitOpen?'#ccffe3':'#d9d5cb';const label=b.status==='won'?'보상 상자':b.exitOpen?'다음 층 ↑':'계단 잠김';g.strokeText(label,x,y-135);g.fillText(label,x,y-135);g.restore();}
+ if(loaded&&b.status!=='won'){const {x,y}=b.exit;g.save();if(b.exitOpen){const glow=g.createRadialGradient(x,y,0,x,y,180);glow.addColorStop(0,mood.glow+'55');glow.addColorStop(1,mood.glow+'00');g.fillStyle=glow;g.fillRect(x-180,y-180,360,360);}cell(g,im,5,x,y,235,235);g.font='bold 24px sans-serif';g.textAlign='center';g.lineWidth=5;g.strokeStyle='#10141b';g.fillStyle=b.exitOpen?'#ccffe3':'#d9d5cb';const label=b.status==='won'?'보상 상자':b.exitOpen?(d.citadel?'다음 지역 ↑':'다음 층 ↑'):(d.citadel?'지역 통로 잠김':'계단 잠김');g.strokeText(label,x,y-135);g.fillText(label,x,y-135);g.restore();}
  drawExplorationHearts(g,b,d,heart);
  return true;
 }
 export function drawExplorationFog(g,b,camera,width,height,renderer){
- const d=b.dungeon;if(!d||d.arena)return;const size=d.size||32,world=size*100;const key=d.id+':'+d.seen.join('');
+ const d=b.dungeon;if(!d||d.arena||d.citadel)return;const size=d.size||32,world=size*100;const key=d.id+':'+d.seen.join('');
  if(renderer.dungeonFog?.key!==key){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=world/4;const c=canvas.getContext('2d');c.scale(.25,.25);const path=new Path2D();
   for(let y=0;y<size;y++){let start=-1;for(let x=0;x<=size;x++){if(x<size&&d.seen[y][x]!=='1'){if(start<0)start=x;}else if(start>=0){path.rect(start*100-1,y*100-1,(x-start)*100+2,102);start=-1;}}}
@@ -65,7 +73,7 @@ export function drawExplorationMinimap(g,b,player){
  const key=d.id+':'+d.seen.join('');let layer=minimapLayers.get(g);
  if(layer?.key!==key){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');
- for(let row=0;row<d.size;row++)for(let col=0;col<d.size;col++)if(d.seen[row][col]==='1'&&d.tiles[row][col]!=='0'){
+ for(let row=0;row<d.size;row++)for(let col=0;col<d.size;col++)if((d.citadel||d.seen[row][col]==='1')&&dungeonFloorTile(d.tiles[row][col])){
   c.fillStyle=d.tiles[row][col]==='2'?'#424c61':'#65738a';c.fillRect(col*scale,row*scale,scale+.3,scale+.3);
   c.strokeStyle='#e1e3d3';c.lineWidth=1;for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]])if(!d.tiles[row+dy]?.[col+dx]||d.tiles[row+dy][col+dx]==='0'){
    c.beginPath();if(dx){const px=(col+(dx>0?1:0))*scale;c.moveTo(px,row*scale);c.lineTo(px,(row+1)*scale);}else{const py=(row+(dy>0?1:0))*scale;c.moveTo(col*scale,py);c.lineTo((col+1)*scale,py);}c.stroke();
@@ -79,7 +87,7 @@ export function drawExplorationMinimap(g,b,player){
  for(const e of b.monsters||[])if(dungeonSeen(d,e.x,e.y))dot(e,e.boss?'#ffc963':'#ff747d',e.boss?4:2.4);
  for(const m of b.allies||[])dot(m,'#84e2d0',3);dot(player,'#ffffff',3.6);
  const goal=b.status==='won'&&b.chest?b.chest:b.exit;if(dungeonSeen(d,goal.x,goal.y))dot(goal,b.status==='won'?'#ffd472':b.exitOpen?'#85ffc1':'#b1a79b',4);
- g.fillStyle='#d7dfeb';g.font='bold 15px sans-serif';g.textAlign='left';g.fillText((b.explorationFloor||b.floor)+'F · 탐색 지도',x,y+size+20);g.restore();
+ g.fillStyle='#d7dfeb';g.font='bold 15px sans-serif';g.textAlign='left';g.fillText(d.citadel?citadelStage(b.explorationFloor||b.floor).name:(b.explorationFloor||b.floor)+'F · 탐색 지도',x,y+size+20);g.restore();
 }
 
 function drawExplorationHearts(g,b,d,heart){

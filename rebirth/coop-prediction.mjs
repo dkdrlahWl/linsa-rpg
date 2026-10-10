@@ -4,7 +4,7 @@ export class CoopPredictor{
   this.callbacks={ready,state,fallback};this.generation=0;this.sequence=0;this.pending=new Map();this.queued=[];this.closed=false;
   try{
    const create=factory||((url)=>new Worker(url,{type:'module',name:'coop-prediction'}));
-   this.worker=create(new URL('./coop-prediction-worker.mjs?v=citadel-independent-214',import.meta.url));
+   this.worker=create(new URL('./coop-prediction-worker.mjs?v=citadel-path-216',import.meta.url));
    this.worker.onmessage=({data})=>{
     if(this.closed)return;
     if(data.type==='ready'){clearTimeout(this.loading);this.ready=true;ready();return;}

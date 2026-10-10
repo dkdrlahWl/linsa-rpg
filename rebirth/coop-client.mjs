@@ -1,4 +1,4 @@
-import {isDungeon,isCitadel} from './citadel-zero.mjs';
+import {isDungeon,isCitadel,CITADEL_STAGES} from './citadel-zero.mjs';
 import {citadelLobby,citadelHud} from './citadel-ui.mjs';
 import {EXPLORATION_MOVE_SPEED} from './exploration-data.mjs';
 import {dungeonMove,dungeonSeen} from './exploration-dungeon.mjs';
@@ -39,7 +39,7 @@ export function coopLobby(state,room,rooms=[],mode="rift"){
  const names={cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',fragment:'파편',scroll:'잠재 해금 주문서'};
  return '<section class="panel pad coop-lobby"><h2>협동 균열</h2><p class="note">3인 기준 · 최대 4인 · 90초 · 도전·보상 무제한<br>보스에게 피해를 준 뒤 각자 개인 상자를 열고 나갑니다.</p><div class="coop-tiers">'+COOP_TIERS.map((t,i)=>'<article><div class="coop-boss-portrait" style="background-image:url(tower/boss-'+t.art+'.webp)" role="img" aria-label="'+t.name+'"></div><div class="coop-meta"><h3>'+t.name+'</h3><p>기본 '+fmt(t.gold)+' G · 개인 상자</p></div>'+button('입장 준비','coopCreate',i)+'<details><summary>보상 확률 보기</summary><p>장비 '+(t.gearChance*100)+'% · Lv.'+t.level+' / 무작위 직업</p>'+Object.entries(t.chances).filter(([,p])=>p>0).map(([k,p])=>'<p>'+names[k]+' '+(p*100)+'% · '+(k==='fragment'?t.fragmentCount:1)+'개</p>').join('')+'<small>각 항목 독립 추첨 · 새 장비 잠재 잠금</small></details></article>').join('')+'</div><h3>모집 중</h3>'+button('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>'<div class="daily-row"><span>'+esc(r.name)+' · '+COOP_TIERS[r.tier].name+'<small>'+r.count+' / 4명</small></span>'+button('참가','coopJoin',r.id,r.count>=4)+'</div>').join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';
 }
-export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({advancementStage:room.mode==='advancement'?room.tier:undefined,floor:room.tier+1,encounter:coopEncounter(room),classId:me.classId,runId:room.id,advanced:!!me.advanced,power:me.power,third:(me.power?.advancement||0)>=2}).replace('class="tower-play panel"','class="tower-play panel" data-coop-mode="'+room.mode+'"').replaceAll('시련의 탑',isCitadel(room)?'암흑성채':isDungeon(room)?'링구의 탐험':room.mode==='raid'?'레이드':room.mode==='wave'?'협동 웨이브':room.mode==='advancement'?'전직 보스':'협동 균열').replace('>'+String(room.tier+1)+'F<','>'+String(coopEncounter(room).level)+'<').replace('towerLeaveConfirm','coopLeaveConfirm');}
+export function coopArena(room){const me=room.members.find(m=>m.id===room.me);return towerArena({advancementStage:room.mode==='advancement'?room.tier:undefined,floor:room.tier+1,citadelMode:isCitadel(room),encounter:coopEncounter(room),classId:me.classId,runId:room.id,advanced:!!me.advanced,power:me.power,third:(me.power?.advancement||0)>=2}).replace('class="tower-play panel"','class="tower-play panel" data-coop-mode="'+room.mode+'"').replaceAll('시련의 탑',isCitadel(room)?'암흑성채':isDungeon(room)?'링구의 탐험':room.mode==='raid'?'레이드':room.mode==='wave'?'협동 웨이브':room.mode==='advancement'?'전직 보스':'협동 균열').replace('>'+String(room.tier+1)+'F<','>'+String(coopEncounter(room).level)+'<').replace('towerLeaveConfirm','coopLeaveConfirm');}
 const keyBits={KeyJ:1,KeyK:8,Space:4,KeyL:2,KeyI:16,KeyO:32,KeyU:64};
 export function coopInputInterval(room,rtt=250){
  const players=room.status==='fighting'&&!room.entryWaiting?room.members.filter(m=>!m.left).length:1;
@@ -64,7 +64,7 @@ export class CoopController{
   host.querySelector('#tower-auto-skills').addEventListener('click',e=>{this.autoSkills=!this.autoSkills;e.currentTarget.setAttribute('aria-pressed',String(this.autoSkills));e.currentTarget.textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');},opt);
   if(isDungeon(room)&&admin===true){
    const tools=document.createElement('div');tools.className='exploration-admin-controls';
-   tools.innerHTML='<select aria-label="관리자 이동 층">'+Array.from({length:coopEncounter(room).floors},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'층</option>').join('')+'</select><button type="button">관리자 층 이동</button>';
+   tools.innerHTML='<select aria-label="관리자 이동 지역">'+Array.from({length:coopEncounter(room).floors},(_,i)=>'<option value="'+(i+1)+'">'+(isCitadel(room)?CITADEL_STAGES[i].name:(i+1)+'층')+'</option>').join('')+'</select><button type="button">'+(isCitadel(room)?'관리자 지역 이동':'관리자 층 이동')+'</button>';
    host.querySelector('.tower-footer').prepend(tools);
    const select=tools.querySelector('select'),button=tools.querySelector('button');select.value=String(room.floor);
    button.addEventListener('click',async()=>{
