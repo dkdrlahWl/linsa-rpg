@@ -67,7 +67,7 @@ begin
     if (p.state->>'gold')::bigint<total_price then raise exception 'INSUFFICIENT_GOLD';end if;
     select * into v_seller from rebirth_private.players where id=l.seller for update;
     if not found then raise exception 'LISTING_UNAVAILABLE';end if;
-    v_fee:=(l.gross_sold+total_price)/20-l.fee_paid;
+    v_fee:=0;
     if (v_seller.state->>'gold')::bigint+total_price-v_fee>9000000000000 then raise exception 'INVALID_BALANCE';end if;
     update rebirth_private.players set state=jsonb_set(jsonb_set(state,array['materials',material_key],to_jsonb(coalesce((state->'materials'->>material_key)::bigint,0)+quantity)),'{gold}',to_jsonb((state->>'gold')::bigint-total_price)),revision=revision+1,updated_at=now() where id=u;
     update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::bigint+total_price-v_fee)),revision=revision+1,updated_at=now() where id=l.seller;
@@ -90,8 +90,8 @@ begin
    if l.item->>'slot'='0' and coalesce(l.item->>'weaponVariant','0') in ('1','2') then collection_key:=collection_key||':'||(l.item->>'weaponVariant'); end if;
    if l.item ? 'design' then collection_key:=concat_ws(':','v3',l.item->>'level',l.item->>'classId',l.item->>'slot',l.item->>'boss',l.item->>'design'); end if;
    update rebirth_private.players set state=jsonb_set(state,'{collection}',coalesce(state->'collection','[]'::jsonb)||jsonb_build_array(collection_key)) where id=u and not coalesce(state->'collection','[]'::jsonb) ? collection_key;
-   update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::bigint+floor(l.price*.95)::bigint)),revision=revision+1,updated_at=now() where id=l.seller;
-   update rebirth_private.listings set status='sold',buyer=u where id=l.id;result:=jsonb_build_object('bought',l.id,'fee',l.price-floor(l.price*.95));
+   update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::bigint+l.price)),revision=revision+1,updated_at=now() where id=l.seller;
+   update rebirth_private.listings set status='sold',buyer=u where id=l.id;result:=jsonb_build_object('bought',l.id,'fee',0);
   end if;
   end if;
  else raise exception 'INVALID_ACTION';end if;
