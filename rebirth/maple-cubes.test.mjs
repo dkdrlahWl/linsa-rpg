@@ -40,7 +40,7 @@ assert.deepEqual(r.pendingCube.lines.map(l=>l.grade),[3,3,3]);
 for(const flag of ['locked','broken']){let t=fixture();t.items[0][flag]=true;assert.throws(()=>execute(t,'cube',{id:t.items[0].id},ctx()),/ITEM_PROTECTED/);}
 s=fixture();s.materials.cube=0;assert.throws(()=>execute(s,'cube',{id:s.items[0].id},ctx()),/INSUFFICIENT_CUBE/);
 s=fixture(5);assert.throws(()=>execute(s,'cube',{id:s.items[0].id,kind:'strangeCube'},ctx()),/INVALID_CUBE/);
-s=fixture(2);const prime=execute(s,'cube',{id:s.items[0].id,kind:'primeCube'},ctx()).state;assert.equal(prime.items[0].grade,3);assert.ok(prime.items[0].lines.every(l=>l.grade===3));
+s=fixture(2);const prime=execute(s,'cube',{id:s.items[0].id,kind:'primeCube'},ctx()).state;assert.equal(prime.items[0].grade,2);assert.equal(prime.pendingCube.grade,3);assert.ok(prime.pendingCube.lines.every(l=>l.grade===3));const primeApplied=execute(prime,'cubeChoose',{apply:true},ctx()).state;assert.equal(primeApplied.items[0].grade,3);assert.ok(primeApplied.items[0].lines.every(l=>l.grade===3));
 assert.throws(()=>execute(s,'cube',{id:s.items[0].id,kind:'__proto__'},ctx()),/INVALID_CUBE/);
 assert.throws(()=>execute(s,'qualityReroll',{id:s.items[0].id},ctx()));
 for(const q of [0,50,100])for(const boss of [false,true])for(const stars of [0,10,25]){

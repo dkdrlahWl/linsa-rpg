@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: '24'
       - run: node rebirth/exploration-arena.test.mjs
+      - run: node rebirth/cube-layout.test.mjs
       - run: node rebirth/exploration-rewards-admin.test.mjs
       - run: node rebirth/exploration.test.mjs
       - run: node rebirth/exploration-dungeon.test.mjs

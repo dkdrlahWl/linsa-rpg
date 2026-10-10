@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {EXPLORATION_REWARDS,explorationGearLevel} from './exploration-reward-data.mjs';
+import {EXPLORATION_REWARDS,EXPLORATION_REWARD_COUNTS,explorationGearLevel} from './exploration-reward-data.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {startCoop} from './coop-model.mjs';
@@ -14,10 +14,11 @@ for(let tier=0;tier<3;tier++){
  const grant=values=>{let i=0;return grantExplorationChest(input,room,{random:()=>values[i++]??.5,uuid:()=>crypto.randomUUID()});};
  const none=grant([.999,.999,.999,.999]);assert.equal(none.state.gold,1+rates.gold);assert.deepEqual(none.state.materials,input.materials);assert.equal(none.reward.items.length,0);assert.equal(none.reward.cube,0);
  for(const [index,key] of ['scroll','highCube','potentialLock'].entries()){
-  const rolls=[.999,.999,.999,.999];rolls[index]=rates[key]-.000001;const yes=grant(rolls);assert.equal(yes.reward[key],1);assert.equal(yes.state.materials[key],input.materials[key]+1);
+  const rolls=[.999,.999,.999,.999];rolls[index]=rates[key]-.000001;const yes=grant(rolls);assert.equal(yes.reward[key],EXPLORATION_REWARD_COUNTS[key]);assert.equal(yes.state.materials[key],input.materials[key]+EXPLORATION_REWARD_COUNTS[key]);
   rolls[index]=rates[key];assert.equal(grant(rolls).reward[key],0);
  }
- const all=grant([0,0,0,0,.995,.999,.999]);assert.equal(all.reward.items[0].level,190);assert.equal(all.reward.items[0].boss,true);assert.equal(all.state.items.length,1);assert.deepEqual(['scroll','highCube','potentialLock'].map(k=>all.reward[k]),[1,1,1]);assert.equal(input.items.length,0);
+ const all=grant([0,0,0,0,.995,.999,.999]);assert.equal(all.reward.items[0].level,190);assert.equal(all.reward.items[0].boss,true);assert.equal(all.state.items.length,1);assert.deepEqual(['scroll','highCube','potentialLock'].map(k=>all.reward[k]),[3,5,2]);assert.equal(input.items.length,0);
+ const jobs=new Set();for(const classRoll of [0,.2,.4,.6,.8,.999]){const gear=grant([.999,.999,.999,0,.5,classRoll,.5]);jobs.add(gear.reward.items[0].classId);}assert.equal(jobs.size,6);
  const full={...input,items:Array.from({length:300},(_,i)=>({id:String(i)}))};const overflow=grantExplorationChest(full,room,{random:()=>0,uuid:()=>crypto.randomUUID()});assert.equal(overflow.state.items.length,300);assert.equal(overflow.state.mailbox.length,1);assert.equal(overflow.reward.stored,1);
  assert.throws(()=>grantExplorationChest(input,{...room,status:'fighting'},{random:()=>0}),/NOT_READY/);
 }
