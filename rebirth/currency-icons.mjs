@@ -4,10 +4,11 @@ const currencyKeys = {
   '잠재 해금 주문서': 'scroll', '잠재 부여 주문서': 'scroll', '주문서': 'scroll',
   '잠재 확장석': 'expand', '확장석': 'expand',
   '레드 큐브':'cube', '블랙 큐브':'highCube', '프라임 큐브':'primeCube',
+  '레드큐브':'cube', '블랙큐브':'highCube', '프라임큐브':'primeCube',
   '일반 큐브': 'cube', '큐브': 'cube', '상급 큐브': 'highCube',
   '지역 재료': 'boss', '보스 재료': 'boss',
 };
-const labels = /잠재 해금 주문서|레드 큐브|블랙 큐브|프라임 큐브|상급 큐브|일반 큐브|잠재 부여 주문서|잠재 확장석|장비 파편|지역 재료|보스 재료|확장석|주문서|파편|큐브/g;
+const labels = /잠재 해금 주문서|레드 큐브|블랙 큐브|프라임 큐브|레드큐브|블랙큐브|프라임큐브|상급 큐브|일반 큐브|잠재 부여 주문서|잠재 확장석|장비 파편|지역 재료|보스 재료|확장석|주문서|파편|큐브/g;
 const ignored = 'script,style,textarea,select,option,[data-currency-label],[data-no-currency-art],.damage';
 const cubeArt={scroll:"potential-scroll.webp",cube:"cube-red-v2.png",highCube:"cube-black-v2.png",primeCube:"cube-prime-v2.png"};
 export const currencyIconURL = key => new URL(['potentialLock','dungeonKey','diamond','diamondChest'].includes(key)?'./fishing/'+key+'.webp':"./currencies/"+(cubeArt[key]||key+".svg"),import.meta.url).href;
