@@ -10,7 +10,7 @@ import {consumableView,consumablePurchaseView,updateLuckTimers} from './consumab
 import {LUCK_POTION,shopConsumable} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-17';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=no-daily-limits-112';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=pnl-rankings-203';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
@@ -339,6 +339,18 @@ async function openCoinActivity(kind){
   if(loading||!more||list.scrollTop+list.clientHeight<list.scrollHeight-90)return;
   loading=true;updateEnd();try{const page=await fetchPage(last[kind==='news'?'publishedAt':'closedAt'],last.id);if(!modal.open||version!==activityVersion||session?.user?.id!==account)return;const next=page.items.slice(0,14);end.insertAdjacentHTML('beforebegin',next.map(n=>kind==='news'?investmentNewsItem(n,Date.parse(page.serverNow)):investmentTradeItem(n)).join(''));rows.push(...next);last=next.at(-1)||last;more=page.items.length>14;if(kind==='news')await acknowledge(next.map(n=>n.id));}catch{end.textContent='불러오지 못했습니다. 다시 내려 주세요.';}finally{loading=false;updateEnd();}
  });
+}
+async function openCoinRankings(){
+ const account=session?.user?.id;await ensureToken();
+ const first=await request('/rest/v1/rpc/rebirth_coin_rankings',{});
+ if(session?.user?.id!==account)return;
+ open('투자 수익률 순위','<section class="invest-rank-feed"><p>청산 포함 · 종료된 거래 원금 대비 수익률</p><div class="invest-rank-list"></div><small class="invest-rank-updated"></small></section>');
+ modal.classList.add('invest-rank-dialog');
+ const list=modal.querySelector('.invest-rank-list'),stamp=modal.querySelector('.invest-rank-updated');
+ const paint=data=>{list.innerHTML=data.users.map((u,i)=>{const value=Number(u.percent)||0;return `<article><b>${i+1}</b><span>${esc(u.name)}</span><strong class="${value<0?'negative':'positive'}">${value>0?'+':''}${value.toFixed(2)}%</strong></article>`;}).join('');stamp.textContent=`10초마다 자동 갱신 · ${new Date(data.serverNow).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;};
+ paint(first);let pending=false;
+ const timer=setInterval(async()=>{if(!modal.open||!list.isConnected||session?.user?.id!==account){clearInterval(timer);return;}if(pending||document.hidden||!navigator.onLine)return;pending=true;try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_rankings',{});if(modal.open&&list.isConnected&&session?.user?.id===account)paint(data);}catch{if(stamp.isConnected)stamp.textContent='갱신 지연 · 자동 재시도 중';}finally{pending=false;}},10000);
+ modal.addEventListener('close',()=>clearInterval(timer),{once:true});
 }
 let autoHuntPending=false;
 function requestAutoHunt(){autoHuntPending=true;flushAutoHunt();}
@@ -940,7 +952,7 @@ async function marketLoad() {
 function open(title, html, closable = true) {
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=title==="잠재능력 · 큐브"||title.endsWith(" · 결과 선택")?0:dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
-  modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog");
+  modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog");
   replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = preservedModalScroll;
@@ -1271,6 +1283,7 @@ document.addEventListener("click", async (e) => {
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
     if(action==='adminCoinDirection'){if(!state.isAdmin||b.disabled)return;const [coin,side]=arg.split(':');b.disabled=true;try{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_admin_coin_direction',{p_coin:Number(coin),p_side:side});toast(`${result.name} · ${new Date(result.scheduledAt).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'})} 봉 ${side==='long'?'상승':'하락'} 1회 지정`);}finally{b.disabled=false;}return;}
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
+    if(action==='investRankings'){b.disabled=true;try{await openCoinRankings();}finally{b.disabled=false;}return;}
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
     if(action==='investCoin'){selectCoin(arg);return render();}
     if(action==='investLeverage'){const old=investmentLeverage;setInvestmentAmount(document.querySelector('#invest-amount')?.value||investmentAmount);setInvestmentLeverage(arg);setInvestmentAmount(Math.floor(Number(investmentAmount)*investmentLeverage/old));return render();}
