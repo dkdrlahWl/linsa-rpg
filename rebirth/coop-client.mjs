@@ -44,7 +44,7 @@ export function coopInputInterval(room,rtt=250){
  return Math.max(250,Math.min(8,players)*80,Math.min(800,rtt*.8));
 }
 export class CoopController{
- constructor(host,room,send,sound){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'),['raid','exploration'].includes(room.mode)?{pixelRatio:1.25}:{});this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
+ constructor(host,room,send,sound,admin=false){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'),['raid','exploration'].includes(room.mode)?{pixelRatio:1.25}:{});this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
   window.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,dialog'))return;if(keyBits[e.code]||/^(Key[WASD]|Arrow)/.test(e.code)){e.preventDefault();if(!this.keys.has(e.code)&&keyBits[e.code])this.press(keyBits[e.code]);this.keys.add(e.code);}},opt);window.addEventListener('keyup',e=>this.keys.delete(e.code),opt);
   const clear=()=>{this.keys.clear();this.pointers.clear();this.stick={x:0,y:0};this.auto=false;this.pendingBits=0;this.sampler.clear();};window.addEventListener('blur',clear,opt);
   const resume=()=>{if(this.disposed)return;clear();this.needsResync=true;this.nextSend=0;this.lastDraw=0;void this.flush();};
@@ -58,6 +58,18 @@ export class CoopController{
   const chestButton=host.querySelector('#tower-chest');delete chestButton.dataset.action;chestButton.addEventListener('click',()=>this.press(1),opt);
   host.querySelector('#tower-auto').addEventListener('click',e=>{this.auto=!this.auto;e.currentTarget.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');},opt);
   host.querySelector('#tower-auto-skills').addEventListener('click',e=>{this.autoSkills=!this.autoSkills;e.currentTarget.setAttribute('aria-pressed',String(this.autoSkills));e.currentTarget.textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');},opt);
+  if(room.mode==='exploration'&&admin===true){
+   const tools=document.createElement('div');tools.className='exploration-admin-controls';
+   tools.innerHTML='<select aria-label="관리자 이동 층">'+Array.from({length:EXPLORATIONS[room.tier].floors},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'층</option>').join('')+'</select><button type="button">관리자 층 이동</button>';
+   host.querySelector('.tower-footer').prepend(tools);
+   const select=tools.querySelector('select'),button=tools.querySelector('button');select.value=String(room.floor);
+   button.addEventListener('click',async()=>{
+    if(this.floorBusy||this.room.entryWaiting||this.room.status!=='fighting')return;
+    this.floorBusy=true;button.disabled=true;
+    try{await this.send('coopSync',{explorationFloor:Number(select.value)},false,false,this.abort.signal);}
+    finally{this.floorBusy=false;if(!this.disposed)button.disabled=false;}
+   },opt);
+  }
   if(room.mode==='wave'){
    const speed=document.createElement('button');speed.id='wave-speed';speed.type='button';
    host.querySelector('#tower-auto').parentElement.append(speed);

@@ -637,7 +637,7 @@ function render() {
     if(!banner){banner=document.createElement('div');banner.id='connection-status';banner.className='connection-status';banner.setAttribute('role','status');banner.innerHTML='연결이 지연되고 있어요. <button data-action="reconnect">다시 연결</button>';fishingRoot.querySelector('.fishing-scroll').prepend(banner);}
     banner.hidden=!connectionLost;
   }
-  if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b));return;}
+  if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b),state?.isAdmin===true);return;}
   if(towerBattle){
     const send=dummyBattle?async(_action,args)=>{
       if(!dummyBattle||dummyBattle.runId!==args.runId)return null;
@@ -1086,7 +1086,7 @@ function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.s
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait${f.artFrames===1?' single-boss-art':''}" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G'+['fragment','cube','highCube','primeCube','scroll'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+fmt(r[k])+'개').join(''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<TOWER_FLOORS.length?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
   const r = state.lastReward;
-  if(r?.type==='coop'&&r.mode==='exploration')return open(r.won?'링구의 탐험 완료':'탐험 종료','<p>'+esc(r.name||'링구의 탐험')+' · '+(r.cleared||0)+'층 완료</p><p>'+fmt(r.gold||0)+' G · 레드 큐브 '+(r.cube||0)+' · 블랙 큐브 '+(r.highCube||0)+'</p>'+btn('확인','ack','','gold',true),false);
+  if(r?.type==='coop'&&r.mode==='exploration')return open(r.won?'링구의 탐험 완료':'탐험 종료','<p>'+esc(r.name||'링구의 탐험')+' · '+(r.cleared||0)+'층 완료</p><p>'+fmt(r.gold||0)+' G'+['scroll','highCube','potentialLock'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+r[k]+'개').join('')+'</p>'+(r.items||[]).map(it=>'<div class="panel pad">'+gearMarkup(it)+'<strong>'+esc(D.gearName(it))+'</strong><p>Lv.'+it.level+' · '+D.SLOTS[it.slot]+'</p></div>').join('')+(r.stored?'<p class="note">가방이 가득 차 장비를 보관함으로 보냈습니다.</p>':'')+btn('확인','ack','','gold',true),false);
   if(r?.type==='coop'&&r.mode==='raid'){
     const loot=r.practice?'이번 주 레이드 보상 3회를 모두 받았습니다. 이번 클리어는 연습으로 처리됩니다.':fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join('');
     const remaining=Number.isInteger(r.weeklyUsed)?`이번 주 개인 보상 ${r.weeklyUsed}/${r.weeklyLimit}회 · 남은 보상 ${r.weeklyRemaining}회<br>`:'';
@@ -1861,3 +1861,4 @@ installMenuIcons();
 
 setInterval(updatePetCountdown,1000);
 setInterval(()=>{if(state&&!document.hidden)updateLuckTimers(state);},1000);
+

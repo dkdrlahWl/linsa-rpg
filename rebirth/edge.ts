@@ -1,3 +1,4 @@
+import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 import {fishingStateReply} from './fishing-sync.mjs';
 import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
@@ -155,7 +156,7 @@ Deno.serve(async (req) => {
           const room=current.coop;
           if(!room&&["input","sync"].includes(action))return reply(current);
           if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
-          const world=action==='sync'&&body.args.waveSpeed!==undefined?setWaveSpeed(room,user.id,body.args.waveSpeed,Number(current.now)):action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
+          const world=action==='sync'&&body.args.explorationFloor!==undefined?adminExplorationFloor(room,user.id,body.args.explorationFloor,ctx.admin):action==='sync'&&body.args.waveSpeed!==undefined?setWaveSpeed(room,user.id,body.args.waveSpeed,Number(current.now)):action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
           if(action==='input'&&world===room)return reply(current);
           let claim=null;
           if(action==='open'){

@@ -2,9 +2,9 @@ import {makeExplorationDungeon,makeExplorationArena,revealDungeon} from './explo
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
- {id:0,name:'달빛 수림의 유적',floors:10,multiplier:1,level:200,art:'exploration-0',map:'exploration/map-0.webp',boss:'월림의 수호왕 아르보른',monsters:['달가시 늑대','이끼 갑옷돌','달밤 버섯'],seconds:1800,gold:100000,cube:3,highCube:1},
- {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:150000,cube:4,highCube:2},
- {id:2,name:'별의 심연 성전',floors:12,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:225000,cube:5,highCube:3},
+ {id:0,name:'달빛 수림의 유적',floors:10,multiplier:1,level:200,art:'exploration-0',map:'exploration/map-0.webp',boss:'월림의 수호왕 아르보른',monsters:['달가시 늑대','이끼 갑옷돌','달밤 버섯'],seconds:1800,gold:50000},
+ {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:70000},
+ {id:2,name:'별의 심연 성전',floors:12,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:100000},
 ];
 export const EXPLORATION_MOVE_SPEED=1.3;
 export const explorationMonsterMultiplier=(tier,floor)=>floor<=Math.ceil(EXPLORATIONS[tier].floors/2)?2:3;

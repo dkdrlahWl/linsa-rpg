@@ -25,3 +25,9 @@
  [data-coop-mode="exploration"] .tower-skill-bar>[data-tower-button="32"]{grid-column:2;grid-row:2}
  [data-coop-mode="exploration"] .tower-skill-bar>[data-tower-button="64"]{grid-column:3;grid-row:2}
 }
+
+[data-coop-mode="exploration"] .exploration-admin-controls{display:flex;align-items:center;gap:5px;flex-shrink:0}
+[data-coop-mode="exploration"] .exploration-admin-controls select,[data-coop-mode="exploration"] .exploration-admin-controls button{min-height:28px;font-size:11px;padding:3px 5px}
+[data-coop-mode="exploration"] .tower-footer:has(.exploration-admin-controls){gap:4px;padding-left:6px;padding-right:6px;overflow-x:auto}
+[data-coop-mode="exploration"] .tower-footer:has(.exploration-admin-controls)>span{display:none}
+[data-coop-mode="exploration"] .tower-footer:has(.exploration-admin-controls)>button{flex-shrink:0;font-size:10px;padding:3px 4px}

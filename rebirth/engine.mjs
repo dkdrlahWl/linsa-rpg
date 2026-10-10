@@ -302,7 +302,7 @@ function rollCount(n, prob, ctx) {
   }
   return hits;
 }
-function addItem(s, item) {
+export function addItem(s, item) {
   const key = equipmentKey(item);
   if (!s.collection.includes(key)) s.collection.push(key);
   if (s.items.length < 300) s.items.push(item);
