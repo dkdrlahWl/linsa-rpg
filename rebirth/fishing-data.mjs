@@ -21,7 +21,7 @@ export const baitDiamondCost=(bait,count)=>bait.diamonds*count/bait.pack;
 export const FISHING_QUESTS=[{id:'catch',name:'물고기 10마리 잡기',goal:10,diamonds:3},{id:'rare',name:'희귀 이상 물고기 3마리',goal:3,diamonds:2},{id:'sell',name:'물고기 5마리 판매',goal:5,diamonds:2}];
 export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.92},{id:'diamondChest',name:'다이아 상자',chance:.015},{id:'cube',name:'레드 큐브',chance:.020},{id:'highCube',name:'블랙 큐브',chance:.010},{id:'primeCube',name:'프라임 큐브',chance:.010},{id:'scroll',name:'잠재 해금 주문서',chance:.010},{id:'potentialLock',name:'잠재 잠금석',chance:.010},{id:'dungeonKey',name:'던전 열쇠',chance:.005}];
 // Lv.10→11 through Lv.29→30 costs five times the original gold requirement.
-export const rodGoldCost=level=>Math.round(20000*1.17**(level-1)/100)*100*(level>=10&&level<30?5:1);
+export const rodGoldCost=level=>Math.round(20000*1.17**(level-1)/100)*100*(level>=10&&level<30?5:1)/2;
 export const rodDiamondCost=level=>2+Math.floor(level/5);
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?5*Math.round(RARITIES[d.rarity].price*(.55+1.45*fish.weight/d.max)):0;};
 export const fishYield=fish=>30*Math.max(1,Math.floor((fishPrice(fish)/5)*.015)); // 10x previous aquarium income; independent of 5x sale price
