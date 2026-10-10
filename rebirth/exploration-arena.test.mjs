@@ -3,7 +3,7 @@ import {startCoop,advanceCoopRaw} from './coop-model.mjs';
 import {EXPLORATIONS,explorationFloor} from './exploration-data.mjs';
 import {dungeonWalkable,dungeonSight} from './exploration-dungeon.mjs';
 const power={attack:1e8,hp:100000,defense:2000,crit:0,critDamage:1.5,boss:1,cadence:1,advancement:4,firstJob:true,level:200};
-for(const theme of EXPLORATIONS){
+for(const theme of EXPLORATIONS.slice(0,3)){
  const w=startCoop({mode:'exploration',tier:theme.id,status:'waiting',id:'test',owner:'p',members:[{id:'p',classId:'warrior',name:'test',power,advanced:true,ready:true,left:false}]},0);
  w.entryWaiting=false;w.floor=theme.floors;explorationFloor(w);
  assert.ok(w.dungeon.arena);assert.equal(w.dungeon.arenaBounds.width,theme.id===0?2800:1400);

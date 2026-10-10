@@ -1,6 +1,6 @@
-import {EXPLORATION_MOVE_SPEED} from './exploration-data.mjs?v=exploration-steady-212';
-import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=exploration-steady-212';
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=exploration-steady-212';
+import {EXPLORATION_MOVE_SPEED} from './exploration-data.mjs?v=citadel-zero-213';
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=citadel-zero-213';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=citadel-zero-213';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){

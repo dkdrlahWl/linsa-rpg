@@ -6,7 +6,7 @@ import {EXPLORATION_REWARDS} from './exploration-reward-data.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 const build={attack:49108,hp:67525,defense:1373,crit:.41,critDamage:1.6,boss:3.2,cadence:1,advancement:4,firstJob:true,level:200,combatPower:206123};
 const create=(tier=0,count=1)=>{const w=startCoop({mode:'exploration',tier,status:'waiting',owner:'p0',id:'room',members:Array.from({length:count},(_,i)=>({id:'p'+i,name:'테스트'+i,classId:['warrior','mage','archer','priest'][i],power:structuredClone(build),advanced:true,ready:true,left:false}))},0);w.entryWaiting=false;return w;};
-assert.deepEqual(EXPLORATIONS.map(x=>x.floors),[10,11,12]);
+assert.deepEqual(EXPLORATIONS.slice(0,3).map(x=>x.floors),[10,11,12]);
 for(const tier of [1,2]){const a=explorationStats(tier-1,EXPLORATIONS[tier-1].floors,1,true),b=explorationStats(tier,EXPLORATIONS[tier].floors,1,true);assert.equal(b.hp/a.hp,1.5);assert.ok(Math.abs(b.attack/a.attack-1.5)<.0001);}
 for(const n of [1,2,3,4]){const w=create(0,n);assert.equal(w.population,n);if(n>1)assert.ok(w.monsters[0].hp>create(0,n-1).monsters[0].hp);w.members[n-1].left=true;const frozen=w.population;explorationFloor(w);assert.equal(w.population,frozen);}
 assert.throws(()=>create(0,5),/PLAYERS/);

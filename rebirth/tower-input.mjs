@@ -33,5 +33,5 @@ export function projectPlayer(b,input){
     const n=Math.hypot(input.x,input.y);dx=n?input.x/n*3*fraction:0;dy=n?input.y/n*3*fraction:0;if(!input.x&&!input.y){const v=facingVector(b.player.dir??6);dx=v.x*3*fraction;dy=v.y*3*fraction;}
   }else if(next<(b.dashUntil||0)){dx=b.dashX*3*fraction;dy=b.dashY*3*fraction;}
   const speed=!b.waveMode&&(input.buttons&1)&&TOWER_CLASSES[b.classId].range>300&&!(next<(b.dashUntil||0))&&!((input.buttons&4)&&next>=b.dashReady)?17:TOWER_CLASSES[b.classId].speed;
-  return {x:Math.max(TOWER_BOUNDS.left,Math.min(TOWER_BOUNDS.right,b.player.x+dx*speed)),y:Math.max(TOWER_BOUNDS.top,Math.min(TOWER_BOUNDS.bottom,b.player.y+dy*speed))};
+  return {x:Math.max(TOWER_BOUNDS.left,Math.min((b.worldSize||3200)-120,b.player.x+dx*speed)),y:Math.max(TOWER_BOUNDS.top,Math.min((b.worldSize||3200)-120,b.player.y+dy*speed))};
 }

@@ -1,5 +1,6 @@
+import {CITADEL_BIOMES,citadelAsset,citadelStage} from './citadel-zero.mjs';
 import {dungeonSeen} from './exploration-dungeon.mjs';
-export const explorationTerrainSource=tier=>'exploration/terrain-'+tier+'-193.webp';
+export const explorationTerrainSource=(tier,floor=1)=>tier===3?citadelAsset('terrain',citadelStage(floor).biome):'exploration/terrain-'+tier+'-193.webp';
 const moods=[{base:'#242a25',fog:'#101c25',glow:'#70eeb0'},{base:'#2b211e',fog:'#211520',glow:'#ff963f'},{base:'#292838',fog:'#13182c',glow:'#a4b0ff'}];
 function cell(g,im,index,x,y,width,height=width,flip=false){
  const sw=im.naturalWidth/3,sh=im.naturalHeight/2;
@@ -13,21 +14,21 @@ function floorPattern(im){
  return tile;
 }
 export function drawExplorationDungeon(renderer,b,im,heart){
- const g=renderer.g,d=b.dungeon;if(!d)return false;
+ const g=renderer.g,d=b.dungeon;if(!d)return false;const size=d.size||32,world=size*100;
  if(d.arena){const arena=renderer.arenaImage?.(b.tier);g.fillStyle=(moods[b.tier]||moods[0]).fog;g.fillRect(-5000,-5000,13000,13000);if(arena?.complete&&arena.naturalWidth)g.drawImage(arena,d.arenaBounds?.x??900,d.arenaBounds?.y??900,d.arenaBounds?.width??1400,d.arenaBounds?.height??1400);drawExplorationHearts(g,b,d,heart);return true;}
- const mood=moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
+ const biome=CITADEL_BIOMES[d.biome],mood=d.citadel?{base:biome.color,fog:biome.color,glow:biome.light}:moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
  if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=1600;const c=canvas.getContext('2d');c.scale(.5,.5);c.fillStyle=mood.base;c.fillRect(0,0,3200,3200);
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=Math.min(2048,world/2);const c=canvas.getContext('2d');c.scale(canvas.width/world,canvas.height/world);c.fillStyle=mood.base;c.fillRect(0,0,world,world);
   const pattern=loaded?c.createPattern(floorPattern(im),'repeat'):mood.base;
-  c.fillStyle=pattern;c.fillRect(0,0,3200,3200);c.fillStyle=mood.fog+'e8';c.fillRect(0,0,3200,3200);
-  const floor=new Path2D();for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]!=='0')floor.rect(x*100,y*100,100,100);
-  c.save();c.clip(floor);c.fillStyle=pattern;c.fillRect(0,0,3200,3200);
+  c.fillStyle=pattern;c.fillRect(0,0,world,world);c.fillStyle=mood.fog+'e8';c.fillRect(0,0,world,world);
+  const floor=new Path2D();for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(d.tiles[y][x]!=='0')floor.rect(x*100,y*100,100,100);
+  c.save();c.clip(floor);c.fillStyle=pattern;c.fillRect(0,0,world,world);
   for(const r of d.rooms){const x=(r.x+r.w/2)*100,y=(r.y+r.h/2)*100,light=c.createRadialGradient(x,y,30,x,y,460);light.addColorStop(0,'#ffe2aa16');light.addColorStop(1,'#ffe2aa00');c.fillStyle=light;c.fillRect(r.x*100,r.y*100,r.w*100,r.h*100);}
   c.restore();
   if(loaded){
    // Keep painted solid terrain inside the same blocked cells used for collision.
-   c.save();const blocked=new Path2D();for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]==='0')blocked.rect(x*100,y*100,100,100);c.clip(blocked);
-   for(let y=0;y<32;y++)for(let x=0;x<32;x++)if(d.tiles[y][x]==='0'){
+   c.save();const blocked=new Path2D();for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(d.tiles[y][x]==='0')blocked.rect(x*100,y*100,100,100);c.clip(blocked);
+   for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(d.tiles[y][x]==='0'){
     const adjacent=[[0,1],[0,-1],[1,0],[-1,0]].some(([dx,dy])=>d.tiles[y+dy]?.[x+dx]&&d.tiles[y+dy][x+dx]!=='0');if(!adjacent)continue;
     const hash=(x*83+y*137+(b.explorationFloor||b.floor)*23)%101,width=168+hash%19;
     c.save();c.shadowColor='#00000090';c.shadowBlur=18;c.shadowOffsetY=14;cell(c,im,1+hash%2,x*100+50+(hash%9-4),y*100+48+(hash%11-5),width,165+hash%17,hash%3===0);c.restore();
@@ -42,28 +43,29 @@ export function drawExplorationDungeon(renderer,b,im,heart){
   }
   renderer.dungeonLayer={id:d.id,canvas,loaded};
  }
- g.drawImage(renderer.dungeonLayer.canvas,0,0,3200,3200);
+ g.drawImage(renderer.dungeonLayer.canvas,0,0,world,world);
+ if(d.citadel){g.save();g.fillStyle='#503874bb';for(const wall of d.shadowWalls||[])g.fillRect(wall.x,wall.y,100,100);for(const trap of b.traps||[]){if(!dungeonSeen(d,trap.x,trap.y))continue;g.strokeStyle='#b19cad';g.lineWidth=4;g.beginPath();g.arc(trap.x,trap.y,45,0,Math.PI*2);g.stroke();}g.restore();}
  if(loaded&&b.status!=='won'){const {x,y}=b.exit;g.save();if(b.exitOpen){const glow=g.createRadialGradient(x,y,0,x,y,180);glow.addColorStop(0,mood.glow+'55');glow.addColorStop(1,mood.glow+'00');g.fillStyle=glow;g.fillRect(x-180,y-180,360,360);}cell(g,im,5,x,y,235,235);g.font='bold 24px sans-serif';g.textAlign='center';g.lineWidth=5;g.strokeStyle='#10141b';g.fillStyle=b.exitOpen?'#ccffe3':'#d9d5cb';const label=b.status==='won'?'보상 상자':b.exitOpen?'다음 층 ↑':'계단 잠김';g.strokeText(label,x,y-135);g.fillText(label,x,y-135);g.restore();}
  drawExplorationHearts(g,b,d,heart);
  return true;
 }
 export function drawExplorationFog(g,b,camera,width,height,renderer){
- const d=b.dungeon;if(!d||d.arena)return;const key=d.id+':'+d.seen.join('');
+ const d=b.dungeon;if(!d||d.arena)return;const size=d.size||32,world=size*100;const key=d.id+':'+d.seen.join('');
  if(renderer.dungeonFog?.key!==key){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=800;const c=canvas.getContext('2d');c.scale(.25,.25);const path=new Path2D();
-  for(let y=0;y<32;y++){let start=-1;for(let x=0;x<=32;x++){if(x<32&&d.seen[y][x]!=='1'){if(start<0)start=x;}else if(start>=0){path.rect(start*100-1,y*100-1,(x-start)*100+2,102);start=-1;}}}
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=world/4;const c=canvas.getContext('2d');c.scale(.25,.25);const path=new Path2D();
+  for(let y=0;y<size;y++){let start=-1;for(let x=0;x<=size;x++){if(x<size&&d.seen[y][x]!=='1'){if(start<0)start=x;}else if(start>=0){path.rect(start*100-1,y*100-1,(x-start)*100+2,102);start=-1;}}}
   c.filter='blur(7px)';c.fillStyle=(moods[b.tier]||moods[0]).fog+'fa';c.fill(path);renderer.dungeonFog={key,canvas};
  }
- g.drawImage(renderer.dungeonFog.canvas,0,0,3200,3200);
+ g.drawImage(renderer.dungeonFog.canvas,0,0,world,world);
 }
 const minimapLayers=new WeakMap();
 export function drawExplorationMinimap(g,b,player){
- const d=b.dungeon;if(!d)return;const x=790,y=20,size=190,scale=size/32;
+ const d=b.dungeon;if(!d)return;const x=790,y=20,size=190,world=d.size*100,scale=size/d.size;
  g.save();g.fillStyle='#111221e8';g.fillRect(x-8,y-8,size+16,size+36);g.strokeStyle='#abc3d0';g.lineWidth=2;g.strokeRect(x-8,y-8,size+16,size+36);
  const key=d.id+':'+d.seen.join('');let layer=minimapLayers.get(g);
  if(layer?.key!==key){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');
- for(let row=0;row<32;row++)for(let col=0;col<32;col++)if(d.seen[row][col]==='1'&&d.tiles[row][col]!=='0'){
+ for(let row=0;row<d.size;row++)for(let col=0;col<d.size;col++)if(d.seen[row][col]==='1'&&d.tiles[row][col]!=='0'){
   c.fillStyle=d.tiles[row][col]==='2'?'#424c61':'#65738a';c.fillRect(col*scale,row*scale,scale+.3,scale+.3);
   c.strokeStyle='#e1e3d3';c.lineWidth=1;for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]])if(!d.tiles[row+dy]?.[col+dx]||d.tiles[row+dy][col+dx]==='0'){
    c.beginPath();if(dx){const px=(col+(dx>0?1:0))*scale;c.moveTo(px,row*scale);c.lineTo(px,(row+1)*scale);}else{const py=(row+(dy>0?1:0))*scale;c.moveTo(col*scale,py);c.lineTo((col+1)*scale,py);}c.stroke();
@@ -72,7 +74,7 @@ export function drawExplorationMinimap(g,b,player){
   layer={key,canvas};minimapLayers.set(g,layer);
  }
  g.drawImage(layer.canvas,x,y);
- const dot=(m,color,r)=>{g.fillStyle=color;g.beginPath();g.arc(x+m.x/3200*size,y+m.y/3200*size,r,0,Math.PI*2);g.fill();};
+ const dot=(m,color,r)=>{g.fillStyle=color;g.beginPath();g.arc(x+m.x/world*size,y+m.y/world*size,r,0,Math.PI*2);g.fill();};
  for(const h of b.hearts||[])if(dungeonSeen(d,h.x,h.y))dot(h,'#ffb0d0',3);
  for(const e of b.monsters||[])if(dungeonSeen(d,e.x,e.y))dot(e,e.boss?'#ffc963':'#ff747d',e.boss?4:2.4);
  for(const m of b.allies||[])dot(m,'#84e2d0',3);dot(player,'#ffffff',3.6);

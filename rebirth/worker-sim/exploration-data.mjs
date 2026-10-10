@@ -1,4 +1,5 @@
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable} from './exploration-dungeon.mjs?v=exploration-steady-212';
+import {CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation} from './citadel-zero.mjs?v=citadel-zero-213';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable} from './exploration-dungeon.mjs?v=citadel-zero-213';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
@@ -6,17 +7,20 @@ export const EXPLORATIONS=[
  {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:70000},
  {id:2,name:'별의 심연 성전',floors:12,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:100000},
 ];
+EXPLORATIONS.push({id:CITADEL_TIER,name:'암흑성채 · 0단계',floors:21,multiplier:1,level:200,art:'exploration-3',map:'citadel/terrain-0-213.webp',boss:'암흑의 화신',monsters:['야수','광신도','망자','마안'],seconds:18000,gold:130000});
 export const EXPLORATION_MOVE_SPEED=1.3;
 export const explorationMonsterMultiplier=(tier,floor)=>floor<=Math.ceil(EXPLORATIONS[tier].floors/2)?2:3;
 export const EXPLORATION_BASE={bossHp:95000000,attack:11500,referenceAttack:49108,referenceHp:67525,referenceDefense:1373,referencePower:206123};
 export const explorationPopulation=n=>({hp:1+.30*(Math.max(1,Math.min(4,n))-1),attack:1+.12*(Math.max(1,Math.min(4,n))-1)});
 export function explorationStats(tier,floor,count,boss=false){
+ if(tier===CITADEL_TIER)return citadelStats(floor,count,boss);
  const theme=EXPLORATIONS[tier];if(!theme)throw Error('INVALID_EXPLORATION');
  const depth=.48+.52*(floor-1)/(theme.floors-1),scale=explorationPopulation(count),base=EXPLORATION_BASE;
  return {hp:Math.round(base.bossHp*(boss?1:.007)*theme.multiplier*depth*scale.hp),attack:Math.round(base.attack*(boss?1:.27)*theme.multiplier*depth*scale.attack),speed:boss?15:18+(tier%2)*2};
 }
-export const explorationArt=(tier,species,boss=false)=>'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
+export const explorationArt=(tier,species,boss=false)=>tier===CITADEL_TIER?'citadel/'+(boss?'boss-9':'enemy-'+species)+'-213.webp':'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
 export function explorationFloor(w){
+ if(w.tier===CITADEL_TIER)return citadelFloor(w,dungeonWalkable,revealDungeon);
  const theme=EXPLORATIONS[w.tier],final=w.floor===theme.floors;w.floorAt=w.tick;w.floorDeadline=w.tick+1800;delete w.bossBattleAt;w.exitOpen=false;delete w.bossDeath;w.dungeon=(final?makeExplorationArena:makeExplorationDungeon)(w.tier,w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;
  // Residents occupy separate rooms. The entry room stays safe during loading.
  const rooms=w.dungeon.rooms.filter(r=>r.id!==3),multiplier=explorationMonsterMultiplier(w.tier,w.floor);
@@ -40,6 +44,7 @@ export function initializeExploration(w){
  Object.assign(w,{floor:1,population:w.members.filter(m=>!m.left).length,kills:0,seed:(w.started>>>0)||1});explorationFloor(w);return w;
 }
 export function explorationProgress(w){
+ if(w.tier===3&&w.tick>=w.floorDeadline){w.status='lost';w.reason='floorTimeout';w.endedTick=w.tick;return;}
  w.hp=w.monsters.reduce((n,e)=>n+Math.max(0,e.hp),0);
  if(!w.monsters.length&&!w.exitOpen){w.cleared=w.floor;w.exitOpen=true;w.hazards=[];for(const m of w.members){for(const key of ['firstCast','secondCast','thirdCast','fourthCast','fifthCast','pendingHits','pendingSkill'])delete m[key];}}
  if(w.exitOpen){

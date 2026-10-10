@@ -1,3 +1,4 @@
+import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside} from './citadel-zero.mjs';
 import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs';
 import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs';
 import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-impact-121';
@@ -16,7 +17,7 @@ export {initializeExploration};
 function number(w,value,a,kind){w.numbers.push({id:++w.serial,value,x:a.x,y:a.y-90,kind,start:w.tick,end:w.tick+16});}
 function damage(w,m,targets,scale,critAdd=0){
  const first=w.tick<(m.guardUntil||0)&&CLASS_SKILLS[m.classId].type==='buff'?CLASS_SKILLS[m.classId]:null;
- for(const enemy of targets){if(enemy.hp<=0||!dungeonSight(w.dungeon,m,enemy))continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*(enemy.boss?m.power.boss:1)*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
+ for(const enemy of targets){if(enemy.hp<=0||!dungeonSight(w.dungeon,m,enemy))continue;const factor=citadelDamageFactor(w,enemy);if(!factor)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*factor*(enemy.boss?m.power.boss:1)*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
 }
 function pulse(w,m,cast,sk){
  const aim=sk.mode==='orbit'?m:sk.mode==='volley'?(w.monsters.filter(e=>e.hp>0&&distance(e,m)<=sk.range+150).sort((a,b)=>distance(a,m)-distance(b,m))[0]||cast):cast;
@@ -41,10 +42,10 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const m of alive){
    const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0];const n=Math.max(1,Math.hypot(x,y));x/=n;y/=n;m.dir=towerFacing(x,y,m.dir);m.moving=Math.hypot(x,y)>.01;if(m.moving)m.walk++;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}
-   const dashing=t<(m.dashUntil||0),speed=c.speed*EXPLORATION_MOVE_SPEED;dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(x)m.face=x<0?-1:1;
+   const oldX=m.x,oldY=m.y;const dashing=t<(m.dashUntil||0),speed=c.speed*EXPLORATION_MOVE_SPEED*(t<(m.slowUntil||0)?.55:1);dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(isCitadel(w)&&w.monsters.some(e=>e.hp>0&&e.bossKind==='serpents'&&distance(m,e)<110)){m.x=oldX;m.y=oldY;}if(x)m.face=x<0?-1:1;
 
-   const targets=w.monsters.filter(e=>e.hp>0&&dungeonSight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
-   if(target&&(bits&1)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
+   const targets=w.monsters.filter(e=>e.hp>0&&(!isCitadel(w)||distance(e,m)<1800)&&dungeonSight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
+   if(target&&(bits&1)&&t>=(m.disarmedUntil||0)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
     // Small cleave keeps all five starter classes viable against a crowd.
     const victims=targets.filter(e=>distance(e,m)<=c.range&&distance(e,target)<(c.range<300?230:140)).slice(0,3);
     damage(w,m,victims,c.cooldown/10*m.power.cadence);w.effects.push({id:++w.serial,kind:m.classId==='priest'?'priest-orb':'slash',classId:m.classId,owner:m.id,fromX:m.x,fromY:m.y-85,x:target.x,y:target.y-45,size:180,angle:Math.atan2(target.y-m.y,target.x-m.x),start:t,end:t+7});
@@ -68,6 +69,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   }
   supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
   collectExplorationHearts(w);
+  citadelAfterDamage(w);
   const defeatedBoss=w.monsters.find(e=>e.boss&&e.hp<=0);if(defeatedBoss)w.bossDeath={x:defeatedBoss.x,y:defeatedBoss.y};
   w.monsters=w.monsters.filter(e=>e.hp>0);
   // A cleared full spawn budget advances immediately, without waiting for the clock.
@@ -76,7 +78,9 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const e of w.monsters){
    alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length)break;
    const target=alive.reduce((a,b)=>distance(a,e)<distance(b,e)?a:b),d=distance(target,e);
-   e.moving=false;const sight=dungeonSight(w.dungeon,e,target);if(!e.aggro&&((d<760&&sight)||e.hp<e.maxHp))e.aggro=true;if(!e.aggro)continue;if(e.boss&&w.bossBattleAt===undefined){w.bossBattleAt=t;w.floorDeadline=t+1200;}if(!e.strike&&!e.skill&&d>70){const goal=dungeonRoute(w.dungeon,e,target),length=Math.max(1,distance(goal,e)),dx=(goal.x-e.x)/length,dy=(goal.y-e.y)/length;dungeonMove(w.dungeon,e,dx*Math.min(length,e.speed),dy*Math.min(length,e.speed),26);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
+   e.moving=false;if(isCitadel(w)&&!e.aggro&&d>=760&&e.hp>=e.maxHp)continue;const sight=dungeonSight(w.dungeon,e,target);if(!e.aggro&&((d<760&&sight)||e.hp<e.maxHp))e.aggro=true;if(!e.aggro)continue;if(e.boss&&w.bossBattleAt===undefined){w.bossBattleAt=t;w.floorDeadline=t+(isCitadel(w)?6000:1200);}if(!e.strike&&!e.skill&&e.speed>0&&d>(e.role==='ranged'||e.role==='caster'?500:70)){const goal=dungeonRoute(w.dungeon,e,target),length=Math.max(1,distance(goal,e)),dx=(goal.x-e.x)/length,dy=(goal.y-e.y)/length;dungeonMove(w.dungeon,e,dx*Math.min(length,e.speed),dy*Math.min(length,e.speed),26);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
+   if(isCitadel(w)&&e.boss){citadelBossTick(w,e,alive);continue;}
+   if(isCitadel(w)&&['ranged','caster'].includes(e.role)&&d<1000&&sight&&t>=e.ready){e.ready=t+25;w.hazards.push({type:'line',x:e.x,y:e.y,tx:target.x,ty:target.y,width:e.role==='caster'?130:70,at:t+9,end:t+12,citadel:true,attack:e.attack,source:e.id});}
    if(!e.strike&&!e.skill&&d<150&&sight&&t>=e.ready){e.strike={x:target.x,y:target.y,at:t+(e.elite?7:5)};e.castStart=t;e.attackStart=e.strike.at;e.attackUntil=e.attackStart+4;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);e.ready=t+(e.elite?20:25);w.hazards.push({type:'circle',x:target.x,y:target.y,r:e.elite?135:95,inner:0,at:e.strike.at,end:e.strike.at+2});}
    if(e.elite&&!e.strike&&!e.skill&&d<950&&sight&&t>=(e.skillReady||40)){
     const type=(e.species+w.tier+Math.floor(t/85))%3===1?'line':'circle',at=t+(e.boss?18:13);
@@ -88,6 +92,13 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
     delete e.strike;
    }
   }
+  if(isCitadel(w)){
+   for(const trap of w.traps||[])if(t>=trap.ready&&alive.some(m=>distance(m,trap)<110)){trap.ready=t+60;w.hazards.push({type:'circle',x:trap.x,y:trap.y,r:trap.r,at:t+12,end:t+16,citadel:true,attack:Math.max(...w.monsters.map(e=>e.attack),2000)*.7,element:trap.type,source:trap.id});}
+   for(const h of w.hazards){if(!h.citadel||t<h.at||t>=h.end)continue;for(const m of alive){if(!hazardInside(h,m)||t<m.immune||t<m.hurtReady)continue;const guard=t<m.guardUntil?CLASS_SKILLS[m.classId].guard||1:1,value=Math.round(incomingDamage(h.attack,m.power.defense)*guard);m.hp=Math.max(0,m.hp-absorbDamage(m,value,t));m.hurtReady=t+4;if(h.slow)m.slowUntil=t+h.slow;if(h.disarm)m.disarmedUntil=t+h.disarm;number(w,value,m,'incoming');}
+    if(h.linger&&!h.lingered){h.lingered=true;w.hazards.push({...h,at:h.end,end:h.end+h.linger,attack:h.attack*.35,linger:0,lingerZone:true});}
+   }
+   w.hazards=w.hazards.slice(-120);
+  }
   if(t%5===0)revealDungeon(w);
   alive=w.members.filter(m=>!m.left&&m.hp>0);
   if(!alive.length){w.status='lost';w.reason='dead';w.endedTick=t;break;}
@@ -97,6 +108,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
    if(dead.reviveProgress>=50){dead.hp=Math.max(1,Math.round(dead.power.hp*.3));dead.immune=t+20;dead.reviveProgress=0;dead.reviver=null;dead.input=[0,0,0];dead.inputAt=0;number(w,dead.hp,dead,'heal');}
   }
  }
+ w.numbers=w.numbers.slice(-35);w.effects=boundedCombatEffects(w.effects,w.tick,70);
  const me=w.members.find(m=>m.id===user&&!m.left);if(me&&input){me.input=input;me.inputAt=now;}
  return w;
 }

@@ -23,7 +23,7 @@ const combatNumberFormat=new Intl.NumberFormat('ko-KR');
 const fmt=n=>combatNumberFormat.format(Math.round(n||0));
 const button=(text,action,arg='',disabled=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(disabled?'disabled data-unavailable':'')+'>'+text+'</button>';
 export function coopLobby(state,room,rooms=[],mode="rift"){
- if(room?.mode==='exploration'||(!room&&mode==='exploration')){if(room)void prepareExplorationArt(room.tier,image).catch(()=>{});return explorationLobby(state,room,rooms);}
+ if(room?.mode==='exploration'||(!room&&mode==='exploration')){if(room)void prepareExplorationArt(room.tier,image,room.floor||1).catch(()=>{});return explorationLobby(state,room,rooms);}
  if(room?.mode==='raid'||(!room&&mode==='raid'))return raidLobby(state,room,rooms);
  if(room?.mode==='advancement'){
   const t=coopEncounter(room);void prepareCombatArt(room.members.map(m=>m.classId),t.art,room.members.map(m=>m.power?.costumeId));
@@ -81,7 +81,7 @@ export class CoopController{
    },opt);
   }
   for(const cls of new Set(room.members.map(m=>m.classId))){if(cls==='priest')image('tower/priest-motion-v1.png');else{image(asset('hero-'+cls+'-directions'));image(asset('hero-'+cls+'-motion-v4'));}if(cls==='warrior')image(asset('hero-warrior-east-v4'));}image(room.mode==='exploration'?explorationArt(room.tier,3,true):room.mode==='raid'?raidBossSource(room.tier):asset('boss-'+coopEncounter(room).art));image(asset('effects'));image(asset('reward-chest'));
-  this.artReady=false;Promise.all([...(room.mode==='exploration'?[prepareExplorationArt(room.tier,image)]:[]),prepareCombatArt(room.members.map(m=>m.classId),coopEncounter(room).art,room.members.map(m=>m.power?.costumeId)),image(room.mode==='exploration'?EXPLORATIONS[room.tier].map:room.mode==='raid'?asset('raid-map-'+room.tier):room.mode==='wave'?'wave/meadow-painted-v2.webp':motionAsset('arena-overhead-v3')).decode().catch(()=>{}),...(room.mode==='wave'?[image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].art).decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].eliteArt).decode().catch(()=>{})]:[])]).then(()=>{if(!this.disposed){this.artReady=true;this.entryHud();}});
+  this.artReady=false;Promise.all([...(room.mode==='exploration'?[prepareExplorationArt(room.tier,image,room.floor||1)]:[]),prepareCombatArt(room.members.map(m=>m.classId),coopEncounter(room).art,room.members.map(m=>m.power?.costumeId)),image(room.mode==='exploration'?EXPLORATIONS[room.tier].map:room.mode==='raid'?asset('raid-map-'+room.tier):room.mode==='wave'?'wave/meadow-painted-v2.webp':motionAsset('arena-overhead-v3')).decode().catch(()=>{}),...(room.mode==='wave'?[image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].art).decode().catch(()=>{}),image(WAVE_MONSTERS[Math.floor(((room.wave||1)-1)/10)%30].eliteArt).decode().catch(()=>{})]:[])]).then(()=>{if(!this.disposed){this.artReady=true;this.entryHud();}});
   this.effectMemory=new CoopEffectMemory(room.tick);this.accept(room);this.startPredictor();this.entryHud();this.nextSend=0;this.timer=setInterval(()=>this.flush(),80);this.frame=requestAnimationFrame(t=>this.draw(t));
  }
  startPredictor(){
@@ -207,10 +207,11 @@ export class CoopController{
     x:this.sampler.x+pending.reduce((sum,f)=>sum+f.input[0]*100,0),y:this.sampler.y+pending.reduce((sum,f)=>sum+f.input[1]*100,0),
     buttons:pending.reduce((bits,f)=>bits|f.input[2],this.sampler.buttons)};
   }
+  if(w.tier===3&&w.mode==='exploration'&&this.artFloor!==w.floor){this.artFloor=w.floor;void prepareExplorationArt(w.tier,image,w.floor).catch(()=>{});}
   if(w.mode==='exploration'&&this.renderFloor!==w.floor){this.renderFloor=w.floor;this.motion.points.clear();this.previousSim=motionSnapshot(w);}
-  this.motion.begin(now);
+  this.motion.max=w.dungeon?w.dungeon.size*w.dungeon.cell-120:3080;this.motion.begin(now);
   const smooth=(actor,old,key)=>this.motion.sample(key,interpolateActor(actor,old,visualFraction));
-  const projection={waveMode:['wave','exploration'].includes(w.mode),player:me,classId:me.classId,tick:w.tick,dashReady:me.dashReady,dashUntil:me.dashUntil,dashX:me.dx,dashY:me.dy};
+  const projection={worldSize:w.dungeon?.size*w.dungeon?.cell,waveMode:['wave','exploration'].includes(w.mode),player:me,classId:me.classId,tick:w.tick,dashReady:me.dashReady,dashUntil:me.dashUntil,dashX:me.dx,dashY:me.dy};
   const point=projectPlayer(projection,projectionInput);if(w.mode==='exploration'){point.x=me.x+(point.x-me.x)*EXPLORATION_MOVE_SPEED;point.y=me.y+(point.y-me.y)*EXPLORATION_MOVE_SPEED;}const player=this.motion.sample('player:'+me.id,{...me,...point},true),enemy=smooth(w.enemy,this.previousSim?.enemy,'enemy');
   this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:this.room.status==='won',ended:['won','lost'].includes(this.room.status)});
   if(this.room.status==='won')this.auto=false;

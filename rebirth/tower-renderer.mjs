@@ -153,7 +153,7 @@ export class TowerRenderer {
     // pixel-readback walking rig for every new attack pose on the render thread.
     const riggedWalk=moving&&detailedMotion;
     if(moving&&!detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
-    const spriteSize=this.mobileActors.matches?215:180;
+    const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.4:1);
     const costume=costumeById(costumeId,classId);
     if(costume){
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
@@ -214,10 +214,10 @@ export class TowerRenderer {
     g.save();g.strokeStyle='#d7cd9870';g.lineWidth=3;g.strokeRect(110,110,2980,2980);g.restore();
   }
   waveMonster(e,time){
-    const g=this.g,size=(e.boss?240:e.elite?150:105)*(this.mobileActors.matches?1.65:1),bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
+    const g=this.g,size=(e.boss?240:e.elite?150:105)*(this.citadelView?1:(this.mobileActors.matches?1.65:1)),bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
     this.shadow(e.x,e.y,e.elite?43:29);
     if(e.elite){g.save();g.strokeStyle='#ffd880';g.lineWidth=3;g.beginPath();g.ellipse(e.x,e.y,58,24,0,0,7);g.stroke();g.restore();}
-    if(e.explorationTier!==undefined){const im=image(explorationArt(e.explorationTier,e.species,e.boss)),h=size;if(im.complete&&im.naturalWidth){g.save();g.translate(e.x,e.y);g.scale(e.face||1,1);g.rotate(e.moving?Math.sin(e.walk*.8)*.055:0);g.drawImage(im,-h/2,-h-bob,h,h);g.restore();}}else drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);
+    if(e.explorationTier!==undefined){const im=image(e.art||explorationArt(e.explorationTier,e.species,e.boss)),h=size;if(im.complete&&im.naturalWidth){g.save();g.translate(e.x,e.y);g.scale(e.face||1,1);g.rotate(e.moving?Math.sin(e.walk*.8)*.055:0);g.drawImage(im,-h/2,-h-bob,h,h);g.restore();}}else drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);
     g.save();g.fillStyle='#18221be6';g.fillRect(e.x-35,e.y-size-9,70,5);g.fillStyle=e.elite?'#ffcf6a':'#de7065';g.fillRect(e.x-35,e.y-size-9,70*e.hp/e.maxHp,5);if(e.elite){g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#fff0ac';g.fillText(e.boss?'보스':'정예',e.x,e.y-size-16);}g.restore();
   }
   grave(m){
@@ -296,7 +296,7 @@ export class TowerRenderer {
     b=localSkillView(b);
     if(this.last&&now-this.last<1000/this.maxFps-1)return;
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
-    const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
+    this.citadelView=b.explorationMode&&b.tier===3;g.imageSmoothingEnabled=!this.citadelView;const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
@@ -312,7 +312,7 @@ export class TowerRenderer {
     g.fillStyle='#08131c';g.fillRect(0,0,1000,height);
     const feedback=fifthFeedback(b.effects,time,b.actorId??b.id);
     g.save();g.translate(500,height/2);g.scale(scale,scale);g.translate(b.explorationMode?0:feedback.x,b.explorationMode?0:feedback.y);
-    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.explorationMode){const bg=image(explorationTerrainSource(b.tier));if(!drawExplorationDungeon(this,b,bg,image('exploration/heal-heart-194.webp'))&&bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(!b.dungeon&&b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
+    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.explorationMode){const bg=image(explorationTerrainSource(b.tier,b.explorationFloor||b.floor));if(!drawExplorationDungeon(this,b,bg,image('exploration/heal-heart-194.webp'))&&bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(!b.dungeon&&b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
     for(const e of fourthAreas)drawFourthGround(g,e,time);

@@ -30,7 +30,7 @@ export class CoopMotion {
    const factor=distance?Math.min(1-Math.exp(-this.seconds/.18),limit/distance):0;
    p.dx*=1-factor;p.dy*=1-factor;
   }
-  p.x=clamp(actor.x+p.dx,120,3080);p.y=clamp(actor.y+p.dy,120,3080);
+  p.x=clamp(actor.x+p.dx,120,this.max||3080);p.y=clamp(actor.y+p.dy,120,this.max||3080);
   return {...actor,x:p.x,y:p.y};
  }
  end(){for(const id of this.points.keys())if(!this.active.has(id))this.points.delete(id);}

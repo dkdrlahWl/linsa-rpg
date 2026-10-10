@@ -60,12 +60,13 @@ export function dungeonMove(d,actor,dx,dy,radius=30){
 export function dungeonSight(d,a,b){
  if(!d)return true;
  const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/35));
- for(let i=0;i<=steps;i++)if(dungeonTile(d,a.x+(b.x-a.x)*i/steps,a.y+(b.y-a.y)*i/steps)==='0')return false;
+ for(let i=0;i<=steps;i++)if(['0','3'].includes(dungeonTile(d,a.x+(b.x-a.x)*i/steps,a.y+(b.y-a.y)*i/steps)))return false;
  return true;
 }
 const paths=new Map();
 export function dungeonRoute(d,from,target){
  if(!d||dungeonSight(d,from,target))return target;
+ const SIZE=d.size||32,CELL=d.cell||100;
  const tx=Math.floor(target.x/CELL),ty=Math.floor(target.y/CELL),key=d.id+':'+tx+':'+ty;
  let costs=paths.get(key);
  if(!costs){
@@ -81,6 +82,7 @@ export function dungeonRoute(d,from,target){
 }
 export function revealDungeon(w){
  const d=w.dungeon;if(!d||d.arena)return;
+ const SIZE=d.size||32,CELL=d.cell||100;
  const seen=d.seen.map(row=>row.split(''));
  for(const m of w.members){if(m.left||m.hp<=0)continue;const x=Math.floor(m.x/CELL),y=Math.floor(m.y/CELL);
   for(let yy=Math.max(0,y-6);yy<=Math.min(SIZE-1,y+6);yy++)for(let xx=Math.max(0,x-6);xx<=Math.min(SIZE-1,x+6);xx++){
