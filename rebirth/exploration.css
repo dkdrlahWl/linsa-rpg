@@ -19,3 +19,9 @@
 [data-coop-mode="exploration"] .tower-core-actions>.tower-button{height:48px}
 [data-coop-mode="exploration"] .tower-footer{grid-column:1;grid-row:5;min-height:0}
 @media(orientation:landscape) and (max-height:600px){.tower-play[data-coop-mode="exploration"]{grid-template-rows:auto 24px minmax(0,1fr) 108px 32px}[data-coop-mode="exploration"] .tower-stick{width:80px;height:80px}[data-coop-mode="exploration"] .tower-buttons{max-width:75%;grid-template-rows:40px 36px}[data-coop-mode="exploration"] .tower-skill-bar{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:1fr}[data-coop-mode="exploration"] .tower-core-actions>.tower-button{height:36px}[data-coop-mode="exploration"] .tower-movement>small{display:none}}
+
+/* Keep the lower skill row aligned to the right on the three-column deck. */
+@media not all and (orientation:landscape) and (max-height:600px){
+ [data-coop-mode="exploration"] .tower-skill-bar>[data-tower-button="32"]{grid-column:2;grid-row:2}
+ [data-coop-mode="exploration"] .tower-skill-bar>[data-tower-button="64"]{grid-column:3;grid-row:2}
+}
