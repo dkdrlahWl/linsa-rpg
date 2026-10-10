@@ -3,7 +3,7 @@ import {startCoop,advanceCoop,coopClientView} from './coop-model.mjs';
 import {explorationFloor} from './exploration-data.mjs';
 let peakBytes=0,packets=0;const started=performance.now();
 for(const floor of [1,13,21]){
- let w=startCoop({id:'soak',owner:'p0',mode:'exploration',tier:3,status:'waiting',members:['warrior','mage','archer','priest'].map((classId,i)=>({id:'p'+i,classId,advanced:true,power:{attack:1,hp:1e9,defense:1e9,boss:1,crit:.3,critDamage:1.6,cadence:1,firstJob:true,advancement:4,level:200}}))},0);
+ let w=startCoop({id:'soak',owner:'p0',mode:'citadel',tier:0,status:'waiting',members:['warrior','mage','archer','priest'].map((classId,i)=>({id:'p'+i,classId,advanced:true,power:{attack:1,hp:1e9,defense:1e9,boss:1,crit:.3,critDamage:1.6,cadence:1,firstJob:true,advancement:4,level:200}}))},0);
  w.entryWaiting=false;w.floor=floor;explorationFloor(w);for(const e of w.monsters){e.hp*=100;e.maxHp*=100;}w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp; // Keep all encounter actors alive for the full network soak.
  for(const [i,m] of w.members.entries()){m.entryMoved=true;m.x=w.monsters[0].x+(i%2)*120;m.y=w.monsters[0].y+150+Math.floor(i/2)*100;}
  for(let tick=6;tick<=1800;tick+=6){

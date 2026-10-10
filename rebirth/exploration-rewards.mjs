@@ -1,8 +1,10 @@
+import {isCitadel} from './citadel-zero.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
 import {EXPLORATION_REWARDS,EXPLORATION_REWARD_COUNTS,explorationGearLevel} from './exploration-reward-data.mjs';
 import {CLASSES,SLOTS,selectDesign,rollBaseStats} from './data.mjs';
 import {makeItem,addItem} from './engine.mjs';
 export function grantExplorationChest(input,room,ctx){
+ if(isCitadel(room))throw Error('CITADEL_REWARDS_DISABLED');
  const theme=EXPLORATIONS[room.tier],rates=EXPLORATION_REWARDS[room.tier];if(!theme||!rates||room.status!=='won'||room.cleared!==theme.floors)throw Error('COOP_CHEST_NOT_READY');
  const state=structuredClone(input),reward={type:'coop',mode:'exploration',tier:room.tier,name:theme.name,won:true,cleared:room.cleared,gold:rates.gold,cube:0,highCube:0,scroll:0,potentialLock:0,items:[],seconds:room.tick/10};
  state.gold+=reward.gold;state.materials??={};

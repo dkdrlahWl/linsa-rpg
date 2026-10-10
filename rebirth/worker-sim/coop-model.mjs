@@ -1,28 +1,29 @@
-import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=citadel-zero-213';
-import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=citadel-zero-213';
-import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=citadel-zero-213';
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=citadel-zero-213';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=citadel-zero-213';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=citadel-zero-213';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-zero-213';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-zero-213';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-zero-213';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=citadel-zero-213';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=citadel-zero-213';
-export const coopEncounter=room=>room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
+import {isCitadel,isDungeon,CITADEL_CONTENT} from './citadel-zero.mjs?v=citadel-independent-214';
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=citadel-independent-214';
+import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=citadel-independent-214';
+import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=citadel-independent-214';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=citadel-independent-214';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=citadel-independent-214';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=citadel-independent-214';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-independent-214';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-independent-214';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-independent-214';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=citadel-independent-214';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=citadel-independent-214';
+export const coopEncounter=room=>isCitadel(room)?CITADEL_CONTENT:room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=citadel-zero-213';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=citadel-zero-213';
-import {beginThird,stepThird} from './advancement.mjs?v=citadel-zero-213';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=citadel-zero-213';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=citadel-zero-213';
-import {incomingDamage} from './journey-balance.mjs?v=citadel-zero-213';
-import {COOP_TIERS} from './rift-rewards.mjs?v=citadel-zero-213';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=citadel-independent-214';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=citadel-independent-214';
+import {beginThird,stepThird} from './advancement.mjs?v=citadel-independent-214';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=citadel-independent-214';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=citadel-independent-214';
+import {incomingDamage} from './journey-balance.mjs?v=citadel-independent-214';
+import {COOP_TIERS} from './rift-rewards.mjs?v=citadel-independent-214';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startCoop(room,now){return beginCoopEntry(startCoopCombat(room,now),now);}
-function startCoopCombat(room,now){if(room.mode==='raid')return startRaid(room,now);if(room.mode==='advancement')return startTrialCoop(room,now);const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=tier.hp;w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return w.mode==='exploration'?initializeExploration(w):w.mode==='wave'?initializeWave(w):w;}
+function startCoopCombat(room,now){if(room.mode==='raid')return startRaid(room,now);if(room.mode==='advancement')return startTrialCoop(room,now);const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=tier.hp;w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return isDungeon(w)?initializeExploration(w):w.mode==='wave'?initializeWave(w):w;}
 export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
  const w=owned?room:structuredClone(room);
  if(input&&(!Array.isArray(input)||input.length!==3||!input.every(Number.isFinite)||Math.abs(input[0])>1||Math.abs(input[1])>1||!Number.isInteger(input[2])||input[2]<0||input[2]>127))throw Error('INVALID_COOP_INPUT');
@@ -35,16 +36,16 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
    const at=w.lootStarted+w.tick*100;
    for(const f of frames)if(f.tick===w.tick){const m=w.members.find(m=>m.id===f.user&&!m.left);if(m){m.input=[f.input[0],f.input[1],0];m.inputAt=at;}}
    for(const m of w.members){if(m.left)continue;let [x,y]=at-m.inputAt<1500?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y)),speed=w.mode==='raid'?25:TOWER_CLASSES[m.classId].speed;
-    if(w.mode==='exploration')dungeonMove(w.dungeon,m,x/n*speed*EXPLORATION_MOVE_SPEED,y/n*speed*EXPLORATION_MOVE_SPEED);else{m.x=clamp(m.x+x/n*speed);m.y=clamp(m.y+y/n*speed);}
+    if(isDungeon(w))dungeonMove(w.dungeon,m,x/n*speed*EXPLORATION_MOVE_SPEED,y/n*speed*EXPLORATION_MOVE_SPEED);else{m.x=clamp(m.x+x/n*speed);m.y=clamp(m.y+y/n*speed);}
     m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?1:0);m.moving=Math.hypot(x,y)>.01;if(x)m.face=x<0?-1:1;
    }
   }
   w.lootAt=w.lootStarted+w.tick*100;
-  if(w.mode==='exploration'){collectExplorationHearts(w);revealDungeon(w);}return w;
+  if(isDungeon(w)){collectExplorationHearts(w);revealDungeon(w);}return w;
  }
  if(w.mode==='raid')return advanceRaidRaw(w,user,input,now,frames);
  if(w.mode==='advancement')return advanceTrialCoopRaw(w,user,input,now,frames);
- if(w.mode==='exploration'&&w.status==='fighting')return advanceExplorationRaw(w,user,input,now,frames,true);
+ if(isDungeon(w)&&w.status==='fighting')return advanceExplorationRaw(w,user,input,now,frames,true);
  if(w.mode==='wave')return advanceWaveRaw(w,user,input,now,frames,true);
  if(w.status!=='fighting')return w;
  w.effects||=[];w.numbers||=[];w.projectiles||=[];w.serial||=0;
@@ -166,7 +167,7 @@ function advanceCoopTimeline(room,user,input,now){
   const movement=input.frames.find(f=>Math.hypot(f.input[0],f.input[1])>.01)?.input||input.frames.at(-1)?.input;
   return advanceCoopEntry(structuredClone(room),user,movement,now);
  }
- const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),net=room._net?.points?.at(-1)?.status===room.status?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[historyPoint(room)],frames:[]};
+ const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),net=room._net?.points?.at(-1)?.status===room.status?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[historyPoint(room)],frames:[]};
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
@@ -183,11 +184,11 @@ function advanceCoopTimeline(room,user,input,now){
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){
   w=advanceCoopRaw(w,null,null,origin+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
-  if(w.tick%(['wave','raid','exploration'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w));
+  if(w.tick%(['wave','raid','exploration','citadel'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
  net.frames=net.frames.filter(f=>f.tick>=net.points[0].tick);
  for(const m of w.members)m.inputAck=Math.max(m.inputAck??-1,...net.frames.filter(f=>f.user===m.id).map(f=>f.tick));
- if(w.status==='lost'&&upto-w.tick<30&&(['wave','exploration'].includes(room.mode)||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
+ if(w.status==='lost'&&upto-w.tick<30&&(['wave','exploration','citadel'].includes(room.mode)||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
  w._net=net;return w;
 }

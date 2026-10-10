@@ -1,4 +1,4 @@
-import {journeyXP,levelHours} from './journey-balance.mjs?v=citadel-zero-213';
+import {journeyXP,levelHours} from './journey-balance.mjs?v=citadel-independent-214';
 // Continue the final field's slope, then increase only these new fields by 50%.
 export const ENDGAME_FIELD_VERSION = 'fallen-star-173';
 const FIELD_MULTIPLIER = 1.5;

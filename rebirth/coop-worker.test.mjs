@@ -13,7 +13,7 @@ const send=async data=>{const reply=once(worker,'message');worker.postMessage({.
 try{
  const [ready]=await once(worker,'message');assert.equal(ready.type,'ready');
  for(const mode of ['rift','raid','wave','advancement','exploration','citadel'])for(const classId of ['warrior','mage','archer','rogue','pirate','priest']){
-  let room=startCoop({id:mode,me:'a',owner:'a',revision:1,mode:mode==='citadel'?'exploration':mode,tier:mode==='citadel'?3:mode==='raid'?3:mode==='advancement'?4:['wave','exploration'].includes(mode)?0:5,status:'waiting',members:['a','b'].map(id=>({id,name:id,classId,power:{...power},advanced:true}))},1000);
+  let room=startCoop({id:mode,me:'a',owner:'a',revision:1,mode,tier:mode==='citadel'?0:mode==='raid'?3:mode==='advancement'?4:['wave','exploration'].includes(mode)?0:5,status:'waiting',members:['a','b'].map(id=>({id,name:id,classId,power:{...power},advanced:true}))},1000);
   room.entryWaiting=false;room.members.forEach((m,i)=>{m.entryMoved=true;m.x=room.enemy.x+(i?200:-200);m.y=room.enemy.y+100;});
   const frames=Array.from({length:30},(_,tick)=>({tick,input:[tick%20<10?.4:-.4,0,1|(tick===4?8:0)|(tick===10?2:0)|(tick===16?16:0)|(tick===21?32:0)|(tick===25?64:0)]}));
   const remote=frames.map(f=>({...f,user:'b'}));

@@ -1,7 +1,7 @@
-import {dungeonMove} from './exploration-dungeon.mjs?v=citadel-zero-213';
+import {dungeonMove} from './exploration-dungeon.mjs?v=citadel-independent-214';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
-export const CITADEL_TIER=3,CITADEL_VERSION='citadel-zero-213';
+export const CITADEL_TIER=3,CITADEL_VERSION='citadel-independent-214';
 export const CITADEL_REFERENCE={attack:49108,hp:67525,defense:1373,boss:3.2,combatPower:206123};
 export const CITADEL_BIOMES=[
  {name:'깊은 숲',color:'#192b24',floor:'#43553c',wall:'#203326',light:'#d0b76c',enemies:['회색 늑대','녹색 딱정벌레','붉은모자 고블린','고블린 주술사']},
@@ -24,7 +24,9 @@ export const CITADEL_STAGES=[
 ];
 export const CITADEL_BOSSES={totem:'사원소 토템',shadow:'그림자 얼굴',plant:'아리스타',harbingers:'공포의 전령들',serpents:'멸망의 뱀들',avatar:'암흑의 화신'};
 export const citadelStage=floor=>CITADEL_STAGES[floor-1];
-export const isCitadel=w=>w?.mode==='exploration'&&w.tier===CITADEL_TIER;
+export const isCitadel=w=>w?.mode==='citadel'||(w?.mode==='exploration'&&w.tier===CITADEL_TIER);
+export const isDungeon=w=>w?.mode==='exploration'||w?.mode==='citadel';
+export const CITADEL_CONTENT={id:0,name:'암흑성채',floors:21,level:200,art:'exploration-3',map:'citadel/main-214.webp',boss:'암흑의 화신',seconds:0};
 export const citadelAsset=(type,index)=>'citadel/'+type+'-'+index+'-213.webp';
 export const citadelPopulation=n=>({hp:Math.max(1,Math.min(4,n)),attack:1});
 // The steep increase after the second boss is the requested halfway growth wall.
@@ -55,7 +57,7 @@ export function makeCitadelDungeon(floor,seed){
 }
 export function citadelFloor(w,walkable,reveal){
  const st=citadelStage(w.floor),random=rng((w.started>>>0)^Math.imul(w.floor,1597334677));
- w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=w.tick+(st.boss?6000:9000);delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
+ w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=Number.MAX_SAFE_INTEGER;delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
  const slots=[];for(const r of w.dungeon.rooms){if(r.id===3)continue;for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(walkable(w.dungeon,(x+.5)*100,(y+.5)*100))slots.push({x:(x+.5)*100,y:(y+.5)*100});}
  for(let i=slots.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}
  const count=st.boss?0:Math.min(slots.length-12,70+st.act*12+Math.floor(random()*20));
@@ -68,7 +70,7 @@ export function citadelFloor(w,walkable,reveal){
  for(let i=0;i<(st.boss?2:5);i++){const p=slots.pop();if(p)w.hearts.push({id:w.floor*10+i,...p});}
  if(!st.boss&&st.biome!==0)for(let i=0;i<6+st.act;i++){const p=slots.pop();if(p)w.traps.push({id:w.floor*100+i,...p,r:100,ready:w.tick+15,type:st.biome===1?'rock':st.biome===4?'thorn':st.biome===7?'shadow':'spike'});}
  w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp;w.enemy={...w.exit,face:1};
- for(const [i,m] of w.members.entries()){Object.assign(m,{x:w.dungeon.start.x+(i%2)*90-45,y:w.dungeon.start.y+Math.floor(i/2)*90-45,input:[0,0,0],inputAt:w.started+w.tick*100,reviveProgress:0});for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];if(w.floor>1&&!m.left)m.hp=Math.max(1,Math.min(m.power.hp,m.hp+Math.round(m.power.hp*.2)));}
+ for(const [i,m] of w.members.entries()){Object.assign(m,{x:w.dungeon.start.x+(i%2)*90-45,y:w.dungeon.start.y+Math.floor(i/2)*90-45,input:[0,0,0],inputAt:w.started+w.tick*100,reviveProgress:0});for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];}
  reveal(w);return w;
 }
 export function citadelDamageFactor(w,e){if(!isCitadel(w))return 1;if(e.bossKind==='shadow')return 0;if(e.bossKind==='plant'&&(w.tick-w.floorAt)%100<30)return .15;return 1;}
@@ -76,6 +78,7 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function citadelBossTick(w,e,alive){
  if(!e.bossKind||!alive.length)return false;const t=w.tick,target=alive.reduce((a,b)=>dist(a,e)<dist(b,e)?a:b),kind=e.bossKind;
  e.phase=kind==='totem'?Math.min(3,Math.floor((1-e.hp/e.maxHp)*4)):kind==='avatar'?Math.min(2,Math.floor((1-e.hp/e.maxHp)*3)):Math.min(2,Math.floor((1-e.hp/e.maxHp)*3));
+ if(kind==='avatar')e.art=citadelAsset('boss',e.phase===1?4:9);
  if(kind==='totem')e.art=citadelAsset('boss',e.phaseOrder[e.phase]);
  if(e.charge&&t>=e.charge.at){const q=e.charge;if(t<q.end){dungeonMove(w.dungeon,e,q.dx,q.dy,60);e.moving=true;e.walk++;if(q.fire&&t%2===0)w.hazards.push({type:'circle',x:e.x,y:e.y,r:130,at:t+2,end:t+32,citadel:true,attack:e.attack*.35,source:e.id,element:'fire'});}else delete e.charge;}
  if(t<(e.skillReady||0))return true;e.skillReady=t+(kind==='avatar'?24:kind==='serpents'?32:42);e.castStart=t;e.attackStart=t+14;e.attackUntil=t+18;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);

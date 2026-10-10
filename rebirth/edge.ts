@@ -1,3 +1,4 @@
+import {isCitadel} from './citadel-zero.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 import {fishingStateReply} from './fishing-sync.mjs';
@@ -160,6 +161,7 @@ Deno.serve(async (req) => {
           if(action==='input'&&world===room)return reply(current);
           let claim=null;
           if(action==='open'){
+            if(isCitadel(room))throw new Error('CITADEL_REWARDS_DISABLED');
             const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);
             if(room?.status!=='won'||!member||!room.chest)throw new Error('COOP_CHEST_NOT_READY');
             if(!(member.damage>0||(['raid','exploration'].includes(room.mode)&&((member.healing||0)+(member.shieldGiven||0)>0))))throw new Error('COOP_DAMAGE_REQUIRED');

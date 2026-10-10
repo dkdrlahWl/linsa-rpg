@@ -1,4 +1,4 @@
-import {petHealTick} from './pet-event.mjs?v=citadel-zero-213';
+import {petHealTick} from './pet-event.mjs?v=citadel-independent-214';
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
 export const PRIEST_HP_ATTACK_RATIO=.166;
 export const PRIEST_LUK_ATTACK_RATIO=.6;

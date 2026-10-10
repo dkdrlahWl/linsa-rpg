@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {startCoop,advanceCoop,advanceCoopRaw,coopClientView} from './coop-model.mjs';
 import {CITADEL_STAGES,citadelStats,citadelDamageFactor,citadelBossTick,citadelAfterDamage,makeCitadelDungeon} from './citadel-zero.mjs';
-import {explorationFloor,explorationProgress} from './exploration-data.mjs';
+import {EXPLORATIONS,explorationFloor,explorationProgress} from './exploration-data.mjs';
 import {dungeonWalkable} from './exploration-dungeon.mjs';
 const power={attack:49108,hp:67525,defense:1373,crit:.41,critDamage:1.6,boss:3.2,cadence:1,advancement:4,firstJob:true,level:200,combatPower:206123};
-const create=(count=4)=>{const w=startCoop({mode:'exploration',tier:3,status:'waiting',owner:'p0',id:'citadel',members:Array.from({length:count},(_,i)=>({id:'p'+i,classId:['warrior','mage','archer','priest'][i],power:{...power},advanced:true,ready:true}))},123456);w.entryWaiting=false;return w;};
+const create=(count=4)=>{const w=startCoop({mode:'citadel',tier:0,status:'waiting',owner:'p0',id:'citadel',members:Array.from({length:count},(_,i)=>({id:'p'+i,classId:['warrior','mage','archer','priest'][i],power:{...power},advanced:true,ready:true}))},123456);w.entryWaiting=false;return w;};
 for(let floor=1;floor<=21;floor++)for(let n=1;n<=4;n++)for(const boss of [false,true]){const one=citadelStats(floor,1,boss),many=citadelStats(floor,n,boss);assert.equal(many.hp,one.hp*n);assert.equal(many.attack,one.attack);}
 // Random maps must have a path from spawn to exit and every resident room.
 for(let floor=1;floor<=21;floor++)for(let seed=1;seed<=20;seed++){
@@ -18,7 +18,8 @@ const campaign=create();for(let f=1;f<=21;f++){
  for(const e of campaign.monsters)assert.ok(dungeonWalkable(campaign.dungeon,e.x,e.y));
  if(CITADEL_STAGES[f-1].boss){assert.equal(campaign.exitOpen,false);campaign.monsters=[];}
  campaign.members[0].x=campaign.exit.x;campaign.members[0].y=campaign.exit.y;explorationProgress(campaign);
-}assert.equal(campaign.status,'won');assert.equal(campaign.floor,21);
+}assert.equal(campaign.status,'won');assert.equal(campaign.floor,21);assert.equal(campaign.chest,null);assert.equal(EXPLORATIONS.length,3);
+const independent=create(1);independent.members[0].hp=Math.floor(independent.members[0].maxHp/2);const injuredHp=independent.members[0].hp;independent.members[0].x=independent.exit.x;independent.members[0].y=independent.exit.y;explorationProgress(independent);assert.equal(independent.members[0].hp,injuredHp);assert.equal(independent.floorDeadline,Number.MAX_SAFE_INTEGER);
 for(const f of [5,10,13,16,19,21]){const w=create();w.floor=f;explorationFloor(w);const boss=w.monsters.find(e=>e.boss);w.members[0].x=boss.x+300;w.members[0].y=boss.y;w.tick=100;citadelBossTick(w,boss,w.members);assert.ok(w.hazards.length);if(f===10){assert.equal(citadelDamageFactor(w,boss),0);const old=boss.hp;w.monsters.find(e=>e.channel).hp=0;citadelAfterDamage(w);assert.ok(boss.hp<old);}if(f===21)for(const fraction of [.9,.5,.1]){boss.hp=boss.maxHp*fraction;boss.skillReady=0;citadelBossTick(w,boss,w.members);assert.equal(boss.phase,Math.min(2,Math.floor((1-fraction)*3)));}}
 // Stress all 21 stages with four independently moving clients and attack inputs.
 const started=performance.now();let peakBytes=0;

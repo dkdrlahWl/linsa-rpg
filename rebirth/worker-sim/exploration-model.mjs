@@ -1,12 +1,12 @@
-import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside} from './citadel-zero.mjs?v=citadel-zero-213';
-import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=citadel-zero-213';
-import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=citadel-zero-213';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-zero-213';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-zero-213';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-zero-213';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=citadel-zero-213';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=citadel-zero-213';
-import {incomingDamage} from './journey-balance.mjs?v=citadel-zero-213';
+import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside} from './citadel-zero.mjs?v=citadel-independent-214';
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=citadel-independent-214';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=citadel-independent-214';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-independent-214';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-independent-214';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-independent-214';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=citadel-independent-214';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=citadel-independent-214';
+import {incomingDamage} from './journey-balance.mjs?v=citadel-independent-214';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -78,7 +78,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const e of w.monsters){
    alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length)break;
    const target=alive.reduce((a,b)=>distance(a,e)<distance(b,e)?a:b),d=distance(target,e);
-   e.moving=false;if(isCitadel(w)&&!e.aggro&&d>=760&&e.hp>=e.maxHp)continue;const sight=dungeonSight(w.dungeon,e,target);if(!e.aggro&&((d<760&&sight)||e.hp<e.maxHp))e.aggro=true;if(!e.aggro)continue;if(e.boss&&w.bossBattleAt===undefined){w.bossBattleAt=t;w.floorDeadline=t+(isCitadel(w)?6000:1200);}if(!e.strike&&!e.skill&&e.speed>0&&d>(e.role==='ranged'||e.role==='caster'?500:70)){const goal=dungeonRoute(w.dungeon,e,target),length=Math.max(1,distance(goal,e)),dx=(goal.x-e.x)/length,dy=(goal.y-e.y)/length;dungeonMove(w.dungeon,e,dx*Math.min(length,e.speed),dy*Math.min(length,e.speed),26);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
+   e.moving=false;if(isCitadel(w)&&!e.aggro&&d>=760&&e.hp>=e.maxHp)continue;const sight=dungeonSight(w.dungeon,e,target);if(!e.aggro&&((d<760&&sight)||e.hp<e.maxHp))e.aggro=true;if(!e.aggro)continue;if(e.boss&&w.bossBattleAt===undefined){w.bossBattleAt=t;w.floorDeadline=isCitadel(w)?Number.MAX_SAFE_INTEGER:t+1200;}if(!e.strike&&!e.skill&&e.speed>0&&d>(e.role==='ranged'||e.role==='caster'?500:70)){const goal=dungeonRoute(w.dungeon,e,target),length=Math.max(1,distance(goal,e)),dx=(goal.x-e.x)/length,dy=(goal.y-e.y)/length;dungeonMove(w.dungeon,e,dx*Math.min(length,e.speed),dy*Math.min(length,e.speed),26);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
    if(isCitadel(w)&&e.boss){citadelBossTick(w,e,alive);continue;}
    if(isCitadel(w)&&['ranged','caster'].includes(e.role)&&d<1000&&sight&&t>=e.ready){e.ready=t+25;w.hazards.push({type:'line',x:e.x,y:e.y,tx:target.x,ty:target.y,width:e.role==='caster'?130:70,at:t+9,end:t+12,citadel:true,attack:e.attack,source:e.id});}
    if(!e.strike&&!e.skill&&d<150&&sight&&t>=e.ready){e.strike={x:target.x,y:target.y,at:t+(e.elite?7:5)};e.castStart=t;e.attackStart=e.strike.at;e.attackUntil=e.attackStart+4;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);e.ready=t+(e.elite?20:25);w.hazards.push({type:'circle',x:target.x,y:target.y,r:e.elite?135:95,inner:0,at:e.strike.at,end:e.strike.at+2});}

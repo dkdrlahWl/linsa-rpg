@@ -1,3 +1,4 @@
+import {citadelLobby} from './citadel-ui.mjs';
 import {explorationLobby} from './exploration-ui.mjs?v=exploration-190';
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance-153';
@@ -71,7 +72,7 @@ function refreshLevelRequirements() {
 const combatFrames = [];
 let towerController=null,dummyBattle=null,bagPage=0,coopController=null,coopRoom=null,coopRooms=[],dialogScroll=new Map();
 let coopListAttempt=0,coopListPending=null;
-function coopLobbyVisible(){return view==="game"&&tab==="boss"&&["coop","wave","advancement","raid","exploration"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
+function coopLobbyVisible(){return view==='game'&&tab==='citadel'&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom||view==="game"&&tab==="boss"&&["coop","wave","advancement","raid","exploration"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
 async function refreshCoopRooms(){
   if(coopListPending)return coopListPending;
   coopListPending=(async()=>{
@@ -621,6 +622,7 @@ function render() {
       character: character,
       gear: inventory,
       boss: bosses,
+      citadel:()=>citadelLobby(state,null,coopRooms),
       market: market,
       shop:()=>shopView(state,D,gearMarkup,shopCategory),
       investment:()=>investmentView(state,investmentData),
@@ -1038,7 +1040,7 @@ function showEvents(events) {
       const task=Object.values(D.DAILY_TASKS).find(t=>t.name===e.name);
       open("일일 과제 보상",'<h3>'+esc(e.name)+'</h3>'+(task?'<p>'+dailyRewardLines(task).join('<br>')+'<br>경험치 5%</p>':'<p>보상을 받았습니다.</p>')+btn("확인","close","","gold"));
     }
-    if(e.type==="coop"){tab="boss";bossTab=e.mode==="exploration"?"exploration":e.mode==="wave"?"wave":"coop";view="game";render();reward();continue;}
+    if(e.type==="coop"){tab=e.mode==="citadel"?"citadel":"boss";bossTab=e.mode==="exploration"?"exploration":e.mode==="wave"?"wave":"coop";view="game";render();reward();continue;}
     if(e.type==="exchangeGear")open("장비 교환 완료",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
     if(e.type==="costumeBuy")toast("코스튬 구매 완료! 보유 효과로 공격력 +1%가 적용됐어요.");
@@ -1332,12 +1334,13 @@ document.addEventListener("click", async (e) => {
     if(action==='waveRewardHistory'){const r=state.waveRewardHistory?.[Number(arg)];if(r)return open('웨이브 보상 수령 내역',waveRewardBody(r)+btn('닫기','close','','gold'));return;}
     if(action==="waveCreate")return;
     if(action==="coopCreate")return await command("coopCreate",{tier:Number(arg)});
+    if(action==='citadelCreate')return await command('coopCreate',{mode:'citadel',tier:0});
     if(action==="explorationCreate")return await command("coopCreate",{mode:"exploration",tier:Number(arg)});
     if(action==="raidCreate")return await command("coopCreate",{mode:"raid",tier:Number(arg)});
     if(action==="coopJoin")return await command("coopJoin",{room:arg});
     if(action==="coopList")return await refreshCoopRooms();
     if(["coopStart","coopSync","coopLeave"].includes(action)){modal.close();return await command(action);}
-    if(action==="coopLeaveConfirm")return open(coopRoom?.mode==="wave"?"웨이브에서 나가기":coopRoom?.mode==="advancement"?"전직 보스에서 나가기":"균열에서 나가기",'<p>'+(coopRoom?.mode==="wave"?"완료한 마지막 10단위 구간에서 한 번 추첨하고, 미수령 최초 보상을 함께 받습니다. 진행 중인 웨이브는 제외되며 재도전은 1웨이브부터 시작합니다.":"진행 중인 도전에서 나가면 보상을 받을 수 없습니다.")+'</p>'+btn("나가기","coopLeave","","danger",true));
+    if(action==="coopLeaveConfirm")return open(coopRoom?.mode==="citadel"?"암흑성채에서 나가기":coopRoom?.mode==="wave"?"웨이브에서 나가기":coopRoom?.mode==="advancement"?"전직 보스에서 나가기":"균열에서 나가기",'<p>'+(coopRoom?.mode==="citadel"?"현재 보상은 없습니다. 나가면 이번 원정이 종료됩니다.":coopRoom?.mode==="wave"?"완료한 마지막 10단위 구간에서 한 번 추첨하고, 미수령 최초 보상을 함께 받습니다. 진행 중인 웨이브는 제외되며 재도전은 1웨이브부터 시작합니다.":"진행 중인 도전에서 나가면 보상을 받을 수 없습니다.")+'</p>'+btn("나가기","coopLeave","","danger",true));
     if(action==='itemGroup')return itemGroup(arg);
     if(action==='towerOpen')return await command('towerOpen',{runId:state.battle?.runId});
     if(action==='towerStart'){modal.close();tab='boss';bossTab='tower';view='game';return await command('towerStart',{floor:Number(arg)});}
@@ -1391,6 +1394,7 @@ document.addEventListener("click", async (e) => {
       render();
       window.scrollTo({top:0,behavior:"instant"});
       if(enteringHunt)requestAutoHunt();
+      if(tab==='citadel')await refreshCoopRooms();
       if (tab === "market") await marketLoad();
       if(tab==='investment')await command('investList',{},true);
       if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
