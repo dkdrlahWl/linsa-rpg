@@ -583,6 +583,7 @@ function render() {
   if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
   sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
+  const preservedLottoScroll=app.querySelector('.lotto-scroll')?.scrollTop;
   const towerBattle=dummyBattle||(state?.battle?.kind==='tower'?state.battle:null);
   const coopFight=state?.coopRoom&&['fighting','won'].includes(coopRoom?.status);
   document.body.classList.toggle('tower-mode',!!towerBattle||!!coopFight);
@@ -621,6 +622,10 @@ function render() {
   else replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
   if(view==='arena'&&arenaPage==='battle'&&arenaBattle&&!arenaPlayback){arenaPlayback=startArenaReplay(arenaBattle,()=>{arenaPlayback=null;arenaPage='result';render();});}
   window.scrollTo({top:view==='arena'&&['opponents','battle'].includes(arenaPage)?0:preservedScroll,behavior:"instant"});
+  if(eventScreen&&eventPage==='lotto'&&preservedLottoScroll!==undefined){
+    const lottoScroll=app.querySelector('.lotto-scroll');
+    if(lottoScroll)lottoScroll.scrollTop=preservedLottoScroll;
+  }
   updatePetCountdown();
   updateLuckTimers(state);
   updateInvestmentClock(investmentData,investmentLoadedAt);
