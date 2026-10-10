@@ -1,1 +1,21 @@
 .exploration-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.exploration-cards article{overflow:hidden}.exploration-cards img{display:block;width:100%;aspect-ratio:1.45;object-fit:cover}.exploration-cards article>div{padding:15px}.exploration-cards h3{margin:8px 0}.exploration-cards small{color:#c8b47d;letter-spacing:1px}.exploration-cards button{width:100%;min-height:44px}.exploration-waiting>img{width:100%;max-height:220px;object-fit:cover;border-radius:12px}.exploration-lobby>header{margin-bottom:12px}.exploration-lobby>section{margin-top:12px}@media(max-width:650px){.exploration-cards{grid-template-columns:1fr}.exploration-cards article{display:grid;grid-template-columns:38% 1fr}.exploration-cards img{height:100%;aspect-ratio:auto}.exploration-cards article>div{padding:12px}.exploration-cards h3{font-size:17px}.exploration-cards p{font-size:12px}}
+
+/* Exploration: isolated viewport above a dedicated control deck. */
+.tower-play[data-coop-mode="exploration"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 30px minmax(0,1fr) minmax(160px,28%) 42px;overflow:hidden}
+[data-coop-mode="exploration"] .tower-hud{grid-column:1;grid-row:1}
+[data-coop-mode="exploration"] .tower-player-hud{position:static;inset:auto;grid-column:1;grid-row:2;height:auto;background:#101e26;padding:0 12px;min-width:0}
+[data-coop-mode="exploration"] .tower-stage{grid-column:1;grid-row:3;padding:0;min-height:0;overflow:hidden}
+[data-coop-mode="exploration"] .tower-canvas-wrap{width:100%;height:100%;max-width:none;aspect-ratio:auto;overflow:hidden}
+[data-coop-mode="exploration"] #tower-canvas{display:block;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:fill}
+[data-coop-mode="exploration"] .tower-controls{position:static;inset:auto;grid-column:1;grid-row:4;height:auto;min-height:0;padding:10px 10px 8px 4px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;pointer-events:auto;background:linear-gradient(150deg,#152b35,#101821);border-top:2px solid #547887;overflow:hidden}
+[data-coop-mode="exploration"] .tower-movement{flex:0 0 30%;display:flex;justify-content:center;align-items:center;flex-direction:column}
+[data-coop-mode="exploration"] .tower-stick{width:clamp(82px,25vw,124px);height:clamp(82px,25vw,124px)}
+[data-coop-mode="exploration"] .tower-buttons{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 48px;align-self:stretch;flex:1;max-width:480px;width:auto;gap:8px}
+[data-coop-mode="exploration"] .tower-skill-bar{grid-column:1;grid-row:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px;width:auto;min-height:0}
+[data-coop-mode="exploration"] .tower-skill-bar>.tower-button{height:100%;min-height:34px;width:100%;padding:3px 2px;overflow:hidden}
+[data-coop-mode="exploration"] .tower-skill-bar .tower-button span{font-size:10px;line-height:1.2;white-space:normal}
+[data-coop-mode="exploration"] .tower-skill-bar .tower-button small{display:none}
+[data-coop-mode="exploration"] .tower-core-actions{grid-column:1;grid-row:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+[data-coop-mode="exploration"] .tower-core-actions>.tower-button{height:48px}
+[data-coop-mode="exploration"] .tower-footer{grid-column:1;grid-row:5;min-height:0}
+@media(orientation:landscape) and (max-height:600px){.tower-play[data-coop-mode="exploration"]{grid-template-rows:auto 24px minmax(0,1fr) 108px 32px}[data-coop-mode="exploration"] .tower-stick{width:80px;height:80px}[data-coop-mode="exploration"] .tower-buttons{max-width:75%;grid-template-rows:40px 36px}[data-coop-mode="exploration"] .tower-skill-bar{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:1fr}[data-coop-mode="exploration"] .tower-core-actions>.tower-button{height:36px}[data-coop-mode="exploration"] .tower-movement>small{display:none}}

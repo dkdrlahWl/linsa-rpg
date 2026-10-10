@@ -123,7 +123,7 @@ export class TowerRenderer {
   constructor(canvas,options={}){
     this.presentationScale=options.presentationScale;this.maxFps=options.maxFps||60;
     this.mobileActors=matchMedia('(pointer: coarse)');
-    this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
+    this.arenaImage=tier=>image('exploration/arena-'+tier+'-196.webp');this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.fifthLandings=new Map();this.shake=0;this.flash=0;this.zoom=0;
     this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,options.pixelRatio||1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
   }
@@ -305,13 +305,13 @@ export class TowerRenderer {
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
-    const target=b.raidMode?{x:limit((player.x+b.enemy.x)/2-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit((player.y+b.enemy.y)/2-90-viewHeight/2,viewHeight,TOWER_SIZE.height)}:{x:limit(mix(player.x,b.enemy.x,.12)-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit(verticalFocus-viewHeight/2,viewHeight,TOWER_SIZE.height)};
+    const target=b.explorationMode?{x:player.x-viewWidth/2,y:player.y-85-viewHeight/2}:b.raidMode?{x:limit((player.x+b.enemy.x)/2-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit((player.y+b.enemy.y)/2-90-viewHeight/2,viewHeight,TOWER_SIZE.height)}:{x:limit(mix(player.x,b.enemy.x,.12)-viewWidth/2,viewWidth,TOWER_SIZE.width),y:limit(verticalFocus-viewHeight/2,viewHeight,TOWER_SIZE.height)};
     if(!this.camera)this.camera=target;
     const follow=1-Math.exp(-Math.min(100,dt)/135);this.last=now;
-    this.camera.x=mix(this.camera.x,target.x,follow);this.camera.y=mix(this.camera.y,target.y,follow);
+    this.camera.x=b.explorationMode?target.x:mix(this.camera.x,target.x,follow);this.camera.y=b.explorationMode?target.y:mix(this.camera.y,target.y,follow);
     g.fillStyle='#08131c';g.fillRect(0,0,1000,height);
     const feedback=fifthFeedback(b.effects,time,b.actorId??b.id);
-    g.save();g.translate(500,height/2);g.scale(scale,scale);g.translate(feedback.x,feedback.y);
+    g.save();g.translate(500,height/2);g.scale(scale,scale);g.translate(b.explorationMode?0:feedback.x,b.explorationMode?0:feedback.y);
     g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.explorationMode){const bg=image(explorationTerrainSource(b.tier));if(!drawExplorationDungeon(this,b,bg,image('exploration/heal-heart-194.webp'))&&bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(!b.dungeon&&b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
@@ -364,7 +364,7 @@ export class TowerRenderer {
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
     const drawBoss=()=>{
-      if(b.waveMode)return;
+      if(b.waveMode&&!b.chest)return;
       if(b.dummyMode){
         const x=enemy.x,y=enemy.y,large=b.dummyMode==='boss',radius=large?88:74;
         g.save();g.translate(x,y);g.fillStyle='#30211a';g.fillRect(-15,-184,30,188);
@@ -408,7 +408,7 @@ export class TowerRenderer {
       holy.set((actor.id||'self')+':5',{kind:'priest',slot:5,owner:actor.id,x:actor.x,y:actor.y,size:area.r*2,start:area.start,end:area.end});
     }
     const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
-    const actors=[{y:player.y,draw:drawPlayer},{y:enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
+    const actors=[{y:player.y,draw:drawPlayer},{y:b.chest?.y??enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.pet(m,m.x,m.y,time,m.id);
       const pose=!m.moving?fifthPose(fifthAreas.find(e=>e.owner===m.id),time):null;

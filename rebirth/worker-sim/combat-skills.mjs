@@ -1,4 +1,4 @@
-import {PRIEST_SKILLS,beginPriest,schedulePriest,stepPriest} from './priest.mjs?v=exploration-190';
+import {PRIEST_SKILLS,beginPriest,schedulePriest,stepPriest} from './priest.mjs?v=exploration-arena-196';
 // One deterministic timeline drives solo, party and wave damage and VFX.
 const first=(name,hits,damage,cooldown,critAdd=0)=>({name,type:'attack',hits,damage,cooldown,critAdd,seconds:0,range:760,description:`${Math.round(damage*100)}% × ${hits}타 · 총 ${Math.round(hits*damage*100)}%${critAdd?' · 이 스킬 치명 확률 +5%p':''}`,pulses:Array.from({length:hits},(_,i)=>({at:3+i*2,damage}))});
 export const CLASS_SKILLS={

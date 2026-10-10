@@ -68,6 +68,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   }
   supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
   collectExplorationHearts(w);
+  const defeatedBoss=w.monsters.find(e=>e.boss&&e.hp<=0);if(defeatedBoss)w.bossDeath={x:defeatedBoss.x,y:defeatedBoss.y};
   w.monsters=w.monsters.filter(e=>e.hp>0);
   // A cleared full spawn budget advances immediately, without waiting for the clock.
   explorationProgress(w);

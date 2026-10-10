@@ -1,11 +1,11 @@
-import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=exploration-dungeon-192';
-import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=exploration-pickups-194';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=exploration-190';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=exploration-190';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=exploration-190';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=exploration-190';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=exploration-190';
-import {incomingDamage} from './journey-balance.mjs?v=exploration-190';
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=exploration-arena-196';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=exploration-arena-196';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=exploration-arena-196';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=exploration-arena-196';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=exploration-arena-196';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=exploration-arena-196';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=exploration-arena-196';
+import {incomingDamage} from './journey-balance.mjs?v=exploration-arena-196';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -68,6 +68,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   }
   supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
   collectExplorationHearts(w);
+  const defeatedBoss=w.monsters.find(e=>e.boss&&e.hp<=0);if(defeatedBoss)w.bossDeath={x:defeatedBoss.x,y:defeatedBoss.y};
   w.monsters=w.monsters.filter(e=>e.hp>0);
   // A cleared full spawn budget advances immediately, without waiting for the clock.
   explorationProgress(w);

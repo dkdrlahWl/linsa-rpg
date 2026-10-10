@@ -4,6 +4,12 @@ const SIZE=32,CELL=100;
 const directions=[[-1,0],[1,0],[0,-1],[0,1]];
 export const dungeonTile=(d,x,y)=>d?.tiles[Math.floor(y/CELL)]?.[Math.floor(x/CELL)]||'0';
 export const dungeonSeen=(d,x,y)=>!d||d.seen?.[Math.floor(y/CELL)]?.[Math.floor(x/CELL)]==='1';
+export function makeExplorationArena(tier,floor,seed=1){
+ const tiles=Array.from({length:SIZE},(_,y)=>Array.from({length:SIZE},(_,x)=>x>=9&&x<23&&y>=9&&y<23?'2':'0').join(''));
+ // Virtual spawn zones share one continuous floor, without interior walls.
+ const rooms=[{id:3,x:13,y:18,w:6,h:5},{id:4,x:9,y:10,w:5,h:7},{id:1,x:18,y:10,w:5,h:7},{id:2,x:13,y:9,w:6,h:7}];
+ return {id:'exploration-arena-196:'+tier+':'+floor+':'+seed,arena:true,size:SIZE,cell:CELL,tiles,rooms,start:{x:1600,y:2050},exit:{x:1600,y:1350},seen:Array.from({length:SIZE},()=> '1'.repeat(SIZE))};
+}
 export function makeExplorationDungeon(tier,floor,seed=1){
  let n=(seed^Math.imul(floor,2654435761)^Math.imul(tier+1,1597334677))>>>0;
  const random=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};

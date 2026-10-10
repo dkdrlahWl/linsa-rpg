@@ -1,6 +1,6 @@
-import {makeExplorationDungeon,revealDungeon} from './exploration-dungeon.mjs';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon} from './exploration-dungeon.mjs';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
-export const EXPLORATION_VERSION='exploration-pickups-194';
+export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
  {id:0,name:'달빛 수림의 유적',floors:10,multiplier:1,level:200,art:'exploration-0',map:'exploration/map-0.webp',boss:'월림의 수호왕 아르보른',monsters:['달가시 늑대','이끼 갑옷돌','달밤 버섯'],seconds:1800,gold:100000,cube:3,highCube:1},
  {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:150000,cube:4,highCube:2},
@@ -17,7 +17,7 @@ export function explorationStats(tier,floor,count,boss=false){
 }
 export const explorationArt=(tier,species,boss=false)=>'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
 export function explorationFloor(w){
- const theme=EXPLORATIONS[w.tier],final=w.floor===theme.floors;w.floorAt=w.tick;w.floorDeadline=w.tick+1800;delete w.bossBattleAt;w.exitOpen=false;w.dungeon=makeExplorationDungeon(w.tier,w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;
+ const theme=EXPLORATIONS[w.tier],final=w.floor===theme.floors;w.floorAt=w.tick;w.floorDeadline=w.tick+1800;delete w.bossBattleAt;w.exitOpen=false;delete w.bossDeath;w.dungeon=(final?makeExplorationArena:makeExplorationDungeon)(w.tier,w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;
  // Residents occupy separate rooms. The entry room stays safe during loading.
  const rooms=w.dungeon.rooms.filter(r=>r.id!==3),multiplier=explorationMonsterMultiplier(w.tier,w.floor);
  let spawnSeed=((w.started>>>0)^Math.imul(w.floor,2654435761)^Math.imul(w.tier+1,1597334677))>>>0;
@@ -44,7 +44,7 @@ export function explorationProgress(w){
  if(!w.monsters.length&&!w.exitOpen){w.cleared=w.floor;w.exitOpen=true;w.hazards=[];for(const m of w.members){for(const key of ['firstCast','secondCast','thirdCast','fourthCast','fifthCast','pendingHits','pendingSkill'])delete m[key];}}
  if(w.exitOpen){
   const theme=EXPLORATIONS[w.tier];
-  if(w.floor===theme.floors){w.status='won';w.chest={...w.exit};w.lootAt=w.started+w.tick*100;for(const m of w.members)m.input=[0,0,0];return;}
+  if(w.floor===theme.floors){w.status='won';w.chest={...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members)m.input=[0,0,0];return;}
   if(w.members.some(m=>!m.left&&m.hp>0&&Math.hypot(m.x-w.exit.x,m.y-w.exit.y)<190)){w.floor++;explorationFloor(w);}
  }else if(w.tick>=w.floorDeadline){w.status='lost';w.reason='floorTimeout';w.endedTick=w.tick;}
 }

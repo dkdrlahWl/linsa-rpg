@@ -15,6 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: node rebirth/exploration-arena.test.mjs
       - run: node rebirth/exploration.test.mjs
       - run: node rebirth/exploration-dungeon.test.mjs
       - run: node rebirth/exploration-pickups.test.mjs
