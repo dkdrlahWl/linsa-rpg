@@ -8,7 +8,7 @@
 [data-coop-mode="exploration"] .tower-canvas-wrap{width:100%;height:100%;max-width:none;aspect-ratio:auto;overflow:hidden}
 [data-coop-mode="exploration"] #tower-canvas{display:block;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:fill}
 [data-coop-mode="exploration"] .tower-controls{position:static;inset:auto;grid-column:1;grid-row:4;height:auto;min-height:0;padding:10px 10px 8px 4px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;pointer-events:auto;background:linear-gradient(150deg,#152b35,#101821);border-top:2px solid #547887;overflow:hidden}
-[data-coop-mode="exploration"] .tower-movement{flex:0 0 30%;display:flex;justify-content:center;align-items:center;flex-direction:column}
+[data-coop-mode="exploration"] .tower-movement{flex:0 0 30%;transform:translateX(12px);display:flex;justify-content:center;align-items:center;flex-direction:column}
 [data-coop-mode="exploration"] .tower-stick{width:clamp(82px,25vw,124px);height:clamp(82px,25vw,124px)}
 [data-coop-mode="exploration"] .tower-buttons{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 48px;align-self:stretch;flex:1;max-width:480px;width:auto;gap:8px}
 [data-coop-mode="exploration"] .tower-skill-bar{grid-column:1;grid-row:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px;width:auto;min-height:0}
