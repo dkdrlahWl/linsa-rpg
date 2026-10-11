@@ -1,5 +1,5 @@
-import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending} from './citadel-zero.mjs?v=hw-227';
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs?v=hw-227';
+import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending} from './citadel-zero.mjs?v=hw-230';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs?v=hw-230';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
@@ -12,12 +12,14 @@ export const EXPLORATION_MOVE_SPEED=1.6,CITADEL_MOVE_SPEED=1.5;
 export const dungeonMoveSpeed=w=>isCitadel(w)?CITADEL_MOVE_SPEED:EXPLORATION_MOVE_SPEED;
 export const explorationMonsterMultiplier=(tier,floor)=>floor<=Math.ceil(EXPLORATIONS[tier].floors/2)?2:3;
 export const EXPLORATION_BASE={bossHp:95000000,attack:11500,referenceAttack:49108,referenceHp:67525,referenceDefense:1373,referencePower:206123};
+// Final-floor boss HP and attack (update 229: 30% nerf on every difficulty).
+export const EXPLORATION_BOSS_SCALE=.7;
 export const explorationPopulation=n=>({hp:1+.30*(Math.max(1,Math.min(4,n))-1),attack:1+.12*(Math.max(1,Math.min(4,n))-1)});
 export function explorationStats(tier,floor,count,boss=false){
  if(tier===CITADEL_TIER)return citadelStats(floor,count,boss);
  const theme=EXPLORATIONS[tier];if(!theme)throw Error('INVALID_EXPLORATION');
  const depth=.48+.52*(floor-1)/(theme.floors-1),scale=explorationPopulation(count),base=EXPLORATION_BASE;
- return {hp:Math.round(base.bossHp*(boss?1:.007)*theme.multiplier*depth*scale.hp),attack:Math.round(base.attack*(boss?1:.27)*theme.multiplier*depth*scale.attack),speed:boss?15:18+(tier%2)*2};
+ return {hp:Math.round(base.bossHp*(boss?EXPLORATION_BOSS_SCALE:.007)*theme.multiplier*depth*scale.hp),attack:Math.round(base.attack*(boss?EXPLORATION_BOSS_SCALE:.27)*theme.multiplier*depth*scale.attack),speed:boss?15:18+(tier%2)*2};
 }
 export const explorationArt=(tier,species,boss=false)=>tier===CITADEL_TIER?'citadel/'+(boss?'boss-9':'enemy-'+species)+'-213.webp':'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
 export function explorationFloor(w){
