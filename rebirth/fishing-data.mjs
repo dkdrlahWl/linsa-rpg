@@ -1,7 +1,7 @@
 // Shared with the authenticated server. Fish use gold; bait bundles use diamonds. Weight is grams.
 export const FISHING_VERSION=2;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
-export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:600}];
+export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:40,value:600}];
 export const SPOTS=[
  {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
  {id:'moon',bonus:1.15,luck:1.958,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
@@ -17,7 +17,7 @@ const rows=[
  ['abyss','별빛 아귀',0,1500,10000,'indigo anglerfish with glowing star lure'],['abyss','오로라 유령어',0,1000,7000,'translucent violet aurora fish'],['abyss','공허 문어',1,3000,24000,'cute cosmic purple octopus with star markings'],['abyss','천공 수정어',1,2000,16000,'icy celestial crystal scaled fish'],['abyss','달의 수호룡',3,10000,65000,'silver blue moon guardian sea dragon'],['abyss','태고의 황제어',2,9000,60000,'ancient imperial indigo fish with gold armor scales'],['abyss','성운 날개가오리',2,8000,55000,'nebula violet manta with angel wing fins'],['abyss','심연의 왕관상어',4,14000,100000,'deep purple shark with luminous crystalline crown'],['abyss','천해의 별고래',5,35000,240000,'mythical celestial star whale, sapphire gold, galaxy wings'],['abyss','영원의 백룡',5,25000,180000,'mythical elegant white sea dragon, luminous pink gold flowing fins'],
 ];
 export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:Math.max(SPOTS.find(s=>s.id===spot).level,RARITIES[rarity].gate)}));
-export const BAITS=[{id:'worm',name:'숲 지렁이',pack:50,gold:2500,level:1,luck:0},{id:'shrimp',name:'반짝 새우',pack:40,diamonds:1,level:10,luck:.5},{id:'pearl',name:'진주 미끼',pack:30,diamonds:1,level:25,luck:1.2},{id:'star',name:'별가루 미끼',pack:8,diamonds:1,level:40,luck:2.5}];
+export const BAITS=[{id:'worm',name:'숲 지렁이',pack:50,gold:2500,level:1,luck:0},{id:'shrimp',name:'반짝 새우',pack:15,diamonds:1,level:10,luck:.5},{id:'pearl',name:'진주 미끼',pack:10,diamonds:1,level:25,luck:1.2},{id:'star',name:'별가루 미끼',pack:5,diamonds:1,level:40,luck:2.5}];
 export const baitDiamondCost=(bait,count)=>bait.diamonds*count/bait.pack;
 export const FISHING_QUESTS=[{id:'catch',name:'물고기 10마리 잡기',goal:10,diamonds:3},{id:'rare',name:'희귀 이상 물고기 3마리',goal:3,diamonds:2},{id:'sell',name:'물고기 5마리 판매',goal:5,diamonds:2}];
 // Completed-but-unclaimed fishing dailies for today (Korean day), for mail-style badges.
