@@ -4,10 +4,10 @@ export const FISHING_VERSION=2;
 export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240}];
 export const SPOTS=[
  {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
- {id:'moon',bonus:1.15,luck:1.958,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
- {id:'canyon',bonus:1.3,luck:1.767,name:'단풍 협곡',level:20,subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
- {id:'coral',bonus:1.45,luck:1.744,name:'산호 해안',level:30,subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
- {id:'abyss',bonus:1.6,luck:1.799,name:'천상의 심해',level:40,subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
+ {id:'moon',bonus:1.15,luck:1.6,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
+ {id:'canyon',bonus:1.3,luck:1.7,name:'단풍 협곡',level:20,subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
+ {id:'coral',bonus:1.45,luck:1.8,name:'산호 해안',level:30,subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
+ {id:'abyss',bonus:1.6,luck:1.9,name:'천상의 심해',level:40,subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
 ];
 const rows=[
  ['brook','풀잎 피라미',0,80,300,'leaf green minnow with gold fins'],['brook','은빛 송사리',0,20,120,'tiny silver ricefish with pale green fins'],['brook','조약돌 망둑어',0,100,450,'round speckled stone goby'],['brook','햇살 붕어',0,250,1500,'warm golden crucian carp'],['brook','산들 메기',0,400,2500,'cute moss grey catfish with flowing whiskers'],['brook','꽃잎 잉어',0,300,2000,'pink white koi with petal shaped fins'],['brook','이끼 비늘어',1,400,2500,'emerald moss scaled fish'],['brook','청금 송어',1,700,3500,'turquoise trout with golden flecks'],['brook','반딧불 버들치',1,120,800,'willow minnow with luminous yellow speckles'],['brook','수련 베타',1,100,600,'jade pink betta with lotus petal fins'],

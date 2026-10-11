@@ -36,13 +36,16 @@ export function fishingStep(cast,input,meter){
  return meter;
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
-// Base grade weights (2026-10-12: 에픽 1/2, 전설·신화 1/4 again).
-export const FISH_GRADE_WEIGHTS=[1,.30,.09,.012,.00021875,.00003125];
+// Base grade weights per grade (2026-10-12).
+export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.00039,.000126];
 function rollCatch(c,ctx){
  const spot=SPOTS.find(x=>x.id===c.spot)||SPOTS[0],bait=BAITS.find(x=>x.id===c.bait)||BAITS[0],rod=c.rod||1;
  const available=FISH.filter(x=>x.spot===spot.id&&x.level<=rod);
  // Higher-grade bait improves rarity weights but never bypasses rod gates.
- const weights=available.map(x=>FISH_GRADE_WEIGHTS[x.rarity]*baitGradeWeight(x,bait)*spotGradeWeight(x)*(1+.012*Math.max(0,rod-x.level)*x.rarity));
+ // Grade odds do not depend on how many species a spot has (weight is split among a grade's species), and the
+ // rod bonus counts from the grade gate, so a later spot always gives at least the previous spot's high-grade odds.
+ const perGrade={};for(const x of available)perGrade[x.rarity]=(perGrade[x.rarity]||0)+1;
+ const weights=available.map(x=>FISH_GRADE_WEIGHTS[x.rarity]*baitGradeWeight(x,bait)*spotGradeWeight(x)*(1+.012*Math.max(0,rod-RARITIES[x.rarity].gate)*x.rarity)/perGrade[x.rarity]);
  let roll=ctx.random()*weights.reduce((n,x)=>n+x,0),index=weights.length-1;
  for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
  const species=available[index],size=ctx.random()**1.65,weight=Math.round(species.min+(species.max-species.min)*size);
