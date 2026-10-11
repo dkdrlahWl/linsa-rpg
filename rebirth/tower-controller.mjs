@@ -48,6 +48,7 @@ export class TowerController {
     stick.addEventListener('pointerdown',e=>{if(this.stickPointer!==null||e.button!==0||this.paused())return;e.preventDefault();this.advance(performance.now());this.stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);move(e);},signal);
     stick.addEventListener('pointermove',e=>{if(e.pointerId!==this.stickPointer)return;this.advance(performance.now());move(e);},signal);
     for(const type of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(type,e=>{if(e.pointerId!==this.stickPointer)return;this.advance(performance.now());this.stickPointer=null;this.stick={x:0,y:0};this.nodes['stick-knob'].style.transform='';},signal);
+    for(const b of [this.nodes.auto,this.nodes['auto-skills']])if(b){b.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter')e.preventDefault();});b.addEventListener('click',()=>b.blur());}
     this.nodes.auto.addEventListener('click',()=>{this.autoAttack=!this.autoAttack;this.nodes.auto.setAttribute('aria-pressed',String(this.autoAttack));this.nodes.auto.textContent='연속 공격 '+(this.autoAttack?'켜짐':'꺼짐');},signal);
     this.nodes['auto-skills'].addEventListener('click',()=>{this.autoSkills=!this.autoSkills;this.nodes['auto-skills'].setAttribute('aria-pressed',String(this.autoSkills));this.nodes['auto-skills'].textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');},signal);
     this.frame=requestAnimationFrame(t=>this.loop(t));this.canvas.focus({preventScroll:true});

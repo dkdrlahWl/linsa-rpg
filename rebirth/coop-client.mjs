@@ -49,7 +49,8 @@ export function coopInputInterval(room,rtt=250){
 export class CoopController{
  constructor(host,room,send,sound,admin=false){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'),isCitadel(room)?{pixelRatio:2,maxWidth:1400}:['raid','exploration'].includes(room.mode)?{pixelRatio:1.25}:{});this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
   window.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,dialog'))return;if(keyBits[e.code]||/^(Key[WASD]|Arrow)/.test(e.code)){e.preventDefault();if(!this.keys.has(e.code)&&keyBits[e.code])this.press(keyBits[e.code]);this.keys.add(e.code);}},opt);window.addEventListener('keyup',e=>this.keys.delete(e.code),opt);
-  const clear=()=>{this.keys.clear();this.pointers.clear();this.stick={x:0,y:0};this.auto=false;this.pendingBits=0;this.sampler.clear();};window.addEventListener('blur',clear,opt);
+  // Losing focus only releases held keys/stick; the 연속 공격 toggle stays as the player set it.
+  const clear=()=>{this.keys.clear();this.pointers.clear();this.stick={x:0,y:0};this.pendingBits=0;this.sampler.clear();};window.addEventListener('blur',clear,opt);
   const resume=()=>{if(this.disposed)return;clear();this.needsResync=true;this.nextSend=0;this.lastDraw=0;void this.flush();};
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();else resume();},opt);
   window.addEventListener('online',resume,opt);
@@ -59,8 +60,10 @@ export class CoopController{
   const move=e=>{const r=stick.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)/(r.width*.4),y=(e.clientY-r.top-r.height/2)/(r.height*.4),n=Math.max(1,Math.hypot(x,y));this.stick={x:x/n,y:y/n};knob.style.transform='translate('+this.stick.x*r.width*.3+'px,'+this.stick.y*r.height*.3+'px)';};
   stick.addEventListener('pointerdown',e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;stick.setPointerCapture(pointer);move(e);},opt);stick.addEventListener('pointermove',e=>{if(e.pointerId===pointer)move(e);},opt);for(const type of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(type,e=>{if(e.pointerId===pointer){pointer=null;this.stick={x:0,y:0};knob.style.transform='';}},opt);
   const chestButton=host.querySelector('#tower-chest');delete chestButton.dataset.action;chestButton.addEventListener('click',()=>this.press(1),opt);
-  host.querySelector('#tower-auto').addEventListener('click',e=>{this.auto=!this.auto;e.currentTarget.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');},opt);
-  host.querySelector('#tower-auto-skills').addEventListener('click',e=>{this.autoSkills=!this.autoSkills;e.currentTarget.setAttribute('aria-pressed',String(this.autoSkills));e.currentTarget.textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');},opt);
+  // Buttons drop focus after a click so Space (dash) / Enter can never re-toggle them.
+  host.querySelector('#tower-auto').addEventListener('click',e=>{this.setAuto(!this.auto);e.currentTarget.blur();},opt);
+  host.querySelector('#tower-auto-skills').addEventListener('click',e=>{this.autoSkills=!this.autoSkills;e.currentTarget.setAttribute('aria-pressed',String(this.autoSkills));e.currentTarget.textContent='스킬 자동 '+(this.autoSkills?'켜짐':'꺼짐');e.currentTarget.blur();},opt);
+  for(const b of host.querySelectorAll('#tower-auto,#tower-auto-skills'))b.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter')e.preventDefault();},opt);
   if(isDungeon(room)&&admin===true){
    const tools=document.createElement('div');tools.className='exploration-admin-controls';
    tools.innerHTML='<select aria-label="관리자 이동 지역">'+Array.from({length:coopEncounter(room).floors},(_,i)=>'<option value="'+(i+1)+'">'+(isCitadel(room)?CITADEL_STAGES[i].name:(i+1)+'층')+'</option>').join('')+'</select><button type="button">'+(isCitadel(room)?'관리자 지역 이동':'관리자 층 이동')+'</button>';
@@ -101,6 +104,7 @@ export class CoopController{
    fallback:()=>{if(this.disposed)return;this.workerActive=false;this.predictionTick=undefined;this.acceptedSignature=null;this.accept(this.room);}
   });
  }
+ setAuto(on){this.auto=!!on;const b=this.host.querySelector('#tower-auto');if(b){b.textContent='연속 공격 '+(this.auto?'켜짐':'꺼짐');b.setAttribute('aria-pressed',String(this.auto));}}
  input(){if(this.artReady===false)return [0,0,0];if(['wave','advancement','raid','exploration','citadel'].includes(this.predicted?.mode)&&this.predicted.members.find(m=>m.id===this.room.me)?.hp<=0)return [0,0,0];if(document.hidden||document.querySelector('dialog[open]'))return [0,0,0];let x=this.stick.x,y=this.stick.y,bits=(this.auto?1:0)|(this.autoSkills?autoSkillBits(this.predicted.members.find(m=>m.id===this.room.me),this.predicted.tick,this.predicted.status==='fighting'):0);for(const k of this.keys){bits|=keyBits[k]||0;if(['KeyA','ArrowLeft'].includes(k))x--;if(['KeyD','ArrowRight'].includes(k))x++;if(['KeyW','ArrowUp'].includes(k))y--;if(['KeyS','ArrowDown'].includes(k))y++;}for(const v of this.pointers.values())bits|=v;const n=Math.max(1,Math.hypot(x,y));return [x/n,y/n,this.room.entryWaiting?0:bits];}
  press(bits){if((bits&1)&&this.predicted?.status==='won'){const me=this.predicted.members.find(m=>m.id===this.room.me),chest=this.predicted.chest;if(chest&&Math.hypot(me.x-chest.x,me.y-chest.y)<=180){this.openingAt??=performance.now();this.host.querySelector('#tower-status').textContent='상자를 여는 중…';}this.pendingBits|=1;this.nextSend=0;void this.flush();return;}if(!bits||this.room.entryWaiting||this.artReady===false)return;this.pendingBits|=bits;this.sampler.press(bits);this.lastHud=0;const now=performance.now();if(bits&4)this.hint.dash=now+110;else if(bits&1)this.hint.attack=now+110;else if(bits&122)this.hint.skill=now+110;}
  async flush(){
@@ -223,7 +227,7 @@ export class CoopController{
   const projection={worldSize:w.dungeon?.size*w.dungeon?.cell,waveMode:['wave','exploration','citadel'].includes(w.mode),player:me,classId:me.classId,tick:w.tick,dashReady:me.dashReady,dashUntil:me.dashUntil,dashX:me.dx,dashY:me.dy};
   const point=projectPlayer(projection,projectionInput);if(isDungeon(w)){const k=dungeonMoveSpeed(w);point.x=me.x+(point.x-me.x)*k;point.y=me.y+(point.y-me.y)*k;}const player=this.motion.sample('player:'+me.id,{...me,...point},true),enemy=smooth(w.enemy,this.previousSim?.enemy,'enemy');
   this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:this.room.status==='won',ended:['won','lost'].includes(this.room.status)});
-  if(this.room.status==='won')this.auto=false;
+  if(this.room.status==='won'&&this.auto)this.setAuto(false);
   if(w.mode==='raid'){const corrected={x:me.x,y:me.y};raidMove(corrected,player.x,player.y,w.walls);Object.assign(player,corrected);}
   if(isDungeon(w)){const corrected={x:me.x,y:me.y,classId:me.classId};dungeonMove(w.dungeon,corrected,player.x-me.x,player.y-me.y);player.x=corrected.x;player.y=corrected.y;}
   const b={...w,...me,localSkillsOnly:true,raidMode:w.mode==='raid',advancementStage:w.mode==='advancement'?w.tier:undefined,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:tier,classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:this.effectMemory?.compose(w.effects||[],w.tick+visualFraction)||w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id),'player:'+m.id))};
