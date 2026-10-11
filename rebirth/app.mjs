@@ -18,7 +18,7 @@ import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clear
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
-import {SPOTS,BAITS,resourceName} from './fishing-data.mjs?v=fishing-perf-188';
+import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188';
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
@@ -474,6 +474,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(result.arena){arenaData=result.arena;arenaError='';}
     if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
+    // A fishing daily that just became claimable gets a one-time toast (badges stay until it is claimed).
+    if(state){const ready=fishingQuestsReady(state);if(audioPrevious&&ready>fishingQuestsReady(audioPrevious))toast('낚시 일일퀘스트 완료! 이벤트 › 낚시 여행 › 일일퀘스트에서 다이아를 받으세요.');}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
     if(result.coopRooms)coopRooms=result.coopRooms;
@@ -590,7 +592,7 @@ function confirmClassChange(classId) {
 function shell(content) {
   if(document.body.classList.contains("tower-mode"))return `<div class="shell">${content}</div>`;
   const c = D.CLASSES.find(c=>c.id===state.classId);
-  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':arenaDock():fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady());
+  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':arenaDock():fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady(),fishingQuestsReady(state));
   return `<div class="shell fantasy-shell">${fantasyHeader(state,view==="arena"?"arena":view==="game"?tab:"")}<div class="fantasy-player-strip"><span><strong>${esc(state.name)}</strong> · Lv.${state.level} ${c.name}</span><span>전투력 <b>${fmt(power(state).combatPower)}</b></span></div><div id="connection-status" class="connection-status" role="status" ${connectionLost?"":"hidden"}>연결이 지연되고 있어요. ${btn("다시 연결","reconnect")}</div><main class="fantasy-content" data-screen="${esc(view==="game"?tab:view)}">${content}</main>${footer}</div>`;
 }
 
@@ -739,7 +741,7 @@ function characterMetrics(p,c) {
 function gearLevelRange(base){const r=D.equipmentLevelRange(base);return r.min===r.max?requiredLevel(r.min):requiredLevel(r.min)+" / "+requiredLevel(r.max);}
 function gearRollLabel(it){return "기본 공격력 "+D.gearAttributes(it,0).attack.toFixed(1);}
 function itemMarkup(it) {
-  if(it.kind==="consumable")return `<div class="consumable-market-icon">◆</div><div class="item-info"><strong>${esc(D.MATERIALS[it.key]||it.key)}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
+  if(it.kind==="consumable")return `<div class="consumable-market-icon">◆</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">${gearRollLabel(it)}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? D.RARITIES[it.grade] : "잠재 미개방"}</span></div>`;
 }
 function bagGroupsMarkup(groups){
@@ -922,7 +924,7 @@ function journal() {
 }
 function marketTile(l) {
   const it=l.item,consumable=it.kind==="consumable";
-  const name=consumable?D.MATERIALS[it.key]:D.gearName(it);
+  const name=consumable?materialName(it.key):D.gearName(it);
   return `<button class="market-compact-card ${!consumable&&it.boss?"boss-gear":""}" data-action="marketConfirm" data-arg="${l.id}" aria-label="${esc(name)} 상세 보기"><span class="market-card-meta">${consumable?"소모품":requiredLevel(it.level)}<b>${consumable?fmt(it.quantity)+"개":it.stars+"★"}</b></span>${consumable?'<img class="material-tile-image" src="'+currencyIconURL(it.key)+'" alt="">':gearMarkup(it)}<strong class="market-card-name">${esc(name)}</strong><small>${consumable?"남은 "+fmt(it.quantity)+"개":D.CLASSES.find(c=>c.id===it.classId).name+" · "+gearRollLabel(it)}</small><b class="market-card-price">${!l.own&&l.status==="open"?goldPurchaseIcon():""}${fmt(l.price)} G${consumable?" / 개":""}</b><span class="market-card-status">${l.status==="open"?(l.own?"판매 중 · 상세":"상세 보기"):l.status==="sold"?"판매 완료":"회수 완료"}</span></button>`;
 }
 function gearRollDetails(it){if(!it.baseStats)return "";const ranges=D.gearStatRanges(it),multiplier=D.gearStatMultiplier(it),scale=(key,value)=>value*multiplier*(key==='hp'?D.gearHPMultiplier(it):1);return `<section class="panel pad"><h4>획득 시 확정된 기본 수치</h4>${Object.entries({attack:"공격력",stat:"주스탯",hp:"HP",defense:"방어력"}).map(([key,label])=>`<p>${label} <strong>${fmt(scale(key,it.baseStats[key]))}</strong> ${it.legacyBaseStats?"":`<small>(가능 범위 ${fmt(scale(key,ranges[key].min))}~${fmt(scale(key,ranges[key].max))})</small>`}</p>`).join("")}<p class="note">강화 전 수치입니다. ${it.legacyBaseStats?"기존 장비 성능을 보존한 수치입니다.":"각 능력치는 따로 추첨되며 높은 구간일수록 희귀합니다."} 큐브 재감정으로 기본 수치는 바뀌지 않습니다.</p></section>`;}
@@ -1220,16 +1222,20 @@ function updateSellPrice() {
   $("#sell-reason").innerHTML=esc(reason||"선택한 장비 1개를 등록합니다. 판매 수수료는 5%입니다.").replace("Lv.20",requiredLevel(20));
   const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
 }
+// Market materials: regular materials plus 다이아 (stored in the fishing record).
+const MARKET_MATERIALS=()=>({...D.MATERIALS,diamond:'다이아'});
+const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):(state.materials?.[k]||0);
+const materialName=k=>k==='diamond'?'다이아':(D.MATERIALS[k]||k);
 function consumableSellDialog(key=null){
  if(!key){
-  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(D.MATERIALS).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${state.materials[k]>0?"":"disabled"}><img class="material-tile-image" src="${currencyIconURL(k)}" alt=""><strong class="market-card-name">${name}</strong><small>보유 ${fmt(state.materials[k])}개</small><span class="market-card-status">${state.materials[k]>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
+  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(MARKET_MATERIALS()).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${marketHave(k)>0?"":"disabled"}><img class="material-tile-image" src="${currencyIconURL(k)}" alt=""><strong class="market-card-name">${name}</strong><small>보유 ${fmt(marketHave(k))}개</small><span class="market-card-status">${marketHave(k)>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
   return;
  }
- if(!Object.hasOwn(D.MATERIALS,key)||!(state.materials[key]>0))return;
- open("소모품 판매 등록",`${btn("← 소모품 목록","marketSellConsumables")}<div class="material-picked" data-currency-label><img src="${currencyIconURL(key)}" alt=""><div><strong>${D.MATERIALS[key]}</strong><p>보유 ${fmt(state.materials[key])}개</p></div></div><input id="material-sell-key" type="hidden" value="${key}"><label>등록 수량<input id="material-sell-count" type="number" inputmode="numeric" min="1" max="${Math.min(1e6,state.materials[key])}" step="1" value="1"></label><label>개당 가격 (G)<input id="material-sell-price" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="100"></label><p id="material-sale-total" class="note"></p><p class="note">필요한 수량만 판매합니다. 등록 7일 · 수수료 없음. 취소 시 남은 수량을 돌려받습니다.</p>${btn("소모품 등록","sellConsumableConfirm","","gold")}`);
+ if(!Object.hasOwn(MARKET_MATERIALS(),key)||!(marketHave(key)>0))return;
+ open("소모품 판매 등록",`${btn("← 소모품 목록","marketSellConsumables")}<div class="material-picked" data-currency-label><img src="${currencyIconURL(key)}" alt=""><div><strong>${materialName(key)}</strong><p>보유 ${fmt(marketHave(key))}개</p></div></div><input id="material-sell-key" type="hidden" value="${key}"><label>등록 수량<input id="material-sell-count" type="number" inputmode="numeric" min="1" max="${Math.min(1e6,marketHave(key))}" step="1" value="1"></label><label>개당 가격 (G)<input id="material-sell-price" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="100"></label><p id="material-sale-total" class="note"></p><p class="note">필요한 수량만 판매합니다. 등록 7일 · 수수료 없음. 취소 시 남은 수량을 돌려받습니다.</p>${btn("소모품 등록","sellConsumableConfirm","","gold")}`);
  updateMaterialSale();
 }
-function updateMaterialSale(){const key=$('#material-sell-key')?.value;if(!key)return;const count=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value),total=count*price,valid=Number.isSafeInteger(count)&&count>=1&&count<=Math.min(1e6,state.materials[key]||0)&&Number.isSafeInteger(price)&&price>=1&&total<=1e9;$('#material-sale-total').textContent=valid?'전량 판매 시 총 '+fmt(total)+' G · 예상 수령 '+fmt(total)+' G':'보유 수량 안에서 정수로 입력하세요. 총 등록 금액은 10억 G 이하입니다.';modal.querySelector('[data-action=sellConsumableConfirm]').disabled=!valid;}
+function updateMaterialSale(){const key=$('#material-sell-key')?.value;if(!key)return;const count=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value),total=count*price,valid=Number.isSafeInteger(count)&&count>=1&&count<=Math.min(1e6,marketHave(key))&&Number.isSafeInteger(price)&&price>=1&&total<=1e9;$('#material-sale-total').textContent=valid?'전량 판매 시 총 '+fmt(total)+' G · 예상 수령 '+fmt(total)+' G':'보유 수량 안에서 정수로 입력하세요. 총 등록 금액은 10억 G 이하입니다.';modal.querySelector('[data-action=sellConsumableConfirm]').disabled=!valid;}
 function updateMaterialBuy(){const input=$('#material-buy-count');if(!input)return;const listing=marketRows.find(l=>l.id===input.dataset.listing),count=Number(input.value),valid=listing&&Number.isSafeInteger(count)&&count>=1&&count<=listing.item.quantity;$('#material-buy-total').textContent=valid?'결제 금액 '+fmt(count*listing.price)+' G':'남은 수량 안에서 정수로 입력하세요.';modal.querySelector('[data-action=buyListing]').disabled=!valid||count*listing.price>state.gold;}
 function marketSellPicker() {
   const scroll=modal.querySelector('.market-inventory-grid')?.scrollTop||0;
@@ -1663,7 +1669,7 @@ document.addEventListener("click", async (e) => {
     if(action==='marketKind'){marketKind=arg;filterSlot='';filterClass='';marketPage=0;return await marketLoad();}
     if(action==='marketSellConsumables')return consumableSellDialog();
     if(action==='materialSellPick')return consumableSellDialog(arg);
-    if(action==='sellConsumableConfirm'){const material=$('#material-sell-key').value,quantity=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>Math.min(1e6,state.materials[material]||0)||!Number.isSafeInteger(price)||price<1||price*quantity>1e9)return toast('수량과 개당 가격을 확인해 주세요.');return await marketWrite('sell',{material,quantity,price});}
+    if(action==='sellConsumableConfirm'){const material=$('#material-sell-key').value,quantity=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>Math.min(1e6,marketHave(material))||!Number.isSafeInteger(price)||price<1||price*quantity>1e9)return toast('수량과 개당 가격을 확인해 주세요.');return await marketWrite('sell',{material,quantity,price});}
     if (action === "marketSell") {marketSellId=null;marketSellSlot="";marketSellClass="";marketSellPrice="10000";return marketSellPicker();}
     if (action === "marketSellPick") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;marketSellId=arg;return marketSellPicker();}
     if (action === "marketSellBack") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;marketSellId=null;return marketSellPicker();}
