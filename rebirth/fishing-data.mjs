@@ -39,7 +39,8 @@ export const FISH_PRICE_BASE=600;
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;const bonus=SPOTS.find(x=>x.id===d.spot).bonus;return Math.max(10,Math.round(RARITIES[d.rarity].value*FISH_PRICE_BASE*bonus*(.55+1.45*Math.min(1,fish.weight/d.max))/10)*10);};
 // Aquarium gold per hour = sale price × grade rate. Rates keep each grade's best aquarium income close to the
 // previous table now that deep-spot top fish sell for more (신화 stays the best per fish).
-export const AQUARIUM_RATE=[2.5,2.5,2.5,2,.6,.15];
+// 2026-10-12: 9 mythic ≈ half of the best hunting income (~340k/h).
+export const AQUARIUM_RATE=[.9,.9,.9,.72,.21,.054];
 export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*AQUARIUM_RATE[d.rarity])):0;};
 export const aquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
