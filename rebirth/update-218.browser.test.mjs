@@ -51,7 +51,7 @@ try{
  assert.equal(state.fishing.lastCatch.won,true);
  await delay(800);await page.screenshot({path:path.join(out,'fishing-caught.png')});
  await page.locator('[data-action="fishPanel"][data-arg="shop"]').click();await delay(300);
- const odds=await page.locator('.fishing-odds').textContent();assert.match(odds,/물고기[\s\S]*99\.2%/);assert.doesNotMatch(odds,/큐브/);
+ assert.equal(await page.locator('.fishing-odds').count(),0,'reward odds table removed');
  const errors=await page.evaluate(()=>window.qaErrors);assert.deepEqual(errors,[]);
  console.log('PASS update-218 UI smoke',{commands:[...new Set(commands)]});
 }finally{await browser.close();server.close();}
