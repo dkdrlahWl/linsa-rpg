@@ -19,7 +19,7 @@ const rows=[
 export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:Math.max(SPOTS.find(s=>s.id===spot).level,RARITIES[rarity].gate)}));
 export const BAITS=[{id:'worm',name:'숲 지렁이',pack:50,gold:2500,level:1,luck:0},{id:'shrimp',name:'반짝 새우',pack:15,diamonds:1,level:10,luck:.5},{id:'pearl',name:'진주 미끼',pack:10,diamonds:1,level:25,luck:1.2},{id:'star',name:'별가루 미끼',pack:5,diamonds:1,level:40,luck:2.5}];
 export const baitDiamondCost=(bait,count)=>bait.diamonds*count/bait.pack;
-export const FISHING_QUESTS=[{id:'catch',name:'물고기 10마리 잡기',goal:10,diamonds:3},{id:'rare',name:'희귀 이상 물고기 3마리',goal:3,diamonds:2},{id:'sell',name:'물고기 5마리 판매',goal:5,diamonds:2}];
+export const FISHING_QUESTS=[{id:'catch',name:'물고기 10마리 잡기',goal:10,diamonds:9},{id:'rare',name:'희귀 이상 물고기 3마리',goal:3,diamonds:6},{id:'sell',name:'물고기 5마리 판매',goal:5,diamonds:6}];
 // Completed-but-unclaimed fishing dailies for today (Korean day), for mail-style badges.
 export const fishingQuestsReady=(s,now=Date.now())=>{const d=s?.fishing?.daily;if(!d||d.day!==new Date(now+9*3600000).toISOString().slice(0,10))return 0;return FISHING_QUESTS.filter(q=>(d[q.id]||0)>=q.goal&&!(d.claimed||[]).includes(q.id)).length;};
 // Cubes, potential scrolls and lock stones no longer come from fishing.
