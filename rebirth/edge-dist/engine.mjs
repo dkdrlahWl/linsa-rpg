@@ -349,7 +349,7 @@ export function settle(s, ctx) {
   s.gold += gold;
   const drops = [], loot=[];
   const rates=fieldDropRates(STAGES[s.stage]);
-  const capacity = Math.max(0, 300 - s.items.length), normalGearCount = rollCount(kills, rates.equipment, ctx),bossGearCount=rollCount(kills,rates.bossEquipment,ctx),gearCount=normalGearCount+bossGearCount;
+  const capacity = Math.max(0, 300 - s.items.length), normalGearCount = s.isTester?0:rollCount(kills, rates.equipment, ctx),bossGearCount=s.isTester?0:rollCount(kills,rates.bossEquipment,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
     const item = makeLootItem(
       STAGES[s.stage].dropLevel,
