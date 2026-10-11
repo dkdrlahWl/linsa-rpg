@@ -124,7 +124,9 @@ export class CoopController{
    if(citadelClaim)this.citadelClaimRetry=performance.now()+1500;
    let result;
    try{result=await this.send(open||citadelClaim?'coopOpen':'coopInput',open||citadelClaim?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2},!open,false,this.abort?.signal);}
-   catch(error){if(citadelClaim&&['COOP_CHEST_NOT_READY','COOP_CHEST_CLAIMED'].includes(error.message)){for(const b of claimBosses)this.citadelClaimed.add(b);return;}throw error;}
+   // A reward claim must never wedge the room: give up after 3 failed attempts per chest (the server keeps
+   // the chest unclaimed, so a later run of this loop after a fix/reload can still pay it).
+   catch(error){if(citadelClaim){this.citadelClaimFails=(this.citadelClaimFails||0)+1;this.citadelClaimRetry=performance.now()+3000;if(['COOP_CHEST_NOT_READY','COOP_CHEST_CLAIMED'].includes(error.message)||this.citadelClaimFails>=3){for(const b of claimBosses)this.citadelClaimed.add(b);this.citadelClaimFails=0;}return;}throw error;}
    if(citadelClaim&&result)for(const b of claimBosses)this.citadelClaimed.add(b);
    if(this.disposed)return;
    if(!result)this.pendingBits|=taps;

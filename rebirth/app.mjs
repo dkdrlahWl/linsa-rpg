@@ -368,7 +368,9 @@ const commandIdleWaiters=[];
 async function exitDungeon(action){
   if(pendingDungeonExit)return pendingDungeonExit;
   pendingDungeonExit=(async()=>{
-    if(action==='coopLeave')activeCoopInput?.abort();
+    // Leaving must never be starved by the room's own request loop: stop it first (render() recreates it
+    // if the leave fails and the player is still in the room).
+    if(action==='coopLeave'){if(coopController){coopController.dispose();coopController=null;}activeCoopInput?.abort();}
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
     return command(action);
   })();
