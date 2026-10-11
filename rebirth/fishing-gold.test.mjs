@@ -38,7 +38,7 @@ const tenMyth=myth.reduce((a,f)=>a+fishYield(avg(f)),0)*5,tenLeg=leg.reduce((a,f
 console.log('aquarium/h ten mythic',Math.round(tenMyth),'ten legendary',Math.round(tenLeg));
 assert.ok(tenMyth<80000&&tenLeg<60000);
 let rodTotal=0;for(let l=1;l<50;l++)rodTotal+=rodGoldCost(l);console.log('rod 1→50 gold',rodTotal);
-assert.ok(rodTotal>30e6&&rodTotal<60e6);
+assert.ok(rodTotal>12e6&&rodTotal<22e6);
 assert.equal(aquariumExpandCost(3),300000);
 // Old protocol clients must refresh.
 assert.throws(()=>fishingCommand({gold:0,materials:{}},'fishCast',{protocol:3,spot:'brook',bait:'worm'},{now:Date.now(),random:Math.random,uuid}),/FISHING_REFRESH_REQUIRED/);

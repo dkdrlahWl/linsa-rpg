@@ -77,5 +77,5 @@ Existing consumable/shop tests and syntax checks are also run.
 - Rewards: fish 99.2%, diamond chest 0.6%, dungeon key 0.2%. Cubes, potential scrolls and lock stones removed.
 - Price = grade value [1,3,9,30,120,600] × spot scale [70,55,47,15,7] × (0.55+1.45×weight/max). Worm bait 50 for 2,500 G.
 - Perfect play ~420 casts/h: rod1 ≈26k, rod20 ≈71k, rod40 ≈159k, rod50 ≈185k net G/h (Lv.200 hunting ≈385k/h runs in parallel).
-- Aquarium: 2× sale price per hour (mythic 0.8×); expansion 300k×2^(slots−3). Rod Lv.1→50 ≈45M G.
+- Aquarium: 2× sale price per hour (mythic 0.8×); expansion 300k×1.6^(slots−3) (last slot ≈5M). Rod Lv.1→50 ≈17M G (Lv.30+ grows 7%/level).
 - `node rebirth/fishing-gold.test.mjs`.
