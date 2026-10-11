@@ -233,7 +233,7 @@ export function buildCitadelLayer(d){
  return layer;
 }
 export const citadelVoid=biome=>PAL[biome]?.void||'#101010';
-export function drawCitadelWorld(renderer,b,image){
+export function drawCitadelWorld(renderer,b,image,player){
  const d=b.dungeon;if(!d)return;const g=renderer.g,world=d.size*d.cell;
  if(renderer.citadelLayer?.id!==d.id)renderer.citadelLayer=Object.assign(buildCitadelLayer(d),{id:d.id});
  const layer=renderer.citadelLayer;if(!layer.done)layer.step(layer.canvas&&!layer.started?24:8);layer.started=true;
@@ -245,7 +245,9 @@ export function drawCitadelWorld(renderer,b,image){
  if(b.exit&&b.status!=='won'){const {x,y}=b.exit,open=b.exitOpen;g.save();
   for(let i=0;i<5;i++){g.fillStyle=['#1a1620','#2a2430','#3a3342','#4a4352','#5a5262'][i];g.fillRect(x-70+i*6,y-50+i*20,140-i*12,22);}
   if(open){const pulse=.55+.25*Math.sin(t*3);g.globalCompositeOperation='lighter';const gr=g.createRadialGradient(x,y,10,x,y,160);gr.addColorStop(0,'rgba(156,233,201,'+pulse*.55+')');gr.addColorStop(1,'rgba(156,233,201,0)');g.fillStyle=gr;g.fillRect(x-160,y-160,320,320);}
-  g.globalCompositeOperation='source-over';g.strokeStyle=open?'#9ce9c9':'#7a6a88';g.lineWidth=6;g.strokeRect(x-76,y-56,152,112);g.restore();}
+  g.globalCompositeOperation='source-over';g.strokeStyle=open?'#9ce9c9':'#7a6a88';g.lineWidth=6;g.strokeRect(x-76,y-56,152,112);
+  if(open){const me=player||{};const stay=Math.min(10,me.exitStay||0);if(stay>0){g.strokeStyle='#ffe59a';g.lineWidth=10;g.beginPath();g.arc(x,y,110,-Math.PI/2,-Math.PI/2+Math.PI*2*stay/10);g.stroke();}g.font='bold 30px sans-serif';g.textAlign='center';g.fillStyle='#000a';g.fillText('1초 서 있으면 이동',x+2,y-82);g.fillStyle='#d8fff0';g.fillText('1초 서 있으면 이동',x,y-84);}
+  g.restore();}
 }
 // Screen-space ambience for dark regions: a soft light pool around the player.
 export function drawCitadelAmbience(g,b,height,scale){

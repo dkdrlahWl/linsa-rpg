@@ -1,5 +1,5 @@
-import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation} from './citadel-zero.mjs?v=hw-221';
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable} from './exploration-dungeon.mjs?v=hw-221';
+import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation} from './citadel-zero.mjs?v=hw-222';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable} from './exploration-dungeon.mjs?v=hw-222';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
@@ -51,7 +51,9 @@ export function explorationProgress(w){
  if(w.exitOpen){
   const theme=isCitadel(w)?CITADEL_CONTENT:EXPLORATIONS[w.tier];
   if(w.floor===theme.floors){w.status='won';w.chest=isCitadel(w)?null:{...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members)m.input=[0,0,0];return;}
-  if(w.members.some(m=>!m.left&&m.hp>0&&Math.hypot(m.x-w.exit.x,m.y-w.exit.y)<190)){w.floor++;explorationFloor(w);}
+  // Citadel portals need a deliberate one-second stand, so running past never warps the party.
+  if(isCitadel(w)){let go=false;for(const m of w.members){const near=!m.left&&m.hp>0&&Math.hypot(m.x-w.exit.x,m.y-w.exit.y)<150;m.exitStay=near?(m.exitStay||0)+1:0;if(m.exitStay>=10)go=true;}if(go){for(const m of w.members)delete m.exitStay;w.floor++;explorationFloor(w);}}
+  else if(w.members.some(m=>!m.left&&m.hp>0&&Math.hypot(m.x-w.exit.x,m.y-w.exit.y)<190)){w.floor++;explorationFloor(w);}
  }else if(w.tick>=w.floorDeadline){w.status='lost';w.reason='floorTimeout';w.endedTick=w.tick;}
 }
 

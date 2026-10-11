@@ -17,11 +17,13 @@ const rows=[
  ['abyss','별빛 아귀',3,1500,10000,'indigo anglerfish with glowing star lure'],['abyss','오로라 유령어',3,1000,7000,'translucent violet aurora fish'],['abyss','공허 문어',3,3000,24000,'cute cosmic purple octopus with star markings'],['abyss','천공 수정어',3,2000,16000,'icy celestial crystal scaled fish'],['abyss','달의 수호룡',4,10000,65000,'silver blue moon guardian sea dragon'],['abyss','태고의 황제어',4,9000,60000,'ancient imperial indigo fish with gold armor scales'],['abyss','성운 날개가오리',4,8000,55000,'nebula violet manta with angel wing fins'],['abyss','심연의 왕관상어',4,14000,100000,'deep purple shark with luminous crystalline crown'],['abyss','천해의 별고래',5,35000,240000,'mythical celestial star whale, sapphire gold, galaxy wings'],['abyss','영원의 백룡',5,25000,180000,'mythical elegant white sea dragon, luminous pink gold flowing fins'],
 ];
 export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:Math.max(SPOTS.find(s=>s.id===spot).level,RARITIES[rarity].gate)}));
-export const BAITS=[{id:'worm',name:'숲 지렁이',pack:50,gold:2500,level:1,luck:0},{id:'shrimp',name:'반짝 새우',pack:40,diamonds:1,level:10,luck:.25},{id:'pearl',name:'진주 미끼',pack:30,diamonds:1,level:25,luck:.65},{id:'star',name:'별가루 미끼',pack:20,diamonds:1,level:40,luck:1}];
+export const BAITS=[{id:'worm',name:'숲 지렁이',pack:50,gold:2500,level:1,luck:0},{id:'shrimp',name:'반짝 새우',pack:40,diamonds:1,level:10,luck:.5},{id:'pearl',name:'진주 미끼',pack:30,diamonds:1,level:25,luck:1.2},{id:'star',name:'별가루 미끼',pack:20,diamonds:1,level:40,luck:2.5}];
 export const baitDiamondCost=(bait,count)=>bait.diamonds*count/bait.pack;
 export const FISHING_QUESTS=[{id:'catch',name:'물고기 10마리 잡기',goal:10,diamonds:3},{id:'rare',name:'희귀 이상 물고기 3마리',goal:3,diamonds:2},{id:'sell',name:'물고기 5마리 판매',goal:5,diamonds:2}];
 // Cubes, potential scrolls and lock stones no longer come from fishing.
-export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.992},{id:'diamondChest',name:'다이아 상자',chance:.006},{id:'dungeonKey',name:'던전 열쇠',chance:.002}];
+export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.97},{id:'diamondChest',name:'다이아 상자',chance:.02},{id:'dungeonKey',name:'던전 열쇠',chance:.01}];
+// Bait: each grade above the spot's lowest grade is (1+luck)x more likely.
+export const baitGradeWeight=(fish,bait)=>(1+bait.luck)**(fish.rarity-Math.min(...FISH.filter(x=>x.spot===fish.spot).map(x=>x.rarity)));
 // Bite wait is the only cast delay. Every bite is caught.
 export const BITE_MIN_MS=5000,BITE_RANGE_MS=4000,CAST_EXPIRE_MS=60000;
 // Lv.1→30 grows 16%/level; Lv.30+ only 7%/level. Lv.1→50 totals about 17M gold.

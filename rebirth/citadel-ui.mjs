@@ -11,7 +11,7 @@ export function citadelHud(host,w){
  set('.tower-floor-tag','NG 0');set('.tower-title-row h3',stage.name);
  set('#tower-clock',w.status==='won'?'원정 완료':Math.floor(w.tick/600)+'분 '+Math.floor(w.tick/10)%60+'초');
  set('#tower-range',w.members.filter(m=>!m.left&&m.hp>0).length+'명 생존 · '+(stage.boss?CITADEL_BOSSES[stage.boss]:'미지의 길'));
- set('#tower-status',w.status==='won'?'최후의 화신을 처치했습니다. 나가기를 눌러 원정을 마치세요.':me.hp<=0?'쓰러졌습니다. 동료의 구조를 기다리세요.':bosses.length?CITADEL_BOSSES[stage.boss]+' · 공격 예고를 피하세요.':w.exitOpen?'출구를 찾아 다음 구역으로 이동하세요.':'전투 중');
+ set('#tower-status',w.status==='won'?'최후의 화신을 처치했습니다. 나가기를 눌러 원정을 마치세요.':me.hp<=0?'쓰러졌습니다. 동료의 구조를 기다리세요.':bosses.length?CITADEL_BOSSES[stage.boss]+' · 공격 예고를 피하세요.':w.exitOpen?'출구 계단 위에서 1초 서 있으면 다음 구역으로 이동합니다.':'전투 중');
  set('#tower-enemy-hp',bosses.length?Math.ceil(hp).toLocaleString('ko-KR')+' / '+Math.ceil(max).toLocaleString('ko-KR'):stage.name);
  host.classList.toggle('citadel-boss-active',bosses.length>0);
  const status=host.querySelector('#tower-status');if(status)status.hidden=w.status!=='won'&&me.hp>0;

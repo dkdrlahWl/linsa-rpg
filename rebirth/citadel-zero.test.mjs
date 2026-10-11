@@ -17,9 +17,9 @@ const campaign=create();for(let f=1;f<=21;f++){
  assert.equal(campaign.floor,f);assert.equal(campaign.monsters.filter(e=>e.boss).length,{harbingers:2,serpents:3}[CITADEL_STAGES[f-1].boss]||(CITADEL_STAGES[f-1].boss?1:0));
  for(const e of campaign.monsters)assert.ok(dungeonWalkable(campaign.dungeon,e.x,e.y));
  if(CITADEL_STAGES[f-1].boss){assert.equal(campaign.exitOpen,false);campaign.monsters=[];}
- campaign.members[0].x=campaign.exit.x;campaign.members[0].y=campaign.exit.y;explorationProgress(campaign);
+ campaign.members[0].x=campaign.exit.x;campaign.members[0].y=campaign.exit.y;for(let k=0;k<10&&campaign.floor===f&&campaign.status==='fighting';k++)explorationProgress(campaign);
 }assert.equal(campaign.status,'won');assert.equal(campaign.floor,21);assert.equal(campaign.chest,null);assert.equal(EXPLORATIONS.length,3);
-const independent=create(1);independent.members[0].hp=Math.floor(independent.members[0].maxHp/2);const injuredHp=independent.members[0].hp;independent.members[0].x=independent.exit.x;independent.members[0].y=independent.exit.y;explorationProgress(independent);assert.equal(independent.members[0].hp,injuredHp);assert.equal(independent.floorDeadline,Number.MAX_SAFE_INTEGER);
+const independent=create(1);independent.members[0].hp=Math.floor(independent.members[0].maxHp/2);const injuredHp=independent.members[0].hp;independent.members[0].x=independent.exit.x;independent.members[0].y=independent.exit.y;for(let k=0;k<10;k++)explorationProgress(independent);assert.equal(independent.members[0].hp,injuredHp);assert.equal(independent.floorDeadline,Number.MAX_SAFE_INTEGER);
 for(const f of [5,10,13,16,19,21]){const w=create();w.floor=f;explorationFloor(w);const boss=w.monsters.find(e=>e.boss);w.members[0].x=boss.x+300;w.members[0].y=boss.y;w.tick=100;citadelBossTick(w,boss,w.members);assert.ok(w.hazards.length);if(f===10){assert.equal(citadelDamageFactor(w,boss),0);const old=boss.hp;w.monsters.find(e=>e.channel).hp=0;citadelAfterDamage(w);assert.ok(boss.hp<old);}if(f===21)for(const fraction of [.9,.5,.1]){boss.hp=boss.maxHp*fraction;boss.skillReady=0;citadelBossTick(w,boss,w.members);assert.equal(boss.phase,Math.min(2,Math.floor((1-fraction)*3)));}}
 // Stress all 21 stages with four independently moving clients and attack inputs.
 const started=performance.now();let peakBytes=0;
