@@ -28,3 +28,4 @@
 .fishing-scene,.fishing-meter{contain:layout paint}.fishing-safe,.fishing-meter i{will-change:transform}.fish-card{content-visibility:auto;contain-intrinsic-size:auto 220px}
 
 .fishing-instant-note{margin:2px 0 7px;padding:6px 8px;border:1px solid #b58f4d66;border-radius:8px;background:#0e2431;font-size:11px;color:#e9d9b4;text-align:center}.fishing-loot>div{grid-template-columns:repeat(2,minmax(0,160px));justify-content:center}
+.fishing-title-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}

@@ -111,6 +111,16 @@ export function fishingCommand(s,command,args,ctx){
   require(index>=0,'FISHING_FISH_MISSING');require(add?to.length<f.slots:to.length<150,add?'FISHING_AQUARIUM_FULL':'FISHING_BAG_FULL');
   to.push(from.splice(index,1)[0]);return {type:command};
  }
+ if(command==='fishAquariumAuto'){
+  // 최적 배치: the aquarium keeps the highest gold-per-hour fish from aquarium + bag (ties: stable by id).
+  const yieldOf=x=>fishYield(x),all=[...f.aquarium,...f.fish].sort((a,b)=>yieldOf(b)-yieldOf(a)||(a.id<b.id?-1:1));
+  const best=all.slice(0,f.slots),keep=new Set(best.map(x=>x.id)),inTank=new Set(f.aquarium.map(x=>x.id));
+  const moved=best.filter(x=>!inTank.has(x.id)).length;require(moved>0,'FISHING_AQUARIUM_OPTIMAL');
+  const before=f.aquarium.reduce((n,x)=>n+yieldOf(x),0),bag=[...f.fish.filter(x=>!keep.has(x.id)),...f.aquarium.filter(x=>!keep.has(x.id))];
+  require(bag.length<=150,'FISHING_BAG_FULL');
+  f.aquarium=best;f.fish=bag;
+  return {type:'fishAquariumAuto',moved,before,after:best.reduce((n,x)=>n+yieldOf(x),0)};
+ }
  if(command==='fishAquariumClaim'){const gold=Math.floor(f.bank);require(gold>0,'FISHING_NO_INCOME');f.bank-=gold;s.gold+=gold;return {type:'fishAquariumClaim',gold};}
  if(command==='fishAquariumExpand'){require(f.slots<10,'FISHING_MAX_SLOTS');const cost=aquariumExpandCost(f.slots);spendGold(s,cost);f.slots++;return {type:'fishAquariumExpand',slots:f.slots};}
  if(command==='fishQuestClaim'){

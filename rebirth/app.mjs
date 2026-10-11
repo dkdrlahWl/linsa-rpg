@@ -148,6 +148,7 @@ const errors = {
   FISHING_BAIT_REQUIRED: "미끼가 없어요. 낚시 상점에서 구매해 주세요.",
   FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
   FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
+  FISHING_AQUARIUM_OPTIMAL: "이미 시간당 수익이 가장 높은 물고기들이 수족관에 있어요.",
   FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시 상자와 일일퀘스트에서 얻을 수 있어요.",
   FISHING_XP_REQUIRED: "골드로 낚싯대 경험치를 먼저 채워주세요.",
   FISHING_XP_FULL: "경험치가 가득 찼어요. 다이아로 레벨업해 주세요.",
@@ -1017,6 +1018,7 @@ function showEvents(events) {
     if(e.type==='citadelChest'){sounds.play(e.items?.length?'loot-rare':'loot-common');const parts=['장비 파편 '+fmt(e.fragment||0)+'개'];if(e.potentialLock)parts.push('잠재 잠금석 '+e.potentialLock+'개');if(e.scroll)parts.push('잠재 해금 주문서 '+e.scroll+'개');for(const it of e.items||[])parts.push('보스 장비 · '+D.gearName(it)+' Lv.'+it.level);toast('보스 상자 · '+parts.join(' · ')+(e.stored?' (가방이 가득 차 우편함으로)':''));continue;}
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
     if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
+    if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}
     if(['fishSell','fishAquariumClaim'].includes(e.type)){toast(fmt(e.gold)+' G 받았어요.');continue;}
     if(e.type==='fishQuestClaim'){toast('일일퀘스트 · 다이아 '+e.diamonds+'개 받았어요.');continue;}
     if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
@@ -1313,7 +1315,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishSell')return await fishingCommandRequest(action,{ids:[arg]});
     if(action==='fishSellAll'){if(!state.fishing?.fish.length)return;open('물고기 전부 판매',`<p>가방의 물고기 ${state.fishing.fish.length}마리를 모두 판매할까요?</p><p class="note">수족관에 있는 물고기는 포함되지 않아요.</p>${btn('전부 판매','fishSellAllConfirm','','gold')}`);return;}
     if(action==='fishSellAllConfirm'){modal.close();return await fishingCommandRequest('fishSell',{ids:state.fishing.fish.map(x=>x.id)});}
-    if(['fishCancel','fishUpgrade','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim'].includes(action))return await fishingCommandRequest(action,{id:arg});
+    if(['fishCancel','fishUpgrade','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim','fishAquariumAuto'].includes(action))return await fishingCommandRequest(action,{id:arg});
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
