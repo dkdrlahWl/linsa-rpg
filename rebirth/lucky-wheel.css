@@ -1,0 +1,36 @@
+/* 행운의 돌림판 */
+.fantasy-wheel-entry{position:relative;flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;border:1px solid #f0c66e;border-radius:9px;background:linear-gradient(145deg,#6a2b12,#2a0d05);color:#ffe9a8;box-shadow:inset 0 0 12px #ffb44c40,0 2px 8px #0008;padding:5px 10px;font-size:12px;font-weight:800;white-space:nowrap;min-height:30px}
+.fantasy-wheel-entry img{display:block;width:25px;height:25px;object-fit:contain;animation:wheel-emblem-spin 8s linear infinite}
+.fantasy-wheel-entry.has-spins{box-shadow:0 0 12px #ffb44c88,inset 0 0 0 1px #ffe2a0}
+@keyframes wheel-emblem-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.fantasy-wheel-entry img{animation:none}}
+@media(max-width:700px){.fantasy-wheel-entry{padding:3px 5px;gap:3px}.fantasy-wheel-entry img{width:21px;height:21px}.fantasy-wheel-entry span{font-size:11px}}
+@media(max-width:430px){.fantasy-wheel-entry span{display:none}}
+
+.lucky-wheel{display:grid;gap:10px;justify-items:center;text-align:center}
+.lucky-wheel-lead{margin:0;font-size:13px;line-height:1.5;color:#f3e6c4}
+.lucky-wheel-lead strong{color:#ffcf6a}
+.lucky-wheel-stage{width:min(340px,82vw);aspect-ratio:360/375;position:relative}
+.lucky-wheel-svg{width:100%;height:100%;display:block;overflow:visible}
+.lucky-wheel-rotor{transform-origin:0 0;transform-box:view-box}
+.lucky-wheel-svg text{fill:#2b1405;font-size:11.5px;font-weight:900;paint-order:stroke;stroke:#fff6dc;stroke-width:3px;letter-spacing:-.3px}
+.lucky-wheel-svg .wheel-slice.jackpot text{fill:#fff;stroke:#7a1e05}
+.lucky-wheel-svg .wheel-hub-text{fill:#6b3608;stroke:none;font-size:13px;letter-spacing:1px}
+.lucky-wheel-svg .wheel-hub-text.small{font-size:11px;letter-spacing:0}
+.wheel-bulb{fill:#fff3c0;filter:drop-shadow(0 0 3px #ffd36b)}
+.wheel-bulb.alt{fill:#ffb24a}
+.lucky-wheel-stage.spinning .wheel-bulb{animation:wheel-bulb 0.45s steps(2) infinite}
+.lucky-wheel-stage.spinning .wheel-bulb.alt{animation-delay:.22s}
+@keyframes wheel-bulb{50%{fill:#7a4610;filter:none}}
+.lucky-wheel-result{min-height:22px;margin:0;font-weight:800;color:#ffe08a}
+.lucky-wheel-result.jackpot{color:#ff9a5c;text-shadow:0 0 10px #ff7a2f}
+.lucky-wheel-spin{min-width:220px;padding:12px 18px;border-radius:999px;border:1px solid #ffe3a0;background:linear-gradient(180deg,#ffcf5a,#d4801b);color:#3a1606;font-weight:900;font-size:15px;box-shadow:0 4px 0 #7a3f0b,0 6px 14px #0008}
+.lucky-wheel-spin:disabled{filter:grayscale(.6) brightness(.8);box-shadow:0 2px 0 #4a2a0b}
+.lucky-wheel-spin:not(:disabled):active{transform:translateY(3px);box-shadow:0 1px 0 #7a3f0b}
+.lucky-wheel-odds{width:100%;text-align:left;font-size:12px;color:#e8dcc0}
+.lucky-wheel-odds summary{cursor:pointer;text-align:center;color:#ffd98a;font-weight:800}
+.lucky-wheel-odds ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.lucky-wheel-odds li{display:grid;grid-template-columns:24px 1fr auto;align-items:center;gap:8px;padding:4px 8px;border-radius:8px;background:#ffffff0d}
+.lucky-wheel-odds li.jackpot{background:linear-gradient(90deg,#ff7a2f33,#ffcf6a22);border:1px solid #ff9a5c66}
+.lucky-wheel-odds li img{width:24px;height:24px;object-fit:contain}
+.lucky-wheel-odds li b{color:#ffd98a}

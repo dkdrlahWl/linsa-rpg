@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <radialGradient id="aura" cx="50%" cy="55%" r="55%">
+      <stop offset="0" stop-color="#ffcf6a" stop-opacity=".95"/>
+      <stop offset=".55" stop-color="#ff7a2f" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#ff7a2f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7a2f1d"/>
+      <stop offset="1" stop-color="#3b130c"/>
+    </linearGradient>
+    <linearGradient id="lid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a5432a"/>
+      <stop offset="1" stop-color="#5a1d12"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff3b5"/>
+      <stop offset=".5" stop-color="#e9ab3b"/>
+      <stop offset="1" stop-color="#8c5313"/>
+    </linearGradient>
+    <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd0f0"/>
+      <stop offset=".5" stop-color="#ff3d8b"/>
+      <stop offset="1" stop-color="#7d0a3c"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="64" r="56" fill="url(#aura)"/>
+  <g stroke="#fff3c4" stroke-width="2.4" stroke-linecap="round" opacity=".8">
+    <line x1="60" y1="6" x2="60" y2="18"/><line x1="20" y1="22" x2="28" y2="30"/><line x1="100" y1="22" x2="92" y2="30"/>
+    <line x1="8" y1="58" x2="18" y2="58"/><line x1="112" y1="58" x2="102" y2="58"/>
+  </g>
+  <ellipse cx="60" cy="104" rx="40" ry="7" fill="#000" opacity=".35"/>
+  <rect x="20" y="58" width="80" height="44" rx="6" fill="url(#wood)" stroke="#2a0c06" stroke-width="2.5"/>
+  <path d="M18 60 Q18 30 60 28 Q102 30 102 60Z" fill="url(#lid)" stroke="#2a0c06" stroke-width="2.5"/>
+  <path d="M30 58 Q30 38 60 36 Q90 38 90 58" fill="none" stroke="#c96a43" stroke-width="2" opacity=".6"/>
+  <rect x="18" y="56" width="84" height="9" rx="3" fill="url(#gold)" stroke="#6b3b0b" stroke-width="1.5"/>
+  <rect x="28" y="30" width="9" height="72" rx="2" fill="url(#gold)" stroke="#6b3b0b" stroke-width="1.5"/>
+  <rect x="83" y="30" width="9" height="72" rx="2" fill="url(#gold)" stroke="#6b3b0b" stroke-width="1.5"/>
+  <rect x="18" y="92" width="84" height="8" rx="3" fill="url(#gold)" stroke="#6b3b0b" stroke-width="1.5"/>
+  <path d="M48 56 h24 v18 q-12 9 -24 0z" fill="url(#gold)" stroke="#6b3b0b" stroke-width="2"/>
+  <path d="M60 60 l6 7 -6 9 -6 -9z" fill="url(#gem)" stroke="#4a0624" stroke-width="1.5"/>
+  <path d="M60 60 l3 7 -3 3 -3 -3z" fill="#fff" opacity=".55"/>
+  <g transform="translate(60 44)">
+    <path d="M-15 -4 L-8 4 L0 -8 L8 4 L15 -4 L12 8 L-12 8Z" fill="url(#gold)" stroke="#6b3b0b" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="0" cy="-9" r="2.2" fill="#ff3d8b"/><circle cx="-15" cy="-5" r="1.8" fill="#6fd6ef"/><circle cx="15" cy="-5" r="1.8" fill="#6fd6ef"/>
+  </g>
+  <g fill="#fffbe0">
+    <path d="M100 82 l1.8 4.6 4.6 1.8 -4.6 1.8 -1.8 4.6 -1.8 -4.6 -4.6 -1.8 4.6 -1.8z"/>
+    <path d="M14 82 l1.3 3.4 3.4 1.3 -3.4 1.3 -1.3 3.4 -1.3 -3.4 -3.4 -1.3 3.4 -1.3z"/>
+    <path d="M42 14 l1.1 2.8 2.8 1.1 -2.8 1.1 -1.1 2.8 -1.1 -2.8 -2.8 -1.1 2.8 -1.1z"/>
+  </g>
+</svg>

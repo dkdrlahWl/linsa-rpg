@@ -1,4 +1,5 @@
 import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
+import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-impact-121';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
@@ -627,6 +628,25 @@ export function execute(input, command, args = {}, ctx) {
       item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);
       events.push({type:"exchangeGear",item,boss,cost:args.level,stored:!s.items.some(it=>it.id===item.id)});break;
     }
+    case "luckyWheelSpin": {
+      // Daily lucky wheel: 3 server-rolled spins per Korean day. The jackpot is a boss gear chest sent by mail.
+      const day=wheelKoreanDay(ctx.now);
+      if(s.luckyWheel?.day!==day)s.luckyWheel={day,spins:0};
+      check(s.luckyWheel.spins<LUCKY_WHEEL_SPINS,"WHEEL_DAILY_LIMIT");
+      const index=rollLuckyWheel(ctx.random),slot=LUCKY_WHEEL[index];
+      s.materials??={};
+      if(slot.gold)s.gold=Math.min(9e12,s.gold+slot.gold);
+      for(const [key,amount] of Object.entries(slot.materials||{}))s.materials[key]=(s.materials[key]||0)+amount;
+      if(slot.diamonds){const f=normalizeFishing(s,ctx.now);f.diamonds+=slot.diamonds;}
+      let mail=null;
+      if(slot.chest){
+        mail={id:"wheel-chest-"+ctx.uuid(),kind:WHEEL_CHEST.kind,title:"행운의 돌림판 잭팟",sender:"행운의 돌림판",message:"축하합니다! Lv."+WHEEL_CHEST.minLevel+"~"+WHEEL_CHEST.maxLevel+" 랜덤 보스 장비 상자가 도착했어요. 받기를 누르면 상자가 열립니다. (전 직업·전 부위, 무기는 다른 부위의 절반 확률)",sentAt:new Date(ctx.now).toISOString(),rewards:{}};
+        s.rewardMailbox=[...(s.rewardMailbox||[]),mail];s.systemMailbox=[...(s.systemMailbox||[]),structuredClone(mail)];
+      }
+      s.luckyWheel.spins++;s.luckyWheel.last={index,at:ctx.now};
+      events.push({type:"luckyWheel",index,id:slot.id,name:slot.name,label:slot.label,spinsLeft:LUCKY_WHEEL_SPINS-s.luckyWheel.spins,mailId:mail?.id});
+      break;
+    }
     case "adminSkip": {
       check(ctx.admin===true,"BETA_DISABLED");
       check(int(args.hours,1,12),"INVALID_SKIP_HOURS");
@@ -696,7 +716,7 @@ export function execute(input, command, args = {}, ctx) {
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "claimSystemMail": {
-      events.push(claimSystemMail(s,args.id,()=>{const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
+      events.push(claimSystemMail(s,args.id,chest=>{if(chest?.kind===WHEEL_CHEST.kind){const tiers=(WHEEL_CHEST.maxLevel-WHEEL_CHEST.minLevel)/10+1,level=WHEEL_CHEST.minLevel+10*Math.floor(ctx.random()*tiers),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
       break;
     }
     case "claimMail": {
