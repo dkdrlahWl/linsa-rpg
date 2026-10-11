@@ -35,13 +35,13 @@ export const BITE_MIN_MS=5000,BITE_RANGE_MS=4000,CAST_EXPIRE_MS=60000;
 export const rodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,level-30)/100)*100;
 export const rodDiamondCost=level=>2+Math.floor(level/5);
 // One price per grade everywhere (×600 G), with a small bonus for later spots (1.0 → 1.6×), then weight.
-export const FISH_PRICE_BASE=600;
+export const FISH_PRICE_BASE=480; // 2026-10-12: sale prices -20%
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;const bonus=SPOTS.find(x=>x.id===d.spot).bonus;return Math.max(10,Math.round(RARITIES[d.rarity].value*FISH_PRICE_BASE*bonus*(1.1+.3*Math.min(1,fish.weight/d.max))/10)*10);};
 // Aquarium gold per hour = sale price × grade rate. Rates keep each grade's best aquarium income close to the
 // previous table now that deep-spot top fish sell for more (신화 stays the best per fish).
 // 2026-10-12: 9 mythic ≈ half of the best hunting income (~340k/h).
 // Each grade's worst fish (any spot, lightest) out-earns the previous grade's best (any spot, heaviest), for sale and aquarium.
-export const AQUARIUM_RATE=[.75,.52,.37,.235,.124,.135]; // 신화 sale value 600→240 (2026-10-12); rate keeps its aquarium income
+export const AQUARIUM_RATE=[.9375,.65,.4625,.29375,.155,.16875]; // x1.25 with the -20% sale base: aquarium income unchanged // 신화 sale value 600→240 (2026-10-12); rate keeps its aquarium income
 export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*AQUARIUM_RATE[d.rarity])):0;};
 export const aquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
