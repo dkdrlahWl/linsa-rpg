@@ -58,6 +58,7 @@ const check = (condition, message) => {
   if (!condition) fail(message);
 };
 const int = (v, min, max) => Number.isSafeInteger(v) && v >= min && v <= max;
+export const FRAGMENT_BOSS_CHANCE=0.01;
 function spend(s, key, n) {
   check(Number.isSafeInteger(n) && n >= 0, "INVALID_COST");
   const bag = key === "gold" ? s : s.materials;
@@ -616,10 +617,12 @@ export function execute(input, command, args = {}, ctx) {
       check(int(args.level,10,180)&&args.level%10===0,"INVALID_GEAR_LEVEL");
       check(CLASSES.some(c=>c.id===args.classId),"INVALID_CLASS");
       spend(s,"fragment",args.level);
-      const slot=Math.floor(ctx.random()*9),design=selectDesign(args.level,args.classId,slot,false,ctx.random);
-      const item={...makeItem(args.level,args.classId,slot,false,ctx,design.weaponVariant),...design};
+      // 1%: boss gear of the selected level; class and slot are both uniformly random.
+      const boss=ctx.random()<FRAGMENT_BOSS_CHANCE,classId=boss?pick(CLASSES,ctx).id:args.classId;
+      const slot=Math.floor(ctx.random()*9),design=selectDesign(args.level,classId,slot,boss,ctx.random);
+      const item={...makeItem(args.level,classId,slot,boss,ctx,design.weaponVariant),...design};
       item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);
-      events.push({type:"exchangeGear",item,cost:args.level,stored:!s.items.some(it=>it.id===item.id)});break;
+      events.push({type:"exchangeGear",item,boss,cost:args.level,stored:!s.items.some(it=>it.id===item.id)});break;
     }
     case "adminSkip": {
       check(ctx.admin===true,"BETA_DISABLED");

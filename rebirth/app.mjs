@@ -72,7 +72,7 @@ function refreshLevelRequirements() {
 const combatFrames = [];
 let towerController=null,dummyBattle=null,bagPage=0,coopController=null,coopRoom=null,coopRooms=[],dialogScroll=new Map();
 let coopListAttempt=0,coopListPending=null;
-function coopLobbyVisible(){return view==='game'&&tab==='citadel'&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom||view==="game"&&tab==="boss"&&["coop","wave","advancement","raid","exploration"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
+function coopLobbyVisible(){return view==="game"&&tab==="boss"&&["citadel","advancement","raid","exploration"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
 async function refreshCoopRooms(){
   if(coopListPending)return coopListPending;
   coopListPending=(async()=>{
@@ -184,6 +184,7 @@ const errors = {
   BASE_STATS_FIXED: "이 장비의 기본 수치는 획득 시 확정됩니다.",
 
   INSUFFICIENT_FRAGMENT: "장비 파편이 부족합니다.",
+  RIFT_CONTENT_REMOVED: "협동 균열은 종료된 콘텐츠입니다.",
   INSUFFICIENT_BOSS_MATERIAL: "보스 재료가 부족합니다.",
   ITEM_PROTECTED: "잠금·파괴·장착 상태를 확인해 주세요.",
   ITEM_REQUIREMENT: "장비의 직업 또는 착용 레벨이 맞지 않습니다.",
@@ -386,7 +387,7 @@ async function fishingCommandRequest(action,args={}){
   if(session?.user?.id!==account||!state)return;
   for(let attempt=0;attempt<3;attempt++){
    const result=await command(action,args);
-   if(result?.result?.events?.some(e=>e.type===action||(action==='fishFinish'&&e.type==='fishCatch')))return result;
+   if(result?.result?.events?.some(e=>e.type===action||((action==='fishFinish'||action==='fishHook')&&e.type==='fishCatch')))return result;
    if(!result)return;
   }
   throw Error('SERVER_RETRY_REQUIRED');
@@ -622,7 +623,6 @@ function render() {
       character: character,
       gear: inventory,
       boss: bosses,
-      citadel:()=>citadelLobby(state,null,coopRooms),
       market: market,
       shop:()=>shopView(state,D,gearMarkup,shopCategory),
       investment:()=>investmentView(state,investmentData),
@@ -769,7 +769,7 @@ function inventory() {
 }
 function gearExchange(){
  const classId=exchangeClass||state.classId;
- return `<section class="panel pad gear-exchange"><h3>장비 파편 교환소</h3><p class="note">직업과 레벨을 선택하면 일반 장비 1개를 받습니다. 보스 장비는 나오지 않습니다.</p><label for="exchange-class">장비 직업</label><select id="exchange-class">${D.CLASSES.map(c=>`<option value="${c.id}" ${c.id===classId?'selected':''}>${c.name}</option>`).join('')}</select><label for="exchange-level">장비 레벨 · 파편 비용</label><select id="exchange-level">${Array.from({length:18},(_,i)=>(i+1)*10).map(level=>`<option value="${level}" ${level===exchangeLevel?'selected':''}>Lv.${level} 장비 · 파편 ${level}개</option>`).join('')}</select><p>보유 장비 파편 <strong>${fmt(state.materials.fragment)}개</strong></p>${disabledBtn(gearMarkup({level:exchangeLevel,classId,slot:0,boss:false,design:0,weaponVariant:0})+`<strong>Lv.${exchangeLevel} 랜덤 장비 교환</strong><small>파편 ${exchangeLevel}개 사용 · 장비 1개 획득</small>`,"exchangeGear",exchangeLevel,state.materials.fragment<exchangeLevel||!!state.battle||!!state.coopRoom,"exchange-card")}<p class="note">이미지는 무기 예시입니다. 9부위는 각각 1/9 확률, 모든 직업의 일반 장비 2종은 각각 50% 확률입니다. 기본 능력치는 무작위이며 잠재는 잠긴 상태로 지급됩니다. 가방이 가득 차면 보관함으로 받습니다.</p></section>`;
+ return `<section class="panel pad gear-exchange"><h3>장비 파편 교환소</h3><p class="note">직업과 레벨을 선택하면 장비 1개를 받습니다. <strong>1% 확률로 같은 레벨의 보스 장비</strong>가 나오며, 이때 직업과 부위는 무작위입니다.</p><label for="exchange-class">장비 직업</label><select id="exchange-class">${D.CLASSES.map(c=>`<option value="${c.id}" ${c.id===classId?'selected':''}>${c.name}</option>`).join('')}</select><label for="exchange-level">장비 레벨 · 파편 비용</label><select id="exchange-level">${Array.from({length:18},(_,i)=>(i+1)*10).map(level=>`<option value="${level}" ${level===exchangeLevel?'selected':''}>Lv.${level} 장비 · 파편 ${level}개</option>`).join('')}</select><p>보유 장비 파편 <strong>${fmt(state.materials.fragment)}개</strong></p>${disabledBtn(gearMarkup({level:exchangeLevel,classId,slot:0,boss:false,design:0,weaponVariant:0})+`<strong>Lv.${exchangeLevel} 랜덤 장비 교환</strong><small>파편 ${exchangeLevel}개 사용 · 장비 1개 획득</small>`,"exchangeGear",exchangeLevel,state.materials.fragment<exchangeLevel||!!state.battle||!!state.coopRoom,"exchange-card")}<p class="note">이미지는 무기 예시입니다. 일반 장비 99%: 선택한 직업, 9부위 각 1/9, 디자인 2종 각 50%. 보스 장비 1%: 5직업 각 20%, 9부위 각 1/9. 기본 능력치는 무작위이며 잠재는 잠긴 상태로 지급됩니다. 가방이 가득 차면 보관함으로 받습니다.</p></section>`;
 }
 function atlasIcon(tier, n, label, size="") {
   const atlas=[
@@ -853,12 +853,13 @@ function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 
 function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}
 function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨 · 5차 200레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 인원에 따른 난이도 변화 없음 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (5회 누적 61.05%) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss"><div class="tower-portrait'+(t.artFrames===1?' single-boss-art':'')+'" style="background-image:url(\'tower/boss-'+t.art+'.webp\')"></div><div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>해금: '+(t.stage===4?D.FIFTH_SKILLS[state.classId].name:t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
 function bosses() {
-  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["exploration","링구의 탐험"],["raid","레이드"],["daily","일일"],["weekly","주간"],["training","허수아비"],["coop","협동 균열"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["exploration","링구의 탐험"],["citadel","암흑성채"],["raid","레이드"],["daily","일일"],["weekly","주간"],["training","허수아비"],["tower","시련의 탑"],["advancement","전직 보스"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>이미지 전사와 파수꾼 · 캐릭터를 따라가는 위쪽 시점 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
   if(bossTab==="exploration")return menu+explorationLobby(state,coopRoom,coopRooms);
   if(bossTab==="raid")return menu+raidLobby(state,coopRoom,coopRooms);
   if(bossTab==="wave"){bossTab="exploration";return menu+coopLobby(state,coopRoom,coopRooms,"exploration");}
-  if(bossTab==="coop")return menu+coopLobby(state,coopRoom,coopRooms);
+  if(bossTab==="citadel")return menu+citadelLobby(state,null,coopRooms);
+  if(bossTab==="coop"){bossTab="exploration";return menu+explorationLobby(state,coopRoom,coopRooms);}
   if(bossTab==="tower")return menu+towerLobby(state);
   if(bossTab==="advancement")return menu+advancementLobby();
   if(bossTab==="training")return menu+header("허수아비 훈련장","DAMAGE TEST")+`<p class="note compact-note">실제 이동·공격·스킬로 60초 동안 측정합니다. 최근 5초 DPS와 전체 평균 DPS를 실시간으로 볼 수 있습니다. 입장 비용·보상·도전 횟수 차감은 없습니다.</p><div class="boss-list">${[["normal","일반몹 허수아비","일반 몬스터 대상 피해를 측정합니다."],["boss","보스용 허수아비","보스 피해 증가 효과를 포함해 측정합니다."]].map(([mode,name,description])=>`<section class="panel boss-card dummy-card"><div class="dummy-card-art ${mode}" aria-hidden="true"><i></i></div><div class="boss-card-body"><strong>${name}</strong><p>${description}</p><small>60초 · 직접 조작 · 무제한 재도전</small><div class="actions">${disabledBtn("측정 시작","dummyStart",mode,!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</div></div></section>`).join("")}</div>`;
@@ -1040,8 +1041,8 @@ function showEvents(events) {
       const task=Object.values(D.DAILY_TASKS).find(t=>t.name===e.name);
       open("일일 과제 보상",'<h3>'+esc(e.name)+'</h3>'+(task?'<p>'+dailyRewardLines(task).join('<br>')+'<br>경험치 5%</p>':'<p>보상을 받았습니다.</p>')+btn("확인","close","","gold"));
     }
-    if(e.type==="coop"){tab=e.mode==="citadel"?"citadel":"boss";bossTab=e.mode==="exploration"?"exploration":e.mode==="wave"?"wave":"coop";view="game";render();reward();continue;}
-    if(e.type==="exchangeGear")open("장비 교환 완료",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
+    if(e.type==="coop"){tab="boss";bossTab=e.mode==="citadel"?"citadel":e.mode==="raid"?"raid":"exploration";view="game";render();reward();continue;}
+    if(e.type==="exchangeGear")open(e.boss?"보스 장비 획득!":"장비 교환 완료",`${e.boss?'<p class="exchange-boss-hit">1% 확률 당첨 · 보스 장비</p>':''}${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
     if(e.type==="costumeBuy")toast("코스튬 구매 완료! 보유 효과로 공격력 +1%가 적용됐어요.");
     if(e.type==="costumeEquip")toast("코스튬을 장착했어요.");
@@ -1296,7 +1297,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishPanel'){fishingUI.panel=arg;render();return;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
-    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:3});}
+    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:4});}
     if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:BAITS.find(x=>x.id===arg)?.pack||20,currency:BAITS.find(x=>x.id===arg)?.gold?'gold':'diamonds'});
     if(action==='fishTrain')return await fishingCommandRequest(action,{gold:Number(arg)});
     if(action==='fishSell')return await fishingCommandRequest(action,{ids:[arg]});
@@ -1333,7 +1334,7 @@ document.addEventListener("click", async (e) => {
     if(action==='autoSkills'){regularAutoSkills=!regularAutoSkills;render();return;}
     if(action==='waveRewardHistory'){const r=state.waveRewardHistory?.[Number(arg)];if(r)return open('웨이브 보상 수령 내역',waveRewardBody(r)+btn('닫기','close','','gold'));return;}
     if(action==="waveCreate")return;
-    if(action==="coopCreate")return await command("coopCreate",{tier:Number(arg)});
+    if(action==="coopCreate")return toast("협동 균열은 종료된 콘텐츠입니다.");
     if(action==='citadelCreate')return await command('coopCreate',{mode:'citadel',tier:0});
     if(action==="explorationCreate")return await command("coopCreate",{mode:"exploration",tier:Number(arg)});
     if(action==="raidCreate")return await command("coopCreate",{mode:"raid",tier:Number(arg)});
@@ -1382,6 +1383,7 @@ document.addEventListener("click", async (e) => {
       modal.close();
       return;
     }
+    if(action==="tab"&&arg==="citadel"){tab="boss";bossTab="citadel";view="game";render();return await refreshCoopRooms();}
     if (action === "tab") {
       const enteringHunt=arg==="hunt"&&(tab!=="hunt"||view!=="game");
       tab = arg;
@@ -1394,14 +1396,14 @@ document.addEventListener("click", async (e) => {
       render();
       window.scrollTo({top:0,behavior:"instant"});
       if(enteringHunt)requestAutoHunt();
-      if(tab==='citadel')await refreshCoopRooms();
+      if(tab==='boss'&&['citadel','exploration','raid','advancement'].includes(bossTab))await refreshCoopRooms();
       if (tab === "market") await marketLoad();
       if(tab==='investment')await command('investList',{},true);
       if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
       return;
     }
     if(action==="warriorLab"){if(!state?.isAdmin)return;await command("sync",{},true,true);if(!state?.isAdmin||state.classId!=="warrior")return toast("관리자 전사만 입장할 수 있습니다.");modal.close();try{await openWarriorLab({getState:()=>state,onClose:()=>{sounds.setCombat(false);render();},sound:id=>sounds.play(id)});sounds.setCombat(true);}catch(e){toast(e.message||"3D 전투에 입장하지 못했습니다.");}return;}
-    if (action === "bossSub") {bossTab=arg==="wave"?"exploration":arg;render();if(["coop","wave","advancement","raid","exploration"].includes(arg))await refreshCoopRooms();return;}
+    if (action === "bossSub") {bossTab=["wave","coop"].includes(arg)?"exploration":arg;render();if(["citadel","advancement","raid","exploration"].includes(bossTab))await refreshCoopRooms();return;}
     if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
     if (action === "advance") {tab="boss";bossTab="advancement";view="game";render();return await refreshCoopRooms();}

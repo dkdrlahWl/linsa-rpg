@@ -1,4 +1,5 @@
-import {FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost} from './fishing-data.mjs';
+import {FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS} from './fishing-data.mjs';
+export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
 const koreanDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
@@ -35,56 +36,52 @@ export function fishingStep(cast,input,meter){
  return meter;
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
+function rollCatch(c,ctx){
+ const spot=SPOTS.find(x=>x.id===c.spot)||SPOTS[0],bait=BAITS.find(x=>x.id===c.bait)||BAITS[0],rod=c.rod||1;
+ const available=FISH.filter(x=>x.spot===spot.id&&x.level<=rod);
+ // Higher-grade bait improves rarity weights but never bypasses rod gates.
+ const weights=available.map(x=>[1,.30,.09,.024,.0035,.0005][x.rarity]*(1+bait.luck*x.rarity)*(1+.012*Math.max(0,rod-x.level)*x.rarity));
+ let roll=ctx.random()*weights.reduce((n,x)=>n+x,0),index=weights.length-1;
+ for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
+ const species=available[index],size=ctx.random()**1.65,weight=Math.round(species.min+(species.max-species.min)*size);
+ let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance;if(roll<0){reward=r.id;break;}}
+ return {species:species.id,weight,reward};
+}
+function landCatch(s,f,c,ctx){
+ f.cast=null;
+ if(!c.species)Object.assign(c,rollCatch(c,ctx));
+ const reward=REWARD_RATES.some(r=>r.id===c.reward)?c.reward:'fish';
+ const result={type:'fishCatch',at:ctx.now,won:true,species:c.species,weight:c.weight,reward};
+ if(reward==='fish'){
+  const item={id:ctx.uuid(),species:c.species,weight:c.weight,caughtAt:ctx.now};f.fish.push(item);
+  f.collection[c.species]=Math.max(f.collection[c.species]||0,c.weight);f.daily.catch++;
+  if(FISH.find(x=>x.id===c.species).rarity>=1)f.daily.rare++;
+  result.fish=item;result.gold=fishPrice(item);
+ }else if(reward==='diamondChest'){const diamonds=3+Math.floor(ctx.random()*6);f.diamonds+=diamonds;result.diamonds=diamonds;}
+ else{s.materials[reward]=(s.materials[reward]||0)+1;result.amount=1;}
+ f.lastCatch=result;return result;
+}
 export function fishingCommand(s,command,args,ctx){
  const f=normalizeFishing(s,ctx.now);settleAquarium(f,ctx.now);
  s.materials??={};
  if(command==='fishCast'){
-  require(args.protocol===3,'FISHING_REFRESH_REQUIRED');
+  require(args.protocol===FISHING_PROTOCOL,'FISHING_REFRESH_REQUIRED');
   require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<150,'FISHING_BAG_FULL');
   const spot=SPOTS.find(x=>x.id===args.spot),bait=BAITS.find(x=>x.id===args.bait);
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
   require((f.bait[bait.id]||0)>0,'FISHING_BAIT_REQUIRED');
-  const available=FISH.filter(x=>x.spot===spot.id&&x.level<=f.rod);
-  // Higher-grade bait improves rarity weights but never bypasses rod gates.
-  const weights=available.map(x=>[1,.30,.09,.024,.0035,.0005][x.rarity]*(1+bait.luck*x.rarity)*(1+.012*Math.max(0,f.rod-x.level)*x.rarity));
-  let roll=ctx.random()*weights.reduce((n,x)=>n+x,0),index=weights.length-1;
-  for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
-  const species=available[index],size=ctx.random()**1.65,weight=Math.round(species.min+(species.max-species.min)*size);
-  let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance;if(roll<0){reward=r.id;break;}}
-  const biteAt=ctx.now+4000+Math.floor(ctx.random()*3000);
+  // The catch is rolled on the server when the fish bites, so a visible cast reveals nothing to reroll.
+  const biteAt=ctx.now+BITE_MIN_MS+Math.floor(ctx.random()*BITE_RANGE_MS);
   f.bait[bait.id]--;
-  f.cast={protocol:3,id:ctx.uuid(),spot:spot.id,bait:bait.id,species:species.id,weight,reward,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+8000,hookAt:null,expires:biteAt+8000,...fishingDifficulty(species,f.rod,size)};
+  f.cast={protocol:FISHING_PROTOCOL,id:ctx.uuid(),spot:spot.id,bait:bait.id,rod:f.rod,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+CAST_EXPIRE_MS,hookAt:null,expires:biteAt+CAST_EXPIRE_MS};
   return {type:'fishCast',castId:f.cast.id};
  }
  if(command==='fishCancel'){require(!f.cast||f.cast.id===args.id,'FISHING_CAST_MISSING');f.cast=null;return {type:'fishCancel'};}
- if(command==='fishHook'){
+ // Every bite is landed immediately; there is no reeling challenge or failure.
+ if(command==='fishHook'||command==='fishFinish'){
   const c=f.cast;require(c&&c.id===args.id,'FISHING_CAST_MISSING');
-  require(!c.hookAt,'FISHING_ALREADY_HOOKED');require(ctx.now>=c.biteAt,'FISHING_TOO_EARLY');
-  require(ctx.now<=(c.hookDeadline||c.biteAt+8000),'FISHING_BITE_MISSED');
-  c.protocol=c.protocol===3?3:2;c.hookAt=ctx.now;c.expires=ctx.now+60000;
-  return {type:'fishHook',castId:c.id};
- }
- if(command==='fishFinish'){
-  const c=f.cast;require(c&&c.id===args.id,'FISHING_CAST_MISSING');
-  require(c.protocol<2||c.hookAt,'FISHING_HOOK_REQUIRED');
-  require(Array.isArray(args.frames)&&args.frames.length>0&&args.frames.length<=c.ticks&&args.frames.every(x=>integer(x,0,c.protocol===3?3:1)),'INVALID_FISHING_INPUT');
-  require(args.frames.length<=Math.floor((ctx.now-(c.hookAt||c.biteAt))/100),'FISHING_TOO_EARLY');
-  const meter=fishingMeter();for(const input of args.frames){require(!meter.finished,'INVALID_FISHING_INPUT');fishingStep(c,input,meter);}
-  require(meter.finished,'FISHING_NOT_FINISHED');f.cast=null;
-  const underpowered=c.protocol===3&&c.rod<c.powerNeed;
-  const won=!underpowered&&!meter.failed&&meter.hits/c.ticks>=c.required;
-  const result={type:'fishCatch',at:ctx.now,won,species:c.species,weight:c.weight,reward:won?c.reward:null};
-  if(underpowered){result.reason='rodPower';result.requiredRod=c.powerNeed;}
-  if(won){
-   if(c.reward==='fish'){
-    const item={id:ctx.uuid(),species:c.species,weight:c.weight,caughtAt:ctx.now};f.fish.push(item);
-    f.collection[c.species]=Math.max(f.collection[c.species]||0,c.weight);f.daily.catch++;
-    if(FISH.find(x=>x.id===c.species).rarity>=1)f.daily.rare++;
-    result.fish=item;
-   }else if(c.reward==='diamondChest'){const diamonds=3+Math.floor(ctx.random()*6);f.diamonds+=diamonds;result.diamonds=diamonds;}
-   else{s.materials[c.reward]=(s.materials[c.reward]||0)+1;result.amount=1;}
-  }
-  f.lastCatch=result;return result;
+  require(ctx.now>=c.biteAt,'FISHING_TOO_EARLY');
+  return landCatch(s,f,c,ctx);
  }
  if(command==='fishBaitBuy'){
   const bait=BAITS.find(x=>x.id===args.bait);require(bait&&integer(args.count,1,100),'INVALID_FISHING_BAIT');
@@ -115,7 +112,7 @@ export function fishingCommand(s,command,args,ctx){
   to.push(from.splice(index,1)[0]);return {type:command};
  }
  if(command==='fishAquariumClaim'){const gold=Math.floor(f.bank);require(gold>0,'FISHING_NO_INCOME');f.bank-=gold;s.gold+=gold;return {type:'fishAquariumClaim',gold};}
- if(command==='fishAquariumExpand'){require(f.slots<10,'FISHING_MAX_SLOTS');const cost=100000*3**(f.slots-3);spendGold(s,cost);f.slots++;return {type:'fishAquariumExpand',slots:f.slots};}
+ if(command==='fishAquariumExpand'){require(f.slots<10,'FISHING_MAX_SLOTS');const cost=aquariumExpandCost(f.slots);spendGold(s,cost);f.slots++;return {type:'fishAquariumExpand',slots:f.slots};}
  if(command==='fishQuestClaim'){
   const q=FISHING_QUESTS.find(x=>x.id===args.id);require(q,'INVALID_FISHING_QUEST');
   require(!f.daily.claimed.includes(q.id),'FISHING_QUEST_CLAIMED');require(f.daily[q.id]>=q.goal,'FISHING_QUEST_REQUIRED');

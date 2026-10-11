@@ -146,6 +146,7 @@ Deno.serve(async (req) => {
         if(fastInput?!snap.hasCharacter:!snap.state)throw new Error('CHARACTER_REQUIRED');
         const action=body.command==='sync'?'sync':body.command.slice(4).toLowerCase();
         if(!['create','join','start','ready','input','sync','leave','list','open'].includes(action))throw new Error('INVALID_COOP_ACTION');
+        if(action==='create'&&(body.args?.mode||'rift')==='rift')throw new Error('RIFT_CONTENT_REMOVED');
         const queueInput=action==='input'&&Array.isArray(body.args.frames);
         if(queueInput)validateCoopFrames(body.args.frames);
         const ctx={accountId:user.id,admin:user.app_metadata?.ringu_admin===true,accountCreatedAt:user.created_at,now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};

@@ -7,7 +7,9 @@ export const EXPLORATIONS=[
  {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:70000},
  {id:2,name:'별의 심연 성전',floors:12,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:100000},
 ];
-export const EXPLORATION_MOVE_SPEED=1.3;
+export const EXPLORATION_MOVE_SPEED=1.3,CITADEL_MOVE_SPEED=1.5;
+// Dark Citadel moves faster than Ringu exploration (Hammerwatch-like pace).
+export const dungeonMoveSpeed=w=>isCitadel(w)?CITADEL_MOVE_SPEED:EXPLORATION_MOVE_SPEED;
 export const explorationMonsterMultiplier=(tier,floor)=>floor<=Math.ceil(EXPLORATIONS[tier].floors/2)?2:3;
 export const EXPLORATION_BASE={bossHp:95000000,attack:11500,referenceAttack:49108,referenceHp:67525,referenceDefense:1373,referencePower:206123};
 export const explorationPopulation=n=>({hp:1+.30*(Math.max(1,Math.min(4,n))-1),attack:1+.12*(Math.max(1,Math.min(4,n))-1)});

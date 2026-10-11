@@ -1,4 +1,4 @@
-import {drawCitadelWorld,drawCitadelMap} from './citadel-renderer.mjs';
+import {drawCitadelWorld,drawCitadelMap,drawCitadelAmbience} from './citadel-renderer.mjs';
 import {drawExplorationDungeon,drawExplorationFog,drawExplorationMinimap,explorationTerrainSource} from './exploration-renderer.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
@@ -126,7 +126,7 @@ export class TowerRenderer {
     this.mobileActors=matchMedia('(pointer: coarse)');
     this.arenaImage=tier=>image('exploration/arena-'+tier+'-196.webp');this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.fifthLandings=new Map();this.shake=0;this.flash=0;this.zoom=0;
-    this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,options.pixelRatio||1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
+    this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(options.maxWidth||1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,options.pixelRatio||1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
   }
   pet(actor,x,y,time,key='self'){
     if(actor.power?.pet!=='moonfox-lumi'||actor.hp<=0)return;
@@ -297,12 +297,12 @@ export class TowerRenderer {
     b=localSkillView(b);
     if(this.last&&now-this.last<1000/this.maxFps-1)return;
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
-    this.citadelView=b.explorationMode&&b.tier===3;g.imageSmoothingEnabled=!this.citadelView;const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
+    this.citadelView=b.explorationMode&&b.tier===3;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
     // Keep zoom stable when a boss approaches or the player lunges to attack.
-    const scale=this.presentationScale||(this.citadelView?.55:b.raidMode?Math.min(.7,Math.max(.28,height/2600)):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
+    const scale=this.presentationScale||(this.citadelView?.58:b.raidMode?Math.min(.7,Math.max(.28,height/2600)):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
@@ -469,7 +469,7 @@ export class TowerRenderer {
     }
     if(b.explorationMode)drawExplorationFog(g,b,this.camera,viewWidth,viewHeight,this);
     g.restore();
-    if(this.citadelView)drawCitadelMap(g,b,player);else if(b.explorationMode)drawExplorationMinimap(g,b,player);
+    if(this.citadelView){drawCitadelAmbience(g,b,height,scale);drawCitadelMap(g,b,player);}else if(b.explorationMode)drawExplorationMinimap(g,b,player);
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}
   }
 }

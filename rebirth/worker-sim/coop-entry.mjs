@@ -1,7 +1,7 @@
-import {isDungeon} from './citadel-zero.mjs?v=citadel-rebuild-217';
-import {EXPLORATION_MOVE_SPEED} from './exploration-data.mjs?v=citadel-rebuild-217';
-import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=citadel-rebuild-217';
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=citadel-rebuild-217';
+import {isDungeon} from './citadel-zero.mjs?v=hw-218';
+import {EXPLORATION_MOVE_SPEED,dungeonMoveSpeed} from './exploration-data.mjs?v=hw-218';
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=hw-218';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=hw-218';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){
@@ -27,7 +27,7 @@ export function advanceCoopEntry(w,user,input,now,allowStart=true){
     if(m.left||m.hp<=0)continue;
     let [x,y]=now-m.inputAt<1500?m.input:[0,0];const length=Math.max(1,Math.hypot(x,y));x/=length;y/=length;
     m.moving=Math.hypot(x,y)>.01;m.dir=towerFacing(x,y,m.dir??6);
-    if(isDungeon(w))dungeonMove(w.dungeon,m,x*TOWER_CLASSES[m.classId].speed*10*dt*EXPLORATION_MOVE_SPEED,y*TOWER_CLASSES[m.classId].speed*10*dt*EXPLORATION_MOVE_SPEED);else{m.x=bound(m.x+x*TOWER_CLASSES[m.classId].speed*10*dt);m.y=bound(m.y+y*TOWER_CLASSES[m.classId].speed*10*dt);}
+    if(isDungeon(w))dungeonMove(w.dungeon,m,x*TOWER_CLASSES[m.classId].speed*10*dt*dungeonMoveSpeed(w),y*TOWER_CLASSES[m.classId].speed*10*dt*dungeonMoveSpeed(w));else{m.x=bound(m.x+x*TOWER_CLASSES[m.classId].speed*10*dt);m.y=bound(m.y+y*TOWER_CLASSES[m.classId].speed*10*dt);}
     if(m.moving)m.walk=(m.walk||0)+dt*10;
     if(x)m.face=x<0?-1:1;
   }

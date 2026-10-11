@@ -1,3 +1,4 @@
+// Retired 2026-10-11: covered the removed reeling minigame (protocol 3). See fishing-gold.test.mjs.
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,execute} from './engine.mjs';

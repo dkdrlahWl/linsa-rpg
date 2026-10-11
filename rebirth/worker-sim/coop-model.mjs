@@ -1,24 +1,24 @@
-import {isCitadel,isDungeon,CITADEL_CONTENT} from './citadel-zero.mjs?v=citadel-rebuild-217';
-import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=citadel-rebuild-217';
-import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs?v=citadel-rebuild-217';
-import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=citadel-rebuild-217';
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=citadel-rebuild-217';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=citadel-rebuild-217';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=citadel-rebuild-217';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-rebuild-217';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-rebuild-217';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-rebuild-217';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=citadel-rebuild-217';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=citadel-rebuild-217';
+import {isCitadel,isDungeon,CITADEL_CONTENT} from './citadel-zero.mjs?v=hw-218';
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=hw-218';
+import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-218';
+import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=hw-218';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=hw-218';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=hw-218';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=hw-218';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-218';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-218';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-218';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=hw-218';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-218';
 export const coopEncounter=room=>isCitadel(room)?CITADEL_CONTENT:room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=citadel-rebuild-217';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=citadel-rebuild-217';
-import {beginThird,stepThird} from './advancement.mjs?v=citadel-rebuild-217';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=citadel-rebuild-217';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=citadel-rebuild-217';
-import {incomingDamage} from './journey-balance.mjs?v=citadel-rebuild-217';
-import {COOP_TIERS} from './rift-rewards.mjs?v=citadel-rebuild-217';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=hw-218';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-218';
+import {beginThird,stepThird} from './advancement.mjs?v=hw-218';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-218';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-218';
+import {incomingDamage} from './journey-balance.mjs?v=hw-218';
+import {COOP_TIERS} from './rift-rewards.mjs?v=hw-218';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -36,7 +36,7 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
    const at=w.lootStarted+w.tick*100;
    for(const f of frames)if(f.tick===w.tick){const m=w.members.find(m=>m.id===f.user&&!m.left);if(m){m.input=[f.input[0],f.input[1],0];m.inputAt=at;}}
    for(const m of w.members){if(m.left)continue;let [x,y]=at-m.inputAt<1500?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y)),speed=w.mode==='raid'?25:TOWER_CLASSES[m.classId].speed;
-    if(isDungeon(w))dungeonMove(w.dungeon,m,x/n*speed*EXPLORATION_MOVE_SPEED,y/n*speed*EXPLORATION_MOVE_SPEED);else{m.x=clamp(m.x+x/n*speed);m.y=clamp(m.y+y/n*speed);}
+    if(isDungeon(w))dungeonMove(w.dungeon,m,x/n*speed*dungeonMoveSpeed(w),y/n*speed*dungeonMoveSpeed(w));else{m.x=clamp(m.x+x/n*speed);m.y=clamp(m.y+y/n*speed);}
     m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?1:0);m.moving=Math.hypot(x,y)>.01;if(x)m.face=x<0?-1:1;
    }
   }

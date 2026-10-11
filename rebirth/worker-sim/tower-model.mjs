@@ -1,12 +1,12 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-rebuild-217';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-rebuild-217';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-rebuild-217';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=citadel-rebuild-217';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=citadel-rebuild-217';
-import {incomingDamage} from './journey-balance.mjs?v=citadel-rebuild-217';
-import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=citadel-rebuild-217';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-218';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-218';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-218';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-218';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-218';
+import {incomingDamage} from './journey-balance.mjs?v=hw-218';
+import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=hw-218';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=citadel-rebuild-217';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-218';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

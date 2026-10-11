@@ -28,3 +28,7 @@
 
 새 아이콘: `currencies/potential-scroll.webp` (512×512, 투명 배경).
 생성 프롬프트와 원본 파일명은 `rift-scroll-art.json`에 기록했다.
+
+## 2026-10-11 종료
+
+협동 균열 생성·참가·시작을 클라이언트·Edge·DB에서 모두 차단(`RIFT_CONTENT_REMOVED`). 보스 메뉴와 모집 목록에서 제거. SQL: `rift-removal-key-start.sql`.

@@ -2,7 +2,7 @@ import {buildCitadelRegion} from './citadel-map.mjs';
 import {dungeonMove} from './exploration-dungeon.mjs';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
-export const CITADEL_TIER=3,CITADEL_VERSION='citadel-rebuild-217';
+export const CITADEL_TIER=3,CITADEL_VERSION='citadel-hw-218';
 export const CITADEL_REFERENCE={attack:49108,hp:67525,defense:1373,boss:3.2,combatPower:206123};
 export const CITADEL_BIOMES=[
  {name:'깊은 숲',color:'#192b24',floor:'#43553c',wall:'#203326',light:'#d0b76c',enemies:['회색 늑대','녹색 딱정벌레','붉은모자 고블린','고블린 주술사']},

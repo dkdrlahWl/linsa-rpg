@@ -70,3 +70,12 @@ painted fantasy style. Existing cube/scroll illustrations are reused.
 validation, failed catches, every reward, duplicate finishes, sell/tank
 exclusivity, accrual/claims, daily reset and potential lock charges/results.
 Existing consumable/shop tests and syntax checks are also run.
+
+## 2026-10-11 gold rebalance (protocol 4)
+
+- Every bite is caught automatically (100%); no reeling challenge. Bite wait 5–9 s.
+- Rewards: fish 99.2%, diamond chest 0.6%, dungeon key 0.2%. Cubes, potential scrolls and lock stones removed.
+- Price = grade value [1,3,9,30,120,600] × spot scale [70,55,47,15,7] × (0.55+1.45×weight/max). Worm bait 50 for 2,500 G.
+- Perfect play ~420 casts/h: rod1 ≈26k, rod20 ≈71k, rod40 ≈159k, rod50 ≈185k net G/h (Lv.200 hunting ≈385k/h runs in parallel).
+- Aquarium: 2× sale price per hour (mythic 0.8×); expansion 300k×2^(slots−3). Rod Lv.1→50 ≈45M G.
+- `node rebirth/fishing-gold.test.mjs`.

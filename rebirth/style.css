@@ -911,3 +911,5 @@ button { touch-action:manipulation; }
 .exchange-card .gear-icon{width:48px;height:48px}.exchange-card strong{font-size:14px}.exchange-card small{font-size:12px;color:#d5bd8e}.exchange-card:disabled{opacity:.5}
 
 .wave-lobby{background:linear-gradient(135deg,#243527e8,#15231fe8);border-color:#82976a}.wave-lobby h2{color:#eddfaa}.wave-rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:18px 0}.wave-rules span{padding:10px;background:#0b171a80;border:1px solid #7d956944;border-radius:8px;font-size:13px}.wave-members{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.wave-members p{padding:12px;background:#15251cb0;border:1px solid #79956455;border-radius:8px}.wave-members small{display:block;color:#bfd0b8}.wave-lobby details{margin-top:14px;padding:12px;background:#17261e80;border-radius:8px}
+
+.exchange-boss-hit{margin:0 0 8px;padding:6px 10px;border:1px solid #ffd477;border-radius:8px;background:#3a2a0f;color:#ffe2a0;font-weight:800;text-align:center}

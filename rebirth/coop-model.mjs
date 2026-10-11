@@ -1,6 +1,6 @@
 import {isCitadel,isDungeon,CITADEL_CONTENT} from './citadel-zero.mjs';
 import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs';
-import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,collectExplorationHearts} from './exploration-data.mjs';
+import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs';
 import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs';
 import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs';
 import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=fifth-impact-121';
@@ -36,7 +36,7 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
    const at=w.lootStarted+w.tick*100;
    for(const f of frames)if(f.tick===w.tick){const m=w.members.find(m=>m.id===f.user&&!m.left);if(m){m.input=[f.input[0],f.input[1],0];m.inputAt=at;}}
    for(const m of w.members){if(m.left)continue;let [x,y]=at-m.inputAt<1500?m.input:[0,0];const n=Math.max(1,Math.hypot(x,y)),speed=w.mode==='raid'?25:TOWER_CLASSES[m.classId].speed;
-    if(isDungeon(w))dungeonMove(w.dungeon,m,x/n*speed*EXPLORATION_MOVE_SPEED,y/n*speed*EXPLORATION_MOVE_SPEED);else{m.x=clamp(m.x+x/n*speed);m.y=clamp(m.y+y/n*speed);}
+    if(isDungeon(w))dungeonMove(w.dungeon,m,x/n*speed*dungeonMoveSpeed(w),y/n*speed*dungeonMoveSpeed(w));else{m.x=clamp(m.x+x/n*speed);m.y=clamp(m.y+y/n*speed);}
     m.dir=towerFacing(x,y,m.dir);m.walk=(m.walk||0)+(Math.hypot(x,y)>.01?1:0);m.moving=Math.hypot(x,y)>.01;if(x)m.face=x<0?-1:1;
    }
   }

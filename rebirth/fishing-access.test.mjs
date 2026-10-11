@@ -25,20 +25,20 @@ try{
  for(const command of commands){
   for(const flag of [false,undefined,'true',1,true]){
    user={id:'test',app_metadata:{ringu_admin:flag}};calls=[];
-   fingerprint={command,args:{protocol:3}};
+   fingerprint={command,args:{protocol:4}};
    const response=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer local'},body:JSON.stringify({...fingerprint,requestId:randomUUID()})}));
    assert.equal(response.status,200);assert.equal(calls.length,2);
   }
  }
  user={id:'test',app_metadata:{ringu_admin:false}};
  freshState=initialState('warrior','낚시',{now:Date.now(),uuid:randomUUID,random:()=>.5});freshState.hunting=false;
- const before=structuredClone(freshState),body={command:'fishCast',args:{spot:'brook',bait:'worm',protocol:3,_compact:true,_stateRevision:7},requestId:randomUUID()};
+ const before=structuredClone(freshState),body={command:'fishCast',args:{spot:'brook',bait:'worm',protocol:4,_compact:true,_stateRevision:7},requestId:randomUUID()};
  const compactResponse=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer local'},body:JSON.stringify(body)}));
  assert.equal(compactResponse.status,200);const compact=await compactResponse.json();
  assert.deepEqual(applyFishingPatch(before,7,compact.statePatch),committed.p_state);assert.equal(compact.revision,8);assert.equal(compact.result.events[0].type,'fishCast');
  freshState=null;committed=null;
  user=null;calls=[];
- const denied=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer invalid'},body:JSON.stringify({command:'fishCast',args:{protocol:3},requestId:randomUUID()})}));
+ const denied=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer invalid'},body:JSON.stringify({command:'fishCast',args:{protocol:4},requestId:randomUUID()})}));
  assert.equal(denied.status,401);assert.deepEqual(await denied.json(),{error:'LOGIN_REQUIRED'});assert.equal(calls.length,1);
  const open=fishingView({isAdmin:false,gold:0});assert.doesNotMatch(open,/관리자 전용 낚시/);assert.match(open,/data-action="fishCast"/);assert.match(open,/fishing-scene-art/);
  assert.match(lottoView({isAdmin:false,gold:0},null),/data-arg="fishing"/);
