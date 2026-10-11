@@ -23,8 +23,9 @@ TOWER_FLOORS.push(...UPPER_TOWER_FLOORS);
 export const towerEncounter=b=>b.encounter?(b.advancementStage!==undefined?{...b.encounter,seconds:120,art:ADVANCEMENT_BOSSES.find(t=>t.stage===b.advancementStage)?.art||b.encounter.art}:b.encounter):TOWER_FLOORS[b.floor-1];
 export const TOWER_CLASSES={
  priest:{range:560,cooldown:10,speed:25,dashCooldown:35},
- warrior:{range:292.5,cooldown:9,speed:25,dashCooldown:30},mage:{range:560,cooldown:10,speed:25,dashCooldown:35},
- archer:{range:610,cooldown:8,speed:25,dashCooldown:35},rogue:{range:260,cooldown:7,speed:28,dashCooldown:25},pirate:{range:550,cooldown:8,speed:25,dashCooldown:35}
+ // Warrior (sword wave) and rogue (shuriken) attack at range, just short of the pirate (550).
+ warrior:{range:520,cooldown:9,speed:25,dashCooldown:30},mage:{range:560,cooldown:10,speed:25,dashCooldown:35},
+ archer:{range:610,cooldown:8,speed:25,dashCooldown:35},rogue:{range:520,cooldown:7,speed:28,dashCooldown:25},pirate:{range:550,cooldown:8,speed:25,dashCooldown:35}
 };
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

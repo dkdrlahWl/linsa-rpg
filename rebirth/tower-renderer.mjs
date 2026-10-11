@@ -120,6 +120,22 @@ export function prepareCombatArt(classes,boss,costumeIds=[]){
  })]);
 }
 
+// Warrior sword wave: a glowing crescent; rogue shuriken: a spinning four-point star.
+function drawBasicMissile(g,cls,x,y,angle,age){
+ g.save();g.translate(x,y);
+ if(cls==='warrior'){
+  g.rotate(angle);g.globalCompositeOperation='lighter';
+  for(let i=3;i>=0;i--){g.globalAlpha=i?.18:.95;g.strokeStyle=i?'#7fd6ff':'#f2fbff';g.lineWidth=i?18+i*8:9;g.shadowColor='#8fdcff';g.shadowBlur=i?0:26;g.beginPath();g.arc(-24-i*10,0,58,-1.05,1.05);g.stroke();}
+  g.globalAlpha=.55;g.fillStyle='#cdefff';g.beginPath();g.ellipse(-40,0,22,6,0,0,Math.PI*2);g.fill();
+ }else{
+  g.rotate(age*2.6);g.shadowColor='#d7c2ff';g.shadowBlur=14;
+  const r=30;g.fillStyle='#dfe4ec';g.strokeStyle='#4b4f5a';g.lineWidth=3;g.beginPath();
+  for(let i=0;i<8;i++){const a=i*Math.PI/4,rr=i%2?r*.32:r;g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}g.closePath();g.fill();g.stroke();
+  g.fillStyle='#2b2e36';g.beginPath();g.arc(0,0,6,0,Math.PI*2);g.fill();
+  g.globalAlpha=.25;g.strokeStyle='#c9b6ff';g.lineWidth=4;g.beginPath();g.arc(0,0,r+6,0,Math.PI*1.2);g.stroke();
+ }
+ g.restore();
+}
 export class TowerRenderer {
   constructor(canvas,options={}){
     this.presentationScale=options.presentationScale;this.maxFps=options.maxFps||60;
@@ -424,7 +440,7 @@ export class TowerRenderer {
       const x=mix(old.x,q.x,fraction),y=mix(old.y,q.y,fraction),enemyShot=q.side==='enemy';
       if(!visible(x,y,200))continue;
       if(b.raidMode&&enemyShot){drawRaidProjectile(g,q,x,y);continue;}
-      const cls=q.classId||b.classId;if(!enemyShot&&cls==='priest'){const orb=image('tower/priest-orb-v1.png');if(orb.complete&&orb.naturalWidth){g.save();g.globalCompositeOperation='screen';g.shadowColor='#fff4b5';g.shadowBlur=25;g.drawImage(orb,x-65,y-65,130,130);g.restore();}continue;}const src=enemyShot?motionAsset('attack-beam-v2'):motionAsset(cls==='pirate'?'attack-beam-v2':'attack-bolt-v2');
+      const cls=q.classId||b.classId;if(!enemyShot&&(cls==='warrior'||cls==='rogue')){drawBasicMissile(g,cls,x,y,Math.atan2(q.dy,q.dx),time-q.at);continue;}if(!enemyShot&&cls==='priest'){const orb=image('tower/priest-orb-v1.png');if(orb.complete&&orb.naturalWidth){g.save();g.globalCompositeOperation='screen';g.shadowColor='#fff4b5';g.shadowBlur=25;g.drawImage(orb,x-65,y-65,130,130);g.restore();}continue;}const src=enemyShot?motionAsset('attack-beam-v2'):motionAsset(cls==='pirate'?'attack-beam-v2':'attack-bolt-v2');
       const filter=enemyShot?'hue-rotate(330deg)':cls==='mage'?'hue-rotate(72deg)':cls==='archer'?'hue-rotate(-95deg)':'none';
       this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125*(this.mobileActors.matches?1.5:1):cls==='pirate'?140:120,enemyShot?60*(this.mobileActors.matches?1.5:1):62,Math.atan2(q.dy,q.dx),.95,filter);
     }
@@ -437,6 +453,8 @@ export class TowerRenderer {
         drawFifth(g,{...effect,lowDetail:false},time,mine?.85:fifthOpacity);continue;
       }
       if(e.kind==='priest')continue;
+      // Ranged warrior/rogue basics in dungeon modes: missile flies to the target, then the hit flash.
+      if((e.kind==='slash'||e.kind==='impact')&&(e.classId==='warrior'||e.classId==='rogue')&&e.fromX!==undefined){const age=clamp((time-e.start)/(e.end-e.start)),fly=clamp(age/.6);if(fly<1){drawBasicMissile(g,e.classId,mix(e.fromX,e.x,fly),mix(e.fromY,e.y,fly),Math.atan2(e.y-e.fromY,e.x-e.fromX),time-e.start);continue;}}
       if(e.kind==='priest-orb'){const age=clamp((time-e.start)/(e.end-e.start)),x=mix(e.fromX,e.x,age),y=mix(e.fromY,e.y,age)-Math.sin(age*Math.PI)*45,orb=image('tower/priest-orb-v1.png');g.save();g.globalCompositeOperation='screen';for(let i=3;i>0;i--){const t=clamp(age-i*.07);g.globalAlpha=.16;g.fillStyle='#fff0ab';g.shadowColor='#fff2bf';g.shadowBlur=22;g.beginPath();g.arc(mix(e.fromX,e.x,t),mix(e.fromY,e.y,t)-Math.sin(t*Math.PI)*45,22+i*4,0,Math.PI*2);g.fill();}g.globalAlpha=1;g.shadowColor='#fff8cd';g.shadowBlur=38;if(orb.complete&&orb.naturalWidth)g.drawImage(orb,x-78,y-78,156,156);else{g.fillStyle='#fff8cf';g.beginPath();g.arc(x,y,35,0,Math.PI*2);g.fill();}g.restore();continue;}
       const age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
       if(e.kind==='fourth'){if(!e.orbit&&!fourthAreas.includes(e))continue;if(e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id))continue;drawFourth(g,e,time,player,b.allies,image(asset('fourth-job-atlas')),image(asset('fourth-impact-atlas-v2')));continue;}

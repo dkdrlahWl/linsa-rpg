@@ -1,12 +1,12 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-222';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-222';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-222';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-222';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-222';
-import {incomingDamage} from './journey-balance.mjs?v=hw-222';
-import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=hw-222';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-223';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-223';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-223';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-223';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-223';
+import {incomingDamage} from './journey-balance.mjs?v=hw-223';
+import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=hw-223';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-222';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-223';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;
@@ -23,8 +23,9 @@ TOWER_FLOORS.push(...UPPER_TOWER_FLOORS);
 export const towerEncounter=b=>b.encounter?(b.advancementStage!==undefined?{...b.encounter,seconds:120,art:ADVANCEMENT_BOSSES.find(t=>t.stage===b.advancementStage)?.art||b.encounter.art}:b.encounter):TOWER_FLOORS[b.floor-1];
 export const TOWER_CLASSES={
  priest:{range:560,cooldown:10,speed:25,dashCooldown:35},
- warrior:{range:292.5,cooldown:9,speed:25,dashCooldown:30},mage:{range:560,cooldown:10,speed:25,dashCooldown:35},
- archer:{range:610,cooldown:8,speed:25,dashCooldown:35},rogue:{range:260,cooldown:7,speed:28,dashCooldown:25},pirate:{range:550,cooldown:8,speed:25,dashCooldown:35}
+ // Warrior (sword wave) and rogue (shuriken) attack at range, just short of the pirate (550).
+ warrior:{range:520,cooldown:9,speed:25,dashCooldown:30},mage:{range:560,cooldown:10,speed:25,dashCooldown:35},
+ archer:{range:610,cooldown:8,speed:25,dashCooldown:35},rogue:{range:520,cooldown:7,speed:28,dashCooldown:25},pirate:{range:550,cooldown:8,speed:25,dashCooldown:35}
 };
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
