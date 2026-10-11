@@ -146,7 +146,9 @@ export class TowerRenderer {
     this.mobileActors=matchMedia('(pointer: coarse)');
     this.arenaImage=tier=>image('exploration/arena-'+tier+'-196.webp');this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.fifthLandings=new Map();this.shake=0;this.flash=0;this.zoom=0;
-    this.resize=new ResizeObserver(entries=>{const r=entries[0].contentRect;if(r.width&&r.height){this.viewHeight=Math.round(1000*r.height/r.width);const width=Math.min(options.maxWidth||1000,Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,options.pixelRatio||1.5))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}}});this.resize.observe(canvas);
+    // Phones (narrow, high-DPI) get up to 2.25x backing pixels so maps stay sharp; slow devices drop back to 1.5x.
+    this.fit=r=>{if(!r?.width||!r.height)return;this.fitRect=r;this.viewHeight=Math.round(1000*r.height/r.width);const cap=this.pixelCap??(r.width<700?2.25:options.pixelRatio||1.5),width=Math.min(options.maxWidth||(r.width<700?1100:1000),Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,cap))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}};
+    this.resize=new ResizeObserver(entries=>this.fit(entries[0].contentRect));this.resize.observe(canvas);
   }
   pet(actor,x,y,time,key='self'){
     if(actor.power?.pet!=='moonfox-lumi'||actor.hp<=0)return;
@@ -160,7 +162,7 @@ export class TowerRenderer {
     g.save();g.translate(p.x,p.y-bob);g.scale(face,1);g.drawImage(im,r.x,r.y,r.w,r.h,-r.w*scale/2,-size,r.w*scale,size);g.restore();
     if(time<(actor.petHealUntil||0)){this.effect('rune',x,y-15,90,60,time*.04,.65);g.save();g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#a4ffdf';g.fillText('+'+Math.round(actor.petHealAmount||0),x,y-120-(12-(actor.petHealUntil-time))*3);g.restore();}
   }
-  setLowDetail(){if(this.lowDetail)return;this.lowDetail=true;try{Object.defineProperty(this.g,'shadowBlur',{set(){},get(){return 0},configurable:true});}catch{}}
+  setLowDetail(){if(this.lowDetail)return;this.lowDetail=true;if(this.fitRect?.width<700){this.pixelCap=1.5;this.fit(this.fitRect);}try{Object.defineProperty(this.g,'shadowBlur',{set(){},get(){return 0},configurable:true});}catch{}}
   dispose(){this.resize.disconnect();this.dungeonLayer=null;this.dungeonFog=null;}
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;

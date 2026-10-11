@@ -26,7 +26,7 @@ export function drawExplorationDungeon(renderer,b,im,heart){
  if(d.arena){const arena=renderer.arenaImage?.(b.tier);g.fillStyle=(moods[b.tier]||moods[0]).fog;g.fillRect(-5000,-5000,13000,13000);if(arena?.complete&&arena.naturalWidth)g.drawImage(arena,d.arenaBounds?.x??900,d.arenaBounds?.y??900,d.arenaBounds?.width??1400,d.arenaBounds?.height??1400);drawExplorationHearts(g,b,d,heart);return true;}
  const biome=CITADEL_BIOMES[d.biome],mood=d.citadel?{base:biome.color,fog:biome.color,glow:biome.light}:moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
  if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=Math.min(2048,world/2);const c=canvas.getContext('2d');c.scale(canvas.width/world,canvas.height/world);c.fillStyle=mood.base;c.fillRect(0,0,world,world);
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=Math.min(2560,Math.round(world*(renderer.lowDetail?.5:.75)));const c=canvas.getContext('2d');c.scale(canvas.width/world,canvas.height/world);c.fillStyle=mood.base;c.fillRect(0,0,world,world);
   const pattern=d.citadel?c.createPattern(citadelPathPattern(d.biome),'repeat'):loaded?c.createPattern(floorPattern(im),'repeat'):mood.base;
   c.fillStyle=pattern;c.fillRect(0,0,world,world);c.fillStyle=mood.fog+'e8';c.fillRect(0,0,world,world);
   const floor=new Path2D();for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(dungeonFloorTile(d.tiles[y][x]))floor.rect(x*100,y*100,100,100);
