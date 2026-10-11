@@ -100,7 +100,7 @@ function flight(g,e,time){
 }
 export function fifthFields(effects,time){
  const fields=effects.filter(e=>e.kind==='fifth-field'&&e.start<=time&&e.end>time);
- return fields.map(e=>{if(!['tracking','line'].includes(e.mode))return e;const pulses=effects.filter(p=>p.kind==='fifth'&&p.owner===e.owner&&p.classId===e.classId&&p.start>=e.start&&p.start<=time);const last=pulses.at(-1);return last?{...e,x:last.x,y:last.y,angle:last.angle,targetId:last.targetId}:e;});
+ return fields.map(e=>{if(!['tracking','line','homing'].includes(e.mode))return e;const pulses=effects.filter(p=>p.kind==='fifth'&&p.owner===e.owner&&p.classId===e.classId&&p.start>=e.start&&p.start<=time);const last=pulses.at(-1);return last?{...e,x:last.x,y:last.y,angle:last.angle,targetId:last.targetId}:e;});
 }
 export function drawFifthGround(g,e,time,opacity=1){
  if(e.mode==='homing'||e.classId==='rogue')return;
@@ -138,8 +138,10 @@ function field(g,e,time){
    g.globalAlpha=ambientOpacity*charge*Math.sin(phase*Math.PI)*.55;g.beginPath();g.moveTo(px,py);g.lineTo(px+Math.cos(a+phase*2)*16,py+Math.sin(a+phase*2)*12);g.stroke();
   }g.restore();
  }else if(e.classId==='archer'){
-  const facing=Math.cos(e.angle)>=0?1:-1,charge=smooth(t/7),end=smooth((e.end-time)/5);
-  glow(g,e.classId,e.fromX+facing*55,e.fromY-120,200,charge*end*.35);sprite(g,e.classId,0,e.fromX+facing*55,e.fromY-125,165,230,0,charge*end*.65,facing);
+  // The bow art aims toward -X; turn it to the live target every frame (not the cast-start side).
+  const aim=Math.atan2(e.y-95-(e.fromY-125),e.x-e.fromX),charge=smooth(t/7),end=smooth((e.end-time)/5),bx=e.fromX+Math.cos(aim)*60,by=e.fromY-125+Math.sin(aim)*40;
+  glow(g,e.classId,bx,by,220,charge*end*.4);
+  const f=atlases.get(e.classId)?.[0];if(f){const [dw,dh]=dimensions(e.classId,0,215,300);g.save();g.translate(bx,by);if(Math.cos(aim)>=0){g.rotate(aim);g.scale(-1,1);}else{g.rotate(aim-Math.PI);}g.globalAlpha*=clamp(charge*end*.92);g.drawImage(f.im,f.x,f.y,f.w,f.h,-dw/2,-dh/2,dw,dh);g.restore();}
  }else if(e.classId==='rogue'&&t<8){sprite(g,e.classId,1,e.fromX,e.fromY-110,170,210,0,Math.sin(clamp(t/8)*Math.PI));
  }else if(e.classId==='pirate'){
   for(let i=0;i<3;i++){const p=shipAnchor(e,i,t),appear=smooth((t-i*1.2)/6),last=12+i*5+Math.floor(Math.max(0,t-12-i*5)/15)*15,recoil=t>=last&&t-last<2?Math.sin((t-last)/2*Math.PI)*14:0;

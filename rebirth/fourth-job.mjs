@@ -20,7 +20,7 @@ export function stepFourth(a,target,tick,hit,emit=()=>{}){if(a.classId==='priest
  // Launch each visual before its damage pulse; preserve its ground impact afterwards.
  cast.visualNext??=cast.next;cast.visualLeft??=cast.left;
  while(cast.visualLeft>0&&tick>=cast.visualNext-(sk.mode==='orbit'?2:4)){const aim=sk.mode==='orbit'?a:cast;
-  emit({kind:'fourth',classId:a.classId,owner:a.id,x:aim.x,y:aim.y,size:sk.radius*2,pulse:sk.hits-cast.visualLeft,orbit:sk.mode==='orbit',start:cast.visualNext-(sk.mode==='orbit'?2:4),impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
+  emit({kind:'fourth',classId:a.classId,owner:a.id,x:aim.x,y:aim.y,fromX:a.x,fromY:a.y,size:sk.radius*2,pulse:sk.hits-cast.visualLeft,orbit:sk.mode==='orbit',start:cast.visualNext-(sk.mode==='orbit'?2:4),impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
   cast.visualLeft--;cast.visualNext+=sk.interval;
  }
  while(cast.left>0&&tick>=cast.next){const aim=sk.mode==='orbit'?a:cast;

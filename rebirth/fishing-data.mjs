@@ -30,8 +30,8 @@ export const BITE_MIN_MS=5000,BITE_RANGE_MS=4000,CAST_EXPIRE_MS=60000;
 export const rodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,level-30)/100)*100;
 export const rodDiamondCost=level=>2+Math.floor(level/5);
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;const scale=SPOTS.find(x=>x.id===d.spot).scale;return Math.max(10,Math.round(RARITIES[d.rarity].value*scale*(.55+1.45*Math.min(1,fish.weight/d.max))/10)*10);};
-// Aquarium gold per hour = 7.5x the sale price (mythic 3x), 100x the update-220 rate.
-export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*(d.rarity===5?3:7.5))):0;};
+// Aquarium gold per hour = 1.875x the sale price (mythic 0.75x): update 224 cut it to 1/4.
+export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*(d.rarity===5?.75:1.875))):0;};
 export const aquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
 export const resourceName=id=>({diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);

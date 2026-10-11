@@ -1,5 +1,5 @@
-import {buildCitadelRegion} from './citadel-map.mjs?v=hw-223';
-import {dungeonMove} from './exploration-dungeon.mjs?v=hw-223';
+import {buildCitadelRegion} from './citadel-map.mjs?v=hw-224';
+import {dungeonMove} from './exploration-dungeon.mjs?v=hw-224';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
 export const CITADEL_TIER=3,CITADEL_VERSION='citadel-hw-218';
@@ -34,7 +34,7 @@ export const CITADEL_REGION_HEAL=.3,CITADEL_HEARTS=3,CITADEL_MONSTERS={base:90,p
 export const citadelPopulation=n=>({hp:Math.max(1,Math.min(4,n)),attack:1});
 // Smooth NG0 curve tuned so the Dohyun Lv.200 reference clears about 80% of solo runs
 // (citadel-campaign-sim.mjs). Monster HP still multiplies by party size.
-export const CITADEL_TUNING={depthStart:.6,depthStep:.07,normalAttackStep:.02,normalHp:180000,normalAttack:1100,bossHp:18000000,bossAttack:1000,bossAttackBy:{totem:1,shadow:1,plant:.22,harbingers:.9,serpents:.25,avatar:.45},bossHpBy:{totem:2.5,shadow:1,plant:1.3,harbingers:3,serpents:2,avatar:1}};
+export const CITADEL_TUNING={depthStart:.6,depthStep:.07,normalAttackStep:.015,normalHp:180000,normalAttack:2000,bossHp:18000000,bossAttack:900,bossAttackBy:{totem:1,shadow:1,plant:.22,harbingers:.9,serpents:.25,avatar:.45},bossHpBy:{totem:2.5,shadow:1,plant:1.3,harbingers:3,serpents:2,avatar:1}};
 export function citadelStats(floor,count,boss=false){
  const k=CITADEL_TUNING,stage=citadelStage(floor),depth=k.depthStart+k.depthStep*(floor-1);
  return {hp:Math.round((boss?k.bossHp*(k.bossHpBy[stage.boss]??1):k.normalHp)*depth*citadelPopulation(count).hp),attack:Math.round(boss?k.bossAttack*(k.bossAttackBy[stage.boss]??1)*depth:k.normalAttack*(k.depthStart+k.normalAttackStep*(floor-1))),speed:boss?19:20+Math.min(5,stage.act)};

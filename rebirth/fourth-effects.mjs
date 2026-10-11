@@ -89,7 +89,10 @@ export function drawFourth(g,e,time,player,allies=[],atlas,impactAtlas){
     const approach=1-Math.min(1,p.drop/500);
     g.globalAlpha=.12+approach*.2;g.fillStyle=light;g.beginPath();g.ellipse(0,0,14+approach*16,8+approach*9,0,0,TAU);g.fill();
     g.globalAlpha=.88;
-    sprite(e.classId==='archer'?2:e.classId==='mage'?1:4,-p.drop*.22,-p.drop,cfg.width*p.scale,cfg.height*p.scale,p.tilt,e.classId==='mage'?.65:.5,e.classId==='archer'?.96:e.classId==='mage'?.8:.78);
+    // Rain comes in from the caster's side: lean = horizontal travel per unit of drop.
+    const dx=e.fromX!==undefined?e.x-e.fromX:1,dy=e.fromY!==undefined?e.y-e.fromY:0,len=Math.hypot(dx,dy)||1,lean=dx/len*.55,sx=-p.drop*lean,heading=Math.atan2(1,lean);
+    if(e.classId==='mage'){g.save();if(lean<0)g.scale(-1,1);sprite(1,-Math.abs(sx),-p.drop,cfg.width*p.scale,cfg.height*p.scale,p.tilt,.65,.8);g.restore();}
+    else{g.save();g.globalCompositeOperation='lighter';g.globalAlpha=.25;g.strokeStyle=light;g.lineWidth=e.classId==='archer'?6:14;g.lineCap='round';g.beginPath();g.moveTo(sx-lean*90,-p.drop-90);g.lineTo(sx,-p.drop);g.stroke();g.restore();sprite(e.classId==='archer'?2:4,sx,-p.drop,cfg.width*p.scale,cfg.height*p.scale,heading-Math.PI/2+p.tilt,.5,e.classId==='archer'?.96:.78);}
    }else{
     const age=p.impactAge/p.life,frame=Math.min(3,Math.floor(age*4));
     g.globalAlpha=Math.min(1,(1-age)*2.5)*.88;

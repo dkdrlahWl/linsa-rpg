@@ -1,4 +1,4 @@
-import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=hw-223';
+import {PRIEST_SKILLS,beginPriest,stepPriest} from './priest.mjs?v=hw-224';
 export const FOURTH_NAMES={priest:'세라핌',warrior:'천검의 지배자',mage:'천체의 대마도사',archer:'폭풍의 수호자',rogue:'월영의 군주',pirate:'해일의 제독'};
 const make=(name,hits,interval,radius,mode,art,description,multiplier=1)=>{const total=(mode==='orbit'?25.2:18)*multiplier/2;return {name,type:'attack',hits,damage:total/hits,interval,range:1100,radius,mode,art,cooldown:22.5,description:description+' · 총 '+Math.round(total*100)+'% · 재사용 22.5초'};};
 export const FOURTH_SKILLS={
@@ -20,7 +20,7 @@ export function stepFourth(a,target,tick,hit,emit=()=>{}){if(a.classId==='priest
  // Launch each visual before its damage pulse; preserve its ground impact afterwards.
  cast.visualNext??=cast.next;cast.visualLeft??=cast.left;
  while(cast.visualLeft>0&&tick>=cast.visualNext-(sk.mode==='orbit'?2:4)){const aim=sk.mode==='orbit'?a:cast;
-  emit({kind:'fourth',classId:a.classId,owner:a.id,x:aim.x,y:aim.y,size:sk.radius*2,pulse:sk.hits-cast.visualLeft,orbit:sk.mode==='orbit',start:cast.visualNext-(sk.mode==='orbit'?2:4),impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
+  emit({kind:'fourth',classId:a.classId,owner:a.id,x:aim.x,y:aim.y,fromX:a.x,fromY:a.y,size:sk.radius*2,pulse:sk.hits-cast.visualLeft,orbit:sk.mode==='orbit',start:cast.visualNext-(sk.mode==='orbit'?2:4),impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
   cast.visualLeft--;cast.visualNext+=sk.interval;
  }
  while(cast.left>0&&tick>=cast.next){const aim=sk.mode==='orbit'?a:cast;
