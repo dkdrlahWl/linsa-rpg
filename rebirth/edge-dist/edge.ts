@@ -11,18 +11,7 @@ const url = Deno.env.get("SUPABASE_URL")!;
 const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const origin = "https://dkdrlahwl.github.io";
-// Keep a warm isolate for a party's next requests: the runtime retires an isolate as soon as it looks idle
-// (EarlyDrop), and a fresh one re-runs the simulation with cold JIT. A pending waitUntil promise holds it
-// for WARM_MS after the latest request (still bounded by the platform wall-clock limit).
-const WARM_MS=20000;let warmUntil=0,warmKeeper:Promise<void>|null=null;
-function keepWarm(){
-  warmUntil=Date.now()+WARM_MS;
-  if(warmKeeper)return;
-  warmKeeper=(async()=>{while(Date.now()<warmUntil)await new Promise(r=>setTimeout(r,Math.min(1000,Math.max(50,warmUntil-Date.now()))));warmKeeper=null;})();
-  try{(globalThis as any).EdgeRuntime?.waitUntil?.(warmKeeper);}catch{}
-}
 Deno.serve(async (req) => {
-  keepWarm();
   const cors = {
     "Access-Control-Allow-Origin": origin,
     Vary: "Origin, Accept-Encoding",

@@ -47,8 +47,8 @@ export function citadelStats(floor,count,boss=false){
 function rng(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
 export function makeCitadelDungeon(floor,seed){return buildCitadelRegion(citadelStage(floor),floor,seed,CITADEL_VERSION);}
 export function citadelFloor(w,walkable,reveal){
- const st=citadelStage(w.floor),random=rng((w.started>>>0)^Math.imul(w.floor,1597334677));
- w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=Number.MAX_SAFE_INTEGER;delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
+ const st=citadelStage(w.floor),random=rng(((w.mapSeed??w.started)>>>0)^Math.imul(w.floor,1597334677));
+ w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=Number.MAX_SAFE_INTEGER;delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,(w.mapSeed??w.started)>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
  const slots=[];for(const r of w.dungeon.rooms){if(r.id===3)continue;for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(walkable(w.dungeon,(x+.5)*100,(y+.5)*100))slots.push({x:(x+.5)*100,y:(y+.5)*100});}
  for(let i=slots.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}
  const count=st.boss?0:Math.min(slots.length-12-CITADEL_HEARTS,CITADEL_MONSTERS.base+st.act*CITADEL_MONSTERS.perAct+Math.floor(random()*CITADEL_MONSTERS.spread));

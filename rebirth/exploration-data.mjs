@@ -22,10 +22,10 @@ export function explorationStats(tier,floor,count,boss=false){
 export const explorationArt=(tier,species,boss=false)=>tier===CITADEL_TIER?'citadel/'+(boss?'boss-9':'enemy-'+species)+'-213.webp':'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
 export function explorationFloor(w){
  if(isCitadel(w)){delete w.rewardChest;delete w.exitLocked;return citadelFloor(w,dungeonWalkable,revealDungeon);}
- const theme=EXPLORATIONS[w.tier],final=w.floor===theme.floors;w.floorAt=w.tick;w.floorDeadline=w.tick+1800;delete w.bossBattleAt;w.exitOpen=false;delete w.bossDeath;w.dungeon=(final?makeExplorationArena:makeExplorationDungeon)(w.tier,w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;
+ const theme=EXPLORATIONS[w.tier],final=w.floor===theme.floors;w.floorAt=w.tick;w.floorDeadline=w.tick+1800;delete w.bossBattleAt;w.exitOpen=false;delete w.bossDeath;w.dungeon=(final?makeExplorationArena:makeExplorationDungeon)(w.tier,w.floor,(w.mapSeed??w.started)>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;
  // Residents occupy separate rooms. The entry room stays safe during loading.
  const rooms=w.dungeon.rooms.filter(r=>r.id!==3),multiplier=explorationMonsterMultiplier(w.tier,w.floor);
- let spawnSeed=((w.started>>>0)^Math.imul(w.floor,2654435761)^Math.imul(w.tier+1,1597334677))>>>0;
+ let spawnSeed=(((w.mapSeed??w.started)>>>0)^Math.imul(w.floor,2654435761)^Math.imul(w.tier+1,1597334677))>>>0;
  const random=()=>{spawnSeed=(Math.imul(spawnSeed,1664525)+1013904223)>>>0;return spawnSeed/4294967296;};
  const slots=new Map(w.dungeon.rooms.map(r=>{const points=[];for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if((!r.spawnBounds||((x+.5)*100>=r.spawnBounds.left&&(x+.5)*100<r.spawnBounds.right&&(y+.5)*100>=r.spawnBounds.top&&(y+.5)*100<r.spawnBounds.bottom))&&dungeonWalkable(w.dungeon,(x+.5)*100,(y+.5)*100)&&(!final||Math.hypot((x+.5)*100-w.exit.x,(y+.5)*100-w.exit.y)>90))points.push([(x+.5)*100,(y+.5)*100]);for(let i=points.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[points[i],points[j]]=[points[j],points[i]];}return [r.id,points];}));
  const count=(final?3:6+Math.min(4,Math.floor((w.floor-1)/3)))*multiplier;
@@ -42,7 +42,7 @@ export function explorationFloor(w){
 }
 export function initializeExploration(w){
  if(w.members.filter(m=>!m.left).length>4)throw Error('INVALID_EXPLORATION_PLAYERS');
- Object.assign(w,{floor:1,population:w.members.filter(m=>!m.left).length,kills:0,seed:(w.started>>>0)||1});explorationFloor(w);return w;
+ Object.assign(w,{floor:1,population:w.members.filter(m=>!m.left).length,kills:0,seed:(w.started>>>0)||1,mapSeed:w.started>>>0});explorationFloor(w);return w;
 }
 export function explorationProgress(w){
  if(isCitadel(w)&&w.tick>=w.floorDeadline){w.status='lost';w.reason='floorTimeout';w.endedTick=w.tick;return;}

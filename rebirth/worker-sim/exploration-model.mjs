@@ -1,18 +1,18 @@
-import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside,CITADEL_CHEST_RANGE} from './citadel-zero.mjs?v=hw-225';
-import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=hw-225';
-import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-225';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-225';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-225';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-225';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-225';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=hw-225';
-import {incomingDamage} from './journey-balance.mjs?v=hw-225';
+import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside,CITADEL_CHEST_RANGE} from './citadel-zero.mjs?v=hw-227';
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=hw-227';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-227';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-227';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-227';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-227';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-227';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=hw-227';
+import {incomingDamage} from './journey-balance.mjs?v=hw-227';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const bound=x=>Math.max(120,Math.min(3080,x));
 function random(w){w.seed=(Math.imul(w.seed,1664525)+1013904223)>>>0;return w.seed/4294967296;}
-function spawnRandom(w){w.spawnSeed=(Math.imul(w.spawnSeed??((w.started>>>0)||1),1664525)+1013904223)>>>0;return w.spawnSeed/4294967296;}
+function spawnRandom(w){w.spawnSeed=(Math.imul(w.spawnSeed??(((w.mapSeed??w.started)>>>0)||1),1664525)+1013904223)>>>0;return w.spawnSeed/4294967296;}
 export {initializeExploration};
 function number(w,value,a,kind){w.numbers.push({id:++w.serial,value,x:a.x,y:a.y-90,kind,start:w.tick,end:w.tick+16});}
 function damage(w,m,targets,scale,critAdd=0){

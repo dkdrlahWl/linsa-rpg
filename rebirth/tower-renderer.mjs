@@ -160,6 +160,7 @@ export class TowerRenderer {
     g.save();g.translate(p.x,p.y-bob);g.scale(face,1);g.drawImage(im,r.x,r.y,r.w,r.h,-r.w*scale/2,-size,r.w*scale,size);g.restore();
     if(time<(actor.petHealUntil||0)){this.effect('rune',x,y-15,90,60,time*.04,.65);g.save();g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#a4ffdf';g.fillText('+'+Math.round(actor.petHealAmount||0),x,y-120-(12-(actor.petHealUntil-time))*3);g.restore();}
   }
+  setLowDetail(){if(this.lowDetail)return;this.lowDetail=true;try{Object.defineProperty(this.g,'shadowBlur',{set(){},get(){return 0},configurable:true});}catch{}}
   dispose(){this.resize.disconnect();this.dungeonLayer=null;this.dungeonFog=null;}
   sprite(src,columns,rows,frame,x,y,w,h,flip=1,rotation=0,alpha=1,width=1,lean=0){
     const im=image(src);if(!im.complete||!im.naturalWidth)return;
@@ -316,6 +317,10 @@ export class TowerRenderer {
   draw(b,previous,player,fraction,now,input,hint){
     b=localSkillView(b);
     if(this.last&&now-this.last<1000/this.maxFps-1)return;
+    // Adaptive quality: when frames stay slow (~1s above 1.45x the frame budget), drop canvas shadow blur
+    // for the rest of the session. Blur is the most expensive state on weaker GPUs/CPUs and long frames
+    // also cause visible prediction catch-up snaps.
+    if(!this.lowDetail&&this.last){const ft=now-this.last;if(ft<400){this.frameEma=(this.frameEma??ft)*.94+ft*.06;this.slowFrames=this.frameEma>1450/this.maxFps?(this.slowFrames||0)+1:0;if(this.slowFrames>40)this.setLowDetail();}}
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     this.citadelView=b.explorationMode&&b.tier===3;this.explorationView=b.explorationMode&&!this.citadelView;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;

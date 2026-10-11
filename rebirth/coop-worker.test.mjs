@@ -6,7 +6,7 @@ import {CoopPredictor} from './coop-prediction.mjs';
 import {CoopEffectMemory} from './coop-effect-memory.mjs';
 import {localSkillView} from './combat-visibility.mjs';
 const power={attack:1,hp:1000000,defense:100,boss:1,crit:.25,critDamage:1.5,cadence:1,firstJob:true,advancement:4};
-const project=w=>{const c=structuredClone(w);for(const k of ['_net','_queuedInputs','predictionInputs','predictionBase','protocol','revision'])delete c[k];for(const m of c.members)delete m.inputAck;return JSON.parse(JSON.stringify(c));};
+const project=w=>{const c=structuredClone(w);for(const k of ['_net','_queuedInputs','predictionInputs','predictionBase','protocol','revision'])delete c[k];for(const m of c.members)delete m.inputAck;if(c.dungeon)delete c.dungeon.seen;return JSON.parse(JSON.stringify(c));}; // fog is display-only; replay points restore the newer live fog
 const worker=new Worker("const {parentPort,workerData}=require('node:worker_threads');globalThis.self={postMessage:m=>parentPort.postMessage(m)};import(workerData).then(()=>parentPort.on('message',data=>self.onmessage({data})));",{eval:true,workerData:new URL('./coop-prediction-worker.mjs',import.meta.url).href});
 let sequence=0,generation=0;
 const send=async data=>{const reply=once(worker,'message');worker.postMessage({...data,generation,sequence:++sequence});const [packet]=await reply;assert.equal(packet.type,'state');return packet;};
