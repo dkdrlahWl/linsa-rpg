@@ -83,3 +83,6 @@ Existing consumable/shop tests and syntax checks are also run.
 ## 2026-10-11 hunting-class income (update 219)
 
 Spot scale [60,100,128,41,19]. ~300 casts/h net: rod1 ≈15k, rod10 ≈70k, rod20 ≈148k, rod30 ≈231k, rod40 ≈304k, rod50 ≈358k G/h (Lv.200 hunting ≈385k/h). Aquarium 0.75× sale price per hour (mythic 0.3×).
+
+## 2026-10-11 10× (update 220)
+Spot scale ×10 [600,1000,1280,410,190]: ~300 casts/h ≈ rod1 0.29M, rod20 1.48M, rod40 3.04M, rod50 3.58M G/h. Aquarium kept at previous absolute income (0.075× sale price, mythic 0.03×).
