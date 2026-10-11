@@ -117,12 +117,14 @@ const STATIC_MONSTER_KEYS=['name','citadel','explorationTier','art','level','max
 const historyPoint=(w,net)=>{const {_net,_queuedInputs,predictionBase,predictionInputs,dungeon,monsters,...core}=w;const point=structuredClone({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});point.dungeon=dungeon?.citadel?{ref:dungeon.id}:dungeon?.id&&point.mode==='exploration'?{ref:dungeon.id,exploration:true}:structuredClone(dungeon);
  if(dungeon?.citadel&&net&&Array.isArray(monsters)){net.static??={};point.monsters=monsters.map(e=>{if(e.boss||e.bossKind)return structuredClone(e);const s=net.static[e.id];if(!s||STATIC_MONSTER_KEYS.some(k=>s[k]!==e[k])){net.static[e.id]=Object.fromEntries(STATIC_MONSTER_KEYS.filter(k=>k in e).map(k=>[k,e[k]]));}const d={};for(const [k,v] of Object.entries(e))if(!STATIC_MONSTER_KEYS.includes(k))d[k]=structuredClone(v);d.$s=1;return d;});}
  else point.monsters=structuredClone(monsters);
+ // Raid damage numbers are cosmetic: rewinds borrow them from the live room instead of storing a copy per point.
+ if(point.mode==='raid')delete point.numbers;
  return point;};
 // Maps are deterministic: points keep a reference; fog (`seen`) comes from the live room or is re-revealed.
 const pointDungeon=(point,room)=>{const ref=point.dungeon?.ref;if(!ref)return point.dungeon===undefined?undefined:structuredClone(point.dungeon);if(room.dungeon?.id===ref)return structuredClone(room.dungeon);
  if(point.dungeon.exploration){const final=point.floor===EXPLORATIONS[point.tier].floors,d=(final?makeExplorationArena:makeExplorationDungeon)(point.tier,point.floor,(point.mapSeed??point.started)>>>0);return d;}
  return makeCitadelDungeon(point.floor,(point.mapSeed??point.started)>>>0);};
-const restorePoint=(point,room)=>{const w=structuredClone({...point,dungeon:undefined});w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;const table=room._net?.static||{};if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
+const restorePoint=(point,room)=>{const w=structuredClone({...point,dungeon:undefined});if(!point.numbers&&point.mode==='raid')w.numbers=structuredClone((room.numbers||[]).filter(n=>n.start<=point.tick&&n.end>point.tick));w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;const table=room._net?.static||{};if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
 export function validateCoopFrames(frames){if(!Array.isArray(frames)||frames.length>40||!frames.every(validFrame))throw Error('INVALID_COOP_INPUT');return frames;}
 // Return a confirmed personal timeline as well as the shared room snapshot.
 // The client replays its still-unconfirmed inputs from here, not from a world
@@ -197,7 +199,7 @@ function advanceCoopTimeline(room,user,input,now){
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){
   w=advanceCoopRaw(w,null,null,origin+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
-  if(w.tick%(['citadel','exploration'].includes(w.mode)?20:['wave','raid'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w,net));
+  if(w.tick%(['citadel','exploration','raid'].includes(w.mode)?20:w.mode==='wave'?10:5)===0)net.points.push(historyPoint(w,net));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
  net.frames=net.frames.filter(f=>f.tick>=net.points[0].tick);

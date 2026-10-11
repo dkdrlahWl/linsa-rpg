@@ -1,7 +1,7 @@
 // Shared with the authenticated server. Fish use gold; bait bundles use diamonds. Weight is grams.
 export const FISHING_VERSION=2;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
-export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:40,value:600}];
+export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:600}];
 export const SPOTS=[
  {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
  {id:'moon',bonus:1.15,luck:1.958,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},

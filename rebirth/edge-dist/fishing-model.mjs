@@ -36,11 +36,13 @@ export function fishingStep(cast,input,meter){
  return meter;
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
+// Base grade weights (update 241: 전설·신화 halved).
+export const FISH_GRADE_WEIGHTS=[1,.30,.09,.024,.00175,.00025];
 function rollCatch(c,ctx){
  const spot=SPOTS.find(x=>x.id===c.spot)||SPOTS[0],bait=BAITS.find(x=>x.id===c.bait)||BAITS[0],rod=c.rod||1;
  const available=FISH.filter(x=>x.spot===spot.id&&x.level<=rod);
  // Higher-grade bait improves rarity weights but never bypasses rod gates.
- const weights=available.map(x=>[1,.30,.09,.024,.0035,.0005][x.rarity]*baitGradeWeight(x,bait)*spotGradeWeight(x)*(1+.012*Math.max(0,rod-x.level)*x.rarity));
+ const weights=available.map(x=>FISH_GRADE_WEIGHTS[x.rarity]*baitGradeWeight(x,bait)*spotGradeWeight(x)*(1+.012*Math.max(0,rod-x.level)*x.rarity));
  let roll=ctx.random()*weights.reduce((n,x)=>n+x,0),index=weights.length-1;
  for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
  const species=available[index],size=ctx.random()**1.65,weight=Math.round(species.min+(species.max-species.min)*size);

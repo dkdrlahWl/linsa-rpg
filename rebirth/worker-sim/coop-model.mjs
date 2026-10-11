@@ -1,24 +1,24 @@
-import {isCitadel,isDungeon,CITADEL_CONTENT,makeCitadelDungeon} from './citadel-zero.mjs?v=hw-232';
-import {dungeonMove,revealDungeon,makeExplorationDungeon,makeExplorationArena} from './exploration-dungeon.mjs?v=hw-232';
-import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-232';
-import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=hw-232';
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=hw-232';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=hw-232';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=hw-232';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-232';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-232';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-232';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=hw-232';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-232';
+import {isCitadel,isDungeon,CITADEL_CONTENT,makeCitadelDungeon} from './citadel-zero.mjs?v=hw-242';
+import {dungeonMove,revealDungeon,makeExplorationDungeon,makeExplorationArena} from './exploration-dungeon.mjs?v=hw-242';
+import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-242';
+import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=hw-242';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=hw-242';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=hw-242';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=hw-242';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-242';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-242';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-242';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=hw-242';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-242';
 export const coopEncounter=room=>isCitadel(room)?CITADEL_CONTENT:room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=hw-232';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-232';
-import {beginThird,stepThird} from './advancement.mjs?v=hw-232';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-232';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-232';
-import {incomingDamage} from './journey-balance.mjs?v=hw-232';
-import {COOP_TIERS} from './rift-rewards.mjs?v=hw-232';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=hw-242';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-242';
+import {beginThird,stepThird} from './advancement.mjs?v=hw-242';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-242';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-242';
+import {incomingDamage} from './journey-balance.mjs?v=hw-242';
+import {COOP_TIERS} from './rift-rewards.mjs?v=hw-242';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -117,12 +117,14 @@ const STATIC_MONSTER_KEYS=['name','citadel','explorationTier','art','level','max
 const historyPoint=(w,net)=>{const {_net,_queuedInputs,predictionBase,predictionInputs,dungeon,monsters,...core}=w;const point=structuredClone({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});point.dungeon=dungeon?.citadel?{ref:dungeon.id}:dungeon?.id&&point.mode==='exploration'?{ref:dungeon.id,exploration:true}:structuredClone(dungeon);
  if(dungeon?.citadel&&net&&Array.isArray(monsters)){net.static??={};point.monsters=monsters.map(e=>{if(e.boss||e.bossKind)return structuredClone(e);const s=net.static[e.id];if(!s||STATIC_MONSTER_KEYS.some(k=>s[k]!==e[k])){net.static[e.id]=Object.fromEntries(STATIC_MONSTER_KEYS.filter(k=>k in e).map(k=>[k,e[k]]));}const d={};for(const [k,v] of Object.entries(e))if(!STATIC_MONSTER_KEYS.includes(k))d[k]=structuredClone(v);d.$s=1;return d;});}
  else point.monsters=structuredClone(monsters);
+ // Raid damage numbers are cosmetic: rewinds borrow them from the live room instead of storing a copy per point.
+ if(point.mode==='raid')delete point.numbers;
  return point;};
 // Maps are deterministic: points keep a reference; fog (`seen`) comes from the live room or is re-revealed.
 const pointDungeon=(point,room)=>{const ref=point.dungeon?.ref;if(!ref)return point.dungeon===undefined?undefined:structuredClone(point.dungeon);if(room.dungeon?.id===ref)return structuredClone(room.dungeon);
  if(point.dungeon.exploration){const final=point.floor===EXPLORATIONS[point.tier].floors,d=(final?makeExplorationArena:makeExplorationDungeon)(point.tier,point.floor,(point.mapSeed??point.started)>>>0);return d;}
  return makeCitadelDungeon(point.floor,(point.mapSeed??point.started)>>>0);};
-const restorePoint=(point,room)=>{const w=structuredClone({...point,dungeon:undefined});w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;const table=room._net?.static||{};if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
+const restorePoint=(point,room)=>{const w=structuredClone({...point,dungeon:undefined});if(!point.numbers&&point.mode==='raid')w.numbers=structuredClone((room.numbers||[]).filter(n=>n.start<=point.tick&&n.end>point.tick));w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;const table=room._net?.static||{};if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
 export function validateCoopFrames(frames){if(!Array.isArray(frames)||frames.length>40||!frames.every(validFrame))throw Error('INVALID_COOP_INPUT');return frames;}
 // Return a confirmed personal timeline as well as the shared room snapshot.
 // The client replays its still-unconfirmed inputs from here, not from a world
@@ -197,7 +199,7 @@ function advanceCoopTimeline(room,user,input,now){
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){
   w=advanceCoopRaw(w,null,null,origin+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
-  if(w.tick%(['citadel','exploration'].includes(w.mode)?20:['wave','raid'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w,net));
+  if(w.tick%(['citadel','exploration','raid'].includes(w.mode)?20:w.mode==='wave'?10:5)===0)net.points.push(historyPoint(w,net));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
  net.frames=net.frames.filter(f=>f.tick>=net.points[0].tick);
