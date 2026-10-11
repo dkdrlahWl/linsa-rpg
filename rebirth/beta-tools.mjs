@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=boss-relic-only-130';
+import {MATERIALS,REGIONS,STAGES,BOSSES} from './data.mjs?v=endgame-level-250-20261011';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){
@@ -31,7 +31,7 @@ export function applyBetaTool(s,command,args,now){
     return {type:'betaGrant',key,amount};
   }
   check(command==='betaLevel','UNKNOWN_COMMAND');
-  check(Number.isSafeInteger(args.level)&&args.level>=1&&args.level<=200,'INVALID_BETA_LEVEL');
+  check(Number.isSafeInteger(args.level)&&args.level>=1&&args.level<=250,'INVALID_BETA_LEVEL');
   check(!s.pendingCube,'ITEM_CUBE_PENDING');
   const before=s.level;s.level=args.level;s.xp=0;s.xpRemainder=0;
   s.stats={STR:4,DEX:4,INT:4,LUK:4};s.points=(s.level-1)*5;s.classBuilds={};

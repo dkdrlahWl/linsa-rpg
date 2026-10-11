@@ -12,9 +12,9 @@ import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
 import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=fifth-114';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
-import {applyBetaTool} from './beta-tools.mjs?v=fifth-impact-121';
+import {applyBetaTool} from './beta-tools.mjs?v=beta-level-250-20261011';
 import {
   VERSION,
   normalizePotentialState,
@@ -284,11 +284,11 @@ function levelUp(s, xp) {
   const exact = xp + (s.xpRemainder || 0), whole = Math.floor(exact + 1e-9);
   s.xpRemainder = Math.max(0, exact - whole);
   s.xp += whole;
-  while (s.level < 200 && s.xp >= xpNeeded(s.level)) {
+  while (s.level < 250 && s.xp >= xpNeeded(s.level)) {
     s.xp -= xpNeeded(s.level++);
     s.points += 5;
   }
-  if (s.level === 200) s.xp = 0;
+  if (s.level >= 250) { s.xp = 0; s.xpRemainder = 0; }
 }
 function rollCount(n, prob, ctx) {
   let hits = 0;
@@ -334,7 +334,7 @@ export function settle(s, ctx) {
     let count = Math.floor(remaining / rate.seconds);
     if (!count) break;
     if (!rate.survives) { defeats += count; remaining %= rate.seconds; break; }
-    if (s.level < 200) count = Math.min(count, Math.ceil((xpNeeded(s.level) - s.xp - (s.xpRemainder || 0)) / rate.xp));
+    if (s.level < 250) count = Math.min(count, Math.ceil((xpNeeded(s.level) - s.xp - (s.xpRemainder || 0)) / rate.xp));
     remaining -= count * rate.seconds;
     kills += count; xp += count * rate.xp; earnedGold += count * rate.gold;
     levelUp(s, count * rate.xp);

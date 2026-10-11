@@ -38,7 +38,7 @@ import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide } from './cube-ui.mjs?v=prime-choice-158';
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower20-174';
-import * as D from "./data.mjs?v=boss-200-stats-132";
+import * as D from "./data.mjs?v=endgame-level-250-20261011";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-impact-121";
@@ -1188,7 +1188,7 @@ let betaResource="gold",betaAmount=1000;
 function betaTools(){
   if(!state?.isAdmin)return;
   const blocked=!!state.battle||!!state.partyRoom||!!state.coopRoom;
-  open("관리자 · 도현1",`<p class="note">랭킹 제외 · 던전 무한 입장 · 골드와 모든 재화·소비템 각각 999,999,999,999</p><section class="panel pad"><h3>레벨 조정 · Lv.${state.level}</h3><input id="beta-level" aria-label="원하는 레벨" type="number" inputmode="numeric" min="1" max="200" step="1" value="${state.level}"><p class="note">1~200레벨. 스탯 포인트를 다시 분배하고, 착용 레벨에 맞지 않는 장비는 해제합니다. 낮춘 레벨에 맞춰 전직도 해제됩니다.</p>${disabledBtn("레벨 적용","betaLevel","",blocked||!!state.pendingCube,"gold")}</section><section class="panel pad"><h3>사냥 시간 건너뛰기</h3><p class="note">현재 사냥터·장비로 선택한 시간만큼 사냥합니다. 경험치와 무작위 드롭을 실제로 지급합니다. 너무 강한 사냥터에서는 처치하지 못할 수 있습니다.</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${Array.from({length:12},(_,i)=>disabledBtn((i+1)+"시간","adminSkip",i+1,blocked)).join("")}</div></section>${blocked?'<p class="note">전투·파티 종료 후 사용할 수 있습니다.</p>':""}`);
+  open("관리자 · 도현1",`<p class="note">랭킹 제외 · 던전 무한 입장 · 골드와 모든 재화·소비템 각각 999,999,999,999</p><section class="panel pad"><h3>레벨 조정 · Lv.${state.level}</h3><input id="beta-level" aria-label="원하는 레벨" type="number" inputmode="numeric" min="1" max="250" step="1" value="${state.level}"><p class="note">1~250레벨. 스탯 포인트를 다시 분배하고, 착용 레벨에 맞지 않는 장비는 해제합니다. 낮춘 레벨에 맞춰 전직도 해제됩니다.</p>${disabledBtn("레벨 적용","betaLevel","",blocked||!!state.pendingCube,"gold")}</section><section class="panel pad"><h3>사냥 시간 건너뛰기</h3><p class="note">현재 사냥터·장비로 선택한 시간만큼 사냥합니다. 경험치와 무작위 드롭을 실제로 지급합니다. 너무 강한 사냥터에서는 처치하지 못할 수 있습니다.</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${Array.from({length:12},(_,i)=>disabledBtn((i+1)+"시간","adminSkip",i+1,blocked)).join("")}</div></section>${blocked?'<p class="note">전투·파티 종료 후 사용할 수 있습니다.</p>':""}`);
 }
 function settingsDialog() {
   open(
@@ -1452,7 +1452,7 @@ document.addEventListener("click", async (e) => {
     if(action==="betaLevel"){
       if(busy)return;
       const level=Number($("#beta-level").value);
-      if(!Number.isSafeInteger(level)||level<1||level>200)return toast("레벨은 1~200 사이 정수로 입력해 주세요.");
+      if(!Number.isSafeInteger(level)||level<1||level>250)return toast("레벨은 1~250 사이 정수로 입력해 주세요.");
       const result=await command("betaLevel",{level});
       if(result){betaTools();toast("레벨이 조정됐어요. 스탯 포인트를 분배해 주세요.");}return;
     }

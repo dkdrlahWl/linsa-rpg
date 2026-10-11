@@ -2,9 +2,9 @@ export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=fifth-im
 export {PRIEST_SKILLS} from './priest.mjs?v=fifth-114';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=fifth-114';
 export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=fifth-114';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=boss-190-126';
-import {extendEndgameFields} from './endgame-field.mjs?v=fallen-star-173';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=boss-190-126';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=journey-250-20261011';
+import {extendEndgameFields} from './endgame-field.mjs?v=endgame-level-250-20261011';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=journey-250-20261011';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=prime-choice-158';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=prime-choice-158';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=boss-200-stats-132";
@@ -254,7 +254,8 @@ export function fieldMonster(stageId,kills=0) {
 }
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
-  return journeyXP(level);
+ const endgame=level>=200?3:1;
+ return Math.round(journeyXP(level)*endgame);
 }
 export function gearStatRanges(item) {
  const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
