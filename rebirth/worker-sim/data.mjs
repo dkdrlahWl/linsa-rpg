@@ -254,7 +254,8 @@ export function fieldMonster(stageId,kills=0) {
 }
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
-  return journeyXP(level);
+ const endgame=level>=200?3:1;
+ return Math.round(journeyXP(level)*endgame);
 }
 export function gearStatRanges(item) {
  const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
