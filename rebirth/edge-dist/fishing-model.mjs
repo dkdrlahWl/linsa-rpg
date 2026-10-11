@@ -36,8 +36,8 @@ export function fishingStep(cast,input,meter){
  return meter;
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
-// Base grade weights (update 241: 전설·신화 halved).
-export const FISH_GRADE_WEIGHTS=[1,.30,.09,.024,.00175,.00025];
+// Base grade weights (update 241 and 2026-10-12: 전설·신화 halved twice).
+export const FISH_GRADE_WEIGHTS=[1,.30,.09,.024,.000875,.000125];
 function rollCatch(c,ctx){
  const spot=SPOTS.find(x=>x.id===c.spot)||SPOTS[0],bait=BAITS.find(x=>x.id===c.bait)||BAITS[0],rod=c.rod||1;
  const available=FISH.filter(x=>x.spot===spot.id&&x.level<=rod);
