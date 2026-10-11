@@ -1,8 +1,8 @@
 import {isCitadel} from './citadel-zero.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
 import {EXPLORATION_REWARDS,EXPLORATION_REWARD_COUNTS,explorationGearLevel} from './exploration-reward-data.mjs';
-import {CLASSES,SLOTS,selectDesign,rollBaseStats} from './data.mjs';
-import {makeItem,addItem} from './engine.mjs';
+import {CLASSES,selectDesign,rollBaseStats} from './data.mjs';
+import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
 export function grantExplorationChest(input,room,ctx){
  if(isCitadel(room))throw Error('CITADEL_REWARDS_DISABLED');
  const theme=EXPLORATIONS[room.tier],rates=EXPLORATION_REWARDS[room.tier];if(!theme||!rates||room.status!=='won'||room.cleared!==theme.floors)throw Error('COOP_CHEST_NOT_READY');
@@ -10,7 +10,7 @@ export function grantExplorationChest(input,room,ctx){
  state.gold+=reward.gold;state.materials??={};
  for(const key of ['scroll','highCube','potentialLock']){reward[key]=ctx.random()<rates[key]?EXPLORATION_REWARD_COUNTS[key]:0;state.materials[key]=(state.materials[key]||0)+reward[key];}
  if(ctx.random()<rates.bossGear){
-  const level=explorationGearLevel(ctx.random),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=Math.floor(ctx.random()*SLOTS.length),design=selectDesign(level,classId,slot,true,ctx.random);
+  const level=explorationGearLevel(ctx.random),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
   state.items??=[];state.collection??=[];if(state.items.length>=300)reward.stored=1;addItem(state,item);reward.items.push(item);
  }
