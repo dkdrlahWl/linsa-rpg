@@ -39,10 +39,13 @@ export const CITADEL_REGION_HEAL=.3,CITADEL_HEARTS=3,CITADEL_MONSTERS={base:90,p
 export const citadelPopulation=n=>({hp:Math.max(1,Math.min(4,n)),attack:1});
 // Smooth NG0 curve tuned so the Dohyun Lv.200 reference clears about 80% of solo runs
 // (citadel-campaign-sim.mjs). Monster HP still multiplies by party size.
+// Update 232: citadel monster attack x10 (normal monsters, summons, ritual casters) and x15 (bosses).
+export const CITADEL_ATTACK_BOOST={normal:10,boss:15};
+export const citadelAttackBoost=boss=>boss?CITADEL_ATTACK_BOOST.boss:CITADEL_ATTACK_BOOST.normal;
 export const CITADEL_TUNING={depthStart:.6,depthStep:.07,normalAttackStep:.015,normalHp:180000,normalAttack:2000,bossHp:18000000,bossAttack:900,bossAttackBy:{totem:1,shadow:1,plant:.22,harbingers:.9,serpents:.25,avatar:.45},bossHpBy:{totem:2.5,shadow:1,plant:1.3,harbingers:3,serpents:2,avatar:1}};
 export function citadelStats(floor,count,boss=false){
  const k=CITADEL_TUNING,stage=citadelStage(floor),depth=k.depthStart+k.depthStep*(floor-1);
- return {hp:Math.round((boss?k.bossHp*(k.bossHpBy[stage.boss]??1):k.normalHp)*depth*citadelPopulation(count).hp),attack:Math.round(boss?k.bossAttack*(k.bossAttackBy[stage.boss]??1)*depth:k.normalAttack*(k.depthStart+k.normalAttackStep*(floor-1))),speed:boss?19:20+Math.min(5,stage.act)};
+ return {hp:Math.round((boss?k.bossHp*(k.bossHpBy[stage.boss]??1):k.normalHp)*depth*citadelPopulation(count).hp),attack:Math.round((boss?k.bossAttack*(k.bossAttackBy[stage.boss]??1)*depth:k.normalAttack*(k.depthStart+k.normalAttackStep*(floor-1)))*citadelAttackBoost(boss)),speed:boss?19:20+Math.min(5,stage.act)};
 }
 function rng(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
 export function makeCitadelDungeon(floor,seed){return buildCitadelRegion(citadelStage(floor),floor,seed,CITADEL_VERSION);}
@@ -56,7 +59,7 @@ export function citadelFloor(w,walkable,reveal){
  for(let i=0;i<count;i++)w.monsters.push(make(i,slots.pop()));
  if(st.boss){const order=[0,1,2,3];for(let j=3;j>0;j--){const k=Math.floor(random()*(j+1));[order[j],order[k]]=[order[k],order[j]];}const n=st.boss==='harbingers'?2:st.boss==='serpents'?3:1,artIndex={totem:0,shadow:4,plant:5,harbingers:6,serpents:8,avatar:9}[st.boss];
   for(let i=0;i<n;i++){const stats=citadelStats(w.floor,w.population,true);w.monsters.push(make(900+i,{x:w.exit.x+(i-(n-1)/2)*450,y:w.exit.y},{boss:true,elite:true,role:'boss',name:CITADEL_BOSSES[st.boss],bossKind:st.boss,art:citadelAsset('boss',artIndex+(st.boss==='harbingers'?i:0)),hp:Math.round(stats.hp/n),maxHp:Math.round(stats.hp/n),speed:st.boss==='totem'||st.boss==='shadow'||st.boss==='plant'?0:stats.speed,skillReady:w.tick+30,phase:0,phaseOrder:order}));}
-  if(st.boss==='shadow')for(let i=0;i<4;i++)w.monsters.push(make(1000+i,{x:w.exit.x+Math.cos(i*Math.PI/2)*550,y:w.exit.y+Math.sin(i*Math.PI/2)*550},{channel:true,attack:500,role:'caster',art:citadelAsset('enemy',9),name:'의식의 광신도',hp:citadelStats(w.floor,w.population,true).hp/12,maxHp:citadelStats(w.floor,w.population,true).hp/12}));
+  if(st.boss==='shadow')for(let i=0;i<4;i++)w.monsters.push(make(1000+i,{x:w.exit.x+Math.cos(i*Math.PI/2)*550,y:w.exit.y+Math.sin(i*Math.PI/2)*550},{channel:true,attack:Math.round(500*citadelAttackBoost(false)),role:'caster',art:citadelAsset('enemy',9),name:'의식의 광신도',hp:citadelStats(w.floor,w.population,true).hp/12,maxHp:citadelStats(w.floor,w.population,true).hp/12}));
  }
  if(!st.boss&&st.biome!==0)for(let i=0;i<6+st.act;i++){const p=slots.pop();if(p)w.traps.push({id:w.floor*100+i,...p,r:100,ready:w.tick+15,type:st.biome===1?'rock':st.biome===4?'thorn':st.biome===7?'shadow':'spike'});}
  w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp;w.enemy={...w.exit,face:1};
