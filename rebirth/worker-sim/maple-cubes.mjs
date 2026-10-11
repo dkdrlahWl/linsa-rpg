@@ -1,4 +1,4 @@
-import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=citadel-path-216';
+import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=citadel-rebuild-217';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',4,[.060000002444,.018,0],[1,1,1],{pity:[0,0,25,83,0]}),

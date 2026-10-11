@@ -1,7 +1,8 @@
-import {dungeonMove} from './exploration-dungeon.mjs?v=citadel-path-216';
+import {buildCitadelRegion} from './citadel-map.mjs?v=citadel-rebuild-217';
+import {dungeonMove} from './exploration-dungeon.mjs?v=citadel-rebuild-217';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
-export const CITADEL_TIER=3,CITADEL_VERSION='citadel-independent-214';
+export const CITADEL_TIER=3,CITADEL_VERSION='citadel-rebuild-217';
 export const CITADEL_REFERENCE={attack:49108,hp:67525,defense:1373,boss:3.2,combatPower:206123};
 export const CITADEL_BIOMES=[
  {name:'깊은 숲',color:'#192b24',floor:'#43553c',wall:'#203326',light:'#d0b76c',enemies:['회색 늑대','녹색 딱정벌레','붉은모자 고블린','고블린 주술사']},
@@ -35,26 +36,7 @@ export function citadelStats(floor,count,boss=false){
  return {hp:Math.round((boss?18000000:180000)*depth*citadelPopulation(count).hp),attack:Math.round((boss?(stage.act<=2?2100:9000):1700)*depth),speed:boss?19:20+Math.min(5,stage.act)};
 }
 function rng(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
-export function makeCitadelDungeon(floor,seed){
- const st=citadelStage(floor),random=rng(seed^Math.imul(floor,2654435761)),size=64,cell=100,grid=Array.from({length:size},()=>Array(size).fill('0')),rooms=[];
- const paint=(x,y,w,h,value='2')=>{for(let yy=Math.max(1,y);yy<Math.min(size-1,y+h);yy++)for(let xx=Math.max(1,x);xx<Math.min(size-1,x+w);xx++)grid[yy][xx]=value;};
- if(st.boss){rooms.push({id:3,x:25,y:43,w:13,h:8},{id:0,x:17,y:12,w:30,h:30});paint(25,39,13,12);paint(17,12,30,30);}
- else if(st.biome===7){
-  // A winding primary hall with side branches, rather than a rectangular room grid.
-  const points=[[6,54],[18,54],[18,39],[42,39],[42,23],[56,23],[56,8]];
-  for(let i=0;i<points.length;i++){const [x,y]=points[i];rooms.push({id:i===0?3:i===6?0:i+4,x:x-3,y:y-3,w:7,h:7});paint(x-3,y-3,7,7);if(i){const [a,b]=points[i-1];paint(Math.min(a,x)-2,Math.min(b,y)-2,Math.abs(a-x)+5,Math.abs(b-y)+5,'1');}}
-  for(const [x,y] of [[9,39],[28,48],[51,44],[32,23],[47,10]]){rooms.push({id:rooms.length+8,x:x-3,y:y-3,w:7,h:7});paint(x-3,y-3,7,7);const [a,b]=points.reduce((best,p)=>Math.abs(p[0]-x)+Math.abs(p[1]-y)<Math.abs(best[0]-x)+Math.abs(best[1]-y)?p:best);paint(Math.min(x,a)-1,y-1,Math.abs(x-a)+3,3,'1');paint(a-1,Math.min(y,b)-1,3,Math.abs(y-b)+3,'1');}
- }else{
-  const natural=st.biome<=1,slots=[[5,45],[7,26],[5,6],[24,7],[44,5],[44,24],[45,45],[25,43],[25,25]];
-  for(let i=0;i<slots.length;i++){const [x,y]=slots[i],w=(natural?10:8)+Math.floor(random()*5),h=(natural?10:8)+Math.floor(random()*5);rooms.push({id:i===0?3:i===3?0:i+4,x,y,w,h});paint(x,y,w,h);}
-  const connect=(a,b)=>{let x=a.x+Math.floor(a.w/2),y=a.y+Math.floor(a.h/2),tx=b.x+Math.floor(b.w/2),ty=b.y+Math.floor(b.h/2),width=natural?4:3;while(x!==tx){paint(x,y,width,width,'1');x+=Math.sign(tx-x);}while(y!==ty){paint(x,y,width,width,'1');y+=Math.sign(ty-y);}paint(x,y,width,width,'1');};
-  for(let i=1;i<rooms.length;i++)connect(rooms[i-1],rooms[i]);connect(rooms[8],rooms[1]);connect(rooms[5],rooms[8]);
-  if(natural)for(const r of rooms)for(let i=0;i<9;i++){const x=r.x+1+Math.floor(random()*(r.w-2)),y=r.y+1+Math.floor(random()*(r.h-2));if((x-r.x>3)&&(y-r.y>3)&&(r.x+r.w-x>3)&&(r.y+r.h-y>3)&&Math.hypot(x-(r.x+r.w/2),y-(r.y+r.h/2))>2)grid[y][x]='0';}
- }
- const shadowWalls=[];if(st.biome===7&&!st.boss){for(const [x,y,h] of [[18,45,4],[42,29,4],[50,23,4]])for(let i=0;i<h;i++)if(grid[y+i]?.[x]!=='0'){grid[y+i][x]='3';shadowWalls.push({x:x*cell,y:(y+i)*cell});}}
- const startRoom=rooms.find(r=>r.id===3),exitRoom=rooms.find(r=>r.id===0)||rooms.at(-1),center=r=>({x:(r.x+r.w/2)*cell,y:(r.y+r.h/2)*cell});
- return {id:CITADEL_VERSION+':'+floor+':'+(seed>>>0),size,cell,tiles:grid.map(r=>r.join('')),rooms,start:center(startRoom),exit:center(exitRoom),seen:Array(size).fill('0'.repeat(size)),citadel:true,shadowWalls,biome:st.biome,bossArena:!!st.boss};
-}
+export function makeCitadelDungeon(floor,seed){return buildCitadelRegion(citadelStage(floor),floor,seed,CITADEL_VERSION);}
 export function citadelFloor(w,walkable,reveal){
  const st=citadelStage(w.floor),random=rng((w.started>>>0)^Math.imul(w.floor,1597334677));
  w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=Number.MAX_SAFE_INTEGER;delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
@@ -67,7 +49,6 @@ export function citadelFloor(w,walkable,reveal){
   for(let i=0;i<n;i++){const stats=citadelStats(w.floor,w.population,true);w.monsters.push(make(900+i,{x:w.exit.x+(i-(n-1)/2)*450,y:w.exit.y},{boss:true,elite:true,role:'boss',name:CITADEL_BOSSES[st.boss],bossKind:st.boss,art:citadelAsset('boss',artIndex+(st.boss==='harbingers'?i:0)),hp:Math.round(stats.hp/n),maxHp:Math.round(stats.hp/n),speed:st.boss==='totem'||st.boss==='shadow'||st.boss==='plant'?0:stats.speed,skillReady:w.tick+30,phase:0,phaseOrder:order}));}
   if(st.boss==='shadow')for(let i=0;i<4;i++)w.monsters.push(make(1000+i,{x:w.exit.x+Math.cos(i*Math.PI/2)*550,y:w.exit.y+Math.sin(i*Math.PI/2)*550},{channel:true,attack:500,role:'caster',art:citadelAsset('enemy',9),name:'의식의 광신도',hp:citadelStats(w.floor,w.population,true).hp/12,maxHp:citadelStats(w.floor,w.population,true).hp/12}));
  }
- for(let i=0;i<(st.boss?2:5);i++){const p=slots.pop();if(p)w.hearts.push({id:w.floor*10+i,...p});}
  if(!st.boss&&st.biome!==0)for(let i=0;i<6+st.act;i++){const p=slots.pop();if(p)w.traps.push({id:w.floor*100+i,...p,r:100,ready:w.tick+15,type:st.biome===1?'rock':st.biome===4?'thorn':st.biome===7?'shadow':'spike'});}
  w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp;w.enemy={...w.exit,face:1};
  for(const [i,m] of w.members.entries()){Object.assign(m,{x:w.dungeon.start.x+(i%2)*90-45,y:w.dungeon.start.y+Math.floor(i/2)*90-45,input:[0,0,0],inputAt:w.started+w.tick*100,reviveProgress:0});for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];}

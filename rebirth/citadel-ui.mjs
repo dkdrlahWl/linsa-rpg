@@ -13,6 +13,8 @@ export function citadelHud(host,w){
  set('#tower-range',w.members.filter(m=>!m.left&&m.hp>0).length+'명 생존 · '+(stage.boss?CITADEL_BOSSES[stage.boss]:'미지의 길'));
  set('#tower-status',w.status==='won'?'최후의 화신을 처치했습니다. 나가기를 눌러 원정을 마치세요.':me.hp<=0?'쓰러졌습니다. 동료의 구조를 기다리세요.':bosses.length?CITADEL_BOSSES[stage.boss]+' · 공격 예고를 피하세요.':w.exitOpen?'출구를 찾아 다음 구역으로 이동하세요.':'전투 중');
  set('#tower-enemy-hp',bosses.length?Math.ceil(hp).toLocaleString('ko-KR')+' / '+Math.ceil(max).toLocaleString('ko-KR'):stage.name);
+ host.classList.toggle('citadel-boss-active',bosses.length>0);
+ const status=host.querySelector('#tower-status');if(status)status.hidden=w.status!=='won'&&me.hp>0;
  const bar=host.querySelector('#tower-enemy-bar');if(bar)bar.style.width=(max?hp/max*100:0)+'%';
  const chest=host.querySelector('#tower-chest');if(chest){chest.hidden=true;chest.disabled=true;}
 }

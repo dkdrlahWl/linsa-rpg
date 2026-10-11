@@ -1,11 +1,11 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=citadel-path-216';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=citadel-path-216';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-path-216';
-import {beginThird,stepThird} from './advancement.mjs?v=citadel-path-216';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=citadel-path-216';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-path-216';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-path-216';
-import {incomingDamage} from './journey-balance.mjs?v=citadel-path-216';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=citadel-rebuild-217';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=citadel-rebuild-217';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-rebuild-217';
+import {beginThird,stepThird} from './advancement.mjs?v=citadel-rebuild-217';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=citadel-rebuild-217';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-rebuild-217';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-rebuild-217';
+import {incomingDamage} from './journey-balance.mjs?v=citadel-rebuild-217';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>8)throw Error('INVALID_COOP_ROOM');

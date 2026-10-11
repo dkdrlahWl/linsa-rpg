@@ -1,3 +1,4 @@
+import {drawCitadelWorld,drawCitadelMap} from './citadel-renderer.mjs';
 import {drawExplorationDungeon,drawExplorationFog,drawExplorationMinimap,explorationTerrainSource} from './exploration-renderer.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
@@ -153,7 +154,7 @@ export class TowerRenderer {
     // pixel-readback walking rig for every new attack pose on the render thread.
     const riggedWalk=moving&&detailedMotion;
     if(moving&&!detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
-    const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.4:1);
+    const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:1);
     const costume=costumeById(costumeId,classId);
     if(costume){
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
@@ -301,7 +302,7 @@ export class TowerRenderer {
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
     // Keep zoom stable when a boss approaches or the player lunges to attack.
-    const scale=this.presentationScale||(b.raidMode?Math.min(.7,Math.max(.28,height/2600)):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
+    const scale=this.presentationScale||(this.citadelView?.55:b.raidMode?Math.min(.7,Math.max(.28,height/2600)):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));
@@ -312,7 +313,7 @@ export class TowerRenderer {
     g.fillStyle='#08131c';g.fillRect(0,0,1000,height);
     const feedback=fifthFeedback(b.effects,time,b.actorId??b.id);
     g.save();g.translate(500,height/2);g.scale(scale,scale);g.translate(b.explorationMode?0:feedback.x,b.explorationMode?0:feedback.y);
-    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(b.explorationMode){const bg=image(explorationTerrainSource(b.tier,b.explorationFloor||b.floor));if(!drawExplorationDungeon(this,b,bg,image('exploration/heal-heart-194.webp'))&&bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(!b.dungeon&&b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
+    g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(this.citadelView){drawCitadelWorld(this,b,image);}else if(b.explorationMode){const bg=image(explorationTerrainSource(b.tier,b.explorationFloor||b.floor));if(!drawExplorationDungeon(this,b,bg,image('exploration/heal-heart-194.webp'))&&bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(!b.dungeon&&b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else this.background();
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
     for(const e of fourthAreas)drawFourthGround(g,e,time);
@@ -468,7 +469,7 @@ export class TowerRenderer {
     }
     if(b.explorationMode)drawExplorationFog(g,b,this.camera,viewWidth,viewHeight,this);
     g.restore();
-    if(b.explorationMode)drawExplorationMinimap(g,b,player);
+    if(this.citadelView)drawCitadelMap(g,b,player);else if(b.explorationMode)drawExplorationMinimap(g,b,player);
     if(b.hp/b.power.hp<.3){g.save();g.lineWidth=18;g.strokeStyle='#ee575a50';g.strokeRect(0,0,1000,height);g.restore();}
   }
 }

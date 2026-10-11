@@ -1,0 +1,16 @@
+[data-coop-mode="citadel"].tower-play{max-width:none;width:100%;position:relative;grid-template-rows:minmax(280px,1fr) 34px 120px 32px;background:#16201b}
+[data-coop-mode="citadel"] .tower-stage{grid-row:1;min-height:0}
+[data-coop-mode="citadel"] .tower-hud{position:absolute;z-index:3;top:12px;left:12px;width:min(310px,55%);padding:10px 12px;background:#101b20bb;border:1px solid #b0a37855;border-radius:4px;pointer-events:none}
+[data-coop-mode="citadel"] .tower-title-row{gap:10px}
+[data-coop-mode="citadel"] .tower-floor-tag{white-space:nowrap;min-width:48px;font-size:15px;padding:7px}
+[data-coop-mode="citadel"] .tower-title-row h3{font-size:17px;margin:0}
+[data-coop-mode="citadel"] .tower-title-row small{font-size:10px}
+[data-coop-mode="citadel"] #tower-clock{font-size:11px}
+[data-coop-mode="citadel"] .tower-boss-health{display:none}
+.citadel-boss-active [data-coop-mode="citadel"] .tower-boss-health,[data-coop-mode="citadel"].citadel-boss-active .tower-boss-health{display:block;margin-top:8px}
+[data-coop-mode="citadel"] .tower-player-hud{grid-row:2;background:#14201e;border:0}
+[data-coop-mode="citadel"] .tower-controls{grid-row:3;background:#14201e}
+[data-coop-mode="citadel"] .tower-footer{grid-row:4;background:#14201e}
+[data-coop-mode="citadel"] #tower-status[hidden]{display:none!important}
+[data-coop-mode="citadel"] #tower-range{font-size:10px}
+@media(min-width:900px){[data-coop-mode="citadel"].tower-play{grid-template-rows:minmax(400px,1fr) 32px 104px 30px}[data-coop-mode="citadel"] .tower-controls{justify-content:center;gap:40px}[data-coop-mode="citadel"] .tower-player-hud{padding-inline:20%}}
