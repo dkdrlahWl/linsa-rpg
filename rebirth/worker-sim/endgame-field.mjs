@@ -1,4 +1,4 @@
-import {journeyXP,levelHours} from './journey-balance.mjs?v=hw-230';
+import {journeyXP,levelHours} from './journey-balance.mjs?v=hw-231';
 // Continue the final field's slope, then increase only these new fields by 50%.
 export const ENDGAME_FIELD_VERSION = 'fallen-star-250-20261011';
 const FIELD_MULTIPLIER = 1.5;
