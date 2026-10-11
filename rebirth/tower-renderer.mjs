@@ -302,7 +302,7 @@ export class TowerRenderer {
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
     // Keep zoom stable when a boss approaches or the player lunges to attack.
-    const scale=this.presentationScale||(this.citadelView?.58:b.raidMode?Math.min(.7,Math.max(.28,height/2600)):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
+    const scale=this.presentationScale||(this.citadelView?Math.min(.58,Math.max(.34,height/1500)):b.raidMode?Math.min(.7,Math.max(.28,height/2600)):Math.min(.7,Math.max(.46,height/3000))),viewWidth=1000/scale,viewHeight=height/scale;
     const limit=(v,size,world)=>size>=world?(world-size)/2:clamp(v,0,world-size);
     const pairFocus=mix(player.y-65,b.enemy.y-80,.24);
     const verticalFocus=mix(pairFocus,player.y-35,clamp((height-1000)/950));

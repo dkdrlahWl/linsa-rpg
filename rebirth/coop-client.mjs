@@ -205,7 +205,7 @@ export class CoopController{
   const visualFraction=Math.min(1,pendingTicks+this.sampler.elapsed/100);
   let projectionInput=this.sampler;
   if(pendingTicks&&this.frames.length){
-   const pending=this.frames.filter(f=>f.tick>=w.tick&&f.tick<(this.predictionTick??w.tick)).slice(0,2);
+   const pending=this.frames.filter(f=>f.tick>=w.tick&&f.tick<(this.predictionTick??w.tick)).slice(0,8);
    projectionInput={...this.sampler,elapsed:this.sampler.elapsed+pending.length*100,
     x:this.sampler.x+pending.reduce((sum,f)=>sum+f.input[0]*100,0),y:this.sampler.y+pending.reduce((sum,f)=>sum+f.input[1]*100,0),
     buttons:pending.reduce((bits,f)=>bits|f.input[2],this.sampler.buttons)};

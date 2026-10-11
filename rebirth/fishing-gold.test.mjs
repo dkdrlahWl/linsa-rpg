@@ -29,7 +29,7 @@ function hour(spot,rod,bait,seed){
 const rows=[hour('brook',1,'worm',1),hour('moon',10,'shrimp',2),hour('canyon',20,'shrimp',3),hour('coral',30,'pearl',4),hour('abyss',40,'star',5),hour('abyss',50,'star',6)];
 console.table(rows);
 for(const r of rows){assert.equal(r.cubes,0);assert.ok(r.net>0);}
-assert.ok(rows.at(-1).net<250000,'max-rod active fishing must stay below Lv.200 hunting income');
+assert.ok(rows.at(-1).net>300000&&rows.at(-1).net<600000,'max-rod perfect fishing is hunting-class income');
 for(let i=1;i<rows.length;i++)assert.ok(rows[i].net>rows[i-1].net*0.95,'income rises with rod progression');
 // Aquarium of ten best average fish stays a side income.
 const myth=FISH.filter(f=>f.rarity===5),leg=FISH.filter(f=>f.rarity===4&&f.spot==='abyss');

@@ -79,3 +79,7 @@ Existing consumable/shop tests and syntax checks are also run.
 - Perfect play ~420 casts/h: rod1 ≈26k, rod20 ≈71k, rod40 ≈159k, rod50 ≈185k net G/h (Lv.200 hunting ≈385k/h runs in parallel).
 - Aquarium: 2× sale price per hour (mythic 0.8×); expansion 300k×1.6^(slots−3) (last slot ≈5M). Rod Lv.1→50 ≈17M G (Lv.30+ grows 7%/level).
 - `node rebirth/fishing-gold.test.mjs`.
+
+## 2026-10-11 hunting-class income (update 219)
+
+Spot scale [60,100,128,41,19]. ~300 casts/h net: rod1 ≈15k, rod10 ≈70k, rod20 ≈148k, rod30 ≈231k, rod40 ≈304k, rod50 ≈358k G/h (Lv.200 hunting ≈385k/h). Aquarium 0.75× sale price per hour (mythic 0.3×).

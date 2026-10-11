@@ -8,7 +8,7 @@ for(const floor of [1,13,21]){
  for(const [i,m] of w.members.entries()){m.entryMoved=true;m.x=w.monsters[0].x+(i%2)*120;m.y=w.monsters[0].y+150+Math.floor(i/2)*100;}
  for(let tick=6;tick<=1800;tick+=6){
   const frames=[];for(let i=0;i<4;i++){const delay=[2,5,8,11][i];for(let t=Math.max(0,tick-delay-12);t<tick-delay;t++)frames.push({user:'p'+i,tick:t,input:[t%60<30?.15:-.15,i%2?.1:0,1|(t%60===0?122:0)]});}
-  w=advanceCoop({...w,_queuedInputs:[...frames.reverse(),...frames.slice(0,4)]},'p0',{frames:[]},tick*100);packets+=4;assert.equal(w.tick,tick,JSON.stringify({floor,at:tick,status:w.status,reason:w.reason,hp:w.members.map(m=>m.hp),stage:w.floor}));assert.ok(w._net.points.length<=6);assert.ok(w._net.frames.length<=4*46);
+  w=advanceCoop({...w,_queuedInputs:[...frames.reverse(),...frames.slice(0,4)]},'p0',{frames:[]},tick*100);packets+=4;assert.equal(w.tick,tick,JSON.stringify({floor,at:tick,status:w.status,reason:w.reason,hp:w.members.map(m=>m.hp),stage:w.floor}));assert.ok(w._net.points.length<=6);assert.ok(w._net.frames.length<=4*66); // citadel keeps a replay point every 20 ticks
   const view=coopClientView({...w,me:'p0'},2);assert.equal(view._net,undefined);assert.equal(view._queuedInputs,undefined);peakBytes=Math.max(peakBytes,JSON.stringify(view).length);assert.equal(w.status,'fighting');
  }
 }

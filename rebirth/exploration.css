@@ -33,3 +33,17 @@
 [data-coop-mode="exploration"] .tower-footer:has(.exploration-admin-controls)>button{flex-shrink:0;font-size:10px;padding:3px 4px}
 
 [data-citadel] .tower-floor-tag{white-space:nowrap;min-width:52px}
+
+/* Dark Citadel on PC: wide Hammerwatch-like view, one control row with key labels. */
+@media (hover:hover) and (pointer:fine){
+ .tower-play[data-citadel]{grid-template-rows:auto 26px minmax(0,1fr) 84px 36px}
+ [data-citadel] .tower-movement{display:none}
+ [data-citadel] .tower-controls{padding:8px 10px}
+ [data-citadel] .tower-buttons{max-width:none;display:grid;grid-template-columns:5fr 2fr;grid-template-rows:minmax(0,1fr);gap:8px}
+ [data-citadel] .tower-skill-bar{grid-row:1;grid-column:1;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
+ [data-citadel] .tower-skill-bar>[data-tower-button]{grid-column:auto!important;grid-row:auto!important}
+ [data-citadel] .tower-core-actions{grid-row:1;grid-column:2}
+ [data-citadel] .tower-core-actions>.tower-button{height:100%}
+ [data-citadel] .tower-skill-bar .tower-button small{display:block;font-size:11px;font-weight:800;color:#ffe7a6;margin-top:2px}
+ [data-citadel] .tower-skill-bar .tower-button span{font-size:11px}
+}

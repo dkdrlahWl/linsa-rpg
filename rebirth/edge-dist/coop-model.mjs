@@ -1,4 +1,4 @@
-import {isCitadel,isDungeon,CITADEL_CONTENT} from './citadel-zero.mjs';
+import {isCitadel,isDungeon,CITADEL_CONTENT,makeCitadelDungeon} from './citadel-zero.mjs';
 import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs';
 import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs';
 import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs';
@@ -111,8 +111,15 @@ const validFrame=f=>f&&Number.isSafeInteger(f.tick)&&f.tick>=0&&Array.isArray(f.
 const bare=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,...core}=w;return structuredClone(core);};
 // Equipment and identity are immutable during a fight. Store them once in
 // the current world instead of duplicating all eight builds in every rewind.
-const historyPoint=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,...core}=w;return structuredClone({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});};
-const restorePoint=(point,room)=>{const w=structuredClone(point);for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
+// Citadel terrain is deterministic per floor, so replay points keep only a reference.
+// Static fields of regular citadel monsters live once in _net.static, not in every point.
+const STATIC_MONSTER_KEYS=['name','citadel','explorationTier','art','level','maxHp','attack','speed','role','elite','species'];
+const historyPoint=(w,net)=>{const {_net,_queuedInputs,predictionBase,predictionInputs,dungeon,monsters,...core}=w;const point=structuredClone({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});point.dungeon=dungeon?.citadel?{ref:dungeon.id}:structuredClone(dungeon);
+ if(dungeon?.citadel&&net&&Array.isArray(monsters)){net.static??={};point.monsters=monsters.map(e=>{if(e.boss||e.bossKind)return structuredClone(e);const s=net.static[e.id];if(!s||STATIC_MONSTER_KEYS.some(k=>s[k]!==e[k])){net.static[e.id]=Object.fromEntries(STATIC_MONSTER_KEYS.filter(k=>k in e).map(k=>[k,e[k]]));}const d={};for(const [k,v] of Object.entries(e))if(!STATIC_MONSTER_KEYS.includes(k))d[k]=structuredClone(v);d.$s=1;return d;});}
+ else point.monsters=structuredClone(monsters);
+ return point;};
+const pointDungeon=(point,room)=>{const ref=point.dungeon?.ref;if(!ref)return point.dungeon===undefined?undefined:structuredClone(point.dungeon);if(room.dungeon?.id===ref)return structuredClone(room.dungeon);return makeCitadelDungeon(point.floor,point.started>>>0);};
+const restorePoint=(point,room)=>{const w=structuredClone({...point,dungeon:undefined});w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;const table=room._net?.static||{};if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
 export function validateCoopFrames(frames){if(!Array.isArray(frames)||frames.length>40||!frames.every(validFrame))throw Error('INVALID_COOP_INPUT');return frames;}
 // Return a confirmed personal timeline as well as the shared room snapshot.
 // The client replays its still-unconfirmed inputs from here, not from a world
@@ -167,7 +174,7 @@ function advanceCoopTimeline(room,user,input,now){
   const movement=input.frames.find(f=>Math.hypot(f.input[0],f.input[1])>.01)?.input||input.frames.at(-1)?.input;
   return advanceCoopEntry(structuredClone(room),user,movement,now);
  }
- const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),net=room._net?.points?.at(-1)?.status===room.status?{points:[...room._net.points],frames:[...room._net.frames]}:{points:[historyPoint(room)],frames:[]};
+ const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),net=room._net?.points?.at(-1)?.status===room.status?{points:[...room._net.points],frames:[...room._net.frames],static:{...(room._net.static||{})}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
@@ -184,10 +191,11 @@ function advanceCoopTimeline(room,user,input,now){
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){
   w=advanceCoopRaw(w,null,null,origin+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
-  if(w.tick%(['wave','raid','exploration','citadel'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w));
+  if(w.tick%(w.mode==='citadel'?20:['wave','raid','exploration'].includes(w.mode)?10:5)===0)net.points.push(historyPoint(w,net));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
  net.frames=net.frames.filter(f=>f.tick>=net.points[0].tick);
+ if(net.static){const used=new Set();for(const p of net.points)for(const e of p.monsters||[])if(e.$s)used.add(e.id);for(const id of Object.keys(net.static))if(!used.has(Number(id)))delete net.static[id];}
  for(const m of w.members)m.inputAck=Math.max(m.inputAck??-1,...net.frames.filter(f=>f.user===m.id).map(f=>f.tick));
  if(w.status==='lost'&&upto-w.tick<30&&(['wave','exploration','citadel'].includes(room.mode)||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
  w._net=net;return w;

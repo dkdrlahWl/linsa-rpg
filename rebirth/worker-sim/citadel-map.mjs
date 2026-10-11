@@ -269,6 +269,12 @@ export function buildCitadelRegion(stage,floorNumber,seed,version){
  const random=makeRandom((seed^Math.imul(floorNumber,2654435761))>>>0);
  const c=canvas();
  const layout=stage.boss?bossArena(c,stage,random):GENERATORS[stage.biome](c,random);
+ // Regular regions are also rotated/mirrored at random, so layouts differ every run.
+ if(!stage.boss){const turn=Math.floor(random()*8),T=(x,y)=>{let a=x,b=y;if(turn&4)a=SIZE-1-a;for(let i=0;i<(turn&3);i++)[a,b]=[SIZE-1-b,a];return [a,b];};
+  const old=c.grid.map(r=>[...r]);for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const [a,b]=T(x,y);c.grid[b][a]=old[y][x];}
+  const tp=p=>{const [x,y]=T(p.x,p.y);return {x,y};};
+  layout.start=tp(layout.start);layout.exit=tp(layout.exit);
+  layout.rooms=layout.rooms.map(r=>{const cc=centre(r),[cx,cy]=T(cc.x,cc.y),odd=(turn&3)%2===1,w=odd?r.h:r.w,h=odd?r.w:r.h;return {id:r.id,x:cx-Math.floor(w/2),y:cy-Math.floor(h/2),w,h};});}
  // Never leave a resident zone or the exit disconnected.
  if(!reachableAll(c.grid,[layout.start,layout.exit,...layout.rooms.map(centre)]))throw Error('CITADEL_MAP_DISCONNECTED');
  const point=p=>({x:(p.x+.5)*CELL,y:(p.y+.5)*CELL});

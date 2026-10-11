@@ -18,9 +18,12 @@ export class CoopMotion {
  begin(now){this.seconds=this.last?clamp((now-this.last)/1000,0,.05):0;this.last=now;this.active=new Set();}
  sample(id,actor,local=false){
   this.active.add(id);let p=this.points.get(id);
-  if(!p){p={x:actor.x,y:actor.y,dx:0,dy:0,generation:this.generation};this.points.set(id,p);}
+  if(!p){p={x:actor.x,y:actor.y,dx:0,dy:0,vx:0,vy:0,generation:this.generation};this.points.set(id,p);}
+  const px=p.x,py=p.y;
   if(p.generation!==this.generation){
-   p.dx=p.x-actor.x;p.dy=p.y-actor.y;p.generation=this.generation;
+   // Keep moving through the correction frame instead of freezing for one frame.
+   const vx=Math.abs(p.vx||0)<80?p.vx||0:0,vy=Math.abs(p.vy||0)<80?p.vy||0:0;
+   p.dx=p.x+vx-actor.x;p.dy=p.y+vy-actor.y;p.generation=this.generation;
    // A long reconnect must not leave a visible ghost far from its hitbox.
    const distance=Math.hypot(p.dx,p.dy),limit=local?320:520;
    if(distance>1200){p.dx=0;p.dy=0;}
@@ -30,7 +33,7 @@ export class CoopMotion {
    const factor=distance?Math.min(1-Math.exp(-this.seconds/.18),limit/distance):0;
    p.dx*=1-factor;p.dy*=1-factor;
   }
-  p.x=clamp(actor.x+p.dx,120,this.max||3080);p.y=clamp(actor.y+p.dy,120,this.max||3080);
+  p.x=clamp(actor.x+p.dx,120,this.max||3080);p.y=clamp(actor.y+p.dy,120,this.max||3080);p.vx=p.x-px;p.vy=p.y-py;
   return {...actor,x:p.x,y:p.y};
  }
  end(){for(const id of this.points.keys())if(!this.active.has(id))this.points.delete(id);}

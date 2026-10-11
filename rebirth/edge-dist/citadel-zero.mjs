@@ -29,11 +29,15 @@ export const isCitadel=w=>w?.mode==='citadel'||(w?.mode==='exploration'&&w.tier=
 export const isDungeon=w=>w?.mode==='exploration'||w?.mode==='citadel';
 export const CITADEL_CONTENT={id:0,name:'암흑성채',floors:21,level:200,art:'exploration-3',map:'citadel/main-214.webp',boss:'암흑의 화신',seconds:0};
 export const citadelAsset=(type,index)=>'citadel/'+type+'-'+index+'-213.webp';
+// Recovery between regions: CITADEL_REGION_HEAL of max HP, boss arenas start at full HP.
+export const CITADEL_REGION_HEAL=.3,CITADEL_HEARTS=3,CITADEL_MONSTERS={base:90,perAct:15,spread:25};
 export const citadelPopulation=n=>({hp:Math.max(1,Math.min(4,n)),attack:1});
-// The steep increase after the second boss is the requested halfway growth wall.
+// Smooth NG0 curve tuned so the Dohyun Lv.200 reference clears about 80% of solo runs
+// (citadel-campaign-sim.mjs). Monster HP still multiplies by party size.
+export const CITADEL_TUNING={depthStart:.6,depthStep:.07,normalAttackStep:.025,normalHp:180000,normalAttack:1100,bossHp:18000000,bossAttack:1000,bossAttackBy:{totem:1,shadow:1,plant:.3,harbingers:.9,serpents:.3,avatar:.45},bossHpBy:{totem:2.5,shadow:1,plant:1.3,harbingers:3,serpents:2,avatar:1}};
 export function citadelStats(floor,count,boss=false){
- const stage=citadelStage(floor),depth=stage.act<=2?(.45+.55*(floor-1)/9):[0,0,0,1.85,3.4,5.3,8][stage.act];
- return {hp:Math.round((boss?18000000:180000)*depth*citadelPopulation(count).hp),attack:Math.round((boss?(stage.act<=2?2100:9000):1700)*depth),speed:boss?19:20+Math.min(5,stage.act)};
+ const k=CITADEL_TUNING,stage=citadelStage(floor),depth=k.depthStart+k.depthStep*(floor-1);
+ return {hp:Math.round((boss?k.bossHp*(k.bossHpBy[stage.boss]??1):k.normalHp)*depth*citadelPopulation(count).hp),attack:Math.round(boss?k.bossAttack*(k.bossAttackBy[stage.boss]??1)*depth:k.normalAttack*(k.depthStart+k.normalAttackStep*(floor-1))),speed:boss?19:20+Math.min(5,stage.act)};
 }
 function rng(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
 export function makeCitadelDungeon(floor,seed){return buildCitadelRegion(citadelStage(floor),floor,seed,CITADEL_VERSION);}
@@ -42,7 +46,7 @@ export function citadelFloor(w,walkable,reveal){
  w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=Number.MAX_SAFE_INTEGER;delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
  const slots=[];for(const r of w.dungeon.rooms){if(r.id===3)continue;for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(walkable(w.dungeon,(x+.5)*100,(y+.5)*100))slots.push({x:(x+.5)*100,y:(y+.5)*100});}
  for(let i=slots.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}
- const count=st.boss?0:Math.min(slots.length-12,70+st.act*12+Math.floor(random()*20));
+ const count=st.boss?0:Math.min(slots.length-12-CITADEL_HEARTS,CITADEL_MONSTERS.base+st.act*CITADEL_MONSTERS.perAct+Math.floor(random()*CITADEL_MONSTERS.spread));
  const make=(i,point,extra={})=>{const stats=citadelStats(w.floor,w.population,!!extra.boss),species=st.biome*4+i%4;return {id:-(w.floor*10000+i+1),...point,species,name:CITADEL_BIOMES[st.biome].enemies[i%4],citadel:true,explorationTier:3,art:citadelAsset('enemy',species),level:200,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,ready:w.tick+15,walk:0,face:1,elite:i%13===0,role:[6,11,13,21,25].includes(species)?'ranged':[3,9,14,15,22,26,27,31].includes(species)?'caster':'melee',...extra};};
  for(let i=0;i<count;i++)w.monsters.push(make(i,slots.pop()));
  if(st.boss){const order=[0,1,2,3];for(let j=3;j>0;j--){const k=Math.floor(random()*(j+1));[order[j],order[k]]=[order[k],order[j]];}const n=st.boss==='harbingers'?2:st.boss==='serpents'?3:1,artIndex={totem:0,shadow:4,plant:5,harbingers:6,serpents:8,avatar:9}[st.boss];
@@ -51,7 +55,8 @@ export function citadelFloor(w,walkable,reveal){
  }
  if(!st.boss&&st.biome!==0)for(let i=0;i<6+st.act;i++){const p=slots.pop();if(p)w.traps.push({id:w.floor*100+i,...p,r:100,ready:w.tick+15,type:st.biome===1?'rock':st.biome===4?'thorn':st.biome===7?'shadow':'spike'});}
  w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp;w.enemy={...w.exit,face:1};
- for(const [i,m] of w.members.entries()){Object.assign(m,{x:w.dungeon.start.x+(i%2)*90-45,y:w.dungeon.start.y+Math.floor(i/2)*90-45,input:[0,0,0],inputAt:w.started+w.tick*100,reviveProgress:0});for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];}
+ if(!st.boss)for(let i=0;i<CITADEL_HEARTS;i++){const p=slots.pop();if(p)w.hearts.push({id:w.floor*10+i,x:p.x,y:p.y});}
+ for(const [i,m] of w.members.entries()){if(w.floor>1&&!m.left&&m.hp>0)m.hp=st.boss?m.power.hp:Math.min(m.power.hp,m.hp+Math.round(m.power.hp*CITADEL_REGION_HEAL));Object.assign(m,{x:w.dungeon.start.x+(i%2)*90-45,y:w.dungeon.start.y+Math.floor(i/2)*90-45,input:[0,0,0],inputAt:w.started+w.tick*100,reviveProgress:0});for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];}
  reveal(w);return w;
 }
 export function citadelDamageFactor(w,e){if(!isCitadel(w))return 1;if(e.bossKind==='shadow')return 0;if(e.bossKind==='plant'&&(w.tick-w.floorAt)%100<30)return .15;return 1;}
@@ -70,9 +75,9 @@ export function citadelBossTick(w,e,alive){
  if(kind==='plant'){circle(e.x,e.y,800,18,1.7,{inner:330,element:'thorn'});for(const m of alive)circle(m.x,m.y,170,14,1.1,{element:'poison',linger:45});}
  if(kind==='harbingers'){if(e.art.includes('boss-6')){circle(e.x,e.y,480,12,1.6);line(e,target,300,18,1.6);}else{for(let i=0;i<6;i++){const a=i*Math.PI/3+t*.05;circle(target.x+Math.cos(a)*400,target.y+Math.sin(a)*400,160,12+i*2,1.5);}}}
  if(kind==='serpents'){const n=Math.max(1,dist(e,target));e.charge={at:t+18,end:t+30,dx:(target.x-e.x)/n*55,dy:(target.y-e.y)/n*55,fire:true};line(e,{x:target.x+(target.x-e.x),y:target.y+(target.y-e.y)},200,18,1.8);circle(e.x,e.y,230,8,1.2,{element:'fire',linger:25});}
- if(kind==='avatar'){const pattern=Math.floor(t/24)%5;if(e.phase===1){for(let i=0;i<10;i++){const a=i*Math.PI/5+t*.04;line(e,{x:e.x+Math.cos(a)*1500,y:e.y+Math.sin(a)*1500},90,16,1.4);}}else if(pattern===0){circle(e.x,e.y,650,14,1.7,{inner:180,element:'lightning',disarm:15});}else if(pattern===1){const n=Math.max(1,dist(e,target));e.charge={at:t+12,end:t+12+(e.phase===2?18:6),dx:(target.x-e.x)/n*75,dy:(target.y-e.y)/n*75,fire:e.phase===2};for(let i=0;i<(e.phase===2?3:1);i++)line({x:e.x+i*80,y:e.y-i*80},target,260,12+i*8,1.6);}else if(pattern===2){line(e,{x:target.x+(target.x-e.x)*2,y:target.y+(target.y-e.y)*2},130,12,2);}else if(pattern===3){circle(e.x,e.y,850,24,2,{inner:200});}else{for(const m of alive)circle(m.x,m.y,320,18,1.9,{element:'shadow',linger:50});}if(e.phase===2)for(let i=0;i<8;i++){const a=t*.05+i*Math.PI/4;circle(e.x+Math.cos(a)*700,e.y+Math.sin(a)*700,170,14+i*2,1.5,{element:'fire',linger:30});}}
+ if(kind==='avatar'){const pattern=Math.floor(t/24)%5;if(e.phase===1){for(let i=0;i<8;i++){const a=i*Math.PI/4+t*.04;line(e,{x:e.x+Math.cos(a)*1500,y:e.y+Math.sin(a)*1500},90,16,1.4);}}else if(pattern===0){circle(e.x,e.y,650,14,1.7,{inner:180,element:'lightning',disarm:15});}else if(pattern===1){const n=Math.max(1,dist(e,target));e.charge={at:t+12,end:t+12+(e.phase===2?18:6),dx:(target.x-e.x)/n*75,dy:(target.y-e.y)/n*75,fire:e.phase===2};for(let i=0;i<(e.phase===2?3:1);i++)line({x:e.x+i*80,y:e.y-i*80},target,260,12+i*8,1.6);}else if(pattern===2){line(e,{x:target.x+(target.x-e.x)*2,y:target.y+(target.y-e.y)*2},130,12,2);}else if(pattern===3){circle(e.x,e.y,850,24,2,{inner:200});}else{for(const m of alive)circle(m.x,m.y,250,18,1.9,{element:'shadow',linger:28});}if(e.phase===2)for(let i=0;i<8;i++){const a=t*.05+i*Math.PI/4;circle(e.x+Math.cos(a)*700,e.y+Math.sin(a)*700,170,14+i*2,1.5,{element:'fire',linger:30});}}
  // Summons are capped; encounter identity and serial remain replay deterministic.
- if(['totem','plant','shadow','avatar','serpents'].includes(kind)&&w.monsters.filter(m=>m.summon).length<12){const num=kind==='shadow'?0:kind==='serpents'?1:2;for(let i=0;i<num;i++){const a=t*.04+i*Math.PI,x=e.x+Math.cos(a)*500,y=e.y+Math.sin(a)*500,stats=citadelStats(w.floor,w.population);w.monsters.push({id:-(1000000+(++w.serial)),x,y,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:22,ready:t+15,skillReady:t+30,walk:0,face:1,elite:false,aggro:true,summon:true,citadel:true,explorationTier:3,species:kind==='plant'?18:kind==='totem'?2:15,art:citadelAsset('enemy',kind==='plant'?18:kind==='totem'?2:15),role:'melee'});}}
+ if(['totem','plant','shadow','avatar','serpents'].includes(kind)&&w.monsters.filter(m=>m.summon&&m.hp>0).length<8){const num=kind==='shadow'?0:kind==='serpents'?1:2;for(let i=0;i<num;i++){const a=t*.04+i*Math.PI,x=e.x+Math.cos(a)*500,y=e.y+Math.sin(a)*500,stats=citadelStats(w.floor,w.population);w.monsters.push({id:-(1000000+(++w.serial)),x,y,hp:stats.hp,maxHp:stats.hp,attack:Math.round(stats.attack*.5),speed:22,ready:t+15,skillReady:t+30,walk:0,face:1,elite:false,aggro:true,summon:true,citadel:true,explorationTier:3,species:kind==='plant'?18:kind==='totem'?2:15,art:citadelAsset('enemy',kind==='plant'?18:kind==='totem'?2:15),role:'melee'});}}
  return true;
 }
 export function citadelAfterDamage(w){

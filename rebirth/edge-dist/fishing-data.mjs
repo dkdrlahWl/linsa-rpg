@@ -3,11 +3,11 @@ export const FISHING_VERSION=2;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
 export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:600}];
 export const SPOTS=[
- {id:'brook',scale:70,name:'숲속 여울',level:1,subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
- {id:'moon',scale:55,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
- {id:'canyon',scale:47,name:'단풍 협곡',level:20,subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
- {id:'coral',scale:15,name:'산호 해안',level:30,subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
- {id:'abyss',scale:7,name:'천상의 심해',level:40,subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
+ {id:'brook',scale:60,name:'숲속 여울',level:1,subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
+ {id:'moon',scale:100,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
+ {id:'canyon',scale:128,name:'단풍 협곡',level:20,subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
+ {id:'coral',scale:41,name:'산호 해안',level:30,subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
+ {id:'abyss',scale:19,name:'천상의 심해',level:40,subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
 ];
 const rows=[
  ['brook','풀잎 피라미',0,80,300,'leaf green minnow with gold fins'],['brook','은빛 송사리',0,20,120,'tiny silver ricefish with pale green fins'],['brook','조약돌 망둑어',0,100,450,'round speckled stone goby'],['brook','햇살 붕어',0,250,1500,'warm golden crucian carp'],['brook','산들 메기',0,400,2500,'cute moss grey catfish with flowing whiskers'],['brook','꽃잎 잉어',0,300,2000,'pink white koi with petal shaped fins'],['brook','이끼 비늘어',1,400,2500,'emerald moss scaled fish'],['brook','청금 송어',1,700,3500,'turquoise trout with golden flecks'],['brook','반딧불 버들치',1,120,800,'willow minnow with luminous yellow speckles'],['brook','수련 베타',1,100,600,'jade pink betta with lotus petal fins'],
@@ -28,8 +28,8 @@ export const BITE_MIN_MS=5000,BITE_RANGE_MS=4000,CAST_EXPIRE_MS=60000;
 export const rodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,level-30)/100)*100;
 export const rodDiamondCost=level=>2+Math.floor(level/5);
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;const scale=SPOTS.find(x=>x.id===d.spot).scale;return Math.max(10,Math.round(RARITIES[d.rarity].value*scale*(.55+1.45*Math.min(1,fish.weight/d.max))/10)*10);};
-// Aquarium gold per hour: twice the sale price, mythic fish 0.8x so ten mythics stay a side income.
-export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*(d.rarity===5?.8:2))):0;};
+// Aquarium gold per hour: 0.75x the sale price (mythic 0.3x); active fishing is the main income.
+export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*(d.rarity===5?.3:.75))):0;};
 export const aquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
 export const resourceName=id=>({diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
