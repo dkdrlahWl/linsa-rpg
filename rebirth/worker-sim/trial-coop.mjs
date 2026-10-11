@@ -1,6 +1,6 @@
-import {supportTick} from './priest.mjs?v=hw-218';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-218';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=hw-218';
+import {supportTick} from './priest.mjs?v=hw-221';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-221';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=hw-221';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.

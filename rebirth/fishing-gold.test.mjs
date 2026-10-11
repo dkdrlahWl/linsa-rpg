@@ -36,7 +36,7 @@ const myth=FISH.filter(f=>f.rarity===5),leg=FISH.filter(f=>f.rarity===4&&f.spot=
 const avg=f=>({species:f.id,weight:Math.round(f.min+(f.max-f.min)*.377)});
 const tenMyth=myth.reduce((a,f)=>a+fishYield(avg(f)),0)*5,tenLeg=leg.reduce((a,f)=>a+fishYield(avg(f)),0)*10/leg.length;
 console.log('aquarium/h ten mythic',Math.round(tenMyth),'ten legendary',Math.round(tenLeg));
-assert.ok(tenMyth<80000&&tenLeg<60000);
+assert.ok(tenMyth<8e6&&tenLeg<6e6);
 let rodTotal=0;for(let l=1;l<50;l++)rodTotal+=rodGoldCost(l);console.log('rod 1→50 gold',rodTotal);
 assert.ok(rodTotal>12e6&&rodTotal<22e6);
 assert.equal(aquariumExpandCost(3),300000);

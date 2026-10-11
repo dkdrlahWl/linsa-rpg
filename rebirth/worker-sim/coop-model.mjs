@@ -1,24 +1,24 @@
-import {isCitadel,isDungeon,CITADEL_CONTENT,makeCitadelDungeon} from './citadel-zero.mjs?v=hw-218';
-import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=hw-218';
-import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-218';
-import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=hw-218';
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=hw-218';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=hw-218';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=hw-218';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-218';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-218';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-218';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=hw-218';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-218';
+import {isCitadel,isDungeon,CITADEL_CONTENT,makeCitadelDungeon} from './citadel-zero.mjs?v=hw-221';
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=hw-221';
+import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-221';
+import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=hw-221';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=hw-221';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=hw-221';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=hw-221';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-221';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-221';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-221';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=hw-221';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=hw-221';
 export const coopEncounter=room=>isCitadel(room)?CITADEL_CONTENT:room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=hw-218';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-218';
-import {beginThird,stepThird} from './advancement.mjs?v=hw-218';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-218';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-218';
-import {incomingDamage} from './journey-balance.mjs?v=hw-218';
-import {COOP_TIERS} from './rift-rewards.mjs?v=hw-218';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=hw-221';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=hw-221';
+import {beginThird,stepThird} from './advancement.mjs?v=hw-221';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-221';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=hw-221';
+import {incomingDamage} from './journey-balance.mjs?v=hw-221';
+import {COOP_TIERS} from './rift-rewards.mjs?v=hw-221';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -174,6 +174,9 @@ function advanceCoopTimeline(room,user,input,now){
   const movement=input.frames.find(f=>Math.hypot(f.input[0],f.input[1])>.01)?.input||input.frames.at(-1)?.input;
   return advanceCoopEntry(structuredClone(room),user,movement,now);
  }
+ // Citadel has no clock limit: after a long gap (everyone idle, admin moves) resume from the
+ // current tick instead of fast-forwarding monsters while every player's input is too old.
+ if(isCitadel(room)&&room.status==='fighting'&&Math.floor((now-room.started)/100)-room.tick>50)room={...room,started:now-(room.tick+1)*100};
  const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),net=room._net?.points?.at(-1)?.status===room.status?{points:[...room._net.points],frames:[...room._net.frames],static:{...(room._net.static||{})}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
@@ -186,7 +189,7 @@ function advanceCoopTimeline(room,user,input,now){
  if(earliest===Infinity&&upto===room.tick)return room;
  const framesByTick=indexCoopFrames(net.frames);
  let w=bare(room);
- if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=restorePoint(point,room);net.points=net.points.filter(p=>p.tick<=point.tick);}}
+ if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=restorePoint(point,room);w.started=room.started;net.points=net.points.filter(p=>p.tick<=point.tick);}}
  // Membership changes are never undone by input replay.
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){

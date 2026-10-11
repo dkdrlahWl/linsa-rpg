@@ -1,5 +1,5 @@
-import {buildCitadelRegion} from './citadel-map.mjs?v=hw-218';
-import {dungeonMove} from './exploration-dungeon.mjs?v=hw-218';
+import {buildCitadelRegion} from './citadel-map.mjs?v=hw-221';
+import {dungeonMove} from './exploration-dungeon.mjs?v=hw-221';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
 export const CITADEL_TIER=3,CITADEL_VERSION='citadel-hw-218';

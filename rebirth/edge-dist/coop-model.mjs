@@ -174,6 +174,9 @@ function advanceCoopTimeline(room,user,input,now){
   const movement=input.frames.find(f=>Math.hypot(f.input[0],f.input[1])>.01)?.input||input.frames.at(-1)?.input;
   return advanceCoopEntry(structuredClone(room),user,movement,now);
  }
+ // Citadel has no clock limit: after a long gap (everyone idle, admin moves) resume from the
+ // current tick instead of fast-forwarding monsters while every player's input is too old.
+ if(isCitadel(room)&&room.status==='fighting'&&Math.floor((now-room.started)/100)-room.tick>50)room={...room,started:now-(room.tick+1)*100};
  const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),net=room._net?.points?.at(-1)?.status===room.status?{points:[...room._net.points],frames:[...room._net.frames],static:{...(room._net.static||{})}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
@@ -186,7 +189,7 @@ function advanceCoopTimeline(room,user,input,now){
  if(earliest===Infinity&&upto===room.tick)return room;
  const framesByTick=indexCoopFrames(net.frames);
  let w=bare(room);
- if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=restorePoint(point,room);net.points=net.points.filter(p=>p.tick<=point.tick);}}
+ if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=restorePoint(point,room);w.started=room.started;net.points=net.points.filter(p=>p.tick<=point.tick);}}
  // Membership changes are never undone by input replay.
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){

@@ -30,26 +30,30 @@ function solidGroups(d){
   groups.push({cells,edge,size:cells.length,x0,x1,y0,y1});}
  return {id,groups};
 }
-function paintPixels(d,P,pixels,propOf,buildingOf){
- const n=d.size,W=n*T,tile=(x,y)=>d.tiles[y]?.[x]??'0',floorAt=(x,y)=>isFloor(tile(x,y));
- const put=(i,c,k=1)=>{pixels[i*4]=c[0]*k;pixels[i*4+1]=c[1]*k;pixels[i*4+2]=c[2]*k;pixels[i*4+3]=255;};
- for(let ty=0;ty<n;ty++)for(let tx=0;tx<n;tx++){
-  const t=tile(tx,ty),floor=isFloor(t)||propOf(tx,ty),wallN=!floorAt(tx,ty-1)&&!propOf(tx,ty-1),wallW=!floorAt(tx-1,ty)&&!propOf(tx-1,ty);
+// R sub-pixels per pattern pixel: structure stays on the 16 px grid, texture, grain and
+// shading are computed at full resolution for a richer, less blocky surface.
+const R=2;
+function paintPixels(d,P,pixels,propOf,buildingOf,rowStart=0,rowEnd=d.size){
+ const n=d.size,W=n*T*R,tile=(x,y)=>d.tiles[y]?.[x]??'0',floorAt=(x,y)=>isFloor(tile(x,y));
+ const put=(i,c,k=1)=>{pixels[i*4]=Math.min(255,c[0]*k);pixels[i*4+1]=Math.min(255,c[1]*k);pixels[i*4+2]=Math.min(255,c[2]*k);pixels[i*4+3]=255;};
+ for(let ty=rowStart;ty<rowEnd;ty++)for(let tx=0;tx<n;tx++){
+  const t=tile(tx,ty),floor=isFloor(t)||propOf(tx,ty),wallN=!floorAt(tx,ty-1)&&!propOf(tx,ty-1),wallW=!floorAt(tx-1,ty)&&!propOf(tx-1,ty),wallE=!floorAt(tx+1,ty)&&!propOf(tx+1,ty);
   const face=!floor&&floorAt(tx,ty+1),building=buildingOf(tx,ty);
-  for(let ly=0;ly<T;ly++)for(let lx=0;lx<T;lx++){
-   const px=tx*T+lx,py=ty*T+ly,i=py*W+px,h=texture(px,py,P.seed),h2=hash(tx,ty,P.seed+7);let c,k=1;
+  for(let sy=0;sy<T*R;sy++)for(let sx=0;sx<T*R;sx++){
+   const lx=sx>>1,ly=sy>>1,lxf=sx/R,lyf=sy/R,px=tx*T+lx,py=ty*T+ly,fx=tx*T+lxf,fy=ty*T+lyf,i=(ty*T*R+sy)*W+tx*T*R+sx;
+   const h=texture(fx,fy,P.seed),h2=hash(tx,ty,P.seed+7);let c,k=.94+hash(tx*T*R+sx,ty*T*R+sy,P.seed+9)*.12;
+   k*=.9+vnoise(fx,fy,56,P.seed+60)*.2;
    if(floor){
     let path=t==='1';
-    // Organic borders between trail and meadow/room floor: blend the trail mask between tile centres.
-    if(!propOf(tx,ty)){const fx=px/T-.5,fy=py/T-.5,x0=Math.floor(fx),y0=Math.floor(fy),ax=fx-x0,ay=fy-y0;const v=(x,y)=>{const o=tile(x,y);return isFloor(o)?(o==='1'?1:0):(path?1:0);};
-     const m=(v(x0,y0)*(1-ax)+v(x0+1,y0)*ax)*(1-ay)+(v(x0,y0+1)*(1-ax)+v(x0+1,y0+1)*ax)*ay+(vnoise(px,py,6,P.seed+40)-.5)*.5;path=m>.5;}
+    if(!propOf(tx,ty)){const gx=fx/T-.5,gy=fy/T-.5,x0=Math.floor(gx),y0=Math.floor(gy),ax=gx-x0,ay=gy-y0;const v=(x,y)=>{const o=tile(x,y);return isFloor(o)?(o==='1'?1:0):(path?1:0);};
+     const m=(v(x0,y0)*(1-ax)+v(x0+1,y0)*ax)*(1-ay)+(v(x0,y0+1)*(1-ax)+v(x0+1,y0+1)*ax)*ay+(vnoise(fx,fy,6,P.seed+40)-.5)*.5;path=m>.5;}
     const pal=path?P.path:P.room;
     c=floorPattern(P,path,lx,ly,tx,ty,px,py,h,h2,pal);
-    if(wallN&&ly<4)k*=.55+ly*.11;if(wallW&&lx<2)k*=.75+lx*.1;
-    // Natural regions: walls bleed a few noisy pixels into the floor.
-    if(P.outdoor||P.name==='cave'){const n=1+vnoise(px,py,4,P.seed+50)*4;if((!floorAt(tx-1,ty)&&!propOf(tx-1,ty)&&lx<n)||(!floorAt(tx+1,ty)&&!propOf(tx+1,ty)&&lx>15-n)||(!floorAt(tx,ty+1)&&!propOf(tx,ty+1)&&ly>15-n)){put(i,P.name==='cave'?P.top[1]:P.top[0]);continue;}}
+    // Soft ambient occlusion along walls instead of hard bands.
+    if(wallN)k*=.5+.5*smooth(Math.min(1,lyf/6));if(wallW)k*=.72+.28*smooth(Math.min(1,lxf/3));if(wallE)k*=.82+.18*smooth(Math.min(1,(T-lxf)/3));
+    if(P.outdoor||P.name==='cave'){const nn=1+vnoise(fx,fy,4,P.seed+50)*4;if((wallW&&lxf<nn)||(wallE&&lxf>T-nn)||(!floorAt(tx,ty+1)&&!propOf(tx,ty+1)&&lyf>T-nn)){put(i,P.name==='cave'?P.top[1]:P.top[0],k*.9);continue;}}
    }else if(building){c=buildingPattern(P,face,lx,ly,tx,ty,h);}
-   else if(face)c=facePattern(P,lx,ly,tx,ty,h,h2);
+   else if(face){c=facePattern(P,lx,ly,tx,ty,h,h2);k*=1.08-.3*(lyf/T);}
    else c=topPattern(P,lx,ly,tx,ty,h,floorAt,px,py);
    put(i,c,k);
   }
@@ -138,7 +142,7 @@ function crown(g,cx,cy,r,trunk,variant=0){
  r=Math.round(r);
  if(trunk){px(g,cx-2,cy+r*.4,4,r*.7,'#3e2a1b');px(g,cx-1,cy+r*.4,2,r*.7,'#5a3d26');px(g,cx-3,cy+r*1.05,6,2,'#00000055');}
  g.fillStyle='#0b170f55';g.beginPath();g.ellipse(cx+2,cy+r*.75,r*.9,r*.35,0,0,7);g.fill();
- const s=crownSprite(r,variant%8);g.drawImage(s,Math.round(cx-s.width/2),Math.round(cy-s.height/2-r*.15));
+ const s=crownSprite(r*R,variant%8);g.drawImage(s,cx-s.width/R/2,cy-s.height/R/2-r*.15,s.width/R,s.height/R);
 }
 function drawProp(g,P,group,d,random){
  const x=group.x0*T,y=group.y0*T,w=(group.x1-group.x0+1)*T,h=(group.y1-group.y0+1)*T,name=P.name;
@@ -164,7 +168,7 @@ function drawProp(g,P,group,d,random){
   px(g,x+1,y+2,w-2,h-3,'#4a3220');px(g,x+2,y+3,w-4,h-6,'#8a8f94');px(g,x+2,y+3,6,h-6,'#e6dfcc');px(g,x+9,y+3,w-11,h-6,'#7e2f28');px(g,x+1,y+h-3,w-2,2,'#2b1e22');return; // bunk
  }
  if(name==='prison'){px(g,x+2,y+2,w-4,h-3,'#2a312c');for(let i=x+3;i<x+w-2;i+=3)px(g,i,y+1,1,h-2,'#8a8f94');px(g,x+2,y+1,w-4,1,'#a8adb2');return;}
- if(name==='cave'){const r=Math.round(Math.max(w,h)*.5),s=crownSprite(r,group.x0*3+group.y0,ROCK_RAMP);g.fillStyle='#0006';g.beginPath();g.ellipse(x+w/2+2,y+h-2,w*.5,h*.22,0,0,7);g.fill();g.drawImage(s,Math.round(x+w/2-s.width/2),Math.round(y+h/2-s.height/2-2));if(hash(group.x0,group.y0,3)>.5)for(let i=0;i<3;i++){const cx=x+w/2-4+i*3;px(g,cx,y+h/2-6+i%2*3,2,6,'#71c0c6');px(g,cx,y+h/2-6+i%2*3,1,6,'#d2fbff');}return;}
+ if(name==='cave'){const r=Math.round(Math.max(w,h)*.5),s=crownSprite(r*R,group.x0*3+group.y0,ROCK_RAMP);g.fillStyle='#0006';g.beginPath();g.ellipse(x+w/2+2,y+h-2,w*.5,h*.22,0,0,7);g.fill();g.drawImage(s,x+w/2-s.width/R/2,y+h/2-s.height/R/2-2,s.width/R,s.height/R);if(hash(group.x0,group.y0,3)>.5)for(let i=0;i<3;i++){const cx=x+w/2-4+i*3;px(g,cx,y+h/2-6+i%2*3,2,6,'#71c0c6');px(g,cx,y+h/2-6+i%2*3,1,6,'#d2fbff');}return;}
  px(g,x+2,y+3,w-4,h-4,P.faceHex[1]);px(g,x+3,y+2,w-6,3,P.capHex);
 }
 function decorate(g,d,P,random){
@@ -203,27 +207,37 @@ function decorate(g,d,P,random){
  for(const [x,y,rgb] of glows){const gr=g.createRadialGradient(x,y,1,x,y,40);gr.addColorStop(0,'rgba('+rgb+',.28)');gr.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=gr;g.fillRect(x-40,y-40,80,80);}
  g.restore();
 }
+// Built incrementally (a few tile rows per frame) so a region change never stalls the game.
 export function buildCitadelLayer(d){
  const P={...(RGB[d.biome]||RGB[0]),seed:(d.biome+1)*977};const src=PAL[d.biome]||PAL[0];
  P.faceHex=src.face;P.capHex=src.cap;P.mortarHex=src.mortar;
- const n=d.size,W=n*T,canvas=document.createElement('canvas');canvas.width=canvas.height=W;const g=canvas.getContext('2d');
+ const n=d.size,W=n*T*R,canvas=document.createElement('canvas');canvas.width=canvas.height=W;const g=canvas.getContext('2d');
+ g.fillStyle=src.void;g.fillRect(0,0,W,W);
  const {id,groups}=solidGroups(d);
  const propLimit=P.name==='royal'?12:6;
  const isProp=gi=>gi>=0&&!groups[gi].edge&&groups[gi].size<=propLimit;
  const isBuilding=gi=>gi>=0&&P.name==='royal'&&!groups[gi].edge&&groups[gi].size>propLimit;
  const propOf=(x,y)=>x>=0&&y>=0&&x<n&&y<n&&isProp(id[y*n+x]);
  const buildingOf=(x,y)=>x>=0&&y>=0&&x<n&&y<n&&isBuilding(id[y*n+x]);
- const image=g.createImageData(W,W);paintPixels(d,P,image.data,propOf,buildingOf);g.putImageData(image,0,0);
- let state=(d.biome*2654435761^n)>>>0;const random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
- decorate(g,d,P,random);
- groups.map((gr,i)=>({gr,i})).filter(({i})=>isProp(i)).sort((a,b)=>a.gr.y1-b.gr.y1).forEach(({gr})=>drawProp(g,P,gr,d,random));
- return canvas;
+ const image=g.createImageData(W,W);let row=0;
+ const layer={canvas,done:false,step(budget=8){
+  if(layer.done)return;const t0=performance.now();
+  while(row<n&&performance.now()-t0<budget){const end=Math.min(n,row+2);paintPixels(d,P,image.data,propOf,buildingOf,row,end);g.putImageData(image,0,0,0,row*T*R,W,(end-row)*T*R);row=end;}
+  if(row>=n){
+   let state=(d.biome*2654435761^n)>>>0;const random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
+   g.save();g.setTransform(R,0,0,R,0,0);decorate(g,d,P,random);
+   groups.map((gr,i)=>({gr,i})).filter(({i})=>isProp(i)).sort((a,b)=>a.gr.y1-b.gr.y1).forEach(({gr})=>drawProp(g,P,gr,d,random));g.restore();
+   layer.done=true;
+  }
+ }};
+ return layer;
 }
 export const citadelVoid=biome=>PAL[biome]?.void||'#101010';
 export function drawCitadelWorld(renderer,b,image){
  const d=b.dungeon;if(!d)return;const g=renderer.g,world=d.size*d.cell;
- if(renderer.citadelLayer?.id!==d.id)renderer.citadelLayer={id:d.id,canvas:buildCitadelLayer(d)};
- g.save();g.imageSmoothingEnabled=false;g.fillStyle=citadelVoid(d.biome);g.fillRect(-4000,-4000,world+8000,world+8000);g.drawImage(renderer.citadelLayer.canvas,0,0,world,world);g.restore();
+ if(renderer.citadelLayer?.id!==d.id)renderer.citadelLayer=Object.assign(buildCitadelLayer(d),{id:d.id});
+ const layer=renderer.citadelLayer;if(!layer.done)layer.step(layer.canvas&&!layer.started?24:8);layer.started=true;
+ g.save();g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle=citadelVoid(d.biome);g.fillRect(-4000,-4000,world+8000,world+8000);g.drawImage(renderer.citadelLayer.canvas,0,0,world,world);g.restore();
  const t=(b.tick||0)/10;
  for(const trap of b.traps||[]){g.save();const s=6.25,x=Math.round(trap.x/s)*s,y=Math.round(trap.y/s)*s;g.fillStyle='#2a2430';g.fillRect(x-40,y-40,80,80);g.fillStyle='#55505e';g.fillRect(x-34,y-34,68,68);g.fillStyle='#c9c3d6';for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++)if((i+j)%2===0)g.fillRect(x+i*13-3,y+j*13-3,6,6);g.restore();}
  const heart=image?.('exploration/heal-heart-194.webp');
