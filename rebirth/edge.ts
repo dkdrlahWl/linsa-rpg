@@ -1,6 +1,7 @@
 import {isCitadel} from './citadel-zero.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
+import {grantCitadelChests} from './citadel-rewards.mjs';
 import {fishingStateReply} from './fishing-sync.mjs';
 import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
@@ -162,7 +163,12 @@ Deno.serve(async (req) => {
           if(action==='input'&&world===room)return reply(current);
           let claim=null;
           if(action==='open'){
-            if(isCitadel(room))throw new Error('CITADEL_REWARDS_DISABLED');
+            if(isCitadel(room)){
+              // Boss chests opened in the simulation are paid here, rolled server-side, once per boss per player.
+              claim=grantCitadelChests(computed.state,room,user.id,ctx);
+              const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim.reward,rewardState:claim.state}},true);
+              return reply(result);
+            }
             const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);
             if(room?.status!=='won'||!member||!room.chest)throw new Error('COOP_CHEST_NOT_READY');
             if(!(member.damage>0||(['raid','exploration'].includes(room.mode)&&((member.healing||0)+(member.shieldGiven||0)>0))))throw new Error('COOP_DAMAGE_REQUIRED');

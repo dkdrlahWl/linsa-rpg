@@ -115,7 +115,13 @@ export class CoopController{
    const ack=this.room.members.find(m=>m.id===room.me)?.inputAck??-1;
    const frames=resync?[]:this.frames.filter(f=>f.tick>ack).slice(-35);
    const direction=this.input(),entryInput=this.artReady&&this.entryMoveInput&&!confirmed.entryMoved&&Math.hypot(direction[0],direction[1])<=.01?this.entryMoveInput:direction;
-   const result=await this.send(open?'coopOpen':'coopInput',open?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2},!open,false,this.abort?.signal);
+   // Citadel boss chests: once the simulation records my chest as opened, claim it (server rolls the reward).
+   this.citadelClaimed??=new Set();const claimBosses=isCitadel(this.room)?(confirmed?.citadelChests||[]).filter(b=>!this.citadelClaimed.has(b)):[],citadelClaim=!open&&claimBosses.length>0&&performance.now()>=(this.citadelClaimRetry||0);
+   if(citadelClaim)this.citadelClaimRetry=performance.now()+1500;
+   let result;
+   try{result=await this.send(open||citadelClaim?'coopOpen':'coopInput',open||citadelClaim?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2},!open,false,this.abort?.signal);}
+   catch(error){if(citadelClaim&&['COOP_CHEST_NOT_READY','COOP_CHEST_CLAIMED'].includes(error.message)){for(const b of claimBosses)this.citadelClaimed.add(b);return;}throw error;}
+   if(citadelClaim&&result)for(const b of claimBosses)this.citadelClaimed.add(b);
    if(this.disposed)return;
    if(!result)this.pendingBits|=taps;
    if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
@@ -219,7 +225,7 @@ export class CoopController{
   this.sound?.({...me,runId:w.id,tick:w.tick,enemyCastStart:w.enemyCastStart,won:this.room.status==='won',ended:['won','lost'].includes(this.room.status)});
   if(this.room.status==='won')this.auto=false;
   if(w.mode==='raid'){const corrected={x:me.x,y:me.y};raidMove(corrected,player.x,player.y,w.walls);Object.assign(player,corrected);}
-  if(isDungeon(w)){const corrected={x:me.x,y:me.y};dungeonMove(w.dungeon,corrected,player.x-me.x,player.y-me.y);Object.assign(player,corrected);}
+  if(isDungeon(w)){const corrected={x:me.x,y:me.y,classId:me.classId};dungeonMove(w.dungeon,corrected,player.x-me.x,player.y-me.y);player.x=corrected.x;player.y=corrected.y;}
   const b={...w,...me,localSkillsOnly:true,raidMode:w.mode==='raid',advancementStage:w.mode==='advancement'?w.tier:undefined,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:tier,classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:this.effectMemory?.compose(w.effects||[],w.tick+visualFraction)||w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id),'player:'+m.id))};
   b.tick=w.tick+visualFraction;b.citadelMode=isCitadel(w);if(b.citadelMode)b.tier=3;
   if(!this.lastHud||now-this.lastHud>=100){this.lastHud=now;

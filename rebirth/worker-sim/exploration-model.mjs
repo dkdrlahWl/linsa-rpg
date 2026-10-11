@@ -1,12 +1,12 @@
-import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside} from './citadel-zero.mjs?v=hw-224';
-import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=hw-224';
-import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-224';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-224';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-224';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-224';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-224';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=hw-224';
-import {incomingDamage} from './journey-balance.mjs?v=hw-224';
+import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside,CITADEL_CHEST_RANGE} from './citadel-zero.mjs?v=hw-225';
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=hw-225';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-225';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-225';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-225';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-225';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=hw-225';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=hw-225';
+import {incomingDamage} from './journey-balance.mjs?v=hw-225';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -45,7 +45,9 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
    const oldX=m.x,oldY=m.y;const dashing=t<(m.dashUntil||0),speed=c.speed*dungeonMoveSpeed(w)*(t<(m.slowUntil||0)?.55:1);dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(isCitadel(w)&&w.monsters.some(e=>e.hp>0&&e.bossKind==='serpents'&&distance(m,e)<110)){m.x=oldX;m.y=oldY;}if(x)m.face=x<0?-1:1;
 
    const targets=w.monsters.filter(e=>e.hp>0&&(!isCitadel(w)||distance(e,m)<1800)&&dungeonSight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
-   if(target&&(bits&1)&&t>=(m.disarmedUntil||0)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
+   const chest=w.rewardChest;
+   if(chest&&(bits&1)&&t>=m.attackReady&&!(m.citadelChests||[]).includes(chest.boss)&&distance(m,chest)<=CITADEL_CHEST_RANGE){m.citadelChests=[...(m.citadelChests||[]),chest.boss];m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(chest.x-m.x,chest.y-m.y,m.dir);m.dir=m.attackDir;w.effects.push({id:++w.serial,kind:'chest-open',owner:m.id,x:chest.x,y:chest.y,start:t,end:t+14});}
+   else if(target&&(bits&1)&&t>=(m.disarmedUntil||0)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
     // Small cleave keeps all five starter classes viable against a crowd.
     const victims=targets.filter(e=>distance(e,m)<=c.range&&distance(e,target)<(c.range<300?230:140)).slice(0,3);
     damage(w,m,victims,c.cooldown/10*m.power.cadence);w.effects.push({id:++w.serial,kind:m.classId==='priest'?'priest-orb':'slash',classId:m.classId,owner:m.id,fromX:m.x,fromY:m.y-85,x:target.x,y:target.y-45,size:180,angle:Math.atan2(target.y-m.y,target.x-m.x),start:t,end:t+7});
@@ -60,7 +62,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
     if(cast&&kind==='fourth'){
      const lead=sk.mode==='orbit'?2:4;cast.visualNext??=cast.next;cast.visualLeft??=cast.left;
      while(cast.visualLeft>0&&t>=cast.visualNext-lead){const aim=sk.mode==='orbit'?m:cast;
-      w.effects.push({id:++w.serial,kind,classId:m.classId,owner:m.id,x:aim.x,y:aim.y,size:sk.radius*2,orbit:sk.mode==='orbit',pulse:sk.hits-cast.visualLeft,start:cast.visualNext-lead,impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
+      w.effects.push({id:++w.serial,kind,classId:m.classId,owner:m.id,x:aim.x,y:aim.y,fromX:m.x,fromY:m.y,size:sk.radius*2,orbit:sk.mode==='orbit',pulse:sk.hits-cast.visualLeft,start:cast.visualNext-lead,impact:cast.visualNext,end:cast.visualNext+(sk.mode==='orbit'?sk.interval:4)});
       cast.visualLeft--;cast.visualNext+=sk.interval;
      }
     }

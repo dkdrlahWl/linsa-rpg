@@ -88,6 +88,9 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
     broken: false,
   };
 }
+// Guaranteed/bonus boss gear (fragment exchange, citadel chests): weapon weight 0.5, other 8 slots 1 each,
+// so a weapon is exactly half as likely as any other single slot.
+export function halfWeaponSlot(random){const r=random()*8.5;return r<.5?0:Math.min(8,1+Math.floor(r-.5));}
 export function balanceBossGearSlot(slot,ctx){return slot===0&&ctx.random()<.5?1+Math.floor(ctx.random()*8):slot;}
 export function makeLootItem(base,classId,slot,boss,ctx,variant){if(boss)slot=balanceBossGearSlot(slot,ctx);const level=Math.max(10,rollEquipmentLevel(base,ctx.random)),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
 
@@ -617,9 +620,9 @@ export function execute(input, command, args = {}, ctx) {
       check(int(args.level,10,180)&&args.level%10===0,"INVALID_GEAR_LEVEL");
       check(CLASSES.some(c=>c.id===args.classId),"INVALID_CLASS");
       spend(s,"fragment",args.level);
-      // 1%: boss gear of the selected level; class and slot are both uniformly random.
+      // 1%: boss gear of the selected level; random class, random slot with weapons at half weight.
       const boss=ctx.random()<FRAGMENT_BOSS_CHANCE,classId=boss?pick(CLASSES,ctx).id:args.classId;
-      const slot=Math.floor(ctx.random()*9),design=selectDesign(args.level,classId,slot,boss,ctx.random);
+      const slot=boss?halfWeaponSlot(ctx.random):Math.floor(ctx.random()*9),design=selectDesign(args.level,classId,slot,boss,ctx.random);
       const item={...makeItem(args.level,classId,slot,boss,ctx,design.weaponVariant),...design};
       item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);
       events.push({type:"exchangeGear",item,boss,cost:args.level,stored:!s.items.some(it=>it.id===item.id)});break;

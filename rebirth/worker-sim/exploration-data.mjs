@@ -1,5 +1,5 @@
-import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation} from './citadel-zero.mjs?v=hw-224';
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable} from './exploration-dungeon.mjs?v=hw-224';
+import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending} from './citadel-zero.mjs?v=hw-225';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs?v=hw-225';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
@@ -7,7 +7,7 @@ export const EXPLORATIONS=[
  {id:1,name:'용암 수정 광산',floors:11,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:70000},
  {id:2,name:'별의 심연 성전',floors:12,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:100000},
 ];
-export const EXPLORATION_MOVE_SPEED=1.3,CITADEL_MOVE_SPEED=1.5;
+export const EXPLORATION_MOVE_SPEED=1.6,CITADEL_MOVE_SPEED=1.5;
 // Dark Citadel moves faster than Ringu exploration (Hammerwatch-like pace).
 export const dungeonMoveSpeed=w=>isCitadel(w)?CITADEL_MOVE_SPEED:EXPLORATION_MOVE_SPEED;
 export const explorationMonsterMultiplier=(tier,floor)=>floor<=Math.ceil(EXPLORATIONS[tier].floors/2)?2:3;
@@ -21,7 +21,7 @@ export function explorationStats(tier,floor,count,boss=false){
 }
 export const explorationArt=(tier,species,boss=false)=>tier===CITADEL_TIER?'citadel/'+(boss?'boss-9':'enemy-'+species)+'-213.webp':'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
 export function explorationFloor(w){
- if(isCitadel(w))return citadelFloor(w,dungeonWalkable,revealDungeon);
+ if(isCitadel(w)){delete w.rewardChest;delete w.exitLocked;return citadelFloor(w,dungeonWalkable,revealDungeon);}
  const theme=EXPLORATIONS[w.tier],final=w.floor===theme.floors;w.floorAt=w.tick;w.floorDeadline=w.tick+1800;delete w.bossBattleAt;w.exitOpen=false;delete w.bossDeath;w.dungeon=(final?makeExplorationArena:makeExplorationDungeon)(w.tier,w.floor,w.started>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;
  // Residents occupy separate rooms. The entry room stays safe during loading.
  const rooms=w.dungeon.rooms.filter(r=>r.id!==3),multiplier=explorationMonsterMultiplier(w.tier,w.floor);
@@ -37,7 +37,7 @@ export function explorationFloor(w){
  for(let i=0;i<hearts;i++){const room=w.dungeon.rooms[Math.floor(random()*w.dungeon.rooms.length)],point=slots.get(room.id).pop();if(point)w.hearts.push({id:w.floor*10+i,x:point[0],y:point[1]});}
  if(final){const stats=explorationStats(w.tier,w.floor,w.population,true);w.monsters.push({id:-(w.floor*100+99),x:w.exit.x,y:w.exit.y,species:3,explorationTier:w.tier,boss:true,elite:true,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,level:theme.level,ready:w.tick+20,skillReady:w.tick+40,walk:0,face:1});}
  w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp;w.enemy={...w.exit,face:1};
- for(const [i,m] of w.members.entries()){m.x=w.dungeon.start.x+(i%2)*100-50;m.y=w.dungeon.start.y+Math.floor(i/2)*100-50;m.input=[0,0,0];m.inputAt=w.started+w.tick*100;m.reviveProgress=0;for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];if(w.floor>1&&!m.left)m.hp=Math.max(1,Math.min(m.power.hp,m.hp+Math.round(m.power.hp*.2)));}
+ for(const [i,m] of w.members.entries()){Object.assign(m,nearestWalkable(w.dungeon,w.dungeon.start.x+(i%2)*100-50,w.dungeon.start.y+Math.floor(i/2)*100-50,32));m.input=[0,0,0];m.inputAt=w.started+w.tick*100;m.reviveProgress=0;for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];if(w.floor>1&&!m.left)m.hp=Math.max(1,Math.min(m.power.hp,m.hp+Math.round(m.power.hp*.2)));}
  revealDungeon(w);
 }
 export function initializeExploration(w){
@@ -50,6 +50,10 @@ export function explorationProgress(w){
  if(!w.monsters.length&&!w.exitOpen){w.cleared=w.floor;w.exitOpen=true;w.hazards=[];for(const m of w.members){for(const key of ['firstCast','secondCast','thirdCast','fourthCast','fifthCast','pendingHits','pendingSkill'])delete m[key];}}
  if(w.exitOpen){
   const theme=isCitadel(w)?CITADEL_CONTENT:EXPLORATIONS[w.tier];
+  if(isCitadel(w)){
+   if(citadelStage(w.floor)?.boss&&!w.rewardChest){const at=w.bossDeath||w.exit;w.rewardChest={x:at.x,y:at.y,boss:citadelBossOrdinal(w.floor),floor:w.floor,at:w.tick};}
+   w.exitLocked=citadelChestPending(w);if(w.exitLocked){for(const m of w.members)m.exitStay=0;return;}
+  }
   if(w.floor===theme.floors){w.status='won';w.chest=isCitadel(w)?null:{...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members)m.input=[0,0,0];return;}
   // Citadel portals need a deliberate one-second stand, so running past never warps the party.
   if(isCitadel(w)){let go=false;for(const m of w.members){const near=!m.left&&m.hp>0&&Math.hypot(m.x-w.exit.x,m.y-w.exit.y)<150;m.exitStay=near?(m.exitStay||0)+1:0;if(m.exitStay>=10)go=true;}if(go){for(const m of w.members)delete m.exitStay;w.floor++;explorationFloor(w);}}

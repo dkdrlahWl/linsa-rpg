@@ -199,7 +199,11 @@ function decorate(g,d,P,random){
    if(P.name==='royal'&&!(tx<4||ty<4||tx>n-5||ty>n-5))continue;
    let nearFloor=false;for(let yy=ty-2;yy<=ty+2&&!nearFloor;yy++)for(let xx=tx-2;xx<=tx+2;xx++)if(floorAt(xx,yy)){nearFloor=true;break;}
    if(!nearFloor&&hash(tx,ty,P.seed+33)>.35)continue;
-   const h=hash(tx,ty,P.seed+31),cx=tx*T+8+Math.round((h-.5)*6),cy=ty*T+7+Math.round((hash(ty,tx,P.seed+32)-.5)*6),r=10+Math.floor(h*5);
+   // Trees that border walkable ground lean away from it and stay small, so a crown never hides
+   // walkable space (bodies stopping at the real tile edge must not look like they are inside a tree).
+   let ax=0,ay=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&floorAt(tx+xx,ty+yy)){ax-=xx;ay-=yy;}
+   const edge=ax||ay||floorAt(tx+1,ty+1)||floorAt(tx-1,ty-1)||floorAt(tx+1,ty-1)||floorAt(tx-1,ty+1),al=Math.hypot(ax,ay)||1;
+   const h=hash(tx,ty,P.seed+31),r=edge?8+Math.floor(h*2):10+Math.floor(h*5),cx=tx*T+8+(edge?Math.round(ax/al*3):Math.round((h-.5)*6)),cy=ty*T+7+(edge?Math.round(ay/al*3):Math.round((hash(ty,tx,P.seed+32)-.5)*6));
    crown(g,cx,cy,r,floorAt(tx,ty+1),tx*7+ty);
   }
  }
@@ -233,6 +237,28 @@ export function buildCitadelLayer(d){
  return layer;
 }
 export const citadelVoid=biome=>PAL[biome]?.void||'#101010';
+// Boss reward chest (pixel art). Each viewer sees their own chest state: closed until they hit it.
+function drawRewardChest(g,c,opened,player,t){
+ const s=6,x=Math.round(c.x/s)*s,y=Math.round(c.y/s)*s,p=(dx,dy,w,h,col)=>{g.fillStyle=col;g.fillRect(x+dx*s,y+dy*s,w*s,h*s);};
+ g.save();
+ g.fillStyle='#0007';g.beginPath();g.ellipse(x,y+8*s,13*s,3.5*s,0,0,7);g.fill();
+ if(!opened){const pulse=.5+.5*Math.sin(t*4);g.globalCompositeOperation='lighter';const gr=g.createRadialGradient(x,y,6,x,y,150);gr.addColorStop(0,'rgba(255,214,120,'+(.25+pulse*.2)+')');gr.addColorStop(1,'rgba(255,214,120,0)');g.fillStyle=gr;g.fillRect(x-150,y-150,300,300);g.globalCompositeOperation='source-over';}
+ // body
+ p(-11,-2,22,10,'#3b2414');p(-10,-1,20,8,'#7a4a24');p(-10,-1,20,2,'#93602f');p(-10,5,20,2,'#5a3418');
+ p(-11,1,22,2,'#c9a04a');p(-11,1,22,1,'#f2d27a');p(-2,0,4,5,'#e9c35a');p(-1,1,2,2,'#3b2414');
+ if(opened){
+  // open lid tilted back + inner glow + sparkles
+  p(-11,-9,22,4,'#3b2414');p(-10,-8,20,3,'#6a3e1d');p(-11,-6,22,1,'#c9a04a');
+  g.globalCompositeOperation='lighter';p(-9,-2,18,2,'#ffe7a0');g.globalAlpha=.5;p(-7,-6,14,4,'#ffd36b');g.globalAlpha=1;g.globalCompositeOperation='source-over';
+ }else{
+  p(-11,-7,22,5,'#3b2414');p(-10,-6,20,4,'#8a5428');p(-10,-6,20,1,'#a56c35');p(-11,-4,22,1,'#c9a04a');
+  for(let i=0;i<3;i++){const a=t*2+i*2.1,r=14*s;g.fillStyle='#fff3c4';g.fillRect(x+Math.cos(a)*r-s/2,y-5*s+Math.sin(a)*r*.5-s/2,s,s);}
+ }
+ g.font='bold 26px sans-serif';g.textAlign='center';
+ const label=opened?'획득 완료':'공격해서 열기',near=player&&Math.hypot(player.x-c.x,player.y-c.y)<170;
+ g.fillStyle='#000b';g.fillText(label,x+2,y-12*s+2);g.fillStyle=opened?'#b8f5c8':near?'#fff2b0':'#ffd88a';g.fillText(label,x,y-12*s);
+ g.restore();
+}
 export function drawCitadelWorld(renderer,b,image,player){
  const d=b.dungeon;if(!d)return;const g=renderer.g,world=d.size*d.cell;
  if(renderer.citadelLayer?.id!==d.id)renderer.citadelLayer=Object.assign(buildCitadelLayer(d),{id:d.id});
@@ -242,10 +268,12 @@ export function drawCitadelWorld(renderer,b,image,player){
  for(const trap of b.traps||[]){g.save();const s=6.25,x=Math.round(trap.x/s)*s,y=Math.round(trap.y/s)*s;g.fillStyle='#2a2430';g.fillRect(x-40,y-40,80,80);g.fillStyle='#55505e';g.fillRect(x-34,y-34,68,68);g.fillStyle='#c9c3d6';for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++)if((i+j)%2===0)g.fillRect(x+i*13-3,y+j*13-3,6,6);g.restore();}
  const heart=image?.('exploration/heal-heart-194.webp');
  if(heart?.complete&&heart.naturalWidth)for(const h of b.hearts||[]){const bob=Math.sin(t*1.2+h.id)*6;g.save();g.fillStyle='#0006';g.beginPath();g.ellipse(h.x,h.y+18,24,8,0,0,7);g.fill();g.drawImage(heart,h.x-30,h.y-48+bob,60,60);g.restore();}
- if(b.exit&&b.status!=='won'){const {x,y}=b.exit,open=b.exitOpen;g.save();
+ if(b.rewardChest)drawRewardChest(g,b.rewardChest,(player?.citadelChests||[]).includes(b.rewardChest.boss),player,t);
+ if(b.exit&&b.status!=='won'){const {x,y}=b.exit,open=b.exitOpen&&!b.exitLocked;g.save();
   for(let i=0;i<5;i++){g.fillStyle=['#1a1620','#2a2430','#3a3342','#4a4352','#5a5262'][i];g.fillRect(x-70+i*6,y-50+i*20,140-i*12,22);}
   if(open){const pulse=.55+.25*Math.sin(t*3);g.globalCompositeOperation='lighter';const gr=g.createRadialGradient(x,y,10,x,y,160);gr.addColorStop(0,'rgba(156,233,201,'+pulse*.55+')');gr.addColorStop(1,'rgba(156,233,201,0)');g.fillStyle=gr;g.fillRect(x-160,y-160,320,320);}
   g.globalCompositeOperation='source-over';g.strokeStyle=open?'#9ce9c9':'#7a6a88';g.lineWidth=6;g.strokeRect(x-76,y-56,152,112);
+  if(b.exitOpen&&b.exitLocked){g.font='bold 28px sans-serif';g.textAlign='center';g.fillStyle='#000a';g.fillText('보상 상자를 모두 열면 열려요',x+2,y-82);g.fillStyle='#ffd88a';g.fillText('보상 상자를 모두 열면 열려요',x,y-84);}
   if(open){const me=player||{};const stay=Math.min(10,me.exitStay||0);if(stay>0){g.strokeStyle='#ffe59a';g.lineWidth=10;g.beginPath();g.arc(x,y,110,-Math.PI/2,-Math.PI/2+Math.PI*2*stay/10);g.stroke();}g.font='bold 30px sans-serif';g.textAlign='center';g.fillStyle='#000a';g.fillText('1초 서 있으면 이동',x+2,y-82);g.fillStyle='#d8fff0';g.fillText('1초 서 있으면 이동',x,y-84);}
   g.restore();}
 }

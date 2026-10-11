@@ -174,7 +174,7 @@ export class TowerRenderer {
     // pixel-readback walking rig for every new attack pose on the render thread.
     const riggedWalk=moving&&detailedMotion;
     if(moving&&!detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
-    const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:1);
+    const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:this.explorationView?.78:1);
     const costume=costumeById(costumeId,classId);
     if(costume){
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
@@ -317,7 +317,7 @@ export class TowerRenderer {
     b=localSkillView(b);
     if(this.last&&now-this.last<1000/this.maxFps-1)return;
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
-    this.citadelView=b.explorationMode&&b.tier===3;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
+    this.citadelView=b.explorationMode&&b.tier===3;this.explorationView=b.explorationMode&&!this.citadelView;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
     if(this.seenEvents.size>300)this.seenEvents=new Set([...this.seenEvents].slice(-150));
@@ -457,6 +457,7 @@ export class TowerRenderer {
         drawFifth(g,{...effect,lowDetail:false},time,mine?.85:fifthOpacity);continue;
       }
       if(e.kind==='priest')continue;
+      if(e.kind==='chest-open'){const a=clamp((time-e.start)/(e.end-e.start));g.save();g.globalCompositeOperation='lighter';g.globalAlpha=1-a;for(let i=0;i<12;i++){const ang=i*Math.PI/6,r=30+a*170;g.fillStyle=i%2?'#ffe08a':'#fff6d0';g.fillRect(e.x+Math.cos(ang)*r-5,e.y-40+Math.sin(ang)*r*.6-5,10,10);}const gr=g.createRadialGradient(e.x,e.y-40,4,e.x,e.y-40,180*(.4+a));gr.addColorStop(0,'rgba(255,226,140,.6)');gr.addColorStop(1,'rgba(255,226,140,0)');g.fillStyle=gr;g.fillRect(e.x-200,e.y-240,400,400);g.restore();continue;}
       // Ranged warrior/rogue basics in dungeon modes: missile flies to the target, then the hit flash.
       if((e.kind==='slash'||e.kind==='impact')&&(e.classId==='warrior'||e.classId==='rogue')&&e.fromX!==undefined){const age=clamp((time-e.start)/(e.end-e.start)),fly=clamp(age/.6);if(fly<1){drawBasicMissile(g,e.classId,mix(e.fromX,e.x,fly),mix(e.fromY,e.y,fly),Math.atan2(e.y-e.fromY,e.x-e.fromX),time-e.start);continue;}}
       if(e.kind==='priest-orb'){const age=clamp((time-e.start)/(e.end-e.start)),x=mix(e.fromX,e.x,age),y=mix(e.fromY,e.y,age)-Math.sin(age*Math.PI)*45,orb=image('tower/priest-orb-v1.png');g.save();g.globalCompositeOperation='screen';for(let i=3;i>0;i--){const t=clamp(age-i*.07);g.globalAlpha=.16;g.fillStyle='#fff0ab';g.shadowColor='#fff2bf';g.shadowBlur=22;g.beginPath();g.arc(mix(e.fromX,e.x,t),mix(e.fromY,e.y,t)-Math.sin(t*Math.PI)*45,22+i*4,0,Math.PI*2);g.fill();}g.globalAlpha=1;g.shadowColor='#fff8cd';g.shadowBlur=38;if(orb.complete&&orb.naturalWidth)g.drawImage(orb,x-78,y-78,156,156);else{g.fillStyle='#fff8cf';g.beginPath();g.arc(x,y,35,0,Math.PI*2);g.fill();}g.restore();continue;}

@@ -29,7 +29,8 @@ export function campaign(seed,{players=1,power=DOHYUN,from=1,to=21,reaction=3,ma
    if(m.left||m.hp<=0){frames.push({user:m.id,tick:t,input:[0,0,0]});continue;}
    let dx=0,dy=0,bits=123;
    const stNow=CITADEL_STAGES[w.floor-1],aliveNow=w.monsters.filter(e=>e.hp>0&&e.bossKind!=='shadow');
-   const travel=stNow.boss?(aliveNow.length?aliveNow.reduce((p,e)=>Math.hypot(e.x-m.x,e.y-m.y)<Math.hypot(p.x-m.x,p.y-m.y)?e:p):w.exit):w.exit;
+   const chestMine=w.rewardChest&&!(m.citadelChests||[]).includes(w.rewardChest.boss);
+   const travel=chestMine?w.rewardChest:stNow.boss?(aliveNow.length?aliveNow.reduce((p,e)=>Math.hypot(e.x-m.x,e.y-m.y)<Math.hypot(p.x-m.x,p.y-m.y)?e:p):w.exit):w.exit;
    const tp=route(w.dungeon,m,travel),tn=Math.hypot(tp.x-m.x,tp.y-m.y)||1,gx=(tp.x-m.x)/tn,gy=(tp.y-m.y)/tn;
    // Dodge: hazards whose telegraph has been visible for `reaction` ticks.
    const danger=(w.hazards||[]).filter(h=>t>=0&&(h.at-w.tick)<=12&&(h.end>=w.tick)&&(w.tick-(h.start??(h.at-14)))>=reaction&&hazardInside(h,m));

@@ -1,7 +1,7 @@
 -- Weekly, number-based lottery. Private ledger; money and tickets commit together.
 create table if not exists rebirth_private.lotto_rounds (
  draw_at timestamptz primary key, sales bigint not null default 0 check(sales>=0),
- carry_in bigint not null default 0 check(carry_in>=0), multiplier integer check(multiplier between 8 and 11),
+ carry_in bigint not null default 0 check(carry_in>=0), multiplier integer check(multiplier between 8 and 30),
  number_a integer check(number_a between 1 and 18), number_b integer check(number_b between 1 and 18),
  prize bigint not null default 0, carry_out bigint not null default 0, winner_count integer not null default 0,
  settled_at timestamptz, check(number_a is null or number_a<number_b)
@@ -37,7 +37,7 @@ begin
   exit when not found;
   a:=1+floor(random()*18)::integer; b:=1+floor(random()*17)::integer; if b>=a then b:=b+1; end if;
   if a>b then m:=a; a:=b; b:=m; end if;
-  m:=8+floor(random()*4)::integer;
+  m:=20+floor(random()*11)::integer;
   total:=r.sales*m+r.carry_in;
   select count(*) into winners from rebirth_private.lotto_tickets where draw_at=r.draw_at and number_a=a and number_b=b;
   if winners>0 then
@@ -95,11 +95,11 @@ begin
    if exists(select 1 from rebirth_private.lotto_tickets where user_id=u and draw_at=draw and number_a=a and number_b=b) then raise exception 'LOTTO_DUPLICATE'; end if;
    select count(*) into n from rebirth_private.lotto_tickets where user_id=u and bought_at>=day_start and bought_at<day_start+interval '1 day';
    if n>=3 then raise exception 'LOTTO_DAILY_LIMIT'; end if;
-   if coalesce((p.state->>'gold')::bigint,0)<1000 then raise exception 'INSUFFICIENT_GOLD'; end if;
+   if coalesce((p.state->>'gold')::bigint,0)<10000 then raise exception 'INSUFFICIENT_GOLD'; end if;
    insert into rebirth_private.lotto_tickets(user_id,draw_at,number_a,number_b,bought_at) values(u,draw,a,b,v_now) returning id into v_ticket;
-   update rebirth_private.lotto_rounds set sales=sales+1000 where draw_at=draw;
-   update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::bigint-1000)),revision=revision+1,updated_at=now() where id=u returning * into p;
-   result:=jsonb_build_object('events',jsonb_build_array(jsonb_build_object('type','lottoBuy','ticket',v_ticket,'numbers',jsonb_build_array(a,b),'cost',1000)));
+   update rebirth_private.lotto_rounds set sales=sales+10000 where draw_at=draw;
+   update rebirth_private.players set state=jsonb_set(state,'{gold}',to_jsonb((state->>'gold')::bigint-10000)),revision=revision+1,updated_at=now() where id=u returning * into p;
+   result:=jsonb_build_object('events',jsonb_build_array(jsonb_build_object('type','lottoBuy','ticket',v_ticket,'numbers',jsonb_build_array(a,b),'cost',10000)));
    insert into rebirth_private.receipts(user_id,request_id,fingerprint,result) values(u,p_request,fp,result);
   end if;
  end if;

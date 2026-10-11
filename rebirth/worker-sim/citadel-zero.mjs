@@ -1,5 +1,5 @@
-import {buildCitadelRegion} from './citadel-map.mjs?v=hw-224';
-import {dungeonMove} from './exploration-dungeon.mjs?v=hw-224';
+import {buildCitadelRegion} from './citadel-map.mjs?v=hw-225';
+import {dungeonMove,nearestWalkable} from './exploration-dungeon.mjs?v=hw-225';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
 export const CITADEL_TIER=3,CITADEL_VERSION='citadel-hw-218';
@@ -25,6 +25,11 @@ export const CITADEL_STAGES=[
 ];
 export const CITADEL_BOSSES={totem:'사원소 토템',shadow:'그림자 얼굴',plant:'아리스타',harbingers:'공포의 전령들',serpents:'멸망의 뱀들',avatar:'암흑의 화신'};
 export const citadelStage=floor=>CITADEL_STAGES[floor-1];
+// Boss reward chests: 1..6 by boss order. Each living member opens their own chest by attacking it up close;
+// the portal opens once everyone has opened theirs (or CITADEL_CHEST_WAIT ticks pass).
+export const citadelBossOrdinal=floor=>CITADEL_STAGES.slice(0,floor).filter(s=>s.boss).length;
+export const CITADEL_CHEST_RANGE=170,CITADEL_CHEST_WAIT=900;
+export function citadelChestPending(w){const c=w.rewardChest;if(!c||w.tick>=c.at+CITADEL_CHEST_WAIT)return false;return w.members.some(m=>!m.left&&m.hp>0&&!(m.citadelChests||[]).includes(c.boss));}
 export const isCitadel=w=>w?.mode==='citadel'||(w?.mode==='exploration'&&w.tier===CITADEL_TIER);
 export const isDungeon=w=>w?.mode==='exploration'||w?.mode==='citadel';
 export const CITADEL_CONTENT={id:0,name:'암흑성채',floors:21,level:200,art:'exploration-3',map:'citadel/main-214.webp',boss:'암흑의 화신',seconds:0};
@@ -56,7 +61,7 @@ export function citadelFloor(w,walkable,reveal){
  if(!st.boss&&st.biome!==0)for(let i=0;i<6+st.act;i++){const p=slots.pop();if(p)w.traps.push({id:w.floor*100+i,...p,r:100,ready:w.tick+15,type:st.biome===1?'rock':st.biome===4?'thorn':st.biome===7?'shadow':'spike'});}
  w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp;w.enemy={...w.exit,face:1};
  if(!st.boss)for(let i=0;i<CITADEL_HEARTS;i++){const p=slots.pop();if(p)w.hearts.push({id:w.floor*10+i,x:p.x,y:p.y});}
- for(const [i,m] of w.members.entries()){if(w.floor>1&&!m.left&&m.hp>0)m.hp=st.boss?m.power.hp:Math.min(m.power.hp,m.hp+Math.round(m.power.hp*CITADEL_REGION_HEAL));Object.assign(m,{x:w.dungeon.start.x+(i%2)*90-45,y:w.dungeon.start.y+Math.floor(i/2)*90-45,input:[0,0,0],inputAt:w.started+w.tick*100,reviveProgress:0});for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];}
+ for(const [i,m] of w.members.entries()){if(w.floor>1&&!m.left&&m.hp>0)m.hp=st.boss?m.power.hp:Math.min(m.power.hp,m.hp+Math.round(m.power.hp*CITADEL_REGION_HEAL));Object.assign(m,{...nearestWalkable(w.dungeon,w.dungeon.start.x+(i%2)*90-45,w.dungeon.start.y+Math.floor(i/2)*90-45,32),input:[0,0,0],inputAt:w.started+w.tick*100,reviveProgress:0});for(const key of ['pendingHits','pendingHit','pendingSkill','firstCast','secondCast','thirdCast','fourthCast','fifthCast'])delete m[key];}
  reveal(w);return w;
 }
 export function citadelDamageFactor(w,e){if(!isCitadel(w))return 1;if(e.bossKind==='shadow')return 0;if(e.bossKind==='plant'&&(w.tick-w.floorAt)%100<30)return .15;return 1;}

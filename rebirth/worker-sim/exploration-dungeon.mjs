@@ -52,7 +52,15 @@ export function dungeonWalkable(d,x,y,radius=30){
  for(let yy=Math.floor((y-radius)/cell);yy<=Math.floor((y+radius)/cell);yy++)for(let xx=Math.floor((x-radius)/cell);xx<=Math.floor((x+radius)/cell);xx++)if(!dungeonFloorTile(d.tiles[yy]?.[xx]))return false;
  return true;
 }
+// Nearest free spot for a body of `radius`, searched in rings (10px steps) out to 600px.
+export function nearestWalkable(d,x,y,radius=30){
+ if(dungeonWalkable(d,x,y,radius))return {x,y};
+ for(let r=10;r<=600;r+=10){const n=Math.max(8,Math.round(r*Math.PI*2/10));for(let i=0;i<n;i++){const a=i*Math.PI*2/n,px=Math.round(x+Math.cos(a)*r),py=Math.round(y+Math.sin(a)*r);if(dungeonWalkable(d,px,py,radius))return {x:px,y:py};}}
+ return {x,y};
+}
 export function dungeonMove(d,actor,dx,dy,radius=30){
+ // A player body overlapping a wall/tree is lifted to the nearest free spot first (monsters keep old behaviour).
+ if(d&&actor.classId&&!dungeonWalkable(d,actor.x,actor.y,radius)){const p=nearestWalkable(d,actor.x,actor.y,radius);actor.x=p.x;actor.y=p.y;}
  const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/25));
  for(let i=0;i<steps;i++){const x=actor.x+dx/steps,y=actor.y+dy/steps;
   if(dungeonWalkable(d,x,actor.y,radius))actor.x=x;

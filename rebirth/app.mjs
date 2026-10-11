@@ -486,7 +486,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     render();
     for (const event of result.result?.events || []) if(event.type === "combat") combatFrames.push(...event.frames);
     if (combatFrames.length > 6) combatFrames.splice(0, combatFrames.length - 6);
-    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial"].includes(e.type))) showEvents(result.result?.events || []);
+    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial","citadelChest"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
     if(requestSignal?.aborted||session?.user?.id!==accountAtSend){
@@ -1009,6 +1009,7 @@ function cubeChoice() {
 }
 function showEvents(events) {
   for (const e of events) {
+    if(e.type==='citadelChest'){sounds.play(e.items?.length?'loot-rare':'loot-common');const parts=['장비 파편 '+fmt(e.fragment||0)+'개'];if(e.potentialLock)parts.push('잠재 잠금석 '+e.potentialLock+'개');if(e.scroll)parts.push('잠재 해금 주문서 '+e.scroll+'개');for(const it of e.items||[])parts.push('보스 장비 · '+D.gearName(it)+' Lv.'+it.level);toast('보스 상자 · '+parts.join(' · ')+(e.stored?' (가방이 가득 차 우편함으로)':''));continue;}
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
     if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
     if(['fishSell','fishAquariumClaim'].includes(e.type)){toast(fmt(e.gold)+' G 받았어요.');continue;}
