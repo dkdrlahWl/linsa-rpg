@@ -1,7 +1,7 @@
 // Shared with the authenticated server. Fish use gold; bait bundles use diamonds. Weight is grams.
 export const FISHING_VERSION=2;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
-export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:600}];
+export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240}];
 export const SPOTS=[
  {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
  {id:'moon',bonus:1.15,luck:1.958,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
@@ -41,7 +41,7 @@ export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)re
 // previous table now that deep-spot top fish sell for more (신화 stays the best per fish).
 // 2026-10-12: 9 mythic ≈ half of the best hunting income (~340k/h).
 // Each grade's worst fish (any spot, lightest) out-earns the previous grade's best (any spot, heaviest), for sale and aquarium.
-export const AQUARIUM_RATE=[.75,.52,.37,.235,.124,.054];
+export const AQUARIUM_RATE=[.75,.52,.37,.235,.124,.135]; // 신화 sale value 600→240 (2026-10-12); rate keeps its aquarium income
 export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*AQUARIUM_RATE[d.rarity])):0;};
 export const aquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
