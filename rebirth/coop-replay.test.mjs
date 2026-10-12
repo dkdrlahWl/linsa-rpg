@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import {startCoop,advanceCoop,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';
 const power={attack:50,hp:50000,defense:30,boss:1,crit:.3,critDamage:1.6,cadence:1,firstJob:true,advancement:3};
-const fresh=()=>startCoop({id:'replay',me:'me',tier:5,status:'waiting',members:[{id:'me',classId:'mage',power,advanced:true}]},0);
+const fresh=()=>({...startCoop({id:'replay',me:'me',tier:5,status:'waiting',members:[{id:'me',name:'me',classId:'mage',power,advanced:true}]},0),entryWaiting:false});
 const trace=Array.from({length:90},(_,tick)=>({tick,input:[tick<30?1:tick<60?-1:0,0,1|(tick%35===0?4:0)|(tick===5?32:0)]}));
 let reference=fresh();for(const f of trace)reference=predictCoopStep(reference,'me',f.input);
 // Server advances while inputs are delayed, then rewinds to their original ticks.
 let server=fresh();
 for(let tick=0;tick<90;tick+=5){const arrived=trace.filter(f=>f.tick>=tick-10&&f.tick<tick-5);server=advanceCoop(server,'me',{frames:arrived},tick*100);}
 server=advanceCoop(server,'me',{frames:trace.slice(65)},9000);
-const projection=w=>({tick:w.tick,hp:w.hp,enemy:w.enemy,member:w.members[0],effects:w.effects,numbers:w.numbers});
+const projection=w=>({tick:w.tick,hp:w.hp,enemy:w.enemy,member:Object.fromEntries(Object.entries(w.members[0]).filter(([k])=>k!=='inputAck')),effects:w.effects,numbers:w.numbers});
 delete server.members[0].inputAck;
 assert.deepEqual(projection(server),projection(reference));
 const duplicate=advanceCoop(server,'me',{frames:trace.slice(65)},9000);delete duplicate.members[0].inputAck;

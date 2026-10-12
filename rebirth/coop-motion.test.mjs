@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs';
 import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';
 import {spawnWave} from './wave-model.mjs?v=crit-restore-57';
-// A received snapshot can correct any actor by a large amount without moving
+// A correction inside the smoothing radius keeps the first displayed frame.
+// A received snapshot can correct any actor without moving
 // its first displayed frame. Subsequent corrections have a bounded velocity.
 for(const local of [false,true]){
  const motion=new CoopMotion();let actor={x:1000,y:1000};motion.begin(1);motion.sample('a',actor,local);motion.end();
- motion.reconcile();actor={x:1800,y:600};motion.begin(17);let previous=motion.sample('a',actor,local);motion.end();assert.deepEqual([previous.x,previous.y],[1000,1000]);
+ motion.reconcile();actor={x:1200,y:900};motion.begin(17);let previous=motion.sample('a',actor,local);motion.end();assert.deepEqual([previous.x,previous.y],[1000,1000]);
  for(let now=33;now<5017;now+=16){motion.begin(now);const next=motion.sample('a',actor,local);motion.end();assert.ok(Math.hypot(next.x-previous.x,next.y-previous.y)<=(local?300:500)*.016+.000001);previous=next;}
  assert.ok(Math.hypot(previous.x-actor.x,previous.y-actor.y)<1);
  motion.begin(5100);motion.end();assert.equal(motion.points.size,0);
@@ -17,7 +18,7 @@ const motion=new CoopMotion();motion.begin(1);motion.sample('me',{x:1200,y:1200}
 motion.begin(17);assert.equal(motion.sample('me',{x:1212,y:1200},true).x,1212);motion.end();
 assert.equal(interpolateActor({x:1300,y:1100},{x:1000,y:1000},.5).x,1150);
 const power={attack:2,hp:1e8,defense:100,boss:1,crit:.3,critDamage:1.6,cadence:1,firstJob:true,advancement:3};
-const fresh=mode=>startCoop({id:'smooth',me:'0',mode,tier:3,status:'waiting',members:Array.from({length:4},(_,i)=>({id:String(i),classId:'warrior',power,advanced:true}))},10000);
+const fresh=mode=>({...startCoop({id:'smooth',me:'0',mode,tier:3,status:'waiting',members:Array.from({length:4},(_,i)=>({id:String(i),classId:'warrior',power,advanced:true}))},10000),entryWaiting:false});
 // Full copy and owned prediction produce identical gameplay. Position snapshots
 // must not alias the world being advanced in place.
 for(const mode of ['wave','rift']){

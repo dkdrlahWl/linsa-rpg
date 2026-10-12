@@ -151,7 +151,7 @@ export class TowerRenderer {
     this.arenaImage=tier=>image('exploration/arena-'+tier+'-196.webp');this.canvas=canvas;this.g=canvas.getContext('2d',{alpha:false});this.trail=[];this.steps=[];this.lastStep=0;this.last=0;this.camera=null;
     this.particles=[];this.shockwaves=[];this.seenEvents=new Set();this.fifthLandings=new Map();this.shake=0;this.flash=0;this.zoom=0;
     // Phones (narrow, high-DPI) get up to 2.25x backing pixels so maps stay sharp; slow devices drop back to 1.5x.
-    this.fit=r=>{if(!r?.width||!r.height)return;this.fitRect=r;this.viewHeight=Math.round(1000*r.height/r.width);const cap=this.pixelCap??(r.width<700?2.25:options.pixelRatio||1.5),width=Math.min(options.maxWidth||(r.width<700?1100:1000),Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,cap))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}};
+    this.fit=r=>{if(!r?.width||!r.height)return;this.fitRect=r;this.viewHeight=Math.round(1000*r.height/r.width);const requested=options.pixelRatio||(r.width<700?2.25:1.5),cap=Math.min(requested,this.pixelCap??requested),width=Math.min(options.maxWidth||(r.width<700?1100:1000),Math.max(480,Math.round(r.width*Math.min(devicePixelRatio||1,cap))));if(canvas.width!==width||canvas.height!==Math.round(width*r.height/r.width)){canvas.width=width;canvas.height=Math.round(width*r.height/r.width);}};
     this.resize=new ResizeObserver(entries=>this.fit(entries[0].contentRect));this.resize.observe(canvas);
   }
   pet(actor,x,y,time,key='self'){

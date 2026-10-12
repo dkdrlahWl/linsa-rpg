@@ -8,10 +8,10 @@ const commands=source.slice(source.indexOf('const dungeonExitActions='),source.i
 const storage=new Map(),packets=[],deferred=[];
 const context=vm.createContext({
   AbortController,AbortSignal,DOMException,crypto,performance,queueMicrotask,abortable,
-  busy:false,state:{coopRoom:'room',gold:0,level:200,lastAt:0},session:{user:{id:'account'}},coopRoom:{id:'room',status:'fighting'},coopRooms:[],
+  busy:false,coopController:null,state:{coopRoom:'room',gold:0,level:200,lastAt:0},session:{user:{id:'account'}},coopRoom:{id:'room',status:'fighting'},coopRooms:[],
   localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},pendingKey:()=> 'pending',
   document:{querySelectorAll:()=>[]},$:()=>({hidden:true}),D:{normalizePotentialState:s=>s},sounds:{play(){}},toast(){},message:e=>e.message,
-  ensureToken:async()=>{},render(){},showEvents(){},autoHuntPending:false,view:'game',rankingRevision:0,rankingUpdated:0,rankingLoading:false,
+  ensureToken:async()=>{},render(){},showEvents(){},fishingQuestsReady:()=>0,autoHuntPending:false,view:'game',rankingRevision:0,rankingUpdated:0,rankingLoading:false,
   lastHuntSettlement:0,lastBattleRequestAt:0,lastSync:0,connectionLost:false,retryAt:0,retryFailures:0,combatFrames:[],partyRoom:null,
   request:async(_,body,__,signal)=>{
     packets.push(body);
@@ -49,4 +49,13 @@ for(let i=0;i<20&&!deferred.length;i++)await Promise.resolve();
 assert.equal(deferred.length,1);context.session={user:{id:'new-account'}};
 const stateBefore=context.state;deferred.shift()({state:{gold:999},coop:null});await stale;
 assert.equal(context.state,stateBefore);
+// Token refresh that never resolves must time out without a screen change.
+context.ensureToken=()=>new Promise(()=>{});
+context.AbortSignal={any:AbortSignal.any.bind(AbortSignal),timeout:ms=>{assert.equal(ms,6000);return AbortSignal.timeout(20);}};
+const keepAlive=setTimeout(()=>{},1000);
+try{
+ await assert.rejects(vm.runInContext('command("coopInput",{frames:[]},true)',context),{name:'TimeoutError'});
+ assert.equal(stats().busy,false);assert.equal(stats().active,false);
+ assert.equal(context.connectionLost,true,'deadline is a retryable failure, not an intentional cancellation');
+}finally{clearTimeout(keepAlive);}
 console.log('PASS 100 repeats: input preemption, chest/exit/speed priority, cancelled token refresh, late response/account safety and empty wait queues');

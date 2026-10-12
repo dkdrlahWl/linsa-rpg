@@ -33,10 +33,10 @@ function solidGroups(d){
 // R sub-pixels per pattern pixel: structure stays on the 16 px grid, texture, grain and
 // shading are computed at full resolution for a richer, less blocky surface.
 const R=2;
-function paintPixels(d,P,pixels,propOf,buildingOf,rowStart=0,rowEnd=d.size){
+function paintPixels(d,P,pixels,propOf,buildingOf,rowStart=0,rowEnd=d.size,colStart=0,colEnd=d.size){
  const n=d.size,W=n*T*R,tile=(x,y)=>d.tiles[y]?.[x]??'0',floorAt=(x,y)=>isFloor(tile(x,y));
  const put=(i,c,k=1)=>{pixels[i*4]=Math.min(255,c[0]*k);pixels[i*4+1]=Math.min(255,c[1]*k);pixels[i*4+2]=Math.min(255,c[2]*k);pixels[i*4+3]=255;};
- for(let ty=rowStart;ty<rowEnd;ty++)for(let tx=0;tx<n;tx++){
+ for(let ty=rowStart;ty<rowEnd;ty++)for(let tx=colStart;tx<colEnd;tx++){
   const t=tile(tx,ty),floor=isFloor(t)||propOf(tx,ty),wallN=!floorAt(tx,ty-1)&&!propOf(tx,ty-1),wallW=!floorAt(tx-1,ty)&&!propOf(tx-1,ty),wallE=!floorAt(tx+1,ty)&&!propOf(tx+1,ty);
   const face=!floor&&floorAt(tx,ty+1),building=buildingOf(tx,ty);
   for(let sy=0;sy<T*R;sy++)for(let sx=0;sx<T*R;sx++){
@@ -138,7 +138,7 @@ const CROWN_RAMP=[[18,38,26],[29,58,34],[38,77,43],[52,100,52],[72,128,64],[98,1
 const ROCK_RAMP=[[20,19,24],[44,42,50],[61,58,68],[80,76,88],[104,99,114],[132,126,142]];
 const crownCache=new Map();
 function crownSprite(r,variant,ramp=CROWN_RAMP){
- const key=r+':'+variant+':'+ramp[0];if(crownCache.has(key))return crownCache.get(key);
+ const key=r+':'+variant+':'+ramp[0];if(crownCache.has(key)){const c=crownCache.get(key);crownCache.delete(key);crownCache.set(key,c);return c;}
  const size=r*2+4,c=document.createElement('canvas');c.width=c.height=size;const g=c.getContext('2d'),img=g.createImageData(size,size),o=size/2;
  const lobes=Array.from({length:6},(_,i)=>{const a=i/6*Math.PI*2+hash(variant,i,5)*.8;return {x:Math.cos(a)*r*.45,y:Math.sin(a)*r*.4,r:r*(.5+hash(variant,i,6)*.25)};});
  const inside=(x,y)=>Math.hypot(x,y*1.08)<r*.62||lobes.some(l=>Math.hypot(x-l.x,y-l.y)<l.r);
@@ -147,7 +147,7 @@ function crownSprite(r,variant,ramp=CROWN_RAMP){
   let light=(-dx-dy*1.3)/(r*2)+.45+(vnoise(x,y,3,variant*13)-.5)*.55;const cluster=vnoise(x,y,4,variant*7+1);if(cluster>.62)light+=.18;if(cluster<.3)light-=.15;
   let idx=edge?0:Math.max(1,Math.min(5,Math.floor(light*5.2)));if(!edge&&dy>r*.35&&idx>2)idx--;
   const col=ramp[idx],i=(y*size+x)*4;img.data[i]=col[0];img.data[i+1]=col[1];img.data[i+2]=col[2];img.data[i+3]=255;}
- g.putImageData(img,0,0);crownCache.set(key,c);return c;
+ g.putImageData(img,0,0);crownCache.set(key,c);while(crownCache.size>512)crownCache.delete(crownCache.keys().next().value);return c;
 }
 function crown(g,cx,cy,r,trunk,variant=0){
  r=Math.round(r);
@@ -182,10 +182,11 @@ function drawProp(g,P,group,d,random){
  if(name==='cave'){const r=Math.round(Math.max(w,h)*.5),s=crownSprite(r*R,group.x0*3+group.y0,ROCK_RAMP);g.fillStyle='#0006';g.beginPath();g.ellipse(x+w/2+2,y+h-2,w*.5,h*.22,0,0,7);g.fill();g.drawImage(s,x+w/2-s.width/R/2,y+h/2-s.height/R/2-2,s.width/R,s.height/R);if(hash(group.x0,group.y0,3)>.5)for(let i=0;i<3;i++){const cx=x+w/2-4+i*3;px(g,cx,y+h/2-6+i%2*3,2,6,'#71c0c6');px(g,cx,y+h/2-6+i%2*3,1,6,'#d2fbff');}return;}
  px(g,x+2,y+3,w-4,h-4,P.faceHex[1]);px(g,x+3,y+2,w-6,3,P.capHex);
 }
-function decorate(g,d,P,random){
+function* decorate(g,d,P,random){
  const n=d.size,tile=(x,y)=>d.tiles[y]?.[x]??'0',floorAt=(x,y)=>isFloor(tile(x,y));
  const glows=[];
  for(let ty=1;ty<n-1;ty++)for(let tx=1;tx<n-1;tx++){
+  yield;
   const X=tx*T,Y=ty*T,h=hash(tx,ty,P.seed+21);
   if(!floorAt(tx,ty)&&floorAt(tx,ty+1)){ // wall faces: torches, banners, cells, niches
    if(P.light&&h<.13&&tx%2===0){const flame=P.name==='corridor'?'#a99cff':P.name==='cave'?'#71c0c6':'#ffb347';px(g,X+7,Y+5,2,6,'#5a3d26');px(g,X+6,Y+3,4,3,flame);px(g,X+7,Y+2,2,2,'#fff2c0');glows.push([X+8,Y+4,P.name==='corridor'?'167,150,255':P.name==='cave'?'113,192,198':'255,170,80']);}
@@ -206,6 +207,7 @@ function decorate(g,d,P,random){
  // Outdoor regions: tree crowns over the woodland, drawn top to bottom.
  if(P.name==='forest'||P.name==='royal'){
   for(let ty=1;ty<n-1;ty++)for(let tx=1;tx<n-1;tx++){
+   yield;
    if(floorAt(tx,ty))continue;
    if(P.name==='royal'&&!(tx<4||ty<4||tx>n-5||ty>n-5))continue;
    let nearFloor=false;for(let yy=ty-2;yy<=ty+2&&!nearFloor;yy++)for(let xx=tx-2;xx<=tx+2;xx++)if(floorAt(xx,yy)){nearFloor=true;break;}
@@ -219,7 +221,7 @@ function decorate(g,d,P,random){
   }
  }
  g.save();g.globalCompositeOperation='lighter';
- for(const [x,y,rgb] of glows){const gr=g.createRadialGradient(x,y,1,x,y,40);gr.addColorStop(0,'rgba('+rgb+',.28)');gr.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=gr;g.fillRect(x-40,y-40,80,80);}
+ for(const [x,y,rgb] of glows){yield;const gr=g.createRadialGradient(x,y,1,x,y,40);gr.addColorStop(0,'rgba('+rgb+',.28)');gr.addColorStop(1,'rgba('+rgb+',0)');g.fillStyle=gr;g.fillRect(x-40,y-40,80,80);}
  g.restore();
 }
 // Built incrementally (a few tile rows per frame) so a region change never stalls the game.
@@ -234,15 +236,23 @@ export function buildCitadelLayer(d,floor=0){
  const isBuilding=gi=>gi>=0&&P.name==='royal'&&!groups[gi].edge&&groups[gi].size>propLimit;
  const propOf=(x,y)=>x>=0&&y>=0&&x<n&&y<n&&isProp(id[y*n+x]);
  const buildingOf=(x,y)=>x>=0&&y>=0&&x<n&&y<n&&isBuilding(id[y*n+x]);
- const image=g.createImageData(W,W);let row=0;
- const layer={canvas,done:false,step(budget=8){
+ const image=g.createImageData(W,W);let row=0,col=0,decorations;
+ const layer={canvas,done:false,step(budget=4){
   if(layer.done)return;const t0=performance.now();
-  while(row<n&&performance.now()-t0<budget){const end=Math.min(n,row+2);paintPixels(d,P,image.data,propOf,buildingOf,row,end);g.putImageData(image,0,0,0,row*T*R,W,(end-row)*T*R);row=end;}
+  // Checking only once per two full rows exceeded the budget on phones.
+  // Yield between tiles while keeping the exact same pixels and decorations.
+  while(row<n&&performance.now()-t0<budget){
+   paintPixels(d,P,image.data,propOf,buildingOf,row,row+1,col,col+1);
+   if(++col===n){g.putImageData(image,0,0,0,row*T*R,W,T*R);col=0;row++;}
+  }
   if(row>=n){
-   let state=(d.biome*2654435761^n)>>>0;const random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
-   g.save();g.setTransform(R,0,0,R,0,0);decorate(g,d,P,random);
-   groups.map((gr,i)=>({gr,i})).filter(({i})=>isProp(i)).sort((a,b)=>a.gr.y1-b.gr.y1).forEach(({gr})=>drawProp(g,P,gr,d,random));g.restore();
-   layer.done=true;
+   decorations??=(function*(){
+    let state=(d.biome*2654435761^n)>>>0;const random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/4294967296);
+    g.save();g.setTransform(R,0,0,R,0,0);yield* decorate(g,d,P,random);
+    for(const {gr} of groups.map((gr,i)=>({gr,i})).filter(({i})=>isProp(i)).sort((a,b)=>a.gr.y1-b.gr.y1)){yield;drawProp(g,P,gr,d,random);}
+    g.restore();
+   })();
+   while(performance.now()-t0<budget&&!layer.done)layer.done=decorations.next().done;
   }
  }};
  return layer;
@@ -273,7 +283,7 @@ function drawRewardChest(g,c,opened,player,t){
 export function drawCitadelWorld(renderer,b,image,player){
  const d=b.dungeon;if(!d)return;const g=renderer.g,world=d.size*d.cell;
  if(renderer.citadelLayer?.id!==d.id)renderer.citadelLayer=Object.assign(buildCitadelLayer(d,b.floor||0),{id:d.id});
- const layer=renderer.citadelLayer;if(!layer.done)layer.step(layer.canvas&&!layer.started?24:8);layer.started=true;
+ const layer=renderer.citadelLayer;if(!layer.done)layer.step(4);
  g.save();g.imageSmoothingEnabled=false;g.fillStyle=citadelVoid(d.biome);g.fillRect(-4000,-4000,world+8000,world+8000);g.drawImage(renderer.citadelLayer.canvas,0,0,world,world);g.restore();
  const t=(b.tick||0)/10;
  for(const trap of b.traps||[]){g.save();const s=6.25,x=Math.round(trap.x/s)*s,y=Math.round(trap.y/s)*s;g.fillStyle='#2a2430';g.fillRect(x-40,y-40,80,80);g.fillStyle='#55505e';g.fillRect(x-34,y-34,68,68);g.fillStyle='#c9c3d6';for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++)if((i+j)%2===0)g.fillRect(x+i*13-3,y+j*13-3,6,6);g.restore();}

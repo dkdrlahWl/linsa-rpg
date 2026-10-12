@@ -148,7 +148,9 @@ export class CoopController{
  const starting=this.room.entryWaiting&&!room.entryWaiting,resync=!!this.needsResync;this.previousRoom=this.room;this.room=room;
  if(starting||room.entryWaiting||resync){this.frames=[];this.sampler.clear();this.pendingBits=0;this.hint={attack:0,skill:0,dash:0};}
  if(starting||room.members.find(m=>m.id===room.me)?.entryMoved)this.entryMoveInput=null;
- const target=room.entryWaiting||starting||resync?room.tick:Math.max(room.tick,Math.min(this.predictionTick??this.predicted?.tick??room.tick,room.tick+20));
+ // Match the 30-tick sampling/replay window. A 20-tick rebase cap rewound a
+ // client at its 30-tick lead on every delayed snapshot, repeating movement.
+ const target=room.entryWaiting||starting||resync?room.tick:Math.max(room.tick,Math.min(this.predictionTick??this.predicted?.tick??room.tick,room.tick+30));
  const base=!resync&&room.predictionBase||room;
  this.nextSend=Math.max(this.nextSend||0,performance.now()+80);
  this.frames=this.frames.filter(f=>f.tick>=base.tick);

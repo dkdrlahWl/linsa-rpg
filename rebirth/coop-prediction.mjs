@@ -11,7 +11,9 @@ export class CoopPredictor{
     if(data.type==='failed'){this.fail();return;}
     if(data.type!=='state')return;
     for(const key of this.pending.keys())if(key<=data.sequence)this.pending.delete(key);
-    if(data.generation===this.generation&&data.sequence>(this.applied||0)){this.applied=data.sequence;state(data);}
+    // A newer *queued* snapshot must not starve an already completed replay.
+    // Only discontinuities (room/floor/status/resume) invalidate in-flight work.
+    if(data.generation>=(this.barrier??this.generation)&&data.generation<=this.generation&&data.sequence>(this.applied||0)){this.applied=data.sequence;state(data);}
     this.pump();
    };
    this.worker.onerror=event=>{event.preventDefault?.();this.fail();};
@@ -40,7 +42,13 @@ export class CoopPredictor{
   const sequence=++this.sequence;this.pending.set(sequence,performance.now());
   try{this.worker.postMessage({...message,sequence});}catch{this.fail();}
  }
- reset(payload){this.generation++;this.queued=[];this.send({type:'reset',...payload});}
+ reset(payload){
+  const room=payload.room;
+  const continuity=room?.id===undefined?null:JSON.stringify([room.id,room.mode,room.floor,room.status,!!room.entryWaiting]);
+  this.generation++;
+  if(payload.forceCurrent||continuity===null||continuity!==this.continuity)this.barrier=this.generation;
+  this.continuity=continuity;this.queued=[];this.send({type:'reset',...payload});
+ }
  step(tick,input){if(this.queued.length>=40){this.fail();return;}this.send({type:'step',tick,input});}
  fail(){if(this.closed)return;this.dispose();this.callbacks.fallback();}
  dispose(){this.closed=true;clearTimeout(this.loading);clearInterval(this.watch);this.worker?.terminate();this.pending.clear();this.queued=[];}

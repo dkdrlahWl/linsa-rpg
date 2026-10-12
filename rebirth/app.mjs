@@ -429,7 +429,11 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
   const inputAbort=streaming||background?new AbortController():null;
   if(streaming)activeCoopInput=inputAbort;
   if(background)activeBackgroundSync=inputAbort;
-  const requestSignal=inputAbort?(signal?AbortSignal.any([signal,inputAbort.signal]):inputAbort.signal):signal;
+  // The input slot includes token refresh, not just fetch. A stuck refresh used
+  // to hold busy forever and stop every subsequent multiplayer packet.
+  const inputDeadline=streaming?AbortSignal.timeout(6000):null;
+  const baseSignal=inputAbort?(signal?AbortSignal.any([signal,inputAbort.signal]):inputAbort.signal):signal;
+  const requestSignal=inputDeadline?AbortSignal.any([inputDeadline,...(baseSignal?[baseSignal]:[])]):baseSignal;
   if(!streaming&&!background)document
     .querySelectorAll("button[data-write]")
     .forEach((b) => {if(!dungeonExitActions.has(b.dataset.action))b.disabled=true;});
@@ -498,7 +502,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial","citadelChest"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
-    if(requestSignal?.aborted||session?.user?.id!==accountAtSend){
+    if((requestSignal?.aborted&&!inputDeadline?.aborted)||baseSignal?.aborted||session?.user?.id!==accountAtSend){
       if(background&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(pendingKey())||'null')?.requestId===body.requestId)localStorage.removeItem(pendingKey());}catch{}}
       return;
     }

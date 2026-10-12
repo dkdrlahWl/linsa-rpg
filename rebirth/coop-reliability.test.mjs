@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {startCoop,advanceCoop,advanceCoopRaw,predictCoopStep,coopClientView,indexCoopFrames,coopEncounter,COOP_TIERS,setWaveSpeed} from './coop-model.mjs';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs';
+import {isDungeon,isCitadel} from './citadel-zero.mjs';
 import {TowerInput} from './tower-input.mjs';
 const power={attack:1,hp:1000000,defense:100,boss:1,crit:.25,critDamage:1.5,cadence:1,firstJob:true,advancement:4};
 function fresh(mode){
@@ -52,7 +53,7 @@ assert.throws(()=>advanceCoop(fresh('rift'),'a',{frames:[{tick:-1,input:[0,0,0]}
 assert.throws(()=>advanceCoop(fresh('rift'),'a',{frames:[{tick:10,input:[0,0,0]}]},0),/FUTURE/);
 
 const document={hidden:false,querySelector:()=>null},navigator={onLine:true};
-const context={performance,structuredClone,Math,Map,Set,Promise,document,navigator,requestAnimationFrame:()=>1,
+const context={isDungeon,isCitadel,performance,structuredClone,Math,Map,Set,Promise,document,navigator,requestAnimationFrame:()=>1,
  paintHealthBar:()=>{},autoSkillBits:()=>0,prepareWaveCreature:()=>Promise.resolve(),image:()=>({}),WAVE_MONSTERS:Array.from({length:30},()=>({})),waveHud:()=>{},
  predictCoopStep,indexCoopFrames,coopEncounter,COOP_TIERS,motionSnapshot,interpolateActor,CoopMotion,TowerInput,
  projectPlayer:b=>({x:b.player.x,y:b.player.y}),raidMove:(m,x,y)=>Object.assign(m,{x,y})};
@@ -73,6 +74,11 @@ for(let i=0;i<30&&c.predicted.tick<30;i++)c.draw(now+=17);
 assert.equal(c.predicted.tick,30);
 assert.deepEqual(project(c.predicted),project(advanceCoopRaw(seed,null,null,3000,[...local,...remote])),'actual controller consumes remote replay and restores compact actor stats');
 const oldTick=c.room.tick;
+// Slow authoritative progress must not undo ten already-sampled input ticks.
+const lead=controller(fresh('rift'));lead.workerActive=true;lead.predictionTick=30;
+let rebase;lead.predictor={reset:payload=>{rebase=payload;}};
+lead.accept({...lead.room,tick:1,revision:2});
+assert.equal(rebase.target,30,'rebase and sampler use the same recoverable lead');
 c.accept({...c.room,tick:oldTick+1,revision:0});
 assert.equal(c.room.tick,oldTick,'out-of-order revision cannot replace the room');
 let sent=0;c.send=async()=>{sent++;return {};};
