@@ -43,7 +43,7 @@ import * as D from "./data.mjs?v=endgame-level-250-20261011";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-impact-121";
-import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter} from "./title-ui.mjs";
+import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -1391,6 +1391,7 @@ document.addEventListener("click", async (e) => {
       return;
     }
     if(action==="titleOpen"){setTitleFilter('all');open("칭호",titlePanelView(state));modal.classList.add("title-dialog");await command('titleSync',{},true).catch(()=>{});if(modal.open&&modal.classList.contains('title-dialog'))open("칭호",titlePanelView(state)),modal.classList.add("title-dialog");return;}
+    if(action==="titleDetail"){setTitleDetail(arg);open("칭호",titlePanelView(state));modal.classList.add("title-dialog");return;}
     if(action==="titleFilter"){setTitleFilter(arg);open("칭호",titlePanelView(state));modal.classList.add("title-dialog");return;}
     if(action==="titleEquip"){if(busy)return;const r=await command('titleEquip',{id:arg||null});if(r){toast(arg?'칭호 장착 완료':'칭호를 해제했어요');open("칭호",titlePanelView(state));modal.classList.add("title-dialog");}return;}
     if(action==="luckyWheelOpen"){open("행운의 돌림판",luckyWheelView(state));modal.classList.add("lucky-wheel-dialog");return;}

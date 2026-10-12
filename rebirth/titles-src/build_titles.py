@@ -212,37 +212,125 @@ def fx_layer(kind, P, uid):
         return f'<ellipse cx="{CX}" cy="{CY}" rx="120" ry="36" fill="url(#gw{uid})" opacity=".7"/>'
     return ''
 
+METAL = {
+ 'common': ('#fff2d6', '#d9a066', '#7a4418', '#f5c58e', '#3a1c06'),
+ 'rare':   ('#ffffff', '#c9dcf2', '#5c7394', '#eaf4ff', '#16233a'),
+ 'epic':   ('#fbefff', '#c9a3ff', '#5e2aa8', '#efdcff', '#1e0a3a'),
+ 'legend': ('#fffbe2', '#ffd45a', '#a8640a', '#fff0a8', '#3a2000'),
+ 'myth':   ('#fff6fd', '#ffb6e6', '#a83a9a', '#ffe2f6', '#300a32'),
+}
+
+def feather(side, i, n, sc, uid, anim):
+    s = -1 if side == 'L' else 1
+    base = (CX + s * 64, CY - 2)
+    ang = math.radians(-50 + i * (95 / max(1, n - 1)))
+    L = (58 + (n - i) * 7) * sc
+    tip = (base[0] + s * math.cos(ang) * L * 1.15, base[1] + math.sin(ang) * L * .62)
+    w = 9 + (n - i) * 1.2
+    nx, ny = -math.sin(ang) * w, math.cos(ang) * w * .55
+    c1 = (base[0] + s * math.cos(ang) * L * .5 + s * nx * .2, base[1] + math.sin(ang) * L * .3 - abs(ny))
+    c2 = (base[0] + s * math.cos(ang) * L * .55 - s * nx * .2, base[1] + math.sin(ang) * L * .35 + abs(ny))
+    d = (f'M{f1(base[0])} {f1(base[1])}Q{f1(c1[0])} {f1(c1[1]-4)} {f1(tip[0])} {f1(tip[1])}'
+         f'Q{f1(c2[0])} {f1(c2[1]+4)} {f1(base[0])} {f1(base[1]+7)}Z')
+    vein = f'M{f1(base[0])} {f1(base[1]+3)}L{f1(base[0]+(tip[0]-base[0])*.85)} {f1(base[1]+(tip[1]-base[1])*.85+1)}'
+    return (f'<path d="{d}" fill="url(#fw{side}{uid})" stroke="url(#mk2{uid})" stroke-width="2.2"/><path d="{d}" fill="none" stroke="url(#fe{uid})" stroke-width=".9"/>'
+            f'<path d="{vein}" stroke="#ffffff" stroke-opacity=".55" stroke-width=".9" fill="none"/>')
+
+def wings(uid, sc, n, anim):
+    out = ''
+    for side in ('L', 'R'):
+        s = -1 if side == 'L' else 1
+        g = ''.join(feather(side, i, n, sc, uid, anim) for i in range(n))
+        g2 = ''.join(feather(side, i, max(3, n - 2), sc * .72, uid, anim) for i in range(max(3, n - 2)))
+        body = f'<g opacity=".95">{g}</g><g>{g2}</g>'
+        if anim:
+            body = (f'<g>{body}<animateTransform attributeName="transform" type="rotate" values="0 {CX+s*64} {CY};{-5*s} {CX+s*64} {CY};0 {CX+s*64} {CY}" dur="2.6s" repeatCount="indefinite"/></g>')
+        out += body
+    return out
+
+def scroll(side, uid, big):
+    s = -1 if side == 'L' else 1
+    x0 = CX + s * 104
+    sc = 1.15 if big else .9
+    def X(v): return f1(CX + s * (104 + v * sc))
+    def Y(v): return f1(CY + v * sc)
+    d = (f'M{X(0)} {Y(-14)}C{X(18)} {Y(-30)} {X(46)} {Y(-24)} {X(44)} {Y(-6)}C{X(42)} {Y(6)} {X(28)} {Y(4)} {X(30)} {Y(-4)}'
+         f'M{X(0)} {Y(14)}C{X(18)} {Y(30)} {X(46)} {Y(24)} {X(44)} {Y(6)}C{X(42)} {Y(-6)} {X(28)} {Y(-4)} {X(30)} {Y(4)}')
+    leaf = (f'<path d="M{X(46)} {Y(0)}c{f1(s*8*sc)} -6 {f1(s*16*sc)} -4 {f1(s*20*sc)} 0c{f1(-s*4*sc)} 4 {f1(-s*12*sc)} 6 {f1(-s*20*sc)} 0z" fill="url(#mt{uid})" stroke="url(#mk2{uid})" stroke-width=".8"/>')
+    return (f'<path d="{d}" fill="none" stroke="url(#mk2{uid})" stroke-width="{5.2 if big else 4.4}" stroke-linecap="round"/>'
+            f'<path d="{d}" fill="none" stroke="url(#mt{uid})" stroke-width="{2.8 if big else 2.4}" stroke-linecap="round"/>' + leaf)
+
+def gem(x, y, r, c1, c2, uid):
+    return (f'<g transform="translate({f1(x)} {f1(y)})"><path d="M0 {-r}L{r*.85} 0L0 {r}L{-r*.85} 0Z" fill="{c2}" stroke="url(#mk2{uid})" stroke-width="1.6"/>'
+            f'<path d="M0 {-r}L{r*.85} 0L0 0Z" fill="{c1}"/><path d="M0 {-r}L{-r*.42} {-r*.2}L0 0Z" fill="#fff" opacity=".7"/></g>')
+
+def sparkle(x, y, r, i, anim):
+    p = f'M{x} {y-r}Q{x} {y} {x+r} {y}Q{x} {y} {x} {y+r}Q{x} {y} {x-r} {y}Q{x} {y} {x} {y-r}Z'
+    a = f'<animate attributeName="opacity" values="0;1;0" dur="{1.6+i%3*.4:.1f}s" begin="{i*.27:.2f}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" values="0 {x} {y};45 {x} {y}" dur="1.6s" repeatCount="indefinite"/>' if anim else ''
+    return f'<path d="{p}" fill="#fffbe6" opacity="{0 if anim else .85}">{a}</path>'
+
+GEMC = {'common': ('#ffb07a', '#b4461a'), 'rare': ('#a6e4ff', '#2a6ad8'), 'epic': ('#e3b8ff', '#7a2ad8'), 'legend': ('#ff9aa8', '#c4102a'), 'myth': ('#ffd0f4', '#d03aa8')}
+
 def build(t):
     uid = t['id']; pal, orns, fx = D[uid]; P = PAL[pal]
     top, mid, bot, ink, glow, acc = P
-    animated = t['rank'] >= 3
+    g = t['grade']; rank = t['rank']; animated = rank >= 3
+    m1, m2, m3, m4, mink = METAL[g]
     name = t['name']; n = len(name.replace(' ', '')) + .45 * name.count(' ')
-    fs = min(44, 236 / max(n, 1) * 1.08)
+    fs = min(42, 214 / max(n, 1) * 1.08)
     fb = font_b64(name)
+    gc1, gc2 = GEMC[g]
+    tx = f'x="{CX}" text-anchor="middle" dominant-baseline="central" class="t{uid}"'
     defs = (f'<defs><style>@font-face{{font-family:"T{uid}";src:url(data:font/ttf;base64,{fb}) format("truetype");}}'
-            f'.t{uid}{{font-family:"T{uid}","Black Han Sans","Noto Sans KR",sans-serif;font-size:{f1(fs)}px;letter-spacing:{"-.5" if n > 7 else ".5"}px}}</style>'
-            + grad(uid, top, mid, bot) +
-            f'<linearGradient id="pl{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{mid}" stop-opacity=".55"/><stop offset="1" stop-color="{ink}" stop-opacity=".9"/></linearGradient>'
-            f'<linearGradient id="ac{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{top}"/><stop offset="1" stop-color="{mid}"/></linearGradient>'
-            f'<linearGradient id="fl{uid}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff3a0a"/><stop offset=".6" stop-color="#ffb02e"/><stop offset="1" stop-color="#fff2a0"/></linearGradient>'
-            f'<linearGradient id="wgL" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="{top}"/><stop offset=".55" stop-color="{mid}"/><stop offset="1" stop-color="{bot}"/></linearGradient>'
-            f'<linearGradient id="wgR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{top}"/><stop offset=".55" stop-color="{mid}"/><stop offset="1" stop-color="{bot}"/></linearGradient>'
-            f'<radialGradient id="gw{uid}"><stop offset="0" stop-color="{glow}" stop-opacity=".9"/><stop offset="1" stop-color="{glow}" stop-opacity="0"/></radialGradient>'
-            f'<radialGradient id="nb{uid}"><stop offset="0" stop-color="#8f6bff" stop-opacity=".7"/><stop offset=".6" stop-color="#3a1a8a" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
+            f'.t{uid}{{font-family:"T{uid}","Black Han Sans","Noto Sans KR",sans-serif;font-size:{f1(fs)}px;letter-spacing:{"-.5" if n > 7 else ".8"}px}}</style>'
+            f'<linearGradient id="tf{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".22" stop-color="{top}"/><stop offset=".47" stop-color="{mid}"/><stop offset=".52" stop-color="{bot}"/><stop offset=".72" stop-color="{mid}"/><stop offset="1" stop-color="{top}"/></linearGradient>'
+            f'<linearGradient id="mt{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{m1}"/><stop offset=".35" stop-color="{m2}"/><stop offset=".55" stop-color="{m3}"/><stop offset=".8" stop-color="{m4}"/><stop offset="1" stop-color="{m3}"/></linearGradient>'
+            f'<linearGradient id="mk2{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{mink}"/><stop offset="1" stop-color="#000"/></linearGradient>'
+            f'<linearGradient id="pl{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{ink}" stop-opacity=".55"/><stop offset=".5" stop-color="{ink}" stop-opacity=".92"/><stop offset="1" stop-color="#000" stop-opacity=".95"/></linearGradient>'
+            f'<linearGradient id="fwL{uid}" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="{bot}"/><stop offset=".4" stop-color="{mid}"/><stop offset=".85" stop-color="{top}"/><stop offset="1" stop-color="#ffffff"/></linearGradient>'
+            f'<linearGradient id="fwR{uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{bot}"/><stop offset=".4" stop-color="{mid}"/><stop offset=".85" stop-color="{top}"/><stop offset="1" stop-color="#ffffff"/></linearGradient>'
+            f'<linearGradient id="fe{uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{m1}"/><stop offset="1" stop-color="{m3}"/></linearGradient>'
+            f'<radialGradient id="gw{uid}"><stop offset="0" stop-color="{glow}" stop-opacity=".95"/><stop offset=".5" stop-color="{glow}" stop-opacity=".35"/><stop offset="1" stop-color="{glow}" stop-opacity="0"/></radialGradient>'
+            f'<linearGradient id="ac{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{m1}"/><stop offset="1" stop-color="{m3}"/></linearGradient>'
+            f'<linearGradient id="fl{uid}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff2a0a"/><stop offset=".55" stop-color="#ffaa2e"/><stop offset="1" stop-color="#fff6b0"/></linearGradient>'
+            f'<radialGradient id="nb{uid}"><stop offset="0" stop-color="#8f6bff" stop-opacity=".75"/><stop offset=".6" stop-color="#3a1a8a" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
             f'<linearGradient id="rb{uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5f8f"/><stop offset=".25" stop-color="#ffd25a"/><stop offset=".5" stop-color="#6dffb0"/><stop offset=".75" stop-color="#6fb8ff"/><stop offset="1" stop-color="#d77bff"/></linearGradient>'
             f'<filter id="bl{uid}" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>'
-            f'<filter id="gl{uid}" x="-10%" y="-40%" width="120%" height="180%"><feGaussianBlur stdDeviation="{4 if animated else 2.5}"/></filter>'
+            f'<filter id="gl{uid}" x="-10%" y="-40%" width="120%" height="180%"><feGaussianBlur stdDeviation="{4.5 if animated else 3}"/></filter>'
             f'<linearGradient id="sw{uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
-            f'<mask id="mk{uid}"><text x="{CX}" y="{CY}" class="t{uid}" text-anchor="middle" dominant-baseline="central" fill="#fff">{name}</text></mask>'
+            f'<clipPath id="hi{uid}"><rect x="0" y="0" width="{W}" height="{CY-3}"/></clipPath>'
+            f'<mask id="mk{uid}"><text y="{CY}" {tx} fill="#fff">{name}</text></mask>'
             '</defs>')
-    back = (fx_layer(fx, P, uid) if animated else '') + ''.join(ornament(o, P, uid, animated) for o in orns)
-    text = (f'<text x="{CX}" y="{CY+2}" class="t{uid}" text-anchor="middle" dominant-baseline="central" fill="{glow}" stroke="{glow}" stroke-width="10" stroke-linejoin="round" opacity=".75" filter="url(#gl{uid})">{name}</text>'
-            f'<text x="{CX}" y="{CY+3}" class="t{uid}" text-anchor="middle" dominant-baseline="central" fill="{ink}" stroke="{ink}" stroke-width="8" stroke-linejoin="round">{name}</text>'
-            f'<text x="{CX}" y="{CY}" class="t{uid}" text-anchor="middle" dominant-baseline="central" fill="url(#tf{uid})" stroke="{ink}" stroke-width="2.2" stroke-linejoin="round" paint-order="stroke">{name}</text>'
-            f'<text x="{CX}" y="{CY-1.2}" class="t{uid}" text-anchor="middle" dominant-baseline="central" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width=".8">{name}</text>')
-    sweep = (f'<g mask="url(#mk{uid})"><rect x="-80" y="0" width="60" height="{H}" fill="url(#sw{uid})" transform="skewX(-22)"><animate attributeName="x" values="-80;380" dur="{1.6 if fx=="shine" else 2.8}s" repeatCount="indefinite"/></rect></g>') if animated else ''
+    # ---- background layers ----
+    halo = f'<ellipse cx="{CX}" cy="{CY}" rx="{140 if rank>=3 else 118}" ry="{42 if rank>=3 else 34}" fill="url(#gw{uid})" opacity="{.75 if rank>=3 else .45}">' + ('<animate attributeName="opacity" values=".55;.95;.55" dur="2.4s" repeatCount="indefinite"/>' if animated else '') + '</ellipse>'
+    fxl = fx_layer(fx, P, uid) if animated else ''
+    motif = ''.join(ornament(o, P, uid, animated) for o in orns if o not in ('ribbon', 'plate', 'wingsS', 'wingsL'))
+    wing = wings(uid, 1.15, 7, animated) if rank >= 3 else wings(uid, .95, 5, False) if rank == 2 else ''
+    tails = '' if rank == 0 else ''.join(
+        f'<path d="M{CX+s*96} 62q{s*14} 10 {s*8} 30q{s*10} -6 {s*16} -2q{-s*2} -16 {-s*12} -30z" fill="url(#mt{uid})" stroke="url(#mk2{uid})" stroke-width="1.2" opacity=".95"/>' for s in (-1, 1))
+    plate_d = f'M{CX-112} {CY}L{CX-94} {CY-21}H{CX+94}L{CX+112} {CY}L{CX+94} {CY+21}H{CX-94}Z'
+    plate = (f'<path d="{plate_d}" fill="url(#pl{uid})" stroke="url(#mk2{uid})" stroke-width="6.5" stroke-linejoin="round"/>'
+             f'<path d="{plate_d}" fill="none" stroke="url(#mt{uid})" stroke-width="3.4" stroke-linejoin="round"/>'
+             f'<path d="M{CX-100} {CY}L{CX-88} {CY-15}H{CX+88}L{CX+100} {CY}L{CX+88} {CY+15}H{CX-88}Z" fill="none" stroke="{m4}" stroke-opacity=".45" stroke-width="1"/>')
+    scrolls = scroll('L', uid, rank >= 2) + scroll('R', uid, rank >= 2)
+    topgem = (gem(CX, CY - 24, 9 if rank >= 3 else 7, gc1, gc2, uid)
+              + (f'<path d="M{CX-22} {CY-24}q11-10 22-2q11-8 22 2" fill="none" stroke="url(#mt{uid})" stroke-width="2.6"/>' if rank >= 1 else ''))
+    botgem = gem(CX, CY + 24, 6 if rank < 3 else 8, gc1, gc2, uid) + (
+        ''.join(f'<path d="M{CX+dx} {CY+30}v{9+abs(dx)/4}" stroke="url(#mt{uid})" stroke-width="2"/><circle cx="{CX+dx}" cy="{CY+40+abs(dx)/4}" r="2" fill="{gc1}"/>' for dx in (-6, 0, 6)) if rank >= 3 else '')
+    sideg = ''.join(gem(CX + s * 108, CY, 4.5, gc1, gc2, uid) for s in (-1, 1)) if rank >= 1 else ''
+    sparks = ''.join(sparkle(x, y, r, i, animated) for i, (x, y, r) in enumerate(
+        [(30, 24, 6), (292, 30, 7), (60, 84, 4), (262, 82, 5), (110, 12, 4), (214, 10, 5), (150, 92, 3), (8, 60, 4), (314, 64, 4)][:3 + rank * 2]))
+    # ---- lavish text ----
+    ext = ''.join(f'<text y="{f1(CY+1.1*i)}" {tx} fill="{ink}" stroke="{ink}" stroke-width="7.5" stroke-linejoin="round">{name}</text>' for i in range(4, 0, -1))
+    text = (f'<text y="{CY+2}" {tx} fill="{glow}" stroke="{glow}" stroke-width="13" stroke-linejoin="round" opacity=".7" filter="url(#gl{uid})">{name}</text>'
+            + ext +
+            f'<text y="{CY}" {tx} fill="none" stroke="url(#mk2{uid})" stroke-width="8.5" stroke-linejoin="round">{name}</text>'
+            f'<text y="{CY}" {tx} fill="none" stroke="url(#mt{uid})" stroke-width="4.6" stroke-linejoin="round">{name}</text>'
+            f'<text y="{CY}" {tx} fill="url(#tf{uid})" stroke="{ink}" stroke-width="1.4" stroke-linejoin="round" paint-order="stroke">{name}</text>'
+            f'<text y="{CY}" {tx} fill="#fff" opacity=".28" clip-path="url(#hi{uid})">{name}</text>')
+    sweep = (f'<g mask="url(#mk{uid})"><rect x="-80" y="0" width="54" height="{H}" fill="url(#sw{uid})" transform="skewX(-22)"><animate attributeName="x" values="-80;380" dur="{1.6 if fx=="shine" else 2.6}s" repeatCount="indefinite"/></rect></g>') if animated else ''
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">{defs}'
-            f'<g>{back}</g>{text}{sweep}</svg>')
+            f'{halo}{fxl}{wing}<g opacity=".9">{motif}</g>{tails}{scrolls}{plate}{sideg}{topgem}{botgem}{text}{sweep}{sparks}</svg>')
 
 os.makedirs(OUT, exist_ok=True)
 for f in os.listdir(OUT):
