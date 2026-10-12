@@ -46,10 +46,11 @@
 .title-tabs button.active{background:linear-gradient(180deg,#ffcf5a,#d4801b);color:#3a1606;border-color:#ffe3a0}
 .title-panel .title-equip,.title-panel .title-unequip{border-radius:999px;padding:5px 16px;font-size:12px;font-weight:900;border:1px solid #ffe3a0;background:linear-gradient(180deg,#ffcf5a,#d4801b);color:#3a1606;box-shadow:0 2px 0 #7a3f0b}
 .title-panel .title-unequip{background:#1a2038;color:#cfd8ff;border-color:#4d5d8a;box-shadow:none;padding:4px 12px}
-.rank-podium>strong{flex-wrap:wrap!important;justify-content:center;row-gap:2px}
-.rank-podium>strong>.rank-name-text{flex:0 0 auto;max-width:78%}
-.rank-podium>strong>.title-plate{order:3;margin:0 auto}
-.rank-podium>strong>.title-plate img{height:30px;max-width:100%}
+.rank-podium>strong{justify-content:center!important;flex-wrap:nowrap!important}
+.rank-podium>strong>.rank-name-text{flex:0 1 auto;min-width:0}
+.rank-podium .podium-title{display:flex;justify-content:center;margin:2px 0 0;line-height:0;min-height:0}
+.rank-podium .podium-title .title-plate{margin:0}
+.rank-podium .podium-title .title-plate img{height:34px;max-width:100%}
 .rank-person>strong>.rank-name-text{flex:0 0 auto;max-width:50%}
 .rank-person>strong>.title-plate{flex:0 1 auto;min-width:0}
 .rank-person>strong>.title-plate img{max-width:100%;height:30px;object-fit:contain}
@@ -81,3 +82,25 @@
 .fantasy-currencies .fantasy-wallet,.fantasy-currencies .fantasy-diamond-wallet{flex-shrink:0;white-space:nowrap}
 @media(min-width:701px) and (max-width:1099px){.fantasy-arena-entry span{display:none}.fantasy-arena-entry{padding:4px 6px}}
 .title-bonus{display:block;font-size:11.5px;font-weight:800;color:#ffb07a;margin-top:2px}
+
+/* shared boss party waiting room (citadel look) */
+.party-room .citadel-cover{background:#0d1018;aspect-ratio:auto;width:100%;height:clamp(280px,48vw,540px);min-height:0}
+.party-cover-boss{position:absolute;right:4%;bottom:6%;height:88%;aspect-ratio:1;background-repeat:no-repeat;background-position:0 0;filter:drop-shadow(0 10px 18px #000c);z-index:1;animation:party-boss-float 3.2s ease-in-out infinite}
+.party-room .citadel-cover-shade{z-index:2}.party-room .citadel-cover-title{z-index:3;max-width:62%}
+.party-room .citadel-cover>img{image-rendering:auto}
+.party-room .citadel-cover-title h1{font-size:clamp(26px,4.6vw,48px);line-height:1.15;word-break:keep-all}
+.party-room .citadel-cover-title p{font-size:13px;line-height:1.45}
+@keyframes party-boss-float{50%{transform:translateY(-8px)}}
+.party-room-actions{display:flex;gap:8px;flex:0 0 auto}
+.party-room-actions button{background:#232633!important;color:#e8e1ce!important;border-color:#5b5240!important}
+.citadel-entry small{display:block;margin-top:4px;line-height:1.45}
+.citadel-party-members .party-member{display:grid;justify-items:center;align-content:start;gap:6px;text-align:center;padding:14px 8px;background:linear-gradient(180deg,#2a2c3a,#1c1e28);border:1px solid #41434e;border-radius:8px;min-width:0}
+.citadel-party-members .party-member.is-ready{border-color:#6f8f6a;box-shadow:inset 0 0 18px #7fd6a01a}
+.party-member strong{font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.party-member .party-host{font-style:normal;color:#ffd77a;margin-right:4px}
+.party-badges{display:flex;align-items:center;justify-content:center;gap:2px;flex-wrap:wrap;min-height:34px;max-width:100%}
+.party-badges .rank-arena-icon{margin-inline:0}
+.party-badges .title-plate img{height:34px;max-width:100%}
+.party-member small{color:#9a96a8;font-size:11px}
+.citadel-party-members .party-member span{margin-top:0}
+@media(max-width:600px){.party-cover-boss{height:78%;right:-4%;top:4%;bottom:auto;opacity:.95}.party-room .citadel-cover-title{max-width:70%}.party-room-actions button{flex:1}.party-badges .title-plate img{height:28px}}

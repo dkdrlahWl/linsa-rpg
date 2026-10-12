@@ -516,7 +516,7 @@ function towerFinish(s,ctx,events) {
 // Both movement and chest claims use the same server-validated input timeline.
 function applyTowerFrames(b,args,ctx){
       check(args.runId===b.runId,'INVALID_TOWER_RUN');
-      check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=30,'INVALID_TOWER_INPUT');
+      check(int(args.from,0,b.tick)&&Array.isArray(args.frames)&&args.frames.length<=80,'INVALID_TOWER_INPUT');
       check(args.frames.every(f=>Array.isArray(f)&&f.length===3&&Number.isFinite(f[0])&&Number.isFinite(f[1])&&Math.abs(f[0])<=1&&Math.abs(f[1])<=1&&int(f[2],0,127)),'INVALID_TOWER_INPUT');
       const allowed=Math.floor(Math.max(0,ctx.now-b.started)/TOWER_STEP);
       for(let i=Math.max(0,b.tick-args.from);i<args.frames.length&&b.tick<allowed&&(!b.ended||b.chest);i++){

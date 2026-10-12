@@ -74,13 +74,13 @@ export class TowerController {
       // in the claim. No extra input round trip or fixed animation delay.
       if(this.pending)await this.inputDone;
       if(this.disposed||!canOpenChest(this.b))return;
-      const result=await this.send('towerOpen',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,30)});
+      const result=await this.send('towerOpen',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,80)});
       if(result){this.error='';this.failures=0;this.retryAfter=0;}
       // The app may have recovered an earlier durable request first.
       if(!this.disposed&&(!result||result.state?.battle?.runId===this.b.runId))this.chestQueued=true;
     }catch{
       this.error='연결 복구 중';this.failures++;this.chestQueued=true;
-      this.retryAfter=performance.now()+Math.min(4000,500*2**Math.min(3,this.failures-1));
+      this.retryAfter=performance.now()+Math.min(1500,300*2**Math.min(3,this.failures-1));
     }finally{
       this.openingRequest=false;this.openingAt=undefined;
       if(this.b.chest)delete this.b.chest.openAt;
@@ -98,7 +98,7 @@ export class TowerController {
     const dt=Math.max(0,Math.min(200,now-this.last));this.last=now;
     if(!this.loaded||this.paused()){this.resetInput();return;}
     if(this.openingRequest||this.b.chest?.openAt!==undefined)return;
-    this.sampler.advance(dt,this.input(),input=>{this.previous=snapshot(this.b);this.frames.push(input);towerStep(this.b,input);},()=>this.frames.length<25&&(!this.b.ended||this.b.chest));
+    this.sampler.advance(dt,this.input(),input=>{this.previous=snapshot(this.b);this.frames.push(input);towerStep(this.b,input);},()=>this.frames.length<100&&(!this.b.ended||this.b.chest));
     const decay=Math.exp(-dt/65);this.correction.x*=decay;this.correction.y*=decay;
   }
   accept(b){
@@ -116,11 +116,11 @@ export class TowerController {
     if((this.b.chest?.openAt!==undefined&&!force)||this.pending||this.disposed||(!this.frames.length&&!force)||performance.now()<this.retryAfter)return;
     this.pending=true;this.inputDone=new Promise(resolve=>{this.resolveInput=resolve;});this.lastSend=performance.now();
     try{
-      const result=await this.send('towerInput',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,30)},true);
+      const result=await this.send('towerInput',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,80)},true);
       // Main app accepts during render; preview accepts here. Same tick is safe.
       if(result?.state?.battle?.kind==='tower')this.accept(result.state.battle);
       if(result){this.error='';this.failures=0;}
-    }catch{this.error='연결 복구 중';this.failures++;this.retryAfter=performance.now()+Math.min(4000,500*2**Math.min(3,this.failures-1));}
+    }catch{this.error='연결 복구 중';this.failures++;this.retryAfter=performance.now()+Math.min(1500,300*2**Math.min(3,this.failures-1));}
     finally{this.pending=false;this.resolveInput?.();this.resolveInput=null;this.inputDone=null;}
   }
   loop(now){
