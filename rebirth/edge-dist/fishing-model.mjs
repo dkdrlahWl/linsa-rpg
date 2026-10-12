@@ -1,4 +1,4 @@
-import {ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS} from './fishing-data.mjs';
+import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS} from './fishing-data.mjs';
 export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
@@ -72,12 +72,13 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishCast'){
   require(args.protocol===FISHING_PROTOCOL,'FISHING_REFRESH_REQUIRED');
   require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<150,'FISHING_BAG_FULL');
+  require((f.daily.casts||0)<FISHING_DAILY_CASTS,'FISHING_DAILY_LIMIT');
   const spot=SPOTS.find(x=>x.id===args.spot),bait=BAITS.find(x=>x.id===args.bait);
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
   require((f.bait[bait.id]||0)>0,'FISHING_BAIT_REQUIRED');
   // The catch is rolled on the server when the fish bites, so a visible cast reveals nothing to reroll.
   const biteAt=ctx.now+BITE_MIN_MS+Math.floor(ctx.random()*BITE_RANGE_MS);
-  f.bait[bait.id]--;
+  f.bait[bait.id]--;f.daily.casts=(f.daily.casts||0)+1;
   f.cast={protocol:FISHING_PROTOCOL,id:ctx.uuid(),spot:spot.id,bait:bait.id,rod:f.rod,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+CAST_EXPIRE_MS,hookAt:null,expires:biteAt+CAST_EXPIRE_MS};
   return {type:'fishCast',castId:f.cast.id};
  }

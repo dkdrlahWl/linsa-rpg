@@ -2,6 +2,8 @@
 export const FISHING_VERSION=2;
 // 낚싯대 최대 레벨: 확장 시 여기만 수정 (rodGoldCost/rodDiamondCost 표도 같이 늘릴 것).
 export const ROD_MAX=50;
+// 하루 낚시(찌 던지기) 상한, 한국 시간 자정 초기화.
+export const FISHING_DAILY_CASTS=600;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
 export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240}];
 export const SPOTS=[

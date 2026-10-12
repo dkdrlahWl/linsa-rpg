@@ -148,6 +148,7 @@ const errors = {
   FISHING_ROD_REQUIRED: "낚싯대 레벨이 부족해요.",
   FISHING_BAIT_REQUIRED: "미끼가 없어요. 낚시 상점에서 구매해 주세요.",
   FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
+  FISHING_DAILY_LIMIT: "오늘 낚시는 하루 600번까지예요. 한국 시간 자정에 초기화돼요.",
   FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
   FISHING_AQUARIUM_OPTIMAL: "이미 시간당 수익이 가장 높은 물고기들이 수족관에 있어요.",
   TESTER_BLOCKED: "테스트 계정은 사용할 수 없는 기능이에요.",
