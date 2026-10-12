@@ -48,6 +48,8 @@ function damageLabel(value,kind,size){
 const PRIEST_BODY_RATIO=157/181;
 // Archer art is painted with a larger hood/head relative to the body; shrink it so heads match other classes (all skins).
 const CLASS_RENDER_SCALE={archer:.9};
+// Default priest uses the same 8-direction costume rig as every other class (body ≈ other classes' 156 px).
+const PRIEST_DEFAULT={id:'priest-default',classId:'priest',atlas:'tower/priest-default-v2.webp',motionLayout:'priest-default',portrait:'tower/priest-portrait-v2.webp',renderBodyHeight:166.7};
 // Use one standing-body scale for each source atlas, including every attack frame.
 // A crouch or raised weapon changes the pose's bounds, never the actor's scale.
 const ACTOR_BODY_REFERENCE=Object.fromEntries(Object.entries(MOTION_BODY_LAYOUT).map(([key,frames])=>{
@@ -108,7 +110,7 @@ function cleanDirectionalAtlas(im,layout=null){
 
 const preparations=new Map();
 export function prepareCombatArt(classes,boss,costumeIds=[]){
- const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[['tower/priest-motion-v1.webp',null]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
+ const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[[PRIEST_DEFAULT.atlas,COSTUME_MOTION_LAYOUT['priest-default']]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
  for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.motionLayout||c.classId]],[c.portrait,null]);}}
  if(String(boss).startsWith('exploration-'))tasks.push([explorationTerrainSource(Number(String(boss).slice(12))),null],['exploration/heal-heart-194.webp',null]);
  const raid=String(boss).startsWith('raid-'),raidTier=raid?Number(boss.slice(5)):null;
@@ -117,7 +119,7 @@ export function prepareCombatArt(classes,boss,costumeIds=[]){
  const secondLoads=[secondAtlas.decode().then(()=>transparentEffectAtlas(secondAtlas)).catch(()=>{}),prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}))];
  if(classes.includes('priest'))secondLoads.push(preparePriestSkillArt());
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
-  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&costumeIds.some(id=>costumeById(id)?.atlas===src))cleanDirectionalAtlas(im,layout);if(raid&&src===raidBossSource(raidTier)&&raidTier!==2)frameBounds(im,4,2);}catch{preparations.delete(src);}})());
+  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&(src===PRIEST_DEFAULT.atlas||costumeIds.some(id=>costumeById(id)?.atlas===src)))cleanDirectionalAtlas(im,layout);if(raid&&src===raidBossSource(raidTier))frameBounds(im,4,2);}catch{preparations.delete(src);}})());
   return preparations.get(src);
  })]);
 }
@@ -180,7 +182,7 @@ export class TowerRenderer {
     const riggedWalk=moving&&detailedMotion;
     if(moving&&!detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
     const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:this.explorationView?.78:1)*(CLASS_RENDER_SCALE[classId]||1);
-    const costume=costumeById(costumeId,classId);
+    const costume=costumeById(costumeId,classId)||(classId==='priest'?PRIEST_DEFAULT:null);
     if(costume){
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
       // Successful decoding and exact sheet dimensions prevent partial WebP data
@@ -411,9 +413,9 @@ export class TowerRenderer {
       if(b.raidMode&&!b.chest){
         const tier=f.id??b.tier,casting=b.tick>=(b.enemyCastStart??0)&&b.tick<(b.enemyCastUntil||0),attacking=b.tick>=(b.enemyAttackStart??Infinity)&&b.tick<(b.enemyAttackUntil||0),hurt=b.tick<(b.enemyHurtUntil||0);
         const frame=casting?4:attacking?5:hurt?6:Math.floor(time/8)%2,src=raidBossSource(tier),im=image(src);
-        // The level-150 atlas is truncated. Its complete painted body stays
+        // Raid boss atlases: 4x2 cells (idle, idle, move, move, cast, attack, hurt, idle).
         // visible during idle, movement, casting, attack and hurt animations.
-        if(tier!==2&&decodedImages.has(im)&&im.naturalWidth&&!frameBounds(im,4,2)[frame]?.empty){this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);return;}
+        if(decodedImages.has(im)&&im.naturalWidth&&!frameBounds(im,4,2)[frame]?.empty){this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);return;}
         const portrait=image(asset('raid-boss-'+tier+'-portrait'));
         if(decodedImages.has(portrait)&&portrait.naturalWidth){
           const age=clamp((time-(b.enemyAttackStart??time))/5),pulse=attacking?Math.sin(age*Math.PI):0;

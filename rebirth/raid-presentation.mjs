@@ -1,5 +1,5 @@
 // Painted boss art and exact warning geometry, without large rune textures.
-export const raidBossSource=tier=>'tower/'+(Number(tier)===2?'raid-boss-2-portrait':'boss-raid-'+tier)+'.webp';
+export const raidBossSource=tier=>'tower/'+(Number(tier)===2?'boss-raid-2-v2':'boss-raid-'+tier)+'.webp';
 const clamp=n=>Math.max(0,Math.min(1,n));
 // Keep the full party's damage visible in a small number of totals.
 export function raidDamageRows(numbers,time,limit=8){
