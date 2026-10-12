@@ -9,8 +9,10 @@ export function grantExplorationChest(input,room,ctx){
  const state=structuredClone(input),reward={type:'coop',mode:'exploration',tier:room.tier,name:theme.name,won:true,cleared:room.cleared,gold:rates.gold,cube:0,highCube:0,scroll:0,potentialLock:0,items:[],seconds:room.tick/10};
  state.gold+=reward.gold;state.materials??={};
  for(const key of ['scroll','highCube','potentialLock']){reward[key]=ctx.random()<rates[key]?EXPLORATION_REWARD_COUNTS[key]:0;state.materials[key]=(state.materials[key]||0)+reward[key];}
- if(ctx.random()<rates.bossGear){
-  const level=explorationGearLevel(ctx.random),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
+ // Admin one-shot override (set in DB): next clear drops this exact boss item instead of the random roll.
+ const forced=state.adminNextExplorationGear;delete state.adminNextExplorationGear;
+ if(forced||ctx.random()<rates.bossGear){
+  const level=forced?.level??explorationGearLevel(ctx.random),classId=forced?.classId??CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=forced?.slot??halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
   state.items??=[];state.collection??=[];if(state.items.length>=300)reward.stored=1;addItem(state,item);reward.items.push(item);
  }
