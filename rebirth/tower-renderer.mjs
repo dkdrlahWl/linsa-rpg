@@ -46,6 +46,8 @@ function damageLabel(value,kind,size){
 }
 // The priest's front idle body occupies 157 px of its 181 px frame.
 const PRIEST_BODY_RATIO=157/181;
+// Archer art is painted with a larger hood/head relative to the body; shrink it so heads match other classes (all skins).
+const CLASS_RENDER_SCALE={archer:.9};
 // Use one standing-body scale for each source atlas, including every attack frame.
 // A crouch or raised weapon changes the pose's bounds, never the actor's scale.
 const ACTOR_BODY_REFERENCE=Object.fromEntries(Object.entries(MOTION_BODY_LAYOUT).map(([key,frames])=>{
@@ -177,7 +179,7 @@ export class TowerRenderer {
     // pixel-readback walking rig for every new attack pose on the render thread.
     const riggedWalk=moving&&detailedMotion;
     if(moving&&!detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
-    const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:this.explorationView?.78:1);
+    const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:this.explorationView?.78:1)*(CLASS_RENDER_SCALE[classId]||1);
     const costume=costumeById(costumeId,classId);
     if(costume){
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
