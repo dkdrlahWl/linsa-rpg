@@ -71,6 +71,8 @@ const ROWS=[
 ];
 export const TITLES=ROWS.map(([id,name,category,grade,condition,check],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i}));
 export const TITLE_BY_ID=Object.fromEntries(TITLES.map(t=>[t.id,t]));
+// 보유 효과: 칭호 하나당 치명타 피해 +0.5%p (모든 칭호 동일).
+export const TITLE_CRIT_DAMAGE=0.005;
 // Animated badges (귀한 칭호): all 전설·신화.
 export const titleAnimated=t=>t&&t.rank>=3;
 

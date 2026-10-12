@@ -15,7 +15,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=fifth-114';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
-import {newlyEarnedTitles,TITLE_BY_ID} from './titles-data.mjs';
+import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
 import {applyBetaTool} from './beta-tools.mjs?v=beta-level-250-20261011';
 import {
   VERSION,
@@ -194,7 +194,8 @@ export function power(s) {
   const cadence = s.classId === "pirate" ? 1.08 : 1;
   if (s.classId === "warrior") { hp = Math.floor(hp * 1.30); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
-  const critDamage = s.classId === "rogue" ? 1.9 : 1.6;
+  // 칭호 보유 효과: 칭호 하나당 치명타 피해 +0.5%p.
+  const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length;
   if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
   if(s.classId==="priest")flat=priestAttack(hp,primary,priestGearAttack*(firstJobUnlocked(s)?1.1**jobStage(s):1),pct.attack,pct.hp,pct.LUK);
   const costumeBonus=costumeAttackBonus(s);
