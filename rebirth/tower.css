@@ -1,4 +1,4 @@
-.tower-intro{min-height:220px;display:flex;align-items:center;padding:28px;margin:14px 0;background:linear-gradient(90deg,#071119ed,#0b182066),url('tower/arena-overhead-v3.png') center 30%/cover;border-color:#8e8059}.tower-intro h2{font-size:32px;margin:4px 0}.tower-intro p{color:#d6c7a8}.tower-guide{margin:12px 0}.tower-floor-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tower-floor{overflow:hidden;display:flex;padding:12px;gap:10px;align-items:center;background:linear-gradient(125deg,#172028,#171512)}.tower-floor.locked{filter:saturate(.5)}.tower-portrait{width:120px;height:120px;flex-shrink:0;background-size:300% 100%;background-position:0 0;background-repeat:no-repeat}.tower-floor-info{min-width:0;flex:1}.tower-floor-info h3{font-size:16px;line-height:1.4;margin:5px 0;color:#efe1bd}.tower-floor-info p{font-size:13px;margin:6px 0}.tower-floor-info small{font-size:11px;display:block;color:#c6bda9}.tower-floor-info button{margin-top:8px;min-height:40px;width:100%;font-size:13px}.tower-floor-info details{font-size:12px;margin-top:8px}
+.tower-intro{min-height:220px;display:flex;align-items:center;padding:28px;margin:14px 0;background:linear-gradient(90deg,#071119ed,#0b182066),url('tower/arena-overhead-v3.webp') center 30%/cover;border-color:#8e8059}.tower-intro h2{font-size:32px;margin:4px 0}.tower-intro p{color:#d6c7a8}.tower-guide{margin:12px 0}.tower-floor-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tower-floor{overflow:hidden;display:flex;padding:12px;gap:10px;align-items:center;background:linear-gradient(125deg,#172028,#171512)}.tower-floor.locked{filter:saturate(.5)}.tower-portrait{width:120px;height:120px;flex-shrink:0;background-size:300% 100%;background-position:0 0;background-repeat:no-repeat}.tower-floor-info{min-width:0;flex:1}.tower-floor-info h3{font-size:16px;line-height:1.4;margin:5px 0;color:#efe1bd}.tower-floor-info p{font-size:13px;margin:6px 0}.tower-floor-info small{font-size:11px;display:block;color:#c6bda9}.tower-floor-info button{margin-top:8px;min-height:40px;width:100%;font-size:13px}.tower-floor-info details{font-size:12px;margin-top:8px}
 .tower-mode .top,.tower-mode .bottom{display:none}
 .tower-result{padding:15px;text-align:center}.tower-result h3{color:#e9cf94}.tower-result .tower-portrait{margin:auto;width:180px;height:180px}
 @media(max-width:640px){.tower-floor-list{grid-template-columns:1fr}}
@@ -213,7 +213,7 @@
 
 /* First attacks retain their original compact art; second skills have painted emblems. */
 .tower-button.second-sequence{position:relative;overflow:hidden;border-color:#a9966c;background:linear-gradient(135deg,#343046,#151c29)}
-.second-sequence-art{position:absolute;inset:0;opacity:.6;background-image:url('tower/second-sequence-atlas-v1.png');background-size:500% 300%;background-position:calc(var(--skill-column)*25%) 0;mix-blend-mode:screen;pointer-events:none}
+.second-sequence-art{position:absolute;inset:0;opacity:.6;background-image:url('tower/second-sequence-atlas-v1.webp');background-size:500% 300%;background-position:calc(var(--skill-column)*25%) 0;mix-blend-mode:screen;pointer-events:none}
 .tower-button.second-sequence span,.tower-button.second-sequence small,.tower-button.second-sequence b{position:relative;z-index:1;text-shadow:0 1px 4px #000}
 .tower-button.first-attack{border-color:#859fb5;background:linear-gradient(135deg,#293e4b,#131e27)}
 @media(prefers-reduced-motion:reduce){.second-sequence-art{opacity:.4}}
@@ -241,7 +241,7 @@
 [data-class="archer"] .fifth-skill-art{background-image:url('tower/fifth-archer-v1.webp')}
 [data-class="rogue"] .fifth-skill-art{background-image:url('tower/fifth-rogue-v1.webp')}
 [data-class="pirate"] .fifth-skill-art{background-image:url('tower/fifth-pirate-v1.webp')}
-[data-class="priest"] .fifth-skill-art{background-image:url('tower/priest-skill-5-v2.png')}
+[data-class="priest"] .fifth-skill-art{background-image:url('tower/priest-skill-5-v2.webp')}
 .fifth-skill{border-color:#e6c675!important}
 .fifth-sequence-overlay{inset:0;width:100%;height:100%;object-fit:fill;z-index:2;pointer-events:none;contain:strict}
 

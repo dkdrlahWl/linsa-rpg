@@ -3,7 +3,7 @@ import {drawSecondSequence} from './second-effects.mjs?v=priest-potential-83';
 let atlas;
 // The compact boss screen uses the same VFX timeline as movement battles.
 export function playSecondOverlay(arena,classId){
- atlas||=Object.assign(new Image(),{src:new URL('./tower/second-sequence-atlas-v1.png',import.meta.url).href});
+ atlas||=Object.assign(new Image(),{src:new URL('./tower/second-sequence-atlas-v1.webp',import.meta.url).href});
  const canvas=document.createElement('canvas');canvas.width=800;canvas.height=700;canvas.className='skill-sequence-overlay';canvas.setAttribute('aria-hidden','true');arena.append(canvas);
  const g=canvas.getContext('2d'),a={classId,x:250,y:490},target={x:425,y:235},effects=[],started=performance.now();scheduleCombatSkill(a,target,0,2);
  let tick=-1;

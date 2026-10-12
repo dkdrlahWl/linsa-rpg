@@ -16,7 +16,7 @@ const colors={1:'#ffe5a0',2:'#baffdf',3:'#badfff',4:'#ffe1a0',5:'#fff0bd'};
 function sheet(slot){
   if(!sheets.has(slot)){
     const img=new Image();
-    img.src=new URL(`./tower/priest-skill-${slot}-v2.png`,import.meta.url).href;
+    img.src=new URL(`./tower/priest-skill-${slot}-v2.webp`,import.meta.url).href;
     sheets.set(slot,img);
   }
   return sheets.get(slot);

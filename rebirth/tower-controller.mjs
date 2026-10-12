@@ -19,10 +19,10 @@ export class TowerController {
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
     this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
     this.required=['effects','boss-'+towerEncounter(b).art,'second-job-atlas','reward-chest'].map(asset);
-    this.required.push(...(b.classId==='priest'?['tower/priest-motion-v1.png']:[asset('hero-'+b.classId+'-directions'),asset('hero-'+b.classId+'-motion-v4')]));
+    this.required.push(...(b.classId==='priest'?['tower/priest-motion-v1.webp']:[asset('hero-'+b.classId+'-directions'),asset('hero-'+b.classId+'-motion-v4')]));
     this.required.push(...['arena-overhead-v3','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2','second-sequence-atlas-v1'].map(motionAsset));
     this.required.push(asset('third-job-atlas'));if(b.classId==='warrior')this.required.push(asset('hero-warrior-east-v4'));this.required.forEach(image);
-    image(asset('reward-chest'));image(asset('second-job-atlas'));if(b.classId==='priest')image('tower/priest-motion-v1.png');else image(asset('hero-'+b.classId+'-motion-v4'));
+    image(asset('reward-chest'));image(asset('second-job-atlas'));if(b.classId==='priest')image('tower/priest-motion-v1.webp');else image(asset('hero-'+b.classId+'-motion-v4'));
     host.querySelector('#tower-chest')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();this.openChest();},{signal:this.abort.signal});
     this.nodes=Object.fromEntries(['clock','enemy-hp','enemy-bar','player-hp','player-bar','status','stick-knob','auto','auto-skills','range','connection','dummy-recent','dummy-average','dummy-total'].map(id=>[id,host.querySelector('#tower-'+id)]));
     this.buttons=[...host.querySelectorAll('[data-tower-button]')];

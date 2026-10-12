@@ -34,7 +34,7 @@ export async function prepareFifthArt(classes,image){
   }
   if(cls==='warrior'){
    // Independent weapon-free explosion frames; never rotate or stretch a sword atlas.
-   const impact=image('tower/attack-burst-v2.png');try{await impact.decode();}catch{return;}
+   const impact=image('tower/attack-burst-v2.webp');try{await impact.decode();}catch{return;}
    const explosions=[];
    for(let cell=0;cell<4;cell++){
     const canvas=document.createElement('canvas');canvas.width=canvas.height=512;const q=canvas.getContext('2d');

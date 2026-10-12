@@ -1,5 +1,5 @@
 export const LUCK_POTION = Object.freeze({id:'luckPotion',name:'행운 물약',price:5000000,duration:300000,cooldown:300000,bonus:.5,art:'consumables/luck-potion-v1.webp',description:'일일보스, 주간보스, 레이드 보상 적용됨'});
-export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.png',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.png',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'})]);
+export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'})]);
 export const shopConsumable=id=>SHOP_CONSUMABLES.find(item=>item.id===id);
 export function shopConsumableCount(state,id){return id===LUCK_POTION.id?potionCount(state):Math.max(0,Number.isSafeInteger(state?.materials?.[id])?state.materials[id]:0);}
 export function potionCount(state){return Math.max(0,Number.isSafeInteger(state?.consumables?.luckPotion)?state.consumables.luckPotion:0);}

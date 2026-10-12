@@ -1,4 +1,4 @@
-.menu-art{display:inline-block;width:27px;height:27px;flex:0 0 27px;background-image:url('ui/menu-atlas-v1.png');background-size:400% 400%;background-repeat:no-repeat;vertical-align:middle;margin-right:4px;pointer-events:none}
+.menu-art{display:inline-block;width:27px;height:27px;flex:0 0 27px;background-image:url('ui/menu-atlas-v1.webp');background-size:400% 400%;background-repeat:no-repeat;vertical-align:middle;margin-right:4px;pointer-events:none}
 .bottom button svg{display:none}.bottom button .menu-art{width:32px;height:32px;flex-basis:32px;margin:0}
 .bag-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:2;background:#fff8e9;padding:8px;border-radius:12px;margin-bottom:8px}
 .bag-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.bag-grid .bag-slot{min-width:0}.bag-grid .tile-name{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.bag-grid .tile-quality{display:none}

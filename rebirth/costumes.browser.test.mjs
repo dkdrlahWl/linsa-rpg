@@ -22,7 +22,7 @@ try{
   await page.reload();await page.locator('.fantasy-dock').waitFor();assert.equal(state.equippedCostume,'crimson-dragon');
   const compared=await page.evaluate(async()=>{
    const {TowerRenderer,image,asset}=await import('./tower-renderer.mjs?v=costume-104');const {COSTUMES}=await import('./costumes.mjs?v=costume-104');
-   const paths=COSTUMES.flatMap(c=>[c.atlas,c.classId==='priest'?'tower/priest-motion-v1.png':asset('hero-'+c.classId+'-motion-v4')]);paths.push('costumes/warrior-east-v1.webp',asset('hero-warrior-east-v4'));
+   const paths=COSTUMES.flatMap(c=>[c.atlas,c.classId==='priest'?'tower/priest-motion-v1.webp':asset('hero-'+c.classId+'-motion-v4')]);paths.push('costumes/warrior-east-v1.webp',asset('hero-warrior-east-v4'));
    await Promise.all(paths.map(src=>image(src).decode()));let count=0;
    for(const mobile of [false,true])for(const c of COSTUMES)for(let dir=0;dir<8;dir++)for(const mode of ['idle','walk','attack']){
     const canvas=document.createElement('canvas'),g=canvas.getContext('2d'),r=Object.create(TowerRenderer.prototype);r.g=g;r.mobileActors={matches:mobile};
