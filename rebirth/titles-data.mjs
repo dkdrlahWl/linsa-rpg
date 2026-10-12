@@ -22,7 +22,8 @@ const st=s=>s.titleStats||{};
 
 // [id, name, category, grade, condition text, check(state, cp), when?()]
 // `when` gates titles for content that does not exist yet: they stay hidden until the content ships.
-// Adding content: append a row (new permanent id), then `node titles-src/export.mjs && python3 titles-src/build_titles.py` for art.
+// Adding content: append a row (new permanent id), add a painted plate titles-src/plates/<id>.webp (+band in plates.json),
+// then `node titles-src/export.mjs && python3 titles-src/build_plates.py`. (build_titles.py = old vector style fallback.)
 const FIELD_LAST_V1=38; // 종언의 관측실 (last hunting ground when titles launched)
 const ROWS=[
  ['lv30','새싹 모험가','레벨','common','레벨 30 달성',s=>s.level>=30],

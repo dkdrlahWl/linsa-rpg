@@ -13,6 +13,12 @@ export const COSTUMES=Object.freeze([
   {id:'violet-moon-ninja',classId:'rogue',name:'자월 닌자',motionLayout:'violet-moon-ninja',portraitMask:null,atlas:'costumes/violet-moon-ninja-motion-v1.webp',portrait:'costumes/violet-moon-ninja-portrait-v2.webp'},
   {id:'azure-naval-admiral',classId:'pirate',name:'푸른해군 제독',motionLayout:'azure-naval-admiral',portraitMask:null,atlas:'costumes/azure-naval-admiral-motion-v1.webp',portrait:'costumes/azure-naval-admiral-portrait-v2.webp'},
   {id:'dawn-saint',classId:'priest',name:'여명의 성녀',motionLayout:'dawn-saint',portraitMask:null,atlas:'costumes/dawn-saint-motion-v1.webp',portrait:'costumes/dawn-saint-portrait-v2.webp',renderBodyHeight:157},
+  {id:'obsidian-ember-samurai',classId:'warrior',name:'흑염 사무라이',motionLayout:'obsidian-ember-samurai',portraitMask:null,atlas:'costumes/obsidian-ember-samurai-motion-v1.webp',portrait:'costumes/obsidian-ember-samurai-portrait-v2.webp'},
+  {id:'clockwork-alchemist',classId:'mage',name:'태엽 연금술사',motionLayout:'clockwork-alchemist',portraitMask:null,atlas:'costumes/clockwork-alchemist-motion-v1.webp',portrait:'costumes/clockwork-alchemist-portrait-v2.webp'},
+  {id:'desert-sun-archer',classId:'archer',name:'사막 태양 궁수',motionLayout:'desert-sun-archer',portraitMask:null,atlas:'costumes/desert-sun-archer-motion-v1.webp',portrait:'costumes/desert-sun-archer-portrait-v2.webp'},
+  {id:'phantom-harlequin',classId:'rogue',name:'환영 광대',motionLayout:'phantom-harlequin',portraitMask:null,atlas:'costumes/phantom-harlequin-motion-v1.webp',portrait:'costumes/phantom-harlequin-portrait-v2.webp'},
+  {id:'ghost-ship-captain',classId:'pirate',name:'유령선 선장',motionLayout:'ghost-ship-captain',portraitMask:null,atlas:'costumes/ghost-ship-captain-motion-v1.webp',portrait:'costumes/ghost-ship-captain-portrait-v2.webp'},
+  {id:'sakura-shrine-maiden',classId:'priest',name:'벚꽃 무녀',motionLayout:'sakura-shrine-maiden',portraitMask:null,atlas:'costumes/sakura-shrine-maiden-motion-v1.webp',portrait:'costumes/sakura-shrine-maiden-portrait-v2.webp',renderBodyHeight:180},
 ].map(c=>Object.freeze({...c,price:COSTUME_PRICE,attackBonus:COSTUME_ATTACK_BONUS,motionLayout:c.motionLayout||c.classId,portraitMask:c.portraitMask===null?null:`costumes/${c.classId}-portrait-mask.svg`,atlas:c.atlas||`costumes/${c.classId}-motion-v2.webp`,portrait:c.portrait||`costumes/${c.classId}-portrait-v1.webp`})));
 export function costumeById(id,classId){return COSTUMES.find(c=>c.id===id&&(!classId||c.classId===classId))||null;}
 // Ownership bonuses include every class and do not require equipping the costume.

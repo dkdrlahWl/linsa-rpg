@@ -1,8 +1,8 @@
 /* 칭호: nameplate images (titles/<id>.svg, 320x96) */
 .title-plate{display:inline-flex;vertical-align:middle;line-height:0;flex:0 0 auto}
-.title-plate img{display:block;height:30px;width:auto;aspect-ratio:320/96;filter:drop-shadow(0 1px 2px #000a)}
+.title-plate img{display:block;height:34px;width:auto;aspect-ratio:320/96;filter:drop-shadow(0 1px 2px #000a)}
 .title-sm{margin-left:2px}
-.title-md img{height:36px}
+.title-md img{height:42px}
 .title-lg img{height:84px}
 
 .fantasy-title-entry{position:relative;flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;border:1px solid #ffcf5a;border-radius:9px;background:linear-gradient(145deg,#5a2a0a,#220c02);color:#ffe9b0;box-shadow:inset 0 0 12px #ffb02e40,0 2px 8px #0008;padding:5px 9px;font-size:12px;font-weight:800;white-space:nowrap;min-height:30px}
@@ -50,10 +50,10 @@
 .rank-podium>strong>.rank-name-text{flex:0 1 auto;min-width:0}
 .rank-podium .podium-title{display:flex;justify-content:center;margin:2px 0 0;line-height:0;min-height:0}
 .rank-podium .podium-title .title-plate{margin:0}
-.rank-podium .podium-title .title-plate img{height:34px;max-width:100%}
+.rank-podium .podium-title .title-plate img{height:42px;max-width:100%}
 .rank-person>strong>.rank-name-text{flex:0 0 auto;max-width:50%}
 .rank-person>strong>.title-plate{flex:0 1 auto;min-width:0}
-.rank-person>strong>.title-plate img{max-width:100%;height:30px;object-fit:contain}
+.rank-person>strong>.title-plate img{max-width:100%;height:36px;object-fit:contain}
 
 /* compact collection grid */
 .title-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;overflow:visible!important}

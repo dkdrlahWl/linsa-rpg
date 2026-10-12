@@ -243,7 +243,7 @@ export class TowerRenderer {
     const g=this.g,size=(e.boss?240:e.elite?150:105)*(this.citadelView?1:(this.mobileActors.matches?1.65:1)),bob=Math.abs(Math.sin((e.walk+time%1)*.8))*4;
     this.shadow(e.x,e.y,e.elite?43:29);
     if(e.elite){g.save();g.strokeStyle='#ffd880';g.lineWidth=3;g.beginPath();g.ellipse(e.x,e.y,58,24,0,0,7);g.stroke();g.restore();}
-    if(e.explorationTier!==undefined){const im=image(e.art||explorationArt(e.explorationTier,e.species,e.boss)),h=size;if(im.complete&&im.naturalWidth){g.save();g.translate(e.x,e.y);g.scale(e.face||1,1);g.rotate(e.moving?Math.sin(e.walk*.8)*.055:0);g.drawImage(im,-h/2,-h-bob,h,h);g.restore();}}else drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);
+    if(e.explorationTier!==undefined){const im=image(e.art||explorationArt(e.explorationTier,e.species,e.boss)),h=size;if(im.complete&&im.naturalWidth){g.save();if(e.citadel||e.explorationTier===3)g.imageSmoothingEnabled=false;g.translate(e.x,e.y);g.scale(e.face||1,1);g.rotate(e.moving?Math.sin(e.walk*.8)*.055:0);g.drawImage(im,-h/2,-h-bob,h,h);g.restore();}}else drawWaveCreature(g,image(WAVE_MONSTERS[e.species][e.elite?'eliteArt':'art']),e,time,size);
     g.save();g.fillStyle='#18221be6';g.fillRect(e.x-35,e.y-size-9,70,5);g.fillStyle=e.elite?'#ffcf6a':'#de7065';g.fillRect(e.x-35,e.y-size-9,70*e.hp/e.maxHp,5);if(e.elite){g.font='bold 18px sans-serif';g.textAlign='center';g.fillStyle='#fff0ac';g.fillText(e.boss?'보스':'정예',e.x,e.y-size-16);}g.restore();
   }
   grave(m){
