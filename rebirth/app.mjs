@@ -658,7 +658,7 @@ function render() {
     if(!banner){banner=document.createElement('div');banner.id='connection-status';banner.className='connection-status';banner.setAttribute('role','status');banner.innerHTML='연결이 지연되고 있어요. <button data-action="reconnect">다시 연결</button>';fishingRoot.querySelector('.fishing-scroll').prepend(banner);}
     banner.hidden=!connectionLost;
   }
-  if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b),state?.isAdmin===true);return;}
+  if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b),state?.isAdmin===true||state?.isTester===true);return;}
   if(towerBattle){
     const send=dummyBattle?async(_action,args)=>{
       if(!dummyBattle||dummyBattle.runId!==args.runId)return null;
