@@ -21,22 +21,20 @@ function citadelPathPattern(biome){
  g.fillStyle=colors[0];g.fillRect(0,0,800,800);let seed=3571+biome*179;
  for(let i=0;i<4200;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=seed%800;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=seed%800;g.globalAlpha=.10+(seed%9)/100;g.fillStyle=colors[1+(i%2)];g.fillRect(x,y,3+(seed%8),2+(seed%4));}g.globalAlpha=1;return tile;
 }
-export function drawExplorationDungeon(renderer,b,im,heart){
- const g=renderer.g,d=b.dungeon;if(!d)return false;const size=d.size||32,world=size*100;
- if(d.arena){const arena=renderer.arenaImage?.(b.tier);g.fillStyle=(moods[b.tier]||moods[0]).fog;g.fillRect(-5000,-5000,13000,13000);if(arena?.complete&&arena.naturalWidth)g.drawImage(arena,d.arenaBounds?.x??900,d.arenaBounds?.y??900,d.arenaBounds?.width??1400,d.arenaBounds?.height??1400);drawExplorationHearts(g,b,d,heart);return true;}
- const biome=CITADEL_BIOMES[d.biome],mood=d.citadel?{base:biome.color,fog:biome.color,glow:biome.light}:moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
- if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=Math.min(2560,Math.round(world*(renderer.lowDetail?.5:.75)));const c=canvas.getContext('2d');c.scale(canvas.width/world,canvas.height/world);c.fillStyle=mood.base;c.fillRect(0,0,world,world);
+// Paints the dungeon floor/cliffs in world coordinates; only tiles inside [x0,x1)x[y0,y1) (+margin) are visited.
+function paintDungeon(c,b,d,im,mood,loaded,size,world,x0=0,y0=0,x1=world,y1=world){
+ const ty0=Math.max(0,Math.floor(y0/100)-2),ty1=Math.min(size,Math.ceil(y1/100)+2),tx0=Math.max(0,Math.floor(x0/100)-2),tx1=Math.min(size,Math.ceil(x1/100)+2);
+ c.fillStyle=mood.base;c.fillRect(x0,y0,x1-x0,y1-y0);
   const pattern=d.citadel?c.createPattern(citadelPathPattern(d.biome),'repeat'):loaded?c.createPattern(floorPattern(im),'repeat'):mood.base;
-  c.fillStyle=pattern;c.fillRect(0,0,world,world);c.fillStyle=mood.fog+'e8';c.fillRect(0,0,world,world);
-  const floor=new Path2D();for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(dungeonFloorTile(d.tiles[y][x]))floor.rect(x*100,y*100,100,100);
-  c.save();c.clip(floor);c.fillStyle=pattern;c.fillRect(0,0,world,world);
+  c.fillStyle=pattern;c.fillRect(x0,y0,x1-x0,y1-y0);c.fillStyle=mood.fog+'e8';c.fillRect(x0,y0,x1-x0,y1-y0);
+  const floor=new Path2D();for(let y=ty0;y<ty1;y++)for(let x=tx0;x<tx1;x++)if(dungeonFloorTile(d.tiles[y][x]))floor.rect(x*100,y*100,100,100);
+  c.save();c.clip(floor);c.fillStyle=pattern;c.fillRect(x0,y0,x1-x0,y1-y0);
   for(const r of d.rooms){const x=(r.x+r.w/2)*100,y=(r.y+r.h/2)*100,light=c.createRadialGradient(x,y,30,x,y,460);light.addColorStop(0,'#ffe2aa16');light.addColorStop(1,'#ffe2aa00');c.fillStyle=light;c.fillRect(r.x*100,r.y*100,r.w*100,r.h*100);}
   c.restore();
   if(loaded){
    // Keep painted solid terrain inside the same blocked cells used for collision.
-   c.save();const blocked=new Path2D();for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(d.tiles[y][x]==='0')blocked.rect(x*100,y*100,100,100);c.clip(blocked);
-   for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(d.tiles[y][x]==='0'){
+   c.save();const blocked=new Path2D();for(let y=ty0;y<ty1;y++)for(let x=tx0;x<tx1;x++)if(d.tiles[y][x]==='0')blocked.rect(x*100,y*100,100,100);c.clip(blocked);
+   for(let y=ty0;y<ty1;y++)for(let x=tx0;x<tx1;x++)if(d.tiles[y][x]==='0'){
     const adjacent=[[0,1],[0,-1],[1,0],[-1,0]].some(([dx,dy])=>d.tiles[y+dy]?.[x+dx]&&d.tiles[y+dy][x+dx]!=='0');if(!adjacent)continue;
     const hash=(x*83+y*137+(b.explorationFloor||b.floor)*23)%101,width=168+hash%19;
     c.save();c.shadowColor='#00000090';c.shadowBlur=18;c.shadowOffsetY=14;cell(c,im,1+hash%2,x*100+50+(hash%9-4),y*100+48+(hash%11-5),width,165+hash%17,hash%3===0);c.restore();
@@ -49,9 +47,40 @@ export function drawExplorationDungeon(renderer,b,im,heart){
    }
    c.restore();
   }
-  renderer.dungeonLayer={id:d.id,canvas,loaded};
+}
+// Sharp terrain near the camera: the base layer is ~0.75 px per world unit, which phones upscale 2x+.
+// Visible 800-unit chunks are re-painted at the screen's real density (max 1.6), one new chunk per frame, LRU of 8.
+const CHUNK=800;
+function drawDungeonChunks(renderer,g,b,d,im,mood,loaded,size,world){
+ if(renderer.lowDetail||!loaded&&!d.citadel)return;
+ const m=g.getTransform(),density=Math.hypot(m.a,m.b);if(density<=.8)return;
+ const scale=Math.min(1.6,density),inv=m.inverse(),cw=g.canvas.width,ch=g.canvas.height;
+ const pts=[[0,0],[cw,0],[0,ch],[cw,ch]].map(([x,y])=>inv.transformPoint(new DOMPoint(x,y)));
+ const vx0=Math.max(0,Math.min(...pts.map(p=>p.x))),vx1=Math.min(world,Math.max(...pts.map(p=>p.x))),vy0=Math.max(0,Math.min(...pts.map(p=>p.y))),vy1=Math.min(world,Math.max(...pts.map(p=>p.y)));
+ const L=renderer.dungeonLayer,chunks=L.chunks;let built=false;
+ for(let cy=Math.floor(vy0/CHUNK);cy*CHUNK<vy1;cy++)for(let cx=Math.floor(vx0/CHUNK);cx*CHUNK<vx1;cx++){
+  const key=cx+','+cy;let k=chunks.get(key);
+  if(k&&k.scale<scale*.85){chunks.delete(key);k=null;}
+  if(!k){if(built)continue;built=true;
+   const px=Math.ceil(CHUNK*scale),canvas=document.createElement('canvas');canvas.width=canvas.height=px;const c=canvas.getContext('2d');
+   c.scale(px/CHUNK,px/CHUNK);c.translate(-cx*CHUNK,-cy*CHUNK);paintDungeon(c,b,d,im,mood,loaded,size,world,cx*CHUNK,cy*CHUNK,(cx+1)*CHUNK,(cy+1)*CHUNK);
+   k={canvas,scale};chunks.set(key,k);
+   while(chunks.size>8)chunks.delete(chunks.keys().next().value);
+  }else{chunks.delete(key);chunks.set(key,k);}
+  g.drawImage(k.canvas,cx*CHUNK,cy*CHUNK,CHUNK,CHUNK);
+ }
+}
+export function drawExplorationDungeon(renderer,b,im,heart){
+ const g=renderer.g,d=b.dungeon;if(!d)return false;const size=d.size||32,world=size*100;
+ if(d.arena){const arena=renderer.arenaImage?.(b.tier);g.fillStyle=(moods[b.tier]||moods[0]).fog;g.fillRect(-5000,-5000,13000,13000);if(arena?.complete&&arena.naturalWidth)g.drawImage(arena,d.arenaBounds?.x??900,d.arenaBounds?.y??900,d.arenaBounds?.width??1400,d.arenaBounds?.height??1400);drawExplorationHearts(g,b,d,heart);return true;}
+ const biome=CITADEL_BIOMES[d.biome],mood=d.citadel?{base:biome.color,fog:biome.color,glow:biome.light}:moods[b.tier]||moods[0],loaded=im.complete&&im.naturalWidth>0;
+ if(renderer.dungeonLayer?.id!==d.id||renderer.dungeonLayer.loaded!==loaded){
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=Math.min(2560,Math.round(world*(renderer.lowDetail?.5:.75)));const c=canvas.getContext('2d');c.scale(canvas.width/world,canvas.height/world);
+  paintDungeon(c,b,d,im,mood,loaded,size,world);
+  renderer.dungeonLayer={id:d.id,canvas,loaded,chunks:new Map()};
  }
  g.drawImage(renderer.dungeonLayer.canvas,0,0,world,world);
+ drawDungeonChunks(renderer,g,b,d,im,mood,loaded,size,world);
  if(d.citadel){g.save();g.fillStyle='#503874bb';for(const wall of d.shadowWalls||[])g.fillRect(wall.x,wall.y,100,100);for(const trap of b.traps||[]){if(!dungeonSeen(d,trap.x,trap.y))continue;g.strokeStyle='#b19cad';g.lineWidth=4;g.beginPath();g.arc(trap.x,trap.y,45,0,Math.PI*2);g.stroke();}g.restore();}
  if(loaded&&b.status!=='won'){const {x,y}=b.exit;g.save();if(b.exitOpen){const glow=g.createRadialGradient(x,y,0,x,y,180);glow.addColorStop(0,mood.glow+'55');glow.addColorStop(1,mood.glow+'00');g.fillStyle=glow;g.fillRect(x-180,y-180,360,360);}cell(g,im,5,x,y,235,235);g.font='bold 24px sans-serif';g.textAlign='center';g.lineWidth=5;g.strokeStyle='#10141b';g.fillStyle=b.exitOpen?'#ccffe3':'#d9d5cb';const label=b.status==='won'?'보상 상자':b.exitOpen?(d.citadel?'다음 지역 ↑':'다음 층 ↑'):(d.citadel?'지역 통로 잠김':'계단 잠김');g.strokeText(label,x,y-135);g.fillText(label,x,y-135);g.restore();}
  drawExplorationHearts(g,b,d,heart);

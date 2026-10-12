@@ -43,13 +43,12 @@ function paintPixels(d,P,pixels,propOf,buildingOf,rowStart=0,rowEnd=d.size){
    const lx=sx>>1,ly=sy>>1,lxf=sx/R,lyf=sy/R,px=tx*T+lx,py=ty*T+ly,fx=tx*T+lxf,fy=ty*T+lyf,i=(ty*T*R+sy)*W+tx*T*R+sx;
    const h=texture(fx,fy,P.seed),h2=hash(tx,ty,P.seed+7);let c,k=.94+hash(tx*T*R+sx,ty*T*R+sy,P.seed+9)*.12;
    k*=.9+vnoise(fx,fy,56,P.seed+60)*.2;
-   const sv=P.skin?(Math.floor(hash(tx,ty,P.seed+31)*16)&15):0;
    if(floor){
     let path=t==='1';
     if(!propOf(tx,ty)){const gx=fx/T-.5,gy=fy/T-.5,x0=Math.floor(gx),y0=Math.floor(gy),ax=gx-x0,ay=gy-y0;const v=(x,y)=>{const o=tile(x,y);return isFloor(o)?(o==='1'?1:0):(path?1:0);};
      const m=(v(x0,y0)*(1-ax)+v(x0+1,y0)*ax)*(1-ay)+(v(x0,y0+1)*(1-ax)+v(x0+1,y0+1)*ax)*ay+(vnoise(fx,fy,6,P.seed+40)-.5)*.5;path=m>.5;}
     const pal=path?P.path:P.room;
-    c=P.skin?skinPx(P.skin,path?1:0,sv,sx,sy):floorPattern(P,path,lx,ly,tx,ty,px,py,h,h2,pal);
+    c=floorPattern(P,path,lx,ly,tx,ty,px,py,h,h2,pal);
     // Soft ambient occlusion along walls instead of hard bands.
     if(wallN)k*=.5+.5*smooth(Math.min(1,lyf/6));if(wallW)k*=.72+.28*smooth(Math.min(1,lxf/3));if(wallE)k*=.82+.18*smooth(Math.min(1,(T-lxf)/3));
     if(P.outdoor||P.name==='cave'){const nn=1+vnoise(fx,fy,4,P.seed+50)*4;if((wallW&&lxf<nn)||(wallE&&lxf>T-nn)||(!floorAt(tx,ty+1)&&!propOf(tx,ty+1)&&lyf>T-nn)){put(i,P.name==='cave'?P.top[1]:P.top[0],k*.9);continue;}}
@@ -60,9 +59,11 @@ function paintPixels(d,P,pixels,propOf,buildingOf,rowStart=0,rowEnd=d.size){
   }
  }
 }
-// Per-floor painted floor skin (citadel/skin-NN.webp rows: room, path, wall top, wall face; 16 variants of 32px).
-// Only the floor rows are used: procedural walls keep blocked areas clearly readable.
-const skinPx=(S,cat,v,sx,sy)=>{const i=((cat*32+sy)*512+v*32+sx)*4;return [S[i],S[i+1],S[i+2]];};
+// Per-floor floor colour (room, path) sampled from the painted floor concepts; blended into the biome palette so
+// every floor of the same biome still looks different while keeping the procedural pixel patterns clean.
+const FLOOR_TINT={1:[[127,142,34],[207,151,60]],2:[[89,105,61],[171,118,63]],3:[[83,88,84],[83,88,84]],4:[[121,130,70],[121,130,70]],5:[[107,109,63],[146,117,65]],6:[[119,95,43],[160,104,53]],7:[[123,128,92],[172,124,82]],8:[[83,86,86],[157,119,96]],9:[[85,91,78],[64,63,59]],10:[[71,40,77],[94,51,49]],11:[[134,108,63],[134,108,63]],12:[[128,102,60],[128,102,60]],13:[[101,83,55],[158,113,67]],14:[[106,28,26],[96,39,33]],15:[[189,132,61],[198,140,65]],16:[[58,26,25],[88,15,18]],17:[[49,76,37],[192,152,130]],18:[[40,66,68],[163,150,152]],19:[[133,117,97],[240,165,92]],20:[[134,99,164],[122,90,153]],21:[[50,36,73],[98,74,80]]};
+function tintPalette(pal,c,mix=.45){const m=[.62,1,1.08,1.2],base=[0,1,2,3].map(i=>pal[i]);const avg=base.reduce((a,v)=>a+v[0]+v[1]+v[2],0)/12;const lum=(c[0]+c[1]+c[2])/3,tgt=Math.min(170,Math.max(45,lum))/Math.max(1,lum);
+ const order=[1,2,0,3];return base.map((v,i)=>{const r=[0,1,2].map(k=>Math.min(255,c[k]*tgt*(i===2?.62:i===3?1.18:i===1?1.07:1)));const keep=v.map(x=>x*((r[0]+r[1]+r[2])/3)/Math.max(1,avg));return [0,1,2].map(k=>Math.round(r[k]*mix+keep[k]*(1-mix)));});}
 const dirt=(pal,h)=>h<.35?pal[3]:h<.55?pal[1]:h<.78?pal[0]:pal[2];
 function floorPattern(P,path,lx,ly,tx,ty,px,py,h,h2,pal){
  const name=P.name;
@@ -216,8 +217,8 @@ function decorate(g,d,P,random){
  g.restore();
 }
 // Built incrementally (a few tile rows per frame) so a region change never stalls the game.
-export function buildCitadelLayer(d,skin=null){
- const P={...(RGB[d.biome]||RGB[0]),seed:(d.biome+1)*977,skin};const src=PAL[d.biome]||PAL[0];
+export function buildCitadelLayer(d,floor=0){
+ const P={...(RGB[d.biome]||RGB[0]),seed:(d.biome+1)*977+floor*131};const tint=FLOOR_TINT[floor];if(tint){P.room=tintPalette(P.room,tint[0]);P.path=tintPalette(P.path,tint[1]);}const src=PAL[d.biome]||PAL[0];
  P.faceHex=src.face;P.capHex=src.cap;P.mortarHex=src.mortar;
  const n=d.size,W=n*T*R,canvas=document.createElement('canvas');canvas.width=canvas.height=W;const g=canvas.getContext('2d');
  g.fillStyle=src.void;g.fillRect(0,0,W,W);
@@ -265,16 +266,9 @@ function drawRewardChest(g,c,opened,player,t){
 }
 export function drawCitadelWorld(renderer,b,image,player){
  const d=b.dungeon;if(!d)return;const g=renderer.g,world=d.size*d.cell;
- if(renderer.citadelLayer?.id!==d.id){
-  const pad=n=>String(n).padStart(2,'0'),skinImg=image?.('citadel/skin-'+pad(b.floor||1)+'.webp');if(b.floor<21)image?.('citadel/skin-'+pad(b.floor+1)+'.webp');
-  const waited=renderer.citadelSkinWait?.id===d.id?renderer.citadelSkinWait.since:(renderer.citadelSkinWait={id:d.id,since:performance.now()}).since;
-  const ready=skinImg?.complete&&skinImg.naturalWidth===512;
-  if(skinImg&&!ready&&!skinImg.complete&&performance.now()-waited<4000){g.save();g.fillStyle=citadelVoid(d.biome);g.fillRect(-4000,-4000,world+8000,world+8000);g.restore();return;}
-  let px=null;if(ready){try{const c=document.createElement('canvas');c.width=512;c.height=128;const cg=c.getContext('2d',{willReadFrequently:true});cg.drawImage(skinImg,0,0);px=cg.getImageData(0,0,512,128).data;}catch{px=null;}}
-  renderer.citadelLayer=Object.assign(buildCitadelLayer(d,px),{id:d.id});
- }
+ if(renderer.citadelLayer?.id!==d.id)renderer.citadelLayer=Object.assign(buildCitadelLayer(d,b.floor||0),{id:d.id});
  const layer=renderer.citadelLayer;if(!layer.done)layer.step(layer.canvas&&!layer.started?24:8);layer.started=true;
- g.save();g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.fillStyle=citadelVoid(d.biome);g.fillRect(-4000,-4000,world+8000,world+8000);g.drawImage(renderer.citadelLayer.canvas,0,0,world,world);g.restore();
+ g.save();g.imageSmoothingEnabled=false;g.fillStyle=citadelVoid(d.biome);g.fillRect(-4000,-4000,world+8000,world+8000);g.drawImage(renderer.citadelLayer.canvas,0,0,world,world);g.restore();
  const t=(b.tick||0)/10;
  for(const trap of b.traps||[]){g.save();const s=6.25,x=Math.round(trap.x/s)*s,y=Math.round(trap.y/s)*s;g.fillStyle='#2a2430';g.fillRect(x-40,y-40,80,80);g.fillStyle='#55505e';g.fillRect(x-34,y-34,68,68);g.fillStyle='#c9c3d6';for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++)if((i+j)%2===0)g.fillRect(x+i*13-3,y+j*13-3,6,6);g.restore();}
  const heart=image?.('exploration/heal-heart-194.webp');
