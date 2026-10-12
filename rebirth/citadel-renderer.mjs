@@ -62,8 +62,14 @@ function paintPixels(d,P,pixels,propOf,buildingOf,rowStart=0,rowEnd=d.size){
 // Per-floor floor colour (room, path) sampled from the painted floor concepts; blended into the biome palette so
 // every floor of the same biome still looks different while keeping the procedural pixel patterns clean.
 const FLOOR_TINT={1:[[127,142,34],[207,151,60]],2:[[89,105,61],[171,118,63]],3:[[83,88,84],[83,88,84]],4:[[121,130,70],[121,130,70]],5:[[107,109,63],[146,117,65]],6:[[119,95,43],[160,104,53]],7:[[123,128,92],[172,124,82]],8:[[83,86,86],[157,119,96]],9:[[85,91,78],[64,63,59]],10:[[71,40,77],[94,51,49]],11:[[134,108,63],[134,108,63]],12:[[128,102,60],[128,102,60]],13:[[101,83,55],[158,113,67]],14:[[106,28,26],[96,39,33]],15:[[189,132,61],[198,140,65]],16:[[58,26,25],[88,15,18]],17:[[49,76,37],[192,152,130]],18:[[40,66,68],[163,150,152]],19:[[133,117,97],[240,165,92]],20:[[134,99,164],[122,90,153]],21:[[50,36,73],[98,74,80]]};
-function tintPalette(pal,c,mix=.45){const m=[.62,1,1.08,1.2],base=[0,1,2,3].map(i=>pal[i]);const avg=base.reduce((a,v)=>a+v[0]+v[1]+v[2],0)/12;const lum=(c[0]+c[1]+c[2])/3,tgt=Math.min(170,Math.max(45,lum))/Math.max(1,lum);
- const order=[1,2,0,3];return base.map((v,i)=>{const r=[0,1,2].map(k=>Math.min(255,c[k]*tgt*(i===2?.62:i===3?1.18:i===1?1.07:1)));const keep=v.map(x=>x*((r[0]+r[1]+r[2])/3)/Math.max(1,avg));return [0,1,2].map(k=>Math.round(r[k]*mix+keep[k]*(1-mix)));});}
+function tintPalette(pal,c,mix=.4){
+ // Calm tint: desaturate the sampled colour, cap brightness, then compress the 4 shades toward their mean so
+ // patterned floors (grass blotches, flagstones) read as texture instead of high-contrast spots.
+ const g=(c[0]+c[1]+c[2])/3,sat=.55,cc=c.map(v=>g+(v-g)*sat),lum=(cc[0]+cc[1]+cc[2])/3,tgt=Math.min(128,Math.max(48,lum))/Math.max(1,lum);
+ const base=[0,1,2,3].map(i=>pal[i]),avg=base.reduce((a,v)=>a+v[0]+v[1]+v[2],0)/12;
+ const out=base.map((v,i)=>{const r=[0,1,2].map(k=>Math.min(255,cc[k]*tgt*(i===2?.8:i===3?1.08:i===1?1.03:1)));const keep=v.map(x=>x*((r[0]+r[1]+r[2])/3)/Math.max(1,avg));return [0,1,2].map(k=>r[k]*mix+keep[k]*(1-mix));});
+ const m=[0,1,2].map(k=>out.reduce((a,v)=>a+v[k],0)/4);
+ return out.map(v=>v.map((x,k)=>Math.round(m[k]+(x-m[k])*.6)));}
 const dirt=(pal,h)=>h<.35?pal[3]:h<.55?pal[1]:h<.78?pal[0]:pal[2];
 function floorPattern(P,path,lx,ly,tx,ty,px,py,h,h2,pal){
  const name=P.name;
