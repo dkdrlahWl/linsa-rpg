@@ -1292,7 +1292,10 @@ async function marketWrite(action, args) {
   sounds.play("purchase-complete");
   toast("거래가 완료되었습니다.");
 }
-document.addEventListener('input',e=>{if(e.target.id==='invest-amount'){setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);}});
+// Percent buttons size the order by margin (gold × leverage); re-applied when leverage changes afterwards.
+let investPercentPick=0;
+function applyInvestPercent(){const price=investmentData?.coins[selectedCoin]?.price||10000;let q=Math.floor(state.gold*investPercentPick/100*investmentLeverage/price);while(q>0&&investmentMargin(q,price)>state.gold)q--;setInvestmentAmount(q);}
+document.addEventListener('input',e=>{if(e.target.id==='invest-amount'){investPercentPick=0;setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);}});
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-action]");
   if (!b || b.disabled) return;
@@ -1314,9 +1317,9 @@ document.addEventListener("click", async (e) => {
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
     if(action==='investRankings'){b.disabled=true;try{await openCoinRankings();}finally{b.disabled=false;}return;}
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
-    if(action==='investCoin'){selectCoin(arg);return render();}
-    if(action==='investLeverage'){setInvestmentAmount(document.querySelector('#invest-amount')?.value||investmentAmount);setInvestmentLeverage(arg);return render();}
-    if(action==='investPercent'){const price=investmentData?.coins[selectedCoin]?.price||10000;let q=Math.floor(state.gold*Number(arg)/100*investmentLeverage/price);while(q>0&&investmentMargin(q,price)>state.gold)q--;setInvestmentAmount(q);return render();}
+    if(action==='investCoin'){selectCoin(arg);if(investPercentPick)applyInvestPercent();return render();}
+    if(action==='investLeverage'){setInvestmentAmount(document.querySelector('#invest-amount')?.value||investmentAmount);setInvestmentLeverage(arg);if(investPercentPick)applyInvestPercent();return render();}
+    if(action==='investPercent'){investPercentPick=Number(arg);applyInvestPercent();return render();}
     if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||investmentMargin(quantity,investmentData.coins[selectedCoin].price)>state.gold)return toast('증거금이 보유 골드를 넘어요. 수량을 줄여 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,leverage:investmentLeverage,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
     if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
     if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
