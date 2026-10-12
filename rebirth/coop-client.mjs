@@ -200,8 +200,8 @@ export class CoopController{
    if(!this.needsResync&&navigator.onLine!==false&&now-this.received<8000)this.sampler.advance(dt*(this.room.mode==='wave'&&!this.room.entryWaiting&&this.room.waveSpeed===1.5?1.5:1),input,frame=>{
     const tick=this.predictionTick??this.predicted.tick;
     if(['fighting','won'].includes(this.predicted.status)&&!this.room.entryWaiting){this.frames.push({tick,input:frame});this.predictionTick=tick+1;}
-    this.frames=this.frames.slice(-60);this.predictor.step(tick,frame);
-   },()=>this.room.entryWaiting||!['fighting','won'].includes(this.room.status)||(this.predictionTick??this.predicted.tick)<this.room.tick+50);
+    this.frames=this.frames.slice(-35);this.predictor.step(tick,frame);
+   },()=>this.room.entryWaiting||!['fighting','won'].includes(this.room.status)||(this.predictionTick??this.predicted.tick)<this.room.tick+30);
   }else{
   // Reconcile a bounded amount per frame so one late response cannot block painting.
   const replayStarted=performance.now();
@@ -212,9 +212,9 @@ export class CoopController{
   }
   if(!this.needsResync&&navigator.onLine!==false&&this.predicted.tick>=this.reconcileTarget&&now-this.received<8000)this.sampler.advance(dt*(this.room.mode==='wave'&&!this.room.entryWaiting&&this.room.waveSpeed===1.5?1.5:1),input,frame=>{
    if(['fighting','won'].includes(this.predicted.status)&&!this.room.entryWaiting)this.frames.push({tick:this.predicted.tick,input:frame});
-   this.frames=this.frames.slice(-60);
+   this.frames=this.frames.slice(-35);
    this.previousSim=motionSnapshot(this.predicted);this.predicted=predictCoopStep(this.predicted,this.room.me,frame,true,this.remoteFrames.get(this.predicted.tick)||[]);
-  },()=>this.room.entryWaiting||!['fighting','won'].includes(this.room.status)||this.predicted.tick<this.room.tick+50);
+  },()=>this.room.entryWaiting||!['fighting','won'].includes(this.room.status)||this.predicted.tick<this.room.tick+30);
   }
   const w=this.predicted;if(w.mode==='raid')w.walls=[];const me=w.members.find(m=>m.id===w.me),tier=coopEncounter(w);
   const pendingTicks=this.workerActive?Math.max(0,(this.predictionTick??w.tick)-w.tick):0;
