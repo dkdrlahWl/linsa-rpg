@@ -59,7 +59,7 @@ function landCatch(s,f,c,ctx){
  const result={type:'fishCatch',at:ctx.now,won:true,species:c.species,weight:c.weight,reward};
  if(reward==='fish'){
   const item={id:ctx.uuid(),species:c.species,weight:c.weight,caughtAt:ctx.now};f.fish.push(item);
-  f.collection[c.species]=Math.max(f.collection[c.species]||0,c.weight);f.daily.catch++;
+  f.collection[c.species]=Math.max(f.collection[c.species]||0,c.weight);f.daily.catch++;f.totalCatch=(f.totalCatch||0)+1;
   if(FISH.find(x=>x.id===c.species).rarity>=1)f.daily.rare++;
   result.fish=item;result.gold=fishPrice(item);
  }else if(reward==='diamondChest'){const diamonds=3+Math.floor(ctx.random()*6);f.diamonds+=diamonds;result.diamonds=diamonds;}

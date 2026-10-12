@@ -219,6 +219,8 @@ Deno.serve(async (req) => {
           crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296,
         uuid: () => crypto.randomUUID(),
       };
+      // 칭호: SQL-backed stats (arena/lotto/market/investment) come from the server, never from the client.
+      if (body.command === "titleSync" && snap.state) (ctx as any).titleStats = await rpc("rebirth_title_stats", {});
       if (!snap.state && body.command !== "create")
         return reply({
           state: null,

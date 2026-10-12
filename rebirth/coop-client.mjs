@@ -1,3 +1,4 @@
+import {titleBadge} from './title-ui.mjs';
 import {isDungeon,isCitadel,CITADEL_STAGES} from './citadel-zero.mjs';
 import {citadelLobby,citadelHud} from './citadel-ui.mjs';
 import {EXPLORATION_MOVE_SPEED,dungeonMoveSpeed} from './exploration-data.mjs';
@@ -30,11 +31,11 @@ export function coopLobby(state,room,rooms=[],mode="rift"){
  if(room?.mode==='raid'||(!room&&mode==='raid'))return raidLobby(state,room,rooms);
  if(room?.mode==='advancement'){
   const t=coopEncounter(room);void prepareCombatArt(room.members.map(m=>m.classId),t.art,room.members.map(m=>m.power?.costumeId));
-  return '<section class="panel pad"><h2>'+t.name+' · 전직 준비실</h2><p>혼자 또는 2명 · Lv.'+t.level+' 이상 · 제한 '+t.seconds+'초</p><p class="note">인원에 따른 보스 강화 없음 · 완료한 전직도 도움 참가 가능 · 처치 시 전직 대상자만 승급</p>'+room.members.filter(m=>!m.left).map(m=>'<p>'+esc(m.name)+' · '+(m.ready?'준비 완료':'접속 대기')+'</p>').join('')+'<div class="actions">'+button(room.members.every(m=>m.ready)?(room.members.length===1?'혼자 출발':'둘이 출발'):'모두 준비 후 출발','coopStart','',room.owner!==room.me||!room.members.every(m=>m.ready))+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';
+  return '<section class="panel pad"><h2>'+t.name+' · 전직 준비실</h2><p>혼자 또는 2명 · Lv.'+t.level+' 이상 · 제한 '+t.seconds+'초</p><p class="note">인원에 따른 보스 강화 없음 · 완료한 전직도 도움 참가 가능 · 처치 시 전직 대상자만 승급</p>'+room.members.filter(m=>!m.left).map(m=>'<p>'+esc(m.name)+titleBadge(m.title)+' · '+(m.ready?'준비 완료':'접속 대기')+'</p>').join('')+'<div class="actions">'+button(room.members.every(m=>m.ready)?(room.members.length===1?'혼자 출발':'둘이 출발'):'모두 준비 후 출발','coopStart','',room.owner!==room.me||!room.members.every(m=>m.ready))+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';
  }
  if(room?.mode==="wave"||(!room&&mode==="wave")){void prepareWaveCreature(image(WAVE_MONSTERS[0].art),0);void prepareWaveCreature(image(WAVE_MONSTERS[0].eliteArt),0);if(room)void prepareCombatArt(room.members.map(m=>m.classId),COOP_TIERS[0].art,room.members.map(m=>m.power?.costumeId));return waveLobby(state,room,rooms);}
  rooms=rooms.filter(r=>!r.mode||r.mode==="rift");
- if(room){const tier=coopEncounter(room);void prepareCombatArt(room.members.map(m=>m.classId),tier.art,room.members.map(m=>m.power?.costumeId));return '<section class="panel pad"><h2>'+tier.name+' · 준비실</h2><p>3인 기준 · 최대 4인 · 제한 90초</p>'+room.members.filter(m=>!m.left).map(m=>'<p>● '+esc(m.name)+' · '+(m.ready?'준비 완료':'접속 대기')+' · 전투력 '+fmt(m.power.combatPower)+'</p>').join('')+'<div class="actions">'+button(room.members.every(m=>m.ready)?'출발':'모두 준비 후 출발','coopStart','',room.owner!==room.me||!room.members.every(m=>m.ready))+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';}
+ if(room){const tier=coopEncounter(room);void prepareCombatArt(room.members.map(m=>m.classId),tier.art,room.members.map(m=>m.power?.costumeId));return '<section class="panel pad"><h2>'+tier.name+' · 준비실</h2><p>3인 기준 · 최대 4인 · 제한 90초</p>'+room.members.filter(m=>!m.left).map(m=>'<p>● '+esc(m.name)+titleBadge(m.title)+' · '+(m.ready?'준비 완료':'접속 대기')+' · 전투력 '+fmt(m.power.combatPower)+'</p>').join('')+'<div class="actions">'+button(room.members.every(m=>m.ready)?'출발':'모두 준비 후 출발','coopStart','',room.owner!==room.me||!room.members.every(m=>m.ready))+button('새로고침','coopSync')+button('나가기','coopLeave')+'</div></section>';}
  // Cooperative rifts were removed (2026-10-11). Unknown rooms only wait for the server snapshot.
  return '<section class="panel pad"><p>원정 정보를 불러오는 중…</p>'+button('새로고침','coopSync')+button('나가기','coopLeave')+'</section>';
 }

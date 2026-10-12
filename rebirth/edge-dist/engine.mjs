@@ -15,6 +15,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
+import {newlyEarnedTitles,TITLE_BY_ID} from './titles-data.mjs';
 import {applyBetaTool} from './beta-tools.mjs';
 import {
   VERSION,
@@ -342,6 +343,7 @@ export function settle(s, ctx) {
   }
   s.huntRemainder = remaining;
   s.huntKills = (s.huntKills || 0) + kills;
+  if(kills>0)s.bestStage=Math.max(s.bestStage??-1,s.stage);
   if(s.daily)s.daily.hunt+=kills;
   const goldExact = earnedGold + (s.goldRemainder || 0),
     gold = Math.floor(goldExact + 1e-9);
@@ -521,7 +523,22 @@ function applyTowerFrames(b,args,ctx){
         if(b.ended&&b.won&&b.weeklyBossId!==undefined&&!b.chest){b.chest={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);}
       }
 }
+// 칭호: every command re-checks titles; titleEquip / titleSync are handled around the core command.
 export function execute(input, command, args = {}, ctx) {
+  const title=command==='titleEquip'||command==='titleSync';
+  const r=executeCore(input,title?'sync':command,title?{}:args,ctx),s=r.state;
+  if(command==='titleSync'&&ctx.titleStats&&typeof ctx.titleStats==='object')s.titleStats={...ctx.titleStats,at:ctx.now};
+  s.titles=s.titles&&typeof s.titles==='object'?s.titles:{};
+  for(const id of newlyEarnedTitles(s,()=>power(s).combatPower)){s.titles[id]=ctx.now;r.events.push({type:'titleEarned',id,name:TITLE_BY_ID[id].name,grade:TITLE_BY_ID[id].grade});}
+  if(command==='titleEquip'){
+    const id=args.id??null;
+    check(id===null||(typeof id==='string'&&TITLE_BY_ID[id]&&s.titles[id]),'TITLE_LOCKED');
+    s.title=id;r.events.push({type:'titleEquip',id});
+  }
+  if(s.title&&!s.titles[s.title])s.title=null;
+  return r;
+}
+function executeCore(input, command, args = {}, ctx) {
   check(
     ctx && Number.isFinite(ctx.now) && typeof ctx.random === "function",
     "INVALID_CONTEXT",
@@ -640,6 +657,7 @@ export function execute(input, command, args = {}, ctx) {
       if(slot.diamonds){const f=normalizeFishing(s,ctx.now);f.diamonds+=slot.diamonds;}
       let mail=null;
       if(slot.chest){
+        s.wheelJackpots=(s.wheelJackpots||0)+1;
         mail={id:"wheel-chest-"+ctx.uuid(),kind:WHEEL_CHEST.kind,title:"행운의 돌림판 잭팟",sender:"행운의 돌림판",message:"축하합니다! Lv."+WHEEL_CHEST.minLevel+"~"+WHEEL_CHEST.maxLevel+" 랜덤 보스 장비 상자가 도착했어요. 받기를 누르면 상자가 열립니다. (전 직업·전 부위, 무기는 다른 부위의 절반 확률)",sentAt:new Date(ctx.now).toISOString(),rewards:{}};
         s.rewardMailbox=[...(s.rewardMailbox||[]),mail];s.systemMailbox=[...(s.systemMailbox||[]),structuredClone(mail)];
       }
@@ -900,7 +918,7 @@ export function execute(input, command, args = {}, ctx) {
         if(JSON.stringify(lines.map(l=>[l.key,l.value,l.grade]))!==JSON.stringify(it.lines.map(l=>[l.key,l.value,l.grade])))break;
         check(attempt<255,"CUBE_RANDOM_RETRY");
       }
-      spend(s,kind,1);spend(s,"gold",cubeCost(kind,it));
+      spend(s,kind,1);spend(s,"gold",cubeCost(kind,it));s.cubeUses=(s.cubeUses||0)+1;
       if(rule.choose)s.pendingCube={id:it.id,kind,grade,previousGrade,lines,potentialVersion:4,lock};
       else {it.grade=grade;it.lines=lines;}
       events.push({type:"cube",id:it.id,kind,high:rule.choose,up:grade>previousGrade});break;
@@ -978,5 +996,6 @@ export function grantRaidChest(input,tier,ctx){
   s.raidWeekly={week:weekly.week,count:weekly.used+1};
  }
  Object.assign(reward,{weeklyUsed:weekly.used+(practice?0:1),weeklyLimit:weekly.limit,weeklyRemaining:Math.max(0,weekly.remaining-(practice?0:1))});
+ if(!(s.raidCleared||[]).includes(tier))s.raidCleared=[...(s.raidCleared||[]),tier];
  delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
 }

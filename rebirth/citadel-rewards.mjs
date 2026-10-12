@@ -37,6 +37,7 @@ export function grantCitadelChests(input,room,userId,ctx){
  for(const key of ['potentialLock','scroll','fragment'])state.materials[key]=(state.materials[key]||0)+reward[key];
  const prior=state.citadelClaims?.room===room.id?state.citadelClaims.bosses||[]:[];
  state.citadelClaims={room:room.id,bosses:[...prior,...bosses].sort((a,b)=>a-b)};
+ state.citadelEver=[...new Set([...(state.citadelEver||[]),...bosses])].sort((a,b)=>a-b);state.citadelMaxFloor=Math.max(state.citadelMaxFloor||0,room.floor||0);
  state.lastReward=reward;
  return {state,reward};
 }
