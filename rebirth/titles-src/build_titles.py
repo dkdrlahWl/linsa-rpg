@@ -93,6 +93,15 @@ D = {
  'market':    ('emerald', ['scales','ribbon'], None),
  'costume':   ('rose',    ['dress','ribbon'], None),
  'gold10':    ('gold',    ['coins','gemB','laurel'], None),
+ 'explAll':   ('emerald', ['ruins','wingsL','starsS'], 'shine'),
+ 'lv275':     ('sunset',  ['rays','wingsL','gemB'], 'aura'),
+ 'lv300':     ('rainbow', ['rays','wingsL','crown','halo'], 'aura'),
+ 'tower25':   ('silver',  ['spire3','wingsL','starsS'], 'shine'),
+ 'tower30':   ('cosmic',  ['spire3','wingsL','halo','bolts'], 'lightning'),
+ 'fieldNew':  ('jade',    ['mountains','wingsL','flag'], 'shine'),
+ 'raid4':     ('shadow',  ['eclipse','wingsL','crown'], 'eclipse'),
+ 'job6':      ('rainbow', ['orbs7','wingsL','halo'], 'aura'),
+ 'rod60':     ('ocean',   ['rod','wingsL','starsS'], 'water'),
 }
 
 def grad(id_, a, b, c):

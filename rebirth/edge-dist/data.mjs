@@ -13,6 +13,8 @@ export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, eq
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
 export const FIELD_XP_MULTIPLIER = 2.5;
+// 레벨 상한: 레벨 확장 시 여기만 바꾸면 경험치·칭호 등이 따라감.
+export const MAX_LEVEL = 250;
 export const CLASSES = [
   {id:"priest",name:"사제",stat:"LUK",weapon:"성물",skill:"성광 심판",color:"#f5f1df"},
   {

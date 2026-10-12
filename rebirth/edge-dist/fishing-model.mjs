@@ -1,4 +1,4 @@
-import {FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS} from './fishing-data.mjs';
+import {ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS} from './fishing-data.mjs';
 export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
@@ -98,11 +98,11 @@ export function fishingCommand(s,command,args,ctx){
   f.bait[bait.id]=(f.bait[bait.id]||0)+args.count;return {type:'fishBaitBuy',count:args.count,[currency]:cost,currency};
  }
  if(command==='fishTrain'){
-  require(f.rod<50,'FISHING_MAX_LEVEL');const cost=rodGoldCost(f.rod);
+  require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');const cost=rodGoldCost(f.rod);
   require(f.xp<cost,'FISHING_XP_FULL');require(integer(args.gold,1,cost-f.xp),'INVALID_FISHING_COST');spendGold(s,args.gold);f.xp+=args.gold;return {type:'fishTrain'};
  }
  if(command==='fishUpgrade'){
-  require(f.rod<50,'FISHING_MAX_LEVEL');require(f.xp>=rodGoldCost(f.rod),'FISHING_XP_REQUIRED');const cost=rodDiamondCost(f.rod);
+  require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');require(f.xp>=rodGoldCost(f.rod),'FISHING_XP_REQUIRED');const cost=rodDiamondCost(f.rod);
   require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');f.diamonds-=cost;f.rod++;f.xp=0;return {type:'fishUpgrade',level:f.rod};
  }
  if(command==='fishSell'){

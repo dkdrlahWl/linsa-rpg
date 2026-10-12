@@ -1,7 +1,11 @@
 // 칭호 (titles): cosmetic only. Earned automatically from state + server stats (arena/lotto/market/investment).
 // Add new tiers by appending rows; ids are permanent (saved in state.titles).
-import {BOSSES,STAGES} from './data.mjs';
-import {FISH} from './fishing-data.mjs';
+import {BOSSES,STAGES,MAX_LEVEL} from './data.mjs';
+import {TOWER_FLOORS} from './tower-model.mjs';
+import {EXPLORATIONS} from './exploration-data.mjs';
+import {RAID_ENCOUNTERS} from './raid-content.mjs';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs';
+import {FISH,ROD_MAX} from './fishing-data.mjs';
 import {COSTUMES} from './costumes.mjs';
 
 export const TITLE_GRADES=[
@@ -16,7 +20,10 @@ const equippedItems=s=>Object.values(s.equipped||{}).map(id=>(s.items||[]).find(
 const weekly=BOSSES.filter(b=>b.weekly).map(b=>b.id),daily=BOSSES.filter(b=>!b.weekly).map(b=>b.id);
 const st=s=>s.titleStats||{};
 
-// [id, name, category, grade, condition text, check(state, cp)]
+// [id, name, category, grade, condition text, check(state, cp), when?()]
+// `when` gates titles for content that does not exist yet: they stay hidden until the content ships.
+// Adding content: append a row (new permanent id), then `node titles-src/export.mjs && python3 titles-src/build_titles.py` for art.
+const FIELD_LAST_V1=38; // 종언의 관측실 (last hunting ground when titles launched)
 const ROWS=[
  ['lv30','새싹 모험가','레벨','common','레벨 30 달성',s=>s.level>=30],
  ['lv100','숙련된 모험가','레벨','rare','레벨 100 달성',s=>s.level>=100],
@@ -27,10 +34,10 @@ const ROWS=[
  ['cp50','군림하는 자','전투력','legend','전투력 50만',(s,cp)=>cp()>=500000],
  ['kill1','천 마리 사냥꾼','사냥','common','누적 처치 1만',s=>(s.huntKills||0)>=10000],
  ['kill50','학살자','사냥','legend','누적 처치 50만',s=>(s.huntKills||0)>=500000],
- ['field','개척자','사냥','epic','마지막 사냥터에서 사냥 성공',s=>(s.bestStage??-1)>=STAGES.length-1],
+ ['field','개척자','사냥','epic',STAGES[FIELD_LAST_V1].name+' 사냥터에서 사냥 성공',s=>(s.bestStage??-1)>=FIELD_LAST_V1],
  ['tower10','탑의 도전자','탑','rare','시련의 탑 10층 클리어',s=>tower(s,10)],
  ['tower20','탑의 정복자','탑','legend','시련의 탑 20층 클리어',s=>tower(s,20)],
- ['boss30','보스 사냥꾼','보스','epic','보스 30종 전부 처치',s=>BOSSES.every(b=>(s.cleared||[]).includes(b.id))],
+ ['boss30','보스 사냥꾼','보스','epic','보스 '+BOSSES.length+'종 전부 처치',s=>BOSSES.every(b=>(s.cleared||[]).includes(b.id))],
  ['expl0','유적의 탐험가','탐험','rare','달빛 수림의 유적 클리어',s=>expl(s,0)],
  ['expl1','불꽃 광산의 생존자','탐험','epic','용암 수정 광산 클리어',s=>expl(s,1)],
  ['expl2','별의 심연을 걸은 자','탐험','legend','별의 심연 성전 클리어',s=>expl(s,2)],
@@ -43,7 +50,7 @@ const ROWS=[
  ['arena1st','투기장의 군주','아레나','myth','아레나 시즌 최종 1위',s=>st(s).arenaChampion===true],
  ['fishL','전설을 낚은 자','낚시','epic','전설 물고기 처음 낚기',s=>fishOf(s,4)],
  ['fishM','신화의 어부','낚시','legend','신화 물고기 처음 낚기',s=>fishOf(s,5)],
- ['fishAll','바다의 백과사전','낚시','myth','물고기 도감 50종 완성',s=>FISH.every(f=>(s.fishing?.collection||{})[f.id]!==undefined)],
+ ['fishAll','바다의 백과사전','낚시','myth','물고기 도감 '+FISH.length+'종 완성',s=>FISH.every(f=>(s.fishing?.collection||{})[f.id]!==undefined)],
  ['star25','별을 품은 자','강화','legend','25성 장비 보유',s=>(s.items||[]).some(i=>(i.stars||0)>=25)],
  ['pot3','잠재의 지배자','강화','epic','레전더리 3줄 잠재 장비 보유',s=>(s.items||[]).some(i=>(i.lines||[]).length===3&&i.lines.every(l=>l.grade>=5))],
  ['jackpot','행운의 여신','운','legend','돌림판 잭팟 당첨',s=>(s.wheelJackpots||0)>=1],
@@ -68,9 +75,21 @@ const ROWS=[
  ['star20set','빛나는 별의 갑주','강화','legend','20성 이상 장비로 9부위 전부 착용',s=>{const e=equippedItems(s);return e.length>=9&&e.every(i=>(i.stars||0)>=20);}],
  ['boss200set','보스의 유산','장비','legend','Lv.200 보스 장비로 9부위 전부 착용',s=>{const e=equippedItems(s);return e.length>=9&&e.every(i=>i.boss&&i.level>=200);}],
  ['gold10','황금 산맥','재산','epic','골드 10억 보유',s=>(s.gold||0)>=1e9],
+ ['explAll','모든 길의 개척자','탐험','legend','링구의 탐험 '+EXPLORATIONS.length+'곳 전부 클리어',s=>EXPLORATIONS.every(t=>expl(s,t.id))],
+ // ── 확장 대기 칭호 (해당 콘텐츠가 추가되면 자동으로 나타남) ──
+ ['lv275','경계를 걷는 자','레벨','legend','레벨 275 달성',s=>s.level>=275,()=>MAX_LEVEL>=275],
+ ['lv300','초월의 정점','레벨','myth','레벨 300 달성',s=>s.level>=300,()=>MAX_LEVEL>=300],
+ ['tower25','구름을 뚫은 자','탑','legend','시련의 탑 25층 클리어',s=>tower(s,25),()=>TOWER_FLOORS.length>=25],
+ ['tower30','천공의 탑주','탑','myth','시련의 탑 30층 클리어',s=>tower(s,30),()=>TOWER_FLOORS.length>=30],
+ ['fieldNew','미지의 개척자','사냥','legend','마지막 사냥터('+STAGES.at(-1).name+')에서 사냥 성공',s=>(s.bestStage??-1)>=STAGES.length-1,()=>STAGES.length-1>FIELD_LAST_V1],
+ ['raid4','성역의 끝을 본 자','레이드','myth',(RAID_ENCOUNTERS[4]?.name||'다음')+' 레이드 클리어',s=>(s.raidCleared||[]).includes(4),()=>RAID_ENCOUNTERS.length>4],
+ ['job6','여섯 번째 각성','전직','legend','6차 전직 완료',s=>(s.advancement||0)>=5,()=>ADVANCEMENT_BOSSES.length>5],
+ ['rod60','심연의 강태공','낚시','legend','낚싯대 Lv.60',s=>(s.fishing?.rod||0)>=60,()=>ROD_MAX>=60],
 ];
-export const TITLES=ROWS.map(([id,name,category,grade,condition,check],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i}));
-export const TITLE_BY_ID=Object.fromEntries(TITLES.map(t=>[t.id,t]));
+// ALL_TITLES includes not-yet-released rows (art is pre-built); TITLES is what players can see/earn now.
+export const ALL_TITLES=ROWS.map(([id,name,category,grade,condition,check,when],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i,available:!when||!!when()}));
+export const TITLES=ALL_TITLES.filter(t=>t.available);
+export const TITLE_BY_ID=Object.fromEntries(ALL_TITLES.map(t=>[t.id,t]));
 // 보유 효과: 칭호 하나당 치명타 피해 +0.5%p (모든 칭호 동일).
 export const TITLE_CRIT_DAMAGE=0.005;
 // Animated badges (귀한 칭호): all 전설·신화.

@@ -50,6 +50,7 @@ import {
   weaponVariant,
   equipmentKey,
   WEAPON_TYPES,
+  MAX_LEVEL,
 } from "./data.mjs";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs';
@@ -287,11 +288,11 @@ function levelUp(s, xp) {
   const exact = xp + (s.xpRemainder || 0), whole = Math.floor(exact + 1e-9);
   s.xpRemainder = Math.max(0, exact - whole);
   s.xp += whole;
-  while (s.level < 250 && s.xp >= xpNeeded(s.level)) {
+  while (s.level < MAX_LEVEL && s.xp >= xpNeeded(s.level)) {
     s.xp -= xpNeeded(s.level++);
     s.points += 5;
   }
-  if (s.level >= 250) { s.xp = 0; s.xpRemainder = 0; }
+  if (s.level >= MAX_LEVEL) { s.xp = 0; s.xpRemainder = 0; }
 }
 function rollCount(n, prob, ctx) {
   let hits = 0;
@@ -337,7 +338,7 @@ export function settle(s, ctx) {
     let count = Math.floor(remaining / rate.seconds);
     if (!count) break;
     if (!rate.survives) { defeats += count; remaining %= rate.seconds; break; }
-    if (s.level < 250) count = Math.min(count, Math.ceil((xpNeeded(s.level) - s.xp - (s.xpRemainder || 0)) / rate.xp));
+    if (s.level < MAX_LEVEL) count = Math.min(count, Math.ceil((xpNeeded(s.level) - s.xp - (s.xpRemainder || 0)) / rate.xp));
     remaining -= count * rate.seconds;
     kills += count; xp += count * rate.xp; earnedGold += count * rate.gold;
     levelUp(s, count * rate.xp);
