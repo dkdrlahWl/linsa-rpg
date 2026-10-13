@@ -24,10 +24,10 @@ for(let tier=0;tier<3;tier++){
 }
 const power={hp:100000,attack:10000,defense:100,advancement:4,level:200};
 const world=startCoop({id:'room',mode:'exploration',tier:2,status:'waiting',owner:'admin',members:[{id:'admin',classId:'warrior',power,ready:true,left:false,advanced:true}]},1000);world.entryWaiting=false;world._net={points:[],frames:[]};
-assert.throws(()=>adminExplorationFloor(world,'admin',12,false),/BETA_DISABLED/);
-assert.throws(()=>adminExplorationFloor(world,'stranger',12,true),/NOT_READY/);
-for(const floor of [0,13,1.1,'12'])assert.throws(()=>adminExplorationFloor(world,'admin',floor,true),/INVALID_EXPLORATION_FLOOR/);
-const final=adminExplorationFloor(world,'admin',12,true);assert.equal(final.floor,12);assert.ok(final.monsters.some(m=>m.boss));assert.equal(final._net,undefined);assert.equal(final.tick,world.tick);assert.equal(world.floor,1);
+assert.throws(()=>adminExplorationFloor(world,'admin',5,false),/BETA_DISABLED/);
+assert.throws(()=>adminExplorationFloor(world,'stranger',5,true),/NOT_READY/);
+for(const floor of [0,6,1.1,'5'])assert.throws(()=>adminExplorationFloor(world,'admin',floor,true),/INVALID_EXPLORATION_FLOOR/);
+const final=adminExplorationFloor(world,'admin',5,true);assert.equal(final.floor,5);assert.ok(final.monsters.some(m=>m.boss));assert.equal(final._net,undefined);assert.equal(final.tick,world.tick);assert.equal(world.floor,1);
 const first=adminExplorationFloor(final,'admin',1,true);assert.equal(first.floor,1);assert.ok(!first.monsters.some(m=>m.boss));
 const lobby=explorationLobby({materials:{dungeonKey:1}});assert.ok(!lobby.includes('레드 큐브'));assert.ok(lobby.includes('100~190'));assert.ok(lobby.includes('1,000,000'));
 console.log('PASS independent rewards, exact thresholds, weighted 100–190 gear, overflow mailbox, admin-only floor selection, floor rebuild and lobby');
