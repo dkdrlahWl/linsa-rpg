@@ -61,7 +61,8 @@ const check = (condition, message) => {
   if (!condition) fail(message);
 };
 const int = (v, min, max) => Number.isSafeInteger(v) && v >= min && v <= max;
-export const FRAGMENT_BOSS_CHANCE=0.01;
+// 2026-10-13: 파편 교환 보스 장비 실제 확률 0.5% (확률 안내 표기는 1% 유지)
+export const FRAGMENT_BOSS_CHANCE=0.005;
 function spend(s, key, n) {
   check(Number.isSafeInteger(n) && n >= 0, "INVALID_COST");
   const bag = key === "gold" ? s : s.materials;

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {execute,initialState,FRAGMENT_BOSS_CHANCE} from './engine.mjs';
 import {CLASSES,gearName} from './data.mjs';
-assert.equal(FRAGMENT_BOSS_CHANCE,0.01);
+assert.equal(FRAGMENT_BOSS_CHANCE,0.005);
 let n=0;const uuid=()=>'u'+(++n);
 function seq(seed){let x=seed>>>0;return ()=>((x=(Math.imul(x,1664525)+1013904223)>>>0)/4294967296);}
 const random=seq(7),now=Date.UTC(2026,9,11,3);
@@ -23,7 +23,7 @@ for(let i=0;i<60000;i++){
  assert.ok(e.item.baseStats&&Object.keys(e.item.baseStats).length>0);
 }
 const rate=boss/total;console.log('boss rate',rate.toFixed(4),'classes',Object.fromEntries(cls),'slots',Object.fromEntries(slots));
-assert.ok(rate>0.008&&rate<0.012);
+assert.ok(rate>0.0035&&rate<0.0065);
 assert.equal(cls.size,CLASSES.length);assert.equal(slots.size,9);
 // Every level x class x slot boss item is constructible and named.
 import {selectDesign} from './data.mjs';
