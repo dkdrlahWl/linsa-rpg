@@ -15,6 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: node rebirth/apex-tower.test.mjs
+      - run: node rebirth/upper-tower.test.mjs
       - run: node rebirth/post-clear-movement.test.mjs
       - run: node rebirth/potential-unlock.test.mjs
       - run: node rebirth/exploration-arena.test.mjs
