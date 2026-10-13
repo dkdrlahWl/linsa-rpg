@@ -95,7 +95,7 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
 // so a weapon is exactly half as likely as any other single slot.
 export function halfWeaponSlot(random){const r=random()*8.5;return r<.5?0:Math.min(8,1+Math.floor(r-.5));}
 export function balanceBossGearSlot(slot,ctx){return slot===0&&ctx.random()<.5?1+Math.floor(ctx.random()*8):slot;}
-export function makeLootItem(base,classId,slot,boss,ctx,variant){if(boss)slot=balanceBossGearSlot(slot,ctx);const level=Math.max(10,rollEquipmentLevel(base,ctx.random)),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
+export function makeLootItem(base,classId,slot,boss,ctx,variant,slotBalanced=false){if(boss&&!slotBalanced)slot=balanceBossGearSlot(slot,ctx);const level=Math.max(10,rollEquipmentLevel(base,ctx.random)),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
 
 export function initialState(classId, name, ctx) {
   check(
@@ -480,13 +480,15 @@ function bossSettle(s, ctx, events) {
       s.materials.highCube+=2;
 
     }
-    if (ctx.random() < rewardChance(boss.dropChance*BOSS_GEAR_RATE_SCALE,s,ctx.now)) {
+    if (ctx.random() < rewardChance(boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE),s,ctx.now)) {
         const it = makeLootItem(
           boss.gearLevel,
           pick(CLASSES, ctx).id,
-          Math.floor(ctx.random() * 9),
+          boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random() * 9),
           true,
           ctx,
+          undefined,
+          boss.exactHalfWeapon,
         );
         addItem(s, it);
         reward.items.push(it.id);
@@ -570,7 +572,7 @@ function executeCore(input, command, args = {}, ctx) {
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
-      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<rewardChance(boss.dropChance*BOSS_GEAR_RATE_SCALE,s,ctx.now)){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
+      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<rewardChance(boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE),s,ctx.now)){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){
@@ -932,7 +934,7 @@ function executeCore(input, command, args = {}, ctx) {
       s.pendingCube=null;break;
     }
     case "boss": {
-      check(int(args.id, 0, 29), "INVALID_BOSS");
+      check(int(args.id, 0, BOSSES.length-1), "INVALID_BOSS");
       const b = BOSSES[args.id];
       const practice = args.practice === true;
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
