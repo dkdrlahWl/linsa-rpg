@@ -1,4 +1,4 @@
-import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=hw-242';
+import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=exploration-five-20261013';
 const prediction=new CoopPredictionCore();let generation=0;
 self.onmessage=({data})=>{
  try{
