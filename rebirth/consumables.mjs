@@ -7,6 +7,8 @@ export function luckStatus(state,now=Date.now()){
  const remaining=Math.max(0,Number(state?.buffs?.luckUntil||0)-now),cooldown=Math.max(0,Number(state?.consumableReady?.luckPotion||0)-now);
  return {active:remaining>0,remaining,cooldown};
 }
+// 2026-10-13: 일보·주보·성채 보스 장비 실제 드롭률 배율 (확률 안내 표기는 기존 값 유지)
+export const BOSS_GEAR_RATE_SCALE=0.7;
 export function rewardChance(chance,state,now){return Math.min(1,Math.max(0,chance)*(luckStatus(state,now).active?1+LUCK_POTION.bonus:1));}
 export function consumableCommand(state,command,id,now){
  const item=shopConsumable(id);

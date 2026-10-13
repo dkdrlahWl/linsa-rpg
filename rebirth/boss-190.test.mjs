@@ -7,7 +7,7 @@ assert.equal(daily.hp,6710000);assert.equal(daily.attack,2447);
 assert.equal(daily.seconds,90);assert.equal(daily.dropChance,.05);
 assert.equal(weekly.level,190);assert.equal(weekly.gearLevel,190);
 assert.deepEqual(equipmentLevelRange(weekly.gearLevel),{min:190,max:190});
-for(const roll of [0,.04,.10]){
+for(const roll of [0,.04,.08]){
  const ctx={now:Date.parse('2026-10-03T11:00:00+09:00'),random:()=>roll,uuid:randomUUID};
  let s=initialState('warrior','190보상검증',ctx);s.hunting=false;
  s=execute(s,'boss',{id:29},ctx).state;

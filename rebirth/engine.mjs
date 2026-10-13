@@ -3,7 +3,7 @@ import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel}
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-impact-121';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
-import {consumableCommand,rewardChance} from './consumables.mjs';
+import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=priest-potential-83';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
@@ -480,7 +480,7 @@ function bossSettle(s, ctx, events) {
       s.materials.highCube+=2;
 
     }
-    if (ctx.random() < rewardChance(boss.dropChance,s,ctx.now)) {
+    if (ctx.random() < rewardChance(boss.dropChance*BOSS_GEAR_RATE_SCALE,s,ctx.now)) {
         const it = makeLootItem(
           boss.gearLevel,
           pick(CLASSES, ctx).id,
@@ -570,7 +570,7 @@ function executeCore(input, command, args = {}, ctx) {
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
-      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<rewardChance(boss.dropChance,s,ctx.now)){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
+      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<rewardChance(boss.dropChance*BOSS_GEAR_RATE_SCALE,s,ctx.now)){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){

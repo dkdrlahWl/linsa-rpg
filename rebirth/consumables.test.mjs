@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,execute,grantRaidChest,grantCoopChest} from './engine.mjs';
-import {LUCK_POTION,rewardChance,potionCount,luckStatus} from './consumables.mjs';
+import {LUCK_POTION,rewardChance,potionCount,luckStatus,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
 import {BOSSES} from './data.mjs';
 import {rollRaidReward} from './raid-rewards.mjs';
 const now=Date.parse('2026-10-06T12:00:00Z');
@@ -22,7 +22,7 @@ assert.equal(rewardChance(.8,s,now),1);assert.equal(rewardChance(.2,s,now+300000
 assert.equal(potionCount(execute(s,'consumableUse',{id:'luckPotion'},ctx(.5,now+300000)).state),0);
 assert.throws(()=>execute(player(),'consumableUse',{id:'luckPotion'},ctx()),/INSUFFICIENT_CONSUMABLE/);
 for(const weekly of [false,true]){
- const boss=BOSSES.find(b=>b.weekly===weekly||!weekly&&!b.weekly),roll=boss.dropChance*1.25;
+ const boss=BOSSES.find(b=>b.weekly===weekly||!weekly&&!b.weekly),roll=boss.dropChance*BOSS_GEAR_RATE_SCALE*1.25;
  function claim(boost){let p=player();if(boost)p.buffs={luckUntil:now+300000};p=execute(p,'boss',{id:boss.id},ctx()).state;
   if(weekly){p.battle.chest={...p.battle.player};p.battle.won=true;p.battle.ended=true;return execute(p,'towerOpen',{runId:p.battle.runId},ctx(roll)).state;}
   p.battle.enemyHp=0;return execute(p,'sync',{},ctx(roll)).state;

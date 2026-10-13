@@ -2,6 +2,7 @@
 import {isCitadel} from './citadel-zero.mjs';
 import {CLASSES,selectDesign,rollBaseStats} from './data.mjs';
 import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
+import {BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
 // lock = 잠재 잠금석, scroll = 잠재 해금 주문서 (1 each on success); fragment guaranteed; gear = boss gear chance,
 // gear level uniform over the 10-level tiers 100..max; weapon slot at half weight.
 export const CITADEL_BOSS_REWARDS=[
@@ -28,7 +29,7 @@ export function grantCitadelChests(input,room,userId,ctx){
   if(ctx.random()<r.lock)reward.potentialLock++;
   if(ctx.random()<r.scroll)reward.scroll++;
   reward.fragment+=r.fragment;
-  if(ctx.random()<r.gear){
+  if(ctx.random()<r.gear*BOSS_GEAR_RATE_SCALE){
    const level=citadelGearLevel(r.max,ctx.random),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
    if(state.items.length>=300)reward.stored=(reward.stored||0)+1;addItem(state,item);reward.items.push(item);
