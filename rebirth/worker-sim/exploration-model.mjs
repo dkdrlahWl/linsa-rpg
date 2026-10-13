@@ -1,6 +1,6 @@
 import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside,CITADEL_CHEST_RANGE} from './citadel-zero.mjs?v=hw-242';
 import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs?v=hw-242';
-import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=hw-242';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=exploration-five-20261013';
 import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=hw-242';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=hw-242';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=hw-242';
