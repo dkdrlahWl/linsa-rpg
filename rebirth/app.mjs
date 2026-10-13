@@ -1685,9 +1685,12 @@ document.addEventListener("click", async (e) => {
         id: Number(arg),
         practice: action === "bossPractice",
       });
+      if(!state.battle)return;
       tab = "hunt";
       view = "game";
       render();
+      window.scrollTo({top:0,behavior:"instant"});
+      requestAnimationFrame(()=>window.scrollTo({top:0,behavior:"instant"}));
       return;
     }
     if (action === "claimMail") return await command("claimMail", {key:arg});
