@@ -36,7 +36,8 @@ export const CITADEL_CONTENT={id:0,name:'암흑성채',floors:21,level:200,art:'
 export const citadelAsset=(type,index)=>'citadel/'+type+'-'+index+'-213.webp';
 // Recovery between regions: CITADEL_REGION_HEAL of max HP, boss arenas start at full HP.
 export const CITADEL_REGION_HEAL=.3,CITADEL_HEARTS=3,CITADEL_MONSTERS={base:90,perAct:15,spread:25};
-export const citadelPopulation=n=>({hp:Math.max(1,Math.min(4,n)),attack:1});
+// 2026-10-14: 4인 기준 2배 (1인 1배 → 2인 1.33배 → 3인 1.67배 → 4인 이상 2배), 공격력은 1배 유지.
+export const citadelPopulation=n=>({hp:1+(Math.max(1,Math.min(4,n))-1)/3,attack:1});
 // Smooth NG0 curve tuned so the Dohyun Lv.200 reference clears about 80% of solo runs
 // (citadel-campaign-sim.mjs). Monster HP still multiplies by party size.
 // Update 232: citadel monster attack x10 (normal monsters, summons, ritual casters) and x15 (bosses).

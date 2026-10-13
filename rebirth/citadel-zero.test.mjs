@@ -5,7 +5,7 @@ import {EXPLORATIONS,explorationFloor,explorationProgress} from './exploration-d
 import {dungeonWalkable} from './exploration-dungeon.mjs';
 const power={attack:49108,hp:67525,defense:1373,crit:.41,critDamage:1.6,boss:3.2,cadence:1,advancement:4,firstJob:true,level:200,combatPower:206123};
 const create=(count=4)=>{const w=startCoop({mode:'citadel',tier:0,status:'waiting',owner:'p0',id:'citadel',members:Array.from({length:count},(_,i)=>({id:'p'+i,classId:['warrior','mage','archer','priest'][i],power:{...power},advanced:true,ready:true}))},123456);w.entryWaiting=false;return w;};
-for(let floor=1;floor<=21;floor++)for(let n=1;n<=4;n++)for(const boss of [false,true]){const one=citadelStats(floor,1,boss),many=citadelStats(floor,n,boss);assert.equal(many.hp,one.hp*n);assert.equal(many.attack,one.attack);}
+for(let floor=1;floor<=21;floor++)for(let n=1;n<=4;n++)for(const boss of [false,true]){const one=citadelStats(floor,1,boss),many=citadelStats(floor,n,boss);assert.ok(Math.abs(many.hp-one.hp*(1+(n-1)/3))<=1);assert.equal(many.attack,one.attack);}
 // Random maps must have a path from spawn to exit and every resident room.
 for(let floor=1;floor<=21;floor++)for(let seed=1;seed<=20;seed++){
  const d=makeCitadelDungeon(floor,seed),seen=new Set(),queue=[[Math.floor(d.start.x/100),Math.floor(d.start.y/100)]];
@@ -41,4 +41,4 @@ let early=create(),late=create();const packets=Array.from({length:20},(_,tick)=>
 early=advanceCoop({...early,_queuedInputs:packets},'p0',{frames:[]},early.started+2000);
 late=advanceCoop(late,'p0',{frames:[]},late.started+2000);late=advanceCoop({...late,_queuedInputs:packets},'p0',{frames:[]},late.started+2000);
 assert.deepEqual(late.members.map(m=>[m.x,m.y,m.hp,m.damage]),early.members.map(m=>[m.x,m.y,m.hp,m.damage]));
-console.log('PASS citadel: 420 connected maps, 21 stages, six encounters, HP-only 1–4×, four-player stress/reordered replay',{ms:Math.round(performance.now()-started),peakBytes});
+console.log('PASS citadel: 420 connected maps, 21 stages, six encounters, HP-only 1–2× (4p=2×), four-player stress/reordered replay',{ms:Math.round(performance.now()-started),peakBytes});
