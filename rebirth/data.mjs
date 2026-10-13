@@ -256,7 +256,8 @@ export function fieldMonster(stageId,kills=0) {
 }
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
- const endgame=level>=200?3:1;
+ // 2026-10-14: 230레벨부터 필요 경험치 2배 (200~229는 3배, 230 이상은 6배).
+ const endgame=level>=230?6:level>=200?3:1;
  return Math.round(journeyXP(level)*endgame);
 }
 export function gearStatRanges(item) {
