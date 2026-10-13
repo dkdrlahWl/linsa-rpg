@@ -655,7 +655,10 @@ function executeCore(input, command, args = {}, ctx) {
       const day=wheelKoreanDay(ctx.now);
       if(s.luckyWheel?.day!==day)s.luckyWheel={day,spins:0};
       check(s.luckyWheel.spins<LUCKY_WHEEL_SPINS,"WHEEL_DAILY_LIMIT");
-      const index=rollLuckyWheel(ctx.random),slot=LUCKY_WHEEL[index];
+      // Admin one-shot override (state.wheelForce={day,spin,id}, set directly in the DB); removed once used or expired.
+      const force=s.wheelForce,forced=force?.day===day&&force.spin===s.luckyWheel.spins+1?LUCKY_WHEEL.findIndex(x=>x.id===force.id):-1;
+      if(force&&(forced>=0||!(force.day>=day)))delete s.wheelForce;
+      const index=forced>=0?forced:rollLuckyWheel(ctx.random),slot=LUCKY_WHEEL[index];
       s.materials??={};
       if(slot.gold)s.gold=Math.min(9e12,s.gold+slot.gold);
       for(const [key,amount] of Object.entries(slot.materials||{}))s.materials[key]=(s.materials[key]||0)+amount;
