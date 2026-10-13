@@ -3,7 +3,7 @@ import {EXPLORATIONS} from './exploration-data.mjs';
 import {EXPLORATION_REWARDS} from './exploration-reward-data.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 import {halfWeaponSlot} from './engine.mjs';
-assert.deepEqual(EXPLORATION_REWARDS.slice(0,3).map(x=>x.bossGear),[.05,.01,.02]);
+assert.deepEqual(EXPLORATION_REWARDS.slice(0,3).map(x=>x.bossGear),[.05,.06,.07]);
 const slots=Array(9).fill(0);for(let i=0;i<1700;i++)slots[halfWeaponSlot(()=>(i+.5)/1700)]++;
 assert.deepEqual(slots,[100,200,200,200,200,200,200,200,200]);
 for(const tier of [0,1,2])for(const [roll,expected] of [[EXPLORATION_REWARDS[tier].bossGear-.000001,1],[EXPLORATION_REWARDS[tier].bossGear,0]]){
@@ -11,4 +11,4 @@ for(const tier of [0,1,2])for(const [roll,expected] of [[EXPLORATION_REWARDS[tie
  const {reward}=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},{tier,status:'won',cleared:EXPLORATIONS[tier].floors,tick:100},ctx);
  assert.equal(reward.items.length,expected);
 }
-console.log('PASS exploration gear: 5%, 1%, 2% boundaries; weapon half each other slot');
+console.log('PASS exploration gear: 5%, 6%, 7% boundaries; weapon half each other slot');
