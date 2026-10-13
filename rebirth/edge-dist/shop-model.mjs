@@ -1,6 +1,8 @@
 export function bossSalePrice(item){
  if(item?.boss!==true||!Number.isInteger(item.level)||item.level<10||item.level>200||!Number.isInteger(item.slot)||item.slot<0||item.slot>8)return 0;
- return Math.floor(item.level/10)*(item.slot===0?100000:50000);
+ if(item.level===200)return item.slot===0?2000000:1000000;
+ const base=item.level<=100?Math.floor(item.level/10)*300000:3000000+Math.floor((item.level-100)/10)*2000000;
+ return base*(item.slot===0?2:1);
 }
 export function bossSaleBlock(state,item){
  if(!item)return '장비를 찾을 수 없습니다.';
