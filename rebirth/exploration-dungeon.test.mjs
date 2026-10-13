@@ -24,5 +24,5 @@ const fog=create(),initial=fog.dungeon.seen.join('').replace(/0/g,'').length;ass
 let chase=create();const enemy=chase.monsters[0];enemy.hp--;const initialDistance=Math.hypot(enemy.x-chase.members[0].x,enemy.y-chase.members[0].y);
 for(let i=0;i<100;i++)chase=advanceCoopRaw(chase,null,null,(i+1)*100,[],true);
 const pursued=chase.monsters.find(e=>e.id===enemy.id);assert.ok(dungeonWalkable(chase.dungeon,pursued.x,pursued.y,26));assert.ok(Math.hypot(pursued.x-chase.members[0].x,pursued.y-chase.members[0].y)<initialDistance);
-const boss=create();boss.floor=10;explorationFloor(boss);assert.equal(boss.floorDeadline,1800);const king=boss.monsters.find(e=>e.boss);boss.members[0].x=king.x-180;boss.members[0].y=king.y;advanceCoopRaw(boss,null,null,100,[],true);assert.equal(boss.bossBattleAt,0);assert.equal(boss.floorDeadline,1200);
+const boss=create();boss.floor=5;explorationFloor(boss);assert.equal(boss.floorDeadline,1800);const king=boss.monsters.find(e=>e.boss);boss.members[0].x=king.x-180;boss.members[0].y=king.y;advanceCoopRaw(boss,null,null,100,[],true);assert.equal(boss.bossBattleAt,0);assert.equal(boss.floorDeadline,1200);
 console.log('PASS dungeon: 108 layouts connected, wall/dash collision, corridor navigation, valid spawns, shared exploration fog, monster pursuit, boss combat clock');
