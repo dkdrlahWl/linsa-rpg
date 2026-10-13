@@ -16,7 +16,7 @@ let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
-import {fishingView,fishingUI,mountFishing,stopFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
+import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
@@ -606,7 +606,7 @@ function shell(content) {
 }
 
 function render() {
-  if(!(session&&state&&view==='game'&&tab==='event'&&eventPage==='fishing'&&!state.coopRoom&&!state.partyRoom&&!dummyBattle&&state.battle?.kind!=='tower'))stopFishing();
+  if(!(session&&state&&view==='game'&&tab==='event'&&eventPage==='fishing'&&!state.coopRoom&&!state.partyRoom&&!dummyBattle&&state.battle?.kind!=='tower')){stopFishing();if(fishingUI.auto)stopAutoFishing();}
   if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
   sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
@@ -1326,6 +1326,8 @@ document.addEventListener("click", async (e) => {
     if(action==='fishPanel'){fishingUI.panel=arg;render();return;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
+    if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
+    if(action==='fishCancel'&&fishingUI.auto)stopAutoFishing();
     if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:4});}
     if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:BAITS.find(x=>x.id===arg)?.pack||20,currency:BAITS.find(x=>x.id===arg)?.gold?'gold':'diamonds'});
     if(action==='fishTrain')return await fishingCommandRequest(action,{gold:Number(arg)});
