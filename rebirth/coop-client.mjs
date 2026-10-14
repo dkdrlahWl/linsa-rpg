@@ -20,6 +20,7 @@ import {waveLobby,waveHud} from './wave-ui.mjs?v=wave-fifth-cd-124';
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs?v=priest-potential-83';
 import {TowerInput,projectPlayer} from './tower-input.mjs?v=fifth-impact-121';
 import {predictCoopStep,indexCoopFrames} from './coop-model.mjs?v=fifth-impact-121';
+import {coopWireArgs} from './coop-wire.mjs?v=coop-wire-1';
 import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=fifth-impact-121';
 import {towerArena} from './tower-client.mjs?v=fifth-impact-121';
 import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-thickness-128';
@@ -127,7 +128,7 @@ export class CoopController{
    this.citadelClaimed??=new Set();const claimBosses=isCitadel(this.room)?(confirmed?.citadelChests||[]).filter(b=>!this.citadelClaimed.has(b)):[],citadelClaim=!open&&claimBosses.length>0&&performance.now()>=(this.citadelClaimRetry||0);
    if(citadelClaim)this.citadelClaimRetry=performance.now()+1500;
    let result;
-   try{result=await this.send(open||citadelClaim?'coopOpen':'coopInput',open||citadelClaim?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2},!open,false,this.abort?.signal);}
+   try{result=await this.send(open||citadelClaim?'coopOpen':'coopInput',open||citadelClaim?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2,...coopWireArgs()},!open,false,this.abort?.signal);}
    // A reward claim must never wedge the room: give up after 3 failed attempts per chest (the server keeps
    // the chest unclaimed, so a later run of this loop after a fix/reload can still pay it).
    catch(error){if(citadelClaim){this.citadelClaimFails=(this.citadelClaimFails||0)+1;this.citadelClaimRetry=performance.now()+3000;if(['COOP_CHEST_NOT_READY','COOP_CHEST_CLAIMED'].includes(error.message)||this.citadelClaimFails>=3){for(const b of claimBosses)this.citadelClaimed.add(b);this.citadelClaimFails=0;}return;}throw error;}

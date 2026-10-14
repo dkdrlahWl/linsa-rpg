@@ -8,6 +8,6 @@ for(const mode of ['wave','rift']){
  let reference=initial;for(let tick=0;tick<30;tick++)reference=advanceCoopRaw(reference,null,null,(tick+1)*100,frames.flat().filter(f=>f.tick===tick));
  const queued={...initial,_queuedInputs:frames.flat()};const result=advanceCoop(queued,'p0',{frames:[]},3000);
  for(let i=0;i<4;i++){assert.equal(result.members[i].x,reference.members[i].x);assert.equal(result.members[i].damage,reference.members[i].damage);assert.equal(result.members[i].inputAck,29);}
- assert.equal(result.hp,reference.hp);assert.ok(!result._net.points.some(p=>p._net||p._queuedInputs));
+ assert.equal(result.hp,reference.hp);assert.ok(!JSON.stringify(result._net.packed.points).match(/_net|_queuedInputs/));
  console.log('PASS',mode,'all four queued players match reference movement and damage');
 }

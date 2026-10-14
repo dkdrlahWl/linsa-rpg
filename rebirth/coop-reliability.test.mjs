@@ -5,6 +5,7 @@ import {startCoop,advanceCoop,advanceCoopRaw,predictCoopStep,coopClientView,inde
 import {CoopMotion,motionSnapshot,interpolateActor} from './coop-motion.mjs';
 import {isDungeon,isCitadel} from './citadel-zero.mjs';
 import {TowerInput} from './tower-input.mjs';
+import {coopWireArgs} from './coop-wire.mjs';
 const power={attack:1,hp:1000000,defense:100,boss:1,crit:.25,critDamage:1.5,cadence:1,firstJob:true,advancement:4};
 function fresh(mode){
  const w=startCoop({id:mode,me:'a',owner:'a',revision:1,mode,tier:mode==='raid'?3:mode==='advancement'?4:mode==='wave'?0:5,status:'waiting',members:['a','b'].map((id,i)=>({id,name:id,classId:i?'archer':'warrior',power:{...power},advanced:true}))},0);
@@ -55,7 +56,7 @@ assert.throws(()=>advanceCoop(fresh('rift'),'a',{frames:[{tick:10,input:[0,0,0]}
 const document={hidden:false,querySelector:()=>null},navigator={onLine:true};
 const context={isDungeon,isCitadel,performance,structuredClone,Math,Map,Set,Promise,document,navigator,requestAnimationFrame:()=>1,
  paintHealthBar:()=>{},autoSkillBits:()=>0,prepareWaveCreature:()=>Promise.resolve(),image:()=>({}),WAVE_MONSTERS:Array.from({length:30},()=>({})),waveHud:()=>{},
- predictCoopStep,indexCoopFrames,coopEncounter,COOP_TIERS,motionSnapshot,interpolateActor,CoopMotion,TowerInput,
+ predictCoopStep,indexCoopFrames,coopEncounter,COOP_TIERS,coopWireArgs,motionSnapshot,interpolateActor,CoopMotion,TowerInput,
  projectPlayer:b=>({x:b.player.x,y:b.player.y}),raidMove:(m,x,y)=>Object.assign(m,{x,y})};
 const source=readFileSync(new URL('./coop-client.mjs',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'').replace(/^export /gm,'');
 const Controller=vm.runInNewContext(source+'\nCoopController;',context);
@@ -89,7 +90,7 @@ await c.flush();assert.equal(c.pendingBits&1,1,'failed request retains the chest
 c.nextSend=0;c.needsResync=true;let args;
 c.send=async(_,value)=>{args=value;return {};};
 await c.flush();assert.equal(args.frames.length,0,'resume requests current state without stale buffered actions');
-assert.equal(args.protocol,2);assert.equal(c.needsResync,false);
+assert.equal(args.protocol,2);assert.equal(args.wire,2);assert.equal(c.needsResync,false);
 // A predicted killing blow must still reach the authoritative combat timeline.
 for(const mode of ['rift','raid','advancement']){
  const fighting=fresh(mode);fighting.hp=1;

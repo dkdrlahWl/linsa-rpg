@@ -20,8 +20,8 @@ for(let round=0;round<20;round++){
     server=advanceCoop({...server,_queuedInputs:[...arrived.reverse(),...arrived.slice(0,4)]},'p0',{frames:[]},tick*100);packets+=8;
     assert.ok(server.tick>=previousTick,'simulation cannot stall/regress');previousTick=server.tick;
     if(server._net){
-      peakPoints=Math.max(peakPoints,server._net.points.length);
-      assert.ok(server._net.points.length<=6);assert.ok(server._net.frames.length<=8*56); // raid rewinds every 20 ticks
+      peakPoints=Math.max(peakPoints,(server._net.points||server._net.packed.points).length);
+      assert.ok((server._net.points||server._net.packed.points).length<=6);assert.ok(server._net.frames.length<=8*56); // raid rewinds every 20 ticks
       if(tick%300===0){const bytes=JSON.stringify(server).length;peakBytes=Math.max(peakBytes,bytes);assert.ok(bytes<500000,'history stays bounded');}
     }
     if(server.status!=='fighting')break;

@@ -10,6 +10,7 @@ import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
+import {packPoints,unpackPoints} from './coop-wire.mjs';
 export const coopEncounter=room=>isCitadel(room)?CITADEL_CONTENT:room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
 import {initializeWave,advanceWaveRaw} from './wave-model.mjs';
@@ -114,9 +115,10 @@ const bare=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,...core
 // Citadel terrain is deterministic per floor, so replay points keep only a reference.
 // Static fields of regular citadel monsters live once in _net.static, not in every point.
 const STATIC_MONSTER_KEYS=['name','citadel','explorationTier','art','level','maxHp','attack','speed','role','elite','species'];
-const historyPoint=(w,net)=>{const {_net,_queuedInputs,predictionBase,predictionInputs,dungeon,monsters,...core}=w;const point=structuredClone({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});point.dungeon=dungeon?.citadel?{ref:dungeon.id}:dungeon?.id&&point.mode==='exploration'?{ref:dungeon.id,exploration:true}:structuredClone(dungeon);
- if(dungeon?.citadel&&net&&Array.isArray(monsters)){net.static??={};point.monsters=monsters.map(e=>{if(e.boss||e.bossKind)return structuredClone(e);const s=net.static[e.id];if(!s||STATIC_MONSTER_KEYS.some(k=>s[k]!==e[k])){net.static[e.id]=Object.fromEntries(STATIC_MONSTER_KEYS.filter(k=>k in e).map(k=>[k,e[k]]));}const d={};for(const [k,v] of Object.entries(e))if(!STATIC_MONSTER_KEYS.includes(k))d[k]=structuredClone(v);d.$s=1;return d;});}
- else point.monsters=structuredClone(monsters);
+// `copy` is identity only for read-only references (storeNet); stored points are always deep copies.
+const historyPoint=(w,net,copy=structuredClone)=>{const {_net,_queuedInputs,predictionBase,predictionInputs,dungeon,monsters,...core}=w;const point=copy({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});point.dungeon=dungeon?.citadel?{ref:dungeon.id}:dungeon?.id&&point.mode==='exploration'?{ref:dungeon.id,exploration:true}:copy(dungeon);
+ if(dungeon?.citadel&&net&&Array.isArray(monsters)){net.static??={};point.monsters=monsters.map(e=>{if(e.boss||e.bossKind)return copy(e);const s=net.static[e.id];if(!s||STATIC_MONSTER_KEYS.some(k=>s[k]!==e[k])){net.static[e.id]=Object.fromEntries(STATIC_MONSTER_KEYS.filter(k=>k in e).map(k=>[k,e[k]]));}const d={};for(const [k,v] of Object.entries(e))if(!STATIC_MONSTER_KEYS.includes(k))d[k]=v!==null&&typeof v==='object'?copy(v):v;d.$s=1;return d;});}
+ else point.monsters=copy(monsters);
  // Raid damage numbers are cosmetic: rewinds borrow them from the live room instead of storing a copy per point.
  if(point.mode==='raid')delete point.numbers;
  return point;};
@@ -124,20 +126,39 @@ const historyPoint=(w,net)=>{const {_net,_queuedInputs,predictionBase,prediction
 const pointDungeon=(point,room)=>{const ref=point.dungeon?.ref;if(!ref)return point.dungeon===undefined?undefined:structuredClone(point.dungeon);if(room.dungeon?.id===ref)return structuredClone(room.dungeon);
  if(point.dungeon.exploration){const final=point.floor===EXPLORATIONS[point.tier].floors,d=(final?makeExplorationArena:makeExplorationDungeon)(point.tier,point.floor,(point.mapSeed??point.started)>>>0);return d;}
  return makeCitadelDungeon(point.floor,(point.mapSeed??point.started)>>>0);};
-const restorePoint=(point,room)=>{const w=structuredClone({...point,dungeon:undefined});if(!point.numbers&&point.mode==='raid')w.numbers=structuredClone((room.numbers||[]).filter(n=>n.start<=point.tick&&n.end>point.tick));w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;const table=room._net?.static||{};if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
+const restorePoint=(point,room,table=room._net?.static||{})=>{const w=structuredClone({...point,dungeon:undefined});if(!point.numbers&&point.mode==='raid')w.numbers=structuredClone((room.numbers||[]).filter(n=>n.start<=point.tick&&n.end>point.tick));w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
+// Rewind history is stored as diffs against the live room (see coop-wire.mjs).
+// Rooms written by an older edge still carry plain `points` + `static`.
+// refPoint has historyPoint's shape with full monsters; it shares objects with `w` and is only read.
+const refPoint=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,dungeon,monsters,id,revision,me,_rtt,...core}=w;return {...core,members:(w.members||[]).map(({power,name,classId,advanced,...actor})=>actor),dungeon:dungeon?.citadel?{ref:dungeon.id}:dungeon?.id&&core.mode==='exploration'?{ref:dungeon.id,exploration:true}:dungeon,monsters};};
+function loadNet(room){
+ const n=room?._net;if(!n)return null;
+ let points,table={};
+ if(Array.isArray(n.points)){points=n.points;table=n.static||{};}
+ else if(n.packed)points=unpackPoints(n.packed,refPoint(room));
+ if(!points?.length||points.at(-1).status!==room.status)return null;
+ return {points,frames:Array.isArray(n.frames)?n.frames:[],static:table};
+}
+function storeNet(net,w){
+ const table=net.static||{};
+ // Stored points keep full monsters so they diff to almost nothing against the live room.
+ const points=net.points.map(p=>!Array.isArray(p.monsters)||!p.monsters.some(e=>e.$s)?p:{...p,monsters:p.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...(table[e.id]||{}),...d};})});
+ return {frames:net.frames,packed:packPoints(points,refPoint(w))};
+}
 export function validateCoopFrames(frames){if(!Array.isArray(frames)||frames.length>40||!frames.every(validFrame))throw Error('INVALID_COOP_INPUT');return frames;}
 // Return a confirmed personal timeline as well as the shared room snapshot.
 // The client replays its still-unconfirmed inputs from here, not from a world
 // that has already advanced using an older held direction.
 export function coopClientView(room,protocol=1){
- if(!room)return room;const view=bare(room),net=room._net,me=room.members.find(m=>m.id===room.me);
- if(!net||room.entryWaiting||!['fighting','won'].includes(room.status)||!me||net.points?.at(-1)?.status!==room.status)return view;
+ if(!room)return room;const view=bare(room),me=room.members.find(m=>m.id===room.me);
+ if(!room._net||room.entryWaiting||!['fighting','won'].includes(room.status)||!me)return view;
+ const net=loadNet(room);if(!net)return view;
  const target=Math.max(net.points[0].tick,Math.min(room.tick,(me.inputAck??-1)+1));
  const inputsFrom=tick=>net.frames.filter(f=>f.user!==room.me&&f.tick>=tick).map(f=>({user:f.user,tick:f.tick,input:f.input}));
  if(target===room.tick){view.predictionInputs=inputsFrom(room.tick);return view;}
  const point=[...net.points].reverse().find(p=>p.tick<=target);
  if(!point){view.predictionInputs=inputsFrom(room.tick);return view;}
- let base=restorePoint(point,room);const framesByTick=indexCoopFrames(net.frames);
+ let base=restorePoint(point,room,net.static);const framesByTick=indexCoopFrames(net.frames);
  while(base.tick<target&&base.status===room.status)base=advanceCoopRaw(base,null,null,(base.status==='won'?base.lootStarted:base.started)+(base.tick+1)*100,framesByTick.get(base.tick)||[],true);
  for(const m of base.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  view.predictionBase={...base,id:room.id,me:room.me,owner:room.owner,revision:room.revision,waveSpeed:room.waveSpeed,speedAt:room.speedAt,speedTime:room.speedTime};
@@ -182,7 +203,7 @@ function advanceCoopTimeline(room,user,input,now){
  // Citadel has no clock limit: after a long gap (everyone idle, admin moves) resume from the
  // current tick instead of fast-forwarding monsters while every player's input is too old.
  if(isCitadel(room)&&room.status==='fighting'&&Math.floor((now-room.started)/100)-room.tick>50)room={...room,started:now-(room.tick+1)*100};
- const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),net=room._net?.points?.at(-1)?.status===room.status?{points:[...room._net.points],frames:[...room._net.frames],static:{...(room._net.static||{})}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
+ const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),stored=loadNet(room),net=stored?{points:[...stored.points],frames:[...stored.frames],static:{...stored.static}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
@@ -194,7 +215,7 @@ function advanceCoopTimeline(room,user,input,now){
  if(earliest===Infinity&&upto===room.tick)return room;
  const framesByTick=indexCoopFrames(net.frames);
  let w=bare(room);
- if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=restorePoint(point,room);w.started=room.started;net.points=net.points.filter(p=>p.tick<=point.tick);}}
+ if(earliest<w.tick){const point=[...net.points].reverse().find(p=>p.tick<=earliest);if(point){w=restorePoint(point,room,net.static);w.started=room.started;net.points=net.points.filter(p=>p.tick<=point.tick);}}
  // Membership changes are never undone by input replay.
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){
@@ -206,5 +227,5 @@ function advanceCoopTimeline(room,user,input,now){
  if(net.static){const used=new Set();for(const p of net.points)for(const e of p.monsters||[])if(e.$s)used.add(e.id);for(const id of Object.keys(net.static))if(!used.has(Number(id)))delete net.static[id];}
  for(const m of w.members)m.inputAck=Math.max(m.inputAck??-1,...net.frames.filter(f=>f.user===m.id).map(f=>f.tick));
  if(w.status==='lost'&&upto-w.tick<30&&(['wave','exploration','citadel'].includes(room.mode)||upto<coopLimit(room))){w.status='fighting';w.pendingOutcome=true;}
- w._net=net;return w;
+ w._net=storeNet(net,w);return w;
 }

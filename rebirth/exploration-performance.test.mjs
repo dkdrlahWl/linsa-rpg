@@ -45,7 +45,7 @@ for(let round=0;round<6;round++){
  for(let tick=6;tick<=1800;tick+=6){
   const frames=[];for(let i=0;i<4;i++){const delay=[2,5,8,11][i];for(let t=Math.max(0,tick-delay-12);t<tick-delay;t++)frames.push({user:'p'+i,tick:t,input:[t%60<30?.2:-.2,i%2?.1:0,1|(t%60===0?122:0)]});}
   server=advanceCoop({...server,_queuedInputs:[...frames.reverse(),...frames.slice(0,4)]},'p0',{frames:[]},tick*100);packets+=4;
-  assert.ok(server.tick>prior,'clock must progress with delayed inputs');prior=server.tick;assert.ok(server._net.points.length<=6);assert.ok(server._net.frames.length<=4*56);
+  assert.ok(server.tick>prior,'clock must progress with delayed inputs');prior=server.tick;assert.ok((server._net.points||server._net.packed.points).length<=6);assert.ok(server._net.frames.length<=4*56);
   const view=coopClientView({...server,me:'p0'},2);assert.equal(view._net,undefined);assert.equal(view._queuedInputs,undefined);peakBytes=Math.max(peakBytes,JSON.stringify(view).length);
   if(server.status!=='fighting')break;
  }

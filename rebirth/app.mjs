@@ -33,7 +33,8 @@ import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
 import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=walk-thickness-128';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=coop-wire-1';
+import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide } from './cube-ui.mjs?v=prime-choice-158';
@@ -462,6 +463,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if(state?.battle?.kind==='boss'||body.command==='boss')lastBattleRequestAt=Date.now();
     const result = await request("/functions/v1/ringu-rebirth", body,true,requestSignal);
     if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
+    // Compact multiplayer replies (coop-wire.mjs); a snapshot that cannot be decoded is skipped.
+    if(result.coop){try{result.coop=decodeCoopReply(result.coop);}catch{delete result.coop;}}
     if(result.coop)result.coop._rtt=performance.now()-sentAt;
     if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
     localStorage.removeItem(pendingKey());
