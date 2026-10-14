@@ -49,8 +49,8 @@ export function extendEndgameFields(regions,stages,monsters) {
       const hp=Math.round(baseHp*(1+delta*.04)),attack=Math.round(baseAttack*(1+delta*.025));
       const xp=Math.round(Math.max(1,Math.ceil((journeyXP(field.level)*8/(levelHours(field.level)*3600)+baseHp*.002)*1.6))*1.5);
       const gold=Math.round((4+field.level*.3+baseHp*.001)*3);
-      stages.push({id,name:field.name,region:region.id,level:field.level,star:0,hp,attack,xp,gold,dropLevel:190,
-        drops:{equipment:.0026,bossEquipment:0,cube:.0004,fragment:.006,scroll:0},
+      stages.push({id,name:field.name,region:region.id,level:field.level,star:0,hp,attack,xp,gold,dropLevel:field.level>=215?200:190,
+        drops:{equipment:field.level>=215?.001:.0026,bossEquipment:0,cube:.0004,fragment:.006,scroll:0},
       });
       monsters.push({id:monsters.length,name:field.monster,stage:id,art:field.art});
       priorStage=stages.at(-1);

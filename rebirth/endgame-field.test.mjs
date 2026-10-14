@@ -15,9 +15,10 @@ for(let stage=0;stage<30;stage++)for(let kills=0;kills<4;kills++)
 const expected=[{level:195,hp:270000,attack:10335,xp:1172,gold:728},{level:200,hp:300000,attack:11130,xp:1268,gold:792},{level:205,hp:330000,attack:11925,xp:1365,gold:857}];
 const added=STAGES.slice(33);
 assert.deepEqual(added.map(({level,region,dropLevel})=>({level,region,dropLevel})),[
-  {level:207,region:11,dropLevel:190},{level:212,region:11,dropLevel:190},{level:215,region:11,dropLevel:190},
-  {level:217,region:12,dropLevel:190},{level:220,region:12,dropLevel:190},{level:222,region:12,dropLevel:190},
+  {level:207,region:11,dropLevel:190},{level:212,region:11,dropLevel:190},{level:215,region:11,dropLevel:200},
+  {level:217,region:12,dropLevel:200},{level:220,region:12,dropLevel:200},{level:222,region:12,dropLevel:200},
 ]);
+for(const stage of STAGES){if(stage.level>=215){assert.equal(stage.dropLevel,200);assert.equal(fieldDropRates(stage).equipment,.001);assert.equal(fieldDropRates(stage).bossEquipment,0);}else if(stage.id>=30){assert.equal(stage.dropLevel,190);assert.equal(fieldDropRates(stage).equipment,.0026);}}
 assert.equal(xpNeeded(199),Math.round(120+199**2.1*12));
 assert.equal(xpNeeded(200),Math.round(120+200**2.1*12)*3);
 assert.equal(xpNeeded(201),Math.round(120+201**2.1*12)*3);

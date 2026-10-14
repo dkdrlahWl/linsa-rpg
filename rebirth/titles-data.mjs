@@ -77,6 +77,12 @@ const ROWS=[
  ['boss200set','보스의 유산','장비','legend','Lv.200 보스 장비로 9부위 전부 착용',s=>{const e=equippedItems(s);return e.length>=9&&e.every(i=>i.boss&&i.level>=200);}],
  ['gold10','황금 산맥','재산','epic','골드 10억 보유',s=>(s.gold||0)>=1e9],
  ['explAll','모든 길의 개척자','탐험','legend','링구의 탐험 '+EXPLORATIONS.length+'곳 전부 클리어',s=>EXPLORATIONS.every(t=>expl(s,t.id))],
+ ['lv220','별빛의 계승자','레벨','epic','레벨 220 달성',s=>s.level>=220],
+ ['lv230','공허의 왕관','레벨','legend','레벨 230 달성',s=>s.level>=230],
+ ['kill100','백만의 전설','사냥','myth','누적 처치 100만',s=>(s.huntKills||0)>=1000000],
+ ['fish10000','만선의 주인','낚시','legend','물고기 누적 10,000마리',s=>(s.fishing?.totalCatch||0)>=10000],
+ ['cube10000','운명을 벼린 자','강화','legend','큐브 누적 10,000회 사용',s=>(s.cubeUses||0)>=10000],
+ ['star25set','별들의 제왕','강화','myth','25성 장비로 9부위 전부 착용',s=>{const e=equippedItems(s);return e.length>=9&&e.every(i=>(i.stars||0)>=25);}],
  // ── 확장 대기 칭호 (해당 콘텐츠가 추가되면 자동으로 나타남) ──
  ['lv275','경계를 걷는 자','레벨','legend','레벨 275 달성',s=>s.level>=275,()=>MAX_LEVEL>=275],
  ['lv300','초월의 정점','레벨','myth','레벨 300 달성',s=>s.level>=300,()=>MAX_LEVEL>=300],
