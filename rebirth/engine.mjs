@@ -51,7 +51,7 @@ import {
   equipmentKey,
   WEAPON_TYPES,
   MAX_LEVEL,
-} from "./data.mjs?v=boss-relic-only-130";
+} from "./data.mjs?v=unique-boss-25-20261015";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fifth-impact-121';
 const fail = (message) => {

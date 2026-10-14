@@ -5,8 +5,8 @@ export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,ne
 import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=journey-250-20261011';
 import {extendEndgameFields} from './endgame-field.mjs?v=endgame-level-250-20261011';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=journey-250-20261011';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=prime-choice-158';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=prime-choice-158';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=unique-boss-25-20261015';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=unique-boss-25-20261015';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=boss-200-stats-132";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=boss-200-stats-132";
 // Shared public balance data. The server is authoritative for RNG and ownership.
@@ -310,6 +310,7 @@ export function optionValue(key, grade, random = Math.random) {
 // Version 4: one equipment rank; legacy options are preserved until rerolled.
 export function fillPotentialLines(item, random) {
   item.lines ||= [];
+  for (const line of item.lines) if (line.key === 'boss' && (line.grade ?? item.grade) === 4) line.value = 25;
   // Restore only previously halved lines; untouched and new rolls keep original values.
   for (const line of item.lines) if (line.key === 'crit' && line.critBalanceVersion !== 2) {
     if (line.critBalanceVersion === 1) line.value *= 2;

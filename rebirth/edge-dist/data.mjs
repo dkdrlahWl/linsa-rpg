@@ -310,6 +310,7 @@ export function optionValue(key, grade, random = Math.random) {
 // Version 4: one equipment rank; legacy options are preserved until rerolled.
 export function fillPotentialLines(item, random) {
   item.lines ||= [];
+  for (const line of item.lines) if (line.key === 'boss' && (line.grade ?? item.grade) === 4) line.value = 25;
   // Restore only previously halved lines; untouched and new rolls keep original values.
   for (const line of item.lines) if (line.key === 'crit' && line.critBalanceVersion !== 2) {
     if (line.critBalanceVersion === 1) line.value *= 2;
