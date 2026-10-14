@@ -114,11 +114,13 @@ export class CoopController{
  press(bits){if((bits&1)&&this.predicted?.status==='won'){const me=this.predicted.members.find(m=>m.id===this.room.me),chest=this.predicted.chest;if(chest&&Math.hypot(me.x-chest.x,me.y-chest.y)<=180){this.openingAt??=performance.now();this.host.querySelector('#tower-status').textContent='상자를 여는 중…';}this.pendingBits|=1;this.nextSend=0;void this.flush();return;}if(!bits||this.room.entryWaiting||this.artReady===false)return;this.pendingBits|=bits;this.sampler.press(bits);this.lastHud=0;const now=performance.now();if(bits&4)this.hint.dash=now+110;else if(bits&1)this.hint.attack=now+110;else if(bits&122)this.hint.skill=now+110;}
  async flush(){
   if(this.busy||this.disposed||document.hidden||navigator.onLine===false||performance.now()<this.nextSend)return;
-  this.busy=true;const started=performance.now(),taps=this.pendingBits,resync=!!this.needsResync;this.pendingBits=0;
+  this.busy=true;const started=performance.now(),taps=this.pendingBits,resync=!!this.needsResync;this.pendingBits=0;let opening=false;
   try{
    const room=this.predicted,me=room.members.find(m=>m.id===room.me),chest=room.chest;
    const wantsOpen=room.status==='won'&&(taps&1)&&((me.damage>0||(['raid','exploration','citadel'].includes(room.mode)&&(me.healing>0||me.shieldGiven>0)))||(['raid','exploration','citadel'].includes(room.mode)&&(me.healing>0||me.shieldGiven>0)))&&chest&&Math.hypot(me.x-chest.x,me.y-chest.y)<=180;
-   const confirmed=this.room.members.find(m=>m.id===room.me),open=wantsOpen&&this.room.status==='won'&&Math.hypot(confirmed.x-chest.x,confirmed.y-chest.y)<=180;
+   // After a refused open (the server still sees us out of range), pause opening briefly so a normal
+   // input request goes out: it carries our movement and brings back the authoritative position.
+   const confirmed=this.room.members.find(m=>m.id===room.me),open=wantsOpen&&this.room.status==='won'&&performance.now()>=(this.openPausedUntil||0)&&Math.hypot(confirmed.x-chest.x,confirmed.y-chest.y)<=180;opening=open;
    if(wantsOpen&&!open)this.pendingBits|=1;
    if(open){this.openingAt??=performance.now();if(this.predicted.chest)this.predicted.chest.openAt=this.openingAt;this.host.querySelector('#tower-status').textContent='상자를 여는 중…';}
    const ack=this.room.members.find(m=>m.id===room.me)?.inputAck??-1;
@@ -136,7 +138,9 @@ export class CoopController{
    if(this.disposed)return;
    if(!result)this.pendingBits|=taps;
    if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
-  }catch(error){if(this.disposed)return;this.pendingBits|=taps;this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
+  }catch(error){if(this.disposed)return;this.pendingBits|=taps;
+   if(opening&&['COOP_CHEST_TOO_FAR','COOP_CHEST_NOT_READY','COOP_DAMAGE_REQUIRED'].includes(error.message)){this.openPausedUntil=performance.now()+1000;this.openingAt=undefined;this.nextSend=0;return;}
+   this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
   finally{this.busy=false;this.nextSend=Math.max(started+coopInputInterval(this.room,this.rtt||250)+Math.random()*30,performance.now()+(this.failures?Math.min(1200,150*this.failures+Math.random()*100):40));}
  }
  accept(room){if(this.disposed||!room||room.id!==this.room.id||(room.revision??0)<(this.room.revision??0)||((room.revision??0)===(this.room.revision??0)&&room.tick<this.room.tick))return;
