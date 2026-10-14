@@ -1,18 +1,20 @@
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=hw-242';
-export {PRIEST_SKILLS} from './priest.mjs?v=hw-242';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=hw-242';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=hw-242';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=hw-242';
-import {extendEndgameFields} from './endgame-field.mjs?v=hw-242';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=hw-242';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=hw-242';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=hw-242';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=hw-242";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=hw-242";
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=explore-boss-230';
+export {PRIEST_SKILLS} from './priest.mjs?v=explore-boss-230';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=explore-boss-230';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=explore-boss-230';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=explore-boss-230';
+import {extendEndgameFields} from './endgame-field.mjs?v=explore-boss-230';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=explore-boss-230';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=explore-boss-230';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=explore-boss-230';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=explore-boss-230";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=explore-boss-230";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
 export const FIELD_XP_MULTIPLIER = 2.5;
+// 레벨 상한: 레벨 확장 시 여기만 바꾸면 경험치·칭호 등이 따라감.
+export const MAX_LEVEL = 250;
 export const CLASSES = [
   {id:"priest",name:"사제",stat:"LUK",weapon:"성물",skill:"성광 심판",color:"#f5f1df"},
   {
@@ -67,7 +69,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=hw-242';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=explore-boss-230';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
@@ -406,3 +408,6 @@ export function weekKey(ms) {
 
 balanceWorld(STAGES,BOSSES,RAID_BOSSES);
 extendEndgameFields(REGIONS,STAGES,MONSTERS);
+
+// Fixed endgame daily boss; append after legacy world balancing.
+BOSSES.push({id:30,name:'종언의 집행자 모르가리온',region:9,level:200,hp:90000000,attack:4500,seconds:90,weekly:false,art:'ui/daily-morgarion-v2.webp',background:'ui/daily-morgarion-arena-v2.webp',arenaName:'종언의 왕좌',fullArt:true,gearLevel:200,dropChance:.015,gearRateScale:1,exactHalfWeapon:true,gold:120000,cubes:8,material:4,patternEvery:12,patternMultiplier:3,pattern:'종언의 연속 참격',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});

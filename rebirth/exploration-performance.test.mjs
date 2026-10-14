@@ -1,3 +1,4 @@
+import {explorationFloor} from './exploration-data.mjs';
 import assert from 'node:assert/strict';
 import {makeExplorationDungeon,revealDungeon,dungeonWalkable,dungeonSight} from './exploration-dungeon.mjs';
 import {startCoop,advanceCoop,coopClientView} from './coop-model.mjs';
@@ -41,7 +42,8 @@ d.seen[0]='1'+d.seen[0].slice(1);drawExplorationMinimap(g,b,d.start);assert.equa
 let packets=0,peakBytes=0;const began=performance.now();
 for(let round=0;round<6;round++){
  let server=startCoop({id:'soak-'+round,owner:'p0',mode:'exploration',tier:round%3,status:'waiting',members:['warrior','mage','archer','priest'].map((classId,i)=>({id:'p'+i,classId,name:'테스트'+i,advanced:true,power:{attack:1,hp:1e9,defense:1e9,boss:1,crit:.3,critDamage:1.6,cadence:1,firstJob:true,advancement:4,level:200}}))},0);
- server.entryWaiting=false;server.members.forEach(m=>m.entryMoved=true);let prior=0;
+ // Runs start in the boss room now; the 30-minute soak covers corridor floors from floor 1.
+ server.entryWaiting=false;server.members.forEach(m=>m.entryMoved=true);server.floor=1;explorationFloor(server);let prior=0;
  for(let tick=6;tick<=1800;tick+=6){
   const frames=[];for(let i=0;i<4;i++){const delay=[2,5,8,11][i];for(let t=Math.max(0,tick-delay-12);t<tick-delay;t++)frames.push({user:'p'+i,tick:t,input:[t%60<30?.2:-.2,i%2?.1:0,1|(t%60===0?122:0)]});}
   server=advanceCoop({...server,_queuedInputs:[...frames.reverse(),...frames.slice(0,4)]},'p0',{frames:[]},tick*100);packets+=4;

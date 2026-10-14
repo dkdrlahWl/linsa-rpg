@@ -12,12 +12,13 @@ const arenaFloors=[
 ];
 function insidePolygon(points,x,y){let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const [a,b]=points[i],[c,d]=points[j];if((b>y)!==(d>y)&&x<(c-a)*(y-b)/(d-b)+a)inside=!inside;}return inside;}
 export function makeExplorationArena(tier,floor,seed=1){
- const width=tier===0?2800:1400,bounds={x:(3200-width)/2,y:(3200-width)/2,width,height:width},polygon=arenaFloors[tier]||arenaFloors[0];
+ // Every theme uses the 1단계 arena size (2800) since 2026-10-15.
+ const width=2800,bounds={x:(3200-width)/2,y:(3200-width)/2,width,height:width},polygon=arenaFloors[tier]||arenaFloors[0];
  const onFloor=(x,y)=>insidePolygon(polygon,(x-bounds.x)/width,(y-bounds.y)/width);
  const tiles=Array.from({length:SIZE},(_,y)=>Array.from({length:SIZE},(_,x)=>onFloor((x+.5)*CELL,(y+.5)*CELL)?'2':'0').join(''));
  const zone=(id,left,top,right,bottom)=>({id,x:Math.floor((bounds.x+left*width)/CELL)-1,y:Math.floor((bounds.y+top*width)/CELL)-1,w:Math.ceil((right-left)*width/CELL)+2,h:Math.ceil((bottom-top)*width/CELL)+2,spawnBounds:{left:bounds.x+left*width,top:bounds.y+top*width,right:bounds.x+right*width,bottom:bounds.y+bottom*width}});
  const rooms=[zone(3,.36,.65,.64,.79),zone(4,.22,.30,.42,.58),zone(1,.60,.30,.78,.58),zone(2,.42,.20,.60,.40)];
- return {id:'exploration-terrain-202:'+tier+':'+floor+':'+seed,arena:true,arenaBounds:bounds,arenaPolygon:polygon,size:SIZE,cell:CELL,tiles,rooms,start:{x:1600,y:bounds.y+.70*width},exit:{x:1600,y:bounds.y+.43*width},seen:Array.from({length:SIZE},()=> '1'.repeat(SIZE))};
+ return {id:'exploration-terrain-230:'+tier+':'+floor+':'+seed,arena:true,arenaBounds:bounds,arenaPolygon:polygon,size:SIZE,cell:CELL,tiles,rooms,start:{x:1600,y:bounds.y+.70*width},exit:{x:1600,y:bounds.y+.43*width},seen:Array.from({length:SIZE},()=> '1'.repeat(SIZE))};
 }
 export function makeExplorationDungeon(tier,floor,seed=1){
  let n=(seed^Math.imul(floor,2654435761)^Math.imul(tier+1,1597334677))>>>0;

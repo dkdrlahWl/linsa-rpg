@@ -1,5 +1,5 @@
-import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending} from './citadel-zero.mjs?v=hw-242';
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs?v=hw-242';
+import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending} from './citadel-zero.mjs?v=explore-boss-230';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs?v=explore-boss-230';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[
@@ -44,7 +44,8 @@ export function explorationFloor(w){
 }
 export function initializeExploration(w){
  if(w.members.filter(m=>!m.left).length>4)throw Error('INVALID_EXPLORATION_PLAYERS');
- Object.assign(w,{floor:1,population:w.members.filter(m=>!m.left).length,kills:0,seed:(w.started>>>0)||1,mapSeed:w.started>>>0});explorationFloor(w);return w;
+ // Ringu exploration starts straight in the final boss arena (2026-10-15); the citadel still starts at region 1.
+ Object.assign(w,{floor:isCitadel(w)?1:EXPLORATIONS[w.tier].floors,population:w.members.filter(m=>!m.left).length,kills:0,seed:(w.started>>>0)||1,mapSeed:w.started>>>0});explorationFloor(w);return w;
 }
 export function explorationProgress(w){
  if(isCitadel(w)&&w.tick>=w.floorDeadline){w.status='lost';w.reason='floorTimeout';w.endedTick=w.tick;return;}

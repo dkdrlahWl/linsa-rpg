@@ -27,7 +27,7 @@ const world=startCoop({id:'room',mode:'exploration',tier:2,status:'waiting',owne
 assert.throws(()=>adminExplorationFloor(world,'admin',5,false),/BETA_DISABLED/);
 assert.throws(()=>adminExplorationFloor(world,'stranger',5,true),/NOT_READY/);
 for(const floor of [0,6,1.1,'5'])assert.throws(()=>adminExplorationFloor(world,'admin',floor,true),/INVALID_EXPLORATION_FLOOR/);
-const final=adminExplorationFloor(world,'admin',5,true);assert.equal(final.floor,5);assert.ok(final.monsters.some(m=>m.boss));assert.equal(final._net,undefined);assert.equal(final.tick,world.tick);assert.equal(world.floor,1);
+const final=adminExplorationFloor(world,'admin',5,true);assert.equal(final.floor,5);assert.ok(final.monsters.some(m=>m.boss));assert.equal(final._net,undefined);assert.equal(final.tick,world.tick);assert.equal(world.floor,5,'run starts in the boss room and admin move does not mutate it');
 const first=adminExplorationFloor(final,'admin',1,true);assert.equal(first.floor,1);assert.ok(!first.monsters.some(m=>m.boss));
 const lobby=explorationLobby({materials:{dungeonKey:1}});assert.ok(!lobby.includes('레드 큐브'));assert.ok(lobby.includes('100~190'));assert.ok(lobby.includes('1,000,000'));
 console.log('PASS independent rewards, exact thresholds, weighted 100–190 gear, overflow mailbox, admin-only floor selection, floor rebuild and lobby');

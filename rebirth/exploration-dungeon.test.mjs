@@ -3,7 +3,8 @@ import {makeExplorationDungeon,dungeonTile,dungeonWalkable,dungeonMove,dungeonSi
 import {startCoop,advanceCoopRaw} from './coop-model.mjs';
 import {explorationFloor} from './exploration-data.mjs';
 const power={attack:1,hp:1e9,defense:1e9,boss:1,crit:0,critDamage:1,cadence:1,advancement:4,firstJob:true,level:200};
-const create=()=>{const w=startCoop({mode:'exploration',tier:0,status:'waiting',members:[{id:'a',classId:'mage',power,ready:true}]},0);w.entryWaiting=false;return w;};
+// Runs now start in the boss room; corridor-floor tests rebuild floor 1 explicitly.
+const create=()=>{const w=startCoop({mode:'exploration',tier:0,status:'waiting',members:[{id:'a',classId:'mage',power,ready:true}]},0);w.entryWaiting=false;w.floor=1;explorationFloor(w);return w;};
 const signatures=new Set();
 for(let tier=0;tier<3;tier++)for(let floor=1;floor<=12;floor++)for(const seed of [1,174,90000]){
  const d=makeExplorationDungeon(tier,floor,seed);assert.deepEqual(d,makeExplorationDungeon(tier,floor,seed));signatures.add(d.tiles.join(''));
