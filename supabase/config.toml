@@ -1,3 +1,7 @@
 [functions.ringu-economy]
 # Auth is explicitly verified through /auth/v1/user and DB newest-session checks.
 verify_jwt = false
+
+[functions.ringu-rebirth]
+# Deployed by .github/workflows/deploy-rebirth-edge.yml from rebirth/edge-dist (JWT verification on, as in rebirth/README.md).
+verify_jwt = true
