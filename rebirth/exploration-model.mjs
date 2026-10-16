@@ -1,5 +1,5 @@
 import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside,CITADEL_CHEST_RANGE} from './citadel-zero.mjs';
-import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon} from './exploration-dungeon.mjs';
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon,bodySight,unstickBoss,BOSS_BODY} from './exploration-dungeon.mjs';
 import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs';
 import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-impact-121';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
@@ -17,7 +17,7 @@ export {initializeExploration};
 function number(w,value,a,kind){w.numbers.push({id:++w.serial,value,x:a.x,y:a.y-90,kind,start:w.tick,end:w.tick+16});}
 function damage(w,m,targets,scale,critAdd=0){
  const first=w.tick<(m.guardUntil||0)&&CLASS_SKILLS[m.classId].type==='buff'?CLASS_SKILLS[m.classId]:null;
- for(const enemy of targets){if(enemy.hp<=0||!dungeonSight(w.dungeon,m,enemy))continue;const factor=citadelDamageFactor(w,enemy);if(!factor)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*factor*(enemy.boss?m.power.boss:1)*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
+ for(const enemy of targets){if(enemy.hp<=0||!bodySight(w.dungeon,m,enemy))continue;const factor=citadelDamageFactor(w,enemy);if(!factor)continue;const critical=random(w)<Math.min(.95,m.power.crit+(first?.critAdd||0)+critAdd),value=Math.min(enemy.hp,Math.max(1,Math.round(holyDamage(m,m.power.attack*scale*factor*(enemy.boss?m.power.boss:1)*(first?.damage||1)*(critical?m.power.critDamage:1),w.tick))));enemy.hp-=value;m.damage+=value;number(w,value,enemy,critical?'critical':'outgoing');if(enemy.hp<=0){w.kills++;m.kills=(m.kills||0)+1;}}
 }
 function pulse(w,m,cast,sk){
  const aim=sk.mode==='orbit'?m:sk.mode==='volley'?(w.monsters.filter(e=>e.hp>0&&distance(e,m)<=sk.range+150).sort((a,b)=>distance(a,m)-distance(b,m))[0]||cast):cast;
@@ -44,7 +44,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}
    const oldX=m.x,oldY=m.y;const dashing=t<(m.dashUntil||0),speed=c.speed*dungeonMoveSpeed(w)*(t<(m.slowUntil||0)?.55:1);dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(isCitadel(w)&&w.monsters.some(e=>e.hp>0&&e.bossKind==='serpents'&&distance(m,e)<110)){m.x=oldX;m.y=oldY;}if(x)m.face=x<0?-1:1;
 
-   const targets=w.monsters.filter(e=>e.hp>0&&(!isCitadel(w)||distance(e,m)<1800)&&dungeonSight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
+   const targets=w.monsters.filter(e=>e.hp>0&&(!isCitadel(w)||distance(e,m)<1800)&&bodySight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
    const chest=w.rewardChest;
    if(chest&&(bits&1)&&t>=m.attackReady&&!(m.citadelChests||[]).includes(chest.boss)&&distance(m,chest)<=CITADEL_CHEST_RANGE){m.citadelChests=[...(m.citadelChests||[]),chest.boss];m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(chest.x-m.x,chest.y-m.y,m.dir);m.dir=m.attackDir;w.effects.push({id:++w.serial,kind:'chest-open',owner:m.id,x:chest.x,y:chest.y,start:t,end:t+14});}
    else if(target&&(bits&1)&&t>=(m.disarmedUntil||0)&&t>=m.attackReady&&distance(m,target)<=c.range){m.attackReady=t+c.cooldown;m.attackStart=t;m.attackUntil=t+6;m.attackDir=towerFacing(target.x-m.x,target.y-m.y,m.dir);m.dir=m.attackDir;
@@ -80,7 +80,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const e of w.monsters){
    alive=w.members.filter(m=>!m.left&&m.hp>0);if(!alive.length)break;
    const target=alive.reduce((a,b)=>distance(a,e)<distance(b,e)?a:b),d=distance(target,e);
-   e.moving=false;if(isCitadel(w)&&!e.aggro&&d>=760&&e.hp>=e.maxHp)continue;const sight=dungeonSight(w.dungeon,e,target);if(!e.aggro&&((d<760&&sight)||e.hp<e.maxHp))e.aggro=true;if(!e.aggro)continue;if(e.boss&&w.bossBattleAt===undefined){w.bossBattleAt=t;w.floorDeadline=isCitadel(w)?Number.MAX_SAFE_INTEGER:t+1200;}if(!e.strike&&!e.skill&&e.speed>0&&d>(e.role==='ranged'||e.role==='caster'?500:70)){const goal=dungeonRoute(w.dungeon,e,target),length=Math.max(1,distance(goal,e)),dx=(goal.x-e.x)/length,dy=(goal.y-e.y)/length;dungeonMove(w.dungeon,e,dx*Math.min(length,e.speed),dy*Math.min(length,e.speed),26);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
+   unstickBoss(w.dungeon,e);e.moving=false;if(isCitadel(w)&&!e.aggro&&d>=760&&e.hp>=e.maxHp)continue;const sight=dungeonSight(w.dungeon,e,target);if(!e.aggro&&((d<760&&sight)||e.hp<e.maxHp))e.aggro=true;if(!e.aggro)continue;if(e.boss&&w.bossBattleAt===undefined){w.bossBattleAt=t;w.floorDeadline=isCitadel(w)?Number.MAX_SAFE_INTEGER:t+1200;}if(!e.strike&&!e.skill&&e.speed>0&&d>(e.role==='ranged'||e.role==='caster'?500:70)){const goal=dungeonRoute(w.dungeon,e,target),length=Math.max(1,distance(goal,e)),dx=(goal.x-e.x)/length,dy=(goal.y-e.y)/length;dungeonMove(w.dungeon,e,dx*Math.min(length,e.speed),dy*Math.min(length,e.speed),e.boss?BOSS_BODY:26);e.face=dx<0?-1:1;e.walk++;e.moving=true;}
    if(isCitadel(w)&&e.boss){citadelBossTick(w,e,alive);continue;}
    if(isCitadel(w)&&['ranged','caster'].includes(e.role)&&d<1000&&sight&&t>=e.ready){e.ready=t+25;w.hazards.push({type:'line',x:e.x,y:e.y,tx:target.x,ty:target.y,width:e.role==='caster'?130:70,at:t+9,end:t+12,citadel:true,attack:e.attack,source:e.id});}
    if(!e.strike&&!e.skill&&d<150&&sight&&t>=e.ready){e.strike={x:target.x,y:target.y,at:t+(e.elite?7:5)};e.castStart=t;e.attackStart=e.strike.at;e.attackUntil=e.attackStart+4;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);e.ready=t+(e.elite?20:25);w.hazards.push({type:'circle',x:target.x,y:target.y,r:e.elite?135:95,inner:0,at:e.strike.at,end:e.strike.at+2});}

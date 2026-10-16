@@ -1,5 +1,5 @@
-import {buildCitadelRegion} from './citadel-map.mjs?v=explore-boss-230';
-import {dungeonMove,nearestWalkable} from './exploration-dungeon.mjs?v=explore-boss-230';
+import {buildCitadelRegion} from './citadel-map.mjs?v=boss-unstick-233';
+import {dungeonMove,nearestWalkable} from './exploration-dungeon.mjs?v=boss-unstick-233';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
 export const CITADEL_TIER=3,CITADEL_VERSION='citadel-hw-218';

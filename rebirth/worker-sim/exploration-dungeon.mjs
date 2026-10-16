@@ -69,6 +69,20 @@ export function dungeonMove(d,actor,dx,dy,radius=30){
  }
  return actor;
 }
+// Bosses are drawn much larger than their 26px step body, so they keep a wider footprint
+// against walls; one that still ends up overlapping a wall is lifted back onto the floor.
+export const BOSS_BODY=48;
+export function unstickBoss(d,e){
+ if(!d||!e.boss||dungeonWalkable(d,e.x,e.y,BOSS_BODY))return e;
+ const p=nearestWalkable(d,e.x,e.y,BOSS_BODY);e.x=p.x;e.y=p.y;return e;
+}
+// A boss tucked into a wall corner can still be hit when any part of its body is in view.
+export function bodySight(d,from,e){
+ if(dungeonSight(d,from,e))return true;
+ if(!e?.boss)return false;
+ for(const [ox,oy] of [[BOSS_BODY,0],[-BOSS_BODY,0],[0,BOSS_BODY],[0,-BOSS_BODY]])if(dungeonSight(d,from,{x:e.x+ox,y:e.y+oy}))return true;
+ return false;
+}
 export function dungeonSight(d,a,b){
  if(!d)return true;
  const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/35));
