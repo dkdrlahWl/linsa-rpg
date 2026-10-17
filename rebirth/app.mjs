@@ -8,8 +8,8 @@ import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
 import {shopView} from './shop-ui.mjs?v=shop-price-20261013b';
-import {consumableView,consumablePurchaseView,updateLuckTimers} from './consumable-ui.mjs?v=shop-cubes-185';
-import {LUCK_POTION,shopConsumable} from './consumables.mjs?v=shop-cubes-185';
+import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase} from './consumable-ui.mjs?v=shop-cubes-185';
+import {LUCK_POTION,shopConsumable,shopPurchaseLimit} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=pnl-rankings-203';
@@ -174,6 +174,7 @@ const errors = {
   COSTUME_NOT_OWNED: "먼저 코스튬을 구매해 주세요.",
   COSTUME_CLASS_MISMATCH: "현재 직업의 코스튬만 장착할 수 있습니다.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
+  INVALID_CONSUMABLE_QUANTITY: "구매 수량은 1개 이상의 정수로 입력해 주세요.",
   INSUFFICIENT_CONSUMABLE: "행운 물약이 없습니다. 상점 → 소모품에서 구매하세요.",
   ITEM_CONSUMABLE_COOLDOWN: "행운 물약의 재사용 대기시간이 남아 있습니다.",
   INSUFFICIENT_CUBE: "레드 큐브가 부족합니다.",
@@ -1370,9 +1371,17 @@ document.addEventListener("click", async (e) => {
     if(action==='shopCategory'){shopCategory=['boss','costume','consumable'].includes(arg)?arg:'boss';return render();}
     if(action==='consumableBuyPick'){
       const item=shopConsumable(arg);if(!item)return;
-      open(item.name+' 구매',consumablePurchaseView(state,arg)+`<p class="note">${item.name} 1개를 ${fmt(item.price)} G에 구매합니다.</p>`);return;
+      open(item.name+' 구매',consumablePurchaseView(state,arg));updateConsumablePurchase(state,modal);return;
     }
-    if(action==='consumableBuyConfirm'){if(busy)return;const item=shopConsumable(arg);if(!item)return;modal.close();await command('consumableBuy',{id:arg});toast(item.name+' 1개를 구매했어요.');return;}
+    if(action==='consumableBuyMax'){const input=modal.querySelector('#shop-buy-quantity');if(input){input.value=String(shopPurchaseLimit(state,arg));updateConsumablePurchase(state,modal);}return;}
+    if(action==='consumableBuyConfirm'){
+      if(busy)return;const item=shopConsumable(arg);if(!item)return;
+      const quantity=item.id===LUCK_POTION.id?1:Number(modal.querySelector('#shop-buy-quantity')?.value);
+      if(!Number.isSafeInteger(quantity)||quantity<1||quantity>shopPurchaseLimit(state,arg)){updateConsumablePurchase(state,modal);return;}
+      const result=await command('consumableBuy',{id:arg,quantity});
+      const bought=result?.result?.events?.find(e=>e.type==='consumableBuy'&&e.id===arg);
+      if(bought){modal.close();toast(item.name+' '+fmt(bought.quantity)+'개를 구매했어요.');}return;
+    }
     if(action==='consumableUse'){if(busy)return;await command('consumableUse',{id:arg});toast('5분간 행운 +50% · 보스 보상 확률이 1.5배로 증가합니다.');return;}
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
@@ -1770,7 +1779,7 @@ document.addEventListener("click", async (e) => {
     toast(message(err));
   }
 });
-document.addEventListener("input", e=>{if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
+document.addEventListener("input", e=>{if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
   if(e.target.id==='cube-lock'){cubeLockChoice=Number(e.target.value);return;}
   if(e.target.id==='fishing-bait'){fishingUI.bait=e.target.value;render();return;}

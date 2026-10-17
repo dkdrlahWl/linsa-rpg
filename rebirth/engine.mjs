@@ -633,7 +633,7 @@ function executeCore(input, command, args = {}, ctx) {
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   switch (command) {
     case "consumableBuy":
-    case "consumableUse": {events.push(consumableCommand(s,command,args.id,ctx.now));break;}
+    case "consumableUse": {events.push(consumableCommand(s,command,args.id,ctx.now,args.quantity));break;}
     case "costumeBuy":
     case "costumeEquip":
     case "costumeUnequip": {events.push(costumeCommand(s,command,args.id));break;}

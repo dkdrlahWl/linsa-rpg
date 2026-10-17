@@ -46,7 +46,7 @@ console.log('PASS fixed purchase price, owned count, 5-minute duration/cooldown,
 
 for(const [id,price] of [['cube',200000],['highCube',500000]]){
  const source=player(),before=source.materials[id]||0;source.gold=price;
- const bought=execute(source,'consumableBuy',{id,price:0,quantity:1000},ctx());
+ const bought=execute(source,'consumableBuy',{id,price:0,quantity:1},ctx());
  assert.equal(bought.state.gold,0);assert.equal(bought.state.materials[id],before+1);assert.equal(bought.events.find(e=>e.type==='consumableBuy').gold,price);
  assert.throws(()=>execute(bought.state,'consumableBuy',{id},ctx()),/INSUFFICIENT_GOLD/);
  assert.throws(()=>execute(bought.state,'consumableUse',{id},ctx()),/INVALID_CONSUMABLE/);

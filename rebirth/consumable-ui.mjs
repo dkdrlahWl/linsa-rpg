@@ -1,4 +1,4 @@
-import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumable,shopConsumableCount,potionCount,luckStatus} from './consumables.mjs?v=shop-cubes-185';
+import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumable,shopConsumableCount,potionCount,luckStatus,shopPurchaseLimit} from './consumables.mjs?v=shop-cubes-185';
 export const potionTime=ms=>{const seconds=Math.ceil(Math.max(0,ms)/1000);return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');};
 export function consumableView(state,shop=false){
  if(shop)return consumableShopView(state);
@@ -17,10 +17,23 @@ export function updateLuckTimers(state,now=Date.now(),root=document){
 }
 
 export function consumableShopCard(state,item,confirm=false){
- const blocked=!!(state.battle||state.coopRoom||state.partyRoom),potion=item.id===LUCK_POTION.id;
- return `<article class="consumable-shop-card" data-no-currency-art><img class="consumable-shop-art" src="${item.art}" alt="${item.name}"><h3>${item.name}</h3><span class="consumable-owned">보유 ${shopConsumableCount(state,item.id).toLocaleString('ko-KR')}개</span><p>${potion?'5분간 행운 +50%':item.description}</p>${potion?`<details><summary>효과 자세히</summary><p>${item.description}<br>확률형 보상 확률 ×1.5 · 최대 100%<br>지속시간 5분 · 재사용 대기시간 5분</p></details>`:''}<b class="consumable-price">${item.price.toLocaleString('ko-KR')} G <small>/ 1개</small></b><button class="gold" data-action="${confirm?'consumableBuyConfirm':'consumableBuyPick'}" data-arg="${item.id}" ${blocked||state.gold<item.price?'disabled':''}>${confirm?'구매 확정':'구매'}</button></article>`;
+ const blocked=!!(state.battle||state.coopRoom||state.partyRoom),potion=item.id===LUCK_POTION.id,limit=shopPurchaseLimit(state,item.id);
+ return `<article class="consumable-shop-card" data-no-currency-art><img class="consumable-shop-art" src="${item.art}" alt="${item.name}"><h3>${item.name}</h3><span class="consumable-owned">보유 ${shopConsumableCount(state,item.id).toLocaleString('ko-KR')}개</span><p>${potion?'5분간 행운 +50%':item.description}</p>${potion?`<details><summary>효과 자세히</summary><p>${item.description}<br>확률형 보상 확률 ×1.5 · 최대 100%<br>지속시간 5분 · 재사용 대기시간 5분</p></details>`:''}<b class="consumable-price">${item.price.toLocaleString('ko-KR')} G <small>/ 1개</small></b>${!potion?`<span class="consumable-affordable">구매 가능 ${limit.toLocaleString('ko-KR')}개</span>`:''}${confirm&&!potion?`<div class="consumable-quantity"><label for="shop-buy-quantity">구매 수량</label><div><input id="shop-buy-quantity" data-consumable="${item.id}" type="number" inputmode="numeric" min="1" max="${limit}" step="1" value="${limit?1:0}" ${blocked||!limit?'disabled':''}><button type="button" data-action="consumableBuyMax" data-arg="${item.id}" ${blocked||!limit?'disabled':''}>최대</button></div><p id="shop-buy-total" aria-live="polite">총 ${(limit?item.price:0).toLocaleString('ko-KR')} G</p><p id="shop-buy-error" class="note" aria-live="polite"></p></div>`:''}<button class="gold" data-action="${confirm?'consumableBuyConfirm':'consumableBuyPick'}" data-arg="${item.id}" ${blocked||!limit?'disabled':''}>${confirm?'구매 확정':'구매'}</button></article>`;
 }
 export function consumableShopView(state){
  return `<section class="consumable-panel consumable-shop-panel"><header><h3>소모품 상점</h3></header><div class="consumable-shop-grid">${SHOP_CONSUMABLES.map(item=>consumableShopCard(state,item)).join('')}</div><p class="note">물약은 가방 → 소모품에서, 큐브는 장비 → 잠재에서 사용하세요.</p></section>`;
 }
 export function consumablePurchaseView(state,id){const item=shopConsumable(id);return item?consumableShopCard(state,item,true):'';}
+
+export function updateConsumablePurchase(state,root=document){
+ const input=root.querySelector('#shop-buy-quantity');if(!input)return;
+ const item=shopConsumable(input.dataset.consumable);if(!item)return;
+ const limit=shopPurchaseLimit(state,item.id),quantity=Number(input.value);
+ input.max=String(limit);
+ const valid=Number.isSafeInteger(quantity)&&quantity>=1&&quantity<=limit;
+ const total=root.querySelector('#shop-buy-total'),error=root.querySelector('#shop-buy-error');
+ if(total)total.textContent='총 '+(Number.isSafeInteger(quantity)&&quantity>0&&quantity<=1000000?item.price*quantity:0).toLocaleString('ko-KR')+' G';
+ if(error)error.textContent=valid?'':limit?'1~'+limit.toLocaleString('ko-KR')+'개까지 입력해 주세요.':'구매 가능한 수량이 없습니다.';
+ const button=root.querySelector('[data-action="consumableBuyConfirm"]');
+ if(button)button.disabled=!valid||!!(state.battle||state.coopRoom||state.partyRoom);
+}
