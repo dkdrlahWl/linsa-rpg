@@ -227,7 +227,7 @@ function advanceCoopTimeline(room,user,input,now){
  for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current?.left){m.left=true;m.hp=0;}}
  for(;w.tick<upto&&w.status===room.status;){
   w=advanceCoopRaw(w,null,null,origin+(w.tick+1)*100,framesByTick.get(w.tick)||[],true);
-  if(w.tick%(['citadel','exploration','raid'].includes(w.mode)?20:w.mode==='wave'?10:5)===0)net.points.push(historyPoint(w,net));
+  if(w.tick%20===0)net.points.push(historyPoint(w,net));
  }
  const cutoff=upto-35;net.points=net.points.filter((p,i,a)=>p.tick>=cutoff||a[i+1]?.tick>cutoff||i===a.length-1);
  net.frames=net.frames.filter(f=>f.tick>=net.points[0].tick);
