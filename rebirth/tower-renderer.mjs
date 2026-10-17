@@ -375,7 +375,7 @@ export class TowerRenderer {
     if(!b.waveMode)this.shadow(enemy.x,enemy.y-4,66);this.shadow(player.x,player.y,25);
     // A small, constant marker makes the player easy to track during effects.
     g.save();g.beginPath();g.ellipse(player.x,player.y,b.raidMode?78:26,b.raidMode?27:10,0,0,Math.PI*2);g.fillStyle=b.raidMode?'#fff2a72a':'#78ffe81d';g.fill();g.lineWidth=b.raidMode?7:2;g.strokeStyle=b.raidMode?'#fff1b9':'#a5ffdf99';g.shadowColor='#ffeaa7';g.shadowBlur=b.raidMode?24:0;g.stroke();g.restore();
-    const attackRange=b.raidMode&&b.classId==='priest'?1500:c.range;
+    const attackRange=c.range;
     if((input[2]&1)&&Math.hypot(player.x-b.enemy.x,player.y-b.enemy.y)>attackRange){
       g.save();g.beginPath();g.arc(player.x,player.y,attackRange,0,Math.PI*2);g.strokeStyle='#fff1bc80';g.lineWidth=2;g.setLineDash([9,12]);g.stroke();g.restore();
     }
