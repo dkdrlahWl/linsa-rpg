@@ -44,7 +44,7 @@ D.normalizePotentialState(priest);assert.deepEqual(priest.items[0].lines.slice(0
 priest.items[0].lines[2]={key:'hp',value:6,grade:3};D.normalizePotentialState(priest);assert.equal(priest.items[0].lines[2].key,'hp','conversion runs only once');
 const mage=initialState('mage','유지',ctx);delete mage.priestRemake;Object.assign(mage.items[0],{potentialUnlocked:true,grade:5});mage.items[0].lines=[{key:'hp',value:12,grade:5}];D.normalizePotentialState(mage);assert.equal(mage.items[0].lines[0].key,'hp');
 mage.classId='priest';D.normalizePotentialState(mage);assert.equal(mage.items[0].lines[0].key,'hp','later class changes are not converted');
-// New level-1 priests can still clear the first field.
+// Priest basic attack and combat power equal other jobs without class perks (archer crit perk does not touch attack).
 assert.equal(huntingRate(initialState('priest','시작',ctx)).survives,true);assert.equal(power(initialState('priest','시작',ctx)).attack,power(initialState('archer','시작',ctx)).attack);
 // Inventory: common armor dropped for another job is shown and filtered with the player's own job.
 {const its=[{id:'a',classId:'warrior',slot:2,level:200,boss:true,stars:0,grade:0},{id:'b',classId:'warrior',slot:0,level:200,boss:true,stars:0,grade:0},{id:'c',classId:'priest',slot:1,level:150,boss:true,stars:0,grade:0}];

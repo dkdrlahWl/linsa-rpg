@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {beginPriest,stepPriest,supportTick,holyDamage,absorbDamage} from '../rebirth/priest.mjs';
 import {arenaAbsorbDamage} from '../rebirth/arena-balance.mjs';
 
-// Priest remake: no max-HP damage; attack coefficients match the other jobs' skill budgets.
+// Priest remake: no max-HP damage; skills carry the priest's lower damage (basic attack/power are standard).
 const totalHpRatios=[0,0,0,0,0,0];
-const attackTotals=[0,1.8,4.7,9,10,22];
+const attackTotals=[0,1.08,3.35,8.15,8.5,20.6];
 const near=(actual,expected)=>assert(Math.abs(actual-expected)<1e-8,`${actual} != ${expected}`);
 for(const hp of [1000,100000])for(let slot=1;slot<=5;slot++){
  const a={id:'caster',classId:'priest',x:0,y:0,hp:1,advancement:4,power:{hp,attack:100,level:200,firstJob:true,advancement:4}};
