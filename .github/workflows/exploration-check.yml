@@ -29,6 +29,7 @@ jobs:
       - run: node rebirth/citadel-zero.test.mjs
       - run: node rebirth/citadel-balance.test.mjs
       - run: node rebirth/citadel-latency.test.mjs
+      - run: node rebirth/citadel-clock-resume.test.mjs
       - run: node rebirth/citadel-claim-recovery.test.mjs
       - run: node rebirth/boss200-art.test.mjs --assets
       - run: node rebirth/coop-request-lifecycle.test.mjs

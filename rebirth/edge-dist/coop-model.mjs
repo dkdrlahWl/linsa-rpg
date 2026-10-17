@@ -208,7 +208,14 @@ function advanceCoopTimeline(room,user,input,now){
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
   if(f.tick<Math.max(net.points[0].tick,upto-30))continue;
-  if(f.tick>upto+2)throw Error('INVALID_COOP_FUTURE');
+  if(f.tick>upto+2){
+   // A paused citadel clock resumes one tick at a time. Already-admitted
+   // packets can still be up to the client's 30-tick prediction lead ahead.
+   // Leave them in the durable queue (and unacknowledged on the client)
+   // until their tick arrives, instead of rejecting every subsequent poll.
+   if(isCitadel(room)&&f.tick<=room.tick+30)continue;
+   throw Error('INVALID_COOP_FUTURE');
+  }
   const key=f.user+':'+f.tick;if(known.has(key))continue;known.add(key);
   net.frames.push({user:f.user,tick:f.tick,input:f.input});earliest=Math.min(earliest,f.tick);
  }
