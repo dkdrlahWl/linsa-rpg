@@ -411,4 +411,4 @@ balanceWorld(STAGES,BOSSES,RAID_BOSSES);
 extendEndgameFields(REGIONS,STAGES,MONSTERS);
 
 // Fixed endgame daily boss; append after legacy world balancing.
-BOSSES.push({id:30,name:'종언의 집행자 모르가리온',region:9,level:200,hp:90000000,attack:4500,seconds:90,weekly:false,art:'ui/daily-morgarion-v2.webp',background:'ui/daily-morgarion-arena-v2.webp',arenaName:'종언의 왕좌',fullArt:true,gearLevel:200,dropChance:.015,gearRateScale:1,exactHalfWeapon:true,gold:120000,cubes:8,material:4,patternEvery:12,patternMultiplier:3,pattern:'종언의 연속 참격',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});
+BOSSES.push({id:30,name:'종언의 집행자 모르가리온',region:9,level:200,hp:110000000,attack:4500,seconds:90,weekly:false,art:'ui/daily-morgarion-v2.webp',background:'ui/daily-morgarion-arena-v2.webp',arenaName:'종언의 왕좌',fullArt:true,gearLevel:200,dropChance:.015,gearRateScale:1,exactHalfWeapon:true,gold:120000,cubes:8,material:4,patternEvery:12,patternMultiplier:3,pattern:'종언의 연속 참격',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});

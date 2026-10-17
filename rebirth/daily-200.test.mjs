@@ -5,7 +5,7 @@ import {initialState,execute,halfWeaponSlot} from './engine.mjs';
 const boss=BOSSES[30];
 assert.equal(boss.level,200);assert.equal(boss.gearLevel,200);assert.equal(boss.weekly,false);
 assert.equal(boss.dropChance,.015);assert.equal(boss.gearRateScale,1);
-assert.equal(boss.hp,90000000);assert.equal(boss.seconds,90);
+assert.equal(boss.hp,110000000);assert.equal(boss.seconds,90);
 const now=Date.parse('2026-10-13T15:00:00+09:00');
 for(const [roll,drops] of [[0,1],[.014999,1],[.015,0],[.02,0]]){
  const ctx={now,uuid:randomUUID,random:()=>roll};let s=initialState('warrior','보상검증',ctx);s.hunting=false;
