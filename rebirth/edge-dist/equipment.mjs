@@ -68,7 +68,7 @@ const COMMON_ARMOR_NOUNS=["","투구","흉갑","각반","건틀릿","장화","�
 function tieredIdentity(item){
   const tier=bossTier(item),common=isCommonBossGear(item),type=equipmentType(item);
   const name=common?TIER_ARMOR_PREFIX[tier]+' '+COMMON_ARMOR_NOUNS[item.slot]:TIER_WEAPON_PREFIX[tier]+'의 '+type;
-  const art=common?`equipment/reforged/200-common-t${tier}-${item.slot}.svg`:`equipment/reforged/200-t${tier}-${item.classId}-0.svg`;
+  const art=common?`equipment/boss200/${['afterglow','twilight','finality'][tier]}-${item.slot}.svg`:`equipment/reforged/200-t${tier}-${item.classId}-0.svg`;
   return {key:equipmentKey(item),name,art,type,tier,tierName:bossTierName(item),common,standalone:true,grid:false,column:0,row:0,columns:1,rows:1};
 }
 export function designIdentity(item) {
