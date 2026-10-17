@@ -1,3 +1,4 @@
+import {showAdminInventory} from './admin-inventory.mjs?v=admin-inventory-20261017';
 import {citadelLobby} from './citadel-ui.mjs';
 import {explorationLobby} from './exploration-ui.mjs?v=exploration-190';
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
@@ -1334,6 +1335,7 @@ document.addEventListener("click", async (e) => {
     if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
     if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
     if(action==='adminCoinDirection'){if(!state.isAdmin||b.disabled)return;const [coin,side]=arg.split(':');b.disabled=true;try{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_admin_coin_direction',{p_coin:Number(coin),p_side:side});toast(`${result.name} · ${new Date(result.scheduledAt).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'})} 봉 ${side==='long'?'상승':'하락'} 1회 지정`);}finally{b.disabled=false;}return;}
+    if(action==='adminInventory'){if(!state?.isAdmin)return;return showAdminInventory({open,modal,allowed:()=>!!session&&state?.isAdmin===true,art:gearMarkup,fetchData:async id=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_inventory',{p_user:id});}});}
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
     if(action==='investRankings'){b.disabled=true;try{await openCoinRankings();}finally{b.disabled=false;}return;}
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
@@ -1437,7 +1439,7 @@ document.addEventListener("click", async (e) => {
       if(jackpot)toast("행운의 돌림판 잭팟! 우편함에서 Lv.150~190 보스 장비 상자를 받으세요.");
       return;
     }
-    if (action === "gameMenu") {open("모험 메뉴",fantasyMenu(state));modal.classList.add("fantasy-menu-dialog");return;}
+    if (action === "gameMenu") {open("모험 메뉴",fantasyMenu(state)+(state.isAdmin?btn("유저 장비 · 재화 조회","adminInventory","","gold"):""));modal.classList.add("fantasy-menu-dialog");return;}
     if (action === "petPreview") {if(!state.isAdmin)return; sounds.play("loot-rare"); return playLumiReveal(()=>{});}
     if (action === "petOdds") return open("소환 확률 · 남은 수량",petOdds(state));
     if (action === "petBag") {modal.close();tab="gear";sub="pets";view="game";return render();}
