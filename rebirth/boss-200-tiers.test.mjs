@@ -41,6 +41,8 @@ assert.ok(!D.isTieredBossGear(old190)&&old190.bossTier===undefined);
 // Priest remake: HP% lines become attack% once, only for accounts that are priests at migration time.
 const priest=initialState('priest','변환',ctx);delete priest.priestRemake;Object.assign(priest.items[0],{potentialUnlocked:true,grade:5});priest.items[0].lines=[{key:'hp',value:12,grade:5},{key:'attack',value:9,grade:4},{key:'flatHP',value:120,grade:2}];
 D.normalizePotentialState(priest);assert.deepEqual(priest.items[0].lines.slice(0,3).map(l=>[l.key,l.value]),[['attack',12],['attack',9],['flatHP',120]]);assert.equal(priest.priestRemake,1);
+const other=initialState('priest','다른직업',ctx);delete other.priestRemake;const pirateGear={...other.items[0],id:'pirate-gear',classId:'pirate',potentialUnlocked:true,grade:5,lines:[{key:'hp',value:12,grade:5}]};other.items.push(pirateGear);Object.assign(other.items[0],{potentialUnlocked:true,grade:5,lines:[{key:'hp',value:12,grade:5}]});D.normalizePotentialState(other);
+assert.equal(other.items[0].lines[0].key,'attack');assert.equal(other.items.find(i=>i.id==='pirate-gear').lines[0].key,'hp','other-job gear keeps HP%');
 priest.items[0].lines[2]={key:'hp',value:6,grade:3};D.normalizePotentialState(priest);assert.equal(priest.items[0].lines[2].key,'hp','conversion runs only once');
 const mage=initialState('mage','유지',ctx);delete mage.priestRemake;Object.assign(mage.items[0],{potentialUnlocked:true,grade:5});mage.items[0].lines=[{key:'hp',value:12,grade:5}];D.normalizePotentialState(mage);assert.equal(mage.items[0].lines[0].key,'hp');
 mage.classId='priest';D.normalizePotentialState(mage);assert.equal(mage.items[0].lines[0].key,'hp','later class changes are not converted');

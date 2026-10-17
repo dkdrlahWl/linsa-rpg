@@ -387,9 +387,11 @@ export function convertPriestPotentials(state) {
   if (state.classId!=="priest") { if (state.classId) state.priestRemake=PRIEST_REMAKE_VERSION; return 0; }
   let converted=0;
   const convert=lines=>{for(const line of lines||[])if(line&&line.key==="hp"){line.key="attack";line.priestRemake=PRIEST_REMAKE_VERSION;converted++;}};
-  for (const item of state.items || []) convert(item?.lines);
-  for (const mail of state.mailbox || []) convert(mail?.item?.lines);
-  if (state.pendingCube) convert(state.pendingCube.lines);
+  // 사제 전용 장비만 변환한다(다른 직업 장비·공통 장비는 그대로).
+  const priestGear=item=>item?.classId==="priest";
+  for (const item of state.items || []) if (priestGear(item)) convert(item.lines);
+  for (const mail of state.mailbox || []) if (priestGear(mail?.item)) convert(mail.item.lines);
+  if (state.pendingCube && priestGear((state.items||[]).find(item=>item.id===state.pendingCube.id))) convert(state.pendingCube.lines);
   state.priestRemake=PRIEST_REMAKE_VERSION;
   state.priestRemakeConverted=converted;
   return converted;
