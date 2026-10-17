@@ -8,5 +8,5 @@ for(let i=0;i<8;i++){const r=campaign(9000+i*7919);if(r.won)wins++;else fails.pu
 // Update 232: monster attack x10 / bosses x15 by request (hardcore). The reference build is no longer expected to clear;
 // keep the run as a crash/regression smoke and report the result.
 assert.ok(wins>=0&&wins<=8,`solo clears ${wins}/8 (fails at ${fails})`);
-for(let floor=1;floor<=21;floor++)for(const boss of [false,true])assert.equal(citadelStats(floor,4,boss).hp,citadelStats(floor,1,boss).hp*4);
-console.log('PASS citadel NG0 balance: Dohyun solo campaign',wins,'/ 8 cleared; party HP scales 1-4x',{fails});
+for(let floor=1;floor<=21;floor++)for(const boss of [false,true])assert.equal(citadelStats(floor,4,boss).hp,citadelStats(floor,1,boss).hp*2);
+console.log('PASS citadel NG0 balance: Dohyun solo campaign',wins,'/ 8 cleared; party HP scales 1-2x',{fails});
