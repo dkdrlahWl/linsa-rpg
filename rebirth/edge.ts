@@ -1,5 +1,5 @@
 import {rankingProfile} from './ranking-profile.mjs';
-import {isCitadel} from './citadel-zero.mjs';
+import {isCitadel,packCitadelWorld,unpackCitadelWorld} from './citadel-zero.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 import {grantCitadelChests} from './citadel-rewards.mjs';
@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   const requestStarted=performance.now(),rpcTimes=[];
   let requestCommand='';
   const reply = (data: unknown, status = 200) => {
-    const json=JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:encodeCoopView(coopClientView(data.coop,coopProtocol),coopWire)}:data,(key,value)=>key==="_net"||key==="_queuedInputs"?undefined:value);
+    const json=JSON.stringify(data&&typeof data==="object"&&"coop" in data?{...data,coop:encodeCoopView(coopClientView(unpackCitadelWorld(data.coop),coopProtocol),coopWire)}:data,(key,value)=>key==="_net"||key==="_queuedInputs"?undefined:value);
     const gzip=json.length>4096&&(req.headers.get('accept-encoding')||'').split(',').some(part=>part.trim().split(';')[0]==='gzip'&&!/;\s*q=0(?:\.0*)?\s*$/.test(part));
     if(performance.now()-requestStarted>1500)console.warn('ringu-slow-request',JSON.stringify({command:requestCommand,ms:Math.round(performance.now()-requestStarted),rpc:rpcTimes,bytes:json.length}));
     return new Response(gzip?new Blob([json]).stream().pipeThrough(new CompressionStream('gzip')):json, {
@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
         try{
           const current=frameSnapshot?.current||await rpc('rebirth_coop_action',{p:{...base,action:'read'}},true);
           if(snap.receipt)return reply(current);
-          const room=current.coop;
+          const room=unpackCitadelWorld(current.coop);
           if(!room&&["input","sync"].includes(action))return reply(current);
           if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
           const world=action==='sync'&&body.args.explorationFloor!==undefined?adminExplorationFloor(room,user.id,body.args.explorationFloor,ctx.admin||user.app_metadata?.ringu_tester===true):action==='sync'&&body.args.waveSpeed!==undefined?setWaveSpeed(room,user.id,body.args.waveSpeed,Number(current.now)):action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
             if(isCitadel(room)){
               // Boss chests opened in the simulation are paid here, rolled server-side, once per boss per player.
               claim=grantCitadelChests(computed.state,room,user.id,ctx);
-              const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim.reward,rewardState:claim.state}},true);
+              const result=await rpc('rebirth_coop_action',{p:{...base,action,world:packCitadelWorld(world),roomRevision:room?.revision,reward:claim.reward,rewardState:claim.state}},true);
               return reply(result);
             }
             const member=room?.members.find(m=>m.id===user.id&&!m.left&&!m.claimed);
@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
             if(Math.hypot(member.x-room.chest.x,member.y-room.chest.y)>180)throw new Error('COOP_CHEST_TOO_FAR');
             claim=room.mode==='exploration'?grantExplorationChest(computed.state,room,ctx):room.mode==='raid'?grantRaidChest(computed.state,room.tier,ctx):grantCoopChest(computed.state,room.tier,ctx);
           }
-          const result=await rpc('rebirth_coop_action',{p:{...base,action,world,roomRevision:room?.revision,reward:claim?.reward,rewardState:claim?.state}},true);
+          const result=await rpc('rebirth_coop_action',{p:{...base,action,world:packCitadelWorld(world),roomRevision:room?.revision,reward:claim?.reward,rewardState:claim?.state}},true);
           return reply(result);
         }catch(e){
           if(fastInput&&(e.message==='SAVE_CONFLICT'||/lock timeout|deadlock detected/i.test(e.message))){

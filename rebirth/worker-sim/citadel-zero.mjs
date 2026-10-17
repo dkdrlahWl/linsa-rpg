@@ -36,6 +36,8 @@ export const CITADEL_CONTENT={id:0,name:'암흑성채',floors:21,level:200,art:'
 export const citadelAsset=(type,index)=>'citadel/'+type+'-'+index+'-213.webp';
 // Recovery between regions: CITADEL_REGION_HEAL of max HP, boss arenas start at full HP.
 export const CITADEL_REGION_HEAL=.3,CITADEL_HEARTS=3,CITADEL_MONSTERS={base:90,perAct:15,spread:25};
+// 2026-10-18: 층당 일반 몬스터 수 절반(서버 저장 부담 감소). 난수 소비 순서는 그대로.
+export const CITADEL_MONSTER_SCALE=.5;
 // 2026-10-14: 4인 기준 2배 (1인 1배 → 2인 1.33배 → 3인 1.67배 → 4인 이상 2배), 공격력은 1배 유지.
 export const citadelPopulation=n=>({hp:1+(Math.max(1,Math.min(4,n))-1)/3,attack:1});
 // Smooth NG0 curve tuned so the Dohyun Lv.200 reference clears about 80% of solo runs
@@ -50,12 +52,26 @@ export function citadelStats(floor,count,boss=false){
 }
 function rng(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
 export function makeCitadelDungeon(floor,seed){return buildCitadelRegion(citadelStage(floor),floor,seed,CITADEL_VERSION);}
+// 저장용 압축: 성채 지형은 (층, 맵 시드)로 결정되므로 DB에는 id와 seen만 저장하고 읽을 때 다시 만든다.
+const terrainCache=new Map();
+function citadelTerrain(w){const seed=(w.mapSeed??w.started)>>>0,key=w.floor+':'+seed;let d=terrainCache.get(key);if(!d){d=makeCitadelDungeon(w.floor,seed);terrainCache.set(key,d);if(terrainCache.size>16)terrainCache.delete(terrainCache.keys().next().value);}return d;}
+export function packCitadelWorld(w){
+ if(!w||w.mode!=='citadel'||!w.dungeon||w.dungeon.$terrain||!Number.isFinite(w.floor))return w;
+ const terrain=citadelTerrain(w);if(terrain.id!==w.dungeon.id)return w;
+ const {seen,...rest}=w.dungeon;if(JSON.stringify(rest)!==JSON.stringify((({seen:_,...t})=>t)(terrain)))return w;
+ return {...w,dungeon:{$terrain:1,id:w.dungeon.id,...(seen!==undefined?{seen}:{})}};
+}
+export function unpackCitadelWorld(w){
+ if(!w||!w.dungeon?.$terrain)return w;
+ const terrain=citadelTerrain(w);if(terrain.id!==w.dungeon.id)throw new Error('CITADEL_TERRAIN_MISMATCH');
+ const {$terrain,id,...live}=w.dungeon;return {...w,dungeon:{...structuredClone(terrain),...live}};
+}
 export function citadelFloor(w,walkable,reveal){
  const st=citadelStage(w.floor),random=rng(((w.mapSeed??w.started)>>>0)^Math.imul(w.floor,1597334677));
  w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=Number.MAX_SAFE_INTEGER;delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,(w.mapSeed??w.started)>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
  const slots=[];for(const r of w.dungeon.rooms){if(r.id===3)continue;for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(walkable(w.dungeon,(x+.5)*100,(y+.5)*100))slots.push({x:(x+.5)*100,y:(y+.5)*100});}
  for(let i=slots.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}
- const count=st.boss?0:Math.min(slots.length-12-CITADEL_HEARTS,CITADEL_MONSTERS.base+st.act*CITADEL_MONSTERS.perAct+Math.floor(random()*CITADEL_MONSTERS.spread));
+ const count=st.boss?0:Math.min(slots.length-12-CITADEL_HEARTS,Math.round((CITADEL_MONSTERS.base+st.act*CITADEL_MONSTERS.perAct+Math.floor(random()*CITADEL_MONSTERS.spread))*CITADEL_MONSTER_SCALE));
  const make=(i,point,extra={})=>{const stats=citadelStats(w.floor,w.population,!!extra.boss),species=st.biome*4+i%4;return {id:-(w.floor*10000+i+1),...point,species,name:CITADEL_BIOMES[st.biome].enemies[i%4],citadel:true,explorationTier:3,art:citadelAsset('enemy',species),level:200,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,ready:w.tick+15,walk:0,face:1,elite:i%13===0,role:[6,11,13,21,25].includes(species)?'ranged':[3,9,14,15,22,26,27,31].includes(species)?'caster':'melee',...extra};};
  for(let i=0;i<count;i++)w.monsters.push(make(i,slots.pop()));
  if(st.boss){const order=[0,1,2,3];for(let j=3;j>0;j--){const k=Math.floor(random()*(j+1));[order[j],order[k]]=[order[k],order[j]];}const n=st.boss==='harbingers'?2:st.boss==='serpents'?3:1,artIndex={totem:0,shadow:4,plant:5,harbingers:6,serpents:8,avatar:9}[st.boss];
