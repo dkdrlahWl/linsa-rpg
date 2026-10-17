@@ -15,7 +15,7 @@ export function cubeOdds(kind,item,grade=item.grade){
 }
 export function renderCubePanel(it,state,kind,lastResult,protectedReason='',lockChoice=-1){
  const opened=it.lines.length>0,c=D.CUBES[kind]||D.CUBES.cube,cost=D.cubeCost(kind,it);
- if(!opened)return `<div class="cube-compact"><div class="cube-controls"><p class="cube-wallet">잠재해금 보유 ${fmt(state.materials.scroll)}개</p>${button('잠재 3줄 해금','potentialUnlock',it.id,!!protectedReason||!(state.materials.scroll>0))}</div>${potentialPanel(it)}<p class="enhance-help">${protectedReason||`주문서 1개 소모 · 잠재 3줄 해금 성공 ${it.level>=200?`${it.boss?'20%':'30%'} · 실패 시 주문서 소모`:'100%'}`}</p></div>`;
+ if(!opened)return `<div class="cube-compact"><div class="cube-controls"><p class="cube-wallet">잠재해금 보유 ${fmt(state.materials.scroll)}개</p>${button('잠재 3줄 해금','potentialUnlock',it.id,!!protectedReason||!(state.materials.scroll>0))}</div>${potentialPanel(it)}<p class="enhance-help">${protectedReason||`주문서 1개 소모 · 잠재 3줄 해금 성공 ${it.level>=200?`${it.boss?'10%':'30%'} · 실패 시 주문서 소모`:'100%'}`}</p></div>`;
  const invalid=it.grade>c.maxGrade||c.prime&&it.lines.length!==3;
  const locked=Number.isInteger(lockChoice)&&lockChoice>=0&&lockChoice<it.lines.length;
  const lockAllowed=(state.materials.potentialLock||0)>0&&!(c.choose&&it.grade<3);
