@@ -128,13 +128,23 @@ export class CoopController{
    const direction=this.input(),entryInput=this.artReady&&this.entryMoveInput&&!confirmed.entryMoved&&Math.hypot(direction[0],direction[1])<=.01?this.entryMoveInput:direction;
    // Citadel boss chests: once the simulation records my chest as opened, claim it (server rolls the reward).
    this.citadelClaimed??=new Set();const claimBosses=isCitadel(this.room)?(confirmed?.citadelChests||[]).filter(b=>!this.citadelClaimed.has(b)):[],citadelClaim=!open&&claimBosses.length>0&&performance.now()>=(this.citadelClaimRetry||0);
-   if(citadelClaim)this.citadelClaimRetry=performance.now()+1500;
-   let result;
-   try{result=await this.send(open||citadelClaim?'coopOpen':'coopInput',open||citadelClaim?{}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2,...coopWireArgs()},!open,false,this.abort?.signal);}
-   // A reward claim must never wedge the room: give up after 3 failed attempts per chest (the server keeps
-   // the chest unclaimed, so a later run of this loop after a fix/reload can still pay it).
-   catch(error){if(citadelClaim){this.citadelClaimFails=(this.citadelClaimFails||0)+1;this.citadelClaimRetry=performance.now()+3000;if(['COOP_CHEST_NOT_READY','COOP_CHEST_CLAIMED'].includes(error.message)||this.citadelClaimFails>=3){for(const b of claimBosses)this.citadelClaimed.add(b);this.citadelClaimFails=0;}return;}throw error;}
-   if(citadelClaim&&result)for(const b of claimBosses)this.citadelClaimed.add(b);
+   if(citadelClaim&&!this.claimBusy){
+    this.claimBusy=true;
+    void this.send('coopOpen',{citadelClaim:true,protocol:2,...coopWireArgs()},true,false,this.abort?.signal).then(result=>{
+     if(this.disposed)return;
+     const paid=result?.state?.citadelClaims;
+     if(paid?.room===this.room.id)for(const b of paid.bosses||[])this.citadelClaimed.add(b);
+     const complete=claimBosses.every(b=>this.citadelClaimed.has(b));
+     this.citadelClaimFails=complete?0:(this.citadelClaimFails||0)+1;
+     this.citadelClaimRetry=performance.now()+(complete?1500:3000);
+    }).catch(()=>{
+     if(this.disposed)return;
+     this.citadelClaimFails=(this.citadelClaimFails||0)+1;
+     this.citadelClaimRetry=performance.now()+Math.min(30000,3000*2**Math.min(4,this.citadelClaimFails-1));
+    }).finally(()=>{this.claimBusy=false;});
+   }
+   // Reward delivery runs independently; never stop world input while it waits.
+   const result=await this.send(open?'coopOpen':'coopInput',open?{protocol:2,...coopWireArgs()}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2,...coopWireArgs()},!open,false,this.abort?.signal);
    if(this.disposed)return;
    if(!result)this.pendingBits|=taps;
    if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}

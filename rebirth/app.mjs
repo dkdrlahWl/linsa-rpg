@@ -34,7 +34,7 @@ import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
 import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=chest-retry-231';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=citadel-claim-lane-20261017';
 import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
@@ -384,7 +384,7 @@ async function exitDungeon(action){
   try{return await pendingDungeonExit;}finally{pendingDungeonExit=null;}
 }
 function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
-let activeCoopInput=null,activeBackgroundSync=null;
+let activeCoopInput=null,activeBackgroundSync=null,citadelClaimBusy=false;
 let fishingRequest=null;
 async function fishingCommandRequest(action,args={}){
  if(fishingRequest||!state)return;
@@ -410,8 +410,10 @@ async function fishingCommandRequest(action,args={}){
  }
 }
 async function command(command, args = {}, quiet = false, freshSnapshot = false, signal = null) {
+  const claimOnly=command==='coopOpen'&&args.citadelClaim===true;
+  const requestKey=pendingKey()+(claimOnly?'_citadel_claim':'');
   // A short input request must not swallow leave/chest/speed button presses.
-  if(busy&&['coopLeave','coopOpen','coopSync'].includes(command)){
+  if(!claimOnly&&busy&&['coopLeave','coopOpen','coopSync'].includes(command)){
     const roomAtClick=state?.coopRoom;
     activeCoopInput?.abort();
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
@@ -422,21 +424,21 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
     if(state?.battle?.runId!==runAtClick)return;
   }
-  if (busy || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
-  busy = true;
+  if ((claimOnly?citadelClaimBusy:busy) || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
+  if(claimOnly)citadelClaimBusy=true;else busy=true;
   const streaming=command==="coopInput";
   const accountAtSend=session?.user?.id;
-  let storedRequest=null;try{storedRequest=JSON.parse(localStorage.getItem(pendingKey())||'null');}catch{}
+  let storedRequest=null;try{storedRequest=JSON.parse(localStorage.getItem(requestKey)||'null');}catch{}
   const background=command==='sync'&&quiet&&state&&(!storedRequest||storedRequest.command==='sync');
   const inputAbort=streaming||background?new AbortController():null;
   if(streaming)activeCoopInput=inputAbort;
   if(background)activeBackgroundSync=inputAbort;
   // The input slot includes token refresh, not just fetch. A stuck refresh used
   // to hold busy forever and stop every subsequent multiplayer packet.
-  const inputDeadline=streaming?AbortSignal.timeout(6000):null;
+  const inputDeadline=streaming||command==='coopOpen'?AbortSignal.timeout(6000):null;
   const baseSignal=inputAbort?(signal?AbortSignal.any([signal,inputAbort.signal]):inputAbort.signal):signal;
   const requestSignal=inputDeadline?AbortSignal.any([inputDeadline,...(baseSignal?[baseSignal]:[])]):baseSignal;
-  if(!streaming&&!background)document
+  if(!streaming&&!background&&!claimOnly)document
     .querySelectorAll("button[data-write]")
     .forEach((b) => {if(!dungeonExitActions.has(b.dataset.action))b.disabled=true;});
   let body, recoverCharacter = false;
@@ -444,9 +446,9 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
   try {
     await abortable(ensureToken(),requestSignal);
     if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
-    if(!recoverySync){
-      try{body=JSON.parse(localStorage.getItem(pendingKey())||"null");}catch{body=null;}
-      if(body?.command==="coopInput"){localStorage.removeItem(pendingKey());body=null;}
+    if(!recoverySync&&!streaming){
+      try{body=JSON.parse(localStorage.getItem(requestKey)||"null");}catch{body=null;}
+      if(body?.command==="coopInput"){localStorage.removeItem(requestKey);body=null;}
       if(body&&(typeof body.command!=="string"||!body.args||typeof body.args!=="object"||!body.requestId))body=null;
     }
     if (
@@ -458,7 +460,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     }
     if (!body) {
       body = { command, args:command.startsWith('fish')?{...args,_compact:true,_stateRevision:stateRevision}:args, requestId: crypto.randomUUID() };
-      if(!recoverySync&&!streaming)localStorage.setItem(pendingKey(), JSON.stringify(body));
+      if(!recoverySync&&!streaming)localStorage.setItem(requestKey, JSON.stringify(body));
     }
     const sentAt=performance.now();
     if(state?.battle?.kind==='boss'||body.command==='boss')lastBattleRequestAt=Date.now();
@@ -467,8 +469,9 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     // Compact multiplayer replies (coop-wire.mjs); a snapshot that cannot be decoded is skipped.
     if(result.coop){try{result.coop=decodeCoopReply(result.coop);}catch{delete result.coop;}}
     if(result.coop)result.coop._rtt=performance.now()-sentAt;
-    if(recoverySync){const abandoned=localStorage.getItem(pendingKey());if(abandoned)localStorage.setItem(pendingKey()+"_recovered",abandoned);}
-    localStorage.removeItem(pendingKey());
+    if(recoverySync){const abandoned=localStorage.getItem(requestKey);if(abandoned)localStorage.setItem(requestKey+"_recovered",abandoned);}
+    // Movement must not discard a reward receipt that is waiting for retry.
+    try{if(recoverySync||JSON.parse(localStorage.getItem(requestKey)||'null')?.requestId===body.requestId)localStorage.removeItem(requestKey);}catch{}
     const audioPrevious=state;
     const previousHuntAt = state?.lastAt;
     if(result.statePatch){
@@ -478,7 +481,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
         result.state=snapshot.state;result.revision=snapshot.revision;delete result.statePatch;
       }
     }
-    if(Object.hasOwn(result,'state')){
+    if(Object.hasOwn(result,'state')&&(!Number.isSafeInteger(stateRevision)||!Number.isSafeInteger(result.revision)||result.revision>=stateRevision)){
       state = result.statePatch?result.state:D.normalizePotentialState(result.state);
       stateRevision=Number.isSafeInteger(result.revision)?result.revision:null;
       if(state&&(body.command==='sync'||state.lastAt!==previousHuntAt))lastHuntSettlement=Date.now();
@@ -490,7 +493,10 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     // A fishing daily that just became claimable gets a one-time toast (badges stay until it is claimed).
     if(state){const ready=fishingQuestsReady(state);if(audioPrevious&&ready>fishingQuestsReady(audioPrevious))toast('낚시 일일퀘스트 완료! 이벤트 › 낚시 여행 › 일일퀘스트에서 다이아를 받으세요.');}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
-    if("coop" in result)coopRoom=result.coop;else if(!state?.coopRoom)coopRoom=null;
+    if("coop" in result){
+      if(!state?.coopRoom)coopRoom=null;
+      else if(result.coop?.id===state.coopRoom&&(!coopRoom||coopRoom.id!==result.coop.id||(result.coop.revision??0)>=(coopRoom.revision??0)))coopRoom=result.coop;
+    }else if(!state?.coopRoom)coopRoom=null;
     if(result.coopRooms)coopRooms=result.coopRooms;
     if(!streaming){rankingRevision++;rankingUpdated=0;}
     if ("room" in result) partyRoom=result.room; else if (!state?.partyRoom) partyRoom=null;
@@ -507,11 +513,11 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     return result;
   } catch (e) {
     if((requestSignal?.aborted&&!inputDeadline?.aborted)||baseSignal?.aborted||session?.user?.id!==accountAtSend){
-      if(background&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(pendingKey())||'null')?.requestId===body.requestId)localStorage.removeItem(pendingKey());}catch{}}
+      if(background&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(requestKey)||'null')?.requestId===body.requestId)localStorage.removeItem(requestKey);}catch{}}
       return;
     }
   if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
-    if (e.status === 400) {localStorage.removeItem(pendingKey());recoverCharacter=!state&&!!session&&body?.command!=="sync";}
+    if (e.status === 400) {localStorage.removeItem(requestKey);recoverCharacter=!state&&!!session&&body?.command!=="sync";}
     if (e.status === 401) {
       endSession();
     }
@@ -527,16 +533,17 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     throw e;
   } finally {
     if(activeCoopInput===inputAbort)activeCoopInput=null;
-    if(background&&requestSignal?.aborted&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(pendingKey())||'null')?.requestId===body.requestId)localStorage.removeItem(pendingKey());}catch{}}
+    if(background&&requestSignal?.aborted&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(requestKey)||'null')?.requestId===body.requestId)localStorage.removeItem(requestKey);}catch{}}
     if(activeBackgroundSync===inputAbort)activeBackgroundSync=null;
-    busy = false;
-    commandIdleWaiters.splice(0).forEach(resolve=>resolve());
+    if(claimOnly)citadelClaimBusy=false;else{
+      busy=false;commandIdleWaiters.splice(0).forEach(resolve=>resolve());
+    }
     if(command!=='coopReady'&&coopRoom?.status==='waiting'&&coopRoom.members.some(m=>m.id===coopRoom.me&&!m.ready))
       queueMicrotask(sendCoopReady);
     if(autoHuntPending)queueMicrotask(flushAutoHunt);
     if(recoverCharacter)queueMicrotask(()=>command("sync",{},true).catch(()=>{}));
     if(view==="ranking"&&state&&!rankingLoading&&rankingUpdated===0&&!connectionLost)loadRankings(true);
-    if(!streaming)document
+    if(!streaming&&!claimOnly)document
       .querySelectorAll("button[data-write]")
       .forEach((b) => (b.disabled = b.hasAttribute("data-unavailable")));
   }

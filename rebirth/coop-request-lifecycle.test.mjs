@@ -8,7 +8,7 @@ const commands=source.slice(source.indexOf('const dungeonExitActions='),source.i
 const storage=new Map(),packets=[],deferred=[];
 const context=vm.createContext({
   AbortController,AbortSignal,DOMException,crypto,performance,queueMicrotask,abortable,
-  busy:false,coopController:null,state:{coopRoom:'room',gold:0,level:200,lastAt:0},session:{user:{id:'account'}},coopRoom:{id:'room',status:'fighting'},coopRooms:[],
+  stateRevision:null,busy:false,coopController:null,state:{coopRoom:'room',gold:0,level:200,lastAt:0},session:{user:{id:'account'}},coopRoom:{id:'room',status:'fighting'},coopRooms:[],
   localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},pendingKey:()=> 'pending',
   document:{querySelectorAll:()=>[]},$:()=>({hidden:true}),D:{normalizePotentialState:s=>s},sounds:{play(){}},toast(){},message:e=>e.message,
   ensureToken:async()=>{},render(){},showEvents(){},fishingQuestsReady:()=>0,autoHuntPending:false,view:'game',rankingRevision:0,rankingUpdated:0,rankingLoading:false,
