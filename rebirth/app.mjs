@@ -745,9 +745,10 @@ function character() {
     "",
   )}</div></section></div></div>`;
 }
-function characterMetrics(p,c) {
+function characterMetrics(p,c,summaryOnly=false) {
   const bonus = v => "+" + pct(v / 100);
   const rows = [["최종 공격력",fmt(p.attack)],["공격력 보너스",bonus(p.bonuses.attack)],["보스 피해",bonus(p.bonuses.boss)],["치명타 확률",pct(p.crit)],["치명타 피해",pct(p.critDamage)],["최대 HP",fmt(p.hp)],["HP 보너스",bonus(p.bonuses.hp)],["방어력",fmt(p.defense)],["방어력 보너스",bonus(p.bonuses.defense)],["골드 획득",bonus(p.goldGain)],["경험치 획득",bonus(p.xpGain)],["스타포스",p.stars+"성"]];
+  if(summaryOnly)return `<section class="panel pad character-summary"><div class="combat-power"><span>종합 전투력</span><strong>${fmt(p.combatPower)}</strong><small>현재 장착 장비 · 스타포스 · 잠재 반영</small></div><div class="character-metrics">${rows.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join("")}</div><p class="note">공격력·HP·방어력은 직업과 전직 효과까지 적용한 최종 수치입니다. 보너스 %는 잠재 옵션의 합계입니다.</p></section>`;
   return `<section class="panel pad character-summary"><div class="combat-power"><span>종합 전투력</span><strong>${fmt(p.combatPower)}</strong><small>현재 장착 장비 · 스타포스 · 잠재 반영</small></div><div class="character-metrics">${rows.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join("")}</div><p class="note">공격력·HP·방어력은 직업과 전직 효과까지 적용한 최종 수치입니다. 보너스 %는 잠재 옵션의 합계입니다.</p><details class="combat-formula"><summary>전투력 계산 기준</summary><p>⌊평균 초당 피해 × 보스 피해 배율 + HP × (1 + 방어력 ÷ 2,600) × 0.1⌋</p><p>평균 초당 피해는 공격력 × [1 + 치명타 확률 × (치명타 피해 배율 − 1)] × 공격 속도입니다. 해적 공격 속도는 1.08배, 나머지는 1배입니다.</p><p>고정 주스탯과 주스탯 %는 최종 공격력에 이미 반영됩니다. 골드·경험치 획득은 전투력에 포함하지 않습니다. 생존 점수는 일반 피해에 대한 유효 체력 기준이며 방어력을 무시하는 체력 비례 피해와 일시적인 전투 스킬은 제외한 비교용 수치입니다.</p></details></section><section class="panel pad stat-breakdown"><h3>스탯 상세</h3><p class="note">(기본 + 성장·장비 + 고정 잠재) × (1 + 스탯 %)<br>현재 직업은 ${c.stat}이 공격력에 반영됩니다.</p><div class="stat-detail-grid">${Object.entries(p.stats).map(([key,v])=>`<div class="stat-detail ${key===c.stat?"primary":""}"><div><strong>${key}</strong><b>${fmt(v.total)}</b></div><dl><dt>기본</dt><dd>${fmt(v.base)}</dd><dt>성장·장비</dt><dd>+${fmt(v.growth)}</dd><dt>고정 잠재</dt><dd>+${fmt(v.fixed)}</dd><dt>스탯 보너스</dt><dd>${bonus(v.percent)}</dd></dl></div>`).join("")}</div></section>`;
 }
 function gearLevelRange(base){const r=D.equipmentLevelRange(base);return r.min===r.max?requiredLevel(r.min):requiredLevel(r.min)+" / "+requiredLevel(r.max);}
@@ -933,7 +934,7 @@ async function showRankingProfile(id){
   const data=await request('/functions/v1/ringu-rebirth',{command:'rankingProfile',args:{id},requestId:crypto.randomUUID()},true);
   if(version!==rankingProfileRequest||!modal.open||!content.isConnected)return;
   const p=data.profile,c=D.CLASSES.find(c=>c.id===p.classId);
-  const summary=characterMetrics(p.metrics,c).split('<details class="combat-formula">')[0]+'</section>';
+  const summary=characterMetrics(p.metrics,c,true);
   open('모험가 정보',`<div class="rank-profile"><div class="rank-profile-look"><div class="portrait ${p.classId==='priest'?'priest-portrait':''}" style="${portraitStyle(p.classId,p.costumeId,portraitPosition(p.classId))}"></div><strong>${esc(p.name)}</strong></div><div class="rank-profile-arena"><span>아레나 순위</span><strong>${p.arenaRank?fmt(p.arenaRank)+'위':'언랭크'}</strong></div>${summary}</div>`);
  }catch(error){if(version===rankingProfileRequest&&modal.open&&content?.isConnected)open('모험가 정보',`<p class="note">정보를 불러오지 못했어요. ${esc(message(error))}</p>`);}
 }
