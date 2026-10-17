@@ -1,3 +1,4 @@
+import {equippedCostume} from './costumes.mjs';
 import {tier,arenaPointDelta} from './arena-model.mjs?v=arena-daily-155';
 import {ARENA_REWARDS,ARENA_REWARD_MIN_MATCHES,arenaSeasonReward} from './arena-rewards.mjs?v=arena-rewards-167';
 import {portraitStyle} from './costume-ui.mjs';
@@ -6,7 +7,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=v=>Math.floor(Number(v)||0).toLocaleString('ko-KR');
 const jobs={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
 const portraitPosition=id=>Math.max(0,['warrior','mage','archer','rogue','pirate'].indexOf(id))*25;
-const portrait=(p,extra='')=>`<div class="portrait pvp-portrait ${p.classId==='priest'?'priest-portrait':''} ${extra}" style="${portraitStyle(p.classId,p.costumeId,portraitPosition(p.classId))}" aria-label="${esc(jobs[p.classId]||'모험가')}"></div>`;
+const portrait=(p,extra='')=>`<div class="portrait pvp-portrait ${p.classId==='priest'?'priest-portrait':''} ${extra}" style="${portraitStyle(p.classId,p.costumeId??equippedCostume(p)?.id,portraitPosition(p.classId))}" aria-label="${esc(jobs[p.classId]||'모험가')}"></div>`;
 const countdown=time=>{const ms=Math.max(0,new Date(time).getTime()-Date.now()),hours=Math.floor(ms/3600000),minutes=Math.floor(ms%3600000/60000);return `${hours}시간 ${String(minutes).padStart(2,'0')}분`;};
 const button=(label,action,arg='',extra='')=>`<button class="pvp-button ${extra}" data-action="${action}" data-arg="${esc(arg)}">${label}</button>`;
 const heading=(title,sub='')=>`<header class="pvp-title"><span>✦</span><h1>${title}</h1><span>✦</span>${sub?`<small>${sub}</small>`:''}</header>`;
@@ -37,7 +38,7 @@ function buildArenaView({data,page='home',self,battle,frameIndex=0,error=''}){
  const seasonName=`S${Math.max(1,1+Math.floor(((Number.isFinite(start)?start:firstSeason)-firstSeason)/week))}`;
  const season= `${seasonName} · 시즌 종료까지 ${countdown(data.seasonEndsAt)}`;
  if(page==='battle'&&battle)return battleView(battle,self,frameIndex);
- if(page==='result'&&battle)return resultView(battle,data);
+ if(page==='result'&&battle)return resultView({...battle,self:{...(battle.self||self),costumeId:self?(equippedCostume(self)?.id||null):(battle.self?.costumeId||null)}},data);
  const top=(data.top100||[]).slice(0,100);
  const score=data.score;
  let content='';
@@ -61,7 +62,7 @@ function buildArenaView({data,page='home',self,battle,frameIndex=0,error=''}){
 
 function battleView(result,self,index){
  const b=result.battle,frames=b.frames||[],current=frames[Math.max(0,index-1)],leftHp=current?.leftHp??b.leftMaxHp,rightHp=current?.rightHp??b.rightMaxHp;
- const left=result.self||self,right=result.opponent;
+ const left={...(result.self||self),costumeId:self?(equippedCostume(self)?.id||null):(result.self?.costumeId||null)},right=result.opponent;
  const log=frames.slice(Math.max(0,index-3),index).reverse();
  return `<section class="pvp-screen pvp-fit-screen pvp-battle-screen"><div class="pvp-battle-heading">${heading('아레나 전투')}<div class="pvp-battle-status">⚔ 자동 전투 중</div></div><div class="pvp-combatants"><div><strong>${esc(left?.name||'나')}</strong><small>${esc(jobs[left?.classId]||'모험가')} · ${left?.score===null?'언랭크':`${fmt(left?.score)}점`}</small><div class="pvp-health"><i data-arena-shield="left"></i><span data-arena-hp="left" style="width:${leftHp/b.leftMaxHp*100}%"></span></div></div><div><strong>${esc(right?.name||'상대')}</strong><small>${esc(jobs[right?.classId]||'모험가')} · ${fmt(right?.score)}점</small><div class="pvp-health enemy"><i data-arena-shield="right"></i><span data-arena-hp="right" style="width:${rightHp/b.rightMaxHp*100}%"></span></div></div></div><div class="pvp-stage"><div class="pvp-stage-fighter left">${portrait(left,'pvp-fighter')}</div><div class="pvp-stage-hit"></div><div class="pvp-stage-fighter right">${portrait(right,'pvp-fighter')}</div></div><div class="pvp-battle-controls"><button data-action="arenaSpeed">2배속</button><button data-action="arenaSkip">결과 보기</button></div><div class="pvp-combat-log"><h3>전투 기록</h3><div data-arena-log>${log.map(f=>`<p class="${f.side===0?'ally':'enemy'}">${esc(frameText(f,f.side===0?left?.name:right?.name))}</p>`).join('')||'<p>전투를 시작합니다.</p>'}</div></div></section>`;
 }
