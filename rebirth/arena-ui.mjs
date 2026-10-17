@@ -7,7 +7,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=v=>Math.floor(Number(v)||0).toLocaleString('ko-KR');
 const jobs={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
 const portraitPosition=id=>Math.max(0,['warrior','mage','archer','rogue','pirate'].indexOf(id))*25;
-const portrait=(p,extra='')=>`<div class="portrait pvp-portrait ${p.classId==='priest'?'priest-portrait':''} ${extra}" style="${portraitStyle(p.classId,p.costumeId??equippedCostume(p)?.id,portraitPosition(p.classId))}" aria-label="${esc(jobs[p.classId]||'모험가')}"></div>`;
+const portrait=(p,extra='')=>`<div class="portrait pvp-portrait ${p.classId==='priest'?'priest-portrait':''} ${extra}" style="${portraitStyle(p.classId,p.costumeId!==undefined?p.costumeId:equippedCostume(p)?.id,portraitPosition(p.classId))}" aria-label="${esc(jobs[p.classId]||'모험가')}"></div>`;
 const countdown=time=>{const ms=Math.max(0,new Date(time).getTime()-Date.now()),hours=Math.floor(ms/3600000),minutes=Math.floor(ms%3600000/60000);return `${hours}시간 ${String(minutes).padStart(2,'0')}분`;};
 const button=(label,action,arg='',extra='')=>`<button class="pvp-button ${extra}" data-action="${action}" data-arg="${esc(arg)}">${label}</button>`;
 const heading=(title,sub='')=>`<header class="pvp-title"><span>✦</span><h1>${title}</h1><span>✦</span>${sub?`<small>${sub}</small>`:''}</header>`;
