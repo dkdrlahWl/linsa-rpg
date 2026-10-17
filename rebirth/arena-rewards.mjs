@@ -13,9 +13,13 @@ const bands=[
 ];
 export const ARENA_REWARDS=Object.freeze([
  ...bands.flatMap(([name,key,min,gold,black,prime])=>steps.map((step,i)=>Object.freeze({name,key,step,label:`${name} ${step}`,minScore:min+i*100,gold:gold[i],highCube:black[i],primeCube:prime[i]}))),
- ...[['그랜드 마스터','grandmaster',3600000,120,18],['챌린저','challenger',4800000,150,24],['챔피언','champion',6000000,180,30]].map(([name,key,gold,highCube,primeCube])=>Object.freeze({name,key,step:'',label:name,minScore:2600,gold,highCube,primeCube})),
+ ...Array.from({length:9},(_,i)=>{const maxRank=100-i*10,minRank=maxRank-9;return Object.freeze({name:'마스터',key:'master',step:`${maxRank}~${minRank}위`,label:`${maxRank}~${minRank}위`,minRank,maxRank,minScore:0,gold:3000000+i*500000,highCube:120+i*10,primeCube:18+i*2});}),
+ ...[['그랜드 마스터','grandmaster',10000000,300,50],['챌린저','challenger',15000000,450,75],['챔피언','champion',20000000,600,100]].map(([name,key,gold,highCube,primeCube])=>Object.freeze({name,key,step:'',label:name,minScore:2600,gold,highCube,primeCube})),
 ]);
 export function arenaSeasonReward(score,rank){
  const label=tier(score,rank).label;
- return ARENA_REWARDS.find(r=>r.label===label)||null;
+ const base=ARENA_REWARDS.find(r=>r.label===label)||null;
+ if(!base)return null;
+ const ranked=ARENA_REWARDS.find(r=>r.minRank&&rank>=r.minRank&&rank<=r.maxRank);
+ return ranked?{...ranked,gold:Math.max(base.gold,ranked.gold),highCube:Math.max(base.highCube,ranked.highCube),primeCube:Math.max(base.primeCube,ranked.primeCube)}:base;
 }

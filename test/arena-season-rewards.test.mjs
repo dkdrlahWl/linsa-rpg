@@ -27,9 +27,9 @@ try{
   const js=arenaSeasonReward(score,rank),sql=await reward(score,rank);
   assert.deepEqual(sql,js?{label:js.label,gold:js.gold,highCube:js.highCube,primeCube:js.primeCube}:null,'SQL/client reward parity');
  }
- assert.equal(ARENA_REWARDS.length,27);
+ assert.equal(ARENA_REWARDS.length,36);
  ARENA_REWARDS.forEach((r,i)=>{if(i){const prev=ARENA_REWARDS[i-1];assert(r.gold>prev.gold);assert(r.highCube>=prev.highCube);assert(r.primeCube>=prev.primeCube);}});
- assert.equal((await reward(1900,100)).primeCube,10);assert.equal((await reward(2500,100)).primeCube,14);
+ assert.equal((await reward(1900,100)).primeCube,18);assert.equal((await reward(2500,100)).primeCube,18);
  await db.exec(`create or replace function rebirth_private.arena_season_start() returns timestamptz language sql stable as $$select '${next}'::timestamptz$$`);
  const entries=[[5000,5],[4900,4],[4500,5],[4000,5],[450,5],[2000,5],[null,0],[0,5]];
  for(let i=0;i<ids.length;i++){
