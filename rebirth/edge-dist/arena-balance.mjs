@@ -1,30 +1,29 @@
 import {power} from './engine.mjs';
 import {absorbDamage} from './priest.mjs';
-import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS} from './data.mjs';
+import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,convertPriestPotentials,PRIEST_REMAKE_VERSION} from './data.mjs';
 
 // These rules apply only to arena simulations. Shared PvE stats and skills stay intact.
-export const ARENA_BALANCE_VERSION='arena-balance-153';
+export const ARENA_BALANCE_VERSION='arena-balance-priest-remake-1';
 export const ARENA_BALANCE=Object.freeze({
  hpMultiplier:30,
  damageByStage:Object.freeze([
-  Object.freeze({"warrior":0.9337,"mage":0.931,"archer":1.0605,"rogue":1.0747,"pirate":1.0002,"priest":0.908}),
-  Object.freeze({"warrior":0.9165,"mage":0.9444,"archer":1.0722,"rogue":1.0431,"pirate":1.0239,"priest":0.6806}),
-  Object.freeze({"warrior":0.906,"mage":0.9395,"archer":1.0696,"rogue":1.0709,"pirate":1.014,"priest":0.7137}),
-  Object.freeze({"warrior":0.865,"mage":0.9419,"archer":1.1054,"rogue":1.0236,"pirate":1.064,"priest":0.5502}),
-  Object.freeze({"warrior":0.8636,"mage":0.9913,"archer":1.0168,"rogue":1.0003,"pirate":1.128,"priest":0.5764}),
+  Object.freeze({"warrior":0.9337,"mage":0.9310,"archer":1.0605,"rogue":1.0747,"pirate":1.0002,"priest":1.2315}),
+  Object.freeze({"warrior":0.9165,"mage":0.9444,"archer":1.0722,"rogue":1.0431,"pirate":1.0239,"priest":1.1392}),
+  Object.freeze({"warrior":0.9060,"mage":0.9395,"archer":1.0696,"rogue":1.0709,"pirate":1.0140,"priest":0.9995}),
+  Object.freeze({"warrior":0.8650,"mage":0.9419,"archer":1.1054,"rogue":1.0236,"pirate":1.0640,"priest":1.0554}),
+  Object.freeze({"warrior":0.8636,"mage":0.9913,"archer":1.0168,"rogue":1.0003,"pirate":1.1280,"priest":0.7877}),
  ]),
  fifthDamageCurve:Object.freeze([
-  Object.freeze({pressure:0.601081,damage:Object.freeze({"warrior":0.8636,"mage":0.9913,"archer":1.0168,"rogue":1.0003,"pirate":1.128,"priest":0.5764})}),
-  Object.freeze({pressure:0.923016,damage:Object.freeze({"warrior":0.8155,"mage":1.0336,"archer":1.0508,"rogue":0.9917,"pirate":1.1086,"priest":0.4848})}),
-  Object.freeze({pressure:1.150192,damage:Object.freeze({"warrior":0.7943,"mage":1.0945,"archer":1.0368,"rogue":0.981,"pirate":1.0934,"priest":0.4478})}),
-  Object.freeze({pressure:1.353052,damage:Object.freeze({"warrior":0.7882,"mage":1.1236,"archer":1.0246,"rogue":0.9523,"pirate":1.1113,"priest":0.452})}),
-  Object.freeze({pressure:1.393112,damage:Object.freeze({"warrior":0.7864,"mage":1.132,"archer":1.0207,"rogue":0.9507,"pirate":1.1103,"priest":0.4423})}),
-  Object.freeze({pressure:1.453722,damage:Object.freeze({"warrior":0.7818,"mage":1.1361,"archer":1.0214,"rogue":0.9484,"pirate":1.1123,"priest":0.4309})}),
-  Object.freeze({pressure:1.55386,damage:Object.freeze({"warrior":0.7822,"mage":1.1394,"archer":1.0227,"rogue":0.9427,"pirate":1.1131,"priest":0.4274})}),
-  Object.freeze({pressure:1.604683,damage:Object.freeze({"warrior":0.7777,"mage":1.1365,"archer":1.028,"rogue":0.9354,"pirate":1.1224,"priest":0.4257})}),
+  Object.freeze({pressure:0.601081,damage:Object.freeze({"warrior":0.8636,"mage":0.9913,"archer":1.0168,"rogue":1.0003,"pirate":1.1280,"priest":0.7877})}),
+  Object.freeze({pressure:0.923016,damage:Object.freeze({"warrior":0.8155,"mage":1.0336,"archer":1.0508,"rogue":0.9917,"pirate":1.1086,"priest":0.8697})}),
+  Object.freeze({pressure:1.150192,damage:Object.freeze({"warrior":0.7943,"mage":1.0945,"archer":1.0368,"rogue":0.9810,"pirate":1.0934,"priest":0.8385})}),
+  Object.freeze({pressure:1.353052,damage:Object.freeze({"warrior":0.7800,"mage":1.1236,"archer":1.0246,"rogue":0.9523,"pirate":1.1113,"priest":0.8092})}),
+  Object.freeze({pressure:1.393112,damage:Object.freeze({"warrior":0.7864,"mage":1.1320,"archer":1.0207,"rogue":0.9507,"pirate":1.1103,"priest":0.8111})}),
+  Object.freeze({pressure:1.453722,damage:Object.freeze({"warrior":0.7818,"mage":1.1361,"archer":1.0214,"rogue":0.9484,"pirate":1.1123,"priest":0.8111})}),
+  Object.freeze({pressure:1.55386,damage:Object.freeze({"warrior":0.7822,"mage":1.1394,"archer":1.0227,"rogue":0.9427,"pirate":1.1131,"priest":0.8072})}),
+  Object.freeze({pressure:1.604683,damage:Object.freeze({"warrior":0.7777,"mage":1.1365,"archer":1.0280,"rogue":0.9354,"pirate":1.1224,"priest":0.7838})}),
  ]),
  hp:Object.freeze({warrior:.9,mage:1.1}),
- priestHpPotentialRate:.2,
  priestHealScale:.25,
  priestShieldScale:.5,
  skillTotals:Object.freeze({1:1.8,2:4.7,3:9,4:9,5:22}),
@@ -32,20 +31,15 @@ export const ARENA_BALANCE=Object.freeze({
 const skills={1:CLASS_SKILLS,2:SECOND_SKILLS,3:THIRD_SKILLS,4:FOURTH_SKILLS,5:FIFTH_SKILLS};
 
 export function arenaPower(state){
+ // 리메이크 전 사제 상대는 HP% 잠재를 공격력%로 본다(접속 시 실제 변환과 동일).
+ if(state.classId==='priest'&&state.priestRemake!==PRIEST_REMAKE_VERSION){state=structuredClone(state);convertPriestPotentials(state);}
  const stats=power(state);
  let attack=stats.attack,hp=stats.hp;
  // A common offensive/defensive ratio describes equipment tempo without using ladder score.
  const primary=CLASSES.find(c=>c.id===state.classId).stat;
- const offenseState={...state,classId:'rogue',stats:{...state.stats,LUK:state.stats[primary]},items:state.items.map(item=>({...item,lines:item.lines.map(line=>({...line,key:line.key==='hp'&&state.classId==='priest'?'attack':line.key===primary?'LUK':line.key==='flat'+primary?'flatLUK':line.key}))}))};
+ const offenseState={...state,classId:'rogue',stats:{...state.stats,LUK:state.stats[primary]},items:state.items.map(item=>({...item,lines:item.lines.map(line=>({...line,key:line.key===primary?'LUK':line.key==='flat'+primary?'flatLUK':line.key}))}))};
  const offense=power(offenseState),arenaPressure=offense.attack/(offense.hp*(1+offense.defense/2600));
- if(state.classId==='priest'){
-  // HP potential contributes once to offense and also retains a defensive benefit.
-  attack=offense.attack;
-  if(stats.bonuses.hp>0){
-   const bonus=stats.bonuses.hp/100;
-   hp=hp/(1+bonus)*(1+bonus*ARENA_BALANCE.priestHpPotentialRate);
-  }
- }else hp*=ARENA_BALANCE.hp[state.classId]??1;
+ hp*=ARENA_BALANCE.hp[state.classId]??1;
  return {...stats,attack,hp,arenaPressure};
 }
 
@@ -75,7 +69,7 @@ export function arenaAbsorbDamage(actor,damage,tick){
 
 export function scaleArenaSupport(actor){
  if(actor.classId!=='priest')return;
- for(const pending of actor.holySupport||[])pending.amount*=pending.slot===3?ARENA_BALANCE.priestShieldScale:arenaHealScale(actor);
+ for(const pending of actor.holySupport||[]){if(pending.arenaScaled)continue;const k=pending.slot===3?ARENA_BALANCE.priestShieldScale:arenaHealScale(actor);pending.amount*=k;pending.scale=(pending.scale??1)*k;pending.arenaScaled=true;}
 }
 
 export function arenaHealScale(actor){

@@ -6,8 +6,9 @@ const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-10,`${a} != ${b}`);
 for(const classId of ['priest','warrior','mage','archer','rogue','pirate'])for(const level of [150,159,160,180,200])for(const boss of [false,true])for(const stars of [0,25]){
  const item={classId,level,boss,stars,slot:1,baseStats:{attack:100,stat:200,hp:1000,defense:50},lines:[{key:'hp',grade:5,value:12}]};
  const before=structuredClone(item),growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
- const multiplier=(boss&&level===200?1.5:1)*(classId!=='priest'&&level>=160?1.2:1)*(!boss&&level===200?1.5:1);
- const hpMultiplier=classId==='priest'&&level>=160?.7:1;
+ // Priest remake: every job (priest included) gets the same 160+ bonus and no HP penalty.
+ const multiplier=(boss&&level===200?1.5:1)*(level>=160?1.2:1)*(!boss&&level===200?1.5:1);
+ const hpMultiplier=1;
  near(gearStatMultiplier(item),multiplier);near(gearHPMultiplier(item),hpMultiplier);
  const actual=gearAttributes(item);
  near(actual.attack,(100*growth+stars)*multiplier);

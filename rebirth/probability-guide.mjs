@@ -63,12 +63,13 @@ function drawCube(){
 }
 const cdf=x=>x<=.5?1.5*x:x<=.9?.75+.6*(x-.5):.99+.1*(x-.9);
 function gearRows(level,classId,slot,boss){
+ if(boss&&level>=200){const weights=slot===0?D.BOSS_WEAPON_TIER_WEIGHTS:D.BOSS_ARMOR_TIER_WEIGHTS,total=weights.reduce((a,b)=>a+b,0);return weights.map((w,tier)=>{const it=D.designItem(level,classId,slot,true,2,tier);return {it,w:+(w*100/total).toFixed(2),ranges:D.gearStatRanges(it)};});}
  const weights=D.designWeights(D.designCount(level,classId,slot,boss));
  return weights.map((w,i)=>{const it=D.designItem(level,classId,slot,boss,i);return {it,w,ranges:D.gearStatRanges(it)};});
 }
 function drawGear(){
  const rows=gearRows(+value('gear-level'),value('gear-class'),+value('gear-slot'),value('gear-boss')==='1');
- document.getElementById('gear-rows').innerHTML=table(['디자인','조건부 확률','종류','공격력','주스탯','HP','방어력'],rows.map(({it,w,ranges})=>[D.gearName(it),w+'%',D.equipmentType(it),...Object.values(ranges).map(r=>r.min+'–'+r.max)]));
+ document.getElementById('gear-rows').innerHTML=table(['디자인','조건부 확률','종류','공격력','주스탯','HP','방어력'],rows.map(({it,w,ranges})=>[D.gearName(it)+(D.isTieredBossGear(it)?' ('+D.bossTierName(it)+')':''),w+'%',D.equipmentType(it),...Object.values(ranges).map(r=>r.min+'–'+r.max)]));
  document.getElementById('stat-rows').innerHTML=rows.map(({it,ranges})=>'<details><summary>'+D.gearName(it)+' · 수치별 확률</summary>'+Object.entries(ranges).map(([key,r])=>{
  const n=r.max-r.min+1;return '<h4>'+({attack:'공격력',stat:'주스탯',hp:'HP',defense:'방어력'}[key])+'</h4>'+table(['수치','해당 능력치 추첨 확률'],Array.from({length:n},(_,i)=>[r.min+i,pct(cdf((i+1)/n)-cdf(i/n))]));
  }).join('')+'</details>').join('');

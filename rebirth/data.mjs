@@ -7,7 +7,8 @@ import {extendEndgameFields} from './endgame-field.mjs?v=endgame-level-250-20261
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=journey-250-20261011';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=unique-boss-25-20261015';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=unique-boss-25-20261015';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey } from "./equipment.mjs?v=boss-200-stats-132";
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=boss-200-stats-132";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=boss-200-stats-132";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=boss-200-stats-132";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
@@ -260,12 +261,22 @@ export function xpNeeded(level) {
  const endgame=level>=230?6:level>=200?3:1;
  return Math.round(journeyXP(level)*endgame);
 }
+// 200레벨 보스장비 확장 폭: 기존 최소값은 그대로, 최대값은 기존 최대값의 130%.
+export const TIERED_BOSS_MAX_SCALE=1.3;
 export function gearStatRanges(item) {
  const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
  const low=Number.isInteger(item.design)?(item.boss?2.8+item.design*.45:.75+item.design*.3):(item.boss?2:.85),high=Number.isInteger(item.design)?low+.16:(item.boss?2.5:1.4);
- return Object.fromEntries(Object.entries(base).map(([key,value])=>[key,{min:Math.max(1,Math.floor(value*low)),max:Math.max(1,Math.ceil(value*high))}]));
+ const ranges=Object.fromEntries(Object.entries(base).map(([key,value])=>[key,{min:Math.max(1,Math.floor(value*low)),max:Math.max(1,Math.ceil(value*high))}]));
+ if(!isTieredBossGear(item))return ranges;
+ // 등급별 구간은 겹치지 않는다: [기존 최소, 기존 최대×1.3]을 등급 수만큼 나눈다.
+ const tiers=bossTierCount(item),tier=bossTier(item);
+ return Object.fromEntries(Object.entries(ranges).map(([key,r])=>{
+  const top=Math.ceil(r.max*TIERED_BOSS_MAX_SCALE),width=(top-r.min+1)/tiers;
+  return [key,{min:r.min+Math.floor(tier*width),max:tier===tiers-1?top:r.min+Math.floor((tier+1)*width)-1}];
+ }));
 }
 export function rollBaseStats(item,random=Math.random) {
+ if(isTieredBossGear(item)&&!Number.isInteger(item.bossTier)){item.bossTier=rollBossTier(item,random);}
  return Object.fromEntries(Object.entries(gearStatRanges(item)).map(([key,r])=>{
   const u=random(),fraction=u<.75?u/.75*.5:u<.99?.5+(u-.75)/.24*.4:.9+(u-.99)/.01*.1;
   return [key,r.min+Math.min(r.max-r.min,Math.floor(fraction*(r.max-r.min+1)))];
@@ -275,10 +286,11 @@ export function rollBaseStats(item,random=Math.random) {
 export const gearStatMultiplier = item => {
  const level=Number(item.level);
  const endgame=level===200?1.5:1;
- const classBonus=item.classId!=='priest'&&level>=160?1.2:1;
+ // 사제 리메이크: 사제 장비도 다른 직업과 같은 160레벨 이상 보너스를 받는다.
+ const classBonus=level>=160?1.2:1;
  return endgame*classBonus;
 };
-export const gearHPMultiplier = item => item.classId==='priest'&&Number(item.level)>=160?.7:1;
+export const gearHPMultiplier = () => 1;
 function unbuffedGearAttributes(item,stars=item.stars) {
  const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
@@ -353,6 +365,8 @@ export function normalizePotentialItem(item) {
     item.legacyBaseStats=true;
   }
   delete item.quality;
+  // 리메이크 이전에 얻은 200레벨 보스장비는 기존 수치 그대로 가장 낮은 등급으로 둔다.
+  if(isTieredBossGear(item)&&item.baseStats&&!Number.isInteger(item.bossTier))item.bossTier=0;
   normalizeEquipment(item);
   if(item.potentialVersion===5){if(item.potentialUnlocked===false){item.lines=[];item.grade=0;return item;}return fillPotentialLines(item);}
   if (item.potentialVersion !== 3 && item.potentialVersion !== 4) {
@@ -365,8 +379,24 @@ export function normalizePotentialItem(item) {
   item.potentialVersion=5;item.potentialUnlocked=true;
   return fillPotentialLines(item);
 }
+// 사제 리메이크: 리메이크 전 사제 계정의 HP% 잠재를 같은 수치의 공격력% 잠재로 1회 변환한다.
+export const PRIEST_REMAKE_VERSION=1;
+export function convertPriestPotentials(state) {
+  if (!state || state.priestRemake===PRIEST_REMAKE_VERSION) return 0;
+  // 리메이크 시점에 사제가 아닌 계정은 변환하지 않는다(이후 사제로 전직해도 변환 없음).
+  if (state.classId!=="priest") { if (state.classId) state.priestRemake=PRIEST_REMAKE_VERSION; return 0; }
+  let converted=0;
+  const convert=lines=>{for(const line of lines||[])if(line&&line.key==="hp"){line.key="attack";line.priestRemake=PRIEST_REMAKE_VERSION;converted++;}};
+  for (const item of state.items || []) convert(item?.lines);
+  for (const mail of state.mailbox || []) convert(mail?.item?.lines);
+  if (state.pendingCube) convert(state.pendingCube.lines);
+  state.priestRemake=PRIEST_REMAKE_VERSION;
+  state.priestRemakeConverted=converted;
+  return converted;
+}
 export function normalizePotentialState(state) {
   if (!state) return state;
+  convertPriestPotentials(state);
   for (const item of state.items || []) normalizePotentialItem(item);
   for (const mail of state.mailbox || []) normalizePotentialItem(mail.item);
   state.collection=[...new Set([...(state.collection||[]).map(key=>equipmentKey(equipmentFromKey(key))),...(state.items||[]).map(equipmentKey),...(state.mailbox||[]).map(mail=>equipmentKey(mail.item))])];

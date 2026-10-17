@@ -13,16 +13,17 @@ for(const mode of ['rift','raid','wave','advancement'])for(const [bits,kind] of 
  if(w.monsters)w.monsters=[];
  w=advanceCoopRaw(w,'p',null,100,[{tick:0,user:'p',input:[0,0,bits]}]);
  const a=w.members[1];
- if(kind==='heal')assert.equal(a.hp,1+Math.round(p.hp*.2),mode+' immediate heal');
- if(kind==='shield'){assert.equal(a.shield,Math.round(p.hp*.30),mode+' shield');assert.equal(a.shieldPermanent,true);}
- if(kind==='sanctuary'){assert.equal(a.hp,1+p.hp,mode+' initial sanctuary heal');assert.equal(a.holyReductionUntil,0);}
+ // Priest remake: heals/shields scale with the receiving ally's own max HP (ally has 2x HP).
+ if(kind==='heal')assert.equal(a.hp,1+Math.round(a.power.hp*.15),mode+' immediate heal');
+ if(kind==='shield'){assert.equal(a.shield,Math.round(a.power.hp*.20),mode+' shield');assert.equal(a.shieldPermanent,true);}
+ if(kind==='sanctuary'){assert.equal(a.hp,a.power.hp,mode+' initial sanctuary heal');assert.equal(a.holyReductionUntil,0);}
  if(kind==='revive')assert.equal(a.hp,Math.round(a.power.hp*.5),mode+' fifth resurrection');
 }
 for(const [bits,kind] of [[2,'heal'],[16,'shield'],[64,'sanctuary']]){
  const b=newTowerBattle(10,'priest',p,0,'test',1,true);b.hp=1;b.enemyHp=1e12;b.nextPattern=1e9;
  towerStep(b,[0,0,bits]);
- if(kind==='heal')assert.equal(b.hp,1+Math.round(p.hp*.2));
- if(kind==='shield'){assert.equal(b.shield,Math.round(p.hp*.30));assert.equal(b.shieldPermanent,true);}
+ if(kind==='heal')assert.equal(b.hp,1+Math.round(p.hp*.15));
+ if(kind==='shield'){assert.equal(b.shield,Math.round(p.hp*.20));assert.equal(b.shieldPermanent,true);}
  if(kind==='sanctuary')assert.equal(b.hp,p.hp);
 }
 console.log('PASS real combat integration: tower, rift, raid, wave, advancement co-op');

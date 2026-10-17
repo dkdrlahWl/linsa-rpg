@@ -1,5 +1,9 @@
 import {petHealTick} from './pet-event.mjs';
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
+// 서포터 직업 특성: 최종 공격력 배율(다른 직업 대비 딜 80~90% 목표).
+export const PRIEST_ATTACK_RATE=.87;
+// 천상의 심판 범위 공격력 증가(파티 버프). 여러 사제가 있어도 중첩되지 않음.
+export const PRIEST_PARTY_ATTACK_BUFF=1.05;
 export const PRIEST_HP_ATTACK_RATIO=.166;
 export const PRIEST_LUK_ATTACK_RATIO=.6;
 export const PRIEST_OFFENSE_POTENTIAL_RATE=1;
@@ -12,12 +16,14 @@ export function priestAttack(hp,luk,gearAttack,attackPercent,hpPercent=0,lukPerc
  const lukRate=Math.min(PRIEST_LUK_ATTACK_RATIO,baseHP*PRIEST_HP_ATTACK_RATIO*.8/Math.max(1,baseLUK));
  return (baseHP*PRIEST_HP_ATTACK_RATIO+luk*lukRate+gearAttack*PRIEST_GEAR_ATTACK_RATIO)*(1+(attackPercent+hpPercent*PRIEST_HP_POTENTIAL_ATTACK_RATE)/100);
 }
+// 사제 리메이크(priest-remake-1): 다른 직업과 같은 공격력 계산식 + 서포트.
+// 피해는 공격력 계수만 사용(사제 최대 HP 비례 피해 없음). 회복·보호막은 받는 아군 각자의 최대 HP 기준.
 export const PRIEST_SKILLS={
- 1:{name:'성광 심판',type:'attack',cooldown:10,range:2100,radius:650,hits:3,damage:.6,interval:2,hpRatio:.007,description:'성광 3발 · 총 공격력 180% + 사제 최대 HP 2.1%'},
- 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:1500,radius:1500,hits:1,damage:2,interval:1,hpRatio:.014,description:'주변 아군 각각 사제 최대 HP 20% 즉시 회복 · 공격력 200% + 최대 HP 1.4% 피해'},
- 3:{name:'성역의 결계',type:'attack',cooldown:24,range:1500,radius:1500,hits:1,damage:4.5,interval:1,hpRatio:.035,art:5,description:'주변 아군 각각 사제 최대 HP 30% 보호막 · 보호막이 남아 있는 동안 받는 피해 10% 감소 · 중첩 가능 · 피해로 소진될 때까지 유지 · 공격력 450% + 최대 HP 3.5% 피해'},
- 5:{name:'대천사 강림',type:'attack',cooldown:30,range:1500,radius:1550,hits:8,damage:1.75,interval:10,hpRatio:.013125,description:'200레벨 · 사제를 따라오는 8초 성역 · 시전 시 아군 각각 사제 최대 HP 100% 즉시 회복 · 시전 시 범위 내 사망한 아군을 각자 최대 HP 50%로 부활 · 공격력 1400% + 최대 HP 10.5% 피해'},
- 4:{name:'천상의 심판',type:'attack',cooldown:30,range:2100,radius:1250,hits:8,damage:1.25,interval:10,hpRatio:.00875,art:5,description:'8초 성광 폭격 · 범위 내 아군 매초 사제 최대 HP 5%씩 총 8회 회복 · 범위 내 공격력 10% 증가 · 공격력 1000% + 최대 HP 7% 피해'}
+ 1:{name:'성광 심판',type:'attack',cooldown:10,range:2100,radius:650,hits:3,damage:.6,interval:2,hpRatio:0,description:'성광 3발 · 총 공격력 180%'},
+ 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:1500,radius:1500,hits:1,damage:4.7,interval:1,hpRatio:0,heal:.15,description:'주변 아군 각각 자신의 최대 HP 15% 즉시 회복 · 공격력 470% 피해'},
+ 3:{name:'성역의 결계',type:'attack',cooldown:18,range:1500,radius:1500,hits:1,damage:9,interval:1,hpRatio:0,shield:.2,shieldCap:.4,art:5,description:'주변 아군 각각 자신의 최대 HP 20% 보호막(최대 HP 40%까지 중첩) · 보호막이 남아 있는 동안 받는 피해 10% 감소 · 공격력 900% 피해'},
+ 5:{name:'대천사 강림',type:'attack',cooldown:40,range:1500,radius:1550,hits:8,damage:2.75,interval:10,hpRatio:0,heal:1,description:'200레벨 · 사제를 따라오는 8초 성역 · 시전 시 아군 각각 최대 HP 100% 즉시 회복 · 시전 시 범위 내 사망한 아군을 각자 최대 HP 50%로 부활 · 공격력 2200% 피해'},
+ 4:{name:'천상의 심판',type:'attack',cooldown:22.5,range:2100,radius:1250,hits:8,damage:1.25,interval:10,hpRatio:0,heal:.03,description:'8초 성광 폭격 · 범위 내 아군 매초 자신의 최대 HP 3%씩 총 8회 회복 · 범위 내 공격력 5% 증가 · 공격력 1000% 피해'}
 };
 const keys={1:'firstCast',2:'secondCast',3:'thirdCast',4:'fourthCast',5:'fifthCast'},ready={1:'ultimateReady',2:'skillReady',3:'thirdReady',4:'fourthReady',5:'fifthReady'};
 export function beginPriest(a,target,tick,slot){
@@ -32,7 +38,7 @@ export function schedulePriest(a,target,tick,slot){const sk=PRIEST_SKILLS[slot],
 export function stepPriest(a,targets,tick,slot,hit,emit=()=>{}){
  const cast=a[keys[slot]];if(!cast?.holy)return false;const sk=PRIEST_SKILLS[slot];
  while(cast.left&&tick>=cast.next){
-  if(slot>=2)(a.holySupport||=[]).push({slot,x:slot===4?cast.x:a.x,y:slot===4?cast.y:a.y,r:sk.radius,revive:slot===5&&cast.left===sk.hits,amount:a.power.hp*(slot===2?.20:slot===3?.30:slot===5?(cast.left===sk.hits?1:0):.05),at:cast.next});
+  if(slot>=2)(a.holySupport||=[]).push({slot,x:slot===4?cast.x:a.x,y:slot===4?cast.y:a.y,r:sk.radius,revive:slot===5&&cast.left===sk.hits,ratio:slot===3?sk.shield:slot===5?(cast.left===sk.hits?sk.heal:0):sk.heal,cap:slot===3?sk.shieldCap:0,scale:1,amount:a.power.hp*(slot===3?sk.shield:slot===5?(cast.left===sk.hits?sk.heal:0):sk.heal),at:cast.next});
   if(slot===5){cast.x=a.x;cast.y=a.y;}
   for(const target of targets)if(target&&Math.hypot(target.x-cast.x,target.y-cast.y)<=sk.radius){a.holyFlatDamage=a.power.hp*sk.hpRatio;try{hit(sk.damage,0,target,slot);}finally{a.holyFlatDamage=0;}}
   if(slot!==5||cast.left===sk.hits)emit({kind:'priest',slot,classId:'priest',owner:a.id,x:cast.x,y:cast.y,size:sk.radius*2,start:slot===5?cast.start:cast.next-(slot===1?3:0),end:slot===5?cast.start+80:slot>=4?Math.min(cast.start+80,cast.next+12):cast.next+18,follow:slot===5,pulse:sk.hits-cast.left});cast.left--;cast.next+=sk.interval;
@@ -53,12 +59,14 @@ export function supportTick(members,tick,numbers=[],effects=[],serial=()=>0){
    numbers.push({id:serial(),value:m.hp,x:m.x,y:m.y-110,kind:'heal',start:tick,end:tick+9});
    continue;
   }
-  if(p.slot===3){const amount=Math.round(p.amount);m.shield=(m.shield||0)+amount;m.shieldPermanent=true;m.shieldUntil=0;m.shieldOwner=a.id;a.shieldGiven=(a.shieldGiven||0)+amount;continue;}
+  // 회복·보호막량은 받는 아군 자신의 최대 HP 기준(예전 상태 데이터는 amount 그대로).
+  const value=Number.isFinite(p.ratio)?(m.power?.hp||0)*p.ratio*(p.scale??1):p.amount;
+  if(p.slot===3){const current=m.shieldPermanent||tick<(m.shieldUntil||0)?m.shield||0:0,limit=Number.isFinite(p.ratio)&&p.cap?(m.power?.hp||0)*p.cap*(p.scale??1):Infinity,amount=Math.max(0,Math.min(Math.round(value),Math.round(limit-current)));m.shield=current+amount;m.shieldPermanent=true;m.shieldUntil=0;m.shieldOwner=a.id;a.shieldGiven=(a.shieldGiven||0)+amount;continue;}
   // One strongest copy of a ground heal per second; direct prayers may be coordinated.
-  if(p.slot===4){if(m.holyHealTick===Math.floor(p.at/10)&&p.amount<=(m.holyHealAmount||0))continue;const previous=m.holyHealTick===Math.floor(p.at/10)?m.holyHealAmount||0:0;m.holyHealTick=Math.floor(p.at/10);m.holyHealAmount=p.amount;heal(m,p.amount-previous,a);}else heal(m,p.amount,a);
+  if(p.slot===4){if(m.holyHealTick===Math.floor(p.at/10)&&value<=(m.holyHealAmount||0))continue;const previous=m.holyHealTick===Math.floor(p.at/10)?m.holyHealAmount||0:0;m.holyHealTick=Math.floor(p.at/10);m.holyHealAmount=value;heal(m,value-previous,a);}else heal(m,value,a);
   m.purifiedUntil=tick+210;
  }}a.holySupport=[];}
  function heal(m,value,a){const actual=Math.min(m.power.hp-m.hp,Math.max(0,Math.round(value)));m.hp+=actual;a.healing=(a.healing||0)+actual;if(actual)numbers.push({id:serial(),value:actual,x:m.x,y:m.y-110,kind:'heal',start:tick,end:tick+9});}
 }
 export function absorbDamage(a,damage,tick){if(tick<(a.fifthGuardUntil||0))damage*=.8;const shield=a.shieldPermanent||tick<(a.shieldUntil||0)?a.shield||0:0;if(shield>0)damage*=.90;const absorbed=Math.min(shield,damage);a.shield=Math.max(0,shield-absorbed);a.absorbed=(a.absorbed||0)+absorbed;return Math.max(0,damage-absorbed);}
-export function holyDamage(a,damage,tick=a.tick||0){return damage*(tick<(a.holyAttackUntil||0)?1.1:1)+(a.holyFlatDamage||0);}
+export function holyDamage(a,damage,tick=a.tick||0){return damage*(tick<(a.holyAttackUntil||0)?PRIEST_PARTY_ATTACK_BUFF:1)+(a.holyFlatDamage||0);}

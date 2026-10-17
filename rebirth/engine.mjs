@@ -8,7 +8,7 @@ import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.m
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=priest-potential-83';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE} from './priest.mjs?v=fifth-114';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE,PRIEST_ATTACK_RATE} from './priest.mjs?v=fifth-114';
 import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
 import {rollRiftReward} from './rift-rewards.mjs';
@@ -49,6 +49,7 @@ import {
   ATTENDANCE_REWARDS,
   weaponVariant,
   equipmentKey,
+  canEquipClass,
   WEAPON_TYPES,
   MAX_LEVEL,
 } from "./data.mjs?v=unique-boss-25-20261015";
@@ -184,7 +185,6 @@ export function power(s) {
       else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
     }
   }
-  const priestGearAttack=flat;
   primary *= 1 + pct[cl.stat] / 100;
   flat = (flat + primary * 0.65) * (1 + pct.attack / 100);
   hp = Math.floor(hp * (1 + pct.hp / 100));
@@ -196,10 +196,12 @@ export function power(s) {
   const cadence = s.classId === "pirate" ? 1.08 : 1;
   if (s.classId === "warrior") { hp = Math.floor(hp * 1.30); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
+  // 서포터 특성은 1차 전직 이후 적용(1레벨 첫 사냥터 진행 보장).
+  if (s.classId === "priest" && firstJobUnlocked(s)) flat *= PRIEST_ATTACK_RATE;
   // 칭호 보유 효과: 칭호 하나당 치명타 피해 +0.5%p.
   const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length;
   if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
-  if(s.classId==="priest")flat=priestAttack(hp,primary,priestGearAttack*(firstJobUnlocked(s)?1.1**jobStage(s):1),pct.attack,pct.hp,pct.LUK);
+  // 사제 리메이크: 사제도 다른 직업과 같은 공격력 계산식(LUK·공%·크리·보공 100%)을 쓴다.
   const costumeBonus=costumeAttackBonus(s);
   flat *= 1 + costumeBonus / 100;
   const boss=1+pct.boss/100*(s.classId==="priest"?PRIEST_OFFENSE_POTENTIAL_RATE:1);
@@ -237,7 +239,7 @@ export function power(s) {
 // Comparisons use final combat power and retain the current loadout on ties.
 export function bestEquipment(s) {
   const bySlot = Array.from({length:9},()=>[]);
-  for (const it of s.items) if (!it.broken && it.classId===s.classId && it.level<=s.level && int(it.slot,0,8)) bySlot[it.slot].push(it);
+  for (const it of s.items) if (!it.broken && canEquipClass(it,s.classId) && it.level<=s.level && int(it.slot,0,8)) bySlot[it.slot].push(it);
   const current=Array.from({length:9},(_,slot)=>s.items.find(it=>it.id===s.equipped[slot])||null);
   const score=items=>power({...s,items:items.filter(Boolean),equipped:Object.fromEntries(items.flatMap((it,slot)=>it?[[slot,it.id]]:[]))}).combatPower;
   const before=power(s).combatPower;
@@ -795,7 +797,7 @@ function executeCore(input, command, args = {}, ctx) {
       const it = gear(s, args.id);
       check(!it.broken, "ITEM_BROKEN");
       check(
-        it.classId === s.classId && it.level <= s.level,
+        canEquipClass(it, s.classId) && it.level <= s.level,
         "ITEM_REQUIREMENT",
       );
       s.equipped[it.slot] = it.id;

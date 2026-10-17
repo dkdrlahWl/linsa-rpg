@@ -33,7 +33,7 @@ const warrior=actor('warrior');beginFifth(warrior,weak,0);assert.equal(absorbDam
 assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:2400,y:800}),true);assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:-1,y:0}),false);
 const marker={kind:'fifth-field',end:100};assert.ok(boundedCombatEffects([marker,...Array.from({length:100},()=>({kind:'impact',end:100}))],50,40).includes(marker));
 assert.equal(fifthUnlocked({classId:'priest',power:{level:200,advancement:3}}),true);
-const priest=actor('priest');assert.equal(FIFTH_SKILLS.priest.cooldown,30);assert.equal(beginFifth(priest,weak,0),true);assert.equal(priest.fifthReady,300);
+const priest=actor('priest');assert.equal(FIFTH_SKILLS.priest.cooldown,40);assert.equal(beginFifth(priest,weak,0),true);assert.equal(priest.fifthReady,400);
 // All eight bearings share identical totals, 11 waves and the visible line's hit area.
 for(let direction=0;direction<8;direction++){
  const a=actor('warrior'),angle=direction*Math.PI/4,t={id:'aim',x:Math.cos(angle)*1000,y:Math.sin(angle)*1000,hp:1000,maxHp:1000};

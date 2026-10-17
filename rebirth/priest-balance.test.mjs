@@ -1,35 +1,34 @@
 import assert from 'node:assert/strict';
 import {fixture,setLines} from './priest-balance.mjs';
 import {power} from './engine.mjs';
-import {PRIEST_SKILLS,priestAttack,PRIEST_HP_POTENTIAL_ATTACK_RATE} from './priest.mjs';
-assert.equal(PRIEST_HP_POTENTIAL_ATTACK_RATE,.7);
+import {PRIEST_SKILLS,PRIEST_ATTACK_RATE,PRIEST_PARTY_ATTACK_BUFF} from './priest.mjs';
+import {bestBuild} from './class-dps-sim.mjs';
+import {CLASSES} from './data.mjs';
+// Priest remake: same attack formula as other jobs (no HP→attack), x0.87 trait after the first advancement.
+assert.equal(PRIEST_ATTACK_RATE,.87);assert.equal(PRIEST_PARTY_ATTACK_BUFF,1.05);
 const base=power(setLines(fixture('priest'),{}));
-const attack=power(setLines(fixture('priest'),{attack:1}));
-assert.ok(Math.abs(attack.attack/base.attack-1.12)<.0001);
+assert.ok(Math.abs(power(setLines(fixture('priest'),{attack:1})).attack/base.attack-1.12)<1e-4);
 assert.equal(power(setLines(fixture('priest'),{boss:1})).boss,1.4);
 assert.ok(Math.abs(power(setLines(fixture('priest'),{crit:1})).crit-base.crit-.12)<1e-12);
-assert.equal(power(setLines(fixture('priest'),{crit:27})).crit,.95);
-assert.equal(priestAttack(1000,100,100,20),priestAttack(1000,100,100,0)*1.2);
 let comparisons=0;
 for(const level of [10,30,60,100,150,200])for(const stars of [0,15,25]){
- const s=fixture('priest',level,stars),base=power(s);
+ const s=fixture('priest',level,stars),b=power(s);
  for(const value of [3,6,9,12])for(const n of [1,9,27]){
   const hp=structuredClone(s),atk=structuredClone(s);
   for(const [key,state] of [['hp',hp],['attack',atk]])state.items.forEach((item,i)=>{item.lines=Array.from({length:Math.max(0,Math.min(3,n-i*3))},()=>({key,value,grade:5}));});
   const h=power(hp),a=power(atk),percent=n*value/100;
-  assert.ok(Math.abs(h.dps-base.dps*(1+percent*.7))<2,`HP70: ${level}/${stars}/${n}x${value}`);
-  assert.ok(Math.abs(a.dps/base.dps-(1+percent))<1e-10);
-  assert.ok(Math.abs(h.hp-base.hp*(1+percent))<5);
-  assert.ok(h.attack<a.attack);
+  assert.ok(Math.abs(h.dps-b.dps)<1e-6,`HP% must not raise priest damage: ${level}/${stars}/${n}x${value}`);
+  assert.ok(Math.abs(a.dps/b.dps-(1+percent))<1e-10);
+  assert.ok(Math.abs(h.hp-b.hp*(1+percent))<5);
   comparisons++;
  }
- const mixed=structuredClone(s);mixed.items[0].lines=[{key:'hp',value:9,grade:4},{key:'attack',value:9,grade:4}];
- assert.ok(Math.abs(power(mixed).dps-base.dps*1.153)<2);
 }
-const p=setLines(fixture('priest'),{hp:27}),without=structuredClone(p);
-without.items.forEach(i=>i.baseStats.attack=0);
-assert.ok(power(without).attack<power(p).attack);
 assert.ok(power(setLines(fixture('priest'),{LUK:1})).attack>base.attack);
-// Preserve the earlier skill HP damage reduction.
-for(const [slot,ratio] of [[1,.007],[2,.014],[3,.035],[4,.00875],[5,.013125]])assert.equal(PRIEST_SKILLS[slot].hpRatio,ratio);
-console.log(`PASS: ${comparisons} HP70/attack comparisons, mixed potentials, full HP and existing skill damage coefficients`);
+for(const slot of [1,2,3,4,5])assert.equal(PRIEST_SKILLS[slot].hpRatio,0,'no max-HP damage');
+// Damage target: 80~90% of the other jobs' average and below 90% of the weakest job at every stage.
+for(const opts of [{level:30,stars:10},{level:60,stars:12},{level:100,stars:15},{level:150,stars:17},{level:200,stars:20},{level:200,stars:25}]){
+ const rows=CLASSES.map(c=>bestBuild(c.id,opts)),others=rows.filter(r=>r.classId!=='priest'),avg=others.reduce((n,r)=>n+r.dps,0)/others.length,min=Math.min(...others.map(r=>r.dps)),priest=rows.find(r=>r.classId==='priest').dps;
+ assert.ok(priest/avg>=.8&&priest/avg<=.9,`priest/avg ${opts.level}: ${(priest/avg).toFixed(3)}`);
+ assert.ok(priest/min<.9,`priest/weakest ${opts.level}: ${(priest/min).toFixed(3)}`);
+}
+console.log(`PASS: ${comparisons} HP/attack potential comparisons, standard priest formula, no HP damage, 80~90% damage at six stages`);

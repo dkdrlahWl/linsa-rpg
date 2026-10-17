@@ -10,9 +10,9 @@ export function weaponVariant(item) {
 }
 export const equipmentTierLevel = item => Math.max(10,Math.floor(Math.min(200,item.level)/10)*10);
 export function canonicalDesign(item){return item.boss?2:Math.abs(Number.isInteger(item.design)?item.design:weaponVariant(item))%2;}
-export function normalizeEquipment(item){if(!item||!item.classId)return item;item.design=canonicalDesign(item);item.weaponVariant=item.slot===0?item.design:0;item.catalogVersion=5;return item;}
-export function equipmentKey(item){return ['v5',equipmentTierLevel(item),item.classId,item.slot,canonicalDesign(item)].join(':');}
-export function equipmentFromKey(key){const p=key.split(':');if(p[0]==='v5')return designItem(+p[1],p[2],+p[3],+p[4]===2,+p[4]);if(p[0]==='v3')return designItem(+p[1],p[2],+p[3],p[4]==='true',+p[5]);return designItem(+p[0],p[1],+p[2],p[3]==='true',+p[4]||0);}
+export function normalizeEquipment(item){if(!item||!item.classId)return item;item.design=canonicalDesign(item);item.weaponVariant=item.slot===0?item.design:0;item.catalogVersion=5;if(isTieredBossGear(item)){if(Number.isInteger(item.bossTier))item.bossTier=bossTier(item);}else delete item.bossTier;return item;}
+export function equipmentKey(item){if(isTieredBossGear(item))return ['v5',equipmentTierLevel(item),isCommonBossGear(item)?'common':item.classId,item.slot,2,'t'+bossTier(item)].join(':');return ['v5',equipmentTierLevel(item),item.classId,item.slot,canonicalDesign(item)].join(':');}
+export function equipmentFromKey(key){const p=key.split(':');if(p[0]==='v5')return designItem(+p[1],p[2]==='common'?'warrior':p[2],+p[3],+p[4]===2,+p[4],p[5]?.startsWith('t')?+p[5].slice(1):undefined);if(p[0]==='v3')return designItem(+p[1],p[2],+p[3],p[4]==='true',+p[5]);return designItem(+p[0],p[1],+p[2],p[3]==='true',+p[4]||0);}
 export function equipmentType(item) {
   return item.slot === 0 ? WEAPON_TYPES[item.classId]?.[weaponVariant(item)] || "무기" : ["무기","투구","갑옷","바지","장갑","신발","반지","귀걸이","펜던트"][item.slot];
 }
@@ -42,13 +42,37 @@ const EPITHETS=["척후병의","수호자의","방랑기사의","정복자의","
 const PATTERNS=[[0,0,2,1,2,1],[1,1,0,2,0,2],[2,0,2,1,0,1]];
 export const designCount=(level,classId,slot,boss=false)=>boss?1:2;
 export const designWeights=count=>count===1?[100]:[50,50];
-export function designItem(level,classId,slot,boss,design=0){return normalizeEquipment({level:Math.max(10,Math.floor(Math.min(200,level)/10)*10),classId,slot,boss,design});}
+export function designItem(level,classId,slot,boss,design=0,tier){const item={level:Math.max(10,Math.floor(Math.min(200,level)/10)*10),classId,slot,boss,design};if(Number.isInteger(tier))item.bossTier=tier;return normalizeEquipment(item);}
+// 200레벨 이상 보스장비: 무기는 직업별 5등급, 나머지 8부위는 전 직업 공통 3등급(낮음·중간·높음).
+export const TIERED_BOSS_LEVEL=200;
+export const BOSS_WEAPON_TIER_NAMES=["최하","낮음","중간","높음","최상"];
+export const BOSS_ARMOR_TIER_NAMES=["낮음","중간","높음"];
+export const BOSS_WEAPON_TIER_WEIGHTS=[45,27,16,9,3];
+export const BOSS_ARMOR_TIER_WEIGHTS=[60,30,10];
+export const isTieredBossGear=item=>!!item?.boss&&Number(item.level)>=TIERED_BOSS_LEVEL;
+export const isCommonBossGear=item=>isTieredBossGear(item)&&Number(item.slot)!==0;
+export const bossTierCount=item=>Number(item?.slot)===0?5:3;
+export const bossTier=item=>Math.max(0,Math.min(bossTierCount(item)-1,Number.isInteger(item?.bossTier)?item.bossTier:0));
+export const bossTierName=item=>(Number(item?.slot)===0?BOSS_WEAPON_TIER_NAMES:BOSS_ARMOR_TIER_NAMES)[bossTier(item)];
+export function rollBossTier(item,random=Math.random){const weights=Number(item.slot)===0?BOSS_WEAPON_TIER_WEIGHTS:BOSS_ARMOR_TIER_WEIGHTS,total=weights.reduce((a,b)=>a+b,0);let r=random()*total;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<0)return i;}return weights.length-1;}
+// 공통 장비는 어느 직업이든 착용할 수 있다. 무기는 기존처럼 직업 전용.
+export const canEquipClass=(item,classId)=>!!item&&(isCommonBossGear(item)||item.classId===classId);
 export function selectDesign(level,classId,slot,boss,random=Math.random){return designItem(level,classId,slot,boss,boss?2:Math.min(1,Math.floor(random()*2)));}
 function atlasIdentity(item){if(item.classId==='priest'){const level=equipmentTierLevel(item),design=canonicalDesign(item),tier=level/10-1,nouns=["성향로","성서","홀"],prefixes=["수련","순례","달빛","수림","수정","성당","여명","불꽃","진혼","왕실","설원","빙하","사막","태양","천공","성좌","시간","균열","심연","대천사"],styles=["기도의","축복의","심판의"];return {key:equipmentKey(item),name:prefixes[tier]+" "+styles[design]+" "+(item.slot===0?nouns[design]:NOUNS.priest[item.slot+2]),art:`equipment/priest-${level}.webp`,grid:true,columns:9,rows:3,column:item.slot,row:design,type:equipmentType(item)};}const level=equipmentTierLevel(item),design=canonicalDesign(item),column=item.slot===0?design:item.slot+2;const art=legacyIdentity({...item,level,design:undefined,weaponVariant:item.slot===0?design:0});return {...art,key:equipmentKey(item),name:level+'레벨 '+(item.boss?'토벌자의 ':design===0?'개척자의 ':'수호자의 ')+NOUNS[item.classId][column],row:level===200&&!item.boss?art.row:(Math.floor((level-10)/20)+(design===1?5:0)+column*3)%art.rows,type:equipmentType({...item,weaponVariant:design})};}
 // Missing or empty isolated exports use their original atlas artwork until repaired.
 const ORIGINAL_ART_FALLBACK = new Set(["archer-boss-alpha-v3-c2-r7.svg","archer-boss-alpha-v3-c6-r4.svg","archer-boss-alpha-v3-c7-r6.svg","archer-boss-alpha-v3-c8-r5.svg","archer-normal-c0-r0.svg","archer-normal-c10-r3.svg","archer-normal-c5-r3.svg","archer-normal-c6-r0.svg","archer-normal-c6-r2.svg","archer-normal-c6-r6.svg","archer-normal-c8-r4.svg","mage-boss-alpha-v3-c2-r2.svg","mage-boss-alpha-v3-c5-r9.svg","mage-boss-alpha-v3-c6-r2.svg","mage-boss-alpha-v3-c6-r8.svg","mage-boss-alpha-v3-c8-r0.svg","mage-normal-c0-r0.svg","mage-normal-c0-r3.svg","mage-normal-c10-r3.svg","mage-normal-c10-r5.svg","mage-normal-c10-r9.svg","mage-normal-c5-r6.svg","mage-normal-c5-r7.svg","pirate-boss-c10-r1.svg","pirate-boss-c10-r3.svg","pirate-boss-c4-r8.svg","pirate-boss-c6-r8.svg","pirate-normal-c10-r2.svg","pirate-normal-c4-r4.svg","pirate-normal-c4-r7.svg","pirate-normal-c8-r5.svg","priest-10-c6-r2.svg","priest-100-c5-r1.svg","priest-100-c6-r0.svg","priest-120-c7-r1.svg","priest-130-c1-r1.svg","priest-130-c7-r1.svg","priest-140-c8-r1.svg","priest-20-c2-r0.svg","priest-40-c8-r0.svg","priest-50-c4-r2.svg","priest-50-c6-r2.svg","priest-90-c2-r1.svg","rogue-boss-c6-r0.svg","rogue-boss-c8-r8.svg","rogue-normal-c1-r2.svg","rogue-normal-c1-r5.svg","rogue-normal-c10-r8.svg","rogue-normal-c11-r1.svg","rogue-normal-c11-r7.svg","rogue-normal-c3-r0.svg","rogue-normal-c8-r9.svg","rogue-normal-c9-r9.svg","warrior-boss-alpha-v3-c10-r4.svg","warrior-boss-alpha-v3-c10-r5.svg","warrior-boss-alpha-v3-c2-r7.svg","warrior-boss-alpha-v3-c4-r9.svg","warrior-boss-alpha-v3-c6-r1.svg","warrior-boss-alpha-v3-c7-r4.svg","warrior-boss-alpha-v3-c8-r5.svg","warrior-normal-alpha-v3-c0-r3.svg","warrior-normal-alpha-v3-c1-r2.svg","warrior-normal-alpha-v3-c3-r2.svg","warrior-normal-alpha-v3-c4-r5.svg","warrior-normal-alpha-v3-c0-r8.svg","warrior-normal-alpha-v3-c1-r6.svg","warrior-normal-alpha-v3-c0-r9.svg","warrior-normal-alpha-v3-c1-r7.svg","dawn-200-alpha-v3-c0-r4.svg","dawn-200-alpha-v3-c1-r2.svg","dawn-200-alpha-v3-c3-r3.svg","dawn-200-alpha-v3-c4-r1.svg","dawn-200-alpha-v3-c5-r4.svg","dawn-200-alpha-v3-c6-r2.svg","dawn-200-alpha-v3-c7-r0.svg","dawn-200-alpha-v3-c8-r3.svg","dawn-200-alpha-v3-c9-r1.svg","dawn-200-alpha-v3-c10-r4.svg","mage-normal-c0-r8.svg","mage-normal-c1-r6.svg","mage-normal-c0-r9.svg","mage-normal-c1-r7.svg","archer-normal-c0-r8.svg","archer-normal-c1-r6.svg","archer-normal-c0-r9.svg","archer-normal-c1-r7.svg","rogue-normal-c0-r8.svg","rogue-normal-c1-r6.svg","rogue-normal-c0-r9.svg","rogue-normal-c1-r7.svg","pirate-normal-c0-r8.svg","pirate-normal-c1-r6.svg","pirate-normal-c0-r9.svg","pirate-normal-c1-r7.svg","priest-160-c0-r0.svg","priest-160-c0-r1.svg","priest-160-c1-r0.svg","priest-160-c1-r1.svg","priest-160-c2-r0.svg","priest-160-c2-r1.svg","priest-160-c3-r0.svg","priest-160-c3-r1.svg","priest-160-c4-r0.svg","priest-160-c4-r1.svg","priest-160-c5-r0.svg","priest-160-c5-r1.svg","priest-160-c6-r0.svg","priest-160-c6-r1.svg","priest-160-c7-r0.svg","priest-160-c7-r1.svg","priest-160-c8-r0.svg","priest-160-c8-r1.svg","priest-170-c0-r0.svg","priest-170-c0-r1.svg","priest-170-c1-r0.svg","priest-170-c1-r1.svg","priest-170-c2-r0.svg","priest-170-c2-r1.svg","priest-170-c3-r0.svg","priest-170-c3-r1.svg","priest-170-c4-r0.svg","priest-170-c4-r1.svg","priest-170-c5-r0.svg","priest-170-c5-r1.svg","priest-170-c6-r0.svg","priest-170-c6-r1.svg","priest-170-c7-r0.svg","priest-170-c7-r1.svg","priest-170-c8-r0.svg","priest-170-c8-r1.svg","priest-180-c0-r0.svg","priest-180-c0-r1.svg","priest-180-c1-r0.svg","priest-180-c1-r1.svg","priest-180-c2-r0.svg","priest-180-c2-r1.svg","priest-180-c3-r0.svg","priest-180-c3-r1.svg","priest-180-c4-r0.svg","priest-180-c4-r1.svg","priest-180-c5-r0.svg","priest-180-c5-r1.svg","priest-180-c6-r0.svg","priest-180-c6-r1.svg","priest-180-c7-r0.svg","priest-180-c7-r1.svg","priest-180-c8-r0.svg","priest-180-c8-r1.svg","priest-190-c0-r0.svg","priest-190-c0-r1.svg","priest-190-c1-r0.svg","priest-190-c1-r1.svg","priest-190-c2-r0.svg","priest-190-c2-r1.svg","priest-190-c3-r0.svg","priest-190-c3-r1.svg","priest-190-c4-r0.svg","priest-190-c4-r1.svg","priest-190-c5-r0.svg","priest-190-c5-r1.svg","priest-190-c6-r0.svg","priest-190-c6-r1.svg","priest-190-c7-r0.svg","priest-190-c7-r1.svg","priest-190-c8-r0.svg","priest-190-c8-r1.svg","priest-200-c0-r0.svg","priest-200-c0-r1.svg","priest-200-c1-r0.svg","priest-200-c1-r1.svg","priest-200-c2-r0.svg","priest-200-c2-r1.svg","priest-200-c3-r0.svg","priest-200-c3-r1.svg","priest-200-c4-r0.svg","priest-200-c4-r1.svg","priest-200-c5-r0.svg","priest-200-c5-r1.svg","priest-200-c6-r0.svg","priest-200-c6-r1.svg","priest-200-c7-r0.svg","priest-200-c7-r1.svg","priest-200-c8-r0.svg","priest-200-c8-r1.svg"]);
 // Every equipment identity resolves to a single padded image. No atlas is rendered in UI.
+const TIER_WEAPON_PREFIX=["균열","성흔","심연","천멸","종언"];
+const TIER_ARMOR_PREFIX=["잔광의","황혼의","종언의"];
+const COMMON_ARMOR_NOUNS=["","투구","흉갑","각반","건틀릿","장화","반지","귀걸이","펜던트"];
+function tieredIdentity(item){
+  const tier=bossTier(item),common=isCommonBossGear(item),type=equipmentType(item);
+  const name=common?TIER_ARMOR_PREFIX[tier]+' '+COMMON_ARMOR_NOUNS[item.slot]:TIER_WEAPON_PREFIX[tier]+'의 '+type;
+  const art=common?`equipment/reforged/200-common-t${tier}-${item.slot}.svg`:`equipment/reforged/200-t${tier}-${item.classId}-0.svg`;
+  return {key:equipmentKey(item),name,art,type,tier,tierName:bossTierName(item),common,standalone:true,grid:false,column:0,row:0,columns:1,rows:1};
+}
 export function designIdentity(item) {
+  if (isTieredBossGear(item)) return tieredIdentity(item);
   const identity = atlasIdentity(item), level = equipmentTierLevel(item);
   const design = canonicalDesign(item);
   const art = item.boss && level >= 160
@@ -60,4 +84,7 @@ export function designIdentity(item) {
   return {...identity, art, standalone:true, grid:false, column:0, row:0, columns:1, rows:1};
 }
 export const equipmentIdentity=designIdentity;
-export const EQUIPMENT_CATALOG=CLASSES.flatMap(classId=>LEVELS.flatMap(level=>Array.from({length:9},(_,slot)=>Array.from({length:3},(_,design)=>designItem(level,classId,slot,design===2,design))).flat()));
+export const EQUIPMENT_CATALOG=[
+  ...CLASSES.flatMap(classId=>LEVELS.flatMap(level=>Array.from({length:9},(_,slot)=>Array.from({length:3},(_,design)=>design===2&&level>=TIERED_BOSS_LEVEL?(slot===0?Array.from({length:5},(_,tier)=>designItem(level,classId,0,true,2,tier)):[]):[designItem(level,classId,slot,design===2,design)]).flat()).flat())),
+  ...Array.from({length:8},(_,i)=>Array.from({length:3},(_,tier)=>designItem(TIERED_BOSS_LEVEL,CLASSES[0],i+1,true,2,tier))).flat(),
+];

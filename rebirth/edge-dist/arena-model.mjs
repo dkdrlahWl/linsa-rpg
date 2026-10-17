@@ -65,7 +65,7 @@ export function buildBot(meta){
    item.id=`arena-${id}-${slot}`;item.stars=spec.stars;item.grade=spec.grade;item.potentialUnlocked=true;
    item.baseStats=rollBaseStats(item,()=>.52);
    const count=Math.floor(spec.attackLines/9)+(slot<spec.attackLines%9?1:0);
-   item.lines=Array.from({length:count},()=>({key:classId==='priest'?'hp':'attack',value:spec.grade>=5?12:spec.grade>=4?10:5,grade:spec.grade}));
+   item.lines=Array.from({length:count},()=>({key:'attack',value:spec.grade>=5?12:spec.grade>=4?10:5,grade:spec.grade}));
    return item;
  });
  const stats={STR:4,DEX:4,INT:4,LUK:4};stats[primary]+=5*(level-1);
