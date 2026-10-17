@@ -1,5 +1,12 @@
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id: 'weekend-20261017-fragment-5000',
+  title: '주말 보상',
+  sender: '링구 RPG 운영팀',
+  message: '즐거운 주말 보내세요! 장비 파편 5,000개를 보내드립니다.',
+  sentAt: '2026-10-17T04:03:29.254Z',
+  rewards: { fragment: 5000 },
+}, {
   id: 'play-thanks-2026-09-28',
   title: '플레이 감사 보상',
   sender: '링구 RPG 운영팀',
