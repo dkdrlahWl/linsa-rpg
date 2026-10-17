@@ -902,7 +902,7 @@ function executeCore(input, command, args = {}, ctx) {
     case "potential": {
       const it=gear(s,args.id);writable(s,it);check(!it.lines.length,"POTENTIAL_ALREADY_OPEN");
       check(!s.pendingCube,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
-      const chance=it.level>=200?.3:1,success=chance===1||ctx.random()<chance;
+      const chance=it.level>=200?(it.boss?.2:.3):1,success=chance===1||ctx.random()<chance;
       if(success){it.potentialUnlocked=true;it.potentialVersion=5;fillPotentialLines(it,ctx.random);}
       events.push({type:"potential",id:it.id,success,chance});break;
     }
