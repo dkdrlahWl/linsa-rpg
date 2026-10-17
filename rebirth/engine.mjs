@@ -640,7 +640,7 @@ function executeCore(input, command, args = {}, ctx) {
     case "petSummon": {throw Error("FISHING_SUMMON_REMOVED");}
     case "petEquip": {equipPet(s,args.id);break;}
     case "exchangeGear": {
-      check(int(args.level,10,180)&&args.level%10===0,"INVALID_GEAR_LEVEL");
+      check(int(args.level,10,190)&&args.level%10===0,"INVALID_GEAR_LEVEL");
       check(CLASSES.some(c=>c.id===args.classId),"INVALID_CLASS");
       spend(s,"fragment",args.level);
       // 1%: boss gear of the selected level; random class, random slot with weapons at half weight.

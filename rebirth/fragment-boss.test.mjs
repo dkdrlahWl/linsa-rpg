@@ -8,10 +8,10 @@ function seq(seed){let x=seed>>>0;return ()=>((x=(Math.imul(x,1664525)+101390422
 const random=seq(7),now=Date.UTC(2026,9,11,3);
 let s=initialState('warrior','검증용',{now,random,uuid});
 s.materials.fragment=1e9;s.hunting=false;
-const levels=Array.from({length:18},(_,i)=>(i+1)*10);
+const levels=Array.from({length:19},(_,i)=>(i+1)*10);
 let boss=0,total=0;const cls=new Map(),slots=new Map(),seen=new Set();
 for(let i=0;i<60000;i++){
- const level=levels[i%18];
+ const level=levels[i%levels.length];
  if(s.items.length>250){s.items=s.items.filter(it=>Object.values(s.equipped).includes(it.id));s.mailbox=[];}
  const r=execute(s,'exchangeGear',{level,classId:'mage'},{now,random,uuid});s=r.state;
  const e=r.events.find(x=>x.type==='exchangeGear');total++;
