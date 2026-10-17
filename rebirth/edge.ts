@@ -1,3 +1,4 @@
+import {rankingProfile} from './ranking-profile.mjs';
 import {isCitadel} from './citadel-zero.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
@@ -96,6 +97,15 @@ Deno.serve(async (req) => {
       });
       if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
       user=await auth.json();
+    }
+    if(body.command==='rankingProfile'){
+      const id=body.args.id;
+      if(typeof id!=='string'||!/^[0-9a-f-]{36}$/i.test(id))throw new Error('INVALID_PROFILE');
+      const rows=await rpc('rebirth_rankings',{});
+      const row=rows.find((r:any)=>r.id===id);
+      if(!row)throw new Error('PROFILE_UNAVAILABLE');
+      const target=await rpc('rebirth_arena_opponent_snapshot',{p_user:id},true);
+      return reply({profile:rankingProfile(target,row)});
     }
     if(['investList','investBuy','investSell'].includes(body.command)){
       return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
