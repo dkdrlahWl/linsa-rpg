@@ -263,6 +263,8 @@ export function xpNeeded(level) {
 }
 // 200레벨 보스장비 확장 폭: 기존 최소값은 그대로, 최대값은 기존 최대값의 130%.
 export const TIERED_BOSS_MAX_SCALE=1.3;
+// 200레벨 공통 방어구 공격력: 기존 최소값 유지, 최대값은 화면 표기 기준 1,200 (3세트 균등 분할)
+export const TIERED_BOSS_ARMOR_ATTACK_MAX=1200;
 export function gearStatRanges(item) {
  const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
  const low=Number.isInteger(item.design)?(item.boss?2.8+item.design*.45:.75+item.design*.3):(item.boss?2:.85),high=Number.isInteger(item.design)?low+.16:(item.boss?2.5:1.4);
@@ -271,7 +273,7 @@ export function gearStatRanges(item) {
  // 등급별 구간은 겹치지 않는다: [기존 최소, 기존 최대×1.3]을 등급 수만큼 나눈다.
  const tiers=bossTierCount(item),tier=bossTier(item);
  return Object.fromEntries(Object.entries(ranges).map(([key,r])=>{
-  const top=Math.ceil(r.max*TIERED_BOSS_MAX_SCALE),width=(top-r.min+1)/tiers;
+  const top=item.slot!==0&&key==='attack'?Math.ceil(TIERED_BOSS_ARMOR_ATTACK_MAX/gearStatMultiplier(item)):Math.ceil(r.max*TIERED_BOSS_MAX_SCALE),width=(top-r.min+1)/tiers;
   return [key,{min:r.min+Math.floor(tier*width),max:tier===tiers-1?top:r.min+Math.floor((tier+1)*width)-1}];
  }));
 }

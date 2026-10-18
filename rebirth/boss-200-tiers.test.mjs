@@ -9,7 +9,8 @@ for(const slot of [0,1,2,3,4,5,6,7,8]){
  const tiers=Array.from({length:count},(_,t)=>D.gearStatRanges(D.designItem(200,'mage',slot,true,2,t)));
  for(const key of Object.keys(old)){
   assert.equal(tiers[0][key].min,old[key].min,'lowest tier keeps the old minimum');
-  assert.equal(tiers.at(-1)[key].max,Math.ceil(old[key].max*1.3),'highest tier max = old max x1.3');
+  if(slot!==0&&key==='attack')assert.equal(Math.floor(tiers.at(-1)[key].max*D.gearStatMultiplier(D.designItem(200,'mage',slot,true,2,2))),1200,'common armor attack top shows 1,200');
+  else assert.equal(tiers.at(-1)[key].max,Math.ceil(old[key].max*1.3),'highest tier max = old max x1.3');
   for(let t=1;t<count;t++){assert.equal(tiers[t][key].min,tiers[t-1][key].max+1,'tiers are contiguous and never overlap');assert.ok(tiers[t][key].max>tiers[t][key].min);}
   assert.ok(old[key].max<=tiers[0][key].max,'pre-remake rolls stay inside the lowest tier');
  }
