@@ -28,7 +28,7 @@ for(const [i,cls] of ids.entries()){
  const replay=actor(cls);beginFifth(replay,target,0);const cloned=JSON.parse(JSON.stringify(replay));let s1=0,s2=0;for(let t=0;t<100;t++){stepFifth(replay,[target],t,s=>s1+=s);stepFifth(cloned,[target],t,s=>s2+=s);}assert.equal(s1,s2);
 }
 const rogue=actor('rogue'),weak={id:'weak',x:100,y:0,hp:300,maxHp:1000};beginFifth(rogue,weak,0);let finish=0;stepFifth(rogue,[weak],100,s=>finish+=s);assert.ok(Math.abs(finish-24)<1e-9);
-const archer=actor('archer'),targets=[weak,{...weak,id:'other'}];beginFifth(archer,weak,0);let arrows=0;stepFifth(archer,targets,100,()=>arrows++);assert.equal(arrows,20,'no multiplied homing volleys');
+const archer=actor('archer'),targets=[weak,{...weak,id:'other'}];beginFifth(archer,weak,0);let arrows=0;stepFifth(archer,targets,100,()=>arrows++);assert.equal(arrows,40,'twenty area hits per target');
 const warrior=actor('warrior');beginFifth(warrior,weak,0);assert.equal(absorbDamage(warrior,1000,49),800);assert.equal(absorbDamage(warrior,1000,50),1000);
 assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:2400,y:800}),true);assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:-1,y:0}),false);
 const marker={kind:'fifth-field',end:100};assert.ok(boundedCombatEffects([marker,...Array.from({length:100},()=>({kind:'impact',end:100}))],50,40).includes(marker));

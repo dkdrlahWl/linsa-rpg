@@ -6,7 +6,7 @@ export const FIFTH_SKILLS={
  priest:PRIEST_SKILLS[5],
  warrior:{...make('천검 개벽','line',1300,[pulse(10,9),...Array.from({length:11},(_,i)=>pulse(28+i*6,15/11,i===10))],'내려찍기 900% + 몬스터 방향 검기 11개 · 0.6초 간격(합계 1500%) · 총 2400% · 5초간 본인 받는 피해 20% 감소'),length:2400,width:1600},
  mage:make('초신성 붕괴','area',1350,[...Array.from({length:10},(_,i)=>pulse(10+i*5,1)),pulse(70,16,true)],'고정 마법진 · 폭발 100% × 10 + 초신성 1600% · 총 2600%'),
- archer:make('천궁의 추적자','homing',1300,Array.from({length:20},(_,i)=>pulse(8+i*2,1.1,i===19)),'추적 화살 110% × 20 · 총 2200% · 화살별 단일 대상'),
+ archer:make('천궁의 유성우','area',1300,Array.from({length:20},(_,i)=>pulse(8+i*2,1.1,i===19)),'고정 범위 별빛 화살비 · 110% × 20 · 대상당 총 2200% · 반경 1300'),
  rogue:{...make('월영 처형','tracking',2100,[...Array.from({length:16},(_,i)=>pulse(8+i*2,.85)),pulse(44,8.4,true)],'자동 추적 분신 85% × 16 + 일격 840% · 총 2200% · 추적 거리 4400 / 타격 반경 2100 · 적 HP 30% 이하에서 마지막 일격 1040% / 총 2400%'),range:4400},
  pirate:make('유령함대 출격','self',1400,Array.from({length:20},(_,i)=>pulse(4+i*4,1.25,i===19)),'자신 중심 회전 난사 · 8초간 0.4초마다 125% × 20 · 총 2500% · 반경 1400'),
 };

@@ -1,12 +1,12 @@
-import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside,CITADEL_CHEST_RANGE} from './citadel-zero.mjs?v=pirate-storm-20261018';
-import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon,bodySight,unstickBoss,BOSS_BODY} from './exploration-dungeon.mjs?v=pirate-storm-20261018';
-import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=pirate-storm-20261018';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=pirate-storm-20261018';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=pirate-storm-20261018';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=pirate-storm-20261018';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=pirate-storm-20261018';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=pirate-storm-20261018';
-import {incomingDamage} from './journey-balance.mjs?v=pirate-storm-20261018';
+import {isCitadel,citadelDamageFactor,citadelBossTick,citadelAfterDamage,hazardInside,CITADEL_CHEST_RANGE} from './citadel-zero.mjs?v=archer-meteor-20261018';
+import {dungeonMove,dungeonSight,dungeonRoute,revealDungeon,bodySight,unstickBoss,BOSS_BODY} from './exploration-dungeon.mjs?v=archer-meteor-20261018';
+import {initializeExploration,explorationProgress,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=archer-meteor-20261018';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=archer-meteor-20261018';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=archer-meteor-20261018';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=archer-meteor-20261018';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=archer-meteor-20261018';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=archer-meteor-20261018';
+import {incomingDamage} from './journey-balance.mjs?v=archer-meteor-20261018';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

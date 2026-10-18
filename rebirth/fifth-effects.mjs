@@ -5,7 +5,7 @@ const clamp=n=>Math.max(0,Math.min(1,n));
 const smooth=n=>{n=clamp(n);return n*n*(3-2*n);};
 const out=n=>1-(1-clamp(n))**3;
 const mix=(a,b,t)=>a+(b-a)*t;
-export const fifthAsset=cls=>cls==='pirate'?'tower/fifth-pirate-storm-v2.webp':'tower/fifth-'+cls+'-v1.webp';
+export const fifthAsset=cls=>cls==='archer'?'tower/fifth-archer-meteor-v2.webp':cls==='pirate'?'tower/fifth-pirate-storm-v2.webp':'tower/fifth-'+cls+'-v1.webp';
 // All raster work happens at load time. Animation uses cached images and paths.
 export async function prepareFifthArt(classes,image){
  await Promise.all([...new Set(classes)].filter(c=>colors[c]).map(async cls=>{
@@ -15,7 +15,12 @@ export async function prepareFifthArt(classes,image){
   for(let cell=0;cell<4;cell++){
    const canvas=document.createElement('canvas');canvas.width=canvas.height=384;
    const g=canvas.getContext('2d',{willReadFrequently:true});
-   g.drawImage(im,cell%2*im.width/2,Math.floor(cell/2)*im.height/2,im.width/2,im.height/2,0,0,384,384);
+   if(cls==='archer'){
+    // Authored atlas has a wider bow cell; preserve each asset's aspect ratio.
+    const rects=[[0,0,.62,.5],[.65,0,.25,.5],[0,.5,.49,.5],[.49,.5,.51,.5]],r=rects[cell];
+    const sw=r[2]*im.width,sh=r[3]*im.height,k=Math.min(384/sw,384/sh);
+    g.drawImage(im,r[0]*im.width,r[1]*im.height,sw,sh,(384-sw*k)/2,(384-sh*k)/2,sw*k,sh*k);
+   }else g.drawImage(im,cell%2*im.width/2,Math.floor(cell/2)*im.height/2,im.width/2,im.height/2,0,0,384,384);
    const d=g.getImageData(0,0,384,384).data;let l=383,t=383,r=0,b=0;
    for(let y=0;y<384;y++)for(let x=0;x<384;x++)if(d[(y*384+x)*4+3]>12){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
    frames.push({im:canvas,x:l,y:t,w:Math.max(1,r-l+1),h:Math.max(1,b-t+1)});
@@ -113,6 +118,9 @@ export function drawFifthGround(g,e,time,opacity=1){
  }else{
   g.fillStyle=color;g.globalAlpha*=.028;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
   g.globalAlpha=fade*opacity*.65;g.strokeStyle=color;g.lineWidth=4;g.stroke();
+  if(e.classId==='archer'){
+   sprite(g,'archer',2,0,0,r*1.94,r*1.94,0,.18);
+  }
   if(e.classId==='mage'){
    sprite(g,e.classId,0,0,0,r*1.96,r*1.96,(time-e.start)*.009,.8);
    const seal=seals.get(e.classId);if(seal){g.save();g.rotate(-(time-e.start)*.006);g.globalAlpha=fade*opacity*.6;g.drawImage(seal,-r*.62,-r*.62,r*1.24,r*1.24);g.restore();}
@@ -138,10 +146,11 @@ function field(g,e,time){
    g.globalAlpha=ambientOpacity*charge*Math.sin(phase*Math.PI)*.55;g.beginPath();g.moveTo(px,py);g.lineTo(px+Math.cos(a+phase*2)*16,py+Math.sin(a+phase*2)*12);g.stroke();
   }g.restore();
  }else if(e.classId==='archer'){
-  // The bow art aims toward -X; turn it to the live target every frame (not the cast-start side).
-  const aim=Math.atan2(e.y-95-(e.fromY-125),e.x-e.fromX),charge=smooth(t/7),end=smooth((e.end-time)/5),bx=e.fromX+Math.cos(aim)*60,by=e.fromY-125+Math.sin(aim)*40;
-  glow(g,e.classId,bx,by,220,charge*end*.4);
-  const f=atlases.get(e.classId)?.[0];if(f){const [dw,dh]=dimensions(e.classId,0,215,300);g.save();g.translate(bx,by);if(Math.cos(aim)>=0){g.rotate(aim);g.scale(-1,1);}else{g.rotate(aim-Math.PI);}g.globalAlpha*=clamp(charge*end*.92);g.drawImage(f.im,f.x,f.y,f.w,f.h,-dw/2,-dh/2,dw,dh);g.restore();}
+  const charge=smooth(t/7),release=1-smooth((t-44)/8),x=e.x,y=e.y-e.radius*.48;
+  g.save();g.beginPath();g.arc(e.x,e.y,e.radius,0,TAU);g.clip();
+  glow(g,'archer',x,y,e.radius*.65,charge*release*.22);
+  sprite(g,'archer',0,x,y+Math.sin(t*.15)*8,e.radius*1.05,e.radius*.7,0,charge*release*.95);
+  g.restore();
  }else if(e.classId==='rogue'&&t<8){sprite(g,e.classId,1,e.fromX,e.fromY-110,170,210,0,Math.sin(clamp(t/8)*Math.PI));
  }else if(e.classId==='pirate'){
   const spin=t*.11,diameter=e.radius*2;
@@ -211,6 +220,31 @@ function projectileImpact(g,e,time){
  glow(g,e.classId,e.x,y,size*1.2,fade*.65);sprite(g,e.classId,3,e.x,y-(ship?45:0),size*(.65+grow*.35),size*(.65+grow*.35),0,fade*(ship?.72:.68));sparks(g,e,e.x,y,age,ship&&e.final);
  if(ship)ring(g,e.classId,e.x,e.y,35+grow*(e.final?700:240),fade*.7,e.final?9:5);
 }
+// Deterministic landings remain inside the fixed damage circle for every pulse.
+export function meteorLanding(e,index=e.pulse||0){
+ const angle=index*2.399963229728653,r=e.radius*.68*Math.sqrt(((index*7)%20+.5)/20);
+ return {x:e.x+Math.cos(angle)*r,y:e.y+Math.sin(angle)*r};
+}
+export function meteorFlight(e,time){
+ const landing=meteorLanding(e),progress=clamp((time-e.start)/Math.max(1,e.impact-e.start));
+ return {...landing,y:landing.y-(1-progress**1.35)*e.radius*.85,progress,landing};
+}
+function meteor(g,e,time){
+ const age=time-e.impact,r=e.radius,landing=meteorLanding(e);
+ g.save();g.beginPath();g.arc(e.x,e.y,r,0,TAU);g.clip();
+ if(age<0){
+  const f=meteorFlight(e,time),height=r*.5,width=r*.15;
+  sprite(g,'archer',1,f.x,f.y-height/2,width,height,0,smooth(f.progress*4));
+ }else{
+  const fade=1-smooth(age/7),growth=out(age/4),diameter=r*2;
+  // Full-radius raster pulse makes every area hit visible, without adding damage.
+  sprite(g,'archer',e.final?3:2,e.x,e.y,diameter,diameter,0,fade*(e.final?.7:.2));
+  const local=r*(.12+growth*.3);
+  sprite(g,'archer',2,landing.x,landing.y,local,local,0,fade*.85);
+  glow(g,'archer',landing.x,landing.y,r*.22,fade*.35);
+ }
+ g.restore();
+}
 function pirateStormPulse(g,e,time){
  const age=time-e.impact;if(age<0)return;
  const fade=(1-clamp(age/4))**2,spin=e.pulse*.7;
@@ -222,7 +256,7 @@ function pirateStormPulse(g,e,time){
 export function drawFifth(g,e,time,opacity=1){
  if(time<e.start||time>=e.end||!colors[e.classId])return;
  g.save();g.globalAlpha=e.classId==='rogue'&&opacity>=.6?Math.min(1,opacity*1.3):opacity;
- if(e.kind==='fifth-field')field(g,e,time);else if(e.classId==='warrior')warrior(g,e,time);else if(e.classId==='mage')mage(g,e,time);else if(e.classId==='rogue')rogue(g,e,time);else if(e.classId==='pirate')pirateStormPulse(g,e,time);else projectileImpact(g,e,time);
+ if(e.kind==='fifth-field')field(g,e,time);else if(e.classId==='warrior')warrior(g,e,time);else if(e.classId==='mage')mage(g,e,time);else if(e.classId==='rogue')rogue(g,e,time);else if(e.classId==='archer')meteor(g,e,time);else if(e.classId==='pirate')pirateStormPulse(g,e,time);else projectileImpact(g,e,time);
  g.restore();
 }
 // Cosmetic pose and brief impact feedback do not pause input or simulation.
