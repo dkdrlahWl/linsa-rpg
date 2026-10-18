@@ -1,9 +1,9 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=sylph-radius480-20261018';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=sylph-radius480-20261018';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=sylph-radius480-20261018';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=sylph-radius480-20261018';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=sylph-radius480-20261018';
-import {incomingDamage} from './journey-balance.mjs?v=sylph-radius480-20261018';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=pirate-storm-20261018';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=pirate-storm-20261018';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=pirate-storm-20261018';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=pirate-storm-20261018';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=pirate-storm-20261018';
+import {incomingDamage} from './journey-balance.mjs?v=pirate-storm-20261018';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

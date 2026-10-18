@@ -20,7 +20,7 @@ for(const [i,cls] of ids.entries()){
  for(let tick=0;tick<100;tick++)stepFifth(a,[target],tick,s=>{sum+=s;hits.push(tick);},e=>visual.push(e));
  assert.ok(Math.abs(sum-[24,26,22,22,25][i])<1e-9,cls);
  assert.deepEqual(visual.filter(e=>e.kind==='fifth').map(e=>e.impact),hits);
- assert.ok(visual.filter(e=>e.kind==='fifth').every(e=>e.start===e.impact-(cls==='warrior'&&e.pulse>0?12:4)));
+ assert.ok(visual.filter(e=>e.kind==='fifth').every(e=>e.start===e.impact-(cls==='pirate'?0:cls==='warrior'&&e.pulse>0?12:4)));
  assert.equal(FIFTH_SKILLS[cls].cooldown,40);assert.equal(a.fifthReady,400);
  assert.equal(beginFifth(a,target,399),false);assert.equal(beginFifth(a,target,400),true);
  const dead=actor(cls);beginFifth(dead,target,0);dead.hp=0;let damage=0;stepFifth(dead,[target],100,s=>damage+=s);assert.equal(damage,0);assert.equal(dead.fifthCast,undefined);
@@ -72,3 +72,17 @@ assert.equal(hunter.fifthCast.targetId,'replacement');assert.deepEqual(hitIds,['
 stepFifth(hunter,[moving,replacement],10,()=>{},e=>emitted.push(e));assert.equal(emitted.filter(e=>e.kind==='fifth').at(-1).targetId,'replacement');
 assert.equal(beginFifth(actor('rogue'),{...replacement,x:4401},0),false);
 console.log('PASS rogue: doubled tracking distance, +61.5% radius, live movement, dead-target reacquisition, matching visual IDs and exact radius edge');
+
+// Pirate sustained storm: twenty equally spaced pulses, unchanged area/total, live caster center.
+const sailor=actor('pirate'),anchor={id:'anchor',x:100,y:0,hp:1e6,maxHp:1e6};
+assert.equal(beginFifth(sailor,anchor,0),true);
+const salvo=[],stormFx=[];let stormTotal=0;
+for(let tick=0;tick<=80;tick++){
+ sailor.x=tick*10;
+ const rim={id:'rim',x:sailor.x+1400,y:0,hp:1e6},outside={id:'outside',x:sailor.x+1401,y:0,hp:1e6};
+ stepFifth(sailor,[rim,outside],tick,(scale,crit,target)=>{assert.equal(target.id,'rim');salvo.push(tick);stormTotal+=scale;},e=>stormFx.push(e));
+}
+assert.deepEqual(salvo,Array.from({length:20},(_,i)=>(i+1)*4));assert.equal(stormTotal,25);
+assert.equal(FIFTH_SKILLS.pirate.radius,1400);assert.equal(FIFTH_SKILLS.pirate.seconds,8);
+assert.ok(stormFx.filter(e=>e.kind==='fifth').every(e=>e.x===e.impact*10&&e.size===2800));
+console.log('PASS pirate storm: 20 hits across 8 seconds, 2500% total, radius 1400 boundary, moving caster and matching impact positions');

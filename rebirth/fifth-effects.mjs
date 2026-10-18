@@ -5,7 +5,7 @@ const clamp=n=>Math.max(0,Math.min(1,n));
 const smooth=n=>{n=clamp(n);return n*n*(3-2*n);};
 const out=n=>1-(1-clamp(n))**3;
 const mix=(a,b,t)=>a+(b-a)*t;
-export const fifthAsset=cls=>'tower/fifth-'+cls+'-v1.webp';
+export const fifthAsset=cls=>cls==='pirate'?'tower/fifth-pirate-storm-v2.webp':'tower/fifth-'+cls+'-v1.webp';
 // All raster work happens at load time. Animation uses cached images and paths.
 export async function prepareFifthArt(classes,image){
  await Promise.all([...new Set(classes)].filter(c=>colors[c]).map(async cls=>{
@@ -100,7 +100,7 @@ function flight(g,e,time){
 }
 export function fifthFields(effects,time){
  const fields=effects.filter(e=>e.kind==='fifth-field'&&e.start<=time&&e.end>time);
- return fields.map(e=>{if(!['tracking','line','homing'].includes(e.mode))return e;const pulses=effects.filter(p=>p.kind==='fifth'&&p.owner===e.owner&&p.classId===e.classId&&p.start>=e.start&&p.start<=time);const last=pulses.at(-1);return last?{...e,x:last.x,y:last.y,angle:last.angle,targetId:last.targetId}:e;});
+ return fields.map(e=>{if(!['tracking','line','homing','self'].includes(e.mode))return e;const pulses=effects.filter(p=>p.kind==='fifth'&&p.owner===e.owner&&p.classId===e.classId&&p.start>=e.start&&p.start<=time);const last=pulses.at(-1);return last?{...e,x:last.x,y:last.y,angle:last.angle,targetId:last.targetId}:e;});
 }
 export function drawFifthGround(g,e,time,opacity=1){
  if(e.mode==='homing'||e.classId==='rogue')return;
@@ -144,9 +144,16 @@ function field(g,e,time){
   const f=atlases.get(e.classId)?.[0];if(f){const [dw,dh]=dimensions(e.classId,0,215,300);g.save();g.translate(bx,by);if(Math.cos(aim)>=0){g.rotate(aim);g.scale(-1,1);}else{g.rotate(aim-Math.PI);}g.globalAlpha*=clamp(charge*end*.92);g.drawImage(f.im,f.x,f.y,f.w,f.h,-dw/2,-dh/2,dw,dh);g.restore();}
  }else if(e.classId==='rogue'&&t<8){sprite(g,e.classId,1,e.fromX,e.fromY-110,170,210,0,Math.sin(clamp(t/8)*Math.PI));
  }else if(e.classId==='pirate'){
-  for(let i=0;i<3;i++){const p=shipAnchor(e,i,t),appear=smooth((t-i*1.2)/6),last=12+i*5+Math.floor(Math.max(0,t-12-i*5)/15)*15,recoil=t>=last&&t-last<2?Math.sin((t-last)/2*Math.PI)*14:0;
-   sprite(g,e.classId,0,p.x+(p.x<e.x?-recoil:recoil),p.y,400,245,0,appear*.56);glow(g,e.classId,p.x,p.y+45,320,appear*.1);
+  const spin=t*.11,diameter=e.radius*2;
+  g.save();g.beginPath();g.arc(e.x,e.y,e.radius,0,TAU);g.clip();
+  sprite(g,'pirate',0,e.x,e.y,diameter*.96,diameter*.96,spin,e.lowDetail?.28:.48);
+  sprite(g,'pirate',3,e.x,e.y,diameter*.62,diameter*.62,-spin*.75,.4);
+  const count=e.lowDetail?6:12;
+  for(let i=0;i<count;i++){
+   const a=i*TAU/count+spin,phase=(t*.25+i/count)%1,r=100+phase*(e.radius-150);
+   sprite(g,'pirate',1,e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,180,110,a+Math.PI*.23,Math.sin(phase*Math.PI)*.8);
   }
+  glow(g,'pirate',e.x,e.y,260,.25);g.restore();
  }
 }
 function warrior(g,e,time){
@@ -204,10 +211,18 @@ function projectileImpact(g,e,time){
  glow(g,e.classId,e.x,y,size*1.2,fade*.65);sprite(g,e.classId,3,e.x,y-(ship?45:0),size*(.65+grow*.35),size*(.65+grow*.35),0,fade*(ship?.72:.68));sparks(g,e,e.x,y,age,ship&&e.final);
  if(ship)ring(g,e.classId,e.x,e.y,35+grow*(e.final?700:240),fade*.7,e.final?9:5);
 }
+function pirateStormPulse(g,e,time){
+ const age=time-e.impact;if(age<0)return;
+ const fade=(1-clamp(age/4))**2,spin=e.pulse*.7;
+ g.save();g.beginPath();g.arc(e.x,e.y,e.radius,0,TAU);g.clip();
+ const count=e.lowDetail?3:6;
+ for(let i=0;i<count;i++){const a=i*TAU/count+spin,r=e.radius*(.3+(i%3)*.22);sprite(g,'pirate',2,e.x+Math.cos(a)*r,e.y+Math.sin(a)*r,240,240,a,fade*.62);}
+ ring(g,'pirate',e.x,e.y,e.radius*(.72+out(age/4)*.28),fade*.45,5,1);g.restore();
+}
 export function drawFifth(g,e,time,opacity=1){
  if(time<e.start||time>=e.end||!colors[e.classId])return;
  g.save();g.globalAlpha=e.classId==='rogue'&&opacity>=.6?Math.min(1,opacity*1.3):opacity;
- if(e.kind==='fifth-field')field(g,e,time);else if(e.classId==='warrior')warrior(g,e,time);else if(e.classId==='mage')mage(g,e,time);else if(e.classId==='rogue')rogue(g,e,time);else projectileImpact(g,e,time);
+ if(e.kind==='fifth-field')field(g,e,time);else if(e.classId==='warrior')warrior(g,e,time);else if(e.classId==='mage')mage(g,e,time);else if(e.classId==='rogue')rogue(g,e,time);else if(e.classId==='pirate')pirateStormPulse(g,e,time);else projectileImpact(g,e,time);
  g.restore();
 }
 // Cosmetic pose and brief impact feedback do not pause input or simulation.
@@ -217,7 +232,7 @@ export function fifthPose(field,time){
  else if(field.classId==='mage'&&t<71)age=t<60?.25+Math.sin(t*.12)*.025:.3+smooth((t-60)/10)*.65;
  else if(field.classId==='archer'&&t<48)age=t<8?.12+smooth(t/8)*.38:.5+(t-8)%2*.15;
  else if(field.classId==='rogue'&&t<8)age=.15+smooth(t/8)*.3;
- else if(field.classId==='pirate'&&t<13)age=.16+smooth(t/12)*.7;
+ else if(field.classId==='pirate'&&t<80)age=.2+(t%4)/4*.65;
  return age===undefined?null:{age,lunge};
 }
 export function fifthFeedback(effects,time,owner){

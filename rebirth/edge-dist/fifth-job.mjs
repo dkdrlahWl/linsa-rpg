@@ -8,7 +8,7 @@ export const FIFTH_SKILLS={
  mage:make('초신성 붕괴','area',1350,[...Array.from({length:10},(_,i)=>pulse(10+i*5,1)),pulse(70,16,true)],'고정 마법진 · 폭발 100% × 10 + 초신성 1600% · 총 2600%'),
  archer:make('천궁의 추적자','homing',1300,Array.from({length:20},(_,i)=>pulse(8+i*2,1.1,i===19)),'추적 화살 110% × 20 · 총 2200% · 화살별 단일 대상'),
  rogue:{...make('월영 처형','tracking',2100,[...Array.from({length:16},(_,i)=>pulse(8+i*2,.85)),pulse(44,8.4,true)],'자동 추적 분신 85% × 16 + 일격 840% · 총 2200% · 추적 거리 4400 / 타격 반경 2100 · 적 HP 30% 이하에서 마지막 일격 1040% / 총 2400%'),range:4400},
- pirate:make('유령함대 출격','area',1400,[...Array.from({length:12},(_,i)=>pulse(12+i*5,1.75)),pulse(80,4,true)],'고정 포격 지역 · 함포 175% × 12 + 일제 사격 400% · 총 2500%'),
+ pirate:make('유령함대 출격','self',1400,Array.from({length:20},(_,i)=>pulse(4+i*4,1.25,i===19)),'자신 중심 회전 난사 · 8초간 0.4초마다 125% × 20 · 총 2500% · 반경 1400'),
 };
 // Existing priest fifth remains available at level 200; other jobs require trial victory.
 export const fifthUnlocked=a=>{const p=a.power||a;return (p.level??a.level??0)>=200&&(a.classId==='priest'||(a.advancement??p.advancement??0)>=4);};
@@ -22,7 +22,7 @@ export function beginFifth(a,target,tick){
  if(a.classId==='priest')return beginPriest(a,target,tick,5);
  const sk=FIFTH_SKILLS[a.classId];if(!sk||!target||Math.hypot(a.x-target.x,a.y-target.y)>sk.range)return false;
  a.fifthReady=tick+sk.cooldown*10;
- a.fifthCast={mode:sk.mode,classId:a.classId,owner:a.id??a.actorId,x:sk.mode==='line'?a.x:target.x,y:sk.mode==='line'?a.y:target.y,fromX:a.x,fromY:a.y,angle:Math.atan2(target.y-a.y,target.x-a.x),radius:sk.radius,length:sk.length,width:sk.width,targetId:target.id,start:tick,next:0,visual:0,end:tick+sk.pulses.at(-1).at+6};
+ a.fifthCast={mode:sk.mode,classId:a.classId,owner:a.id??a.actorId,x:(sk.mode==='line'||sk.mode==='self')?a.x:target.x,y:(sk.mode==='line'||sk.mode==='self')?a.y:target.y,fromX:a.x,fromY:a.y,angle:Math.atan2(target.y-a.y,target.x-a.x),radius:sk.radius,length:sk.length,width:sk.width,targetId:target.id,start:tick,next:0,visual:0,end:tick+sk.pulses.at(-1).at+6};
  a.skillStart=tick;a.skillUntil=tick+8;if(a.classId==='warrior')a.fifthGuardUntil=tick+50;return true;
 }
 export function stepFifth(a,targets,tick,hit,emit=()=>{}){
@@ -30,12 +30,13 @@ export function stepFifth(a,targets,tick,hit,emit=()=>{}){
  const cast=a.fifthCast;if(!cast)return;
  if(a.hp<=0||a.left){delete a.fifthCast;return;}
  const sk=FIFTH_SKILLS[a.classId];
+ if(cast.mode==='self'){cast.x=a.x;cast.y=a.y;}
  const tracking=cast.mode==='homing'||cast.mode==='tracking',inRange=t=>t.hp!==0&&Math.hypot(a.x-t.x,a.y-t.y)<=sk.range;
  const pick=()=>targets.find(t=>t.id===cast.targetId&&inRange(t))||targets.filter(inRange).reduce((best,t)=>!best||Math.hypot(a.x-t.x,a.y-t.y)<Math.hypot(a.x-best.x,a.y-best.y)?t:best,null);
  if(tracking){const target=pick();if(target){cast.x=target.x;cast.y=target.y;cast.targetId=target.id;}}
  if(!cast.announced){emit({...cast,kind:'fifth-field',size:cast.radius*2});cast.announced=true;}
  while(cast.visual<sk.pulses.length){
-  const lead=a.classId==='warrior'&&cast.visual>0?12:4;
+  const lead=cast.mode==='self'?0:a.classId==='warrior'&&cast.visual>0?12:4;
   const p=sk.pulses[cast.visual],at=cast.start+p.at;if(tick<at-lead)break;
   const target=tracking?pick():targets.find(t=>t.id===cast.targetId&&t.hp!==0)||targets.find(t=>t.hp!==0);
   let aim=(cast.mode==='homing'||cast.mode==='tracking')&&target?target:cast;
