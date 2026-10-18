@@ -13,7 +13,7 @@ for(let i=0;i<N;i++){const o=B.blackMarketOffers('r'+i);assert.equal(o.length,3)
 assert.ok(Math.abs(boss/N-.05)<.006,'boss chance '+boss/N);
 assert.deepEqual(B.blackMarketOffers('2026-10-18-12'),B.blackMarketOffers('2026-10-18-12'));
 // 가격: 100~190은 셀리아 판매가 2배, 200은 무기 6억·나머지 3억
-assert.equal(B.blackMarketBossPrice(100,1),6000000);assert.equal(B.blackMarketBossPrice(190,0),100000000);
+assert.equal(B.blackMarketBossPrice(100,1),6000000);assert.equal(B.blackMarketBossPrice(190,0),150000000);assert.equal(B.blackMarketBossPrice(170,0),114000000);assert.equal(B.blackMarketBossPrice(160,0),64000000);assert.equal(B.blackMarketBossPrice(180,1),44000000);
 assert.equal(B.blackMarketBossPrice(200,0),600000000);assert.equal(B.blackMarketBossPrice(200,3),300000000);
 // 구매: 재고 제한, 지난 주기 거부, 골드 차감
 let n=0;const now=Date.parse('2026-10-18T05:00:00Z'),ctx=()=>({now,random:Math.random,uuid:()=>'id'+n++});

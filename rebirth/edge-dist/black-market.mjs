@@ -28,7 +28,9 @@ export const BLACK_MARKET_BOSS_SLOT_WEIGHTS=Object.freeze([.5,1,1,1,1,1,1,1,1]);
 
 export function blackMarketBossPrice(level,slot){
  if(level===200)return slot===0?600000000:300000000;
- return bossSalePrice({boss:true,level,slot})*2;
+ // 170~190제 무기는 기본가(셀리아 판매가 2배)에서 50% 추가
+ const price=bossSalePrice({boss:true,level,slot})*2;
+ return slot===0&&level>=170?price*1.5:price;
 }
 
 const KST=9*3600000,HOUR=3600000;
