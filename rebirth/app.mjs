@@ -1,4 +1,4 @@
-import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level-20261018';
+import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
 import {citadelLobby} from './citadel-ui.mjs';
 import {explorationLobby} from './exploration-ui.mjs?v=exploration-190';
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
