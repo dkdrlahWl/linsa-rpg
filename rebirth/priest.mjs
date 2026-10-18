@@ -19,11 +19,11 @@ export function priestAttack(hp,luk,gearAttack,attackPercent,hpPercent=0,lukPerc
 // 사제 리메이크(priest-remake-1): 다른 직업과 같은 공격력 계산식 + 서포트.
 // 피해는 공격력 계수만 사용(사제 최대 HP 비례 피해 없음). 회복·보호막은 받는 아군 각자의 최대 HP 기준.
 export const PRIEST_SKILLS={
- 1:{name:'성광 심판',type:'attack',cooldown:10,range:760,radius:360,hitRadius:360,hits:3,damage:.36,interval:2,hpRatio:0,description:'성광 3발 · 총 공격력 108%'},
- 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:950,radius:1500,hitRadius:360,hits:1,damage:3.35,interval:1,hpRatio:0,heal:.15,description:'주변 아군 각각 자신의 최대 HP 15% 즉시 회복 · 공격력 335% 피해'},
- 3:{name:'성역의 결계',type:'attack',cooldown:18,range:950,radius:1500,hitRadius:450,hits:1,damage:8.15,interval:1,hpRatio:0,shield:.2,shieldCap:.4,art:5,description:'주변 아군 각각 자신의 최대 HP 20% 보호막(최대 HP 40%까지 중첩) · 보호막이 남아 있는 동안 받는 피해 10% 감소 · 공격력 815% 피해'},
- 5:{name:'대천사 강림',type:'attack',cooldown:40,range:1500,radius:1550,hitRadius:1350,hits:8,damage:2.575,interval:10,hpRatio:0,heal:1,description:'200레벨 · 사제를 따라오는 8초 성역 · 시전 시 아군 각각 최대 HP 100% 즉시 회복 · 시전 시 범위 내 사망한 아군을 각자 최대 HP 50%로 부활 · 공격력 2060% 피해'},
- 4:{name:'천상의 심판',type:'attack',cooldown:22.5,range:1100,radius:1250,hitRadius:700,hits:8,damage:1.0625,interval:10,hpRatio:0,heal:.03,description:'8초 성광 폭격 · 범위 내 아군 매초 자신의 최대 HP 3%씩 총 8회 회복 · 범위 내 공격력 5% 증가 · 공격력 850% 피해'}
+ 1:{name:'성광 심판',type:'attack',cooldown:10,range:760,radius:360,hitRadius:360,hits:3,damage:.342,interval:2,hpRatio:0,description:'성광 3발 · 총 공격력 103%'},
+ 2:{name:'생명의 기도',type:'sequence',cooldown:15,range:950,radius:1500,hitRadius:360,hits:1,damage:3.1825,interval:1,hpRatio:0,heal:.15,description:'주변 아군 각각 자신의 최대 HP 15% 즉시 회복 · 공격력 318% 피해'},
+ 3:{name:'성역의 결계',type:'attack',cooldown:18,range:950,radius:1500,hitRadius:450,hits:1,damage:7.7425,interval:1,hpRatio:0,shield:.2,shieldCap:.4,art:5,description:'주변 아군 각각 자신의 최대 HP 20% 보호막(최대 HP 40%까지 중첩) · 보호막이 남아 있는 동안 받는 피해 10% 감소 · 공격력 774% 피해'},
+ 5:{name:'대천사 강림',type:'attack',cooldown:40,range:1500,radius:1550,hitRadius:1350,hits:8,damage:2.44625,interval:10,hpRatio:0,heal:1,description:'200레벨 · 사제를 따라오는 8초 성역 · 시전 시 아군 각각 최대 HP 100% 즉시 회복 · 시전 시 범위 내 사망한 아군을 각자 최대 HP 50%로 부활 · 공격력 1957% 피해'},
+ 4:{name:'천상의 심판',type:'attack',cooldown:22.5,range:1100,radius:1250,hitRadius:700,hits:8,damage:1.009375,interval:10,hpRatio:0,heal:.03,description:'8초 성광 폭격 · 범위 내 아군 매초 자신의 최대 HP 3%씩 총 8회 회복 · 범위 내 공격력 5% 증가 · 공격력 808% 피해'}
 };
 const keys={1:'firstCast',2:'secondCast',3:'thirdCast',4:'fourthCast',5:'fifthCast'},ready={1:'ultimateReady',2:'skillReady',3:'thirdReady',4:'fourthReady',5:'fifthReady'};
 export function beginPriest(a,target,tick,slot){
