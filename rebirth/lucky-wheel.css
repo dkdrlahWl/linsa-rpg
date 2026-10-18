@@ -34,3 +34,5 @@
 .lucky-wheel-odds li.jackpot{background:linear-gradient(90deg,#ff7a2f33,#ffcf6a22);border:1px solid #ff9a5c66}
 .lucky-wheel-odds li img{width:24px;height:24px;object-fit:contain}
 .lucky-wheel-odds li b{color:#ffd98a}
+/* 2026-10-19: 기기 "동작 줄이기" 설정이어도 돌림판은 다른 유저처럼 돌아가게(adventure.css 전역 reduced-motion 규칙 예외). */
+@media(prefers-reduced-motion:reduce){.lucky-wheel-rotor{transition-duration:4.6s!important}}
