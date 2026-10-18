@@ -3,13 +3,13 @@ import {currencyIconURL} from './currency-icons.mjs?v=shop-clean-105';
 import {LUCK_POTION} from './consumables.mjs?v=shop-cubes-185';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('ko-KR');
-// NPC 그림은 이 경로에 넣으면 자동으로 표시된다. 파일이 없으면 빈 칸으로 남는다.
-export const BLACK_MARKET_NPC_ART='shop/black-market-npc.webp';
+// Portrait cutout is contained within the merchant slot at every viewport.
+export const BLACK_MARKET_NPC_ART='shop/black-market-bellok-v1.webp';
 const kstTime=ms=>{const d=new Date(ms+9*3600000);return String(d.getUTCHours()).padStart(2,'0')+':00';};
 const blocked=s=>!!(s.battle||s.coopRoom||s.partyRoom);
 
 export function blackMarketMerchant(){
- return `<div class="shop-merchant black-market-merchant"><div class="shop-npc-copy"><small>${esc(BLACK_MARKET_NPC.title)}</small><h2>${esc(BLACK_MARKET_NPC.name)}</h2><p>${esc(BLACK_MARKET_NPC.line)}</p><span>${esc(BLACK_MARKET_NPC.sub)}</span></div><div class="black-market-npc-slot" aria-hidden="true"><img src="${BLACK_MARKET_NPC_ART}" alt="" onerror="this.remove()"></div></div>`;
+ return `<div class="shop-merchant black-market-merchant"><div class="shop-npc-copy"><small>${esc(BLACK_MARKET_NPC.title)}</small><h2>${esc(BLACK_MARKET_NPC.name)}</h2><p>${esc(BLACK_MARKET_NPC.line)}</p><span>${esc(BLACK_MARKET_NPC.sub)}</span></div><div class="black-market-npc-slot"><img src="${BLACK_MARKET_NPC_ART}" alt="암시장 상인 ${esc(BLACK_MARKET_NPC.name)}" width="1024" height="1536" decoding="async" fetchpriority="high"></div></div>`;
 }
 
 function offerArt(s,D,art,offer){

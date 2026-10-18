@@ -1,9 +1,9 @@
 .black-market-merchant{background:radial-gradient(ellipse at 78% 50%,#5a2f6a55,transparent 65%),linear-gradient(120deg,#0d0a1a,#2a1631);border-color:#8f6bb0}
 .black-market-merchant .shop-npc-copy h2{color:#e9c8ff}
 .black-market-merchant .shop-npc-copy>small{color:#bfa6d8}
-.black-market-npc-slot{position:absolute;right:12px;bottom:12px;top:12px;width:40%;border:2px dashed #8f6bb066;border-radius:12px;overflow:hidden;pointer-events:none}
-.black-market-npc-slot img{width:100%;height:100%;object-fit:contain;object-position:bottom}
-.black-market-npc-slot:has(img){border:0}
+.black-market-npc-slot{position:absolute;right:8px;bottom:0;top:8px;width:44%;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;pointer-events:none}
+.black-market-npc-slot img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 3px 10px #08000c80)}
+.black-market-merchant .shop-npc-copy{box-sizing:border-box;width:54%;padding-right:6px}
 .black-market-panel header span{color:#d9c2f0;font-weight:700}
 .black-market-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:640px){
