@@ -77,10 +77,11 @@ export function blackMarketOffers(rotationId,key=''){
 }
 
 // 운영자가 특정 계정의 현재 진열 1칸을 보스장비로 바꿀 때 쓰는 값.
-// state.blackMarketSpecial={rotation,index,level,slot,classId}. 해당 주기에만 적용된다.
+// state.blackMarketSpecial={rotation,index,level,slot,classId} 또는 그 배열(주기별 예약). 해당 주기에만 적용된다.
+export function blackMarketSpecialFor(state,rotationId){const list=[].concat(state?.blackMarketSpecial||[]);return list.find(x=>x&&x.rotation===rotationId)||null;}
 const CLASS_NAMES={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
 export function blackMarketOffersFor(state,rotationId){
- const sp=state?.blackMarketSpecial,shared=sp&&sp.rotation===rotationId&&sp.shared===true;
+ const sp=blackMarketSpecialFor(state,rotationId),shared=sp&&sp.shared===true;
  const offers=blackMarketOffers(rotationId,shared?'':String(state?.name||''));
  if(sp&&sp.rotation===rotationId&&Number.isInteger(sp.index)&&sp.index>=0&&sp.index<offers.length&&Number.isInteger(sp.level)&&Number.isInteger(sp.slot)){
   const cls=CLASS_NAMES[sp.classId]?sp.classId:undefined;
@@ -89,7 +90,7 @@ export function blackMarketOffersFor(state,rotationId){
  return offers;
 }
 // 계정별 진열로 바뀐 뒤의 구매 기록은 'rotation:i' 키로 저장한다(공통 진열 시절 기록과 분리).
-export function blackMarketStateKey(state,rotationId){const sp=state?.blackMarketSpecial;return sp&&sp.rotation===rotationId&&sp.shared===true?rotationId:rotationId+':i';}
+export function blackMarketStateKey(state,rotationId){const sp=blackMarketSpecialFor(state,rotationId);return sp&&sp.shared===true?rotationId:rotationId+':i';}
 export function blackMarketBought(state,rotationId){
  const bm=state?.blackMarket;
  return bm&&bm.rotation===blackMarketStateKey(state,rotationId)&&bm.bought&&typeof bm.bought==='object'?bm.bought:{};

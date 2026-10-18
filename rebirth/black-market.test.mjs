@@ -40,4 +40,7 @@ s3.blackMarketSpecial.rotation='2026-10-18-00';assert.deepEqual(B.blackMarketOff
 {let diff=0;for(let i=0;i<200;i++)if(JSON.stringify(B.blackMarketOffers('r'+i,'가'))!==JSON.stringify(B.blackMarketOffers('r'+i,'나')))diff++;assert.ok(diff>150);
 const a={name:'원자이',blackMarketSpecial:{rotation:rot,index:0,level:190,slot:0,classId:'archer',shared:true}};assert.deepEqual(B.blackMarketOffersFor(a,rot).slice(1),B.blackMarketOffers(rot).slice(1));
 const b={name:'링구',gold:1e10,blackMarket:{rotation:rot,bought:{0:999,1:999,2:999}}};assert.equal(B.blackMarketRemaining(b,rot,0),B.blackMarketOffersFor(b,rot)[0].stock);}
+{const st={name:'원자이',blackMarketSpecial:[{rotation:'2026-10-18-12',index:0,level:170,slot:0,classId:'archer',shared:true},{rotation:'2026-10-18-18',index:0,level:180,slot:6,classId:'pirate'}]};
+const a=B.blackMarketOffersFor(st,'2026-10-18-12')[0],b=B.blackMarketOffersFor(st,'2026-10-18-18')[0];assert.equal(a.level,170);assert.equal(a.classId,'archer');assert.equal(b.level,180);assert.equal(b.slot,6);assert.equal(b.classId,'pirate');
+assert.equal(B.blackMarketStateKey(st,'2026-10-18-12'),'2026-10-18-12');assert.equal(B.blackMarketStateKey(st,'2026-10-18-18'),'2026-10-18-18:i');assert.deepEqual(B.blackMarketOffersFor(st,'2026-10-19-00'),B.blackMarketOffers('2026-10-19-00','원자이'));}
 console.log('PASS black market: KST 00/12/18 rotation, 3 unique offers, boss 5%, prices, stock limits, expiry, class gear');
