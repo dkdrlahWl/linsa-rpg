@@ -11,11 +11,11 @@ export const MATERIAL_CAP=1000000;
 // 일반 상품: 가중치 합 95 (보스장비 5%는 따로 판정)
 export const BLACK_MARKET_GOODS=Object.freeze([
  {id:'cube',kind:'material',name:'레드 큐브',price:100000,stock:10,weight:14},
- {id:'highCube',kind:'material',name:'블랙 큐브',price:250000,stock:10,weight:12},
- {id:'primeCube',kind:'material',name:'프라임 큐브',price:300000,stock:10,weight:7},
+ {id:'highCube',kind:'material',name:'블랙 큐브',price:400000,stock:10,weight:12},
+ {id:'primeCube',kind:'material',name:'프라임 큐브',price:500000,stock:10,weight:7},
  {id:'scroll',kind:'material',name:'잠재 해금 주문서',price:1000000,stock:2,weight:12},
  {id:'potentialLock',kind:'material',name:'잠재 잠금석',price:2000000,stock:2,weight:10},
- {id:'dungeonKey',kind:'material',name:'던전 열쇠',price:3000000,stock:1,weight:8},
+ {id:'dungeonKey',kind:'material',name:'던전 열쇠',price:5000000,stock:1,weight:8},
  {id:'fragment',kind:'material',name:'장비 파편',price:5000,stock:500,weight:15},
  {id:'luckPotion',kind:'potion',name:'행운 물약',price:4000000,stock:1,weight:9},
  {id:'diamond',kind:'diamond',name:'다이아',price:250000,stock:3,weight:8},
