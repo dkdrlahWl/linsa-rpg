@@ -1,7 +1,7 @@
 import {costumeShop} from './costume-ui.mjs?v=shop-tabs-122';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-price-20261013b';
 import {consumableView} from './consumable-ui.mjs?v=shop-cubes-185';
-import {blackMarketShop,blackMarketMerchant} from './black-market-ui.mjs?v=bm4-20261018';
+import {blackMarketShop,blackMarketMerchant} from './black-market-ui.mjs?v=bm5-20261018';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('ko-KR');
 export function shopView(s,D,art,page='boss'){

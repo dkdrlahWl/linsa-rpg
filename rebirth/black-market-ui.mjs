@@ -1,4 +1,4 @@
-import {BLACK_MARKET_NPC,BLACK_MARKET_GOODS,BLACK_MARKET_BOSS_LEVELS,BLACK_MARKET_BOSS_CHANCE,blackMarketBossPrice,blackMarketRotation,blackMarketOffersFor,blackMarketRemaining,blackMarketLimit,blackMarketOwned} from './black-market.mjs?v=bm4-20261018';
+import {BLACK_MARKET_NPC,BLACK_MARKET_GOODS,BLACK_MARKET_BOSS_LEVELS,BLACK_MARKET_BOSS_CHANCE,blackMarketBossPrice,blackMarketRotation,blackMarketOffersFor,blackMarketRemaining,blackMarketLimit,blackMarketOwned} from './black-market.mjs?v=bm5-20261018';
 import {currencyIconURL} from './currency-icons.mjs?v=shop-clean-105';
 import {LUCK_POTION} from './consumables.mjs?v=shop-cubes-185';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
