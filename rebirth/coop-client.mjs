@@ -49,7 +49,9 @@ export function coopInputInterval(room,rtt=250){
  const players=room.status==='fighting'&&!room.entryWaiting?room.members.filter(m=>!m.left).length:1;
  // Bound the room's combined polling load as participants join. Local movement
  // and combat prediction still run at 10 Hz between authoritative snapshots.
- return Math.max(250,Math.min(8,players)*80,Math.min(800,rtt*.8));
+ // 성채(성채 모드·탐험 4단계)는 방 하나에 DB 저장이 몰려 멈춤이 생겨 인원당 간격을 112ms로 늘린다(4인 ≈ 0.45초).
+ const citadel=room.mode==='citadel'||(room.mode==='exploration'&&Number(room.tier)===3);
+ return Math.max(250,Math.min(8,players)*(citadel?112:80),Math.min(800,rtt*.8));
 }
 export class CoopController{
  constructor(host,room,send,sound,admin=false){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'),isCitadel(room)?{pixelRatio:2,maxWidth:1400}:['raid','exploration'].includes(room.mode)?{pixelRatio:1.25}:{});this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
