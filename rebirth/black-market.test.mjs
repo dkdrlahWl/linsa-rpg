@@ -30,4 +30,10 @@ const idx=B.blackMarketOffers(id.rr).findIndex(o=>o.kind==='boss');
 let s2=initialState('mage','테스터',{...ctx(),now:id.t});s2.gold=1e10;
 const r2=execute(s2,'blackMarketBuy',{rotation:id.rr,index:idx},{...ctx(),now:id.t});
 const item=r2.events[0].item;assert.equal(item.classId,'mage');assert.equal(item.boss,true);assert.ok(item.baseStats);
+// 운영자 특별 진열: 해당 계정·주기 1칸만 교체, 지정 직업 장비 지급
+{let s3=initialState('rogue','테스터',ctx());s3.gold=1e10;s3.blackMarketSpecial={rotation:rot,index:0,level:190,slot:0,classId:'archer'};
+const o=B.blackMarketOffersFor(s3,rot);assert.equal(o[0].price,150000000);assert.deepEqual(o.slice(1),B.blackMarketOffers(rot).slice(1));
+const r3=execute(s3,'blackMarketBuy',{rotation:rot,index:0},ctx());const it=r3.events[0].item;assert.equal(it.classId,'archer');assert.equal(it.level,190);assert.equal(it.slot,0);
+assert.throws(()=>execute(r3.state,'blackMarketBuy',{rotation:rot,index:0},ctx()),/BLACK_MARKET_SOLD_OUT/);
+s3.blackMarketSpecial.rotation='2026-10-18-00';assert.deepEqual(B.blackMarketOffersFor(s3,rot),B.blackMarketOffers(rot));}
 console.log('PASS black market: KST 00/12/18 rotation, 3 unique offers, boss 5%, prices, stock limits, expiry, class gear');

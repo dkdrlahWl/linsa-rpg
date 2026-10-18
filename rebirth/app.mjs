@@ -7,9 +7,9 @@ import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
-import {shopView} from './shop-ui.mjs?v=bm3-20261018';
-import {blackMarketPurchaseView,updateBlackMarketPurchase} from './black-market-ui.mjs?v=bm3-20261018';
-import {blackMarketRotation,blackMarketLimit,blackMarketOffers} from './black-market.mjs?v=bm3-20261018';
+import {shopView} from './shop-ui.mjs?v=bm4-20261018';
+import {blackMarketPurchaseView,updateBlackMarketPurchase} from './black-market-ui.mjs?v=bm4-20261018';
+import {blackMarketRotation,blackMarketLimit,blackMarketOffersFor} from './black-market.mjs?v=bm4-20261018';
 import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase} from './consumable-ui.mjs?v=shop-cubes-185';
 import {LUCK_POTION,shopConsumable,shopPurchaseLimit} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-price-20261013b';
@@ -1389,7 +1389,7 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
     if(action==='shopCategory'){shopCategory=['boss','costume','consumable','blackmarket'].includes(arg)?arg:'boss';return render();}
     if(action==='blackMarketBuyPick'){
-      const index=Number(arg),offer=blackMarketOffers(blackMarketRotation().id)[index];if(!offer)return render();
+      const index=Number(arg),offer=blackMarketOffersFor(state,blackMarketRotation().id)[index];if(!offer)return render();
       open('암시장 · 구매 확인',blackMarketPurchaseView(state,D,gearMarkup,index));updateBlackMarketPurchase(state,modal);return;
     }
     if(action==='blackMarketBuyMax'){const input=modal.querySelector('#bm-buy-quantity');if(input){input.value=String(blackMarketLimit(state,blackMarketRotation().id,Number(arg)));updateBlackMarketPurchase(state,modal);}return;}

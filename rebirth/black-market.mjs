@@ -74,12 +74,23 @@ export function blackMarketOffers(rotationId){
  return offers;
 }
 
+// 운영자가 특정 계정의 현재 진열 1칸을 보스장비로 바꿀 때 쓰는 값.
+// state.blackMarketSpecial={rotation,index,level,slot,classId}. 해당 주기에만 적용된다.
+const CLASS_NAMES={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
+export function blackMarketOffersFor(state,rotationId){
+ const offers=blackMarketOffers(rotationId),sp=state?.blackMarketSpecial;
+ if(sp&&sp.rotation===rotationId&&Number.isInteger(sp.index)&&sp.index>=0&&sp.index<offers.length&&Number.isInteger(sp.level)&&Number.isInteger(sp.slot)){
+  const cls=CLASS_NAMES[sp.classId]?sp.classId:undefined;
+  offers[sp.index]={id:'boss-'+sp.level+'-'+sp.slot+(cls?'-'+cls:''),kind:'boss',name:sp.level+'제 '+(cls?CLASS_NAMES[cls]+' ':'')+'보스장비 '+SLOT_NAMES[sp.slot],level:sp.level,slot:sp.slot,classId:cls,price:blackMarketBossPrice(sp.level,sp.slot),stock:1,special:true};
+ }
+ return offers;
+}
 export function blackMarketBought(state,rotationId){
  const bm=state?.blackMarket;
  return bm&&bm.rotation===rotationId&&bm.bought&&typeof bm.bought==='object'?bm.bought:{};
 }
 export function blackMarketRemaining(state,rotationId,index){
- const offer=blackMarketOffers(rotationId)[index];if(!offer)return 0;
+ const offer=blackMarketOffersFor(state,rotationId)[index];if(!offer)return 0;
  return Math.max(0,offer.stock-(Number(blackMarketBought(state,rotationId)[index])||0));
 }
 export function blackMarketOwned(state,offer){
@@ -90,7 +101,7 @@ export function blackMarketOwned(state,offer){
 }
 // 지금 살 수 있는 최대 수량(재고·골드·보유 한도 기준)
 export function blackMarketLimit(state,rotationId,index){
- const offer=blackMarketOffers(rotationId)[index];if(!offer)return 0;
+ const offer=blackMarketOffersFor(state,rotationId)[index];if(!offer)return 0;
  const remaining=blackMarketRemaining(state,rotationId,index);
  const affordable=Math.floor((Number(state?.gold)||0)/offer.price);
  const room=offer.kind==='boss'?1:Math.max(0,MATERIAL_CAP-blackMarketOwned(state,offer));
@@ -103,7 +114,7 @@ export function blackMarketBuy(state,args,now,makeBossItem){
  if(args?.rotation!==rotation.id)throw Error('BLACK_MARKET_EXPIRED');
  const index=args?.index,quantity=args?.quantity??1;
  if(!Number.isInteger(index)||index<0||index>=BLACK_MARKET_SLOTS)throw Error('INVALID_BLACK_MARKET_ITEM');
- const offer=blackMarketOffers(rotation.id)[index];
+ const offer=blackMarketOffersFor(state,rotation.id)[index];
  if(!Number.isSafeInteger(quantity)||quantity<1)throw Error('INVALID_BLACK_MARKET_QUANTITY');
  if(quantity>blackMarketRemaining(state,rotation.id,index))throw Error('BLACK_MARKET_SOLD_OUT');
  if(offer.kind!=='boss'&&quantity>MATERIAL_CAP-blackMarketOwned(state,offer))throw Error('INVENTORY_CONSUMABLE_LIMIT');
@@ -113,7 +124,7 @@ export function blackMarketBuy(state,args,now,makeBossItem){
  if(offer.kind==='material')state.materials={...state.materials,[offer.id]:blackMarketOwned(state,offer)+quantity};
  else if(offer.kind==='potion')state.consumables={...state.consumables,luckPotion:blackMarketOwned(state,offer)+quantity};
  else if(offer.kind==='diamond')state.fishing={...state.fishing,diamonds:blackMarketOwned(state,offer)+quantity};
- else item=makeBossItem(offer.level,offer.slot);
+ else item=makeBossItem(offer.level,offer.slot,offer.classId);
  const bought={...blackMarketBought(state,rotation.id)};bought[index]=(Number(bought[index])||0)+quantity;
  state.blackMarket={rotation:rotation.id,bought};
  return {type:'blackMarketBuy',rotation:rotation.id,index,id:offer.id,name:offer.name,quantity,gold:total,item};

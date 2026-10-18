@@ -634,7 +634,7 @@ function executeCore(input, command, args = {}, ctx) {
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   switch (command) {
     case "blackMarketBuy": {
-      events.push(blackMarketBuy(s,args,ctx.now,(level,slot)=>{const design=selectDesign(level,s.classId,slot,true,ctx.random);const item={...makeItem(level,s.classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);return item;}));
+      events.push(blackMarketBuy(s,args,ctx.now,(level,slot,classId=s.classId)=>{const design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);return item;}));
       break;
     }
     case "consumableBuy":
