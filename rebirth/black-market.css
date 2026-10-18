@@ -20,3 +20,11 @@
 .black-market-card.black-market-boss{border-color:#e0b04f;box-shadow:0 0 0 1px #e0b04f55,0 0 18px #e0b04f33}
 .black-market-card.sold-out{opacity:.55}
 .black-market-card .item,.black-market-card .gear-art{margin:0 auto}
+.black-market-catalog{margin-top:14px;padding:12px;border:1px solid #8f6bb055;border-radius:12px;background:#140d1fcc}
+.black-market-catalog h4{margin:6px 0;color:#e9c8ff;font-size:14px}
+.black-market-catalog h4 small{color:#bfa6d8;font-weight:500;font-size:11px}
+.black-market-catalog p{margin:0 0 8px;font-size:12px;color:#d8cbe6}
+.black-market-catalog table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px}
+.black-market-catalog th,.black-market-catalog td{padding:5px 6px;border-bottom:1px solid #ffffff14;text-align:left}
+.black-market-catalog th{color:#bfa6d8;font-weight:600}
+.black-market-catalog td:not(:first-child),.black-market-catalog th:not(:first-child){text-align:right}
