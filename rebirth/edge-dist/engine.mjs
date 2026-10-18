@@ -4,6 +4,7 @@ import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
 import {bossSalePrice} from './shop-model.mjs';
 import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
+import {blackMarketBuy} from './black-market.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
@@ -560,7 +561,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   normalizeFishing(s,ctx.now);
   const events = [];
-  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","consumableBuy","consumableUse"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
+  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","consumableBuy","consumableUse","blackMarketBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
@@ -632,6 +633,10 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.battle, "BATTLE_IN_PROGRESS");
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   switch (command) {
+    case "blackMarketBuy": {
+      events.push(blackMarketBuy(s,args,ctx.now,(level,slot)=>{const design=selectDesign(level,s.classId,slot,true,ctx.random);const item={...makeItem(level,s.classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);return item;}));
+      break;
+    }
     case "consumableBuy":
     case "consumableUse": {events.push(consumableCommand(s,command,args.id,ctx.now,args.quantity));break;}
     case "costumeBuy":

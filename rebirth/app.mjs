@@ -7,7 +7,9 @@ import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
-import {shopView} from './shop-ui.mjs?v=shop-price-20261013b';
+import {shopView} from './shop-ui.mjs?v=bm1-20261018';
+import {blackMarketPurchaseView,updateBlackMarketPurchase} from './black-market-ui.mjs?v=bm1-20261018';
+import {blackMarketRotation,blackMarketLimit,blackMarketOffers} from './black-market.mjs?v=bm1-20261018';
 import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase} from './consumable-ui.mjs?v=shop-cubes-185';
 import {LUCK_POTION,shopConsumable,shopPurchaseLimit} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-price-20261013b';
@@ -174,6 +176,10 @@ const errors = {
   COSTUME_NOT_OWNED: "먼저 코스튬을 구매해 주세요.",
   COSTUME_CLASS_MISMATCH: "현재 직업의 코스튬만 장착할 수 있습니다.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
+  BLACK_MARKET_EXPIRED: "암시장 진열이 바뀌었어요. 새 상품을 확인해 주세요.",
+  BLACK_MARKET_SOLD_OUT: "남은 수량이 부족해요.",
+  INVALID_BLACK_MARKET_ITEM: "암시장 상품을 찾을 수 없어요.",
+  INVALID_BLACK_MARKET_QUANTITY: "구매 수량을 확인해 주세요.",
   INVALID_CONSUMABLE_QUANTITY: "구매 수량은 1개 이상의 정수로 입력해 주세요.",
   INSUFFICIENT_CONSUMABLE: "행운 물약이 없습니다. 상점 → 소모품에서 구매하세요.",
   ITEM_CONSUMABLE_COOLDOWN: "행운 물약의 재사용 대기시간이 남아 있습니다.",
@@ -1381,7 +1387,19 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
-    if(action==='shopCategory'){shopCategory=['boss','costume','consumable'].includes(arg)?arg:'boss';return render();}
+    if(action==='shopCategory'){shopCategory=['boss','costume','consumable','blackmarket'].includes(arg)?arg:'boss';return render();}
+    if(action==='blackMarketBuyPick'){
+      const index=Number(arg),offer=blackMarketOffers(blackMarketRotation().id)[index];if(!offer)return render();
+      open('암시장 · 구매 확인',blackMarketPurchaseView(state,D,gearMarkup,index));updateBlackMarketPurchase(state,modal);return;
+    }
+    if(action==='blackMarketBuyMax'){const input=modal.querySelector('#bm-buy-quantity');if(input){input.value=String(blackMarketLimit(state,blackMarketRotation().id,Number(arg)));updateBlackMarketPurchase(state,modal);}return;}
+    if(action==='blackMarketBuyConfirm'){
+      if(busy)return;const index=Number(arg),rotation=blackMarketRotation(),input=modal.querySelector('#bm-buy-quantity'),quantity=input?Number(input.value):1;
+      if(!Number.isSafeInteger(quantity)||quantity<1||quantity>blackMarketLimit(state,rotation.id,index)){updateBlackMarketPurchase(state,modal);return;}
+      const result=await command('blackMarketBuy',{rotation:rotation.id,index,quantity});
+      const bought=result?.result?.events?.find(e=>e.type==='blackMarketBuy'&&e.index===index);
+      if(bought){modal.close();toast('벨록: 거래 끝. '+(bought.item?D.gearName(bought.item):bought.name+' '+fmt(bought.quantity)+'개')+' 챙겨가.');}else render();return;
+    }
     if(action==='consumableBuyPick'){
       const item=shopConsumable(arg);if(!item)return;
       open(item.name+' 구매',consumablePurchaseView(state,arg));updateConsumablePurchase(state,modal);return;
@@ -1792,7 +1810,7 @@ document.addEventListener("click", async (e) => {
     toast(message(err));
   }
 });
-document.addEventListener("input", e=>{if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
+document.addEventListener("input", e=>{if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id==="bm-buy-quantity")updateBlackMarketPurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
   if(e.target.id==='cube-lock'){cubeLockChoice=Number(e.target.value);return;}
   if(e.target.id==='fishing-bait'){fishingUI.bait=e.target.value;render();return;}
@@ -1968,6 +1986,6 @@ installMenuIcons();
 
 
 setInterval(updatePetCountdown,1000);
-setInterval(()=>{if(state&&!document.hidden)updateLuckTimers(state);},1000);
+setInterval(()=>{if(state&&!document.hidden){updateLuckTimers(state);const bm=document.querySelector('[data-bm-end]');if(bm&&Date.now()>=Number(bm.dataset.bmEnd)&&!modal.open)render();}},1000);
 
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-action=rankingProfile]')){e.preventDefault();e.target.click();}});
