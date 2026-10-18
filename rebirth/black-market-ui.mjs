@@ -1,4 +1,4 @@
-import {BLACK_MARKET_NPC,blackMarketRotation,blackMarketOffers,blackMarketRemaining,blackMarketLimit,blackMarketOwned} from './black-market.mjs?v=bm1-20261018';
+import {BLACK_MARKET_NPC,BLACK_MARKET_GOODS,BLACK_MARKET_BOSS_LEVELS,BLACK_MARKET_BOSS_CHANCE,blackMarketBossPrice,blackMarketRotation,blackMarketOffers,blackMarketRemaining,blackMarketLimit,blackMarketOwned} from './black-market.mjs?v=bm2-20261018';
 import {currencyIconURL} from './currency-icons.mjs?v=shop-clean-105';
 import {LUCK_POTION} from './consumables.mjs?v=shop-cubes-185';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -30,9 +30,15 @@ export function blackMarketCard(s,D,art,rotationId,offer,index,confirm=false){
 
 export function blackMarketShop(s,D,art,now=Date.now()){
  const rotation=blackMarketRotation(now),offers=blackMarketOffers(rotation.id);
- return `<section class="consumable-panel consumable-shop-panel black-market-panel" data-bm-rotation="${rotation.id}" data-bm-end="${rotation.end}"><header><h3>오늘의 암시장</h3><span>다음 진열 ${kstTime(rotation.end)} 교체</span></header><div class="consumable-shop-grid black-market-grid">${offers.map((offer,i)=>blackMarketCard(s,D,art,rotation.id,offer,i)).join('')}</div><p class="note">매일 12시 · 18시 · 24시(한국시간)에 3개씩 새로 진열됩니다. 진열 상품은 모든 모험가에게 같고, 남은 수량은 계정마다 따로 계산됩니다. 교체 시간이 지나면 이전 상품은 살 수 없어요.</p></section>`;
+ return `<section class="consumable-panel consumable-shop-panel black-market-panel" data-bm-rotation="${rotation.id}" data-bm-end="${rotation.end}"><header><h3>오늘의 암시장</h3><span>다음 진열 ${kstTime(rotation.end)} 교체</span></header><div class="consumable-shop-grid black-market-grid">${offers.map((offer,i)=>blackMarketCard(s,D,art,rotation.id,offer,i)).join('')}</div><p class="note">매일 12시 · 18시 · 24시(한국시간)에 3개씩 새로 진열됩니다. 진열 상품은 모든 모험가에게 같고, 남은 수량은 계정마다 따로 계산됩니다. 교체 시간이 지나면 이전 상품은 살 수 없어요.</p>${blackMarketCatalog()}</section>`;
 }
 
+const man=n=>n>=100000000?(n/100000000)+'억':n>=10000?fmt(n/10000)+'만':fmt(n);
+export function blackMarketCatalog(){
+ const goods=BLACK_MARKET_GOODS.map(g=>`<tr><td>${esc(g.name)}</td><td>${fmt(g.stock)}개</td><td>${fmt(g.price)} G</td></tr>`).join('');
+ const boss=BLACK_MARKET_BOSS_LEVELS.map(([level])=>`<tr><td>${level}제</td><td>${man(blackMarketBossPrice(level,0))} G</td><td>${man(blackMarketBossPrice(level,1))} G</td></tr>`).join('');
+ return `<section class="black-market-catalog"><h4>암시장 진열 상품 목록</h4><p>진열될 때마다 아래 상품 중 3개가 겹치지 않게 나옵니다.</p><table><thead><tr><th>상품</th><th>진열 수량</th><th>가격(1개)</th></tr></thead><tbody>${goods}</tbody></table><h4>보스장비 <small>(진열 확률 ${BLACK_MARKET_BOSS_CHANCE*100}% · 1개 진열 · 레벨이 높을수록 드묾)</small></h4><table><thead><tr><th>레벨</th><th>무기</th><th>나머지 부위</th></tr></thead><tbody>${boss}</tbody></table></section>`;
+}
 export function blackMarketPurchaseView(s,D,art,index,now=Date.now()){
  const rotation=blackMarketRotation(now),offer=blackMarketOffers(rotation.id)[index];
  return offer?blackMarketCard(s,D,art,rotation.id,offer,index,true):'';
