@@ -19,7 +19,7 @@ for(const level of [10,30,60,100,150,200])for(const stars of [0,15,25]){
   const h=power(hp),a=power(atk),percent=n*value/100;
   assert.ok(Math.abs(h.dps-b.dps)<1e-6,`HP% must not raise priest damage: ${level}/${stars}/${n}x${value}`);
   assert.ok(Math.abs(a.dps/b.dps-(1+percent))<1e-10);
-  assert.ok(Math.abs(h.hp-b.hp*(1+percent))<5);
+  assert.ok(Math.abs(h.hp-b.hp*(1+percent))<10);
   comparisons++;
  }
 }

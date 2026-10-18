@@ -197,6 +197,8 @@ export function power(s) {
   const cadence = s.classId === "pirate" ? 1.08 : 1;
   if (s.classId === "warrior") { hp = Math.floor(hp * 1.30); defense *= 1.15; }
   if (s.classId === "mage") flat *= 1.06;
+  // 2026-10-18: 사제 고유 보너스 HP +30%
+  if (s.classId === "priest") hp = Math.floor(hp * 1.30);
   // 칭호 보유 효과: 칭호 하나당 치명타 피해 +0.5%p.
   const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length;
   if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
