@@ -56,7 +56,7 @@ export class TowerController {
   paused(){return document.hidden||!!document.querySelector('dialog[open]');}
   resetInput(){this.keys.clear();this.buttonPointers.clear();this.stickPointer=null;this.stick={x:0,y:0};this.sampler.buttons=0;this.nodes['stick-knob'].style.transform='';for(const el of this.buttons)el.classList.remove('pressed');}
   press(bit){
-    if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=25||(bit===8&&this.b.power.firstJob===false||bit===2&&!this.b.advanced||bit===16&&(this.b.power.advancement||0)<2||bit===32&&(this.b.power.advancement||0)<3||bit===64&&!fifthUnlocked(this.b)))return;
+    if(!this.loaded||(this.b.ended&&!this.b.chest)||this.frames.length>=100||(bit===8&&this.b.power.firstJob===false||bit===2&&!this.b.advanced||bit===16&&(this.b.power.advancement||0)<2||bit===32&&(this.b.power.advancement||0)<3||bit===64&&!fifthUnlocked(this.b)))return;
     if(bit===1&&this.b.chest){if(canOpenChest(this.b)){this.chestQueued=true;this.openChest();}return;}
     this.sampler.press(bit);const now=performance.now(),b=this.b,c=TOWER_CLASSES[b.classId],d=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     if(bit===1&&b.tick+1>=b.attackReady&&d<=c.range){this.hint.attack=now+110;}
@@ -119,7 +119,12 @@ export class TowerController {
       const result=await this.send('towerInput',{runId:this.b.runId,from:this.serverTick,frames:this.frames.slice(0,80)},true);
       // Main app accepts during render; preview accepts here. Same tick is safe.
       if(result?.state?.battle?.kind==='tower')this.accept(result.state.battle);
-      if(result){this.error='';this.failures=0;}
+      if(result){this.error='';this.failures=0;this.retryAfter=0;}
+      // The server may already have finalized a run while a receipt was retried.
+      // Recover authoritative state instead of leaving the ended scene forever.
+      if(this.b.ended&&!this.b.chest&&this.frames.length===0&&!this.disposed&&result?.state?.battle?.runId===this.b.runId){
+        await this.send('sync',{},true);
+      }
     }catch{this.error='연결 복구 중';this.failures++;this.retryAfter=performance.now()+Math.min(1500,300*2**Math.min(3,this.failures-1));}
     finally{this.pending=false;this.resolveInput?.();this.resolveInput=null;this.inputDone=null;}
   }
@@ -128,7 +133,7 @@ export class TowerController {
     const ready=this.artReady&&this.required.every(src=>image(src).complete&&image(src).naturalWidth);
     if(ready&&!this.loaded)this.last=now;this.loaded=ready;
     this.advance(now);this.options.audio?.(this.b);
-    if(!this.openingRequest&&now-this.lastSend>350&&(this.frames.length||now-this.lastSend>2000))this.flush(true);
+    if(!this.openingRequest&&now-this.lastSend>(this.b.ended?150:350)&&(this.frames.length||this.b.ended||now-this.lastSend>2000))this.flush(true);
     if(this.b.chest&&canOpenChest(this.b)&&this.chestQueued&&!this.pending&&!this.openingRequest&&now>=this.retryAfter)this.openChest();
     this.draw(now);this.frame=requestAnimationFrame(t=>this.loop(t));
   }

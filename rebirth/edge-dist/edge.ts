@@ -266,7 +266,7 @@ Deno.serve(async (req) => {
         const latest = await rpc("rebirth_snapshot", {
           p_request: body.requestId,
         });
-        return reply(body.command.startsWith('fish')
+        return reply((body.command.startsWith('fish')||body.command==='towerInput')
           ?fishingStateReply(snap,latest,result,body.args._stateRevision,body.args._compact)
           :{state:latest.state,revision:latest.revision,result});
       } catch (e) {
