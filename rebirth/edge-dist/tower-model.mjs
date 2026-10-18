@@ -68,6 +68,30 @@ function fan(b,count=5){const a=Math.atan2(b.player.y-b.enemy.y,b.player.x-b.ene
 function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
  e.castDir=towerFacing(p.x-e.x,p.y-e.y,e.dir??2);e.dir=e.castDir;
  b.enemyCastStart=b.tick;b.enemyCastUntil=b.tick+10;b.enemyAttackStart=b.tick+10;b.enemyAttackUntil=b.tick+16;b.enemyAttackDir=e.castDir;
+ // Exclusive weekly pattern: all hits use existing server-validated, visible warnings.
+ if(towerEncounter(b).weeklyPattern==='eclipse-sovereign'){
+  const enraged=b.enemyHp<towerEncounter(b).hp*.35;
+  b.enemyCastUntil=b.tick+18;b.enemyAttackStart=b.tick+18;b.enemyAttackUntil=b.tick+25;
+  if(k%4===0){
+   line(b,150,p.y,3050,p.y,210,18,2.2);
+   line(b,p.x,150,p.x,3050,210,26,2.2);
+   circle(b,p.x,p.y,260,34,2.1);
+  }else if(k%4===1){
+   circle(b,e.x,e.y,4500,22,2.5,3,720);
+   circle(b,e.x,e.y,430,22,2.5);
+   circle(b,e.x,e.y,760,36,2.1,3,420);
+  }else if(k%4===2){
+   const v=facingVector(p.dir??6);
+   for(let i=0;i<4;i++)circle(b,p.x+v.x*i*200,p.y+v.y*i*200,230,16+i*7,2.0);
+   fan(b,enraged?9:7);
+  }else{
+   line(b,e.x,e.y,p.x,p.y,260,18,2.7);
+   b.charge={x:p.x,y:p.y,at:b.tick+18,end:b.tick+24};
+   circle(b,e.x,e.y,620,32,2.3);
+  }
+  if(enraged)circle(b,p.x,p.y,210,24,1.8);
+  b.nextPattern=b.tick+(enraged?36:46);return;
+ }
  if(apexTowerPattern(b,{circle,line},towerEncounter(b)))return;
  if(upperTowerPattern(b,{circle,line},towerEncounter(b)))return;
  if(b.advancementStage===4){

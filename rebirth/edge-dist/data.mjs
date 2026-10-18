@@ -450,3 +450,6 @@ extendEndgameFields(REGIONS,STAGES,MONSTERS);
 
 // Fixed endgame daily boss; append after legacy world balancing.
 BOSSES.push({id:30,name:'종언의 집행자 모르가리온',region:9,level:200,hp:110000000,attack:4500,seconds:90,weekly:false,art:'ui/daily-morgarion-v2.webp',background:'ui/daily-morgarion-arena-v2.webp',arenaName:'종언의 왕좌',fullArt:true,gearLevel:200,dropChance:.015,gearRateScale:1,exactHalfWeapon:true,gold:120000,cubes:8,material:4,patternEvery:12,patternMultiplier:3,pattern:'종언의 연속 참격',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});
+
+// Weekly endgame encounter shares the current Lv.200 daily boss HP.
+BOSSES.push({id:31,name:'성식의 군주 네크라시온',region:9,level:200,hp:BOSSES[30].hp,attack:6200,seconds:90,weekly:true,art:'tower/boss-necrasion.webp',background:'ui/weekly-necrasion-arena.webp',arenaName:'성식의 빙옥',fullArt:true,towerArt:'necrasion',artFrames:1,artSize:340,weeklyPattern:'eclipse-sovereign',gearLevel:200,dropChance:.05,gearRateScale:1,exactHalfWeapon:true,gold:360000,cubes:24,material:4,pattern:'성식의 심판',guide:'교차 빙창 → 안팎 심판 → 추적 폭발 → 돌진. 체력 35% 이하에서 광폭화합니다.',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});

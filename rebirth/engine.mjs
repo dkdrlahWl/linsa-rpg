@@ -573,7 +573,7 @@ function executeCore(input, command, args = {}, ctx) {
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
-      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<rewardChance(boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE),s,ctx.now)){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);reward.items.push(item.id);}}
+      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});if(ctx.random()<rewardChance(boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE),s,ctx.now)){const level=boss.gearLevel;const item=makeLootItem(level,pick(CLASSES,ctx).id,boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random()*9),true,ctx,undefined,!!boss.exactHalfWeapon);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){
@@ -943,7 +943,7 @@ function executeCore(input, command, args = {}, ctx) {
       const practice = args.practice === true;
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const p = power(s);
-      if(b.weekly){check(s.isAdmin||practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,level:b.level,hp:b.hp,attack:b.attack,seconds:90}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
+      if(b.weekly){check(s.isAdmin||practice||s.bossClaims?.[b.id]!==weekKey(ctx.now),"BOSS_LIMIT");s.battle=newTowerBattle(b.region+1,s.classId,p,ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{weeklyBossId:b.id,claimKey:weekKey(ctx.now),practice,enemyHp:b.hp,encounter:{...TOWER_FLOORS[b.region],name:b.name,level:b.level,hp:b.hp,attack:b.attack,seconds:b.seconds,...(b.towerArt?{art:b.towerArt,artFrames:b.artFrames,artSize:b.artSize,background:b.background,weeklyPattern:b.weeklyPattern,pattern:b.pattern,guide:b.guide}:{})}});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;}
       if(!practice){const today=dayKey(ctx.now);check(s.isAdmin||s.bossClaims?.[b.id]!==today,"BOSS_LIMIT");}
       s.battle = {
         kind: "boss",
