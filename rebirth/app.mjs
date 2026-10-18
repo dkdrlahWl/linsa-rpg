@@ -266,7 +266,7 @@ async function request(path, body, auth = true, signal = null) {
       ...(auth ? { Authorization: "Bearer " + session.access_token } : {}),
     },
     body: JSON.stringify(body),
-    signal: signal?AbortSignal.any([signal,AbortSignal.timeout(body?.command==='coopInput'?6000:20000)]):AbortSignal.timeout(body?.command==='coopInput'?6000:20000),
+    signal: signal?AbortSignal.any([signal,AbortSignal.timeout(['coopInput','towerInput','towerOpen'].includes(body?.command)?6000:20000)]):AbortSignal.timeout(['coopInput','towerInput','towerOpen'].includes(body?.command)?6000:20000),
   });
   const data = await r.json().catch(() => ({error: "SERVER_RETRY_REQUIRED"}));
   if (!r.ok) {
@@ -420,6 +420,11 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
     if(state?.coopRoom!==roomAtClick)return;
   }
+  if(busy&&command==='towerInput'&&activeBackgroundSync){
+    activeBackgroundSync.abort();
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    if(state?.battle?.runId!==args.runId)return;
+  }
   if(busy&&command==='towerOpen'){
     const runAtClick=args.runId;
     while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
@@ -427,16 +432,17 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
   }
   if ((claimOnly?citadelClaimBusy:busy) || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
   if(claimOnly)citadelClaimBusy=true;else busy=true;
-  const streaming=command==="coopInput";
+  const towerStreaming=command==="towerInput";
+  const streaming=command==="coopInput"||towerStreaming;
   const accountAtSend=session?.user?.id;
   let storedRequest=null;try{storedRequest=JSON.parse(localStorage.getItem(requestKey)||'null');}catch{}
   const background=command==='sync'&&quiet&&state&&(!storedRequest||storedRequest.command==='sync');
   const inputAbort=streaming||background?new AbortController():null;
-  if(streaming)activeCoopInput=inputAbort;
+  if(command==='coopInput')activeCoopInput=inputAbort;
   if(background)activeBackgroundSync=inputAbort;
   // The input slot includes token refresh, not just fetch. A stuck refresh used
   // to hold busy forever and stop every subsequent multiplayer packet.
-  const inputDeadline=streaming||command==='coopOpen'?AbortSignal.timeout(6000):null;
+  const inputDeadline=AbortSignal.timeout(streaming||command==='coopOpen'||command==='towerOpen'?6000:20000);
   const baseSignal=inputAbort?(signal?AbortSignal.any([signal,inputAbort.signal]):inputAbort.signal):signal;
   const requestSignal=inputDeadline?AbortSignal.any([inputDeadline,...(baseSignal?[baseSignal]:[])]):baseSignal;
   if(!streaming&&!background&&!claimOnly)document
@@ -447,6 +453,13 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
   try {
     await abortable(ensureToken(),requestSignal);
     if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
+    if(towerStreaming){
+      // Movement is replayed by runId/from. Do not let a stale movement receipt
+      // block the current packet; preserve pending reward/other durable writes.
+      try{const old=JSON.parse(localStorage.getItem(requestKey)||'null');if(old?.command==='towerInput')localStorage.removeItem(requestKey);}catch{}
+      const durable=localStorage.getItem(requestKey);
+      if(durable){try{const saved=JSON.parse(durable);if(typeof saved?.command==='string'&&saved.args&&saved.requestId)body=saved;}catch{}}
+    }
     if(!recoverySync&&!streaming){
       try{body=JSON.parse(localStorage.getItem(requestKey)||"null");}catch{body=null;}
       if(body?.command==="coopInput"){localStorage.removeItem(requestKey);body=null;}
@@ -460,7 +473,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
       if(!quiet)toast("이전 요청을 먼저 복구합니다.");
     }
     if (!body) {
-      body = { command, args:command.startsWith('fish')?{...args,_compact:true,_stateRevision:stateRevision}:args, requestId: crypto.randomUUID() };
+      body = { command, args:command.startsWith('fish')||towerStreaming?{...args,_compact:true,_stateRevision:stateRevision}:args, requestId: crypto.randomUUID() };
       if(!recoverySync&&!streaming)localStorage.setItem(requestKey, JSON.stringify(body));
     }
     const sentAt=performance.now();
@@ -525,7 +538,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if ((!e.status || e.status >= 500)&&e.message!=="SAVE_CONFLICT") {
       connectionLost = true;
       retryFailures++;
-      retryAt = Date.now() + Math.min(60000, 5000 * 2 ** Math.min(retryFailures - 1, 4));
+      retryAt = Date.now() + (towerStreaming?500:Math.min(60000, 5000 * 2 ** Math.min(retryFailures - 1, 4)));
       const banner = $("#connection-status");
       if (banner) banner.hidden = false;
       if (!state && session) unavailable();
