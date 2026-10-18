@@ -7,8 +7,8 @@ document.querySelector('#level').innerHTML+=Array.from({length:20},(_,i)=>option
 document.querySelector('#slot').innerHTML+=D.SLOTS.map((s,i)=>option(i,s)).join('');
 function draw(){const cl=document.querySelector('#class').value,level=document.querySelector('#level').value,slot=document.querySelector('#slot').value,q=document.querySelector('#search').value.trim();
 const rows=D.EQUIPMENT_CATALOG.filter(it=>it.boss&&(!cl||D.canEquipClass(it,cl))&&(!level||it.level===+level)&&(!slot||it.slot===+slot)).map(it=>({it,bosses:bossesFor(it.level)})).filter(({it,bosses})=>!q||D.gearName(it).includes(q)||bosses.some(b=>b.name.includes(q)));
-document.querySelector('#count').textContent=rows.length+'종 · 200레벨 보스 장비는 무기 직업별 5등급, 나머지 부위 전 직업 공통 3등급입니다.';
-document.querySelector('#rows').innerHTML=rows.map(({it,bosses})=>'<tr><td>'+it.level+'</td><td>'+(D.isCommonBossGear(it)?'전 직업 공통':D.CLASSES.find(c=>c.id===it.classId).name)+'</td><td>'+D.SLOTS[it.slot]+'</td><td>'+D.gearName(it)+(D.isTieredBossGear(it)?' ('+D.bossTierName(it)+')':'')+'</td><td>'+bosses.map(b=>b.name+(b.weekly?' (주간 상자)':'')).join('<br>')+'</td><td>'+bosses.map(b=>'장비 '+(b.dropChance*100)+'%').join('<br>')+'</td></tr>').join('');}
+document.querySelector('#count').textContent=rows.length+'종';
+document.querySelector('#rows').innerHTML=rows.map(({it,bosses})=>'<tr><td>'+it.level+'</td><td>'+(D.isCommonBossGear(it)?'전 직업 공통':D.CLASSES.find(c=>c.id===it.classId).name)+'</td><td>'+D.SLOTS[it.slot]+'</td><td>'+D.gearName(it)+'</td><td>'+bosses.map(b=>b.name+(b.weekly?' (주간 상자)':'')).join('<br>')+'</td><td>'+bosses.map(b=>'장비 '+(b.dropChance*100)+'%').join('<br>')+'</td></tr>').join('');}
 for(const id of ['class','level','slot','search'])document.getElementById(id).addEventListener('input',draw);draw();
 
 
