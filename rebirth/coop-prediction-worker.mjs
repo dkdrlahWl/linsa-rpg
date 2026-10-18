@@ -1,4 +1,4 @@
-import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=sylph-radius-20261018';
+import {CoopPredictionCore,effectKey} from './coop-prediction-core.mjs?v=sylph-radius480-20261018';
 const prediction=new CoopPredictionCore();let generation=0;
 self.onmessage=({data})=>{
  try{

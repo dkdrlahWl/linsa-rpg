@@ -1,13 +1,13 @@
-import {APEX_TOWER_FLOORS,apexTowerPattern} from './apex-tower.mjs?v=sylph-radius-20261018';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=sylph-radius-20261018';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=sylph-radius-20261018';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=sylph-radius-20261018';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=sylph-radius-20261018';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=sylph-radius-20261018';
-import {incomingDamage} from './journey-balance.mjs?v=sylph-radius-20261018';
-import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=sylph-radius-20261018';
+import {APEX_TOWER_FLOORS,apexTowerPattern} from './apex-tower.mjs?v=sylph-radius480-20261018';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=sylph-radius480-20261018';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=sylph-radius480-20261018';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=sylph-radius480-20261018';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=sylph-radius480-20261018';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=sylph-radius480-20261018';
+import {incomingDamage} from './journey-balance.mjs?v=sylph-radius480-20261018';
+import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=sylph-radius480-20261018';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=sylph-radius-20261018';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=sylph-radius480-20261018';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

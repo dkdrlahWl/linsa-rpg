@@ -1,11 +1,11 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=sylph-radius-20261018';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=sylph-radius-20261018';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=sylph-radius-20261018';
-import {beginThird,stepThird} from './advancement.mjs?v=sylph-radius-20261018';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=sylph-radius-20261018';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=sylph-radius-20261018';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=sylph-radius-20261018';
-import {incomingDamage} from './journey-balance.mjs?v=sylph-radius-20261018';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=sylph-radius480-20261018';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=sylph-radius480-20261018';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=sylph-radius480-20261018';
+import {beginThird,stepThird} from './advancement.mjs?v=sylph-radius480-20261018';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=sylph-radius480-20261018';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=sylph-radius480-20261018';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=sylph-radius480-20261018';
+import {incomingDamage} from './journey-balance.mjs?v=sylph-radius480-20261018';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>8)throw Error('INVALID_COOP_ROOM');

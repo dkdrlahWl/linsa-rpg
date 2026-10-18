@@ -1,4 +1,4 @@
-import {petHealTick} from './pet-event.mjs?v=sylph-radius-20261018';
+import {petHealTick} from './pet-event.mjs?v=sylph-radius480-20261018';
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
 // 사제 평타·전투력은 다른 직업과 동일(배율 1). 딜 80~90%는 스킬 계수로만 맞춘다.
 export const PRIEST_ATTACK_RATE=1;

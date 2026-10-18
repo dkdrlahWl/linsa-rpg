@@ -1,15 +1,15 @@
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=sylph-radius-20261018';
-export {PRIEST_SKILLS} from './priest.mjs?v=sylph-radius-20261018';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=sylph-radius-20261018';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=sylph-radius-20261018';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=sylph-radius-20261018';
-import {extendEndgameFields} from './endgame-field.mjs?v=sylph-radius-20261018';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=sylph-radius-20261018';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=sylph-radius-20261018';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=sylph-radius-20261018';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=sylph-radius-20261018";
-export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=sylph-radius-20261018";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=sylph-radius-20261018";
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=sylph-radius480-20261018';
+export {PRIEST_SKILLS} from './priest.mjs?v=sylph-radius480-20261018';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=sylph-radius480-20261018';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=sylph-radius480-20261018';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=sylph-radius480-20261018';
+import {extendEndgameFields} from './endgame-field.mjs?v=sylph-radius480-20261018';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=sylph-radius480-20261018';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=sylph-radius480-20261018';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=sylph-radius480-20261018';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=sylph-radius480-20261018";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=sylph-radius480-20261018";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=sylph-radius480-20261018";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -70,7 +70,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=sylph-radius-20261018';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=sylph-radius480-20261018';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
