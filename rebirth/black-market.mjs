@@ -62,8 +62,9 @@ function bossOffer(random){
 }
 
 // 한 주기의 진열 3개. 같은 상품은 한 진열에 두 번 나오지 않는다.
-export function blackMarketOffers(rotationId){
- const random=seeded('linsa-black-market|'+rotationId);
+// key가 있으면 계정별 진열(캐릭터 이름 기준), 없으면 공통 진열.
+export function blackMarketOffers(rotationId,key=''){
+ const random=seeded('linsa-black-market|'+rotationId+(key?'|'+key:''));
  const offers=[];
  const bossSlot=random()<BLACK_MARKET_BOSS_CHANCE?Math.floor(random()*BLACK_MARKET_SLOTS):-1;
  let pool=[...BLACK_MARKET_GOODS];
@@ -79,16 +80,19 @@ export function blackMarketOffers(rotationId){
 // state.blackMarketSpecial={rotation,index,level,slot,classId}. 해당 주기에만 적용된다.
 const CLASS_NAMES={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
 export function blackMarketOffersFor(state,rotationId){
- const offers=blackMarketOffers(rotationId),sp=state?.blackMarketSpecial;
+ const sp=state?.blackMarketSpecial,shared=sp&&sp.rotation===rotationId&&sp.shared===true;
+ const offers=blackMarketOffers(rotationId,shared?'':String(state?.name||''));
  if(sp&&sp.rotation===rotationId&&Number.isInteger(sp.index)&&sp.index>=0&&sp.index<offers.length&&Number.isInteger(sp.level)&&Number.isInteger(sp.slot)){
   const cls=CLASS_NAMES[sp.classId]?sp.classId:undefined;
   offers[sp.index]={id:'boss-'+sp.level+'-'+sp.slot+(cls?'-'+cls:''),kind:'boss',name:sp.level+'제 '+(cls?CLASS_NAMES[cls]+' ':'')+'보스장비 '+SLOT_NAMES[sp.slot],level:sp.level,slot:sp.slot,classId:cls,price:blackMarketBossPrice(sp.level,sp.slot),stock:1,special:true};
  }
  return offers;
 }
+// 계정별 진열로 바뀐 뒤의 구매 기록은 'rotation:i' 키로 저장한다(공통 진열 시절 기록과 분리).
+export function blackMarketStateKey(state,rotationId){const sp=state?.blackMarketSpecial;return sp&&sp.rotation===rotationId&&sp.shared===true?rotationId:rotationId+':i';}
 export function blackMarketBought(state,rotationId){
  const bm=state?.blackMarket;
- return bm&&bm.rotation===rotationId&&bm.bought&&typeof bm.bought==='object'?bm.bought:{};
+ return bm&&bm.rotation===blackMarketStateKey(state,rotationId)&&bm.bought&&typeof bm.bought==='object'?bm.bought:{};
 }
 export function blackMarketRemaining(state,rotationId,index){
  const offer=blackMarketOffersFor(state,rotationId)[index];if(!offer)return 0;
@@ -127,6 +131,6 @@ export function blackMarketBuy(state,args,now,makeBossItem){
  else if(offer.kind==='diamond')state.fishing={...state.fishing,diamonds:blackMarketOwned(state,offer)+quantity};
  else item=makeBossItem(offer.level,offer.slot,offer.classId);
  const bought={...blackMarketBought(state,rotation.id)};bought[index]=(Number(bought[index])||0)+quantity;
- state.blackMarket={rotation:rotation.id,bought};
+ state.blackMarket={rotation:blackMarketStateKey(state,rotation.id),bought};
  return {type:'blackMarketBuy',rotation:rotation.id,index,id:offer.id,name:offer.name,quantity,gold:total,item};
 }

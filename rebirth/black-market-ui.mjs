@@ -1,4 +1,4 @@
-import {BLACK_MARKET_NPC,BLACK_MARKET_GOODS,BLACK_MARKET_BOSS_LEVELS,BLACK_MARKET_BOSS_CHANCE,blackMarketBossPrice,blackMarketRotation,blackMarketOffersFor,blackMarketRemaining,blackMarketLimit,blackMarketOwned} from './black-market.mjs?v=bm5-20261018';
+import {BLACK_MARKET_NPC,BLACK_MARKET_GOODS,BLACK_MARKET_BOSS_LEVELS,BLACK_MARKET_BOSS_CHANCE,blackMarketBossPrice,blackMarketRotation,blackMarketOffersFor,blackMarketRemaining,blackMarketLimit,blackMarketOwned} from './black-market.mjs?v=bm6-20261018';
 import {currencyIconURL} from './currency-icons.mjs?v=shop-clean-105';
 import {LUCK_POTION} from './consumables.mjs?v=shop-cubes-185';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -30,7 +30,7 @@ export function blackMarketCard(s,D,art,rotationId,offer,index,confirm=false){
 
 export function blackMarketShop(s,D,art,now=Date.now()){
  const rotation=blackMarketRotation(now),offers=blackMarketOffersFor(s,rotation.id);
- return `<section class="consumable-panel consumable-shop-panel black-market-panel" data-bm-rotation="${rotation.id}" data-bm-end="${rotation.end}"><header><h3>오늘의 암시장</h3><span>다음 진열 ${kstTime(rotation.end)} 교체</span></header><div class="consumable-shop-grid black-market-grid">${offers.map((offer,i)=>blackMarketCard(s,D,art,rotation.id,offer,i)).join('')}</div><p class="note">매일 12시 · 18시 · 24시(한국시간)에 3개씩 새로 진열됩니다. 진열 상품은 모든 모험가에게 같고, 남은 수량은 계정마다 따로 계산됩니다. 교체 시간이 지나면 이전 상품은 살 수 없어요.</p>${blackMarketCatalog()}</section>`;
+ return `<section class="consumable-panel consumable-shop-panel black-market-panel" data-bm-rotation="${rotation.id}" data-bm-end="${rotation.end}"><header><h3>오늘의 암시장</h3><span>다음 진열 ${kstTime(rotation.end)} 교체</span></header><div class="consumable-shop-grid black-market-grid">${offers.map((offer,i)=>blackMarketCard(s,D,art,rotation.id,offer,i)).join('')}</div><p class="note">매일 12시 · 18시 · 24시(한국시간)에 3개씩 새로 진열됩니다. 진열 상품과 남은 수량은 모험가마다 다릅니다. 교체 시간이 지나면 이전 상품은 살 수 없어요.</p>${blackMarketCatalog()}</section>`;
 }
 
 const man=n=>n>=100000000?(n/100000000)+'억':n>=10000?fmt(n/10000)+'만':fmt(n);
