@@ -38,7 +38,8 @@ export function renderCubeChoice(it,pending,state,kind){
  ${button('유지 후 다시','cubeChooseRepeat','no',!canRepeat,'enhance-secondary')}${button('적용 후 다시','cubeChooseRepeat','yes',!canRepeat)}
  </div>${pending.grade>pending.previousGrade?`<p class="cube-upgrade">${D.RARITIES[pending.previousGrade]} → ${D.RARITIES[pending.grade]} · 새 결과 선택 시 승급</p>`:''}
  <div class="cube-comparison">${potentialPanel(it,'이전 옵션')}${potentialPanel(pending,'새 옵션')}</div>
- <p class="enhance-help">결과 선택 무료 · 다시 돌리면 큐브 1개${pending.lock>=0?' + 잠금석 1개':''} 소모${pending.legacy?' · 기존 승급 등급 유지':''}</p></div>`;
+ <p class="enhance-help">결과 선택 무료 · 다시 돌리면 큐브 1개${pending.lock>=0?' + 잠금석 1개':''} 소모${pending.legacy?' · 기존 승급 등급 유지':''}</p>
+ <p class="enhance-help cube-stock" data-no-currency-art>남은 ${D.CUBES[kind]?.name||'큐브'} <b>${fmt(state.materials[kind])}개</b> · 남은 잠금석 <b>${fmt(state.materials.potentialLock)}개</b>${pending.lock>=0?` · 이번 재설정에 잠금석 1개 사용 (${pending.lock+1}번 줄 유지)`:' · 이번 재설정은 잠금 없음'}</p></div>`;
 }
 export function cubeGuide(){
  return `<div class="panel pad"><h3>잠재능력 · 큐브 3종</h3><p>장비 잠재 등급과 세 줄의 옵션 등급이 항상 같습니다. 레어면 세 줄 레어, 에픽이면 세 줄 에픽, 유니크면 세 줄 유니크, 레전더리면 세 줄 레전더리입니다.</p><p>모든 장비의 레벨·직업·부위와 관계없이 동일한 옵션 종류·수치·확률을 사용합니다. 같은 옵션이 세 줄 모두 나올 수 있습니다. 레전더리 STR +12% 세 줄도 가능합니다.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.values(D.CUBES).map(c=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${pct(c.up[g])}</td>`).join('')}</tr>`).join('')}</table><p>레드: 최대 유니크, 레전더리 장비 사용 불가, 3줄 즉시 적용 · 블랙: 최소 에픽, 이전/이후 선택 · 프라임: 최소 에픽, 레전더리까지 승급, 첫 줄 고정 없이 3줄 재설정 후 이전/이후 선택. 사용당 큐브 1개, 추가 골드 없음.</p><p>기존 잠재 옵션은 큐브를 쓰기 전까지 유지됩니다. 새 장비는 잠재 해금 주문서 1개를 소모해 3줄 해금을 시도합니다. 200제 이상은 성공 확률 30%, 200제 미만은 100%이며 실패해도 주문서는 소모됩니다. 해금 결과는 세 줄 모두 레어입니다.</p></div>`;
