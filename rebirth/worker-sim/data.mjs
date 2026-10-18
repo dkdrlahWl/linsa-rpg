@@ -275,6 +275,12 @@ export function gearStatRanges(item) {
   return [key,{min:r.min+Math.floor(tier*width),max:tier===tiers-1?top:r.min+Math.floor((tier+1)*width)-1}];
  }));
 }
+// 200레벨 등급 보스장비 전체(모든 등급) 기준 범위: [최저 등급 최소값, 최고 등급 최대값]. 표시용.
+export function gearStatFullRanges(item) {
+ if(!isTieredBossGear(item))return gearStatRanges(item);
+ const lo=gearStatRanges({...item,bossTier:0}),hi=gearStatRanges({...item,bossTier:bossTierCount(item)-1});
+ return Object.fromEntries(Object.keys(lo).map(key=>[key,{min:lo[key].min,max:hi[key].max}]));
+}
 export function rollBaseStats(item,random=Math.random) {
  if(isTieredBossGear(item)&&!Number.isInteger(item.bossTier)){item.bossTier=rollBossTier(item,random);}
  return Object.fromEntries(Object.entries(gearStatRanges(item)).map(([key,r])=>{
