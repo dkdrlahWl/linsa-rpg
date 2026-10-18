@@ -18,7 +18,7 @@ for(const [i,cls] of ids.entries()){
  assert.equal(beginFifth(a,target,0),true);assert.equal(beginFifth(a,target,1),false);
  let sum=0;const hits=[],visual=[];
  for(let tick=0;tick<100;tick++)stepFifth(a,[target],tick,s=>{sum+=s;hits.push(tick);},e=>visual.push(e));
- assert.ok(Math.abs(sum-[24,26,22,22,25][i])<1e-9,cls);
+ assert.ok(Math.abs(sum-[24,26,24.2,18.66,25][i])<1e-9,cls);
  assert.deepEqual(visual.filter(e=>e.kind==='fifth').map(e=>e.impact),hits);
  assert.ok(visual.filter(e=>e.kind==='fifth').every(e=>e.start===e.impact-(cls==='pirate'?0:cls==='warrior'&&e.pulse>0?12:4)));
  assert.equal(FIFTH_SKILLS[cls].cooldown,40);assert.equal(a.fifthReady,400);
@@ -27,7 +27,7 @@ for(const [i,cls] of ids.entries()){
  const outside=actor(cls);beginFifth(outside,target,0);let missed=0;stepFifth(outside,[{...target,x:10000}],100,s=>missed+=s);assert.equal(missed,0,cls+' outside');
  const replay=actor(cls);beginFifth(replay,target,0);const cloned=JSON.parse(JSON.stringify(replay));let s1=0,s2=0;for(let t=0;t<100;t++){stepFifth(replay,[target],t,s=>s1+=s);stepFifth(cloned,[target],t,s=>s2+=s);}assert.equal(s1,s2);
 }
-const rogue=actor('rogue'),weak={id:'weak',x:100,y:0,hp:300,maxHp:1000};beginFifth(rogue,weak,0);let finish=0;stepFifth(rogue,[weak],100,s=>finish+=s);assert.ok(Math.abs(finish-24)<1e-9);
+const rogue=actor('rogue'),weak={id:'weak',x:100,y:0,hp:300,maxHp:1000};beginFifth(rogue,weak,0);let finish=0;stepFifth(rogue,[weak],100,s=>finish+=s);assert.ok(Math.abs(finish-20.66)<1e-9);
 const archer=actor('archer'),targets=[weak,{...weak,id:'other'}];beginFifth(archer,weak,0);let arrows=0;stepFifth(archer,targets,100,()=>arrows++);assert.equal(arrows,40,'twenty area hits per target');
 const warrior=actor('warrior');beginFifth(warrior,weak,0);assert.equal(absorbDamage(warrior,1000,49),800);assert.equal(absorbDamage(warrior,1000,50),1000);
 assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:2400,y:800}),true);assert.equal(fifthContains({mode:'line',x:0,y:0,angle:0,length:2400,width:1600},{x:-1,y:0}),false);

@@ -1,4 +1,4 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-impact-121';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=rogue-archer-20261019';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fifth-impact-121';

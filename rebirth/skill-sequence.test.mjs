@@ -4,7 +4,7 @@ import {newTowerBattle,towerStep,clearVictoryEffects} from './tower-model.mjs?v=
 import {startCoop,predictCoopStep,advanceCoop} from './coop-model.mjs?v=crit-restore-57';
 import {advanceWaveRaw} from './wave-model.mjs?v=crit-restore-57';
 import {initialState,execute} from './engine.mjs?v=crit-restore-57';
-const expected={warrior:[1600,4700,8,30],mage:[1800,4800,9,38],archer:[1750,4600,10,34],rogue:[1600,4700,10,28],pirate:[1700,4800,10,36]};
+const expected={warrior:[1600,4700,8,30],mage:[1800,4800,9,38],archer:[1925,5060,10,34],rogue:[1360,4000,10,28],pirate:[1700,4800,10,36]};
 const power={attack:1000,hp:1e9,defense:1e9,boss:1,crit:0,critDamage:1,cadence:1,advancement:1,firstJob:true};
 for(const [classId,[first,second,hits,duration]] of Object.entries(expected)){
  for(const slot of [1,2]){

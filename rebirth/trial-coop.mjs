@@ -1,5 +1,5 @@
 import {supportTick} from './priest.mjs?v=fifth-114';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=rogue-archer-20261019';
 import {newTowerBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.

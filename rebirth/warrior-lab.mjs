@@ -1,9 +1,9 @@
-import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=fifth-impact-121';
+import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=rogue-archer-20261019';
 import {prepareFifthArt,drawFifth,drawFifthGround} from './fifth-effects.mjs?v=fifth-impact-121';
 import {towerArena} from './tower-client.mjs?v=fifth-impact-121';
-import {CLASS_SKILLS,SECOND_SKILLS,beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-potential-83';
-import {THIRD_SKILLS,beginThird,stepThird,firstJobUnlocked} from './advancement.mjs?v=fifth-114';
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
+import {CLASS_SKILLS,SECOND_SKILLS,beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=rogue-archer-20261019';
+import {THIRD_SKILLS,beginThird,stepThird,firstJobUnlocked} from './advancement.mjs?v=rogue-archer-20261019';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-archer-20261019';
 const SKILLS=[CLASS_SKILLS.warrior,SECOND_SKILLS.warrior,THIRD_SKILLS.warrior,FOURTH_SKILLS.warrior,FIFTH_SKILLS.warrior];
 // Administrator-only, reward-free local 3D combat laboratory.
 let current=null;

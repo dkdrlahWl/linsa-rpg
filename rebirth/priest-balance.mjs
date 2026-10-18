@@ -1,8 +1,8 @@
 import {initialState,makeItem,power} from './engine.mjs?v=fifth-impact-121';
 import {CLASSES,rollBaseStats} from './data.mjs?v=boss-relic-only-130';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-potential-83';
-import {beginThird,stepThird} from './advancement.mjs?v=fifth-114';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=rogue-archer-20261019';
+import {beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-archer-20261019';
 import {beginPriest,stepPriest,supportTick,holyDamage} from './priest.mjs?v=fifth-114';
 import {TOWER_CLASSES} from './tower-model.mjs?v=fifth-impact-121';
 let serial=0;

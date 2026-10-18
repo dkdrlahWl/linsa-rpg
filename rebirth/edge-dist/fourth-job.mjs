@@ -5,8 +5,8 @@ export const FOURTH_SKILLS={
  priest:PRIEST_SKILLS[4],
  warrior:make('천검 만화진',12,3,620,'orbit',0,'여섯 자루의 검이 빠르게 회전하며 0.3초마다 12회 베기'),
  mage:make('성운의 종말',15,4,720,'area',1,'거대한 지역에 15회 메테오 폭격'),
- archer:make('천풍 화살비',18,4,700,'area',2,'하늘을 덮는 화살비가 넓은 지역을 18회 타격'),
- rogue:make('월영 윤무',20,2,620,'orbit',3,'초승달 칼날이 빠르게 회전하며 0.2초마다 20회 연속 베기'),
+ archer:make('천풍 화살비',18,4,700,'area',2,'하늘을 덮는 화살비가 넓은 지역을 18회 타격',1.1),
+ rogue:make('월영 윤무',20,2,620,'orbit',3,'초승달 칼날이 빠르게 회전하며 0.2초마다 20회 연속 베기',.85),
  pirate:make('대해의 포화',10,8,720,'area',4,'넓은 목표 지역에 10회 함포와 파도 폭발',20/18),
 };
 export const fourthUnlocked=a=>(a.advancement??a.power?.advancement??0)>=3;

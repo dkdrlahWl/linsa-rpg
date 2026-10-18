@@ -8,7 +8,7 @@ for(let tick=0;tick<=60;tick++){
  a.x=tick*30;a.y=-tick*20;
  stepFifth(a,[center,rim,outside],tick,(damage,crit,target)=>{const v=hits.get(target.id)||[];v.push(damage);hits.set(target.id,v);},e=>effects.push(e));
 }
-for(const id of ['center','rim']){assert.equal(hits.get(id).length,20);assert.ok(Math.abs(hits.get(id).reduce((a,b)=>a+b,0)-22)<1e-9);}
+for(const id of ['center','rim']){assert.equal(hits.get(id).length,20);assert.ok(Math.abs(hits.get(id).reduce((a,b)=>a+b,0)-24.2)<1e-9);}
 assert.equal(hits.has('outside'),false);assert.equal(FIFTH_SKILLS.archer.radius,1300);
 const pulses=effects.filter(e=>e.kind==='fifth');assert.equal(pulses.length,20);assert.equal(pulses.filter(e=>e.final).length,1);
 for(const e of effects)assert.deepEqual([e.x,e.y],[500,500],'cast stays fixed as caster moves');

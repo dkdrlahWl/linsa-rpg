@@ -3,15 +3,15 @@ import {PRIEST_SKILLS,beginPriest,schedulePriest,stepPriest} from './priest.mjs'
 const first=(name,hits,damage,cooldown,critAdd=0)=>({name,type:'attack',hits,damage,cooldown,critAdd,seconds:0,range:760,description:`${Math.round(damage*100)}% × ${hits}타 · 총 ${Math.round(hits*damage*100)}%${critAdd?' · 이 스킬 치명 확률 +5%p':''}`,pulses:Array.from({length:hits},(_,i)=>({at:3+i*2,damage}))});
 export const CLASS_SKILLS={
  priest:PRIEST_SKILLS[1],
- warrior:first('대지 분쇄',1,1.6,10),mage:first('빙결 폭쇄',3,.6,12),archer:first('질풍 관통',5,.35,11),rogue:first('그림자 처형',2,.8,10,.05),pirate:first('파쇄 포격',2,.85,11),
+ warrior:first('대지 분쇄',1,1.6,10),mage:first('빙결 폭쇄',3,.6,12),archer:first('질풍 관통',5,.385,11),rogue:first('그림자 처형',2,.68,10,.05),pirate:first('파쇄 포격',2,.85,11),
 };
 const sequence=(name,cooldown,range,mode,times,scales,description,close=[])=>({name,type:'sequence',cooldown,range,mode,hits:times.length,seconds:times.at(-1)/10,damage:scales.reduce((a,b)=>a+b,0)/times.length,description,pulses:times.map((at,i)=>({at,damage:scales[i],close:close.includes(i)}))});
 export const SECOND_SKILLS={
  priest:PRIEST_SKILLS[2],
  warrior:sequence('균열 참격',14,760,'fissure',[4,8,12,16,20,24,28,30],[.8,.5,.5,.5,.5,.5,.5,.9],'3초 · 횡베기 80% + 균열 50% × 6 + 솟는 검기 90% · 8타 / 총 470%'),
  mage:sequence('프리즘 창',16,950,'lance',[5,9,13,17,21,25,29,33,38],[.45,.45,.45,.45,.45,.45,.45,.45,1.2],'3.8초 · 마력창 45% × 8 + 결정 폭발 120% · 9타 / 총 480%'),
- archer:sequence('매의 저격',15,1100,'snipe',[6,9,12,15,18,21,24,27,30,34],[1.6,.3,.3,.3,.3,.3,.3,.3,.3,.6],'3.4초 · 저격 160% + 잔상 화살 30% × 8 + 관통 섬광 60% · 10타 / 총 460%'),
- rogue:sequence('잔영 교차',14,760,'cross',[3,6,9,12,15,18,21,24,26,28],[.4,.4,.4,.4,.4,.4,.4,.4,.75,.75],'2.8초 · 분신 교차 40% × 8 + 표식 폭발 75% × 2 · 10타 / 총 470%'),
+ archer:sequence('매의 저격',15,1100,'snipe',[6,9,12,15,18,21,24,27,30,34],[1.76,.33,.33,.33,.33,.33,.33,.33,.33,.66],'3.4초 · 저격 176% + 잔상 화살 33% × 8 + 관통 섬광 66% · 10타 / 총 506%'),
+ rogue:sequence('잔영 교차',14,760,'cross',[3,6,9,12,15,18,21,24,26,28],[.34,.34,.34,.34,.34,.34,.34,.34,.64,.64],'2.8초 · 분신 교차 34% × 8 + 표식 폭발 64% × 2 · 10타 / 총 400%'),
  pirate:sequence('산탄 폭발',15,900,'scatter',[4,7,10,13,16,19,22,25,31,36],[.5,.5,.5,.5,.5,.5,.3,.3,.6,.6],'3.6초 · 산탄 50% × 6 + 근접 탄환 30% × 2 + 화약 폭발 60% × 2 · 8~10타 / 총 420~480%',[6,7]),
 };
 export const skillFor=(classId,slot)=> (slot===1?CLASS_SKILLS:SECOND_SKILLS)[classId];

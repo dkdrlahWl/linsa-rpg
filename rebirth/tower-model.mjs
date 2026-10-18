@@ -1,9 +1,9 @@
 import {APEX_TOWER_FLOORS,apexTowerPattern} from './apex-tower.mjs';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=fifth-impact-121';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=rogue-archer-20261019';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest-potential-83';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=fifth-114';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=fifth-114';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=rogue-archer-20261019';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-archer-20261019';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=tower20-174';
 // Shared deterministic combat. Only input vectors/buttons cross the network.

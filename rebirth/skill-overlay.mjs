@@ -1,4 +1,4 @@
-import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=priest-potential-83';
+import {scheduleCombatSkill,stepCombatSkills,SECOND_SKILLS} from './combat-skills.mjs?v=rogue-archer-20261019';
 import {drawSecondSequence} from './second-effects.mjs?v=priest-potential-83';
 let atlas;
 // The compact boss screen uses the same VFX timeline as movement battles.
