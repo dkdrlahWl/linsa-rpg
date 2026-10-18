@@ -28,10 +28,11 @@ export const BLACK_MARKET_BOSS_SLOT_WEIGHTS=Object.freeze([.5,1,1,1,1,1,1,1,1]);
 
 export function blackMarketBossPrice(level,slot){
  // 2026-10-18: 모든 무기 가격 20% 추가 인상(170~190제는 50% 인상 뒤 적용)
- if(level===200)return slot===0?600000000*1.2:300000000;
+ if(level===200)return slot===0?600000000*1.2:300000000*1.2;
  // 170~190제 무기는 기본가(셀리아 판매가 2배)에서 50% 추가
  const price=bossSalePrice({boss:true,level,slot})*2;
- return slot===0?Math.round(price*(level>=170?1.5:1)*1.2):price;
+ // 2026-10-18: 무기 제외 부위도 20% 인상
+ return slot===0?Math.round(price*(level>=170?1.5:1)*1.2):Math.round(price*1.2);
 }
 
 const KST=9*3600000,HOUR=3600000;
