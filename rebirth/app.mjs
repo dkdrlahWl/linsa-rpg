@@ -41,7 +41,7 @@ import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide } from './cube-ui.mjs?v=prime-choice-158';
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower20-174';
-import * as D from "./data.mjs?v=boss200-no-tier-20261018";
+import * as D from "./data.mjs?v=weekly200-20261018";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-impact-121";
@@ -824,8 +824,8 @@ function gearMarkup(it, size="") {
   return `<span class="${frameClass}"><img class="gear-icon" src="${esc(art.art)}" alt="${esc(it.boss ? "보스 장비 " + art.name : art.name)}" width="256" height="256" decoding="async" draggable="false"></span>`;
 }
 function bossMarkup(b, size="") {
-  if(b.weekly)return `<div class="boss-sprite ${size}" style="background-image:url(tower/boss-${TOWER_FLOORS[b.region].art}.webp);background-size:300% 100%;background-position:left center" role="img" aria-label="${esc(b.name)}"></div>`;
   if(b.fullArt) return `<img class="boss-sprite ${size}" src="${b.art}" alt="${esc(b.name)}" style="object-fit:contain">`;
+  if(b.weekly)return `<div class="boss-sprite ${size}" style="background-image:url(tower/boss-${TOWER_FLOORS[b.region].art}.webp);background-size:300% 100%;background-position:left center" role="img" aria-label="${esc(b.name)}"></div>`;
   return '<div class="boss-sprite '+size+'" role="img" aria-label="'+esc(b.name)+'" style="background-image:url('+b.art+');background-position:'+b.spriteX+'% '+b.spriteY+'%"></div>';
 }
 function monsterMarkup(m) {
@@ -894,7 +894,7 @@ function bosses() {
 function bossCard(b) {
   const claimed=!state.isAdmin&&(b.weekly?state.bossClaims?.[b.id]===D.weekKey(Date.now()):state.bossClaims?.[b.id]===D.dayKey(Date.now()));
   const locked=false;
-  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${b.background||D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 보상 완료":"오늘 보상 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"보상 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}${b.exactHalfWeapon?" · 무기 비중은 다른 부위의 1/2":""}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 보상 · 승리 시 차감 · 패배·포기 시 재도전 가능"} · 연습은 보상 없음</p></details></div></section>`;
+  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${b.background||D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 보상 완료":"오늘 보상 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"보상 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}${b.exactHalfWeapon?" · 무기 비중은 다른 부위의 1/2":""}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.guide?esc(b.guide)+"<br>":""}${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 보상 · 승리 시 차감 · 패배·포기 시 재도전 가능"} · 연습은 보상 없음</p></details></div></section>`;
 }
 function partyPanel() {
  if(!partyRoom)return header('협동 토벌')+'<div class="panel pad">파티 정보를 불러오는 중…</div>';
