@@ -30,7 +30,7 @@ function wheelSvg(){
     <circle r="170" fill="url(#wheelRim)"/>
     <circle r="155" fill="#3a1d07"/>
     ${bulbs}
-    <g class="lucky-wheel-rotor" style="transform:rotate(${rotation}deg)">${slices}</g>
+    <g class="lucky-wheel-rotor" transform="rotate(${rotation} 0 0)">${slices}</g>
     <circle r="40" fill="url(#wheelHub)" stroke="#7a4610" stroke-width="4"/>
     <text class="wheel-hub-text" y="-6" text-anchor="middle">LUCKY</text>
     <text class="wheel-hub-text small" y="12" text-anchor="middle">돌림판</text>
@@ -54,12 +54,27 @@ export function luckyWheelView(s,message=''){
 // Spin the drawn wheel so slice `index` stops under the pointer, then resolve.
 export function spinLuckyWheel(root,index){
   const rotor=root?.querySelector('.lucky-wheel-rotor');if(!rotor)return Promise.resolve();
+  if(spinning)return Promise.resolve();
   spinning=true;
-  const target=360-(index*SEG+SEG/2)+(Math.random()-.5)*SEG*.6,base=Math.ceil(rotation/360)*360;
-  rotation=base+360*6+target;
-  rotor.style.transition='transform 4.6s cubic-bezier(.12,.72,.08,1)';
-  requestAnimationFrame(()=>{rotor.style.transform=`rotate(${rotation}deg)`;});
-  root.querySelector('.lucky-wheel-stage')?.classList.add('spinning');
-  return new Promise(resolve=>setTimeout(()=>{spinning=false;root.querySelector('.lucky-wheel-stage')?.classList.remove('spinning');resolve();},4750));
+  const from=rotation,target=360-(index*SEG+SEG/2)+(Math.random()-.5)*SEG*.6;
+  const to=Math.ceil(from/360)*360+360*6+target,duration=4600;
+  const stage=root.querySelector('.lucky-wheel-stage');
+  stage?.classList.add('spinning');
+  // Animate the SVG angle directly: global reduced-motion CSS cannot skip it,
+  // and SVG user coordinates keep the pivot at the hub on every browser.
+  return new Promise(resolve=>{
+    let start;
+    const frame=now=>{
+      start??=now;
+      const progress=Math.min(1,(now-start)/duration),eased=1-Math.pow(1-progress,4);
+      rotation=from+(to-from)*eased;
+      rotor.setAttribute('transform',`rotate(${rotation} 0 0)`);
+      if(progress<1&&rotor.isConnected){requestAnimationFrame(frame);return;}
+      rotation=to%360;
+      rotor.setAttribute('transform',`rotate(${rotation} 0 0)`);
+      spinning=false;stage?.classList.remove('spinning');resolve();
+    };
+    requestAnimationFrame(frame);
+  });
 }
 export const luckyWheelSpinning=()=>spinning;
