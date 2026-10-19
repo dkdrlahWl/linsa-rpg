@@ -27,7 +27,7 @@ export function arenaRandom(seed,id,salt){
 }
 export function botScore(id,bucket=Math.floor(Date.now()/1800000)){
  if(!Number.isInteger(id)||id<1||id>ARENA_BOT_COUNT)throw Error('INVALID_ARENA_BOT');
- const seasonBucket=Math.floor(arenaSeasonStart(bucket*1800000)/1800000),elapsed=bucket-seasonBucket,day=Math.floor(elapsed/48),dailyBucket=seasonBucket+day*48,growth=700; // 2026-10-19: 봇 강함은 요일과 무관하게 순위 기준 고정
+ const seasonBucket=Math.floor(arenaSeasonStart(bucket*1800000)/1800000),elapsed=bucket-seasonBucket,day=Math.floor(elapsed/48),dailyBucket=seasonBucket+day*48,growth=Math.floor(day*700/6);
  if(id<=120)return 2000+arenaRandom(seasonBucket,id,1)%1001+growth+arenaRandom(dailyBucket,id,2)%161-80;
  return Math.max(0,Math.min(1949+growth,Math.floor((2000-id)*(1949+growth)/1879)+arenaRandom(dailyBucket,id,3)%41-20));
 }
@@ -56,9 +56,18 @@ export function gearSpec(score){
  const q=(s-1300)/1300;
  return {level:Math.floor((110+q*80)/10)*10,stars:Math.round(15+q*5),grade:s<1800?4:5,attackLines:Math.round(11+q*14)};
 }
+// 2026-10-19: 봇 장비는 요일이 아니라 순위로 정한다. 같은 순위 봇은 시즌 마지막(일요일 밤) 같은 순위 봇의 장비를 쓴다.
+// 봇 점수(매칭·순위표)는 그대로 요일별로 오르고, 강함만 순위 기준이 된다.
+let rankBoard={season:null,scores:[]};
+export function rankGearScore(rank,time=Date.now()){
+ if(!Number.isInteger(rank)||rank<1)return null;
+ const season=arenaSeasonStart(time);
+ if(rankBoard.season!==season){const last=Math.floor((season+7*86400000)/1800000)-1;rankBoard={season,scores:Array.from({length:ARENA_BOT_COUNT},(_,i)=>botScore(i+1,last)).sort((a,b)=>b-a)};}
+ return rankBoard.scores[Math.min(rank,ARENA_BOT_COUNT)-1];
+}
 export function buildBot(meta){
  const id=Number(meta.id),score=Number(meta.score??botScore(id)),classId=ARENA_CLASSES.includes(meta.classId)?meta.classId:ARENA_CLASSES[(id-1)%ARENA_CLASSES.length];
- const spec=gearSpec(score),level=200,primary=CLASSES.find(c=>c.id===classId).stat;
+ const rankScore=rankGearScore(Number(meta.rank)),spec=gearSpec(Math.max(score,rankScore??score)),level=200,primary=CLASSES.find(c=>c.id===classId).stat;
  const ctx={random:()=>.52,uuid:()=>crypto.randomUUID(),now:0};
  const items=Array.from({length:9},(_,slot)=>{
    const item=makeItem(spec.level,classId,slot,true,ctx,0);
@@ -78,7 +87,7 @@ export function arenaProfile(state,score=null,rank=null,id=null){
 export async function arenaOfferProfiles(arena,readPlayer){
  return Promise.all((arena.offers||[]).map(async offer=>{
   const rank=offer.rank??(arena.top100||[]).find(row=>row.id===offer.id)?.rank??null;
-  const state=offer.kind==='bot'?buildBot({id:Number(offer.id.slice(4)),name:offer.name,classId:offer.classId,score:offer.score}):await readPlayer(offer.id.slice(7));
+  const state=offer.kind==='bot'?buildBot({id:Number(offer.id.slice(4)),name:offer.name,classId:offer.classId,score:offer.score,rank}):await readPlayer(offer.id.slice(7));
   return {...arenaProfile(state,offer.score,rank,offer.id),used:offer.used===true};
  }));
 }

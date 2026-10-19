@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
       const snap=await rpc('rebirth_snapshot',{p_request:body.requestId});
       if(snap.user!==user.id||!snap.state)throw new Error('CHARACTER_REQUIRED');
       if(snap.state.battle||snap.state.coopRoom)throw new Error('BATTLE_IN_PROGRESS');
-      const enemy=opponent.kind==='bot'?buildBot({id:Number(target.slice(4)),name:opponent.name,classId:opponent.classId,score:opponent.score}):await rpc('rebirth_arena_opponent_snapshot',{p_user:target.slice(7)},true);
+      const enemy=opponent.kind==='bot'?buildBot({id:Number(target.slice(4)),name:opponent.name,classId:opponent.classId,score:opponent.score,rank:opponent.rank??arena.top100?.find((r:any)=>r.id===target)?.rank}):await rpc('rebirth_arena_opponent_snapshot',{p_user:target.slice(7)},true);
       const battle=simulateArena(snap.state,enemy,body.requestId);
       const saved=await rpc('rebirth_arena_commit',{p_user:user.id,p_session:snap.session,p_request:body.requestId,p_target:target,p_result:{battle,opponent:arenaProfile(enemy,opponent.score,opponent.rank??arena.top100.find((r:any)=>r.id===target)?.rank??null,target),self:arenaProfile(snap.state,arena.score,arena.rank,'self')}},true);
       const latest=await rpc('rebirth_arena_status',{});
