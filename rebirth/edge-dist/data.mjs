@@ -15,7 +15,10 @@ export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
 export const FIELD_XP_MULTIPLIER = 2.5;
 // 레벨 상한: 레벨 확장 시 여기만 바꾸면 경험치·칭호 등이 따라감.
-export const MAX_LEVEL = 250;
+export const MAX_LEVEL = 300;
+// 2026-10-20: 레벨당 스탯 포인트 1~250은 5, 251부터는 10배(50).
+export const statPointsForLevel=level=>level>250?50:5;
+export const totalStatPoints=level=>(Math.min(level,250)-1)*5+Math.max(0,level-250)*50;
 export const CLASSES = [
   {id:"priest",name:"사제",stat:"LUK",weapon:"성물",skill:"성광 심판",color:"#f5f1df"},
   {
@@ -258,6 +261,9 @@ export function fieldMonster(stageId,kills=0) {
 export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP controls new progression.
 export function xpNeeded(level) {
  // 2026-10-14: 230레벨부터 필요 경험치 2배 (200~229는 3배, 230 이상은 6배).
+ // 2026-10-20: 최대 레벨 300. 250부터는 하루 1레벨 정도(상위 유저 하루 사냥량 기준).
+ // 레벨이 오를수록 필드 경험치(레벨 차 보정)가 줄어드는 만큼 필요량도 같이 줄여 하루 1레벨을 유지한다.
+ if(level>=250)return Math.round(28000000*(250/level)**2);
  const endgame=level>=230?6:level>=200?3:1;
  return Math.round(journeyXP(level)*endgame);
 }

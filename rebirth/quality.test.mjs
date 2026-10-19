@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {gearAttributes,normalizePotentialItem} from './data.mjs?v=crit-restore-57';
+import {gearAttributes,normalizePotentialItem} from './data.mjs?v=crit-restore-57-lv300';
 import {initialState,execute,makeLootItem} from './engine.mjs?v=crit-restore-57';
 const ctx={now:0,random:()=>.5,uuid:randomUUID};
 let checked=0;

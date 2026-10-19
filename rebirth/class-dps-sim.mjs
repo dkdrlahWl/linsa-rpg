@@ -1,7 +1,7 @@
 // 전 직업 단일 대상 보스 딜 시뮬레이션(5개 스킬 + 기본 공격, 200레벨·25성·200제 보스장비 9부위).
 // node rebirth/class-dps-sim.mjs → 직업별 최고 빌드 DPS와 사제 비율.
 import {initialState,makeItem,power} from './engine.mjs?v=fifth-impact-121';
-import {CLASSES,rollBaseStats} from './data.mjs?v=unique-boss-25-20261015';
+import {CLASSES,rollBaseStats} from './data.mjs?v=unique-boss-25-20261015-lv300';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=rogue-archer-20261019';
 import {beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-archer-20261019';

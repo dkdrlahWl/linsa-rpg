@@ -21,7 +21,7 @@ import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clear
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
-import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188';
+import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
 import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
@@ -43,7 +43,7 @@ import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide } from './cube-ui.mjs?v=prime-choice-158';
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower20-174';
-import * as D from "./data.mjs?v=weekly200-hp140m-20261018";
+import * as D from "./data.mjs?v=weekly200-hp140m-20261018-lv300";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=priest-potential-83";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-impact-121";
@@ -1568,7 +1568,7 @@ document.addEventListener("click", async (e) => {
     if(action==="betaLevel"){
       if(busy)return;
       const level=Number($("#beta-level").value);
-      if(!Number.isSafeInteger(level)||level<1||level>250)return toast("레벨은 1~250 사이 정수로 입력해 주세요.");
+      if(!Number.isSafeInteger(level)||level<1||level>300)return toast("레벨은 1~300 사이 정수로 입력해 주세요.");
       const result=await command("betaLevel",{level});
       if(result){betaTools();toast("레벨이 조정됐어요. 스탯 포인트를 분배해 주세요.");}return;
     }

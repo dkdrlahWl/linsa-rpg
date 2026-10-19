@@ -53,6 +53,8 @@ import {
   canEquipClass,
   WEAPON_TYPES,
   MAX_LEVEL,
+  statPointsForLevel,
+  totalStatPoints,
 } from "./data.mjs";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs';
@@ -294,7 +296,7 @@ function levelUp(s, xp) {
   s.xp += whole;
   while (s.level < MAX_LEVEL && s.xp >= xpNeeded(s.level)) {
     s.xp -= xpNeeded(s.level++);
-    s.points += 5;
+    s.points += statPointsForLevel(s.level);
   }
   if (s.level >= MAX_LEVEL) { s.xp = 0; s.xpRemainder = 0; }
 }
@@ -711,7 +713,7 @@ function executeCore(input, command, args = {}, ctx) {
       const restored = s.classBuilds[target.id];
       s.stats = restored ? {...restored} : {STR:4,DEX:4,INT:4,LUK:4};
       const allocated = Object.values(s.stats).reduce((total,value) => total + Math.max(0,value-4),0);
-      s.points = Math.max(0,(s.level-1)*5-allocated);
+      s.points = Math.max(0,totalStatPoints(s.level)-allocated);
       s.classId = target.id;
       s.equippedCostume = null;
       s.equipped = {};
@@ -788,7 +790,7 @@ function executeCore(input, command, args = {}, ctx) {
     case "resetStats": {
       spend(s, "gold", 5000);
       s.stats = { STR: 4, DEX: 4, INT: 4, LUK: 4 };
-      s.points = (s.level - 1) * 5;
+      s.points = totalStatPoints(s.level);
       break;
     }
     case "autoEquip": {

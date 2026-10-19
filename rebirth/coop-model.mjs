@@ -17,7 +17,7 @@ import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=fifth-impact-121
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-archer-20261019';
 import {beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=fifth-impact-121';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=boss-relic-only-130';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=boss-relic-only-130-lv300';
 import {incomingDamage} from './journey-balance.mjs';
 import {COOP_TIERS} from './rift-rewards.mjs';
 export {COOP_TIERS};

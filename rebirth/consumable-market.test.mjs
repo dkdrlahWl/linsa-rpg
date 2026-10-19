@@ -1,4 +1,4 @@
-import {MATERIALS} from './data.mjs?v=crit-restore-57';
+import {MATERIALS} from './data.mjs?v=crit-restore-57-lv300';
 import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
