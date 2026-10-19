@@ -65,6 +65,8 @@ export function rankGearScore(rank,time=Date.now()){
  if(rankBoard.season!==season){const last=Math.floor((season+7*86400000)/1800000)-1;rankBoard={season,scores:Array.from({length:ARENA_BOT_COUNT},(_,i)=>botScore(i+1,last)).sort((a,b)=>b-a)};}
  return rankBoard.scores[Math.min(rank,ARENA_BOT_COUNT)-1];
 }
+// 2026-10-19: 그랜드마스터 이상(점수 2600+ · 1~10위) 봇은 아레나용 잠재(공%·크리·HP%)를 쓴다. 직업별 최적 조합(시뮬레이션).
+export const ARENA_ELITE_BOT_LINES=Object.freeze({warrior:{attack:9,crit:6,hp:12},mage:{attack:9,crit:6,hp:12},pirate:{attack:9,crit:6,hp:12},archer:{attack:12,crit:6,hp:9},rogue:{attack:12,crit:6,hp:9},priest:{crit:9,hp:18}});
 export function buildBot(meta){
  const id=Number(meta.id),score=Number(meta.score??botScore(id)),classId=ARENA_CLASSES.includes(meta.classId)?meta.classId:ARENA_CLASSES[(id-1)%ARENA_CLASSES.length];
  const rankScore=rankGearScore(Number(meta.rank)),spec=gearSpec(Math.max(score,rankScore??score)),level=200,primary=CLASSES.find(c=>c.id===classId).stat;
@@ -77,6 +79,11 @@ export function buildBot(meta){
    item.lines=Array.from({length:count},()=>({key:'attack',value:spec.grade>=5?12:spec.grade>=4?10:5,grade:spec.grade}));
    return item;
  });
+ const rank=Number(meta.rank);
+ if(score>=ARENA_ELITE_MIN_SCORE&&Number.isInteger(rank)&&rank>=1&&rank<=10){
+  const lines=Object.entries(ARENA_ELITE_BOT_LINES[classId]).flatMap(([key,n])=>Array.from({length:n},()=>key));
+  items.forEach((item,slot)=>{item.grade=5;item.lines=lines.slice(slot*3,slot*3+3).map(key=>({key,value:12,grade:5,...(key==='crit'?{critBalanceVersion:2}:{})}));});
+ }
  const stats={STR:4,DEX:4,INT:4,LUK:4};stats[primary]+=5*(level-1);
  return {name:meta.name&&!/^투사\d+$/.test(meta.name)?meta.name:botName(id),classId,level,stats,advancement:4,items,equipped:Object.fromEntries(items.map((item,i)=>[i,item.id])),costumes:[],equippedCostume:null,score,botId:id};
 }
