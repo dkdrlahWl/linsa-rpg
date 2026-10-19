@@ -7,7 +7,7 @@ import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=rogue
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=tower20-174';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=boss-relic-only-130-lv300';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=boss-relic-only-130-lv300b';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

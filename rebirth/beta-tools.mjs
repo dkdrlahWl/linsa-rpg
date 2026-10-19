@@ -1,4 +1,4 @@
-import {MATERIALS,REGIONS,STAGES,BOSSES,totalStatPoints} from './data.mjs?v=endgame-level-250-20261011-lv300';
+import {MATERIALS,REGIONS,STAGES,BOSSES,totalStatPoints} from './data.mjs?v=endgame-level-250-20261011-lv300b';
 // Restricted by the server-verified administrator context.
 export const BETA_TOOLS_ENABLED = true;
 export function applyBetaTool(s,command,args,now){

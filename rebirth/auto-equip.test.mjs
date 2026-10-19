@@ -1,4 +1,4 @@
-import {normalizePotentialItem} from './data.mjs?v=crit-restore-57-lv300';
+import {normalizePotentialItem} from './data.mjs?v=crit-restore-57-lv300b';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,makeItem,power,bestEquipment,execute} from './engine.mjs?v=crit-restore-57';

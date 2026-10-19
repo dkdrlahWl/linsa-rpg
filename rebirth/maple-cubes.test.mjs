@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,execute,power} from './engine.mjs?v=crit-restore-57';
-import {normalizePotentialItem,normalizePotentialState,gearAttributes,OPTIONS} from './data.mjs?v=crit-restore-57-lv300';
+import {normalizePotentialItem,normalizePotentialState,gearAttributes,OPTIONS} from './data.mjs?v=crit-restore-57-lv300b';
 import {CUBES,cubeUpgrade,cubeTable,cubeLineRates,rerollCube,rollCubeLine} from './maple-cubes.mjs?v=crit-restore-57';
 import {renderCubePanel} from './cube-ui.mjs?v=crit-restore-57';
 let seed=1234567;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);

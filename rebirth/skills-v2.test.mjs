@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {CLASSES,CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=crit-restore-57-lv300';
+import {CLASSES,CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=crit-restore-57-lv300b';
 import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-restore-57';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 for(const c of CLASSES){

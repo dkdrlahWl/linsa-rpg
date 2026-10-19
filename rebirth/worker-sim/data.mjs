@@ -262,8 +262,8 @@ export const XP_SCALE = 5; // Legacy save conversion reference; journeyXP contro
 export function xpNeeded(level) {
  // 2026-10-14: 230레벨부터 필요 경험치 2배 (200~229는 3배, 230 이상은 6배).
  // 2026-10-20: 최대 레벨 300. 250부터는 하루 1레벨 정도(상위 유저 하루 사냥량 기준).
- // 레벨이 오를수록 필드 경험치(레벨 차 보정)가 줄어드는 만큼 필요량도 같이 줄여 하루 1레벨을 유지한다.
- if(level>=250)return Math.round(28000000*(250/level)**2);
+ // 필요량은 레벨이 오를수록 늘어난다(250: 2,800만 → 299: 약 4,000만).
+ if(level>=250)return Math.round(28000000*(level/250)**2);
  const endgame=level>=230?6:level>=200?3:1;
  return Math.round(journeyXP(level)*endgame);
 }

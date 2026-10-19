@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {initialState,makeItem,power,huntingRate,execute} from './engine.mjs?v=crit-restore-57';
-import * as D from './data.mjs?v=crit-restore-57-lv300';
+import * as D from './data.mjs?v=crit-restore-57-lv300b';
 import {damageRows} from './damage-stack.mjs';
 import {newTowerBattle,towerStep,TOWER_CLASSES} from './tower-model.mjs?v=crit-restore-57';
 import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';

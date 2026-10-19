@@ -1,5 +1,5 @@
 import {initialState,makeItem,power} from './engine.mjs?v=fifth-impact-121';
-import {CLASSES,rollBaseStats} from './data.mjs?v=boss-relic-only-130-lv300';
+import {CLASSES,rollBaseStats} from './data.mjs?v=boss-relic-only-130-lv300b';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=rogue-archer-20261019';
 import {beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
 import {beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-archer-20261019';
