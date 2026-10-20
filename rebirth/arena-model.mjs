@@ -67,9 +67,19 @@ export function rankGearScore(rank,time=Date.now()){
 }
 // 2026-10-19: 그랜드마스터 이상(점수 2600+ · 1~10위) 봇은 아레나용 잠재(공%·크리·HP%)를 쓴다. 직업별 최적 조합(시뮬레이션).
 export const ARENA_ELITE_BOT_LINES=Object.freeze({warrior:{attack:9,crit:6,hp:12},mage:{attack:9,crit:6,hp:12},pirate:{attack:9,crit:6,hp:12},archer:{attack:12,crit:6,hp:9},rogue:{attack:12,crit:6,hp:9},priest:{crit:9,hp:18}});
+// 2026-10-21: 순위별 아레나 잠재 줄 수. 1~10위 27줄, 11~30위 18→9줄, 31~60위 9→3줄, 61~100위 3→0줄, 101위부터 0.
+export function arenaBotLines(rank){
+ if(!Number.isInteger(rank)||rank<1)return 0;
+ if(rank<=10)return 27;
+ if(rank<=30)return Math.round(18-9*(rank-11)/19);
+ if(rank<=60)return Math.round(9-6*(rank-31)/29);
+ if(rank<=100)return Math.round(3-3*(rank-61)/39);
+ return 0;
+}
 export function buildBot(meta){
  const id=Number(meta.id),score=Number(meta.score??botScore(id)),classId=ARENA_CLASSES.includes(meta.classId)?meta.classId:ARENA_CLASSES[(id-1)%ARENA_CLASSES.length];
- const rankScore=rankGearScore(Number(meta.rank)),spec=gearSpec(Math.max(score,rankScore??score)),level=200,primary=CLASSES.find(c=>c.id===classId).stat;
+ // 순위가 있으면 강함은 순위로만 정한다(점수 무관). 순위를 모를 때만 점수로 정한다.
+ const rankScore=rankGearScore(Number(meta.rank)),spec=gearSpec(rankScore??score),level=200,primary=CLASSES.find(c=>c.id===classId).stat;
  const ctx={random:()=>.52,uuid:()=>crypto.randomUUID(),now:0};
  const items=Array.from({length:9},(_,slot)=>{
    const item=makeItem(spec.level,classId,slot,true,ctx,0);
@@ -79,9 +89,11 @@ export function buildBot(meta){
    item.lines=Array.from({length:count},()=>({key:'attack',value:spec.grade>=5?12:spec.grade>=4?10:5,grade:spec.grade}));
    return item;
  });
- const rank=Number(meta.rank);
- if(score>=ARENA_ELITE_MIN_SCORE&&Number.isInteger(rank)&&rank>=1&&rank<=10){
-  const lines=Object.entries(ARENA_ELITE_BOT_LINES[classId]).flatMap(([key,n])=>Array.from({length:n},()=>key));
+ const rank=Number(meta.rank),arenaLines=arenaBotLines(rank);
+ if(arenaLines>0){
+  // 아레나 잠재 줄 수만큼 직업별 최적 조합(HP%·크리) 비율로 공% 줄을 바꾼다. 1~10위는 27줄 전부.
+  const mix=ARENA_ELITE_BOT_LINES[classId],hp=Math.round((mix.hp||0)*arenaLines/27),crit=Math.round((mix.crit||0)*arenaLines/27);
+  const lines=[...Array(hp).fill('hp'),...Array(crit).fill('crit')];while(lines.length<27)lines.push('attack');
   items.forEach((item,slot)=>{item.grade=5;item.lines=lines.slice(slot*3,slot*3+3).map(key=>({key,value:12,grade:5,...(key==='crit'?{critBalanceVersion:2}:{})}));});
  }
  const stats={STR:4,DEX:4,INT:4,LUK:4};stats[primary]+=5*(level-1);
