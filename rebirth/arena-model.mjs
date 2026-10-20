@@ -1,4 +1,5 @@
-import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,firstJobUnlocked,rollBaseStats} from './data.mjs';
+import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,firstJobUnlocked,rollBaseStats,totalStatPoints} from './data.mjs';
+import {COSTUMES} from './costumes.mjs';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {beginThird,stepThird} from './advancement.mjs';
 import {beginFourth,stepFourth} from './fourth-job.mjs';
@@ -76,10 +77,21 @@ export function arenaBotLines(rank){
  if(rank<=100)return Math.round(3-3*(rank-61)/39);
  return 0;
 }
+// 2026-10-21: 45위 이상은 유효 레전드 잠재 25줄(직업별 아레나 최적 비율) + 무효 2줄.
+export const ARENA_TOP_EFFECTIVE_RANK=45,ARENA_TOP_EFFECTIVE_LINES=25;
+// 순위별 봇 레벨. 스탯은 레벨만큼 받은 포인트를 전부 주스탯에 분배한다.
+export function arenaBotLevel(rank){
+ if(!Number.isInteger(rank)||rank<1)return 200;
+ if(rank<=10)return 260;
+ if(rank<=45)return 255;
+ if(rank<=100)return 250;
+ if(rank<=300)return Math.round(250-50*(rank-100)/200);
+ return 200;
+}
 export function buildBot(meta){
  const id=Number(meta.id),score=Number(meta.score??botScore(id)),classId=ARENA_CLASSES.includes(meta.classId)?meta.classId:ARENA_CLASSES[(id-1)%ARENA_CLASSES.length];
  // 순위가 있으면 강함은 순위로만 정한다(점수 무관). 순위를 모를 때만 점수로 정한다.
- const rankScore=rankGearScore(Number(meta.rank)),spec=gearSpec(rankScore??score),level=200,primary=CLASSES.find(c=>c.id===classId).stat;
+ const rankScore=rankGearScore(Number(meta.rank)),spec=gearSpec(rankScore??score),level=arenaBotLevel(Number(meta.rank)),primary=CLASSES.find(c=>c.id===classId).stat;
  const ctx={random:()=>.52,uuid:()=>crypto.randomUUID(),now:0};
  const items=Array.from({length:9},(_,slot)=>{
    const item=makeItem(spec.level,classId,slot,true,ctx,0);
@@ -90,14 +102,18 @@ export function buildBot(meta){
    return item;
  });
  const rank=Number(meta.rank),arenaLines=arenaBotLines(rank);
- if(arenaLines>0){
+ if(Number.isInteger(rank)&&rank>=1&&rank<=ARENA_TOP_EFFECTIVE_RANK){
+  const mix=ARENA_ELITE_BOT_LINES[classId],n=ARENA_TOP_EFFECTIVE_LINES,hp=Math.round((mix.hp||0)*n/27),crit=Math.round((mix.crit||0)*n/27);
+  const lines=[...Array(hp).fill('hp'),...Array(crit).fill('crit')];while(lines.length<n)lines.push('attack');while(lines.length<27)lines.push('goldGain');
+  items.forEach((item,slot)=>{item.grade=5;item.lines=lines.slice(slot*3,slot*3+3).map(key=>({key,value:key==='goldGain'?20:12,grade:5,...(key==='crit'?{critBalanceVersion:2}:{})}));});
+ }else if(arenaLines>0){
   // 아레나 잠재 줄 수만큼 직업별 최적 조합(HP%·크리) 비율로 공% 줄을 바꾼다. 1~10위는 27줄 전부.
   const mix=ARENA_ELITE_BOT_LINES[classId],hp=Math.round((mix.hp||0)*arenaLines/27),crit=Math.round((mix.crit||0)*arenaLines/27);
   const lines=[...Array(hp).fill('hp'),...Array(crit).fill('crit')];while(lines.length<27)lines.push('attack');
   items.forEach((item,slot)=>{item.grade=5;item.lines=lines.slice(slot*3,slot*3+3).map(key=>({key,value:12,grade:5,...(key==='crit'?{critBalanceVersion:2}:{})}));});
  }
- const stats={STR:4,DEX:4,INT:4,LUK:4};stats[primary]+=5*(level-1);
- return {name:meta.name&&!/^투사\d+$/.test(meta.name)?meta.name:botName(id),classId,level,stats,advancement:4,items,equipped:Object.fromEntries(items.map((item,i)=>[i,item.id])),costumes:[],equippedCostume:null,score,botId:id};
+ const stats={STR:4,DEX:4,INT:4,LUK:4};stats[primary]+=totalStatPoints(level);
+ return {name:meta.name&&!/^투사\d+$/.test(meta.name)?meta.name:botName(id),classId,level,stats,advancement:4,items,equipped:Object.fromEntries(items.map((item,i)=>[i,item.id])),costumes:COSTUMES.map(c=>c.id),equippedCostume:COSTUMES.find(c=>c.classId===classId)?.id??null,score,botId:id};
 }
 export function arenaProfile(state,score=null,rank=null,id=null){
  const p=power(state);
