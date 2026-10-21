@@ -89,8 +89,8 @@ export const ARENA_TOP_GEAR=Object.freeze({level:200,stars:25,grade:5,attackLine
 // 순위별 봇 레벨. 스탯은 레벨만큼 받은 포인트를 전부 주스탯에 분배한다.
 export function arenaBotLevel(rank){
  if(!Number.isInteger(rank)||rank<1)return 200;
- if(rank<=10)return 260;
- if(rank<=45)return 255;
+ // 2026-10-21: 50위 이상 봇은 레벨 300.
+ if(rank<=ARENA_TOP_EFFECTIVE_RANK)return 300;
  if(rank<=100)return 250;
  if(rank<=300)return Math.round(250-50*(rank-100)/200);
  return 200;
