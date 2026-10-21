@@ -78,7 +78,14 @@ export function arenaBotLines(rank){
  return 0;
 }
 // 2026-10-21: 45위 이상은 유효 레전드 잠재 25줄(직업별 아레나 최적 비율) + 무효 2줄.
-export const ARENA_TOP_EFFECTIVE_RANK=45,ARENA_TOP_EFFECTIVE_LINES=25;
+// 2026-10-21: 50위 이상으로 확대. 50위 이상 봇은 200제 25성 풀셋, 유효 줄은 45위 25줄 → 50위 18줄.
+export const ARENA_TOP_EFFECTIVE_RANK=50,ARENA_TOP_EFFECTIVE_LINES=25,ARENA_TOP_MIN_EFFECTIVE_LINES=18;
+export function arenaEffectiveLines(rank){
+ if(!Number.isInteger(rank)||rank<1||rank>ARENA_TOP_EFFECTIVE_RANK)return 0;
+ if(rank<=45)return ARENA_TOP_EFFECTIVE_LINES;
+ return Math.round(ARENA_TOP_EFFECTIVE_LINES-(ARENA_TOP_EFFECTIVE_LINES-ARENA_TOP_MIN_EFFECTIVE_LINES)*(rank-45)/(ARENA_TOP_EFFECTIVE_RANK-45));
+}
+export const ARENA_TOP_GEAR=Object.freeze({level:200,stars:25,grade:5,attackLines:27});
 // 순위별 봇 레벨. 스탯은 레벨만큼 받은 포인트를 전부 주스탯에 분배한다.
 export function arenaBotLevel(rank){
  if(!Number.isInteger(rank)||rank<1)return 200;
@@ -91,7 +98,8 @@ export function arenaBotLevel(rank){
 export function buildBot(meta){
  const id=Number(meta.id),score=Number(meta.score??botScore(id)),classId=ARENA_CLASSES.includes(meta.classId)?meta.classId:ARENA_CLASSES[(id-1)%ARENA_CLASSES.length];
  // 순위가 있으면 강함은 순위로만 정한다(점수 무관). 순위를 모를 때만 점수로 정한다.
- const rankScore=rankGearScore(Number(meta.rank)),spec=gearSpec(rankScore??score),level=arenaBotLevel(Number(meta.rank)),primary=CLASSES.find(c=>c.id===classId).stat;
+ const topRank=Number.isInteger(Number(meta.rank))&&Number(meta.rank)>=1&&Number(meta.rank)<=ARENA_TOP_EFFECTIVE_RANK;
+ const rankScore=rankGearScore(Number(meta.rank)),spec=topRank?ARENA_TOP_GEAR:gearSpec(rankScore??score),level=arenaBotLevel(Number(meta.rank)),primary=CLASSES.find(c=>c.id===classId).stat;
  const ctx={random:()=>.52,uuid:()=>crypto.randomUUID(),now:0};
  const items=Array.from({length:9},(_,slot)=>{
    const item=makeItem(spec.level,classId,slot,true,ctx,0);
@@ -103,7 +111,7 @@ export function buildBot(meta){
  });
  const rank=Number(meta.rank),arenaLines=arenaBotLines(rank);
  if(Number.isInteger(rank)&&rank>=1&&rank<=ARENA_TOP_EFFECTIVE_RANK){
-  const mix=ARENA_ELITE_BOT_LINES[classId],n=ARENA_TOP_EFFECTIVE_LINES,hp=Math.round((mix.hp||0)*n/27),crit=Math.round((mix.crit||0)*n/27);
+  const mix=ARENA_ELITE_BOT_LINES[classId],n=arenaEffectiveLines(rank),hp=Math.round((mix.hp||0)*n/27),crit=Math.round((mix.crit||0)*n/27);
   const lines=[...Array(hp).fill('hp'),...Array(crit).fill('crit')];while(lines.length<n)lines.push('attack');while(lines.length<27)lines.push('goldGain');
   items.forEach((item,slot)=>{item.grade=5;item.lines=lines.slice(slot*3,slot*3+3).map(key=>({key,value:key==='goldGain'?20:12,grade:5,...(key==='crit'?{critBalanceVersion:2}:{})}));});
  }else if(arenaLines>0){
