@@ -14,12 +14,19 @@ assert.equal(s.gold,0);assert.equal(potionCount(s),2);
 assert.throws(()=>execute(s,'consumableBuy',{id:'luckPotion'},ctx()),/INSUFFICIENT_GOLD/);
 assert.throws(()=>execute(player(),'consumableBuy',{id:'fake'},ctx()),/INVALID_CONSUMABLE/);
 s=execute(s,'consumableUse',{id:'luckPotion',until:Infinity},ctx()).state;
-assert.equal(potionCount(s),1);assert.equal(s.buffs.luckUntil,now+300000);assert.equal(s.consumableReady.luckPotion,now+300000);
-assert.throws(()=>execute(s,'consumableUse',{id:'luckPotion'},ctx(.5,now+299999)),/ITEM_CONSUMABLE_COOLDOWN/);
+assert.equal(potionCount(s),1);assert.equal(s.buffs.luckUntil,now+300000);assert.equal(s.consumableReady.luckPotion,0);
+const stacked=execute({...s,consumableReady:{luckPotion:now+300000}},'consumableUse',{id:'luckPotion'},ctx(.5,now+60000)).state;
+assert.equal(potionCount(stacked),0);assert.equal(stacked.buffs.luckUntil,now+600000);
+assert.equal(luckStatus(stacked,now+60000).remaining,540000);assert.equal(luckStatus(stacked,now+60000).cooldown,0);
+assert.ok(Math.abs(rewardChance(.2,stacked,now+599999)-.3)<1e-12,'stacking extends time, not bonus');
+assert.equal(rewardChance(.2,stacked,now+600000),.2);
+assert.throws(()=>execute(stacked,'consumableUse',{id:'luckPotion'},ctx(.5,now+60000)),/INSUFFICIENT_CONSUMABLE/);
+assert.equal(luckStatus(JSON.parse(JSON.stringify(stacked)),now+300000).remaining,300000);
 assert.equal(luckStatus(JSON.parse(JSON.stringify(s)),now+150000).remaining,150000);
 assert.ok(Math.abs(rewardChance(.2,s,now+299999)-.3)<1e-12);
 assert.equal(rewardChance(.8,s,now),1);assert.equal(rewardChance(.2,s,now+300000),.2);
 assert.equal(potionCount(execute(s,'consumableUse',{id:'luckPotion'},ctx(.5,now+300000)).state),0);
+assert.equal(execute(s,'consumableUse',{id:'luckPotion'},ctx(.5,now+900000)).state.buffs.luckUntil,now+1200000,'expired effect restarts from now');
 assert.throws(()=>execute(player(),'consumableUse',{id:'luckPotion'},ctx()),/INSUFFICIENT_CONSUMABLE/);
 for(const weekly of [false,true]){
  const boss=BOSSES.find(b=>b.weekly===weekly||!weekly&&!b.weekly),roll=boss.dropChance*BOSS_GEAR_RATE_SCALE*1.25;
@@ -42,7 +49,7 @@ assert.equal(grantRaidChest(practice,0,ctx(0)).reward.items.length,0);
 assert.deepEqual(grantCoopChest(player(),0,ctx(.7)).reward,grantCoopChest(boosted,0,ctx(.7)).reward);
 const blocked=player();blocked.battle={kind:'tower'};
 assert.throws(()=>execute(blocked,'consumableUse',{id:'luckPotion'},ctx()),/BATTLE_IN_PROGRESS/);
-console.log('PASS fixed purchase price, owned count, 5-minute duration/cooldown, reconnect persistence, expiration, daily/weekly/raid RNG, 100% cap, no rift/practice buff');
+console.log('PASS fixed purchase price, cumulative five-minute duration, old cooldown ignored, fixed +50% bonus, reconnect persistence, expiration, daily/weekly/raid RNG, 100% cap, no rift/practice buff');
 
 for(const [id,price] of [['cube',200000],['highCube',500000]]){
  const source=player(),before=source.materials[id]||0;source.gold=price;

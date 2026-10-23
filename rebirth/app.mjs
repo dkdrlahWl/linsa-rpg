@@ -1413,7 +1413,7 @@ document.addEventListener("click", async (e) => {
       const bought=result?.result?.events?.find(e=>e.type==='consumableBuy'&&e.id===arg);
       if(bought){modal.close();toast(item.name+' '+fmt(bought.quantity)+'개를 구매했어요.');}return;
     }
-    if(action==='consumableUse'){if(busy)return;await command('consumableUse',{id:arg});toast('5분간 행운 +50% · 보스 보상 확률이 1.5배로 증가합니다.');return;}
+    if(action==='consumableUse'){if(busy)return;const result=await command('consumableUse',{id:arg});if(result)toast('행운 물약 시간 +5분 · 행운 +50% 효과가 유지됩니다.');return;}
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
       const c=costumeById(arg);if(!c)return;
