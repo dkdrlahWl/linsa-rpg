@@ -1,7 +1,7 @@
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
-const root=dirname(fileURLToPath(import.meta.url)),version='boss-unstick-233',visited=new Set();
+const root=dirname(fileURLToPath(import.meta.url)),version='sovereign-20261025',visited=new Set();
 await mkdir(resolve(root,'worker-sim'),{recursive:true});
 async function copy(name){
  if(visited.has(name))return;visited.add(name);

@@ -1,15 +1,16 @@
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=archer-meteor-20261018';
-export {PRIEST_SKILLS} from './priest.mjs?v=archer-meteor-20261018';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=archer-meteor-20261018';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=archer-meteor-20261018';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=archer-meteor-20261018';
-import {extendEndgameFields} from './endgame-field.mjs?v=archer-meteor-20261018';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=archer-meteor-20261018';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=archer-meteor-20261018';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=archer-meteor-20261018';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=archer-meteor-20261018";
-export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=archer-meteor-20261018";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=archer-meteor-20261018";
+import {extendChapters300,extendChapterBosses} from './chapters-300.mjs?v=sovereign-20261025';
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=sovereign-20261025';
+export {PRIEST_SKILLS} from './priest.mjs?v=sovereign-20261025';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=sovereign-20261025';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=sovereign-20261025';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=sovereign-20261025';
+import {extendEndgameFields} from './endgame-field.mjs?v=sovereign-20261025';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=sovereign-20261025';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=sovereign-20261025';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=sovereign-20261025';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=sovereign-20261025";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=sovereign-20261025";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=sovereign-20261025";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -73,7 +74,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=archer-meteor-20261018';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=sovereign-20261025';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
@@ -455,9 +456,13 @@ export function weekKey(ms) {
 
 balanceWorld(STAGES,BOSSES,RAID_BOSSES);
 extendEndgameFields(REGIONS,STAGES,MONSTERS);
+extendChapters300(REGIONS,STAGES,MONSTERS);
 
 // Fixed endgame daily boss; append after legacy world balancing.
 BOSSES.push({id:30,name:'종언의 집행자 모르가리온',region:9,level:200,hp:110000000,attack:4500,seconds:90,weekly:false,art:'ui/daily-morgarion-v2.webp',background:'ui/daily-morgarion-arena-v2.webp',arenaName:'종언의 왕좌',fullArt:true,gearLevel:200,dropChance:.015,gearRateScale:1,exactHalfWeapon:true,gold:120000,cubes:8,material:4,patternEvery:12,patternMultiplier:3,pattern:'종언의 연속 참격',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});
 
 // Weekly endgame encounter: Lv.200 daily boss HP + 30,000,000 (2026-10-18).
 BOSSES.push({id:31,name:'성식의 군주 네크라시온',region:9,level:200,hp:BOSSES[30].hp+30000000,attack:6200,seconds:90,weekly:true,art:'tower/boss-necrasion.webp',background:'ui/weekly-necrasion-arena.webp',arenaName:'성식의 빙옥',fullArt:true,towerArt:'necrasion',artFrames:1,artSize:340,weeklyPattern:'eclipse-sovereign',gearLevel:200,dropChance:.05,gearRateScale:1,exactHalfWeapon:true,gold:360000,cubes:24,material:4,pattern:'성식의 심판',guide:'교차 빙창 → 안팎 심판 → 추적 폭발 → 돌진. 체력 35% 이하에서 광폭화합니다.',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});
+
+
+extendChapterBosses(BOSSES);

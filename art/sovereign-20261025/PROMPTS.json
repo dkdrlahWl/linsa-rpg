@@ -1,0 +1,223 @@
+{
+  "tool": "built-in image_gen",
+  "bosses": [
+    [
+      "boss-31",
+      "a silver mirror-armored stag with twelve crystalline antlers and floating mirror shards"
+    ],
+    [
+      "boss-32",
+      "a jade mantis empress with four scythe arms and orchid wing armor"
+    ],
+    [
+      "boss-33",
+      "a huge porcelain opera mask carried by red silk serpent ribbons, no human body"
+    ],
+    [
+      "boss-34",
+      "an obsidian volcanic tortoise carrying a golden miniature furnace city on its shell"
+    ],
+    [
+      "boss-35",
+      "an armored golden scarab pharaoh with turquoise wings and a floating sun disc"
+    ],
+    [
+      "boss-36",
+      "an enormous translucent moon jellyfish containing a glowing underwater palace"
+    ],
+    [
+      "boss-37",
+      "a black and white chess rook colossus with two enormous stone hands"
+    ],
+    [
+      "boss-38",
+      "a white origami crane spirit surrounded by folded paper swords"
+    ],
+    [
+      "boss-39",
+      "a sapphire armored deep sea lobster sovereign wielding two anchor claws"
+    ],
+    [
+      "boss-40",
+      "a celestial hourglass goddess with a mechanical ring body and flowing silver sand"
+    ],
+    [
+      "boss-41",
+      "a pink coral antlered whale spirit floating upright with emerald fins"
+    ],
+    [
+      "boss-42",
+      "an elaborate brass peacock automaton with fan tail made of clock faces"
+    ],
+    [
+      "boss-43",
+      "a giant crimson flowering venus flytrap empress with porcelain petal armor"
+    ],
+    [
+      "boss-44",
+      "a dark violet lantern anglerfish suspended from three huge spectral lanterns"
+    ],
+    [
+      "boss-45",
+      "a black marble six-armed minotaur titan with emerald chain blades"
+    ],
+    [
+      "boss-46",
+      "a silver moth oracle with enormous eye-patterned wings and crescent antennae"
+    ],
+    [
+      "boss-47",
+      "a royal purple giant scorpion made of amethyst cathedral glass"
+    ],
+    [
+      "boss-48",
+      "a floating white-blue sword cathedral, living architectural monster with central eye"
+    ],
+    [
+      "boss-49",
+      "a magnificent nebula kirin with long turquoise mane and star-hooved legs"
+    ],
+    [
+      "boss-50",
+      "the final sovereign: an enormous celestial eclipse butterfly with four layered golden wings, floating black pearl heart and ivory crown, majestic unique silhouette"
+    ]
+  ],
+  "regionBackgrounds": [
+    [
+      "glass-tide",
+      "a vast turquoise glass tide shore with translucent curved sea arches and sea glass dunes, clear open foreground"
+    ],
+    [
+      "pearl-reef",
+      "a moonlit pink pearl coral reef palace exposed at low tide, great spiraling pink corals, open tiled foreground"
+    ],
+    [
+      "tide-throne",
+      "a majestic underwater blue-black royal throne hall with ancient shells and bioluminescent white pearls, open central floor"
+    ],
+    [
+      "clockwork-orchard",
+      "a warm brass and apricot clockwork orchard with copper trees bearing luminous cog fruit, spacious foreground"
+    ],
+    [
+      "pendulum-garden",
+      "a surreal blue-and-gold pendulum garden with giant suspended pendulums and white flower paths, open foreground"
+    ],
+    [
+      "zero-hour-palace",
+      "an ornate ivory and rose-gold clock palace whose clock faces have no numbers, immense radial windows, open foreground"
+    ],
+    [
+      "ink-bamboo",
+      "a magical monochrome ink bamboo forest with vermilion firefly lights and elegant stone bridges, open foreground"
+    ],
+    [
+      "crane-sanctum",
+      "an ethereal cream and red paper-crane sanctuary above clouds, folded origami mountains and red bridges, open foreground"
+    ],
+    [
+      "sword-pavilion",
+      "a magnificent midnight jade palace with thousands of floating silver swords and black lotus pools, open combat foreground"
+    ],
+    [
+      "aurora-stair",
+      "a staircase of opal platforms crossing a lavender aurora sky, luminous crystalline stars and elegant floating spires"
+    ],
+    [
+      "nebula-garden",
+      "a radiant violet celestial garden of enormous star lilies and golden orbit rings, clear open foreground"
+    ],
+    [
+      "eclipse-court",
+      "the ultimate eclipse sovereign's court: black pearl dais and ivory butterfly-wing cathedral under a colossal golden eclipse, beautiful cosmic sunset, open central floor"
+    ]
+  ],
+  "chapterMonsters": [
+    [
+      "glass-tide",
+      "a gigantic turquoise sea-glass seahorse with a translucent curled tail and crystal crown"
+    ],
+    [
+      "pearl-reef",
+      "a spiral conch emperor with pink pearl armor and two ornate crab claws"
+    ],
+    [
+      "tide-throne",
+      "a faceless royal ocean sentinel carrying a coral trident with flowing water body"
+    ],
+    [
+      "clockwork-orchard",
+      "a huge golden mechanical apple tree spirit, brass leaves, clockwork articulated limbs"
+    ],
+    [
+      "pendulum-garden",
+      "a floating giant bronze pendulum guardian with paired circular shields and articulated clock hands"
+    ],
+    [
+      "zero-hour-palace",
+      "an elegant gold porcelain queen with twelve floating miniature pocket watches and blue silk cloak"
+    ],
+    [
+      "ink-bamboo",
+      "a ferocious black ink bamboo tiger with white stripes and long ink-brush tail"
+    ],
+    [
+      "crane-sanctum",
+      "a graceful giant scroll crane immortal with flowing paper wings and vermilion tassels"
+    ],
+    [
+      "sword-pavilion",
+      "a dark jade lotus sword demon with six floating blades and ink smoke skirt"
+    ],
+    [
+      "aurora-stair",
+      "a crystalline aurora reindeer with enormous opal antlers and soft lavender fur"
+    ],
+    [
+      "nebula-garden",
+      "a majestic galaxy lily empress: tall nonhuman flowering creature with luminous purple petal gown and golden stamen crown"
+    ],
+    [
+      "eclipse-court",
+      "an ivory and black pearl butterfly monarch with brilliant eclipse wings and long gold ribbons, creature not humanoid"
+    ]
+  ],
+  "costumes": [
+    [
+      "astral-tea-mage",
+      "mage",
+      "an elegant cosmic tea sorceress in a midnight blue and champagne layered dress, floating teapot-shaped catalyst, braided indigo hair, no rose no clockwork"
+    ],
+    [
+      "aurora-huntress",
+      "archer",
+      "an aurora falcon huntress in flowing white-lilac feather cape and asymmetric short royal hunting suit, crystalline recurve bow, long rose-gold hair, no green forest clothing no snow hood"
+    ],
+    [
+      "scarlet-sky-pilot",
+      "pirate",
+      "a daring scarlet skyship aviator, ivory cropped flight jacket over red scarf, brass goggles above auburn ponytail, ornate flintlock pistol and winged mechanical backpack, no naval uniform no ghost"
+    ],
+    [
+      "opal-dream-priest",
+      "priest",
+      "an ethereal opal dream priestess wearing luminous lavender mermaid-inspired ceremonial dress, floating pearl halo with star tassels and translucent butterfly ribbons, long silver-lilac hair and crystal lotus staff, no nun no shrine maiden"
+    ],
+    [
+      "sunrose-empress",
+      "warrior",
+      "SUNROSE EMPRESS SWORDMAIDEN: an exceptionally beautiful adult female fantasy princess knight, radiant elegant face, large rose-gold eyes, very long flowing champagne pink hair with elaborate curled ends, delicate gold sun tiara with dangling rubies. Lavish ivory and blush pink layered royal battle dress, ornate ROSE GOLD filigree corset armor, sculpted petal pauldrons, flowing translucent rose-petal cape and floating silk ribbons, pearl waist chains, white embroidered thigh-high boots. A spectacular long white crystal sword with sculpted golden rose guard and ruby sun core. Magnificent regal feminine romantic beauty, glamorous couture armor, light ivory/rose/gold palette, absolutely no teal no blue no dark coat no male appearance"
+    ],
+    [
+      "moonjewel-bladedancer",
+      "rogue",
+      "MOONJEWEL DUAL-SWORD PRINCESS DANCER: an exceptionally beautiful adult female celestial jewel dancer, refined feminine face, large violet eyes, long flowing pearlescent silver-lavender hair with braided jeweled crown and crescent hairpins. Lavish amethyst purple, pearl white and shimmering SILVER outfit: fitted jeweled dancer bodice, asymmetric layered silk skirt with long floating translucent butterfly panels, elegant short violet cape, silver chains draped with opal and amethyst gems, patterned pearl thigh-high boots. Two exquisitely beautiful MATCHING LONG SWORDS, one in each hand, silver moonblade edges, violet opal centers, intricate butterfly-wing guards, ribbon tassels. Gorgeous luminous glamorous fairy princess beauty, ornate couture fashion, coherent violet-white-silver palette. NOT black ninja, NOT teal, NOT ordinary assassin clothing. Clearly visible twin swords in all poses, no chakram no daggers"
+    ]
+  ],
+  "commonPrompts": {
+    "boss": "Production-ready game monster sprite for a Korean premium hand-painted fantasy action RPG. One single full-body boss centered, all wings claws weapons fully visible, generous 10 percent transparent margins, polished detailed painterly fantasy art, readable at 320px. Three-quarter frontal view, no ground, no scene, no text no UI. Genuine transparent alpha, square composition.",
+    "region": "Premium Korean fantasy RPG hunting map background. Rich painterly detail, atmospheric depth, elevated side-on game camera. Lower half spacious and walkable with quiet contrast. No characters, monsters, text, UI or borders. Wide landscape 1536x1024.",
+    "monster": "One premium hand-painted Korean fantasy RPG monster, strong full-body silhouette, three-quarter frontal view, all appendages within frame with generous transparent margins, genuine alpha, no ground no text no UI.",
+    "costume": "Final production-ready premium Korean hand-painted beautiful chibi fantasy RPG sprite atlas. Eight columns; ten rows (priest: nine). Five walk direction rows, then corresponding directional attacks. All figures full body, all swords and clothing within own cell. Genuine transparent alpha. No text, labels, grid lines or scenery. Largest supported portrait canvas. Final warrior and rogue must be exceptionally beautiful glamorous feminine royal couture with ornate weapon designs."
+  }
+}

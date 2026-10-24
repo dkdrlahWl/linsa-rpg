@@ -15,6 +15,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: node rebirth/sovereign-expansion.test.mjs --assets
+      - run: node rebirth/costume-motion.test.mjs
+      - run: node rebirth/costume-ownership.test.mjs
+      - run: node rebirth/endgame-field.test.mjs
       - run: node rebirth/apex-tower.test.mjs
       - run: node rebirth/upper-tower.test.mjs
       - run: node rebirth/post-clear-movement.test.mjs
