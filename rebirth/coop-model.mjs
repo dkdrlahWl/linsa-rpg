@@ -116,17 +116,22 @@ const bare=w=>{const {_net,_queuedInputs,predictionBase,predictionInputs,...core
 // Static fields of regular citadel monsters live once in _net.static, not in every point.
 const STATIC_MONSTER_KEYS=['name','citadel','explorationTier','art','level','maxHp','attack','speed','role','elite','species'];
 // `copy` is identity only for read-only references (storeNet); stored points are always deep copies.
+const COSMETIC_NUMBER_MODES=new Set(['raid','exploration','citadel']),COSMETIC_EFFECT_MODES=new Set(['exploration','citadel']);
+// Entries pushed after the point carry ids above its serial and are recreated by the replay.
+const liveAt=(list,point)=>structuredClone((Array.isArray(list)?list:[]).filter(x=>x.end>point.tick&&(typeof point.serial==='number'&&typeof x.id==='number'?x.id<=point.serial:(x.start??-Infinity)<=point.tick)));
 const historyPoint=(w,net,copy=structuredClone)=>{const {_net,_queuedInputs,predictionBase,predictionInputs,dungeon,monsters,...core}=w;const point=copy({...core,members:w.members.map(({power,name,classId,advanced,...actor})=>actor)});point.dungeon=dungeon?.citadel?{ref:dungeon.id}:dungeon?.id&&point.mode==='exploration'?{ref:dungeon.id,exploration:true}:copy(dungeon);
  if(dungeon?.citadel&&net&&Array.isArray(monsters)){net.static??={};point.monsters=monsters.map(e=>{if(e.boss||e.bossKind)return copy(e);const s=net.static[e.id];if(!s||STATIC_MONSTER_KEYS.some(k=>s[k]!==e[k])){net.static[e.id]=Object.fromEntries(STATIC_MONSTER_KEYS.filter(k=>k in e).map(k=>[k,e[k]]));}const d={};for(const [k,v] of Object.entries(e))if(!STATIC_MONSTER_KEYS.includes(k))d[k]=v!==null&&typeof v==='object'?copy(v):v;d.$s=1;return d;});}
  else point.monsters=copy(monsters);
- // Raid damage numbers are cosmetic: rewinds borrow them from the live room instead of storing a copy per point.
- if(point.mode==='raid')delete point.numbers;
+ // Damage numbers and visual effects are cosmetic (the simulation only appends and trims them):
+ // rewinds borrow them from the live room instead of storing a copy per point.
+ if(COSMETIC_NUMBER_MODES.has(point.mode))delete point.numbers;
+ if(COSMETIC_EFFECT_MODES.has(point.mode))delete point.effects;
  return point;};
 // Maps are deterministic: points keep a reference; fog (`seen`) comes from the live room or is re-revealed.
 const pointDungeon=(point,room)=>{const ref=point.dungeon?.ref;if(!ref)return point.dungeon===undefined?undefined:structuredClone(point.dungeon);if(room.dungeon?.id===ref)return structuredClone(room.dungeon);
  if(point.dungeon.exploration){const final=point.floor===EXPLORATIONS[point.tier].floors,d=(final?makeExplorationArena:makeExplorationDungeon)(point.tier,point.floor,(point.mapSeed??point.started)>>>0);return d;}
  return makeCitadelDungeon(point.floor,(point.mapSeed??point.started)>>>0);};
-const restorePoint=(point,room,table=room._net?.static||{})=>{const w=structuredClone({...point,dungeon:undefined});if(!point.numbers&&point.mode==='raid')w.numbers=structuredClone((room.numbers||[]).filter(n=>n.start<=point.tick&&n.end>point.tick));w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
+const restorePoint=(point,room,table=room._net?.static||{})=>{const w=structuredClone({...point,dungeon:undefined});if(!point.numbers&&point.mode==='raid')w.numbers=structuredClone((room.numbers||[]).filter(n=>n.start<=point.tick&&n.end>point.tick));else if(!point.numbers&&COSMETIC_NUMBER_MODES.has(point.mode))w.numbers=liveAt(room.numbers,point);if(!point.effects&&COSMETIC_EFFECT_MODES.has(point.mode))w.effects=liveAt(room.effects,point);w.dungeon=pointDungeon(point,room);if(w.dungeon===undefined)delete w.dungeon;if(Array.isArray(w.monsters))w.monsters=w.monsters.map(e=>{if(!e.$s)return e;const {$s,...d}=e;return {...structuredClone(table[e.id]||{}),...d};});for(const m of w.members){const current=room.members.find(a=>a.id===m.id);if(current)for(const key of ['power','name','classId','advanced'])m[key]=structuredClone(current[key]);}return w;};
 // Rewind history is stored as diffs against the live room (see coop-wire.mjs).
 // Rooms written by an older edge still carry plain `points` + `static`.
 // refPoint has historyPoint's shape with full monsters; it shares objects with `w` and is only read.
