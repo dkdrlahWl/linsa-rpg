@@ -16,6 +16,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
+import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollBaseStats} from './gear-refine.mjs?v=refine-20261025';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs?v=addpot-20261025';
 import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
 import {applyBetaTool} from './beta-tools.mjs?v=beta-level-250-20261011-lv300';
@@ -143,6 +144,7 @@ export function initialState(classId, name, ctx) {
     battle: null,
     pendingCube: null,
     pendingAddCube: null,
+    pendingRefine: null,
     lastReward: null,
     collection: [[1, classId, 0, false].join(":")],
     tutorial: 0,
@@ -400,6 +402,7 @@ function gear(s, id) {
   check(it, "ITEM_NOT_FOUND");
   check(!s.pendingCube || s.pendingCube.id !== id, "ITEM_CUBE_PENDING");
   check(!s.pendingAddCube || s.pendingAddCube.id !== id, "ITEM_CUBE_PENDING");
+  check(!s.pendingRefine || s.pendingRefine.id !== id, "ITEM_CUBE_PENDING");
   return it;
 }
 function writable(s, it) {
@@ -946,18 +949,39 @@ function executeCore(input, command, args = {}, ctx) {
     case "additionalUnlock": {
       const it=gear(s,args.id);writable(s,it);
       check(it.lines.length>0,"POTENTIAL_REQUIRED");check(!hasAdditional(it),"POTENTIAL_ADDITIONAL_OPEN");
-      check(!s.pendingCube&&!s.pendingAddCube,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
+      check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
       const success=ctx.random()<ADDITIONAL_UNLOCK_CHANCE;
       if(success){it.addGrade=ADD_CUBE.minGrade;it.addLines=rollAdditionalLines(it.addGrade,ctx.random);}
       events.push({type:"additionalUnlock",id:it.id,success,chance:ADDITIONAL_UNLOCK_CHANCE});break;
     }
     case "addCube": {
       const it=gear(s,args.id);writable(s,it);
-      check(hasAdditional(it),"POTENTIAL_ADDITIONAL_REQUIRED");check(!s.pendingCube&&!s.pendingAddCube,"ITEM_CUBE_PENDING");
+      check(hasAdditional(it),"POTENTIAL_ADDITIONAL_REQUIRED");check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");
       const roll=rerollAdditional(it,ctx.random);
       spend(s,ADD_CUBE.id,1);s.cubeUses=(s.cubeUses||0)+1;
       s.pendingAddCube={id:it.id,grade:roll.grade,previousGrade:roll.previousGrade,lines:roll.lines};
       events.push({type:"addCube",id:it.id,up:roll.grade>roll.previousGrade});break;
+    }
+    case "bonusRoll":
+    case "statReroll": {
+      const it=gear(s,args.id);writable(s,it);
+      check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");
+      const bonus=command==="bonusRoll",material=bonus?BONUS_FLAME.id:REROLL_STONE.id;
+      if(bonus){
+        let pct;for(let attempt=0;attempt<256;attempt++){pct=rollBonusPct(ctx.random);if(pct!==it.bonusPct)break;check(attempt<255,"CUBE_RANDOM_RETRY");}
+        spend(s,material,1);s.pendingRefine={id:it.id,kind:"bonus",previous:Number.isInteger(it.bonusPct)?it.bonusPct:0,bonusPct:pct};
+      }else{
+        check(it.baseStats&&typeof it.baseStats==="object","ITEM_NOT_FOUND");
+        let next;for(let attempt=0;attempt<256;attempt++){next=rerollBaseStats(it,ctx.random);if(JSON.stringify(next)!==JSON.stringify(it.baseStats))break;check(attempt<255,"CUBE_RANDOM_RETRY");}
+        spend(s,material,1);s.pendingRefine={id:it.id,kind:"stats",previous:structuredClone(it.baseStats),baseStats:next};
+      }
+      events.push({type:"refine",id:it.id,kind:s.pendingRefine.kind});break;
+    }
+    case "refineChoose": {
+      check(s.pendingRefine,"NO_PENDING_CUBE");check(typeof args.apply==="boolean","INVALID_CHOICE");
+      const p=s.pendingRefine,it=s.items.find(x=>x.id===p.id);
+      if(it&&args.apply){if(p.kind==="bonus")it.bonusPct=p.bonusPct;else it.baseStats=p.baseStats;}
+      s.pendingRefine=null;break;
     }
     case "addCubeChoose": {
       check(s.pendingAddCube,"NO_PENDING_CUBE");check(typeof args.apply==="boolean","INVALID_CHOICE");

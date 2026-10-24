@@ -197,6 +197,8 @@ export const MATERIALS = {
   highCube: "블랙 큐브",
   ...Object.fromEntries(Object.entries(CUBES).map(([key,c])=>[key,c.name])),
   addCube: "에디셔널 큐브",
+  bonusFlame: "추가옵션 불꽃",
+  rerollStone: "기본수치 재련석",
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
 export const ATTENDANCE_REWARDS = [
@@ -314,8 +316,10 @@ function unbuffedGearAttributes(item,stars=item.stars) {
  const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
  return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};
 }
+// 추가옵션 불꽃: bonusPct (1~30) raises every equipment stat by that percent.
+export const gearBonusMultiplier=item=>1+(Number.isInteger(item?.bonusPct)&&item.bonusPct>=1&&item.bonusPct<=30?item.bonusPct:0)/100;
 export function gearAttributes(item,stars=item.stars) {
- const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item);
+ const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item)*gearBonusMultiplier(item);
  return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier*(key==='hp'?gearHPMultiplier(item):1)]));
 }
 export function starCost(item) {
@@ -429,6 +433,7 @@ export function normalizePotentialState(state) {
   if(["silverCube","goldCube"].includes(state.pendingCube?.kind))state.pendingCube.kind="highCube";
   for(const key of Object.keys(CUBES))state.materials[key]??=0;
   state.materials.addCube??=0;state.pendingAddCube??=null;
+  state.materials.bonusFlame??=0;state.materials.rerollStone??=0;state.pendingRefine??=null;
   const pending=state.pendingCube;
   if(pending && pending.potentialVersion!==4){
     const item=state.items.find(x=>x.id===pending.id);

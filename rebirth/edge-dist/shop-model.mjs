@@ -11,6 +11,6 @@ export function bossSaleBlock(state,item){
  if(Object.values(state.equipped||{}).includes(item.id))return '장착 중';
  if(item.locked)return '잠금 장비';
  if(item.broken)return '파괴된 장비';
- if(state.pendingCube?.id===item.id)return '큐브 옵션 선택 중';
+ if([state.pendingCube,state.pendingAddCube,state.pendingRefine].some(p=>p?.id===item.id))return '큐브 옵션 선택 중';
  return '';
 }

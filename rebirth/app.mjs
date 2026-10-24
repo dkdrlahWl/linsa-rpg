@@ -41,6 +41,7 @@ import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
 import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide, renderAdditionalSection, renderAddCubeChoice } from './cube-ui.mjs?v=prime-choice-158';
+import { renderRefinePanel, renderRefineChoice } from './refine-ui.mjs?v=refine-20261025';
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower20-174';
 import * as D from "./data.mjs?v=weekly200-hp140m-20261018-lv300b";
@@ -92,7 +93,7 @@ async function refreshCoopRooms(){
 let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
-const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id;
+const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id&&state.pendingAddCube?.id!==it.id&&state.pendingRefine?.id!==it.id;
 let partyBossId=null, partyPractice=false;
 let arenaData=null,arenaPage='home',arenaBattle=null,arenaPlayback=null,arenaError='';
 let shopCategory="boss";
@@ -185,6 +186,11 @@ const errors = {
   ITEM_CONSUMABLE_COOLDOWN: "행운 물약의 재사용 대기시간이 남아 있습니다.",
   INSUFFICIENT_CUBE: "레드 큐브가 부족합니다.",
   INSUFFICIENT_HIGHCUBE: "블랙 큐브가 부족합니다.",
+  INSUFFICIENT_ADDCUBE: "에디셔널 큐브가 부족합니다.",
+  INSUFFICIENT_BONUSFLAME: "추가옵션 불꽃이 부족합니다.",
+  INSUFFICIENT_REROLLSTONE: "기본수치 재련석이 부족합니다.",
+  POTENTIAL_ADDITIONAL_OPEN: "이미 에디셔널 잠재능력이 열려 있습니다.",
+  POTENTIAL_ADDITIONAL_REQUIRED: "에디셔널 잠재능력을 먼저 해금해 주세요.",
   COOP_CHEST_TOO_FAR: "개인 상자 가까이 이동한 뒤 공격 버튼을 눌러주세요.",
   COOP_DAMAGE_REQUIRED: "보스에게 직접 피해를 줘야 개인 상자를 받을 수 있습니다.",
   COOP_CHEST_NOT_READY: "보스 처치 후 개인 상자를 열 수 있습니다.",
@@ -708,6 +714,7 @@ function render() {
   if(state?.battle||state?.partyRoom)updateCombatClock();
   if (state.pendingCube && !modal.open) cubeChoice();
   else if (state.pendingAddCube && !modal.open) addCubeChoice();
+  else if (state.pendingRefine && !modal.open) refineChoice();
   else if(["coop","advancementTrial"].includes(state.lastReward?.type)&&!modal.open)reward();
 }
 function dailyRewardLines(task){
@@ -1017,7 +1024,7 @@ async function marketLoad() {
 }
 function open(title, html, closable = true) {
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
-  const scrollKey=(selected||"")+"|"+title,preservedModalScroll=title==="잠재능력 · 큐브"||title.endsWith(" · 결과 선택")?0:dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
+  const scrollKey=(selected||"")+"|"+title,preservedModalScroll=title.endsWith(" · 결과 선택")?0:dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
   modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog", "title-dialog");
   replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
@@ -1048,10 +1055,11 @@ function starPanel(it) {
   return `<div class="enhance-intro"><span>STAR FORCE</span><small>성공할 때마다 공격력·주스탯 상승 · 방어구 5부위는 HP도 상승</small></div>${result?`<div class="enhance-result ${result.outcome}" role="status"><strong>${{success:"강화 성공!",keep:"강화 실패 · 별 유지",down:"강화 실패 · 별 하락"}[result.outcome]||"장비 파괴"}</strong><span>${result.before}성 → ${result.after}성${result.gains?` · 장비 공격력 +${result.gains.attack.toFixed(1)} · ${cl.stat} +${result.gains.stat}${result.gains.hp?` · HP +${result.gains.hp}`:""}`:" · 골드 "+fmt(result.cost)+" 소모"}</span></div>`:""}<div class="star-track" role="img" aria-label="최대 25성 중 ${it.stars}성">${Array.from({length:5},(_,g)=>`<span>${Array.from({length:5},(_,i)=>`<i class="${g*5+i<it.stars?"lit":g*5+i===it.stars&&!max?"next":""}">★</i>`).join("")}</span>`).join("")}</div><div class="enhance-stage"><div class="enhance-item-display">${gearMarkup(it,"big-item")}</div><div class="star-transition"><span>${max?"강화 완료":"다음 강화 단계"}</span><div><b>${it.stars}<small>성</small></b>${max?'<em>MAX</em>':`<span class="transition-arrow">→</span><b class="target">${target}<small>성</small></b>`}</div></div></div><p class="note">${Object.values(state.equipped).includes(it.id)?"장착 중 · 강화 수치가 캐릭터에 바로 반영됩니다.":"미장착 · 장비는 강해지지만 캐릭터 수치는 장착 후 반영됩니다."}</p>${max?'':`<div class="enhance-gains"><div><span>기본 공격</span><b>${current.attack.toFixed(1)} <i>→</i> <em>${next.attack.toFixed(1)}</em></b></div><div><span>${cl.stat}</span><b>${current.stat} <i>→</i> <em>${next.stat}</em></b></div>${next.hp>current.hp?`<div><span>최대 HP</span><b>${current.hp} <i>→</i> <em>${next.hp}</em></b></div>`:""}</div><section class="enhance-probabilities"><div class="probability-title"><span>성공 확률</span><strong>${pct(o.success)}</strong></div><div class="probability-bar" aria-hidden="true">${[["success",o.success],["keep",o.keep],["down",o.down],["destroy",o.destroy]].map(([k,v])=>`<i class="${k}" style="width:${v*100}%"></i>`).join("")}</div><div class="probability-details">${[["유지",o.keep,"keep"],["하락",o.down,"down"],["파괴",o.destroy,"destroy"]].map(([name,v,k])=>`<div class="${k}"><span>${name}</span><b>${v===0?"0%":pct(v)}</b></div>`).join("")}</div></section>${enhancementWallet(cost)}`}${disabledBtn(max?"최대 25성 달성":`${target}성 강화하기`,"star",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked&&!max?"short":""}">${blocked|| (o.destroy>0?"실패 시 장비가 파괴될 수 있습니다. 흔적과 잠재는 보존됩니다.":o.down>0?"실패 시 별이 1개 내려갈 수 있습니다. 파괴 위험은 없습니다.":"실패해도 현재 별이 유지됩니다. 파괴 위험은 없습니다.")}</p>`;
 }
 
-function baseStatsPanel(it){return gearRollDetails(it);}
-function cubePanel(it){return renderCubePanel(it,state,cubeKind,lastCubeResult,enhancementBlock(it),cubeLockChoice)+renderAdditionalSection(it,state,enhancementBlock(it));}
+function baseStatsPanel(it){return gearRollDetails(it)+renderRefinePanel(it,state,enhancementBlock(it));}
+let lastUnlockResult=null;
+function cubePanel(it){return renderCubePanel(it,state,cubeKind,lastCubeResult,enhancementBlock(it),cubeLockChoice,lastUnlockResult)+renderAdditionalSection(it,state,enhancementBlock(it),lastUnlockResult);}
 function itemDetail(id, section=id===selected?itemSection:"info") {
-  if(selected!==id){lastStarResult=null;lastCubeResult=null;cubeLockChoice=-1;}
+  if(selected!==id){lastStarResult=null;lastCubeResult=null;cubeLockChoice=-1;lastUnlockResult=null;}
   selected=id;itemSection=section;
   const it=state.items.find(x=>x.id===id);if(!it)return;
   const p=power(state),next=power({...state,equipped:{...state.equipped,[it.slot]:it.id}}),equipped=Object.values(state.equipped).includes(id),o=D.starOdds(it.stars);
@@ -1063,6 +1071,12 @@ function itemDetail(id, section=id===selected?itemSection:"info") {
   if(section==="baseStats")body=baseStatsPanel(it);
   open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":section==="baseStats"?"기본 수치":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"} · ${gearRollLabel(it)}</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"],["baseStats","기본 수치"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
   modal.classList.add("enhance-dialog");if(section==="potential")modal.classList.add("cube-dialog");
+}
+function refineChoice() {
+ const p=state.pendingRefine,it=state.items.find(i=>i.id===p.id);if(!it)return;
+ selected=p.id;itemSection="baseStats";
+ open((p.kind==="bonus"?"추가옵션 불꽃":"기본수치 재련석")+" · 결과 선택",`<div class="enhance-content"><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong></div></div>${renderRefineChoice(it,p,state)}</div>`,false);
+ modal.classList.add("enhance-dialog","cube-dialog");
 }
 function addCubeChoice() {
  const p=state.pendingAddCube,it=state.items.find(i=>i.id===p.id);if(!it)return;
@@ -1148,19 +1162,23 @@ function showEvents(events) {
     } else if(e.type === "advancement") {open("전직 완료",`<div class="advancement-reveal"><h2>${D.ADVANCEMENTS[state.classId]}</h2><p>공격력 +10% · 최대 HP +10%</p></div>`);
     } else if (["boss", "dungeon", "party", "offline"].includes(e.type)) {
       if (e.type !== "offline" || e.seconds >= 300) reward();
+    } else if (e.type === "refine") {
+      if (state.pendingRefine) refineChoice();
+      else itemDetail(e.id,"baseStats");
     } else if (e.type === "addCube") {
+      lastUnlockResult=null;
       if (state.pendingAddCube) addCubeChoice();
       else itemDetail(e.id,"potential");
     } else if (e.type === "additionalUnlock") {
-      toast(e.success?"에디셔널 잠재능력 해금 성공!":"에디셔널 해금 실패 · 주문서 1개 소모 (성공 확률 10%)");
+      lastUnlockResult={id:e.id,kind:"additional",success:e.success,chance:e.chance};
       itemDetail(e.id,"potential");
     } else if (e.type === "cube") {
-      lastCubeResult=e;
+      lastCubeResult=e;lastUnlockResult=null;
       if (state.pendingCube) cubeChoice();
       else itemDetail(e.id);
     } else if (["craft", "potential", "restore"].includes(e.type)) {
       if(e.type==="restore")lastStarResult=null;
-      if(e.type==="potential"){lastCubeResult=null;if(e.success===false)toast("잠재 해금 실패 · 주문서 1개 소모 (성공 확률 30%)");}
+      if(e.type==="potential"){lastCubeResult=null;lastUnlockResult={id:e.id,kind:"main",success:e.success!==false,chance:e.chance??1};itemDetail(e.id,"potential");continue;}
       itemDetail(e.id);
     }
   }
@@ -1284,7 +1302,7 @@ function marketItemBlock(it) {
   if(it.broken)return "파괴된 장비";
   if(it.locked)return "잠금 중";
   if(Object.values(state.equipped).includes(it.id))return "장착 중";
-  if(state.pendingCube?.id===it.id)return "큐브 선택 중";
+  if(state.pendingCube?.id===it.id||state.pendingAddCube?.id===it.id||state.pendingRefine?.id===it.id)return "큐브 선택 중";
   return "";
 }
 function marketSellBlock(it) {
@@ -1706,6 +1724,21 @@ document.addEventListener("click", async (e) => {
     if (action === "potentialUnlock") return await command("potential", {id:arg});
     if (action === "additionalUnlock") return await command("additionalUnlock", {id:arg});
     if (action === "addCubeUse") return await command("addCube", {id:arg});
+    if (action === "bonusRoll" || action === "statReroll") return await command(action, {id:arg});
+    if (action === "refineChooseRepeat") {
+      if(busy||!state.pendingRefine)return;
+      const {id,kind}=state.pendingRefine;
+      const result=await command("refineChoose",{apply:arg==="yes"});
+      if(!result||state.pendingRefine)return;
+      itemDetail(id,"baseStats");
+      return await command(kind==="bonus"?"bonusRoll":"statReroll",{id});
+    }
+    if (action === "refineChoose") {
+      const id=state.pendingRefine?.id;
+      await command("refineChoose", { apply: arg === "yes" });
+      modal.close();
+      return itemDetail(id||selected,"baseStats");
+    }
     if (action === "addCubeChooseRepeat") {
       if(busy||!state.pendingAddCube)return;
       const id=state.pendingAddCube.id;

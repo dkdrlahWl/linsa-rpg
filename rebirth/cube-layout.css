@@ -50,3 +50,11 @@ body:not(.tower-mode) #modal.cube-dialog .cube-choice-controls button{min-width:
 .additional-title{margin:0 0 8px;font-size:15px;color:#6ee7b7;letter-spacing:.02em}
 .additional-panel .option-heading span{color:#6ee7b7}
 .potential .additional-heading{margin:8px 0 2px;font-weight:700;color:#6ee7b7}
+.unlock-result{margin:8px 0;padding:8px 10px;border-radius:8px;text-align:center;font-weight:700}
+.unlock-result.fail{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
+.unlock-result.success{background:rgba(110,231,183,.12);color:#6ee7b7;border:1px solid rgba(110,231,183,.4)}
+.refine-panel{margin-top:12px}.refine-panel h4{display:flex;justify-content:space-between;align-items:center}
+.refine-bonus{color:#fbbf24}.refine-new{color:#fbbf24}.refine-compare{text-align:center;font-size:16px;margin:10px 0}.refine-sub{margin:12px 0 6px}
+.refine-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}
+.refine-stats>div{display:flex;flex-direction:column;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.05)}
+.refine-stats span{font-size:12px;opacity:.75}.refine-stats small.up{color:#6ee7b7}.refine-stats small.down{color:#fca5a5}

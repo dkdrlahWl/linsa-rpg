@@ -13,9 +13,10 @@ export function cubeOdds(kind,item,grade=item.grade){
  const pool=D.cubeTable(kind,item,grade).rows[0].current;
  return `<details class="cube-probabilities"><summary>${D.RARITIES[grade]} · 3줄 공통 옵션 확률</summary><p class="note">장비 레벨·직업·부위·큐브 종류와 관계없이 같은 등급은 동일한 표를 사용합니다. 세 줄 모두 ${D.RARITIES[grade]} 옵션만 나옵니다. 에픽 이상 공격력%·보스 피해% 등장 확률은 기존보다 40% 낮으며, 치명타 확률 옵션은 이번 조정 직전의 절반으로 감소했습니다. 유니크·레전더리 보스 피해%는 추가로 기존 확률의 3분의 1로 조정되었습니다. 아래는 각 줄의 생성 확률입니다.</p><div class="scroll"><table><thead><tr><th>옵션</th><th>줄당 확률</th></tr></thead><tbody>${pool.map(r=>`<tr><td>${optionLabel(r)}</td><td>${pct(r.weight)}</td></tr>`).join('')}</tbody></table></div><p class="note">3줄은 독립 추첨하며 같은 옵션 중복이 가능합니다. 현재 3줄과 등급·수치·옵션이 전부 같으면 다시 추첨하므로 최종 결과는 이 조건을 반영합니다.</p></details>`;
 }
-export function renderCubePanel(it,state,kind,lastResult,protectedReason='',lockChoice=-1){
+const unlockNote=(it,result,kind)=>result&&result.id===it.id&&result.kind===kind?`<p class="unlock-result ${result.success?'success':'fail'}" role="status">${result.success?(kind==='additional'?'에디셔널 잠재능력 해금 성공!':'잠재능력 해금 성공!'):`해금 실패 · 주문서 1개 소모 (성공 확률 ${Math.round(result.chance*100)}%)`}</p>`:'';
+export function renderCubePanel(it,state,kind,lastResult,protectedReason='',lockChoice=-1,unlockResult=null){
  const opened=it.lines.length>0,c=D.CUBES[kind]||D.CUBES.cube,cost=D.cubeCost(kind,it);
- if(!opened)return `<div class="cube-compact"><div class="cube-controls"><p class="cube-wallet">잠재해금 보유 ${fmt(state.materials.scroll)}개</p>${button('잠재 3줄 해금','potentialUnlock',it.id,!!protectedReason||!(state.materials.scroll>0))}</div>${potentialPanel(it)}<p class="enhance-help">${protectedReason||`주문서 1개 소모 · 잠재 3줄 해금 성공 ${it.level>=200?`${it.boss?'10%':'30%'} · 실패 시 주문서 소모`:'100%'}`}</p></div>`;
+ if(!opened)return `<div class="cube-compact"><div class="cube-controls"><p class="cube-wallet">잠재해금 보유 ${fmt(state.materials.scroll)}개</p>${button('잠재 3줄 해금','potentialUnlock',it.id,!!protectedReason||!(state.materials.scroll>0))}</div>${unlockNote(it,unlockResult,'main')}${potentialPanel(it)}<p class="enhance-help">${protectedReason||`주문서 1개 소모 · 잠재 3줄 해금 성공 ${it.level>=200?`${it.boss?'10%':'30%'} · 실패 시 주문서 소모`:'100%'}`}</p></div>`;
  const invalid=it.grade>c.maxGrade||c.prime&&it.lines.length!==3;
  const locked=Number.isInteger(lockChoice)&&lockChoice>=0&&lockChoice<it.lines.length;
  const lockAllowed=(state.materials.potentialLock||0)>0&&!(c.choose&&it.grade<3);
@@ -47,18 +48,18 @@ export function cubeGuide(){
 // ---- 에디셔널 잠재능력 ----
 const addPct=n=>(n*100).toFixed(2).replace(/\.?0+$/,'')+'%';
 export function additionalPanel(src,label='에디셔널 잠재능력'){
- const lines=src.addLines||src.lines||[],grade=src.addGrade??src.grade??2,opened=lines.length>0;
+ const lines=Array.isArray(src.addLines)?src.addLines:[],grade=src.addGrade??2,opened=lines.length>0;
  return `<section class="option-panel additional-panel rarity-${opened?grade:0}"><div class="option-heading"><span>${label}</span><b>${opened?D.RARITIES[grade]:'미개방'}</b></div><div class="option-lines">${Array.from({length:3},(_,i)=>{const l=lines[i];return `<div class="option-line ${l?'grade-color-'+l.grade:'empty-line'}"><span class="line-index">0${i+1}</span><span>${l?`<small class="line-grade">${D.RARITIES[l.grade]}</small>${D.OPTIONS[l.key]}`:'에디셔널 슬롯 미개방'}</span><strong>${l?'+'+l.value+D.optionUnit(l.key):'—'}</strong></div>`;}).join('')}</div></section>`;
 }
-export function renderAdditionalSection(it,state,protectedReason=''){
+export function renderAdditionalSection(it,state,protectedReason='',unlockResult=null){
  const opened=Array.isArray(it.addLines)&&it.addLines.length>0,cubes=state.materials.addCube||0,scrolls=state.materials.scroll||0;
  if(!it.lines.length)return `<div class="cube-compact additional-compact"><h4 class="additional-title">에디셔널 잠재능력</h4><p class="enhance-help">잠재능력을 먼저 해금하면 에디셔널 잠재능력을 해금할 수 있어요.</p></div>`;
- if(!opened)return `<div class="cube-compact additional-compact"><h4 class="additional-title">에디셔널 잠재능력</h4><div class="cube-controls"><p class="cube-wallet">잠재해금 보유 ${fmt(scrolls)}개</p>${button('에디셔널 해금','additionalUnlock',it.id,!!protectedReason||scrolls<1)}</div>${additionalPanel(it)}<p class="enhance-help">${protectedReason||'잠재 해금 주문서 1개 소모 · 성공 10% · 실패 시 주문서 소모 · 성공 시 레어 3줄'}</p></div>`;
+ if(!opened)return `<div class="cube-compact additional-compact"><h4 class="additional-title">에디셔널 잠재능력</h4><div class="cube-controls"><p class="cube-wallet">잠재해금 보유 ${fmt(scrolls)}개</p>${button('에디셔널 해금','additionalUnlock',it.id,!!protectedReason||scrolls<1)}</div>${unlockNote(it,unlockResult,'additional')}${additionalPanel(it)}<p class="enhance-help">${protectedReason||'잠재 해금 주문서 1개 소모 · 성공 10% · 실패 시 주문서 소모 · 성공 시 레어 3줄'}</p></div>`;
  const grade=it.addGrade||2,up=D.ADD_CUBE.up[grade]||0;
  const blocked=protectedReason||(cubes<1?'에디셔널 큐브가 부족합니다. 상점 소모품에서 구매할 수 있어요.':'');
  return `<div class="cube-compact additional-compact"><h4 class="additional-title">에디셔널 잠재능력</h4>
  <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>에디셔널 큐브 보유 <b>${fmt(cubes)}개</b></p>${button('에디셔널 큐브 돌리기','addCubeUse',it.id,!!blocked)}</div>
- ${additionalPanel(it)}
+ ${unlockNote(it,unlockResult,'additional')}${additionalPanel(it)}
  <p class="enhance-help" role="status">${blocked||'이전·새 옵션 중 선택'}</p>
  <details class="cube-extra"><summary>에디셔널 등급 상승 안내</summary><p class="cube-chance">에디셔널 등급: <b>${D.RARITIES[grade]}</b><br>${up?`${D.RARITIES[grade]} → ${D.RARITIES[grade+1]} ${addPct(up)}`:'최고 등급'}</p><p class="note">에디셔널 큐브로만 재설정할 수 있어요. 레어→에픽 3% · 에픽→유니크 1% · 유니크→레전더리 0.5% · 천장 없음. 옵션 종류와 등장 확률은 같은 등급의 잠재능력과 같고, 수치는 1/10입니다(고정 수치는 반올림).</p></details>
  </div>`;

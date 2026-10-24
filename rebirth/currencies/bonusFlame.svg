@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+ <defs>
+  <radialGradient id="g" cx="50%" cy="72%" r="60%"><stop offset="0" stop-color="#fff7c2"/><stop offset=".35" stop-color="#ffd23f"/><stop offset=".7" stop-color="#ff7a1a"/><stop offset="1" stop-color="#c2260f"/></radialGradient>
+  <radialGradient id="i" cx="50%" cy="75%" r="45%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#fff1a8"/><stop offset="1" stop-color="#ffb627" stop-opacity="0"/></radialGradient>
+  <radialGradient id="glow" cx="50%" cy="60%" r="50%"><stop offset="0" stop-color="#ffb347" stop-opacity=".55"/><stop offset="1" stop-color="#ff6a00" stop-opacity="0"/></radialGradient>
+ </defs>
+ <circle cx="64" cy="70" r="58" fill="url(#glow)"/>
+ <path d="M64 8c6 18 26 30 30 52 4 22-10 50-30 54-20-4-34-28-30-50 2-12 10-18 12-28 6 8 4 16 10 20 2-18 2-34 8-48z" fill="url(#g)" stroke="#7a1a07" stroke-width="3" stroke-linejoin="round"/>
+ <path d="M64 56c6 10 16 18 14 32-2 12-8 20-14 22-8-2-16-12-14-24 1-8 6-11 8-17 3 4 3 8 6 10 0-9-2-16 0-23z" fill="url(#i)"/>
+ <path d="M22 96l8-4M106 96l-8-4M18 70h8M110 70h-8" stroke="#ffd23f" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+</svg>
