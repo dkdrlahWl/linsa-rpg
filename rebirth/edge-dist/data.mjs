@@ -316,8 +316,8 @@ function unbuffedGearAttributes(item,stars=item.stars) {
  const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
  return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};
 }
-// 추가옵션 불꽃: bonusPct (1~30) raises every equipment stat by that percent.
-export const gearBonusMultiplier=item=>1+(Number.isInteger(item?.bonusPct)&&item.bonusPct>=1&&item.bonusPct<=30?item.bonusPct:0)/100;
+// 추가옵션 불꽃: bonusPct (1~10) raises every equipment stat by that percent.
+export const gearBonusMultiplier=item=>1+(Number.isInteger(item?.bonusPct)&&item.bonusPct>=1&&item.bonusPct<=10?item.bonusPct:0)/100;
 export function gearAttributes(item,stars=item.stars) {
  const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item)*gearBonusMultiplier(item);
  return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier*(key==='hp'?gearHPMultiplier(item):1)]));

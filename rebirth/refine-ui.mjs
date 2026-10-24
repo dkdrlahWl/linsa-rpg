@@ -1,5 +1,5 @@
 import * as D from './data.mjs?v=prime-choice-158-lv300b';
-import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=refine-20261025';
+import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=refine2-20261025';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
 const LABELS={attack:'공격력',stat:'주스탯',hp:'HP',defense:'방어력'};
@@ -12,7 +12,7 @@ function statsTable(it,before,after){
 }
 function bonusOdds(){
  const at=p=>BONUS_TABLE.find(r=>r.pct===p).chance,range=(a,b)=>BONUS_TABLE.filter(r=>r.pct>=a&&r.pct<=b).reduce((n,r)=>n+r.chance,0);
- return `<details class="cube-extra"><summary>추가치 확률</summary><p class="note">1%~30% 중 하나가 붙고, 높을수록 희귀합니다.<br>1~5% ${pct(range(1,5))} · 6~10% ${pct(range(6,10))} · 11~20% ${pct(range(11,20))} · 21~29% ${pct(range(21,29))} · 30% ${pct(at(30))}</p></details>`;
+ return `<details class="cube-extra"><summary>추가치 확률</summary><p class="note">1%~10% 중 하나가 붙고, 높을수록 훨씬 희귀합니다.<br>${BONUS_TABLE.map(r=>`${r.pct}% ${pct(r.chance)}`).join(' · ')}</p></details>`;
 }
 export function renderRefinePanel(it,state,protectedReason=''){
  const flames=state.materials.bonusFlame||0,stones=state.materials.rerollStone||0,bonus=Number.isInteger(it.bonusPct)?it.bonusPct:0;
