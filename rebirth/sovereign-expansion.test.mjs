@@ -58,8 +58,8 @@ if(process.argv.includes('--assets')){
 }
 console.log('PASS 40 normal/enraged 90s replays, 20 unique openers, warning times, safety samples, bounded attacks, first rewards/retries, 12 fields through Lv300 and 6 costume transactions.',{simulations,peakHazards,peakProjectiles});
 
-assert.equal(BOSSES.length,32);assert.ok(!BOSSES.some(b=>b.chapter),'chapter daily bosses are disabled');
-console.log('PASS chapter daily bosses disabled: daily list ends at the Lv.200 boss');
+assert.equal(BOSSES.length,33);assert.deepEqual(BOSSES.filter(b=>b.chapter).map(b=>[b.id,b.name,b.hp,b.gearLevel,b.dropChance,b.weekly]),[[32,'유리등 해마',160000000,200,.015,false]]);
+console.log('PASS chapter daily bosses: only 유리등 해마 remains (HP 160M, Lv.200 boss gear)');
 
 assert.ok(COSTUMES.slice(0,18).every(c=>c.price===5000000));assert.ok(COSTUMES.slice(18).every(c=>c.price===10000000));
 console.log('PASS price isolation: existing 18 costumes 5M; only new 6 costumes 10M');

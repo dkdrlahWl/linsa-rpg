@@ -475,3 +475,6 @@ BOSSES.push({id:31,name:'성식의 군주 네크라시온',region:9,level:200,hp
 
 // Lv.225+ chapter daily bosses are disabled (2026-10-25); hunting grounds remain.
 // extendChapterBosses(BOSSES);
+// 2026-10-25: 유리등 해마 returns alone as a daily boss — HP 160,000,000, drops Lv.200 boss gear
+// (same 1.5% drop and weapon weighting as the Lv.200 daily boss). Keeps its former id 32.
+{const chapter=[...BOSSES];extendChapterBosses(chapter);const seahorse=chapter.find(b=>b.chapter&&b.name==='유리등 해마');BOSSES.push({...seahorse,id:BOSSES.length,hp:160000000});}
