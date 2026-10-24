@@ -1,5 +1,6 @@
 import * as D from './data.mjs?v=prime-choice-158-lv300b';
 import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=refine2-20261025';
+const materialArt=item=>`<img src="${item.art}" alt="" width="38" height="38" style="width:38px;height:38px;object-fit:contain;vertical-align:middle;margin-right:6px">`;
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
 const LABELS={attack:'공격력',stat:'주스탯',hp:'HP',defense:'방어력'};
@@ -23,9 +24,9 @@ export function renderRefinePanel(it,state,protectedReason=''){
  <h4>추가옵션 <b class="refine-bonus">${bonus?'+'+bonus+'%':'없음'}</b></h4>
  <p class="note">추가옵션은 장비의 공격력·주스탯·HP·방어력 전체에 같은 비율로 붙습니다. (스타포스 포함 장비 능력치 기준)</p>
  ${statsTable(it,base,now)}
- <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>${BONUS_FLAME.name} 보유 <b>${fmt(flames)}개</b></p>${button(bonus?'추가옵션 다시 굴리기':'추가옵션 부여','bonusRoll',it.id,!!flameBlock)}</div>
+ <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>${materialArt(BONUS_FLAME)}${BONUS_FLAME.name} 보유 <b>${fmt(flames)}개</b></p>${button(bonus?'추가옵션 다시 굴리기':'추가옵션 부여','bonusRoll',it.id,!!flameBlock)}</div>
  <p class="enhance-help">${flameBlock||'1개 소모 · 결과를 보고 이전 유지 / 새 결과 적용 선택'}</p>${bonusOdds()}
- <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>${REROLL_STONE.name} 보유 <b>${fmt(stones)}개</b></p>${button('기본 수치 재굴림','statReroll',it.id,!!stoneBlock)}</div>
+ <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>${materialArt(REROLL_STONE)}${REROLL_STONE.name} 보유 <b>${fmt(stones)}개</b></p>${button('기본 수치 재굴림','statReroll',it.id,!!stoneBlock)}</div>
  <p class="enhance-help">${stoneBlock||'1개 소모 · 장비 범위 안에서 다시 추첨 · 높은 구간일수록 희귀 · 결과 선택 가능'}</p>
  </section>`;
 }
@@ -38,5 +39,5 @@ export function renderRefineChoice(it,pending,state){
  ${button('이전 유지','refineChoose','no',false,'enhance-secondary')}${button('새 결과 적용','refineChoose','yes')}
  ${button('유지 후 다시','refineChooseRepeat','no',count<1,'enhance-secondary')}${button('적용 후 다시','refineChooseRepeat','yes',count<1)}
  </div>${head}${baseRows}<h4 class="refine-sub">적용 시 장비 능력치</h4>${statsTable(it,before,after)}
- <p class="enhance-help">결과 선택 무료 · 다시 하면 ${material.name} 1개 소모 · 남은 ${material.name} <b>${fmt(count)}개</b></p></div>`;
+ <p class="enhance-help" data-no-currency-art>${materialArt(material)}결과 선택 무료 · 다시 하면 ${material.name} 1개 소모 · 남은 ${material.name} <b>${fmt(count)}개</b></p></div>`;
 }

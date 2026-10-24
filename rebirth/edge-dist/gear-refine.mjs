@@ -6,8 +6,8 @@
 // Both results go to a keep/apply choice, like the black cube.
 import {rollBaseStats} from './data.mjs';
 
-export const BONUS_FLAME = Object.freeze({id: 'bonusFlame', name: '추가옵션 불꽃', price: 10000000, art: 'currencies/bonusFlame.svg', description: '장비 모든 스탯 +1~10% 추가치 · 이전 / 이후 선택'});
-export const REROLL_STONE = Object.freeze({id: 'rerollStone', name: '기본수치 재련석', price: 100000000, art: 'currencies/rerollStone.svg', description: '장비 기본 수치 재굴림 · 이전 / 이후 선택'});
+export const BONUS_FLAME = Object.freeze({id: 'bonusFlame', name: '추가옵션 불꽃', price: 10000000, art: 'currencies/bonus-flame-v1.webp', description: '장비 모든 스탯 +1~10% 추가치 · 이전 / 이후 선택'});
+export const REROLL_STONE = Object.freeze({id: 'rerollStone', name: '기본수치 재련석', price: 100000000, art: 'currencies/reroll-stone-v1.webp', description: '장비 기본 수치 재굴림 · 이전 / 이후 선택'});
 
 export const BONUS_MIN = 1, BONUS_MAX = 10, BONUS_DECAY = 0.6;
 // P(p) ∝ 0.6^(p-1): 1% ≈ 40.2%, 3% ≈ 14.5%, 5% ≈ 5.2%, 8% ≈ 1.1%, 10% ≈ 0.41%.
