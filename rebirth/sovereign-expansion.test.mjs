@@ -58,17 +58,8 @@ if(process.argv.includes('--assets')){
 }
 console.log('PASS 40 normal/enraged 90s replays, 20 unique openers, warning times, safety samples, bounded attacks, first rewards/retries, 12 fields through Lv300 and 6 costume transactions.',{simulations,peakHazards,peakProjectiles});
 
-assert.equal(BOSSES.length,44);
-assert.deepEqual(BOSSES.slice(32).map(b=>b.id),Array.from({length:12},(_,i)=>i+32));
-for(const boss of BOSSES.slice(32)){
- const p=initialState('warrior','보스토벌검수',ctx);p.hunting=false;p.level=300;p.advancement=4;p.firstAdvancement=true;const w=makeItem(200,'warrior',0,true,ctx);w.baseStats={attack:1e12,stat:1e8,hp:1e12,defense:1e8};p.items=[w];p.equipped={0:w.id};
- let active=execute(p,'boss',{id:boss.id},ctx).state;assert.equal(active.battle.bossId,boss.id);
- for(let t=1;active.battle&&t<=90;t++)active=execute(active,'sync',{}, {...ctx,now:t*1000}).state;
- assert.equal(active.lastReward.won,true);assert.equal(active.lastReward.gold,boss.gold);assert.ok(active.cleared.includes(boss.id));
- assert.throws(()=>execute(active,'boss',{id:boss.id},{...ctx,now:91000}),/BOSS_.*|ALREADY/);
- const practice=execute(active,'boss',{id:boss.id,practice:true},{...ctx,now:92000}).state;assert.equal(practice.battle.practice,true);
-}
-console.log('PASS 12 chapter daily bosses: entry, actual combat victory, gold and clear records, daily duplicate guard and practice entry');
+assert.equal(BOSSES.length,32);assert.ok(!BOSSES.some(b=>b.chapter),'chapter daily bosses are disabled');
+console.log('PASS chapter daily bosses disabled: daily list ends at the Lv.200 boss');
 
 assert.ok(COSTUMES.slice(0,18).every(c=>c.price===5000000));assert.ok(COSTUMES.slice(18).every(c=>c.price===10000000));
 console.log('PASS price isolation: existing 18 costumes 5M; only new 6 costumes 10M');

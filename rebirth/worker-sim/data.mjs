@@ -465,4 +465,5 @@ BOSSES.push({id:30,name:'종언의 집행자 모르가리온',region:9,level:200
 BOSSES.push({id:31,name:'성식의 군주 네크라시온',region:9,level:200,hp:BOSSES[30].hp+30000000,attack:6200,seconds:90,weekly:true,art:'tower/boss-necrasion.webp',background:'ui/weekly-necrasion-arena.webp',arenaName:'성식의 빙옥',fullArt:true,towerArt:'necrasion',artFrames:1,artSize:340,weeklyPattern:'eclipse-sovereign',gearLevel:200,dropChance:.05,gearRateScale:1,exactHalfWeapon:true,gold:360000,cubes:24,material:4,pattern:'성식의 심판',guide:'교차 빙창 → 안팎 심판 → 추적 폭발 → 돌진. 체력 35% 이하에서 광폭화합니다.',recommended:{slots:9,stars:25,gear:200,boss:true,pot:true}});
 
 
-extendChapterBosses(BOSSES);
+// Lv.225+ chapter daily bosses are disabled (2026-10-25); hunting grounds remain.
+// extendChapterBosses(BOSSES);
