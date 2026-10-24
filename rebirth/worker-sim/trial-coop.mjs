@@ -1,6 +1,6 @@
-import {supportTick} from './priest.mjs?v=archer-meteor-20261018';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=archer-meteor-20261018';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=archer-meteor-20261018';
+import {supportTick} from './priest.mjs?v=sovereign-20261025';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=sovereign-20261025';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=sovereign-20261025';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.

@@ -8,8 +8,8 @@ import {towerLobby} from './tower-client.mjs';
 
 const ctx={now:0,random:()=>.5,uuid:randomUUID};
 const power={hp:1e10,attack:1,defense:0,boss:1,crit:0,critDamage:1.5,cadence:1};
-assert.equal(TOWER_FLOORS.length,30);
-assert.equal(new Set(TOWER_FLOORS.map(f=>f.art)).size,30,'every floor has distinct boss art');
+assert.equal(TOWER_FLOORS.length,50);
+assert.equal(new Set(TOWER_FLOORS.map(f=>f.art)).size,50,'every floor has distinct boss art');
 assert.equal(new Set(UPPER_TOWER_FLOORS.map(f=>f.pattern)).size,10);
 const signatures=[];
 for(const f of UPPER_TOWER_FLOORS){
@@ -19,7 +19,7 @@ for(const f of UPPER_TOWER_FLOORS){
  const initial=initialState('warrior','신규탑시험',ctx);
  const entry=execute(initial,'towerStart',{floor:f.floor},ctx).state;
  assert.equal(entry.battle.floor,f.floor,'new floors are enterable without a level gate');
- assert.throws(()=>execute(initial,'towerStart',{floor:31},ctx),/INVALID_TOWER_FLOOR/);
+ assert.throws(()=>execute(initial,'towerStart',{floor:51},ctx),/INVALID_TOWER_FLOOR/);
  for(const enraged of [false,true]){
   const a=newTowerBattle(f.floor,'warrior',power,0,'simulation',27),b=structuredClone(a);
   if(enraged)a.enemyHp=b.enemyHp=f.hp*.3;
@@ -60,10 +60,10 @@ for(const f of UPPER_TOWER_FLOORS){
 assert.equal(signatures.length,20);
 assert.equal(new Set(signatures.slice().filter((_,i)=>i%2===0)).size,10,'each boss opens with different attack geometry');
 const lobby=towerLobby(initialState('warrior','목록시험',ctx));
-assert.ok(lobby.includes('/ 30층 정복'));
+assert.ok(lobby.includes('/ 50층 정복'));
 assert.ok(lobby.includes('data-arg="20"'));
 assert.ok(lobby.includes('프라임 큐브 2'));
-assert.equal((lobby.match(/single-boss-art/g)||[]).length,20);
+assert.equal((lobby.match(/single-boss-art/g)||[]).length,40);
 const app=readFileSync(new URL('./app.mjs',import.meta.url),'utf8');
 assert.ok(app.includes('r.floor<TOWER_FLOORS.length'));
 console.log('PASS: 30-floor entry, 10 unique bosses, 90-second normal/enraged replay, bounded attacks, first-only gold/cube/prime rewards, failures, retries and 30-floor UI.');

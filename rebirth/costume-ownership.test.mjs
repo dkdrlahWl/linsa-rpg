@@ -28,11 +28,11 @@ for(const {classId} of COSTUMES){
  }
 }
 
-let s=initialState('warrior','구매효과검증',ctx);s.hunting=false;s.gold=COSTUME_PRICE*ids.length;
+let s=initialState('warrior','구매효과검증',ctx);s.hunting=false;s.gold=COSTUMES.reduce((sum,c)=>sum+c.price,0);
 for(let i=0;i<ids.length;i++){
  s=execute(s,'costumeBuy',{id:ids[i]},ctx).state;
  assert.equal(power(s).costumeAttackBonus,i+1);
- assert.equal(s.gold,COSTUME_PRICE*(ids.length-1-i));
+ assert.equal(s.gold,COSTUMES.slice(i+1).reduce((sum,c)=>sum+c.price,0));
 }
 assert.throws(()=>execute(s,'costumeBuy',{id:ids[0]},ctx),/COSTUME_OWNED/);
 const owned=power(s);

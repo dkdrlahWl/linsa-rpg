@@ -1,9 +1,9 @@
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=archer-meteor-20261018';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=archer-meteor-20261018';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=archer-meteor-20261018';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=archer-meteor-20261018';
-import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=archer-meteor-20261018';
-import {incomingDamage} from './journey-balance.mjs?v=archer-meteor-20261018';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=sovereign-20261025';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=sovereign-20261025';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=sovereign-20261025';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=sovereign-20261025';
+import {CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS} from './data.mjs?v=sovereign-20261025';
+import {incomingDamage} from './journey-balance.mjs?v=sovereign-20261025';
 
 export const WAVE_SECONDS=30, WAVE_LIMIT=100, WAVE_END=200;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);

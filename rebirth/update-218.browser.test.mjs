@@ -5,6 +5,8 @@ import {initialState,execute} from './engine.mjs';import {normalizeFishing} from
 const root=path.resolve('.'),out=path.resolve('rebirth/test-artifacts/update-218');fs.mkdirSync(out,{recursive:true});
 let rng=42,state,revision=0;const random=()=>((rng=(Math.imul(rng,1664525)+1013904223)>>>0)/2**32);
 state=initialState('warrior','점검모험가',{now:Date.now(),random,uuid:randomUUID});state.level=200;state.hunting=false;state.gold=50_000_000;state.materials.fragment=5000;const f=normalizeFishing(state,Date.now());f.rod=20;f.diamonds=30;f.bait={worm:50,shrimp:50};
+// Settle the seeded level/gold achievements before navigation, so their startup dialog does not cover menu buttons.
+state=execute(state,'sync',{}, {now:Date.now(),random,uuid:randomUUID}).state;
 const commands=[];
 const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://local'),p=url.pathname;
@@ -19,7 +21,7 @@ const server=http.createServer(async(req,res)=>{try{
   }catch(e){return json({error:e.message},400);}}
  if(p.startsWith('/auth/'))return json({id:'local-qa'});
  const file=path.resolve(root,'.'+decodeURIComponent(p)+(p.endsWith('/')?'index.html':''));if(!file.startsWith(root+path.sep))throw Error('Invalid path');
- let data=fs.readFileSync(file);if(file.endsWith('/rebirth/index.html'))data=Buffer.from(data.toString().replace('<head>',`<head><script>window.qaErrors=[];addEventListener('error',e=>{if(e.message)qaErrors.push(e.message)});localStorage.setItem('ringu_rebirth_session',JSON.stringify({access_token:'local-qa',refresh_token:'local-qa',user:{id:'local-qa'},expires_at:Date.now()/1000+3600}));</script>`));
+ let data=fs.readFileSync(file);if(file===path.join(root,'rebirth','index.html'))data=Buffer.from(data.toString().replace('<head>',`<head><script>window.qaErrors=[];addEventListener('error',e=>{if(e.message)qaErrors.push(e.message)});localStorage.setItem('ringu_rebirth_session',JSON.stringify({access_token:'local-qa',refresh_token:'local-qa',user:{id:'local-qa'},expires_at:Date.now()/1000+3600}));</script>`));
  res.setHeader('Content-Type',/\.m?js$/.test(file)?'text/javascript':file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':file.endsWith('.webp')?'image/webp':file.endsWith('.png')?'image/png':'application/octet-stream');res.end(data);
 }catch{res.writeHead(404);res.end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -49,7 +51,7 @@ try{
  await page.locator('[data-action="fishCast"]').click();
  await wait(()=>state.fishing.lastCatch&&!state.fishing.cast,20000);
  assert.equal(state.fishing.lastCatch.won,true);
- await delay(800);await page.screenshot({path:path.join(out,'fishing-caught.png')});
+ await delay(800);if(await page.locator('#modal[open]').count())await page.keyboard.press('Escape');await page.screenshot({path:path.join(out,'fishing-caught.png')});
  await page.locator('[data-action="fishPanel"][data-arg="shop"]').click();await delay(300);
  assert.equal(await page.locator('.fishing-odds').count(),0,'reward odds table removed');
  const errors=await page.evaluate(()=>window.qaErrors);assert.deepEqual(errors,[]);

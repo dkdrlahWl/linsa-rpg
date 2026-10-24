@@ -6,14 +6,14 @@ import {STAGES,REGIONS,MONSTERS,fieldMonster,fieldDropRates,xpNeeded} from './da
 function context(seed=17,now=0) {
   return {now,uuid:randomUUID,random:()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2**32;}};
 }
-assert.equal(REGIONS.length,13);
-assert.equal(STAGES.length,39);
-assert.equal(MONSTERS.length,69);
+assert.equal(REGIONS.length,17);
+assert.equal(STAGES.length,51);
+assert.equal(MONSTERS.length,81);
 for(let stage=0;stage<30;stage++)for(let kills=0;kills<4;kills++)
   assert.equal(fieldMonster(stage,kills).id,stage*2+kills%2,'existing two-monster rotation');
 
 const expected=[{level:195,hp:270000,attack:10335,xp:1172,gold:728},{level:200,hp:300000,attack:11130,xp:1268,gold:792},{level:205,hp:330000,attack:11925,xp:1365,gold:857}];
-const added=STAGES.slice(33);
+const added=STAGES.slice(33,39);
 assert.deepEqual(added.map(({level,region,dropLevel})=>({level,region,dropLevel})),[
   {level:207,region:11,dropLevel:190},{level:212,region:11,dropLevel:190},{level:215,region:11,dropLevel:200},
   {level:217,region:12,dropLevel:200},{level:220,region:12,dropLevel:200},{level:222,region:12,dropLevel:200},
@@ -30,7 +30,7 @@ for(const [index,values] of expected.entries()) {
   for(let kills=0;kills<7;kills++)assert.equal(fieldMonster(id,kills).stage,id,'one dedicated monster per new field');
   const newPlayer=initialState('warrior','새지역시험',ctx);
   assert.equal(execute(newPlayer,'stage',{id},ctx).state.stage,id,'recommended level never blocks entry');
-  assert.throws(()=>execute(newPlayer,'stage',{id:39},ctx),/INVALID_STAGE/);
+  assert.throws(()=>execute(newPlayer,'stage',{id:51},ctx),/INVALID_STAGE/);
   const player=initialState('warrior','정산시험',ctx);
   Object.assign(player,{level:200,stage:id,advancement:4,firstAdvancement:true,balanceVersion:'journey-20260925'});
   const weapon=makeItem(190,'warrior',0,false,ctx);
