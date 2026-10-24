@@ -24,3 +24,6 @@ img[src="costumes/priest-portrait-v1.webp"]{mask:url("costumes/priest-portrait-m
  .costume-shop .costume-card strong,.costume-shop .costume-card button{font-size:10px;line-height:1.4}
  .costume-shop .resource-label img{width:12px;height:12px}
 }
+
+/* Align full-body portraits on one baseline; v4 artwork includes equal margins. */
+.costume-card>img{object-position:center bottom}
