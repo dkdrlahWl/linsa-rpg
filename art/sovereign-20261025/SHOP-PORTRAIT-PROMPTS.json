@@ -1,0 +1,30 @@
+{
+  "mode": "built-in image_gen",
+  "reference": "rebirth/costumes/sakura-shrine-maiden-portrait-v2.webp",
+  "prompts": [
+    {
+      "id": "sunrose-empress",
+      "prompt": "Use case: style-transfer. Create ONE full-body transparent-background high resolution RPG costume SHOP PORTRAIT. The attached shrine maiden is STYLE REFERENCE ONLY: match her painted polished Korean fantasy chibi illustration, large expressive eyes, large head about 1/3 of total height, compact elegant body, finely outlined crisp luxurious fabric and metal, beautiful cute face. Preserve the specified subject's outfit concept. Frontal three-quarter standing pose, complete head to shoes and full weapons inside frame, centered, minimal empty padding, no text, no UI, no floor, no shadow backdrop, no scenery. Rich detailed hand painted illustration that remains legible at 145px tall. NOT blurry tiny sprite, NOT long-legged realistic fashion proportions. Subject: beautiful female Sunrose Empress warrior, flowing pastel pink hair, ivory rose gold armored dress, rose ruby tiara, one ornate sword"
+    },
+    {
+      "id": "astral-tea-mage",
+      "prompt": "Use case: style-transfer. Create ONE full-body transparent-background high resolution RPG costume SHOP PORTRAIT. The attached shrine maiden is STYLE REFERENCE ONLY: match her painted polished Korean fantasy chibi illustration, large expressive eyes, large head about 1/3 of total height, compact elegant body, finely outlined crisp luxurious fabric and metal, beautiful cute face. Preserve the specified subject's outfit concept. Frontal three-quarter standing pose, complete head to shoes and full weapons inside frame, centered, minimal empty padding, no text, no UI, no floor, no shadow backdrop, no scenery. Rich detailed hand painted illustration that remains legible at 145px tall. NOT blurry tiny sprite, NOT long-legged realistic fashion proportions. Subject: female Astral Tea Mage, dark indigo wavy hair, midnight blue and gold star dress, teapot-shaped floating magical focus"
+    },
+    {
+      "id": "aurora-huntress",
+      "prompt": "Use case: style-transfer. Create ONE full-body transparent-background high resolution RPG costume SHOP PORTRAIT. The attached shrine maiden is STYLE REFERENCE ONLY: match her painted polished Korean fantasy chibi illustration, large expressive eyes, large head about 1/3 of total height, compact elegant body, finely outlined crisp luxurious fabric and metal, beautiful cute face. Preserve the specified subject's outfit concept. Frontal three-quarter standing pose, complete head to shoes and full weapons inside frame, centered, minimal empty padding, no text, no UI, no floor, no shadow backdrop, no scenery. Rich detailed hand painted illustration that remains legible at 145px tall. NOT blurry tiny sprite, NOT long-legged realistic fashion proportions. Subject: female Aurora Huntress archer, champagne blonde hair, white lilac silver feathered hunting dress, ornate curved bow"
+    },
+    {
+      "id": "moonjewel-bladedancer",
+      "prompt": "Use case: style-transfer. Create ONE full-body transparent-background high resolution RPG costume SHOP PORTRAIT. The attached shrine maiden is STYLE REFERENCE ONLY: match her painted polished Korean fantasy chibi illustration, large expressive eyes, large head about 1/3 of total height, compact elegant body, finely outlined crisp luxurious fabric and metal, beautiful cute face. Preserve the specified subject's outfit concept. Frontal three-quarter standing pose, complete head to shoes and full weapons inside frame, centered, minimal empty padding, no text, no UI, no floor, no shadow backdrop, no scenery. Rich detailed hand painted illustration that remains legible at 145px tall. NOT blurry tiny sprite, NOT long-legged realistic fashion proportions. Subject: beautiful female Moonjewel Bladedancer rogue, silvery lavender hair, violet pearl silver jeweled battle dress, TWO clearly visible ornate matching short swords one in each hand"
+    },
+    {
+      "id": "scarlet-sky-pilot",
+      "prompt": "Use case: style-transfer. Create ONE full-body transparent-background high resolution RPG costume SHOP PORTRAIT. The attached shrine maiden is STYLE REFERENCE ONLY: match her painted polished Korean fantasy chibi illustration, large expressive eyes, large head about 1/3 of total height, compact elegant body, finely outlined crisp luxurious fabric and metal, beautiful cute face. Preserve the specified subject's outfit concept. Frontal three-quarter standing pose, complete head to shoes and full weapons inside frame, centered, minimal empty padding, no text, no UI, no floor, no shadow backdrop, no scenery. Rich detailed hand painted illustration that remains legible at 145px tall. NOT blurry tiny sprite, NOT long-legged realistic fashion proportions. Subject: female Scarlet Sky airship pilot pirate, chestnut auburn ponytail, brass goggles on head, burgundy brown gold pilot coat, ornate flintlock pistol"
+    },
+    {
+      "id": "opal-dream-priest",
+      "prompt": "Use case: style-transfer. Create ONE full-body transparent-background high resolution RPG costume SHOP PORTRAIT. The attached shrine maiden is STYLE REFERENCE ONLY: match her painted polished Korean fantasy chibi illustration, large expressive eyes, large head about 1/3 of total height, compact elegant body, finely outlined crisp luxurious fabric and metal, beautiful cute face. Preserve the specified subject's outfit concept. Frontal three-quarter standing pose, complete head to shoes and full weapons inside frame, centered, minimal empty padding, no text, no UI, no floor, no shadow backdrop, no scenery. Rich detailed hand painted illustration that remains legible at 145px tall. NOT blurry tiny sprite, NOT long-legged realistic fashion proportions. Subject: female Opal Dream Priest, pearl lavender white hair, opal pastel blue violet white priest dress, graceful round halo and jeweled staff"
+    }
+  ]
+}
