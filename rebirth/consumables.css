@@ -3,3 +3,16 @@
 .consumable-shop-panel{padding:12px}.consumable-shop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.consumable-shop-card{display:flex;flex-direction:column;align-items:center;min-width:0;padding:12px 9px;border:1px solid #8ea37355;border-radius:10px;background:#091810aa;text-align:center}.consumable-shop-art{width:48px;height:56px;object-fit:contain;margin-bottom:6px}.consumable-shop-card h3{font-size:16px}.consumable-owned{font-size:14px;color:#c7dac5;margin-top:4px}.consumable-shop-card p{font-size:14px;line-height:1.5;margin:8px 0;color:#d8e7d6}.consumable-shop-card details{width:100%;font-size:14px;color:#bacbbd;margin-bottom:8px}.consumable-shop-card summary{cursor:pointer}.consumable-shop-card .consumable-price{font-size:16px;margin:auto 0 8px;padding-top:8px;overflow-wrap:anywhere}.consumable-shop-card .consumable-price small{font-size:14px;font-weight:400}.consumable-shop-card button{width:100%;min-height:44px;font-size:16px}dialog .consumable-shop-card{max-width:320px;margin:0 auto}@media(max-width:540px){.consumable-shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.consumable-shop-card{padding:10px 8px}}
 
 .consumable-affordable{font-size:13px;color:#b6efb4;margin:0 0 8px}.consumable-quantity{width:100%;margin:8px 0;text-align:left}.consumable-quantity>label{display:block;margin-bottom:6px;font-size:14px}.consumable-quantity>div{display:flex;align-items:center;gap:8px}.consumable-quantity input{box-sizing:border-box;width:100%;min-width:0;min-height:44px;font-size:18px}.consumable-quantity>div>button{width:auto;flex:none;padding:8px 14px}.consumable-quantity #shop-buy-total{color:#ffe39a;font-weight:bold;overflow-wrap:anywhere}.consumable-quantity #shop-buy-error{color:#ffc2b8;font-size:13px}
+/* 2026-10-25: 소모품 상점 한눈에 보기 — 한 줄짜리 컴팩트 목록 (구매 확인 창 카드는 그대로) */
+.consumable-shop-panel .consumable-shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.consumable-shop-grid .consumable-shop-card{display:grid;grid-template-columns:40px minmax(0,1fr);grid-template-areas:"art name" "art owned" "desc desc" "price price" "buy buy";column-gap:8px;row-gap:2px;align-items:center;padding:8px;text-align:left}
+.consumable-shop-grid .consumable-shop-art{grid-area:art;width:40px;height:40px;margin:0}
+.consumable-shop-grid .consumable-shop-card h3{grid-area:name;font-size:14px;line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.consumable-shop-grid .consumable-owned{grid-area:owned;font-size:12px;margin:0}
+.consumable-shop-grid .consumable-shop-card>p{grid-area:desc;font-size:11.5px;line-height:1.35;margin:4px 0 0;color:#bfd2bd;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.consumable-shop-grid .consumable-shop-card details{display:none}
+.consumable-shop-grid .consumable-shop-card .consumable-price{grid-area:price;font-size:14px;margin:4px 0 0;padding:0}
+.consumable-shop-grid .consumable-shop-card .consumable-price small{font-size:11px}
+.consumable-shop-grid .consumable-affordable{display:none}
+.consumable-shop-panel .consumable-shop-grid .consumable-shop-card>button{grid-area:buy;width:100%;min-height:34px;padding:4px 8px;margin:4px 0 0;font-size:14px}
+@media(min-width:720px){.consumable-shop-panel .consumable-shop-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
