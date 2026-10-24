@@ -16,6 +16,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
+import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs?v=addpot-20261025';
 import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
 import {applyBetaTool} from './beta-tools.mjs?v=beta-level-250-20261011-lv300';
 import {
@@ -141,6 +142,7 @@ export function initialState(classId, name, ctx) {
     attendance: {day:0,lastClaim:null},
     battle: null,
     pendingCube: null,
+    pendingAddCube: null,
     lastReward: null,
     collection: [[1, classId, 0, false].join(":")],
     tutorial: 0,
@@ -179,7 +181,7 @@ export function power(s) {
     primary += addedStat;
     hp += attributes.hp;
     defense += attributes.defense;
-    for (const line of it.lines) {
+    for (const line of allPotentialLines(it)) {
       if (line.key.startsWith("flat") && Object.hasOwn(fixedStats, line.key.slice(4))) fixedStats[line.key.slice(4)] += line.value;
       if (line.key === "flatHP") hp += line.value;
       if (line.key === "flatAttack") flat += line.value;
@@ -397,6 +399,7 @@ function gear(s, id) {
   const it = s.items.find((x) => x.id === id);
   check(it, "ITEM_NOT_FOUND");
   check(!s.pendingCube || s.pendingCube.id !== id, "ITEM_CUBE_PENDING");
+  check(!s.pendingAddCube || s.pendingAddCube.id !== id, "ITEM_CUBE_PENDING");
   return it;
 }
 function writable(s, it) {
@@ -939,6 +942,28 @@ function executeCore(input, command, args = {}, ctx) {
       if(rule.choose)s.pendingCube={id:it.id,kind,grade,previousGrade,lines,potentialVersion:4,lock};
       else {it.grade=grade;it.lines=lines;}
       events.push({type:"cube",id:it.id,kind,high:rule.choose,up:grade>previousGrade});break;
+    }
+    case "additionalUnlock": {
+      const it=gear(s,args.id);writable(s,it);
+      check(it.lines.length>0,"POTENTIAL_REQUIRED");check(!hasAdditional(it),"POTENTIAL_ADDITIONAL_OPEN");
+      check(!s.pendingCube&&!s.pendingAddCube,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
+      const success=ctx.random()<ADDITIONAL_UNLOCK_CHANCE;
+      if(success){it.addGrade=ADD_CUBE.minGrade;it.addLines=rollAdditionalLines(it.addGrade,ctx.random);}
+      events.push({type:"additionalUnlock",id:it.id,success,chance:ADDITIONAL_UNLOCK_CHANCE});break;
+    }
+    case "addCube": {
+      const it=gear(s,args.id);writable(s,it);
+      check(hasAdditional(it),"POTENTIAL_ADDITIONAL_REQUIRED");check(!s.pendingCube&&!s.pendingAddCube,"ITEM_CUBE_PENDING");
+      const roll=rerollAdditional(it,ctx.random);
+      spend(s,ADD_CUBE.id,1);s.cubeUses=(s.cubeUses||0)+1;
+      s.pendingAddCube={id:it.id,grade:roll.grade,previousGrade:roll.previousGrade,lines:roll.lines};
+      events.push({type:"addCube",id:it.id,up:roll.grade>roll.previousGrade});break;
+    }
+    case "addCubeChoose": {
+      check(s.pendingAddCube,"NO_PENDING_CUBE");check(typeof args.apply==="boolean","INVALID_CHOICE");
+      const it=s.items.find(x=>x.id===s.pendingAddCube.id);
+      if(it&&args.apply){it.addGrade=s.pendingAddCube.grade;it.addLines=s.pendingAddCube.lines;}
+      s.pendingAddCube=null;break;
     }
     case "cubeChoose": {
       check(s.pendingCube,"NO_PENDING_CUBE");check(typeof args.apply==="boolean","INVALID_CHOICE");

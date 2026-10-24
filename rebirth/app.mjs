@@ -40,7 +40,7 @@ import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=citadel-in
 import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
-import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide } from './cube-ui.mjs?v=prime-choice-158';
+import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide, renderAdditionalSection, renderAddCubeChoice } from './cube-ui.mjs?v=prime-choice-158';
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower20-174';
 import * as D from "./data.mjs?v=weekly200-hp140m-20261018-lv300b";
@@ -707,6 +707,7 @@ function render() {
   }
   if(state?.battle||state?.partyRoom)updateCombatClock();
   if (state.pendingCube && !modal.open) cubeChoice();
+  else if (state.pendingAddCube && !modal.open) addCubeChoice();
   else if(["coop","advancementTrial"].includes(state.lastReward?.type)&&!modal.open)reward();
 }
 function dailyRewardLines(task){
@@ -1048,7 +1049,7 @@ function starPanel(it) {
 }
 
 function baseStatsPanel(it){return gearRollDetails(it);}
-function cubePanel(it){return renderCubePanel(it,state,cubeKind,lastCubeResult,enhancementBlock(it),cubeLockChoice);}
+function cubePanel(it){return renderCubePanel(it,state,cubeKind,lastCubeResult,enhancementBlock(it),cubeLockChoice)+renderAdditionalSection(it,state,enhancementBlock(it));}
 function itemDetail(id, section=id===selected?itemSection:"info") {
   if(selected!==id){lastStarResult=null;lastCubeResult=null;cubeLockChoice=-1;}
   selected=id;itemSection=section;
@@ -1056,12 +1057,18 @@ function itemDetail(id, section=id===selected?itemSection:"info") {
   const p=power(state),next=power({...state,equipped:{...state.equipped,[it.slot]:it.id}}),equipped=Object.values(state.equipped).includes(id),o=D.starOdds(it.stars);
   const comparison=D.canEquipClass(it,state.classId)&&it.level<=state.level&&!it.broken?`장착 시 공격력 ${fmt(next.attack)} (${next.attack-p.attack>=0?"+":""}${next.attack-p.attack}) · HP ${fmt(next.hp)}`:!D.canEquipClass(it,state.classId)?`${D.CLASSES.find(c=>c.id===it.classId).name} 전용 장비입니다. 현재 직업으로는 착용할 수 없습니다. 장비 능력치는 직업에 관계없이 볼 수 있습니다.`:"착용 레벨과 장비 상태를 확인하세요.";
   let body="";
-  if(section==="info")body=`${gearStatsMarkup(it)}${gearRollDetails(it)}<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?"거래 불가":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):"잠재 미개방"}</div>`;
+  if(section==="info")body=`${gearStatsMarkup(it)}${gearRollDetails(it)}<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?"거래 불가":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):"잠재 미개방"}${it.addLines?.length?`<p class="additional-heading">에디셔널 잠재능력</p>`+it.addLines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):""}</div>`;
   if(section==="star")body=starPanel(it);
   if(section==="potential")body=cubePanel(it);
   if(section==="baseStats")body=baseStatsPanel(it);
   open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":section==="baseStats"?"기본 수치":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"} · ${gearRollLabel(it)}</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"],["baseStats","기본 수치"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
   modal.classList.add("enhance-dialog");if(section==="potential")modal.classList.add("cube-dialog");
+}
+function addCubeChoice() {
+ const p=state.pendingAddCube,it=state.items.find(i=>i.id===p.id);if(!it)return;
+ selected=p.id;itemSection="potential";
+ open("에디셔널 큐브 · 결과 선택",`<div class="enhance-content"><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong></div></div>${renderAddCubeChoice(it,p,state)}</div>`,false);
+ modal.classList.add("enhance-dialog","cube-dialog");
 }
 function cubeChoice() {
  const p=state.pendingCube,it=state.items.find(i=>i.id===p.id);
@@ -1141,6 +1148,12 @@ function showEvents(events) {
     } else if(e.type === "advancement") {open("전직 완료",`<div class="advancement-reveal"><h2>${D.ADVANCEMENTS[state.classId]}</h2><p>공격력 +10% · 최대 HP +10%</p></div>`);
     } else if (["boss", "dungeon", "party", "offline"].includes(e.type)) {
       if (e.type !== "offline" || e.seconds >= 300) reward();
+    } else if (e.type === "addCube") {
+      if (state.pendingAddCube) addCubeChoice();
+      else itemDetail(e.id,"potential");
+    } else if (e.type === "additionalUnlock") {
+      toast(e.success?"에디셔널 잠재능력 해금 성공!":"에디셔널 해금 실패 · 주문서 1개 소모 (성공 확률 10%)");
+      itemDetail(e.id,"potential");
     } else if (e.type === "cube") {
       lastCubeResult=e;
       if (state.pendingCube) cubeChoice();
@@ -1691,6 +1704,22 @@ document.addEventListener("click", async (e) => {
       return itemDetail(arg);
     }
     if (action === "potentialUnlock") return await command("potential", {id:arg});
+    if (action === "additionalUnlock") return await command("additionalUnlock", {id:arg});
+    if (action === "addCubeUse") return await command("addCube", {id:arg});
+    if (action === "addCubeChooseRepeat") {
+      if(busy||!state.pendingAddCube)return;
+      const id=state.pendingAddCube.id;
+      const result=await command("addCubeChoose",{apply:arg==="yes"});
+      if(!result||state.pendingAddCube)return;
+      itemDetail(id,"potential");
+      return await command("addCube",{id});
+    }
+    if (action === "addCubeChoose") {
+      const id=state.pendingAddCube?.id;
+      await command("addCubeChoose", { apply: arg === "yes" });
+      modal.close();
+      return itemDetail(id||selected,"potential");
+    }
     if (action === "cubeUse") return await command("cube", {id:arg,kind:cubeKind,lock:Number(document.querySelector('#cube-lock')?.value??-1)});
     if (["lock", "star"].includes(action)) {
       await command(action, { id: arg });

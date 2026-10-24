@@ -1,4 +1,5 @@
 import {extendChapters300,extendChapterBosses} from './chapters-300.mjs';
+export {ADD_CUBE} from './additional-potential.mjs?v=addpot-20261025';
 export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=rogue-archer-20261019';
 export {PRIEST_SKILLS} from './priest.mjs?v=fifth-114';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=rogue-archer-20261019';
@@ -195,6 +196,7 @@ export const MATERIALS = {
   cube: "레드 큐브",
   highCube: "블랙 큐브",
   ...Object.fromEntries(Object.entries(CUBES).map(([key,c])=>[key,c.name])),
+  addCube: "에디셔널 큐브",
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
 export const ATTENDANCE_REWARDS = [
@@ -426,6 +428,7 @@ export function normalizePotentialState(state) {
   for(const [old,key,ratio] of [["strangeCube","cube",1],["masterCube","cube",2],["artisanCube","highCube",1],["silverCube","highCube",1],["goldCube","highCube",2]]){state.materials[key]=(state.materials[key]||0)+(state.materials[old]||0)*ratio;delete state.materials[old];}
   if(["silverCube","goldCube"].includes(state.pendingCube?.kind))state.pendingCube.kind="highCube";
   for(const key of Object.keys(CUBES))state.materials[key]??=0;
+  state.materials.addCube??=0;state.pendingAddCube??=null;
   const pending=state.pendingCube;
   if(pending && pending.potentialVersion!==4){
     const item=state.items.find(x=>x.id===pending.id);

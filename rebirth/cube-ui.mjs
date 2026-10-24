@@ -44,3 +44,32 @@ export function renderCubeChoice(it,pending,state,kind){
 export function cubeGuide(){
  return `<div class="panel pad"><h3>잠재능력 · 큐브 3종</h3><p>장비 잠재 등급과 세 줄의 옵션 등급이 항상 같습니다. 레어면 세 줄 레어, 에픽이면 세 줄 에픽, 유니크면 세 줄 유니크, 레전더리면 세 줄 레전더리입니다.</p><p>모든 장비의 레벨·직업·부위와 관계없이 동일한 옵션 종류·수치·확률을 사용합니다. 같은 옵션이 세 줄 모두 나올 수 있습니다. 레전더리 STR +12% 세 줄도 가능합니다.</p><table><tr><th>큐브</th><th>레어 → 에픽</th><th>에픽 → 유니크</th><th>유니크 → 레전더리</th></tr>${Object.values(D.CUBES).map(c=>`<tr><td>${c.name}</td>${[2,3,4].map(g=>`<td>${pct(c.up[g])}</td>`).join('')}</tr>`).join('')}</table><p>레드: 최대 유니크, 레전더리 장비 사용 불가, 3줄 즉시 적용 · 블랙: 최소 에픽, 이전/이후 선택 · 프라임: 최소 에픽, 레전더리까지 승급, 첫 줄 고정 없이 3줄 재설정 후 이전/이후 선택. 사용당 큐브 1개, 추가 골드 없음.</p><p>기존 잠재 옵션은 큐브를 쓰기 전까지 유지됩니다. 새 장비는 잠재 해금 주문서 1개를 소모해 3줄 해금을 시도합니다. 200제 이상은 성공 확률 30%, 200제 미만은 100%이며 실패해도 주문서는 소모됩니다. 해금 결과는 세 줄 모두 레어입니다.</p></div>`;
 }
+// ---- 에디셔널 잠재능력 ----
+const addPct=n=>(n*100).toFixed(2).replace(/\.?0+$/,'')+'%';
+export function additionalPanel(src,label='에디셔널 잠재능력'){
+ const lines=src.addLines||src.lines||[],grade=src.addGrade??src.grade??2,opened=lines.length>0;
+ return `<section class="option-panel additional-panel rarity-${opened?grade:0}"><div class="option-heading"><span>${label}</span><b>${opened?D.RARITIES[grade]:'미개방'}</b></div><div class="option-lines">${Array.from({length:3},(_,i)=>{const l=lines[i];return `<div class="option-line ${l?'grade-color-'+l.grade:'empty-line'}"><span class="line-index">0${i+1}</span><span>${l?`<small class="line-grade">${D.RARITIES[l.grade]}</small>${D.OPTIONS[l.key]}`:'에디셔널 슬롯 미개방'}</span><strong>${l?'+'+l.value+D.optionUnit(l.key):'—'}</strong></div>`;}).join('')}</div></section>`;
+}
+export function renderAdditionalSection(it,state,protectedReason=''){
+ const opened=Array.isArray(it.addLines)&&it.addLines.length>0,cubes=state.materials.addCube||0,scrolls=state.materials.scroll||0;
+ if(!it.lines.length)return `<div class="cube-compact additional-compact"><h4 class="additional-title">에디셔널 잠재능력</h4><p class="enhance-help">잠재능력을 먼저 해금하면 에디셔널 잠재능력을 해금할 수 있어요.</p></div>`;
+ if(!opened)return `<div class="cube-compact additional-compact"><h4 class="additional-title">에디셔널 잠재능력</h4><div class="cube-controls"><p class="cube-wallet">잠재해금 보유 ${fmt(scrolls)}개</p>${button('에디셔널 해금','additionalUnlock',it.id,!!protectedReason||scrolls<1)}</div>${additionalPanel(it)}<p class="enhance-help">${protectedReason||'잠재 해금 주문서 1개 소모 · 성공 10% · 실패 시 주문서 소모 · 성공 시 레어 3줄'}</p></div>`;
+ const grade=it.addGrade||2,up=D.ADD_CUBE.up[grade]||0;
+ const blocked=protectedReason||(cubes<1?'에디셔널 큐브가 부족합니다. 상점 소모품에서 구매할 수 있어요.':'');
+ return `<div class="cube-compact additional-compact"><h4 class="additional-title">에디셔널 잠재능력</h4>
+ <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>에디셔널 큐브 보유 <b>${fmt(cubes)}개</b></p>${button('에디셔널 큐브 돌리기','addCubeUse',it.id,!!blocked)}</div>
+ ${additionalPanel(it)}
+ <p class="enhance-help" role="status">${blocked||'이전·새 옵션 중 선택'}</p>
+ <details class="cube-extra"><summary>에디셔널 등급 상승 안내</summary><p class="cube-chance">에디셔널 등급: <b>${D.RARITIES[grade]}</b><br>${up?`${D.RARITIES[grade]} → ${D.RARITIES[grade+1]} ${addPct(up)}`:'최고 등급'}</p><p class="note">에디셔널 큐브로만 재설정할 수 있어요. 레어→에픽 3% · 에픽→유니크 1% · 유니크→레전더리 0.5% · 천장 없음. 옵션 종류와 등장 확률은 같은 등급의 잠재능력과 같고, 수치는 1/10입니다(고정 수치는 반올림).</p></details>
+ </div>`;
+}
+export function renderAddCubeChoice(it,pending,state){
+ const canRepeat=(state.materials.addCube||0)>0;
+ return `<div class="cube-choice-compact"><div class="cube-choice-controls" role="group" aria-label="에디셔널 큐브 결과 선택">
+ ${button('이전 유지','addCubeChoose','no',false,'enhance-secondary')}${button('새 결과 적용','addCubeChoose','yes')}
+ ${button('유지 후 다시','addCubeChooseRepeat','no',!canRepeat,'enhance-secondary')}${button('적용 후 다시','addCubeChooseRepeat','yes',!canRepeat)}
+ </div>${pending.grade>pending.previousGrade?`<p class="cube-upgrade">${D.RARITIES[pending.previousGrade]} → ${D.RARITIES[pending.grade]} · 새 결과 선택 시 승급</p>`:''}
+ <div class="cube-comparison">${additionalPanel(it,'이전 에디셔널')}${additionalPanel({addLines:pending.lines,addGrade:pending.grade},'새 에디셔널')}</div>
+ <p class="enhance-help">결과 선택 무료 · 다시 돌리면 에디셔널 큐브 1개 소모</p>
+ <p class="enhance-help cube-stock" data-no-currency-art>남은 에디셔널 큐브 <b>${fmt(state.materials.addCube)}개</b></p></div>`;
+}
