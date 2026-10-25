@@ -1,3 +1,4 @@
+import {skillLookPreviewPath} from './skill-look-designs.mjs';
 import {skillLookById} from './skill-looks.mjs';
 const clamp=v=>Math.max(0,Math.min(1,v)),mix=(a,b,t)=>a+(b-a)*t;
 import {prepareSkillLookArt,skillLookAtlasURL,skillLookContext} from './skill-look-material.mjs';
@@ -10,7 +11,7 @@ const nativeImages=new Map();
 const nativeImage=path=>{if(!nativeImages.has(path)){const im=new Image();im.src=new URL('./'+path,import.meta.url).href;nativeImages.set(path,im);}return nativeImages.get(path);};
 export async function prepareNativePreview(look){await Promise.all([prepareSkillLookArt(look.id),prepareFifthArt([look.classId],nativeImage),look.classId==='priest'?preparePriestSkillArt():null,...['tower/second-job-atlas.webp','tower/third-job-atlas.webp','tower/second-sequence-atlas-v1.webp','tower/fourth-job-atlas.webp','tower/fourth-impact-atlas-v2.webp'].map(p=>nativeImage(p).decode().catch(()=>null))]);}
 export function skillLookIllustration(look){
- return `<img src="skill-looks/${look.id}-preview-v2.webp" alt="${look.name}" loading="lazy" class="skill-look-illustration">`;
+ return `<img src="${skillLookPreviewPath(look.id)}" alt="${look.name}" loading="lazy" class="skill-look-illustration">`;
 }
 export const SKILL_LOOK_EFFECT_KINDS=Object.freeze(['first','second','second-sequence','third','fourth','fifth','fifth-field','priest']);
 export function skillLookTier(e){return e.kind==='priest'?Math.max(1,Math.min(5,e.slot||1)):e.kind==='first'?1:e.kind==='second'||e.kind==='second-sequence'?2:e.kind==='third'?3:e.kind==='fourth'?4:5;}

@@ -1,6 +1,7 @@
+import {skillLookArtPath,skillLookDesign} from './skill-look-designs.mjs';
 import {skillLookById} from './skill-looks.mjs';
 const images=new Map(),loads=new Map(),sources=new WeakMap(),tints=new WeakMap();
-export const skillLookAtlasURL=id=>new URL(`./skill-looks/${id}-native-v2.webp`,import.meta.url).href;
+export const skillLookAtlasURL=id=>new URL(`./${skillLookArtPath(id)}`,import.meta.url).href;
 export function prepareSkillLookArt(id){
  if(!skillLookById(id))return Promise.resolve(null);
  if(!loads.has(id)){const im=new Image();im.src=skillLookAtlasURL(id);images.set(id,im);loads.set(id,im.decode().then(()=>im).catch(()=>null));}
@@ -27,14 +28,14 @@ export function skillLookSourcePart(source,args,e){
 // curve, clipping path, particle count and authoritative event stays native.
 export function skillLookContext(g,look,e){
  if(!look)return g;
- const im=images.get(look.id);if(!im?.complete||!im.naturalWidth){void prepareSkillLookArt(look.id);return g;}
+ const design=skillLookDesign(look.id),im=images.get(look.id);if(!im?.complete||!im.naturalWidth){void prepareSkillLookArt(look.id);return g;}
  return new Proxy(g,{
   get(target,key){
    if(key==='drawImage')return (source,...args)=>{
     const part=skillLookSourcePart(source,args,e);if(!part)return target.drawImage(source,...args);
     if(part.tint){
      let cache=tints.get(source);if(!cache)tints.set(source,cache=new Map());
-     if(!cache.has(look.id)){const c=document.createElement('canvas');c.width=source.width;c.height=source.height;const q=c.getContext('2d');q.drawImage(source,0,0);q.globalCompositeOperation='source-atop';q.fillStyle=look.color;q.globalAlpha=.65;q.fillRect(0,0,c.width,c.height);cache.set(look.id,c);}
+     if(!cache.has(look.id)){const c=document.createElement('canvas');c.width=source.width;c.height=source.height;const q=c.getContext('2d');q.drawImage(source,0,0);q.globalCompositeOperation='source-atop';q.fillStyle=design.color;q.globalAlpha=.65;q.fillRect(0,0,c.width,c.height);cache.set(look.id,c);}
      return target.drawImage(cache.get(look.id),...args);
     }
     const sw=im.naturalWidth/4,sh=im.naturalHeight/5,dest=args.length===8?args.slice(4):args.length===4?args:[args[0],args[1],source.width,source.height];
@@ -43,7 +44,7 @@ export function skillLookContext(g,look,e){
    const value=target[key];return typeof value==='function'?value.bind(target):value;
   },
   set(target,key,value){
-   if(['strokeStyle','fillStyle','shadowColor'].includes(key)&&typeof value==='string'&&/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value))value=look.color+(value.length===9?value.slice(7):'');
+   if(['strokeStyle','fillStyle','shadowColor'].includes(key)&&typeof value==='string'&&/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value))value=design.color+(value.length===9?value.slice(7):'');
    target[key]=value;return true;
   }
  });
