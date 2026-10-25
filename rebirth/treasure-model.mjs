@@ -1,4 +1,5 @@
-import {TREASURE_CELLS,TREASURE_MINES,TREASURE_DAILY,TREASURE_GEAR_LEVELS,rollTreasureReward,treasureReward} from './treasure-data.mjs';
+import {TREASURE_CELLS,TREASURE_MINES,TREASURE_DAILY,TREASURE_TICKET_DAILY,TREASURE_TICKET_CHANCE,TREASURE_TICKET_MAX,TREASURE_GEAR_LEVELS,rollTreasureReward,treasureReward} from './treasure-data.mjs';
+const kstDay=now=>new Date(now+9*3600e3).toISOString().slice(0,10);
 // 보물 지뢰찾기 (서버 판정).
 // 지뢰 위치는 미리 정하지 않고, 칸을 열 때마다 "남은 지뢰 / 남은 칸" 확률로 판정한다.
 // 무작위로 미리 깔아둔 판과 확률이 완전히 같고, 상태에 지뢰 위치가 없으니 화면에서 미리 볼 수 없다.
@@ -8,10 +9,19 @@ export function normalizeTreasure(s,day){
  const t=s.treasure&&typeof s.treasure==='object'?s.treasure:{};
  if(t.day!==day){t.day=day;t.plays=0;}
  t.plays=Number.isInteger(t.plays)&&t.plays>=0?t.plays:0;
+ t.tickets=Number.isInteger(t.tickets)&&t.tickets>=0?t.tickets:0;
+ if(t.ticketDay!==day){t.ticketDay=day;t.ticketsToday=0;}
+ t.ticketsToday=Number.isInteger(t.ticketsToday)&&t.ticketsToday>=0?t.ticketsToday:0;
  t.run=t.run&&typeof t.run==='object'?t.run:null;
  s.treasure=t;return t;
 }
-export const treasurePlaysLeft=(s,day)=>Math.max(0,TREASURE_DAILY-(s.treasure?.day===day?s.treasure.plays||0:0));
+// 낚시로 하나 낚을 때마다 호출. 하루 최대 TREASURE_TICKET_DAILY장.
+export function treasureTicketDrop(s,now,random){
+ const t=normalizeTreasure(s,kstDay(now));
+ if(t.ticketsToday>=TREASURE_TICKET_DAILY||t.tickets>=TREASURE_TICKET_MAX)return false;
+ if(random()>=TREASURE_TICKET_CHANCE)return false;
+ t.tickets++;t.ticketsToday++;return true;
+}
 function revealMines(run,boom,random){
  const closed=[];for(let i=0;i<TREASURE_CELLS;i++)if(i!==boom&&!run.opened.some(o=>o.cell===i))closed.push(i);
  const mines=boom===null?[]:[boom];
@@ -34,8 +44,9 @@ export function treasureCommand(s,command,args,ctx,day,makeGear){
  if(command==='treasureStart'){
   if(t.run?.status==='digging')fail('TREASURE_RUN_ACTIVE');
   if(t.plays>=TREASURE_DAILY)fail('TREASURE_DAILY_LIMIT');
-  t.plays++;t.run={id:ctx.uuid(),status:'digging',opened:[],mines:[],startedAt:ctx.now};
-  return {type:'treasureStart',plays:t.plays};
+  if(t.tickets<1)fail('TREASURE_TICKET_REQUIRED');
+  t.tickets--;t.plays++;t.run={id:ctx.uuid(),status:'digging',opened:[],mines:[],startedAt:ctx.now};
+  return {type:'treasureStart',plays:t.plays,tickets:t.tickets};
  }
  const run=t.run;if(!run||run.status!=='digging')fail('TREASURE_NO_RUN');
  if(command==='treasureDig'){

@@ -1,4 +1,5 @@
 import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
@@ -74,6 +75,7 @@ function landCatch(s,f,c,ctx){
   result.fish=item;result.gold=fishPrice(item);
  }else if(reward==='diamondChest'){const diamonds=3+Math.floor(ctx.random()*6);f.diamonds+=diamonds;result.diamonds=diamonds;}
  else{s.materials[reward]=(s.materials[reward]||0)+1;result.amount=1;}
+ if(treasureTicketDrop(s,ctx.now,ctx.random))result.treasureTicket=1;
  f.lastCatch=result;return result;
 }
 export function fishingCommand(s,command,args,ctx){

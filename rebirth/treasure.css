@@ -29,3 +29,4 @@
 .treasure-bag-list b{color:#ffd76a}.treasure-empty{margin:0;font-size:3.3cqw;color:#aebcd0}
 .treasure-rules{border:1px solid #5d6a7c;border-radius:9px;padding:2cqw 3cqw;background:#08121fcc;font-size:3.2cqw;color:#cdd6e3}
 .treasure-rules summary{cursor:pointer;font-weight:800;color:#f1e3c5}.treasure-rules p{line-height:1.6;margin:1.5cqw 0}.treasure-odds b{color:#ffd76a}
+.treasure-heading p.treasure-ticket-note{margin-top:-1cqw;font-size:2.9cqw;color:#c9d3e0}
