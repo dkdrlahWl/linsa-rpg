@@ -55,6 +55,8 @@ function panelBody(s,f){
 }
 export function fishingView(s){
  const f=normalizeFishing({fishing:s.fishing?structuredClone(s.fishing):undefined},Date.now());
+ // 낚시 화면에 들어올 때마다 갈 수 있는 가장 높은 낚시터로 바로 이동.
+ if(!fishingUI.entered){fishingUI.entered=true;const best=SPOTS.filter(x=>x.level<=f.rod).sort((a,b)=>b.level-a.level)[0];if(best)fishingUI.spot=best.id;}
  const spot=SPOTS.find(x=>x.id===(f.cast?.spot||fishingUI.spot))||SPOTS[0],cast=f.cast;
  if(!BAITS.some(x=>x.id===fishingUI.bait&&x.level<=f.rod))fishingUI.bait='worm';
  const caught=!cast?f.lastCatch:null,d=caught?.won&&caught.reward==='fish'?FISH.find(x=>x.id===caught.species):null;

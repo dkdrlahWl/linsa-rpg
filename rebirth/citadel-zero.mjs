@@ -55,16 +55,44 @@ export function makeCitadelDungeon(floor,seed){return buildCitadelRegion(citadel
 // 저장용 압축: 성채 지형은 (층, 맵 시드)로 결정되므로 DB에는 id와 seen만 저장하고 읽을 때 다시 만든다.
 const terrainCache=new Map();
 function citadelTerrain(w){const seed=(w.mapSeed??w.started)>>>0,key=w.floor+':'+seed;let d=terrainCache.get(key);if(!d){d=makeCitadelDungeon(w.floor,seed);terrainCache.set(key,d);if(terrainCache.size>16)terrainCache.delete(terrainCache.keys().next().value);}return d;}
-export function packCitadelWorld(w){
- if(!w||w.mode!=='citadel'||!w.dungeon||w.dungeon.$terrain||!Number.isFinite(w.floor))return w;
+function packTerrain(w){
+ if(!w.dungeon||w.dungeon.$terrain||!Number.isFinite(w.floor))return w;
  const terrain=citadelTerrain(w);if(terrain.id!==w.dungeon.id)return w;
  const {seen,...rest}=w.dungeon;if(JSON.stringify(rest)!==JSON.stringify((({seen:_,...t})=>t)(terrain)))return w;
  return {...w,dungeon:{$terrain:1,id:w.dungeon.id,...(seen!==undefined?{seen}:{})}};
 }
+// 2026-10-25: 몬스터 저장 압축. 이름·그림·스탯처럼 안 바뀌는 값은 템플릿 한 번만 저장하고,
+// 몬스터마다 위치·체력 같은 바뀌는 값만 키 순서대로 배열로 저장한다(키 순서까지 그대로 복원).
+const MONSTER_STATIC=new Set(['name','art','role','elite','level','maxHp','speed','attack','citadel','species','explorationTier','boss','bossKind','channel','summoned']);
+function packMonsters(list){
+ if(!Array.isArray(list)||list.length<4)return list;
+ const templates=[],index=new Map(),rows=[];
+ for(const m of list){
+  if(!m||typeof m!=='object'||Array.isArray(m))return list;
+  const keys=Object.keys(m).filter(k=>m[k]!==undefined),stat={};
+  for(const k of keys)if(MONSTER_STATIC.has(k))stat[k]=m[k];
+  const sig=JSON.stringify([keys,stat]);let t=index.get(sig);
+  if(t===undefined){t=templates.length;templates.push({k:keys,s:stat});index.set(sig,t);}
+  rows.push([t,...keys.filter(k=>!MONSTER_STATIC.has(k)).map(k=>m[k])]);
+ }
+ return {$m:1,t:templates,r:rows};
+}
+function unpackMonsters(p){
+ if(!p||p.$m!==1)return p;
+ return p.r.map(([t,...values])=>{const tpl=p.t[t],o={};let i=0;for(const k of tpl.k)o[k]=MONSTER_STATIC.has(k)?structuredClone(tpl.s[k]):values[i++];return o;});
+}
+export function packCitadelWorld(w){
+ if(!w||w.mode!=='citadel')return w;
+ const out=packTerrain(w),monsters=packMonsters(out.monsters);
+ return monsters===out.monsters?out:{...out,monsters};
+}
 export function unpackCitadelWorld(w){
- if(!w||!w.dungeon?.$terrain)return w;
- const terrain=citadelTerrain(w);if(terrain.id!==w.dungeon.id)throw new Error('CITADEL_TERRAIN_MISMATCH');
- const {$terrain,id,...live}=w.dungeon;return {...w,dungeon:{...structuredClone(terrain),...live}};
+ if(!w)return w;
+ let out=w;
+ if(out.monsters?.$m===1)out={...out,monsters:unpackMonsters(out.monsters)};
+ if(!out.dungeon?.$terrain)return out;
+ const terrain=citadelTerrain(out);if(terrain.id!==out.dungeon.id)throw new Error('CITADEL_TERRAIN_MISMATCH');
+ const {$terrain,id,...live}=out.dungeon;return {...out,dungeon:{...structuredClone(terrain),...live}};
 }
 export function citadelFloor(w,walkable,reveal){
  const st=citadelStage(w.floor),random=rng(((w.mapSeed??w.started)>>>0)^Math.imul(w.floor,1597334677));

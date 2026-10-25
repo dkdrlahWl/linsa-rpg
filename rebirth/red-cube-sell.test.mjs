@@ -12,3 +12,5 @@ assert.throws(()=>execute(s,'consumableSell',{id:'highCube',quantity:1},ctx),/IN
 const shop=consumableShopView(s);assert.equal((shop.match(/data-action="consumableSellPick"/g)||[]).length,1);assert.match(shop,/consumableSellPick" data-arg="cube"/);
 assert.match(consumableSellView(s,'cube'),/보유 6개[\s\S]*판매가 50,000 G/);
 console.log('PASS red cube sells at 50,000 G each, owned-count cap, only red cube has a sell button');
+// 숲 지렁이 600개 묶음 구매가 서버 검증을 통과해야 함.
+{let f=initialState('warrior','미끼',ctx);f.hunting=false;f.gold=1e6;f=execute(f,'fishBaitBuy',{bait:'worm',count:600,currency:'gold'},ctx).state;assert.equal(f.fishing.bait.worm,620);assert.equal(f.gold,1e6-60000);console.log('PASS worm 600 pack buy');}

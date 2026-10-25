@@ -35,7 +35,7 @@ export const FISHING_QUESTS=[{id:'catch',name:'물고기 10마리 잡기',goal:1
 export const fishingQuestsReady=(s,now=Date.now())=>{const d=s?.fishing?.daily;if(!d||d.day!==new Date(now+9*3600000).toISOString().slice(0,10))return 0;return FISHING_QUESTS.filter(q=>(d[q.id]||0)>=q.goal&&!(d.claimed||[]).includes(q.id)).length;};
 // Cubes, potential scrolls and lock stones no longer come from fishing.
 // 2026-10-25: 다이아 상자·던전 열쇠 확률 절반.
-export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.9925},{id:'diamondChest',name:'다이아 상자',chance:.005},{id:'dungeonKey',name:'던전 열쇠',chance:.0025}];
+export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.985},{id:'diamondChest',name:'다이아 상자',chance:.01},{id:'dungeonKey',name:'던전 열쇠',chance:.005}];
 // Bait: each grade above the spot's lowest grade is (1+luck)x more likely, for at most two grades
 // (every spot now starts at 일반, so an uncapped bonus would compound over six grades).
 export const baitGradeWeight=(fish,bait)=>(1+bait.luck)**Math.min(2,fish.rarity-Math.min(...FISH.filter(x=>x.spot===fish.spot).map(x=>x.rarity)));

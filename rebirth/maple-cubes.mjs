@@ -44,3 +44,21 @@ export function cubeUpgrade(state,kind,grade,random){
  return grade+Number(!!up);
 }
 
+
+// 운영자 지정 큐브 보정: state.cubeBoost={remaining,chance,keys}. 남은 횟수 동안 각 줄이 chance 확률로 지정 옵션(현재 등급 수치)으로 바뀐다.
+export function applyCubeBoost(boost,lines,grade,lock,random){
+ if(!boost||!(boost.remaining>0))return lines;
+ const keys=Array.isArray(boost.keys)?boost.keys:['boss','attack','crit'],pool=(UNIVERSAL_POOLS[grade]||[]).filter(x=>keys.includes(x.key));
+ if(!pool.length)return lines;
+ return lines.map((line,i)=>{if(i===lock||random()>=(Number(boost.chance)||0))return line;const row=pool[Math.floor(random()*pool.length)];return {key:row.key,value:row.value,grade,...(row.key==='crit'?{critBalanceVersion:2}:{})};});
+}
+
+// 운영자 지정 결과: state.cubeForce={kind,in,keys}. 해당 큐브를 in번째 쓸 때 keys 순서대로 그 등급 수치로 나온다.
+export function applyCubeForce(state,kind,lines,grade){
+ const f=state.cubeForce;if(!f||f.kind!==kind||!(f.in>0))return lines;
+ f.in--;if(f.in>0)return lines;
+ delete state.cubeForce;
+ const pool=UNIVERSAL_POOLS[grade]||[];
+ const forced=lines.map((line,i)=>{const row=pool.find(x=>x.key===f.keys?.[i]);return row?{key:row.key,value:row.value,grade,...(row.key==='crit'?{critBalanceVersion:2}:{})}:line;});
+ return forced;
+}

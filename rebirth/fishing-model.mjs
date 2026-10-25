@@ -100,7 +100,7 @@ export function fishingCommand(s,command,args,ctx){
   return landCatch(s,f,c,ctx);
  }
  if(command==='fishBaitBuy'){
-  const bait=BAITS.find(x=>x.id===args.bait);require(bait&&integer(args.count,1,100),'INVALID_FISHING_BAIT');
+  const bait=BAITS.find(x=>x.id===args.bait);require(bait&&integer(args.count,1,10000),'INVALID_FISHING_BAIT');
   const currency=bait.gold?'gold':'diamonds';require(args.currency===currency,'FISHING_REFRESH_REQUIRED');
   require(args.count%bait.pack===0,'INVALID_FISHING_BAIT');
   require(f.rod>=bait.level,'FISHING_ROD_REQUIRED');require((f.bait[bait.id]||0)+args.count<=10000,'FISHING_BAIT_LIMIT');

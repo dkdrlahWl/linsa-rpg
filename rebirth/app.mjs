@@ -662,7 +662,7 @@ function shell(content) {
 }
 
 function render() {
-  if(!(session&&state&&view==='game'&&tab==='event'&&eventPage==='fishing'&&!state.coopRoom&&!state.partyRoom&&!dummyBattle&&state.battle?.kind!=='tower')){stopFishing();if(fishingUI.auto)stopAutoFishing();}
+  if(!(session&&state&&view==='game'&&tab==='event'&&eventPage==='fishing'&&!state.coopRoom&&!state.partyRoom&&!dummyBattle&&state.battle?.kind!=='tower')){stopFishing();fishingUI.entered=false;if(fishingUI.auto)stopAutoFishing();}
   if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
   sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
   const preservedScroll=window.scrollY;
