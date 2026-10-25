@@ -1,3 +1,4 @@
+import {skillLookDestination} from './skill-look-fit.mjs';
 import {orientedSkillLookSource} from './skill-look-orientation.mjs';
 import {skillLookSourceRect} from './skill-look-bounds.mjs';
 import {skillLookArtPath,skillLookDesign} from './skill-look-designs.mjs';
@@ -26,8 +27,8 @@ export function skillLookSourcePart(source,args,e){
  if(url.includes('fourth-impact-atlas'))return {tier:4,part:2};
  return null;
 }
-// Only replace the painted material. Every destination rectangle, transform,
-// curve, clipping path, particle count and authoritative event stays native.
+// Replace painted materials without changing native choreography or hit areas.
+// Priest figures alone use uniform raster scaling to avoid stretching anatomy.
 export function skillLookContext(g,look,e){
  if(!look)return g;
  const design=skillLookDesign(look.id),im=images.get(look.id);if(!im?.complete||!im.naturalWidth){void prepareSkillLookArt(look.id);return g;}
@@ -42,7 +43,7 @@ export function skillLookContext(g,look,e){
     }
     const rect=skillLookSourceRect(look.id,part.tier,part.part,im.naturalWidth,im.naturalHeight),dest=args.length===8?args.slice(4):args.length===4?args:[args[0],args[1],source.width,source.height];
     const paint=orientedSkillLookSource(look.id,part.tier,part.part,im,rect);
-    return target.drawImage(paint.image,paint.x,paint.y,paint.w,paint.h,...dest);
+    return target.drawImage(paint.image,paint.x,paint.y,paint.w,paint.h,...skillLookDestination(look,paint,dest));
    };
    const value=target[key];return typeof value==='function'?value.bind(target):value;
   },

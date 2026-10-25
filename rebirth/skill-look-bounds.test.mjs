@@ -1,3 +1,4 @@
+import {skillLookDestination} from './skill-look-fit.mjs';
 import assert from 'node:assert/strict';
 import {SKILL_LOOKS} from './skill-looks.mjs';
 import {skillLookArtPath} from './skill-look-designs.mjs';
@@ -17,7 +18,7 @@ for(const look of SKILL_LOOKS){
   const g={drawImage:(...args)=>calls.push(args),globalAlpha:1};
   skillLookContext(g,look,{kind:'priest',slot:tier}).drawImage(source,0,0,384,384,-240,-160,480,320);
   assert.deepEqual(calls[0].slice(1,5),[rect.x,rect.y,rect.w,rect.h],'sample painted pixels, not the transparent cell');
-  assert.deepEqual(calls[0].slice(5),[-240,-160,480,320],'original display radius, anchor and geometry stay identical');cases++;
+  assert.deepEqual(calls[0].slice(5),skillLookDestination(look,rect,[-240,-160,480,320]),'native destination or proportion-preserving priest fit');cases++;
  }
 }
 assert.equal(trimmed,360);
