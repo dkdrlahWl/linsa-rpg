@@ -18,6 +18,7 @@ jobs:
       - run: node rebirth/sovereign-expansion.test.mjs --assets
       - run: node rebirth/costume-motion.test.mjs
       - run: node rebirth/costume-ownership.test.mjs
+      - run: node rebirth/approved-costumes-20261025.test.mjs
       - run: node rebirth/endgame-field.test.mjs
       - run: node rebirth/apex-tower.test.mjs
       - run: node rebirth/upper-tower.test.mjs
