@@ -125,7 +125,7 @@ export function buildBot(meta){
 }
 export function arenaProfile(state,score=null,rank=null,id=null){
  const p=power(state);
- return {id,name:state.name,classId:state.classId,score,rank,tier:tier(score,rank),combatPower:p.combatPower,costumeId:p.costumeId,level:state.level};
+ return {id,name:state.name,classId:state.classId,score,rank,tier:tier(score,rank),combatPower:p.combatPower,costumeId:p.costumeId,skillLookId:p.skillLookId,level:state.level};
 }
 export async function arenaOfferProfiles(arena,readPlayer){
  return Promise.all((arena.offers||[]).map(async offer=>{

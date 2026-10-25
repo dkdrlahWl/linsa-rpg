@@ -5,6 +5,9 @@ import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance-153';
 import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
 import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
+import {skillLookById,equippedSkillLook} from './skill-looks.mjs';
+import {skillLookPreviewView} from './skill-look-ui.mjs';
+import {playSkillLookPreview,playSkillLookOverlay} from './skill-look-effects.mjs';
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
 import {shopView} from './shop-ui.mjs?v=bm8-20261018';
@@ -97,6 +100,8 @@ const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).incl
 let partyBossId=null, partyPractice=false;
 let arenaData=null,arenaPage='home',arenaBattle=null,arenaPlayback=null,arenaError='';
 let shopCategory="boss";
+let skillLookClass=null,stopSkillLookPreview=null;
+modal.addEventListener('close',()=>{stopSkillLookPreview?.();stopSkillLookPreview=null;});
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0, lastBattleRequestAt = 0;
 let retryAt = 0, retryFailures = 0, characterName = "";
@@ -179,6 +184,10 @@ const errors = {
   SESSION_ENDED: "종료된 로그인입니다. 다시 로그인해 주세요.",
   SESSION_REPLACED: "다른 기기에서 로그인했어요.",
   INVALID_COSTUME: "코스튬을 찾을 수 없습니다.",
+  INVALID_SKILL_LOOK: "스킬 외형을 찾을 수 없습니다.",
+  SKILL_LOOK_OWNED: "이미 보유한 스킬 외형입니다.",
+  SKILL_LOOK_NOT_OWNED: "먼저 스킬 외형을 구매해 주세요.",
+  SKILL_LOOK_CLASS_MISMATCH: "현재 직업의 스킬 외형만 장착할 수 있습니다.",
   COSTUME_OWNED: "이미 보유한 코스튬입니다.",
   COSTUME_NOT_OWNED: "먼저 코스튬을 구매해 주세요.",
   COSTUME_CLASS_MISMATCH: "현재 직업의 코스튬만 장착할 수 있습니다.",
@@ -681,7 +690,7 @@ function render() {
       gear: inventory,
       boss: bosses,
       market: market,
-      shop:()=>shopView(state,D,gearMarkup,shopCategory),
+      shop:()=>shopView(state,D,gearMarkup,shopCategory,skillLookClass||state.classId),
       investment:()=>investmentView(state,investmentData),
     }[tab]();
   document.body.classList.toggle('investment-mode',tab==='investment'&&view==='game'&&!state.battle&&!state.coopRoom&&!state.partyRoom);
@@ -1030,6 +1039,7 @@ async function marketLoad() {
   render();
 }
 function open(title, html, closable = true) {
+  stopSkillLookPreview?.();stopSkillLookPreview=null;
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=title.endsWith(" · 결과 선택")?0:dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
   modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog", "title-dialog");
@@ -1144,6 +1154,9 @@ function showEvents(events) {
     if(e.type==="exchangeGear")open(e.boss?"보스 장비 획득!":"장비 교환 완료",`${e.boss?'<p class="exchange-boss-hit">1% 확률 당첨 · 보스 장비</p>':''}${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
     if(e.type==="costumeBuy")toast("코스튬 구매 완료! 보유 효과로 공격력 +1%가 적용됐어요.");
+    if(e.type==='skillLookBuy')toast('스킬 외형을 구매했어요. 장착하면 적용됩니다.');
+    if(e.type==='skillLookEquip')toast('스킬 외형을 장착했어요.');
+    if(e.type==='skillLookUnequip')toast('기본 스킬 외형으로 변경했어요.');
     if(e.type==="costumeEquip")toast("코스튬을 장착했어요.");
     if(e.type==="costumeUnequip")toast("기본 의상으로 변경했어요.");
     if(e.type==="shopSell")toast(`셀리아: 고마워! ${fmt(e.gold)} G를 지급했어.`);
@@ -1154,6 +1167,8 @@ function showEvents(events) {
     if (e.type === "combat") continue;
     if (e.type === "skill") {
       const arena = $(".arena");
+      const look=equippedSkillLook(state);
+      if(look&&arena&&!settings.low){playSkillLookOverlay(arena,look,e.slot);continue;}
       if(state.classId==='priest'&&arena&&!settings.low){playHolyOverlay(arena,e.slot);continue;}
       if(e.slot===5&&arena&&!settings.low){void playFifthOverlay(arena,state.classId);continue;}
       if(e.slot===2&&arena&&!settings.low){playSecondOverlay(arena,state.classId);continue;}
@@ -1429,7 +1444,25 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
-    if(action==='shopCategory'){shopCategory=['boss','costume','consumable','blackmarket'].includes(arg)?arg:'boss';return render();}
+    if(action==='shopCategory'){shopCategory=['boss','costume','skilllook','consumable','blackmarket'].includes(arg)?arg:'boss';return render();}
+    if(action==='skillLookClass'){skillLookClass=arg;return render();}
+    if(action==='skillLookTier'){
+      const [id,tier]=arg.split(':'),c=skillLookById(id),canvas=modal.querySelector('[data-skill-look-preview]');if(!c||!canvas)return;
+      stopSkillLookPreview?.();stopSkillLookPreview=playSkillLookPreview(canvas,c,{slot:Number(tier),cycle:false});
+      modal.querySelectorAll('[data-action="skillLookTier"]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.arg===arg)));return;
+    }
+    if(action==='skillLookPreview'){
+      const c=skillLookById(arg);if(!c)return;
+      open('스킬 외형 미리보기',skillLookPreviewView(c));
+      stopSkillLookPreview=playSkillLookPreview(modal.querySelector('[data-skill-look-preview]'),c);return;
+    }
+    if(action==='skillLookBuyPick'){
+      const c=skillLookById(arg);if(!c)return;
+      open('스킬 외형 구매',skillLookPreviewView(c)+`<div class="shop-confirm-price">${goldPurchaseIcon()}20,000,000 G</div><p class="note">구매 후 해당 직업으로 장착할 수 있습니다. 데미지·범위·능력치는 바뀌지 않습니다.</p><div class="actions">${btn('취소','close')}<button data-action="skillLookBuyConfirm" data-arg="${c.id}" data-write ${state.gold<c.price?'disabled data-unavailable':''}>${state.gold<c.price?'골드 부족':'구매 확정'}</button></div>`);
+      stopSkillLookPreview=playSkillLookPreview(modal.querySelector('[data-skill-look-preview]'),c);return;
+    }
+    if(action==='skillLookBuyConfirm'){if(busy)return;const result=await command('skillLookBuy',{id:arg});if(result?.result?.events?.some(e=>e.type==='skillLookBuy'&&e.id===arg)){stopSkillLookPreview?.();modal.close();}return;}
+    if(action==='skillLookEquip'||action==='skillLookUnequip'){if(busy)return;return await command(action,{id:arg});}
     if(action==='blackMarketBuyPick'){
       const index=Number(arg),offer=blackMarketOffersFor(state,blackMarketRotation().id)[index];if(!offer)return render();
       open('암시장 · 구매 확인',blackMarketPurchaseView(state,D,gearMarkup,index));updateBlackMarketPurchase(state,modal);return;

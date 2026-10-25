@@ -2,6 +2,7 @@ import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=rogue-archer-20261019';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
+import {normalizeSkillLooks,equippedSkillLook,skillLookCommand} from './skill-looks.mjs';
 import {bossSalePrice} from './shop-model.mjs';
 import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
 import {blackMarketBuy} from './black-market.mjs';
@@ -124,6 +125,8 @@ export function initialState(classId, name, ctx) {
     points: 0,
     stats: { STR: 4, DEX: 4, INT: 4, LUK: 4 },
     costumes: [],
+    skillLooks: [],
+    equippedSkillLooks: {},
     equippedCostume: null,
     classBuilds: {},
     classStarters: [classId],
@@ -220,6 +223,7 @@ export function power(s) {
   }));
   return {
     costumeId:equippedCostume(s)?.id||null,
+    skillLookId:equippedSkillLook(s)?.id||null,
     costumeAttackBonus:costumeBonus,
     pet:s.equippedPet===PET_ID&&s.pets?.includes(PET_ID)?PET_ID:null,
     stats,
@@ -559,7 +563,7 @@ function executeCore(input, command, args = {}, ctx) {
     ctx && Number.isFinite(ctx.now) && typeof ctx.random === "function",
     "INVALID_CONTEXT",
   );
-  const s = normalizeCostumes(normalizePotentialState(structuredClone(input)));
+  const s = normalizeSkillLooks(normalizeCostumes(normalizePotentialState(structuredClone(input))));
   s.isAdmin = ctx.admin === true;
   if(s.isAdmin){s.gold=999999999999;for(const key of Object.keys(MATERIALS))s.materials[key]=999999999999;}
   check(s.version === VERSION, "VERSION_MISMATCH");
@@ -571,7 +575,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   normalizeFishing(s,ctx.now);
   const events = [];
-  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","consumableBuy","consumableUse","blackMarketBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
+  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableUse","blackMarketBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
@@ -643,6 +647,9 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.battle, "BATTLE_IN_PROGRESS");
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   switch (command) {
+    case "skillLookBuy":
+    case "skillLookEquip":
+    case "skillLookUnequip": {events.push(skillLookCommand(s,command,args.id));break;}
     case "blackMarketBuy": {
       events.push(blackMarketBuy(s,args,ctx.now,(level,slot,classId=s.classId)=>{const design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);addItem(s,item);return item;}));
       break;
