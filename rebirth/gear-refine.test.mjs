@@ -45,10 +45,10 @@ s=execute(s,'refineChoose',{apply:true},ctx()).state;const after=s.items.find(x=
 assert.equal(s.materials.rerollStone,0);assert.throws(()=>execute(s,'statReroll',{id:it.id},ctx()),/INSUFFICIENT_REROLLSTONE/);
 assert.throws(()=>execute(s,'refineChoose',{apply:true},ctx()),/NO_PENDING_CUBE/);
 
-// Upper values rare: rerolled attack lands in the top 10% of the range about 1% of the time.
+// Uniform: rerolled attack lands in the top 10% of the range about 10% of the time.
 let top=0;const n=20000;const r=gearStatRanges(after);
 for(let i=0;i<n;i++){const t=execute({...s,materials:{...s.materials,rerollStone:1}},'statReroll',{id:it.id},ctx()).state.pendingRefine.baseStats.attack;if(t>=r.attack.min+.9*(r.attack.max-r.attack.min))top++;}
-assert.ok(top/n<.03,String(top/n));
+assert.ok(top/n>.08&&top/n<.13,String(top/n));
 // Locked items are protected.
 s.items.find(x=>x.id===it.id).locked=true;s.materials.bonusFlame=1;assert.throws(()=>execute(s,'bonusRoll',{id:it.id},ctx()),/ITEM_PROTECTED/);
-console.log('PASS gear refine: bonus 1~10% on all stats (rarer high), 10M/100M shop, keep/apply, no repeat result, reroll within range keeping tier, pending/lock guards, power applies');
+console.log('PASS gear refine: bonus 1~10% on all stats (rarer high), 10M/100M shop, keep/apply, no repeat result, uniform reroll within range keeping tier, pending/lock guards, power applies');

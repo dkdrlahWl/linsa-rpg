@@ -1,4 +1,4 @@
-import {BONUS_FLAME,REROLL_STONE} from './gear-refine.mjs?v=refine2-20261025';
+import {BONUS_FLAME,REROLL_STONE} from './gear-refine.mjs?v=refine3-20261025';
 export const LUCK_POTION = Object.freeze({id:'luckPotion',name:'행운 물약',price:5000000,duration:300000,cooldown:0,bonus:.5,art:'consumables/luck-potion-v1.webp',description:'일일보스, 주간보스, 레이드 보상 적용됨'});
 export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'}), Object.freeze({id:'addCube',name:'에디셔널 큐브',price:1000000,art:'currencies/cube-additional-v1.webp',description:'에디셔널 잠재능력 재설정 · 이전 / 이후 선택'}), BONUS_FLAME, REROLL_STONE]);
 export const shopConsumable=id=>SHOP_CONSUMABLES.find(item=>item.id===id);
