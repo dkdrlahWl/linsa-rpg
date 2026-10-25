@@ -10,7 +10,7 @@ import {skillLookPreviewView} from './skill-look-ui.mjs';
 import {playSkillLookPreview,playSkillLookOverlay} from './skill-look-effects.mjs';
 import {getSkillAlpha,setSkillAlpha,skillAlpha} from './skill-alpha.mjs';
 // 사냥 화면 DOM 스킬 연출도 설정 > 스킬 투명도를 따른다.
-function fadeSkillOverlay(arena,slot){const a=skillAlpha(slot);if(!(a<.999))return;const before=new Set(arena.children),mark=()=>{for(const el of arena.children)if(!before.has(el)&&!el.dataset.skillAlpha){el.dataset.skillAlpha='1';el.style.opacity=String(a);}};const mo=new MutationObserver(mark);mo.observe(arena,{childList:true});setTimeout(()=>{mark();mo.disconnect();},2500);}
+function fadeSkillOverlay(arena,slot){const a=skillAlpha(slot);if(!(a<.999))return;const before=new Set(arena.children),mark=()=>{for(const el of arena.children)if(!before.has(el)&&!el.dataset.skillAlpha){el.dataset.skillAlpha='1';const f=getComputedStyle(el).filter;el.style.filter=(f&&f!=='none'?f+' ':'')+`opacity(${a})`;}};const mo=new MutationObserver(mark);mo.observe(arena,{childList:true});setTimeout(()=>{mark();mo.disconnect();},2500);}
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
 import {shopView} from './shop-ui.mjs?v=bm8-20261018';
