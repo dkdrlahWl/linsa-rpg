@@ -90,8 +90,9 @@ Spot scale ×10 [600,1000,1280,410,190]: ~300 casts/h ≈ rod1 0.29M, rod20 1.48
 ## Lv.70 expansion (2026-10-25)
 
 - Rod cap 70. Lv.50+ costs grow 15%/level in gold and 20 + 2/level in diamonds (Lv.50→70 ≈ 146.7M G + 780 diamonds). The rod bonus to higher grades keeps growing to 70.
-- New spots: 용궁 해구 (Lv.50, price ×1.65, grade luck 1.95) and 태고의 바다 (Lv.60, ×1.7, 2.0). 20 new fish (fish-51~70).
-- New grade 태고 (rod 65+, 태고의 바다 only, 2 species). About 1 in 7,300 casts with worms at rod 70, 1 in 3,400 with star bait.
+- New spots: 용궁 해구 (Lv.50, price ×1.65, grade luck 1.95), 불꽃 열수해 (Lv.60, ×1.7, 2.0) and 태고의 바다 (Lv.70, ×1.75, 2.05). 30 new fish (fish-51~80).
+- New grade 태고 (rod 70, 태고의 바다 only, 2 species). About 1 in 7,400 casts with worms, 1 in 3,500 with star bait.
+- Titles: 바다의 백과사전 stays at the original 50 fish. New: 태고의 강태공 (rod 70), 태고를 낚은 자 (first 태고), 모든 바다의 기록자 (all 80).
 - Diamond exchange: 5 → 에디셔널 큐브, 3 → 블랙 큐브, 5 → 잠재 잠금석, at most 30 items per Korean day.
 - Weekly big-fish contest (from Monday 2026-10-26, KST weeks): one target species from one spot per week, heaviest single fish ranks.
   1st: 100 diamonds + 50 에디셔널 큐브, 2nd–3rd: 50 + 30, no other rewards. Ranks come from `rebirth_fishing_contest` (fishing-contest.sql);

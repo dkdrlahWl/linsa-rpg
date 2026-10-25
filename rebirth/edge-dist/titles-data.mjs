@@ -15,6 +15,7 @@ const G={common:0,rare:1,epic:2,legend:3,myth:4};
 const tower=(s,f)=>(s.tower?.cleared||[]).includes(f);
 const expl=(s,t)=>(s.exploration?.cleared||[]).includes(t);
 const citadelBosses=s=>new Set([...(s.citadelEver||[]),...(s.citadelClaims?.bosses||[])]);
+const FISH_V1=FISH.slice(0,50);
 const fishOf=(s,rarity)=>Object.keys(s.fishing?.collection||{}).some(id=>FISH.find(f=>f.id===id)?.rarity===rarity);
 const equippedItems=s=>Object.values(s.equipped||{}).map(id=>(s.items||[]).find(i=>i.id===id)).filter(Boolean);
 const weekly=BOSSES.filter(b=>b.weekly).map(b=>b.id),daily=BOSSES.filter(b=>!b.weekly).map(b=>b.id);
@@ -51,7 +52,8 @@ const ROWS=[
  ['arena1st','투기장의 군주','아레나','myth','아레나 시즌 최종 1위',s=>st(s).arenaChampion===true],
  ['fishL','전설을 낚은 자','낚시','epic','전설 물고기 처음 낚기',s=>fishOf(s,4)],
  ['fishM','신화의 어부','낚시','legend','신화 물고기 처음 낚기',s=>fishOf(s,5)],
- ['fishAll','바다의 백과사전','낚시','myth','물고기 도감 '+FISH.length+'종 완성',s=>FISH.every(f=>(s.fishing?.collection||{})[f.id]!==undefined)],
+ // 2026-10-25: 원래 50종 기준 유지(낚싯대 70 확장 물고기는 fishAll2).
+ ['fishAll','바다의 백과사전','낚시','myth','물고기 도감 '+FISH_V1.length+'종 완성',s=>FISH_V1.every(f=>(s.fishing?.collection||{})[f.id]!==undefined)],
  ['star25','별을 품은 자','강화','legend','25성 장비 보유',s=>(s.items||[]).some(i=>(i.stars||0)>=25)],
  ['pot3','잠재의 지배자','강화','epic','레전더리 3줄 잠재 장비 보유',s=>(s.items||[]).some(i=>(i.lines||[]).length===3&&i.lines.every(l=>l.grade>=5))],
  ['jackpot','행운의 여신','운','legend','돌림판 잭팟 당첨',s=>(s.wheelJackpots||0)>=1],
@@ -92,6 +94,10 @@ const ROWS=[
  ['raid4','성역의 끝을 본 자','레이드','myth',(RAID_ENCOUNTERS[4]?.name||'다음')+' 레이드 클리어',s=>(s.raidCleared||[]).includes(4),()=>RAID_ENCOUNTERS.length>4],
  ['job6','여섯 번째 각성','전직','legend','6차 전직 완료',s=>(s.advancement||0)>=5,()=>ADVANCEMENT_BOSSES.length>5],
  ['rod60','심연의 강태공','낚시','legend','낚싯대 Lv.60',s=>(s.fishing?.rod||0)>=60,()=>ROD_MAX>=60],
+ // 2026-10-25 낚싯대 70 확장 칭호
+ ['rod70','태고의 강태공','낚시','myth','낚싯대 Lv.70 (태고의 바다 해금)',s=>(s.fishing?.rod||0)>=70,()=>ROD_MAX>=70],
+ ['fishP','태고를 낚은 자','낚시','myth','태고 물고기 처음 낚기',s=>fishOf(s,6),()=>FISH.some(f=>f.rarity===6)],
+ ['fishAll2','모든 바다의 기록자','낚시','myth','물고기 도감 '+FISH.length+'종 완성',s=>FISH.every(f=>(s.fishing?.collection||{})[f.id]!==undefined),()=>FISH.length>50],
 ];
 // ALL_TITLES includes not-yet-released rows (art is pre-built); TITLES is what players can see/earn now.
 export const ALL_TITLES=ROWS.map(([id,name,category,grade,condition,check,when],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i,available:!when||!!when()}));

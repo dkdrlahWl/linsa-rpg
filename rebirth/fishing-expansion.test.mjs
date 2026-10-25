@@ -4,9 +4,9 @@ import {execute,initialState} from './engine.mjs';
 import {ROD_MAX,FISH,SPOTS,RARITIES,rodGoldCost,rodDiamondCost,DIAMOND_EXCHANGE_DAILY,contestWeek,contestWeekEnd,contestTarget,CONTEST_START} from './fishing-data.mjs';
 
 assert.equal(ROD_MAX,70);
-assert.equal(FISH.length,70);assert.equal(SPOTS.length,7);assert.equal(RARITIES[6].name,'태고');
-assert.equal(FISH.filter(x=>x.rarity===6).length,2);assert.ok(FISH.filter(x=>x.rarity===6).every(x=>x.level===65&&x.spot==='origin'));
-assert.ok(FISH.filter(x=>x.spot==='palace').every(x=>x.level>=50));assert.ok(FISH.filter(x=>x.spot==='origin').every(x=>x.level>=60));
+assert.equal(FISH.length,80);assert.equal(SPOTS.length,8);assert.deepEqual(SPOTS.slice(5).map(s=>s.level),[50,60,70]);assert.equal(RARITIES[6].name,'태고');
+assert.equal(FISH.filter(x=>x.rarity===6).length,2);assert.ok(FISH.filter(x=>x.rarity===6).every(x=>x.level===70&&x.spot==='origin'));
+assert.ok(FISH.filter(x=>x.spot==='palace').every(x=>x.level>=50));assert.ok(FISH.filter(x=>x.spot==='volcano').every(x=>x.level>=60));assert.ok(FISH.filter(x=>x.spot==='origin').every(x=>x.level>=70));
 let gold=0,dia=0;for(let l=50;l<70;l++){gold+=rodGoldCost(l);dia+=rodDiamondCost(l);}
 assert.ok(gold>100e6&&gold<200e6,String(gold));assert.equal(dia,780);assert.equal(rodDiamondCost(49),11,'Lv.<50 unchanged');
 
@@ -46,4 +46,4 @@ assert.throws(()=>execute(s,'fishContestClaim',{week},ctx({fishingContest:board}
 const s2=structuredClone(s);s2.fishing.contestClaims=[];
 const second=execute(s2,'fishContestClaim',{week},ctx({fishingContest:{rewards:[{week,rank:3}]}})).state;assert.equal(second.materials.addCube,cubes+80);
 now=contestWeekEnd(week)+5*604800000;assert.throws(()=>execute(s2,'fishContestClaim',{week},ctx({fishingContest:board})),/FISHING_CONTEST_CLOSED/);
-console.log('PASS fishing expansion: rod 70, 2 new spots, 태고, costs, diamond exchange 30/day, weekly contest record + server-ranked claim');
+console.log('PASS fishing expansion: rod 70, 3 new spots (50/60/70), 태고, costs, diamond exchange 30/day, weekly contest record + server-ranked claim');
