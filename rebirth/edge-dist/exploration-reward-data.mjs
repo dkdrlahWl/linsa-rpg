@@ -11,8 +11,8 @@ export function explorationGearLevel(random){let roll=random()*100;for(const [i,
 // 2026-10-25 4~6단계 보상(id 4~6). 에디셔널 큐브·추가옵션 불꽃 추가, 보스장비 레벨 구간 상향. 200제는 4단계 없음, 5단계 극소 확률, 6단계 30%.
 const EXTRA=[
  [4,{gold:2600000,scroll:.30,highCube:.30,potentialLock:.05,addCube:.30,bonusFlame:.03,bossGear:.08,counts:{scroll:3,highCube:5,potentialLock:2,addCube:3,bonusFlame:1},gear:[[150,25],[160,22],[170,18],[180,15],[190,12]]}],
- [5,{gold:3400000,scroll:.32,highCube:.35,potentialLock:.06,addCube:.40,bonusFlame:.05,bossGear:.10,counts:{scroll:3,highCube:6,potentialLock:2,addCube:5,bonusFlame:1},gear:[[170,35],[180,30],[190,20],[200,1]]}],
- [6,{gold:4400000,scroll:.35,highCube:.40,potentialLock:.07,addCube:.50,bonusFlame:.08,bossGear:.12,counts:{scroll:3,highCube:8,potentialLock:2,addCube:8,bonusFlame:1},gear:[[180,40],[190,30],[200,30]]}],
+ [5,{gold:3400000,scroll:.32,highCube:.35,potentialLock:.06,addCube:.40,bonusFlame:.05,bossGear:.10,counts:{scroll:3,highCube:6,potentialLock:2,addCube:5,bonusFlame:1},gear:[[170,35],[180,30],[190,25],[200,10]]}],
+ [6,{gold:4400000,scroll:.35,highCube:.40,potentialLock:.07,addCube:.50,bonusFlame:.08,bossGear:.12,counts:{scroll:3,highCube:8,potentialLock:2,addCube:8,bonusFlame:1},gear:[[180,50],[190,33],[200,17]]}],
 ];
 for(const [id,r] of EXTRA)EXPLORATION_REWARDS[id]=r;
 export const EXPLORATION_REWARD_KEYS=['scroll','highCube','potentialLock','addCube','bonusFlame'];

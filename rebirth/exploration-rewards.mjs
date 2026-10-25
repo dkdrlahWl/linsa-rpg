@@ -1,6 +1,6 @@
 import {isCitadel} from './citadel-zero.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
-import {EXPLORATION_REWARDS,EXPLORATION_REWARD_KEYS,explorationRewardCount,explorationGearLevelFor} from './exploration-reward-data.mjs?v=lobby2-20261025';
+import {EXPLORATION_REWARDS,EXPLORATION_REWARD_KEYS,explorationRewardCount,explorationGearLevelFor} from './exploration-reward-data.mjs?v=gear200-20261025';
 import {CLASSES,selectDesign,rollBaseStats} from './data.mjs';
 import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
 export function grantExplorationChest(input,room,ctx){
