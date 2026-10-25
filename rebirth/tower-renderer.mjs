@@ -188,6 +188,8 @@ export class TowerRenderer {
     if(moving&&!detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
     const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:this.explorationView?.78:1)*(CLASS_RENDER_SCALE[classId]||1);
     const costume=costumeById(costumeId,classId)||(classId==='priest'?PRIEST_DEFAULT:null);
+    // 2026-10-25: 걷기 프레임이 없는 그림(정지 일러스트형)은 다리를 새로 그리지 않고 살짝 통통 튀게만 한다(다리 4개 방지).
+    if(costume?.bobWalk&&moving&&detailedMotion)y-=Math.abs(Math.sin((walk||0)*1.6))*3;
     if(costume){
       // 2026-10-25: 서 있을 때도 일러스트 대신 모션 시트(정면 대기 프레임)를 쓴다.
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,moving&&!!costume.authoredWalk,acting,age,walk,costume.motionLayout);
@@ -196,7 +198,7 @@ export class TowerRenderer {
       if(decodedImages.has(im)&&pose&&im.naturalWidth===pose.layout.width&&im.naturalHeight===pose.layout.height){
         const source=cleanDirectionalAtlas(im,pose.layout),r=pose.frame;
         const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=costumeMotionScale(pose,bodySize,costume.renderBodyHeight);
-        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(riggedWalk&&!costume.authoredWalk)drawWalkingSprite(g,source,r,[r.body,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
+        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(riggedWalk&&!costume.authoredWalk&&!costume.bobWalk)drawWalkingSprite(g,source,r,[r.body,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
         return;
       }
       // Keep the costume visible only while its directional sheet is loading.
