@@ -49,8 +49,8 @@ export function drawSkillLook(g,e,time,look,owner=null){
  // that same center. The original effect objects remain untouched.
  if(tier>=4)h=w*1.04;
  g.save();g.translate(x,y-(tier>=3?h*.14:15));g.rotate(rotation);
- // 2026-10-25: 실제 전투에서는 반투명하게 그려 캐릭터 위치가 보이게 한다(미리보기는 선명하게).
- g.globalCompositeOperation='source-over';g.globalAlpha=Math.min(.94,(1-p)*6)* (e.phase==='charge'?.65:1)*(e.opacity??1)*(e.preview?1:tier>=3?.5:.62);
+ // 전투 중 투명도는 설정 > 스킬 투명도(skill-alpha.mjs)가 차수별로 곱한다.
+ g.globalCompositeOperation='source-over';g.globalAlpha=Math.min(.94,(1-p)*6)* (e.phase==='charge'?.65:1)*(e.opacity??1);
  const breathe=1+Math.sin(p*Math.PI)*.035;w*=breathe;h*=breathe;
  g.drawImage(image,column*sw,row*sh,sw,sh,-w/2,-h*.65,w,h);
  g.restore();return true;

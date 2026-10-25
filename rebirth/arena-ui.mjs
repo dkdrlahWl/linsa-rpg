@@ -3,6 +3,7 @@ import {tier,arenaPointDelta} from './arena-model.mjs?v=arena-daily-155';
 import {ARENA_REWARDS,ARENA_REWARD_MIN_MATCHES,arenaSeasonReward} from './arena-rewards.mjs?v=arena-rewards-167';
 import {portraitStyle} from './costume-ui.mjs';
 import {prepareArenaEffects,drawArenaEffect} from './arena-effects.mjs?v=arena-transparent-156';
+import {skillAlpha} from './skill-alpha.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>Math.floor(Number(v)||0).toLocaleString('ko-KR');
 const jobs={warrior:'전사',mage:'마법사',archer:'궁수',rogue:'도적',pirate:'해적',priest:'사제'};
@@ -91,7 +92,7 @@ export function startArenaReplay(result,onFinish){
    }
    if(f.type==='cast'||f.type==='skill'){
     const vfx=document.createElement('canvas');
-    vfx.className=`pvp-skill-vfx ${acting} ${profile?.classId==='priest'?'holy':''}`;vfx.setAttribute('aria-hidden','true');
+    vfx.className=`pvp-skill-vfx ${acting} ${profile?.classId==='priest'?'holy':''}`;vfx.setAttribute('aria-hidden','true');{const a=skillAlpha(Math.max(1,f.slot||1));if(a<.999)vfx.style.filter=`opacity(${a})`;}
     drawArenaEffect(vfx,profile?.classId||'warrior',Math.max(1,f.slot||1),profile?.skillLookId);add(stage,vfx,f.type==='cast'?950:450);
    }
    if(f.damage>0){

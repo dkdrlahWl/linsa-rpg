@@ -8,6 +8,9 @@ import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
 import {skillLookById,equippedSkillLook} from './skill-looks.mjs';
 import {skillLookPreviewView} from './skill-look-ui.mjs';
 import {playSkillLookPreview,playSkillLookOverlay} from './skill-look-effects.mjs';
+import {getSkillAlpha,setSkillAlpha,skillAlpha} from './skill-alpha.mjs';
+// 사냥 화면 DOM 스킬 연출도 설정 > 스킬 투명도를 따른다.
+function fadeSkillOverlay(arena,slot){const a=skillAlpha(slot);if(!(a<.999))return;const before=new Set(arena.children),mark=()=>{for(const el of arena.children)if(!before.has(el)&&!el.dataset.skillAlpha){el.dataset.skillAlpha='1';el.style.opacity=String(a);}};const mo=new MutationObserver(mark);mo.observe(arena,{childList:true});setTimeout(()=>{mark();mo.disconnect();},2500);}
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
 import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
 import {shopView} from './shop-ui.mjs?v=bm8-20261018';
@@ -1168,6 +1171,7 @@ function showEvents(events) {
     if (e.type === "skill") {
       const arena = $(".arena");
       const look=equippedSkillLook(state);
+      if(arena&&!settings.low)fadeSkillOverlay(arena,e.slot);
       if(look&&arena&&!settings.low){playSkillLookOverlay(arena,look,e.slot);continue;}
       if(state.classId==='priest'&&arena&&!settings.low){playHolyOverlay(arena,e.slot);continue;}
       if(e.slot===5&&arena&&!settings.low){void playFifthOverlay(arena,state.classId);continue;}
@@ -1316,7 +1320,7 @@ function betaTools(){
 function settingsDialog() {
   open(
     "설정",
-    `<div class="stack"><label>효과음 <input id="sound" type="range" min="0" max="1" step=".05" value="${settings.sound}"></label><label>배경음 <input id="music" type="range" min="0" max="1" step=".05" value="${settings.music}"></label><label><input id="low" type="checkbox" ${settings.low ? "checked" : ""} style="width:auto;min-height:0"> 저사양 · 모션 감소</label><p class="note">자동사냥·오프라인은 서버에서 정산합니다. 소리와 모션은 이 기기에 저장됩니다.</p>${btn("저장", "saveSettings", "", "gold")}${btn("로그아웃", "logout", "", "danger")}</div>`,
+    `<div class="stack"><label>효과음 <input id="sound" type="range" min="0" max="1" step=".05" value="${settings.sound}"></label><label>배경음 <input id="music" type="range" min="0" max="1" step=".05" value="${settings.music}"></label><fieldset class="skill-alpha-settings"><legend>스킬 투명도 <small>(낮을수록 투명 · 내 캐릭터가 잘 보여요)</small></legend>${getSkillAlpha().map((v,i)=>`<label>${i+1}차 스킬 <input id="skillAlpha${i+1}" type="range" min=".1" max="1" step=".05" value="${v}"><b>${Math.round(v*100)}%</b></label>`).join('')}</fieldset><label><input id="low" type="checkbox" ${settings.low ? "checked" : ""} style="width:auto;min-height:0"> 저사양 · 모션 감소</label><p class="note">자동사냥·오프라인은 서버에서 정산합니다. 소리와 모션은 이 기기에 저장됩니다.</p>${btn("저장", "saveSettings", "", "gold")}${btn("로그아웃", "logout", "", "danger")}</div>`,
   );
 }
 let marketSellId=null,marketSellSlot="",marketSellClass="",marketSellPrice="10000";
@@ -1652,6 +1656,7 @@ document.addEventListener("click", async (e) => {
       settings.sound = Number($("#sound").value);
       settings.music = Number($("#music").value);
       settings.low = $("#low").checked;
+      settings.skillAlpha = setSkillAlpha([1,2,3,4,5].map(i=>Number($("#skillAlpha"+i)?.value)));
       localStorage.setItem("ringu_rebirth_settings", JSON.stringify(settings));
       document.body.classList.toggle("low", settings.low);
       sounds.start();
@@ -1916,7 +1921,7 @@ document.addEventListener("click", async (e) => {
     toast(message(err));
   }
 });
-document.addEventListener("input", e=>{if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id==="bm-buy-quantity")updateBlackMarketPurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
+document.addEventListener("input", e=>{if(/^skillAlpha[1-5]$/.test(e.target.id||'')&&e.target.nextElementSibling)e.target.nextElementSibling.textContent=Math.round(e.target.value*100)+'%';if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id==="bm-buy-quantity")updateBlackMarketPurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
   if(e.target.id==='cube-lock'){cubeLockChoice=Number(e.target.value);return;}
   if(e.target.id==='fishing-bait'){fishingUI.bait=e.target.value;render();return;}

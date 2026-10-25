@@ -1,5 +1,6 @@
 import {drawCitadelWorld,drawCitadelMap,drawCitadelAmbience} from './citadel-renderer.mjs';
 import {drawSkillLook,skillLookForEffect,prepareSkillLookArt,SKILL_LOOK_EFFECT_KINDS} from './skill-look-effects.mjs';
+import {beginSkillAlpha,endSkillAlpha,skillAlpha,effectTier,withSkillAlpha} from './skill-alpha.mjs';
 import {drawExplorationDungeon,drawExplorationFog,drawExplorationMinimap,explorationTerrainSource} from './exploration-renderer.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
@@ -359,11 +360,11 @@ export class TowerRenderer {
     g.translate(-this.camera.x-viewWidth/2,-this.camera.y-viewHeight/2);if(b.raidMode){const bg=image(asset(f.map));if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else if(this.citadelView){drawCitadelWorld(this,b,image,player);}else if(b.explorationMode){const bg=image(explorationTerrainSource(b.tier,b.explorationFloor||b.floor));if(!drawExplorationDungeon(this,b,bg,image('exploration/heal-heart-194.webp'))&&bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);if(!b.dungeon&&b.exitOpen&&b.status!=='won'){g.save();g.translate(b.exit.x,b.exit.y);g.strokeStyle='#8fffd2';g.fillStyle='#132831dc';g.lineWidth=7;g.beginPath();g.ellipse(0,0,100,60,0,0,Math.PI*2);g.fill();g.stroke();g.font='bold 38px sans-serif';g.textAlign='center';g.fillStyle='#e4fff2';g.fillText('다음 층 ↑',0,-90);g.restore();}}else if(b.waveMode)this.meadow();else if(f.background){const bg=image(f.background);if(bg.complete&&bg.naturalWidth)g.drawImage(bg,0,0,3200,3200);else this.background();}else this.background();
     const visible=(x,y,r=200)=>x+r>=this.camera.x&&x-r<=this.camera.x+viewWidth&&y+r>=this.camera.y&&y-r<=this.camera.y+viewHeight;
     const fourthAreas=fourthAreaEffects(b.effects);
-    for(const e of fourthAreas)drawFourthGround(g,e,time);
+    for(const e of fourthAreas)withSkillAlpha(g,e,()=>drawFourthGround(g,e,time));
     const fifthAreas=fifthFields(b.effects,time),fifthOpacity=.85;
     const effectTarget=e=>b.waveMode?(b.monsters||[]).find(m=>m.id===e.targetId&&m.hp>0):b.enemy;
     const selfField=fifthAreas.find(e=>e.classId===b.classId&&(!e.owner||e.owner===(b.actorId??b.id)));
-    for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y,...(field.mode==='self'?{x:owner.x,y:owner.y}:{})}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);const look=skillLookForEffect(b,field);if(!look||!drawSkillLook(g,e,time,look,owner))if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);}
+    for(const field of fifthAreas)withSkillAlpha(g,field,()=>{const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y,...(field.mode==='self'?{x:owner.x,y:owner.y}:{})}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);const look=skillLookForEffect(b,field);if(!look||!drawSkillLook(g,e,time,look,owner))if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);});
     for(const [key,value] of this.fifthLandings)if(value.end<=time)this.fifthLandings.delete(key);
     for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time,b.raidMode);
     for(const q of b.projectiles)if(q.upperTower&&time<q.at){
@@ -451,7 +452,7 @@ export class TowerRenderer {
     for(const actor of [{...b,x:player.x,y:player.y},...(b.localSkillsOnly?[]:b.allies||[])])if(actor.hp>0&&!actor.left)for(const area of actor.holyAreas||[])if(area.slot===5&&area.start<=time&&area.end>time){
       holy.set((actor.id||'self')+':5',{kind:'priest',slot:5,owner:actor.id,x:actor.x,y:actor.y,size:area.r*2,start:area.start,end:area.end});
     }
-    const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects){const look=skillLookForEffect(b,e);if(!look||!drawSkillLook(g,e,time,look))drawPriestSkillArt(g,e,time);}
+    const holyEffects=[...holy.values()];for(const e of holyEffects)withSkillAlpha(g,e,()=>drawPriestRangeAura(g,e,time));for(const e of holyEffects)withSkillAlpha(g,e,()=>{const look=skillLookForEffect(b,e);if(!look||!drawSkillLook(g,e,time,look))drawPriestSkillArt(g,e,time);});
     const actors=[{y:player.y,draw:drawPlayer},{y:b.chest?.y??enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.pet(m,m.x,m.y,time,m.id);
@@ -471,7 +472,7 @@ export class TowerRenderer {
       const filter=enemyShot?'hue-rotate(330deg)':cls==='mage'?'hue-rotate(72deg)':cls==='archer'?'hue-rotate(-95deg)':'none';
       this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125*(this.mobileActors.matches?1.5:1):cls==='pirate'?140:120,enemyShot?60*(this.mobileActors.matches?1.5:1):62,Math.atan2(q.dy,q.dx),.95,filter);
     }
-    for(const e of b.effects){
+    for(const e of b.effects){const alphaOn=beginSkillAlpha(g,skillAlpha(effectTier(e)));try{
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
       const look=skillLookForEffect(b,e);
@@ -510,7 +511,7 @@ export class TowerRenderer {
       const src=e.hostile?'attack-burst-v2':effectClass==='warrior'?(e.kind==='slash'?'attack-slash-v2':'attack-burst-v2'):effectClass==='mage'?'attack-burst-v2':effectClass==='archer'?'attack-bolt-v2':effectClass==='rogue'?'attack-slash-v2':'attack-beam-v2';
       const filter=e.hostile?'hue-rotate(330deg)':effectClass==='mage'?'hue-rotate(75deg)':effectClass==='archer'?'hue-rotate(-95deg)':effectClass==='rogue'?'hue-rotate(225deg)':'none';
       this.strip(motionAsset(src),frame,e.x,e.y,e.size*1.8,e.size*1.3,(e.angle||0)+(e.kind==='slash'?age*.45:0),1-age*.75,filter);
-    }
+    }finally{endSkillAlpha(g,alphaOn);}}
     this.drawImpacts(now,dt);
     // Warning edges and labels stay visible even under the party's skill effects.
     if(b.raidMode){for(const h of b.hazards)if(h.type==='line'||visible(h.x,h.y,h.r))drawRaidWarning(g,h,time,true);for(const q of b.projectiles)drawRaidShotWarning(g,q,time);}
