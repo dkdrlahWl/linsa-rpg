@@ -3,7 +3,7 @@ import {transparentEffectAtlas} from './effect-alpha.mjs';
 
 const images=new Map(),frames=new Map();
 export function arenaEffectArt(classId,slot,skillLookId=null){
- const look=skillLookById(skillLookId);if(look?.classId===classId)return {url:`skill-looks/${look.id}-skills-v1.webp`,cols:3,rows:5,col:1,row:Math.max(0,Math.min(4,slot-1))};
+ const look=skillLookById(skillLookId);if(look?.classId===classId)return {url:`skill-looks/${look.id}-native-v2.webp`,cols:4,rows:5,col:1,row:Math.max(0,Math.min(4,slot-1))};
  const col=Math.max(0,['warrior','mage','archer','rogue','pirate'].indexOf(classId));
  if(classId==='priest')return {url:`tower/priest-skill-${slot}-v2.webp`,cols:4,rows:1,col:0,row:0};
  if(slot===5)return {url:`tower/fifth-${classId}-v1.webp`,cols:2,rows:2,col:1,row:1};

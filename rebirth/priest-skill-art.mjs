@@ -1,3 +1,4 @@
+import {registerSkillLookSource} from './skill-look-material.mjs';
 // Four painted frames per spell. The glow shows the combat radius without a solid wall of light.
 const sheets=new Map();
 const renderSheets=new Map();
@@ -8,7 +9,7 @@ function renderSheet(slot,img){
   canvas.height=Math.min(512,img.naturalHeight);
   canvas.width=Math.round(img.naturalWidth*canvas.height/img.naturalHeight/4)*4;
   canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-  renderSheets.set(slot,canvas);return canvas;
+  registerSkillLookSource(canvas,{tier:slot,cells:4});renderSheets.set(slot,canvas);return canvas;
 }
 const heightBySlot={1:960,2:900,3:850,4:1150,5:1280};
 const colors={1:'#ffe5a0',2:'#baffdf',3:'#badfff',4:'#ffe1a0',5:'#fff0bd'};

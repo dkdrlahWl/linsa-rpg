@@ -54,7 +54,7 @@ if(process.argv.includes('--assets')){
  for(const f of SOVEREIGN_TOWER_FLOORS)assert.ok(existsSync(new URL('tower/boss-'+f.art+'.webp',import.meta.url)));
  for(const s of fields){assert.ok(existsSync(new URL(s.background,import.meta.url)));assert.ok(existsSync(new URL(fieldMonster(s.id).art,import.meta.url)));}
  const layouts=JSON.parse(readFileSync(new URL('./costume-motion-layout.mjs',import.meta.url),'utf8').split('export default ')[1].trim().replace(/;$/,''));
- for(const c of COSTUMES.slice(18)){assert.ok(existsSync(new URL(c.atlas,import.meta.url)));assert.ok(existsSync(new URL(c.portrait,import.meta.url)));assert.equal(layouts[c.id].frames.length,c.classId==='priest'&&c.price===10000000?72:80);for(const f of layouts[c.id].frames)assert.ok(f.body>0&&f.foot<=f.h&&f.anchor>=0&&f.anchor<=f.w);}
+ for(const c of COSTUMES.slice(18)){assert.ok(existsSync(new URL(c.atlas,import.meta.url)));assert.ok(existsSync(new URL(c.portrait,import.meta.url)));assert.equal(layouts[c.id].frames.length,80);for(const f of layouts[c.id].frames)assert.ok(f.body>0&&f.foot<=f.h&&f.anchor>=0&&f.anchor<=f.w);}
 }
 console.log('PASS 40 normal/enraged 90s replays, 20 unique openers, warning times, safety samples, bounded attacks, first rewards/retries, 12 fields through Lv300 and 6 costume transactions.',{simulations,peakHazards,peakProjectiles});
 

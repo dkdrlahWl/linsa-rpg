@@ -1,3 +1,4 @@
+import {registerSkillLookSource} from './skill-look-material.mjs';
 const TAU=Math.PI*2;
 const colors={warrior:'#ffbb50',mage:'#b28aff',archer:'#82f3ac',rogue:'#bc9aff',pirate:'#66e5df'};
 const atlases=new Map(),lights=new Map(),seals=new Map(),waves=new Map();
@@ -23,19 +24,20 @@ export async function prepareFifthArt(classes,image){
    }else g.drawImage(im,cell%2*im.width/2,Math.floor(cell/2)*im.height/2,im.width/2,im.height/2,0,0,384,384);
    const d=g.getImageData(0,0,384,384).data;let l=383,t=383,r=0,b=0;
    for(let y=0;y<384;y++)for(let x=0;x<384;x++)if(d[(y*384+x)*4+3]>12){l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
+   registerSkillLookSource(canvas,{tier:5,part:cell});
    frames.push({im:canvas,x:l,y:t,w:Math.max(1,r-l+1),h:Math.max(1,b-t+1)});
   }
   atlases.set(cls,frames);
   const light=document.createElement('canvas');light.width=light.height=128;
   const g=light.getContext('2d'),gradient=g.createRadialGradient(64,64,0,64,64,64);
   gradient.addColorStop(0,'#ffffffcc');gradient.addColorStop(.14,colors[cls]+'a0');gradient.addColorStop(.48,colors[cls]+'38');gradient.addColorStop(1,colors[cls]+'00');
-  g.fillStyle=gradient;g.fillRect(0,0,128,128);lights.set(cls,light);
+  g.fillStyle=gradient;g.fillRect(0,0,128,128);registerSkillLookSource(light,{tint:true});lights.set(cls,light);
   if(cls==='mage'){
    const seal=document.createElement('canvas');seal.width=seal.height=768;const q=seal.getContext('2d');q.translate(384,384);q.strokeStyle='#d8c0ff';q.lineWidth=4;
    for(const radius of [320,290,170,135,52]){q.beginPath();q.arc(0,0,radius,0,TAU);q.stroke();}
    for(let side=0;side<2;side++){q.beginPath();for(let i=0;i<3;i++){const a=-Math.PI/2+side*Math.PI+i*TAU/3,x=Math.cos(a)*290,y=Math.sin(a)*290;i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();q.stroke();}
    q.lineWidth=3;for(let i=0;i<12;i++){q.save();q.rotate(i*TAU/12);q.beginPath();q.moveTo(0,-190);q.lineTo(-12,-213);q.lineTo(0,-237);q.lineTo(12,-213);q.closePath();q.moveTo(0,-247);q.lineTo(0,-270);q.stroke();q.restore();}
-   q.fillStyle='#eee1ff';q.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?13:40;const x=Math.cos(a)*r,y=Math.sin(a)*r;i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();q.fill();seals.set(cls,seal);
+   q.fillStyle='#eee1ff';q.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,r=i%2?13:40;const x=Math.cos(a)*r,y=Math.sin(a)*r;i?q.lineTo(x,y):q.moveTo(x,y);}q.closePath();q.fill();registerSkillLookSource(seal,{tint:true});seals.set(cls,seal);
   }
   if(cls==='warrior'){
    // Independent weapon-free explosion frames; never rotate or stretch a sword atlas.
@@ -44,6 +46,7 @@ export async function prepareFifthArt(classes,image){
    for(let cell=0;cell<4;cell++){
     const canvas=document.createElement('canvas');canvas.width=canvas.height=512;const q=canvas.getContext('2d');
     q.drawImage(impact,cell*impact.width/4,0,impact.width/4,impact.height,0,0,512,512);
+    registerSkillLookSource(canvas,{tier:5,part:2});
     explosions.push({im:canvas,x:0,y:0,w:512,h:512});
    }
    atlases.set('warrior-impact',explosions);
@@ -51,7 +54,7 @@ export async function prepareFifthArt(classes,image){
    const fire=w.createLinearGradient(0,0,640,0);fire.addColorStop(0,'#ff440000');fire.addColorStop(.4,'#ff5e0040');fire.addColorStop(.8,'#ffae00cc');fire.addColorStop(1,'#fff8d4');
    w.fillStyle=fire;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.quadraticCurveTo(330,600,355,384);w.quadraticCurveTo(330,165,25,35);w.fill();
    for(let i=0;i<13;i++){const y=55+i*54,x=560-Math.abs(y-384)*.75;w.strokeStyle=i%2?'#ffbd3ca0':'#ff6c0090';w.lineWidth=8+i%3*4;w.beginPath();w.moveTo(30,y+Math.sin(i*2.4)*28);w.quadraticCurveTo(x*.55,y+(384-y)*.32,x,y+(384-y)*.48);w.stroke();}
-   for(const [width,color] of [[25,'#ff6b0070'],[12,'#ffd75eee'],[4,'#fffbe4']]){w.lineWidth=width;w.strokeStyle=color;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.stroke();}waves.set(cls,wave);
+   for(const [width,color] of [[25,'#ff6b0070'],[12,'#ffd75eee'],[4,'#fffbe4']]){w.lineWidth=width;w.strokeStyle=color;w.beginPath();w.moveTo(25,35);w.quadraticCurveTo(590,90,615,384);w.quadraticCurveTo(590,680,25,733);w.stroke();}registerSkillLookSource(wave,{tint:true});waves.set(cls,wave);
   }
  }));
 }

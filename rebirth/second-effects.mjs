@@ -1,3 +1,4 @@
+import {registerSkillLookSource} from './skill-look-material.mjs';
 import {transparentEffectAtlas} from './effect-alpha.mjs?v=priest-potential-83';
 // Painted motifs sit over terrain using screen blending; animation follows the
 // authoritative impact tick, so a projectile arrives exactly when damage lands.
@@ -6,7 +7,7 @@ const palettes={warrior:['#ff8c44','#ffe2a1'],mage:['#9b83ff','#c5faff'],archer:
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const mix=(a,b,t)=>a+(b-a)*t;
 export function drawSecondSequence(g,e,time,atlas,ghost){
- const source=transparentEffectAtlas(atlas);
+ const source=registerSkillLookSource(transparentEffectAtlas(atlas),{tier:2,axis:'row',cells:3});
  const [color,light]=palettes[e.classId],col=columns[e.classId],age=Math.max(0,time-e.start),angle=e.angle||0;
  const origin={x:e.fromX,y:e.fromY-45},target={x:e.x,y:e.y-45};
  const sprite=(row,x,y,w,h=w,rotation=0,alpha=1)=>{
