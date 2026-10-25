@@ -40,7 +40,7 @@ export function treasureView(s,now=Date.now()){
  else status=`<p class="treasure-status">5×5 판에 지뢰 ${TREASURE_MINES}개가 숨어 있어요.</p>`;
  const actions=digging
   ?`<button class="treasure-main" data-action="treasureCash" ${run.opened.length?'':'disabled'}>그만하고 받기</button>`
-  :`<button class="treasure-main" data-action="treasureStart" ${left?'':'disabled'}>${left?(ended?'다음 판 시작':'보물 찾기 시작'):'오늘 3판 모두 완료'}</button>`;
+  :`<button class="treasure-main" data-action="treasureStart" ${left?'':'disabled'}>${left?(ended?'다음 판 시작':'보물 찾기 시작'):'오늘 2판 모두 완료'}</button>`;
  const odds=TREASURE_REWARDS.map(r=>`<li><img src="${icon(r.id)}" alt=""><span>${r.name} ${r.id==='gold'?fmt(r.amount)+' G':r.id==='bossGear'?'':r.amount+'개'}</span><b>${pct(r.chance)}</b></li>`).join('');
  return `<section class="lotto-screen treasure-screen" data-currency-label>${fantasyHeader(s,'event')}<div class="lotto-scroll">${eventSwitch(s,'treasure')}<main class="treasure-scene">
 <header class="treasure-heading"><h1>보물 찾기</h1><p>오늘 남은 판 <b>${left}/${TREASURE_DAILY}</b> · 자정 초기화</p></header>

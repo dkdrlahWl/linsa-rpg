@@ -6,7 +6,7 @@ assert.ok(Math.abs(TREASURE_REWARDS.reduce((n,r)=>n+r.chance,0)-1)<1e-9);
 let now=Date.parse('2026-10-26T12:00:00+09:00');const ctx=()=>({now,random:Math.random,uuid:randomUUID});
 let s=initialState('rogue','보물',ctx());s.hunting=false;
 // 하루 3판, 진행 중엔 새 판 불가, 빈 가방 수령 불가.
-for(let i=0;i<3;i++){s=execute(s,'treasureStart',{},ctx()).state;assert.throws(()=>execute(s,'treasureStart',{},ctx()),/TREASURE_RUN_ACTIVE/);assert.throws(()=>execute(s,'treasureCash',{},ctx()),/TREASURE_EMPTY_BAG/);
+for(let i=0;i<2;i++){s=execute(s,'treasureStart',{},ctx()).state;assert.throws(()=>execute(s,'treasureStart',{},ctx()),/TREASURE_RUN_ACTIVE/);assert.throws(()=>execute(s,'treasureCash',{},ctx()),/TREASURE_EMPTY_BAG/);
  // 안 터질 때까지 판다 → 같은 칸 재선택 거부.
  let cell=0;while(s.treasure.run.status==='digging'&&cell<25){s=execute(s,'treasureDig',{cell},ctx()).state;if(s.treasure.run.status==='digging')assert.throws(()=>execute(s,'treasureDig',{cell},ctx()),/TREASURE_CELL_OPEN/);cell++;}
  const r=s.treasure.run;assert.equal(r.mines.length,4);assert.ok(r.status==='boom'||r.status==='cleared');for(const m of r.mines)assert.ok(!r.opened.some(o=>o.cell===m));}
@@ -21,4 +21,4 @@ let survive5=0,first=0;const N=40000;for(let i=0;i<N;i++){let t=initialState('ro
 assert.ok(Math.abs(first/N-.16)<.01,first/N);assert.ok(Math.abs(survive5/N-.383)<.012,survive5/N);
 // 보스장비 상자 → 150~190 보스장비.
 {let t=initialState('rogue','보물',ctx());t.hunting=false;t=execute(t,'treasureStart',{},ctx()).state;let n=0;const seq=[.99,.992];t=execute(t,'treasureDig',{cell:0},{...ctx(),random:()=>seq[n++]??.5}).state;assert.equal(t.treasure.run.opened[0].reward,'bossGear');const count=t.items.length;t=execute(t,'treasureCash',{},ctx()).state;assert.equal(t.items.length,count+1);const it=t.items.at(-1);assert.ok(it.boss&&it.level>=150&&it.level<=190);}
-console.log('PASS treasure: 3/day, no restart mid-run, 4 mines (16% first cell, 38% survive 5), cash grants bag, boss gear box 150~190');
+console.log('PASS treasure: 2/day, no restart mid-run, 4 mines (16% first cell, 38% survive 5), cash grants bag, boss gear box 150~190');
