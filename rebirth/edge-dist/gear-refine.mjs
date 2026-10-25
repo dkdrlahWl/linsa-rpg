@@ -1,5 +1,5 @@
 // Shop refinement items for equipment (2026-10-25).
-// - 추가옵션 불꽃 (10,000,000 G): rolls a bonus of 1~10% applied to every equipment stat
+// - 추가옵션 불꽃 (5,000,000 G): rolls a bonus of 1~10% applied to every equipment stat
 //   (attack, main stat, HP, defense). Higher bonuses are rarer. Using it again re-rolls.
 // - 기본수치 재련석 (100,000,000 G): re-rolls the equipment base stats inside the item's own
 //   range, fully uniform (every value equally likely; 2026-10-25). Tiered boss gear also re-rolls its
@@ -7,7 +7,7 @@
 // Both results go to a keep/apply choice, like the black cube.
 import {gearStatRanges,isTieredBossGear,bossTierCount} from './data.mjs';
 
-export const BONUS_FLAME = Object.freeze({id: 'bonusFlame', name: '추가옵션 불꽃', price: 10000000, art: 'currencies/bonus-flame-v1.webp', description: '장비 모든 스탯 +1~10% 추가치 · 이전 / 이후 선택'});
+export const BONUS_FLAME = Object.freeze({id: 'bonusFlame', name: '추가옵션 불꽃', price: 5000000, art: 'currencies/bonus-flame-v1.webp', description: '장비 모든 스탯 +1~10% 추가치 · 이전 / 이후 선택'});
 export const REROLL_STONE = Object.freeze({id: 'rerollStone', name: '기본수치 재련석', price: 100000000, art: 'currencies/reroll-stone-v1.webp', description: '장비 기본 수치 재굴림 · 이전 / 이후 선택'});
 
 export const BONUS_MIN = 1, BONUS_MAX = 10, BONUS_DECAY = 0.6;

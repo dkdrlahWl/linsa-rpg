@@ -1,5 +1,5 @@
 import * as D from './data.mjs?v=prime-choice-158-lv300b';
-import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=refine4-20261025';
+import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=flame5m-20261025';
 const materialArt=item=>`<img src="${item.art}" alt="" width="38" height="38" style="width:38px;height:38px;object-fit:contain;vertical-align:middle;margin-right:6px">`;
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;

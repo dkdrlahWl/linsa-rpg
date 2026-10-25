@@ -10,7 +10,7 @@ assert.equal(BONUS_TABLE.length,10);assert.equal(BONUS_TABLE[0].pct,1);assert.eq
 assert.ok(Math.abs(BONUS_TABLE.reduce((a,r)=>a+r.chance,0)-1)<1e-12);
 for(let i=1;i<10;i++)assert.ok(BONUS_TABLE[i].chance<BONUS_TABLE[i-1].chance);
 assert.equal(rollBonusPct(()=>0),1);assert.equal(rollBonusPct(()=>.9999999999),10);
-assert.equal(shopConsumable('bonusFlame').price,10_000_000);assert.equal(shopConsumable('rerollStone').price,100_000_000);
+assert.equal(shopConsumable('bonusFlame').price,5_000_000);assert.equal(shopConsumable('rerollStone').price,100_000_000);
 assert.equal(MATERIALS.bonusFlame,'추가옵션 불꽃');assert.equal(MATERIALS.rerollStone,'기본수치 재련석');
 
 const ctx=(random=Math.random)=>({now:Date.now(),uuid:randomUUID,random,accountId:'t'});
@@ -25,8 +25,8 @@ for(const k of ['attack','stat','hp','defense'])assert.ok(Math.abs(boosted[k]-ba
 assert.equal(gearAttributes({...it,bonusPct:11}).attack,base.attack,'out-of-range bonus ignored');
 
 assert.throws(()=>execute(s,'bonusRoll',{id:it.id},ctx()),/INSUFFICIENT_BONUSFLAME/);
-s=execute(s,'consumableBuy',{id:'bonusFlame',quantity:2},ctx()).state;assert.equal(s.gold,280_000_000);assert.equal(s.materials.bonusFlame,2);
-s=execute(s,'consumableBuy',{id:'rerollStone',quantity:1},ctx()).state;assert.equal(s.gold,180_000_000);
+s=execute(s,'consumableBuy',{id:'bonusFlame',quantity:2},ctx()).state;assert.equal(s.gold,290_000_000);assert.equal(s.materials.bonusFlame,2);
+s=execute(s,'consumableBuy',{id:'rerollStone',quantity:1},ctx()).state;assert.equal(s.gold,190_000_000);
 
 const p0=power(s).attack;
 s=execute(s,'bonusRoll',{id:it.id},ctx(()=>.9999999)).state;assert.deepEqual(s.pendingRefine,{id:it.id,kind:'bonus',previous:0,bonusPct:10});assert.equal(s.materials.bonusFlame,1);
