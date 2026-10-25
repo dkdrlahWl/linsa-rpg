@@ -42,5 +42,5 @@ const total={};for(const r of ATTENDANCE_REWARDS)for(const [k,v] of Object.entri
 assert.ok(s.gold-before.gold>=total.gold,'gold');for(const k of ['cube','highCube','fragment','dungeonKey','addCube','scroll','primeCube','bonusFlame'])assert.equal((s.materials[k]||0)-(before.materials[k]||0),total[k],k);
 assert.equal(s.fishing.diamonds-(before.fishing?.diamonds||0),30);
 // Fishing loot halved.
-assert.deepEqual(REWARD_RATES.map(r=>r.chance),[.9925,.005,.0025]);
+assert.deepEqual(REWARD_RATES.map(r=>r.chance),[.985,.01,.005]);
 console.log('PASS exploration tiers 4~6 (linear HP, keys 1/2/3, rewards), attendance table, fishing chest/key odds');
