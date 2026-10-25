@@ -37,7 +37,8 @@ export function fishingStep(cast,input,meter){
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
 // Base grade weights per grade (2026-10-12).
-export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.00117,.000378,.000006];
+// 2026-10-25: 전설·신화 확률 절반, 태고 3배.
+export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.000585,.000189,.000018];
 function rollCatch(c,ctx){
  const spot=SPOTS.find(x=>x.id===c.spot)||SPOTS[0],bait=BAITS.find(x=>x.id===c.bait)||BAITS[0],rod=c.rod||1;
  const available=FISH.filter(x=>x.spot===spot.id&&x.level<=rod);

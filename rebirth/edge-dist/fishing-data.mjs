@@ -13,9 +13,9 @@ export const SPOTS=[
  {id:'coral',bonus:1.45,luck:1.8,name:'산호 해안',level:30,subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
  {id:'abyss',bonus:1.6,luck:1.9,name:'천상의 심해',level:40,subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
  // 2026-10-25: 낚싯대 70 확장. 용궁 해구 Lv.50, 불꽃 열수해 Lv.60, 태고의 바다 Lv.70 (태고 등급은 태고의 바다에서만).
- {id:'palace',bonus:1.65,luck:1.95,name:'용궁 해구',level:50,subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
- {id:'volcano',bonus:1.7,luck:2,name:'불꽃 열수해',level:60,subtitle:'바다 밑 화산이 숨 쉬는 곳',accent:'#ff8a5a'},
- {id:'origin',bonus:1.75,luck:2.05,name:'태고의 바다',level:70,subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
+ {id:'palace',bonus:1.65,tank:1.25,luck:1.95,name:'용궁 해구',level:50,subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
+ {id:'volcano',bonus:1.7,tank:1.5,luck:2,name:'불꽃 열수해',level:60,subtitle:'바다 밑 화산이 숨 쉬는 곳',accent:'#ff8a5a'},
+ {id:'origin',bonus:1.75,tank:1.8,luck:2.05,name:'태고의 바다',level:70,subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
 ];
 const rows=[
  ['brook','풀잎 피라미',0,80,300,'leaf green minnow with gold fins'],['brook','은빛 송사리',0,20,120,'tiny silver ricefish with pale green fins'],['brook','조약돌 망둑어',0,100,450,'round speckled stone goby'],['brook','햇살 붕어',0,250,1500,'warm golden crucian carp'],['brook','산들 메기',0,400,2500,'cute moss grey catfish with flowing whiskers'],['brook','꽃잎 잉어',0,300,2000,'pink white koi with petal shaped fins'],['brook','이끼 비늘어',1,400,2500,'emerald moss scaled fish'],['brook','청금 송어',1,700,3500,'turquoise trout with golden flecks'],['brook','반딧불 버들치',1,120,800,'willow minnow with luminous yellow speckles'],['brook','수련 베타',1,100,600,'jade pink betta with lotus petal fins'],
@@ -54,7 +54,8 @@ export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)re
 // 2026-10-12: 9 mythic ≈ half of the best hunting income (~340k/h).
 // Each grade's worst fish (any spot, lightest) out-earns the previous grade's best (any spot, heaviest), for sale and aquarium.
 export const AQUARIUM_RATE=[.9375,.65,.4625,.29375,.155,.16875,.1]; // x1.25 with the -20% sale base: aquarium income unchanged // 신화 sale value 600→240 (2026-10-12); rate keeps its aquarium income
-export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*AQUARIUM_RATE[d.rarity])):0;};
+// 2026-10-25: 새 낚시터 물고기는 수족관 수입 추가 배율(용궁 ×1.25, 불꽃 열수해 ×1.5, 태고의 바다 ×1.8).
+export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*AQUARIUM_RATE[d.rarity]*(SPOTS.find(s=>s.id===d.spot).tank||1))):0;};
 export const aquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
 export const resourceName=id=>({addCube:'에디셔널 큐브',diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
