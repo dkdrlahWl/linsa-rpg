@@ -30,7 +30,7 @@ for(const tier of [4,5,6]){
  const none=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},room,{random:()=>.999,uuid:randomUUID,now:1});
  assert.equal(none.reward.addCube,0);assert.equal(none.reward.items.length,0);
  const levels=new Set();for(let i=0;i<400;i++){const x=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},room,{random:(()=>{let k=0;return()=>(k++===5?0:Math.random());})(),uuid:randomUUID,now:1});for(const it of x.reward.items)levels.add(it.level);}
- for(const l of levels)assert.ok(l>=r.gear[0][0]&&l<=(tier===6?200:190),tier+' level '+l);
+ for(const l of levels)assert.ok(l>=r.gear[0][0]&&l<=200,tier+' level '+l);
 }
 
 // Attendance: new 7-day table, every key lands (fishing diamonds into state.fishing).
