@@ -1,4 +1,5 @@
 import {drawCitadelWorld,drawCitadelMap,drawCitadelAmbience} from './citadel-renderer.mjs';
+import {drawSkillLook,skillLookForEffect,prepareSkillLookArt,SKILL_LOOK_EFFECT_KINDS} from './skill-look-effects.mjs';
 import {drawExplorationDungeon,drawExplorationFog,drawExplorationMinimap,explorationTerrainSource} from './exploration-renderer.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
@@ -112,14 +113,15 @@ function cleanDirectionalAtlas(im,layout=null){
 }
 
 const preparations=new Map();
-export function prepareCombatArt(classes,boss,costumeIds=[]){
+export function prepareCombatArt(classes,boss,costumeIds=[],skillLookIds=[]){
  const tasks=[...new Set(classes)].flatMap(cls=>cls==='priest'?[[PRIEST_DEFAULT.atlas,COSTUME_MOTION_LAYOUT['priest-default']]]:[[asset('hero-'+cls+'-motion-v4'),MOTION_LAYOUT[cls]],...(cls==='warrior'?[[asset('hero-warrior-east-v4'),MOTION_LAYOUT.warriorEast]]:[])]);
  for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.motionLayout||c.classId]],[c.portrait,null]);}}
  if(String(boss).startsWith('exploration-'))tasks.push([explorationTerrainSource(Number(String(boss).slice(12))),null],['exploration/heal-heart-194.webp',null]);
  const raid=String(boss).startsWith('raid-'),raidTier=raid?Number(boss.slice(5)):null;
  tasks.push([String(boss).startsWith('exploration-')?explorationArt(Number(String(boss).slice(12)),3,true):raid?raidBossSource(raidTier):asset('boss-'+boss),null]);image('tower/priest-orb-v1.webp');if(raid){tasks.push([asset('raid-map-'+raidTier),null],[asset('raid-boss-'+raidTier+'-portrait'),null]);}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  const secondAtlas=image(motionAsset('second-sequence-atlas-v1'));
- const secondLoads=[secondAtlas.decode().then(()=>transparentEffectAtlas(secondAtlas)).catch(()=>{}),prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{}))];
+ const secondLoads=[...new Set(skillLookIds)].filter(Boolean).map(prepareSkillLookArt);
+ secondLoads.push(secondAtlas.decode().then(()=>transparentEffectAtlas(secondAtlas)).catch(()=>{}),prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{})));
  if(classes.includes('priest'))secondLoads.push(preparePriestSkillArt());
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
   if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&(src===PRIEST_DEFAULT.atlas||costumeIds.some(id=>costumeById(id)?.atlas===src)))cleanDirectionalAtlas(im,layout);if(raid&&src===raidBossSource(raidTier))frameBounds(im,4,2);}catch{preparations.delete(src);}})());
@@ -334,6 +336,10 @@ export class TowerRenderer {
     // also cause visible prediction catch-up snaps.
     if(!this.lowDetail&&this.last){const ft=now-this.last;if(ft<400){this.frameEma=(this.frameEma??ft)*.94+ft*.06;this.slowFrames=this.frameEma>1450/this.maxFps?(this.slowFrames||0)+1:0;if(this.slowFrames>40)this.setLowDetail();}}
     const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
+    const drawShield=(actor,x,y)=>{
+      const e={kind:'priest',classId:'priest',slot:3,owner:actor.shieldOwner,x,y,size:260,start:time-6,end:time+6,opacity:.35},look=skillLookForEffect(b,e);
+      if(!look||!drawSkillLook(g,e,time,look))drawPriestSkillArt(g,e,time,{scale:.38,opacity:.3,frame:2});
+    };
     this.citadelView=b.explorationMode&&b.tier===3;this.explorationView=b.explorationMode&&!this.citadelView;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';const height=this.viewHeight||1200;g.setTransform(this.canvas.width/1000,0,0,this.canvas.height/height,0,0);
     const dt=this.last?Math.min(50,now-this.last):16;
     const freshHits=[];for(const n of b.numbers)if(!this.seenEvents.has(n.id)){this.seenEvents.add(n.id);freshHits.push(n);}for(const n of freshHits.slice(-4))this.impact(n,now);
@@ -357,7 +363,7 @@ export class TowerRenderer {
     const fifthAreas=fifthFields(b.effects,time),fifthOpacity=.85;
     const effectTarget=e=>b.waveMode?(b.monsters||[]).find(m=>m.id===e.targetId&&m.hp>0):b.enemy;
     const selfField=fifthAreas.find(e=>e.classId===b.classId&&(!e.owner||e.owner===(b.actorId??b.id)));
-    for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y,...(field.mode==='self'?{x:owner.x,y:owner.y}:{})}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);}
+    for(const field of fifthAreas){const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y,...(field.mode==='self'?{x:owner.x,y:owner.y}:{})}:{})};drawFifthGround(g,e,time,field===selfField?.9:fifthOpacity);const look=skillLookForEffect(b,field);if(!look||!drawSkillLook(g,e,time,look,owner))if(e.classId!=='mage')drawFifth(g,e,time,fifthOpacity);}
     for(const [key,value] of this.fifthLandings)if(value.end<=time)this.fifthLandings.delete(key);
     for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time,b.raidMode);
     for(const q of b.projectiles)if(q.upperTower&&time<q.at){
@@ -395,8 +401,8 @@ export class TowerRenderer {
       const lunge=pose?.lunge??(attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0);
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
-      if(b.classId==='priest'&&casting&&!b.fifthCast?.holy){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
-      if(b.shield>0&&(!b.localSkillsOnly||b.shieldOwner===(b.actorId??b.id))&&(b.shieldPermanent||b.tick<b.shieldUntil))drawPriestSkillArt(g,{slot:3,x:player.x,y:player.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});
+      if(b.classId==='priest'&&casting&&!b.power?.skillLookId&&!b.fifthCast?.holy){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
+      if(b.shield>0&&(!b.localSkillsOnly||b.shieldOwner===(b.actorId??b.id))&&(b.shieldPermanent||b.tick<b.shieldUntil))drawShield(b,player.x,player.y);
       drawPriestBuffAura(g,{...(b.localSkillsOnly?ownPriestAura(b,time):b),x:player.x,y:player.y},time,holyEffects);
       this.actor(b.classId,pose?towerFacing(b.enemy.x-player.x,b.enemy.y-player.y,dir):dir,moving||dashing,!!pose||attacking||casting,pose?.age??(casting?skillAge:attackAge),(b.player.walk||0)+fraction,x,y,alpha,b.power?.costumeId);
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
@@ -445,12 +451,12 @@ export class TowerRenderer {
     for(const actor of [{...b,x:player.x,y:player.y},...(b.localSkillsOnly?[]:b.allies||[])])if(actor.hp>0&&!actor.left)for(const area of actor.holyAreas||[])if(area.slot===5&&area.start<=time&&area.end>time){
       holy.set((actor.id||'self')+':5',{kind:'priest',slot:5,owner:actor.id,x:actor.x,y:actor.y,size:area.r*2,start:area.start,end:area.end});
     }
-    const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects)drawPriestSkillArt(g,e,time);
+    const holyEffects=[...holy.values()];for(const e of holyEffects)drawPriestRangeAura(g,e,time);for(const e of holyEffects){const look=skillLookForEffect(b,e);if(!look||!drawSkillLook(g,e,time,look))drawPriestSkillArt(g,e,time);}
     const actors=[{y:player.y,draw:drawPlayer},{y:b.chest?.y??enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
       const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
       this.pet(m,m.x,m.y,time,m.id);
       const pose=!m.moving?fifthPose(fifthAreas.find(e=>e.owner===m.id),time):null;
-      this.shadow(m.x,m.y,25);if(!b.localSkillsOnly&&m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawPriestSkillArt(g,{slot:3,x:m.x,y:m.y,start:b.tick,end:b.tick+10},time,{scale:.38,opacity:.3,frame:2});if(!b.localSkillsOnly)drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId,false);
+      this.shadow(m.x,m.y,25);if(!b.localSkillsOnly&&m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawShield(m,m.x,m.y);if(!b.localSkillsOnly)drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId,false);
       if(!b.localSkillsOnly&&b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       const labelY=m.y-(this.mobileActors.matches?215:180)-24;
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,labelY);g.fillStyle='#25312d';g.fillRect(m.x-40,labelY+11,80,6);const health=healthSegments(m);g.fillStyle='#bfc7cf';g.fillRect(m.x-40+80*health.health/100,labelY+11,80*health.shieldWidth/100,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,labelY+11,80*health.health/100,6);g.restore();
@@ -468,6 +474,14 @@ export class TowerRenderer {
     for(const e of b.effects){
       // Hostile impacts are already drawn once by their active hazard.
       if(e.hostile)continue;
+      const look=skillLookForEffect(b,e);
+      if(look&&e.kind!=='priest'&&SKILL_LOOK_EFFECT_KINDS.includes(e.kind)){
+        if(e.kind==='fifth-field')continue; // The persistent field is drawn below the actors.
+        if(e.kind==='fourth'&&(!e.orbit&&!fourthAreas.includes(e)||e.orbit&&b.effects.some(other=>other.kind==='fourth'&&other.owner===e.owner&&other.classId===e.classId&&other.id>e.id)))continue;
+        const owner=e.owner==null||e.owner===(b.actorId??b.id)?player:b.allies?.find(a=>a.id===e.owner);
+        const effect=e.kind==='fifth'?resolveFifthVisual(e,effectTarget(e),time,this.fifthLandings):e;
+        if(drawSkillLook(g,effect,time,look,owner))continue;
+      }
       if(e.kind==='fifth-field'){if(e.classId==='mage')drawFifth(g,e,time,(e.owner??null)===(b.actorId??b.id??null)?.85:fifthOpacity);continue;}
       if(e.kind==='fifth'){
         const mine=(e.owner??null)===(b.actorId??b.id??null),effect=resolveFifthVisual(e,effectTarget(e),time,this.fifthLandings);

@@ -15,7 +15,7 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false,autoSkills:false});
     this.options.audio?.(this.b);
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
-    this.artReady=false;prepareCombatArt([b.classId],towerEncounter(b).art,[b.power?.costumeId]).then(()=>{this.artReady=true;});
+    this.artReady=false;prepareCombatArt([b.classId],towerEncounter(b).art,[b.power?.costumeId],[b.power?.skillLookId]).then(()=>{this.artReady=true;});
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
     this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
     this.required=['effects','boss-'+towerEncounter(b).art,'second-job-atlas','reward-chest'].map(asset);

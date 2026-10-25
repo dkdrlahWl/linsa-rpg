@@ -92,7 +92,7 @@ export function startArenaReplay(result,onFinish){
    if(f.type==='cast'||f.type==='skill'){
     const vfx=document.createElement('canvas');
     vfx.className=`pvp-skill-vfx ${acting} ${profile?.classId==='priest'?'holy':''}`;vfx.setAttribute('aria-hidden','true');
-    drawArenaEffect(vfx,profile?.classId||'warrior',Math.max(1,f.slot||1));add(stage,vfx,f.type==='cast'?950:450);
+    drawArenaEffect(vfx,profile?.classId||'warrior',Math.max(1,f.slot||1),profile?.skillLookId);add(stage,vfx,f.type==='cast'?950:450);
    }
    if(f.damage>0){
     stage.classList.remove('pvp-hit-left','pvp-hit-right');void stage.offsetWidth;stage.classList.add(f.side===0?'pvp-hit-right':'pvp-hit-left');
