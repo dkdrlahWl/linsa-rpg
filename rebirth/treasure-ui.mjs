@@ -36,7 +36,7 @@ export function treasureView(s,now=Date.now()){
  let status;
  if(digging)status=`<p class="treasure-status">열린 칸 <b>${run.opened.length}</b> · 다음 칸 지뢰 확률 <b>${Math.round(nextRisk*100)}%</b></p>`;
  else if(run?.status==='boom')status=`<p class="treasure-status bad">💥 지뢰를 밟았어요! 모은 보상 ${run.opened.length}칸을 모두 잃었어요.</p>`;
- else if(run?.status==='cashed'||run?.status==='cleared')status=`<p class="treasure-status good">${run.status==='cleared'?'🎉 안전한 칸 21개를 전부 찾았어요!':'보상을 챙겼어요!'} ${run.opened.length}칸 보상 획득</p>`;
+ else if(run?.status==='cashed'||run?.status==='cleared')status=`<p class="treasure-status good">${run.status==='cleared'?'🎉 안전한 칸 ${TREASURE_CELLS-TREASURE_MINES}개를 전부 찾았어요!':'보상을 챙겼어요!'} ${run.opened.length}칸 보상 획득</p>`;
  else status=`<p class="treasure-status">5×5 판에 지뢰 ${TREASURE_MINES}개가 숨어 있어요.</p>`;
  const actions=digging
   ?`<button class="treasure-main" data-action="treasureCash" ${run.opened.length?'':'disabled'}>그만하고 받기</button>`
@@ -48,6 +48,6 @@ ${status}
 <div class="treasure-board${digging?' live':''}" data-no-currency-art>${cells}</div>
 ${actions}
 ${digging||ended?`<section class="treasure-bag"><h2>${digging?'모은 보상':run.status==='boom'?'잃은 보상':'받은 보상'}${digging&&safeLeft?` <small>안전한 칸 ${safeLeft}개 남음</small>`:''}</h2>${bagSummary(run)}</section>`:''}
-<details class="treasure-rules"><summary>규칙 · 보상 확률</summary><p>칸을 열 때마다 보상이 하나씩 쌓여요. 지뢰를 밟으면 이번 판에 모은 보상을 <b>전부</b> 잃어요. 언제든 "그만하고 받기"로 챙길 수 있어요.</p><p>지뢰 ${TREASURE_MINES}개 · 연속 생존 확률 3칸 58% · 5칸 38% · 7칸 24% · 10칸 11%</p><ul class="treasure-odds">${odds}</ul></details>
+<details class="treasure-rules"><summary>규칙 · 보상 확률</summary><p>칸을 열 때마다 보상이 하나씩 쌓여요. 지뢰를 밟으면 이번 판에 모은 보상을 <b>전부</b> 잃어요. 언제든 "그만하고 받기"로 챙길 수 있어요.</p><p>지뢰 ${TREASURE_MINES}개 · 연속 생존 확률 3칸 67% · 5칸 50% · 7칸 35% · 10칸 20%</p><ul class="treasure-odds">${odds}</ul></details>
 </main></div>${fantasyFooter('event')}</section>`;
 }

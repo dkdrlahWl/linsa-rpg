@@ -49,7 +49,7 @@ export function treasureCommand(s,command,args,ctx,day,makeGear){
   }
   const reward=rollTreasureReward(ctx.random);run.opened.push({cell,reward:reward.id});
   if(run.opened.length===TREASURE_CELLS-TREASURE_MINES){
-   // 21칸 전부 열면 남은 4칸이 지뢰.
+   // 안전한 칸을 전부 열면 남은 칸이 지뢰.
    run.status='cleared';run.got=grant(s,run,makeGear,ctx.random);run.mines=revealMines(run,null,ctx.random);
    run.endedAt=ctx.now;return {type:'treasureCash',cell,reward:reward.id,got:run.got,cleared:true};
   }
