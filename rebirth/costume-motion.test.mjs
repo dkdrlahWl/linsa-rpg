@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {costumeMotionFrame,costumeMotionScale} from './costume-motion.mjs';
+import {MIRROR_ROWS,costumeMotionFrame,costumeMotionScale} from './costume-motion.mjs';
 import {COSTUMES} from './costumes.mjs';
 for(const {classId:cls,motionLayout,renderBodyHeight} of COSTUMES){
  const front=costumeMotionFrame(cls,2,false,false,0,0,motionLayout),back=costumeMotionFrame(cls,6,false,false,0,0,motionLayout),right=costumeMotionFrame(cls,0,false,false,0,0,motionLayout);
@@ -13,7 +13,7 @@ for(const {classId:cls,motionLayout,renderBodyHeight} of COSTUMES){
   const renderedBody=f.body*costumeMotionScale(p,180,renderBodyHeight);
   const standingBody=180*p.layout.bodyHeight/(renderBodyHeight||p.layout.bodyHeight);
   assert.ok(Math.abs(renderedBody-standingBody)<1e-8,`${motionLayout}: body changes size on attack frame ${phase}`);
-  assert.equal(p.flip,[3,4,5].includes(dir)?-1:1);
+  assert.equal(p.flip,([3,4,5].includes(dir)?-1:1)*(MIRROR_ROWS[motionLayout]?.includes(p.row)?-1:1));
   assert.ok(acting?p.row>=5:p.row<5);
  }
  assert.equal(costumeMotionFrame(cls,100,false,false,0,0,motionLayout).row,back.row);

@@ -1,5 +1,13 @@
 import layouts from './costume-motion-layout.mjs?v=costume-motion-111';
 
+// Some 30M sheets painted these rows facing left instead of right; mirror them back.
+export const MIRROR_ROWS={
+ 'swan-lake-knight':[1,2,6,7],
+ 'crimson-butterfly-dancer':[1,2,6],
+ 'sugar-ribbon-captain':[1,2,3,6,7,8],
+ 'wisteria-sanctuary-priest':[1,2,3,6,7,8],
+};
+
 // Canvas facing: E, SE, S, SW, W, NW, N, NE. Left views mirror right views.
 export function costumeMotionFrame(classId,dir,moving,acting,age=0,walk=0,costumeKey=null){
  const layout=layouts[costumeKey]||layouts[classId];if(!layout)return null;
@@ -14,7 +22,7 @@ export function costumeMotionFrame(classId,dir,moving,acting,age=0,walk=0,costum
  let cell=phase;
  if(acting&&classId==='warrior'&&!layout.authoredAttack&&direction===2)cell=[0,0,0,7,7,7,0,0][phase];
  if(acting&&classId==='warrior'&&!layout.authoredAttack&&direction===1&&phase===4)cell=3;
- return {layout,frame:layout.frames[row*8+cell],row,phase,flip:[3,4,5].includes(facing)?-1:1};
+ return {layout,frame:layout.frames[row*8+cell],row,phase,flip:([3,4,5].includes(facing)?-1:1)*(MIRROR_ROWS[costumeKey]?.includes(row)?-1:1)};
 }
 
 // Atlas poses were painted at slightly different body sizes. Match each pose
