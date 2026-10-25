@@ -164,7 +164,7 @@ const errors = {
   FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
   FISHING_DAILY_LIMIT: "오늘 낚시는 하루 600번까지예요. 한국 시간 자정에 초기화돼요.",
   FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
-  TREASURE_DAILY_LIMIT: "오늘 보물 찾기 2판을 모두 했어요. 자정에 초기화돼요.",
+  TREASURE_DAILY_LIMIT: "오늘 보물 찾기 3판을 모두 했어요. 자정에 초기화돼요.",
   TREASURE_RUN_ACTIVE: "진행 중인 판을 먼저 끝내 주세요.",
   TREASURE_NO_RUN: "진행 중인 보물 찾기가 없어요.",
   TREASURE_EMPTY_BAG: "칸을 하나 이상 열어야 받을 수 있어요.",

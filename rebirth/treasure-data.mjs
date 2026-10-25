@@ -1,7 +1,7 @@
-// 2026-10-26 보물 지뢰찾기: 5×5 판 · 지뢰 3개 · 하루 2판 · 터지면 모은 보상 전부 잃음.
+// 2026-10-26 보물 지뢰찾기: 5×5 판 · 지뢰 3개 · 하루 3판 · 터지면 모은 보상 전부 잃음.
 export const TREASURE_CELLS=25;
 export const TREASURE_MINES=3;
-export const TREASURE_DAILY=2;
+export const TREASURE_DAILY=3;
 export const TREASURE_GEAR_LEVELS=[150,160,170,180,190];
 // 안전한 칸을 열 때마다 하나씩 나온다. chance 합계 = 1.
 export const TREASURE_REWARDS=Object.freeze([
