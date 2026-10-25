@@ -7,6 +7,7 @@ import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 import {FISH,ROD_MAX} from './fishing-data.mjs';
 import {COSTUMES} from './costumes.mjs';
+import {SKILL_LOOKS,ownedSkillLookCount} from './skill-looks.mjs';
 
 export const TITLE_GRADES=[
  {id:'common',name:'일반'},{id:'rare',name:'희귀'},{id:'epic',name:'영웅'},{id:'legend',name:'전설'},{id:'myth',name:'신화'}
@@ -99,6 +100,10 @@ const ROWS=[
  ['rod70','태고의 강태공','낚시','myth','낚싯대 Lv.70 (태고의 바다 해금)',s=>(s.fishing?.rod||0)>=70,()=>ROD_MAX>=70],
  ['fishP','태고를 낚은 자','낚시','myth','태고 물고기 처음 낚기',s=>fishOf(s,6),()=>FISH.some(f=>f.rarity===6)],
  ['fishAll2','모든 바다의 기록자','낚시','myth','물고기 도감 '+FISH.length+'종 완성',s=>FISH.every(f=>(s.fishing?.collection||{})[f.id]!==undefined),()=>FISH.length>50],
+ ['look3','환상의 수집가','수집','epic','스킬 외형 3종 보유',s=>ownedSkillLookCount(s)>=3],
+ ['look6jobs','여섯 빛의 조율자','수집','legend','6직업의 스킬 외형을 직업마다 1종 이상 보유',s=>new Set(SKILL_LOOKS.filter(c=>(Array.isArray(s.skillLooks)?s.skillLooks:[]).includes(c.id)).map(c=>c.classId)).size>=6],
+ ['look9','별빛의 연출가','수집','legend','스킬 외형 9종 보유',s=>ownedSkillLookCount(s)>=9],
+ ['look18','천상의 만화경','수집','myth','스킬 외형 18종 전부 보유',s=>SKILL_LOOKS.every(c=>(Array.isArray(s.skillLooks)?s.skillLooks:[]).includes(c.id))],
 ];
 // ALL_TITLES includes not-yet-released rows (art is pre-built); TITLES is what players can see/earn now.
 export const ALL_TITLES=ROWS.map(([id,name,category,grade,condition,check,when],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i,available:!when||!!when()}));

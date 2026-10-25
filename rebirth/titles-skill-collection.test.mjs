@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {initialState,execute,power} from './engine.mjs';
+import {TITLE_BY_ID,newlyEarnedTitles,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
+import {TITLE_BY_ID as SERVER_TITLES} from './edge-dist/titles-data.mjs';
+import {SKILL_LOOKS} from './skill-looks.mjs';
+import {titleArt,titlePanelView,titleBadge} from './title-ui.mjs';
+const ids=['look3','look6jobs','look9','look18'],all=SKILL_LOOKS.map(c=>c.id),ctx={now:1792920000000,random:()=>.5,uuid:randomUUID};
+const earned=skillLooks=>newlyEarnedTitles({skillLooks},()=>0).filter(id=>ids.includes(id));
+assert.deepEqual(earned(all.slice(0,2)),[]);assert.deepEqual(earned(all.slice(0,3)),['look3']);
+assert.deepEqual(earned(all.slice(0,8)),['look3']);assert.deepEqual(earned(all.slice(0,9)),['look3','look9']);
+assert.ok(!earned(all.slice(0,17)).includes('look18'));assert.deepEqual(earned(all),ids);
+const six=SKILL_LOOKS.filter((c,i)=>i%3===0).map(c=>c.id);assert.deepEqual(earned(six),['look3','look6jobs']);
+assert.deepEqual(earned([all[0],all[0],all[0],'invalid']),[]);
+assert.ok(!earned(all.filter(id=>SKILL_LOOKS.find(c=>c.id===id).classId!=='priest')).includes('look6jobs'));
+let state=initialState('archer','칭호검수',ctx);state.hunting=false;state.skillLooks=all;
+const result=execute(state,'titleSync',{},ctx);state=result.state;
+assert.equal(result.events.filter(e=>e.type==='titleEarned'&&ids.includes(e.id)).length,4);
+assert.equal(execute(state,'titleSync',{},ctx).events.filter(e=>e.type==='titleEarned'&&ids.includes(e.id)).length,0);
+for(const id of ids){
+ assert.equal(TITLE_BY_ID[id].name,SERVER_TITLES[id].name);assert.equal(TITLE_BY_ID[id].condition,SERVER_TITLES[id].condition);
+ const svg=await readFile(new URL('./titles/'+id+'.svg',import.meta.url),'utf8');assert.ok(svg.includes('data:image/webp;base64,'));assert.ok(svg.includes('data:font/ttf;base64,'));assert.ok(svg.includes(TITLE_BY_ID[id].name));
+ if(TITLE_BY_ID[id].rank>=3)assert.ok(svg.includes('<animate'));
+ assert.ok(titleArt(id).includes(id+'.svg'));assert.ok(titleBadge(id).includes(TITLE_BY_ID[id].name));
+ const equipped=execute(state,'titleEquip',{id},ctx).state;assert.equal(equipped.title,id);assert.deepEqual(equipped.titles,state.titles);assert.equal(power(equipped).critDamage,power(state).critDamage,'equip adds no extra stats');
+ const restored=JSON.parse(JSON.stringify(equipped));assert.equal(restored.title,id);assert.equal(execute(restored,'titleEquip',{id:null},ctx).state.title,null);
+ assert.ok(titlePanelView(equipped).includes(TITLE_BY_ID[id].name));
+}
+const without={...state,titles:Object.fromEntries(Object.entries(state.titles).filter(([id])=>!ids.includes(id)))};
+assert.ok(Math.abs(power(state).critDamage-power(without).critDamage-4*TITLE_CRIT_DAMAGE)<1e-9,'existing +0.5%p per owned title applies uniformly');
+const locked=initialState('mage','미획득',ctx);locked.hunting=false;assert.throws(()=>execute(locked,'titleEquip',{id:'look18'},ctx),/TITLE_LOCKED/);
+console.log('PASS four painted titles: exact collection thresholds, six-job coverage, invalid/duplicate protection, once-only awards, equip/persistence, existing crit bonus, server parity and embedded artwork/font');
