@@ -1,13 +1,17 @@
 import {partyRoomView} from './party-room.mjs';
 import {citadelPopulation,citadelStage,citadelAsset,CITADEL_BOSSES} from './citadel-zero.mjs';
 import {EXPLORATIONS,explorationArt,explorationPopulation,explorationScale,explorationPrevious,explorationKeys} from './exploration-data.mjs';
-import {EXPLORATION_REWARDS,explorationRewardCount,explorationGearRange} from './exploration-reward-data.mjs';
+import {EXPLORATION_REWARDS,explorationRewardCount,explorationGearRange} from './exploration-reward-data.mjs?v=lobby2-20261025';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const artURL=src=>/^exploration\/(?:boss-[456]|map-[456])\.webp$/.test(src)?src+'?v=exploration-art456-20261025':src;
 const fmt=n=>new Intl.NumberFormat('ko-KR').format(n);
 const btn=(label,action,arg='',off=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(off?'disabled':'')+'>'+label+'</button>';
 export const explorationUnlocked=(state,tier)=>Number.isInteger(tier)&&!!EXPLORATIONS[tier]&&(tier===0||(state.exploration?.cleared||[]).includes(explorationPrevious(tier)));
 const pctText=x=>(x*100).toFixed(0)+'%';
+function rewardList(t){
+ const r=EXPLORATION_REWARDS[t.id],n=key=>explorationRewardCount(r,key),row=(label,p)=>'<li><span>'+label+'</span><b>'+pctText(p)+'</b></li>';
+ return '<ul class="exploration-reward-list"><li><span>골드 '+fmt(r.gold)+' G</span><b>확정</b></li>'+row('잠재 해금 주문서 '+n('scroll')+'개',r.scroll)+row('블랙 큐브 '+n('highCube')+'개',r.highCube)+row('잠재 잠금석 '+n('potentialLock')+'개',r.potentialLock)+(r.addCube?row('에디셔널 큐브 '+n('addCube')+'개',r.addCube)+row('추가옵션 불꽃 '+n('bonusFlame')+'개',r.bonusFlame):'')+row(explorationGearRange(r)+'제 보스장비 1개',r.bossGear)+'</ul><p class="note">각각 독립 추첨 · 직업·부위 랜덤</p>';
+}
 function explorationCardNote(t){
  const r=EXPLORATION_REWARDS[t.id],n=key=>explorationRewardCount(r,key),extra=r.addCube?'<br>에디셔널 큐브 '+n('addCube')+'개 '+pctText(r.addCube)+' · 추가옵션 불꽃 '+n('bonusFlame')+'개 '+pctText(r.bonusFlame):'';
  const strength=t.linearHp?'보스 체력 1인 '+(66.5e6*t.multiplier/1e8).toFixed(1).replace(/\.0$/,'')+'억 × 인원수 · 입장 열쇠 '+(t.keys||1)+'개':'강도 '+t.multiplier+'배';
@@ -20,7 +24,7 @@ export function explorationLobby(state,room,rooms=[]){
  const waiting=rooms.filter(x=>x.mode==='exploration'&&x.tier!==3&&EXPLORATIONS[x.tier]);
  const stepNo=t=>t.id>3?t.id:t.id+1,man=n=>fmt(Math.round(n/1e4))+'만';
  const summary=t=>{const r=EXPLORATION_REWARDS[t.id];return (t.linearHp?'보스 '+(66.5e6*t.multiplier/1e8).toFixed(1).replace(/\.0$/,'')+'억×인원':'강도 '+t.multiplier+'배')+' · 열쇠 '+explorationKeys(t.id)+' · '+man(r.gold)+' G · '+explorationGearRange(r)+'제 '+(r.bossGear*100).toFixed(0)+'%';};
- const card=t=>{const open=explorationUnlocked(state,t.id),need=explorationKeys(t.id);return '<article class="panel exploration-card'+(open?'':' locked')+'"><img src="'+artURL(t.map)+'" alt="" loading="lazy"><div class="exploration-card-body"><small>'+stepNo(t)+'단계 · '+esc(t.boss)+'</small><h3>'+t.name+'</h3><p class="exploration-card-line">'+summary(t)+'</p><details class="exploration-card-rewards"><summary>보상 자세히</summary>'+explorationCardNote(t)+'</details>'+btn(open?(keys>=need?'탐험 준비':'열쇠 '+need+'개 필요'):EXPLORATIONS[explorationPrevious(t.id)].name+' 클리어 필요','explorationCreate',t.id,!open||keys<need)+'</div></article>';};
+ const card=t=>{const open=explorationUnlocked(state,t.id),need=explorationKeys(t.id);return '<article class="panel exploration-card'+(open?'':' locked')+'"><img src="'+artURL(t.map)+'" alt="" loading="lazy"><div class="exploration-card-body"><small>'+stepNo(t)+'단계 · '+esc(t.boss)+'</small><h3>'+t.name+'</h3><p class="exploration-card-line">'+summary(t)+'</p><details class="exploration-card-rewards" data-no-currency-art><summary>보상 자세히</summary>'+rewardList(t)+'</details>'+btn(open?(keys>=need?'탐험 준비':'열쇠 '+need+'개 필요'):EXPLORATIONS[explorationPrevious(t.id)].name+' 클리어 필요','explorationCreate',t.id,!open||keys<need)+'</div></article>';};
  const roomList='<section class="panel pad exploration-rooms"><div class="exploration-rooms-head"><h3>모집 중인 탐험 '+(waiting.length?'<b>'+waiting.length+'</b>':'')+'</h3>'+btn('새로고침','coopList')+'</div>'+(waiting.length?waiting.map(x=>'<div class="daily-row"><span>'+esc(x.name)+' · '+stepNo(EXPLORATIONS[x.tier])+'단계 '+EXPLORATIONS[x.tier].name+'<small>'+x.count+' / 4명</small></span>'+btn(explorationUnlocked(state,x.tier)?'참가':'이전 단계 클리어 필요','coopJoin',x.id,x.count>=4||!explorationUnlocked(state,x.tier))+'</div>').join(''):'<p class="note">모집 중인 탐험이 없어요.</p>')+'</section>';
  return '<section class="exploration-lobby"><header class="panel pad exploration-head"><h2>링구의 탐험</h2><p>던전 열쇠 <b>'+fmt(keys)+'개</b> · 방장만 사용(1~4단계 1개 · 5단계 2개 · 6단계 3개) · 실패·이탈 시 유지, 최종 클리어 시 차감</p><details><summary>탐험 규칙</summary><p class="note">출발하면 보스방으로 바로 입장 · 모든 인원이 한 번씩 움직이면 전투 시작<br>이동속도 +60% · 호위 몬스터 3배 · 하트 자동 획득: 먹은 캐릭터 최대 체력 10% 회복<br>혼자 시작 가능 · 최대 4인 · 벽 없는 넓은 보스 전장<br>탐색 180초 · 보스 교전 시작부터 120초<br>쓰러진 동료 곁에서 5초 동안 멈추면 부활 · 최종 보스 처치 후 개인 상자</p></details></header>'+roomList+'<div class="exploration-cards compact">'+EXPLORATIONS.map(card).join('')+'</div></section>';
 }
