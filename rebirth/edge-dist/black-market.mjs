@@ -85,7 +85,8 @@ export function blackMarketOffersFor(state,rotationId){
  const sp=blackMarketSpecialFor(state,rotationId),shared=sp&&sp.shared===true;
  const offers=blackMarketOffers(rotationId,shared?'':String(state?.name||''));
  if(sp&&sp.rotation===rotationId&&Number.isInteger(sp.index)&&sp.index>=0&&sp.index<offers.length&&Number.isInteger(sp.level)&&Number.isInteger(sp.slot)){
-  const cls=CLASS_NAMES[sp.classId]?sp.classId:undefined;
+  // 200제 보스장비는 무기를 빼고 전부 공용이라 직업을 붙이지 않는다.
+  const cls=CLASS_NAMES[sp.classId]&&!(sp.level>=200&&sp.slot!==0)?sp.classId:undefined;
   offers[sp.index]={id:'boss-'+sp.level+'-'+sp.slot+(cls?'-'+cls:''),kind:'boss',name:sp.level+'제 '+(cls?CLASS_NAMES[cls]+' ':'')+'보스장비 '+SLOT_NAMES[sp.slot],level:sp.level,slot:sp.slot,classId:cls,price:blackMarketBossPrice(sp.level,sp.slot),stock:1,special:true};
  }
  return offers;
