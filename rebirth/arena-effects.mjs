@@ -1,3 +1,4 @@
+import {skillLookSourceRect} from './skill-look-bounds.mjs';
 import {skillLookArtPath} from './skill-look-designs.mjs';
 import {skillLookById} from './skill-looks.mjs';
 import {transparentEffectAtlas} from './effect-alpha.mjs';
@@ -26,7 +27,10 @@ export function prepareArenaEffect(classId,slot,skillLookId=null){
   const source=art.blackMatte?transparentEffectAtlas(image):image;
   const width=image.naturalWidth/art.cols,height=image.naturalHeight/art.rows,scale=Math.min(1,512/Math.max(width,height));
   const canvas=document.createElement('canvas');canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
-  canvas.getContext('2d').drawImage(source,art.col*width,art.row*height,width,height,0,0,canvas.width,canvas.height);
+  const look=skillLookById(skillLookId),rect=look?.classId===classId?skillLookSourceRect(look.id,slot,art.col,image.naturalWidth,image.naturalHeight):{x:art.col*width,y:art.row*height,w:width,h:height};
+  const fit=look?.classId===classId?Math.min(canvas.width/rect.w,canvas.height/rect.h):scale;
+  const dw=rect.w*fit,dh=rect.h*fit;
+  canvas.getContext('2d').drawImage(source,rect.x,rect.y,rect.w,rect.h,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
   return canvas;
  })());
  return frames.get(key);

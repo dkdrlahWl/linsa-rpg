@@ -22,6 +22,7 @@ jobs:
       - run: node rebirth/costume30m.test.mjs
       - run: node rebirth/skill-looks.test.mjs
       - run: node rebirth/skill-look-native.test.mjs
+      - run: node rebirth/skill-look-bounds.test.mjs
       - run: node rebirth/skill-look-designs.test.mjs
       - run: node rebirth/actor-facing.test.mjs
       - run: node rebirth/endgame-field.test.mjs
