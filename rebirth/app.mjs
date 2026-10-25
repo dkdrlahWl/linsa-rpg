@@ -25,6 +25,7 @@ let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
+import {treasureView} from './treasure-ui.mjs';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
@@ -163,6 +164,11 @@ const errors = {
   FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
   FISHING_DAILY_LIMIT: "오늘 낚시는 하루 600번까지예요. 한국 시간 자정에 초기화돼요.",
   FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
+  TREASURE_DAILY_LIMIT: "오늘 보물 찾기 3판을 모두 했어요. 자정에 초기화돼요.",
+  TREASURE_RUN_ACTIVE: "진행 중인 판을 먼저 끝내 주세요.",
+  TREASURE_NO_RUN: "진행 중인 보물 찾기가 없어요.",
+  TREASURE_EMPTY_BAG: "칸을 하나 이상 열어야 받을 수 있어요.",
+  TREASURE_CELL_OPEN: "이미 연 칸이에요.",
   FISHING_AQUARIUM_OPTIMAL: "이미 시간당 수익이 가장 높은 물고기들이 수족관에 있어요.",
   TESTER_BLOCKED: "테스트 계정은 사용할 수 없는 기능이에요.",
   FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시 상자와 일일퀘스트에서 얻을 수 있어요.",
@@ -687,7 +693,7 @@ function render() {
   else if (view === "regions") content = regions();
   else
     content = {
-      event:()=>eventPage==='lotto'?lottoView(state,lottoData):fishingView(state),
+      event:()=>eventPage==='lotto'?lottoView(state,lottoData):eventPage==='treasure'?treasureView(state):fishingView(state),
       hunt: hunt,
       character: character,
       gear: inventory,
@@ -699,9 +705,9 @@ function render() {
   document.body.classList.toggle('investment-mode',tab==='investment'&&view==='game'&&!state.battle&&!state.coopRoom&&!state.partyRoom);
   const eventScreen=tab==="event"&&view==="game"&&!state.coopRoom&&!towerBattle&&!state.partyRoom;
   document.body.classList.toggle("pet-event-mode",false);
-  document.body.classList.toggle("fishing-mode",eventScreen&&eventPage!=="lotto");
-  document.body.classList.toggle("lotto-mode",eventScreen&&eventPage==="lotto");
-  if(eventScreen&&eventPage!=='lotto')updateFishingView(app,content,state.fishing?.cast?.id);
+  document.body.classList.toggle("fishing-mode",eventScreen&&eventPage==="fishing");
+  document.body.classList.toggle("lotto-mode",eventScreen&&eventPage!=="fishing");
+  if(eventScreen&&eventPage==='fishing')updateFishingView(app,content,state.fishing?.cast?.id);
   else replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
   if(view==='arena'&&arenaPage==='battle'&&arenaBattle&&!arenaPlayback){arenaPlayback=startArenaReplay(arenaBattle,()=>{arenaPlayback=null;arenaPage='result';render();});}
   window.scrollTo({top:view==='arena'&&['opponents','battle'].includes(arenaPage)?0:preservedScroll,behavior:"instant"});
@@ -713,7 +719,7 @@ function render() {
   updateLuckTimers(state);
   updateInvestmentClock(investmentData,investmentLoadedAt);
   refreshLevelRequirements();
-  if(eventScreen&&eventPage!=='lotto'){
+  if(eventScreen&&eventPage==='fishing'){
     const fishingRoot=app.querySelector('.fishing-screen');mountFishing(fishingRoot,state,fishingCommandRequest);
     if(fishingUI.pending)showFishingPending(fishingRoot,fishingUI.pending,{animate:false});
     let banner=fishingRoot.querySelector('#connection-status');
@@ -1430,7 +1436,9 @@ document.addEventListener("click", async (e) => {
     if(action==='investPercent'){investPercentPick=Number(arg);applyInvestPercent();return render();}
     if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||investmentMargin(quantity,investmentData.coins[selectedCoin].price)>state.gold)return toast('증거금이 보유 골드를 넘어요. 수량을 줄여 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,leverage:investmentLeverage,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
     if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
-    if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
+    if(action==='treasureStart'||action==='treasureCash'){if(busy)return;const result=await command(action,{});const e=result?.result?.events?.find(x=>x.type==='treasureCash');if(e){const gear=e.got?.bossGear;toast((e.cleared?'전부 찾았어요! ':'')+'보상 획득'+(gear?' · 보스장비 상자 '+gear+'개':''));}return;}
+    if(action==='treasureDig'){if(busy)return;const result=await command('treasureDig',{cell:Number(arg)});const e=result?.result?.events?.[0];if(e?.type==='treasureBoom')toast('💥 지뢰! 모은 보상을 잃었어요.');else if(e?.type==='treasureCash')toast('🎉 안전한 칸을 전부 찾아서 보상을 받았어요!');return;}
+    if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':arg==='treasure'?'treasure':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
     if(action==='fishPanel'){fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);return;}
     if(action==='fishExchange'){const [item,count]=String(arg).split(':');return await fishingCommandRequest('fishExchange',{item,count:Number(count)});}
     if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}

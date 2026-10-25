@@ -1,0 +1,31 @@
+/* 2026-10-26 보물 지뢰찾기 */
+.lotto-event-switch.event-switch-3 button{width:auto;flex:1 1 0}
+.fishing-event-switch button{flex:1 1 0}
+.treasure-scene{background:radial-gradient(ellipse at 50% 0,#3b2a12 0,#0b1424 55%,#060d18);padding:3cqw 3cqw 5cqw;min-height:100%}
+.treasure-heading{text-align:center;text-shadow:0 3px 5px #000}
+.treasure-heading h1{font-family:'Noto Serif KR',serif;margin:1cqw 0 0;color:#ffe0a1;font-size:9cqw;font-weight:900;letter-spacing:-.05em}
+.treasure-heading p{margin:1cqw 0 2cqw;font-size:3.4cqw;color:#f1e3c5}.treasure-heading b{color:#ffd76a}
+.treasure-status{text-align:center;font-size:3.5cqw;margin:0 0 2.5cqw;color:#dfe6ef;min-height:5cqw}.treasure-status b{color:#ffd76a}
+.treasure-status.bad{color:#ffb4a6;font-weight:800}.treasure-status.good{color:#b8f5a6;font-weight:800}
+.treasure-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1.6cqw;padding:2.2cqw;border:2px solid #b8924a;border-radius:12px;background:linear-gradient(#2a1d0e,#140d06);box-shadow:inset 0 0 0 3px #e6c27a22,0 6px 18px #000a}
+.treasure-cell{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;align-content:center;gap:.5cqw;padding:0;position:relative;overflow:hidden}
+.treasure-cell.closed{border:1px solid #c79d4f;background:linear-gradient(145deg,#7a5524,#4b3014 60%,#2e1d0b);box-shadow:inset 0 2px 0 #ffe2a055,inset 0 -3px 0 #0006}
+.treasure-cell.closed::after{content:'?';font-family:Georgia,serif;font-size:7cqw;font-weight:900;color:#ffdc8a;text-shadow:0 2px 3px #000}
+.treasure-board.live .treasure-cell.closed:hover,.treasure-board.live .treasure-cell.closed:focus-visible{background:linear-gradient(145deg,#9a6e30,#5d3d1a 60%,#3a250e);transform:translateY(-1px)}
+.treasure-cell.closed.idle{opacity:.55}.treasure-cell.closed.idle::after{content:''}
+.treasure-cell.open{border:1px solid #6d8aa8;background:radial-gradient(circle at 50% 35%,#24415f,#0d1b2c)}
+.treasure-cell.open.rare{border-color:#ffd76a;background:radial-gradient(circle at 50% 35%,#6b4a12,#2a1906);box-shadow:0 0 10px #ffcf5a66}
+.treasure-cell.open img{width:62%;height:auto;max-height:62%;object-fit:contain}
+.treasure-cell.open small{font-size:2.3cqw;line-height:1;color:#f4ead2;white-space:nowrap}
+.treasure-cell.mine{border:1px solid #8a3a32;background:#2a0f0d;font-size:7cqw}
+.treasure-cell.mine.boom{background:radial-gradient(circle,#ff7a3c,#8f1c10 70%);border-color:#ffb08a;box-shadow:0 0 14px #ff6a2a}
+.treasure-main{display:block;width:100%;margin:3cqw 0 2cqw;min-height:12cqw!important;border:2px solid #f2d17d;border-radius:8px;background:linear-gradient(#fff0ab,#d6a54e 48%,#f2d582 52%,#ac792c);box-shadow:inset 0 0 0 3px #b7843480;color:#382104;font-weight:900;font-size:5cqw;text-shadow:0 1px 0 #fce8a9}
+.treasure-main:disabled{opacity:.55;cursor:default}
+.treasure-bag{border:1px solid #887752;border-radius:9px;background:#0b1625e6;padding:2.5cqw 3cqw;margin-bottom:2cqw}
+.treasure-bag h2{margin:0 0 1.5cqw;font-size:4cqw;color:#fff0cf}.treasure-bag h2 small{font-size:3cqw;color:#aebcd0;font-weight:400}
+.treasure-bag-list,.treasure-odds{list-style:none;margin:0;padding:0;display:grid;gap:1.2cqw}
+.treasure-bag-list li,.treasure-odds li{display:grid;grid-template-columns:6.5cqw 1fr auto;align-items:center;gap:2cqw;font-size:3.4cqw}
+.treasure-bag-list img,.treasure-odds img{width:6.5cqw;height:6.5cqw;object-fit:contain}
+.treasure-bag-list b{color:#ffd76a}.treasure-empty{margin:0;font-size:3.3cqw;color:#aebcd0}
+.treasure-rules{border:1px solid #5d6a7c;border-radius:9px;padding:2cqw 3cqw;background:#08121fcc;font-size:3.2cqw;color:#cdd6e3}
+.treasure-rules summary{cursor:pointer;font-weight:800;color:#f1e3c5}.treasure-rules p{line-height:1.6;margin:1.5cqw 0}.treasure-odds b{color:#ffd76a}
