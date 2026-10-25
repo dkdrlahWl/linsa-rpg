@@ -86,3 +86,14 @@ Spot scale [60,100,128,41,19]. ~300 casts/h net: rod1 ≈15k, rod10 ≈70k, rod2
 
 ## 2026-10-11 10× (update 220)
 Spot scale ×10 [600,1000,1280,410,190]: ~300 casts/h ≈ rod1 0.29M, rod20 1.48M, rod40 3.04M, rod50 3.58M G/h. Aquarium kept at previous absolute income (0.075× sale price, mythic 0.03×).
+
+## Lv.70 expansion (2026-10-25)
+
+- Rod cap 70. Lv.50+ costs grow 15%/level in gold and 20 + 2/level in diamonds (Lv.50→70 ≈ 146.7M G + 780 diamonds). The rod bonus to higher grades keeps growing to 70.
+- New spots: 용궁 해구 (Lv.50, price ×1.65, grade luck 1.95) and 태고의 바다 (Lv.60, ×1.7, 2.0). 20 new fish (fish-51~70).
+- New grade 태고 (rod 65+, 태고의 바다 only, 2 species). About 1 in 7,300 casts with worms at rod 70, 1 in 3,400 with star bait.
+- Diamond exchange: 5 → 에디셔널 큐브, 3 → 블랙 큐브, 5 → 잠재 잠금석, at most 30 items per Korean day.
+- Weekly big-fish contest (from Monday 2026-10-26, KST weeks): one target species from one spot per week, heaviest single fish ranks.
+  1st: 100 diamonds + 50 에디셔널 큐브, 2nd–3rd: 50 + 30, no other rewards. Ranks come from `rebirth_fishing_contest` (fishing-contest.sql);
+  claims are validated by the engine against that server ranking and can be collected within 4 weeks.
+- Placeholder art for the new fish and spots is recolored existing art; see FISHING-70-ART.md for the real art request.

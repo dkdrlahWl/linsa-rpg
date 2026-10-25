@@ -158,6 +158,11 @@ const errors = {
   FISHING_AQUARIUM_OPTIMAL: "이미 시간당 수익이 가장 높은 물고기들이 수족관에 있어요.",
   TESTER_BLOCKED: "테스트 계정은 사용할 수 없는 기능이에요.",
   FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시 상자와 일일퀘스트에서 얻을 수 있어요.",
+  FISHING_EXCHANGE_LIMIT: "오늘 교환 한도(30개)를 다 썼어요. 자정에 초기화돼요.",
+  INVALID_FISHING_EXCHANGE: "교환할 수 없는 항목이에요.",
+  FISHING_CONTEST_CLOSED: "받을 수 있는 대회 기간이 아니에요.",
+  FISHING_CONTEST_CLAIMED: "이미 받은 대회 보상이에요.",
+  FISHING_CONTEST_NO_REWARD: "해당 주 대어 대회 입상 기록이 없어요.",
   FISHING_XP_REQUIRED: "골드로 낚싯대 경험치를 먼저 채워주세요.",
   FISHING_XP_FULL: "경험치가 가득 찼어요. 다이아로 레벨업해 주세요.",
   FISHING_NO_INCOME: "아직 받을 골드가 없어요.",
@@ -514,6 +519,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     }
     if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
+    if(result.fishingContest){fishingUI.contest=result.fishingContest;fishingUI.contestLoadedAt=Date.now();}
     if(result.arena){arenaData=result.arena;arenaError='';}
     if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
     // A fishing daily that just became claimable gets a one-time toast (badges stay until it is claimed).
@@ -1103,6 +1109,8 @@ function showEvents(events) {
     if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}
     if(['fishSell','fishAquariumClaim'].includes(e.type)){toast(fmt(e.gold)+' G 받았어요.');continue;}
     if(e.type==='fishQuestClaim'){toast('일일퀘스트 · 다이아 '+e.diamonds+'개 받았어요.');continue;}
+    if(e.type==='fishExchange'){toast(e.name+' '+e.count+'개 교환 완료 · 다이아 '+e.diamonds+'개 사용');continue;}
+    if(e.type==='fishContestClaim'){toast('대어 대회 '+e.rank+'위 보상 · 다이아 '+e.diamonds+'개, 에디셔널 큐브 '+e.addCube+'개');continue;}
     if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
     if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
@@ -1403,7 +1411,9 @@ document.addEventListener("click", async (e) => {
     if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||investmentMargin(quantity,investmentData.coins[selectedCoin].price)>state.gold)return toast('증거금이 보유 골드를 넘어요. 수량을 줄여 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,leverage:investmentLeverage,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
     if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
     if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
-    if(action==='fishPanel'){fishingUI.panel=arg;render();return;}
+    if(action==='fishPanel'){fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);return;}
+    if(action==='fishExchange'){const [item,count]=String(arg).split(':');return await fishingCommandRequest('fishExchange',{item,count:Number(count)});}
+    if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
     if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}

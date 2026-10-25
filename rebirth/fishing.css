@@ -30,3 +30,22 @@
 .fishing-instant-note{margin:2px 0 7px;padding:6px 8px;border:1px solid #b58f4d66;border-radius:8px;background:#0e2431;font-size:11px;color:#e9d9b4;text-align:center}.fishing-loot>div{grid-template-columns:repeat(2,minmax(0,160px));justify-content:center}
 .fishing-title-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .fishing-daily-count{color:#ffe08a}.fishing-daily-count.is-full{color:#ff8a7a}
+/* 2026-10-25: 7 낚시터 · 8 메뉴 · 대어 대회 · 다이아 교환소 */
+.fishing-screen .fishing-sites{grid-template-columns:repeat(7,minmax(0,1fr))}
+.fishing-screen .fishing-panels{grid-template-columns:repeat(8,minmax(0,1fr))}
+@media(max-width:700px){.fishing-screen .fishing-sites{grid-template-columns:repeat(4,minmax(0,1fr))}.fishing-screen .fishing-panels{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.fishing-contest-target{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:#112736;border:1px solid var(--rarity,#647273);margin-bottom:10px}
+.fishing-contest-target img{width:84px;height:84px;object-fit:contain;flex:none}
+.fishing-contest-target div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fishing-contest-target strong{font-size:18px}.fishing-contest-target strong em{font-style:normal;font-size:12px;color:var(--rarity)}
+.fishing-contest-target small,.fishing-contest-target span{font-size:12px;opacity:.85}
+.fishing-contest-rewards{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.fishing-contest-rewards span{font-size:12px;padding:5px 8px;border-radius:999px;background:#bfa46a22;border:1px solid #bfa46a55}
+.fishing-contest-board h3{font-size:14px;margin:12px 0 6px}
+.fishing-contest-board ol{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.fishing-contest-board li{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:8px;background:#0e2230;font-size:13px}
+.fishing-contest-board li.me{outline:1px solid #ffd477;background:#2a2a1a}
+.fishing-contest-board li.empty{display:block;opacity:.7}
+.fishing-contest-board li em{font-style:normal;color:#ffd477}
+.fishing-note{font-size:12px;opacity:.7;margin-top:10px}
+.fishing-exchange-buttons{display:flex;gap:5px;width:100%}.fishing-exchange-buttons button{flex:1}

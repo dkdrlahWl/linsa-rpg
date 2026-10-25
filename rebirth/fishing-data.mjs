@@ -1,17 +1,20 @@
 // Shared with the authenticated server. Fish use gold; bait bundles use diamonds. Weight is grams.
 export const FISHING_VERSION=2;
 // 낚싯대 최대 레벨: 확장 시 여기만 수정 (rodGoldCost/rodDiamondCost 표도 같이 늘릴 것).
-export const ROD_MAX=50;
+export const ROD_MAX=70;
 // 하루 낚시(찌 던지기) 상한, 한국 시간 자정 초기화.
 export const FISHING_DAILY_CASTS=600;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
-export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240}];
+export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240},{name:'태고',color:'#7ff6ff',gate:65,value:600}];
 export const SPOTS=[
  {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
  {id:'moon',bonus:1.15,luck:1.6,name:'달빛 호수',level:10,subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
  {id:'canyon',bonus:1.3,luck:1.7,name:'단풍 협곡',level:20,subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
  {id:'coral',bonus:1.45,luck:1.8,name:'산호 해안',level:30,subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
  {id:'abyss',bonus:1.6,luck:1.9,name:'천상의 심해',level:40,subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
+ // 2026-10-25: 낚싯대 70 확장. 용궁 해구 Lv.50, 태고의 바다 Lv.60 (태고 등급은 낚싯대 65부터).
+ {id:'palace',bonus:1.65,luck:1.95,name:'용궁 해구',level:50,subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
+ {id:'origin',bonus:1.7,luck:2,name:'태고의 바다',level:60,subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
 ];
 const rows=[
  ['brook','풀잎 피라미',0,80,300,'leaf green minnow with gold fins'],['brook','은빛 송사리',0,20,120,'tiny silver ricefish with pale green fins'],['brook','조약돌 망둑어',0,100,450,'round speckled stone goby'],['brook','햇살 붕어',0,250,1500,'warm golden crucian carp'],['brook','산들 메기',0,400,2500,'cute moss grey catfish with flowing whiskers'],['brook','꽃잎 잉어',0,300,2000,'pink white koi with petal shaped fins'],['brook','이끼 비늘어',1,400,2500,'emerald moss scaled fish'],['brook','청금 송어',1,700,3500,'turquoise trout with golden flecks'],['brook','반딧불 버들치',1,120,800,'willow minnow with luminous yellow speckles'],['brook','수련 베타',1,100,600,'jade pink betta with lotus petal fins'],
@@ -19,6 +22,8 @@ const rows=[
  ['canyon','단풍 피라미',0,100,500,'orange red minnow'],['canyon','노을 농어',0,500,3000,'amber sunset perch'],['canyon','황토 메기',1,800,5000,'rust brown gold catfish'],['canyon','호박빛 잉어',1,700,4000,'amber gemstone scaled koi'],['canyon','홍엽 송어',1,600,3500,'crimson trout with leaf shaped fins'],['canyon','협곡 칼날어',2,1000,6500,'copper fish with sharp blade shaped dorsal fin'],['canyon','비단 리본어',2,700,4500,'red gold ribbon fish with flowing silk fins'],['canyon','불씨 복어',2,300,1600,'round orange puffer with glowing ember freckles'],['canyon','백금 연어',2,1500,9000,'platinum salmon with red accents'],['canyon','홍련 용어',3,3000,18000,'small crimson dragon fish with flowing golden horns'],
  ['coral','산호 앵무어',0,800,5000,'vivid coral pink turquoise parrotfish'],['coral','파도 돛새치',2,4000,24000,'teal sailfish with ocean blue sail'],['coral','자수정 해마',0,100,650,'amethyst purple jeweled seahorse'],['coral','오팔 가오리',1,1500,10000,'opal rainbow spotted stingray'],['coral','태양 산호어',2,1500,9000,'golden solar fish with coral branching fins'],['coral','청옥 만타',3,5000,35000,'jade turquoise manta ray'],['coral','인어의 진주어',1,1200,7500,'iridescent pearl fish with long flowing white fins'],['coral','폭풍 창꼬치',3,3000,20000,'dark turquoise barracuda with electric gold fins'],['coral','무지개 해룡',3,2000,14000,'iridescent rainbow sea dragon'],['coral','황금 왕관고래',4,12000,90000,'majestic small gold whale with coral crown'],
  ['abyss','별빛 아귀',0,1500,10000,'indigo anglerfish with glowing star lure'],['abyss','오로라 유령어',0,1000,7000,'translucent violet aurora fish'],['abyss','공허 문어',1,3000,24000,'cute cosmic purple octopus with star markings'],['abyss','천공 수정어',1,2000,16000,'icy celestial crystal scaled fish'],['abyss','달의 수호룡',3,10000,65000,'silver blue moon guardian sea dragon'],['abyss','태고의 황제어',2,9000,60000,'ancient imperial indigo fish with gold armor scales'],['abyss','성운 날개가오리',2,8000,55000,'nebula violet manta with angel wing fins'],['abyss','심연의 왕관상어',4,14000,100000,'deep purple shark with luminous crystalline crown'],['abyss','천해의 별고래',5,35000,240000,'mythical celestial star whale, sapphire gold, galaxy wings'],['abyss','영원의 백룡',5,25000,180000,'mythical elegant white sea dragon, luminous pink gold flowing fins'],
+ ['palace','산호 꼬마복어',0,300,2000,'tiny coral pink pufferfish with pearl spots'],['palace','물결 은갈치',0,800,5000,'long silver ribbon cutlassfish with wave patterns'],['palace','청자 거북복',1,1200,8000,'celadon jade boxfish with crackle glaze pattern'],['palace','용궁 시녀어',1,900,6000,'elegant red and gold fish with flowing hanbok like fins'],['palace','진주 조개어',2,2500,15000,'pearl white fish holding a glowing pearl between clam shaped fins'],['palace','홍산호 도미',2,4000,26000,'crimson coral sea bream with golden scales'],['palace','청룡 비늘어',3,8000,50000,'azure dragon scaled fish with jade whiskers'],['palace','용왕의 호위상어',3,15000,90000,'armored royal guard shark with golden helmet fins'],['palace','여의주 해룡',4,20000,130000,'majestic sea dragon holding a glowing wish pearl'],['palace','용왕 금린어',5,45000,300000,'mythical dragon king giant fish with golden scales and a coral crown'],
+ ['origin','원시 화석어',0,1500,9000,'ancient armored fossil fish with stone plates'],['origin','호박빛 투명어',1,2000,12000,'translucent fish glowing like amber'],['origin','고대 앵무조개',1,3000,18000,'ancient nautilus with golden spiral shell'],['origin','시간의 비늘어',2,6000,35000,'fish with clock like silver scales and glowing runes'],['origin','태초 물결가오리',2,10000,60000,'primordial ray with aurora wave wings'],['origin','창세의 고래상어',3,25000,150000,'genesis whale shark with starry spots'],['origin','별을 삼킨 리바이어던',4,40000,260000,'cosmic leviathan with a galaxy belly'],['origin','태양을 품은 해룡',5,60000,380000,'mythical sea dragon carrying a radiant sun orb'],['origin','태고의 세계어',6,120000,800000,'primordial world fish with tiny islands and forests on its back, cosmic aura'],['origin','시원의 백금룡',6,100000,650000,'primordial platinum dragon of creation with prismatic aura'],
 ];
 export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:Math.max(SPOTS.find(s=>s.id===spot).level,RARITIES[rarity].gate)}));
 export const BAITS=[{id:'worm',name:'숲 지렁이',pack:50,gold:5000,level:1,luck:0},{id:'shrimp',name:'반짝 새우',pack:15,diamonds:2,level:10,luck:.5},{id:'pearl',name:'진주 미끼',pack:10,diamonds:4,level:25,luck:1.2},{id:'star',name:'별가루 미끼',pack:5,diamonds:6,level:40,luck:2.5}];
@@ -36,8 +41,9 @@ export const spotGradeWeight=fish=>(SPOTS.find(x=>x.id===fish.spot)?.luck||1)**f
 // Bite wait is the only cast delay. Every bite is caught.
 export const BITE_MIN_MS=5000,BITE_RANGE_MS=4000,CAST_EXPIRE_MS=60000;
 // Lv.1→30 grows 16%/level; Lv.30+ only 7%/level. Lv.1→50 totals about 17M gold.
-export const rodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,level-30)/100)*100;
-export const rodDiamondCost=level=>2+Math.floor(level/5);
+// 2026-10-25 Lv.50+: gold grows 15%/level, diamonds 20 + 2/level (Lv.50→70 ≈ 1.46억 G + 780 다이아).
+export const rodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,Math.min(level,50)-30)*1.15**Math.max(0,level-50)/100)*100;
+export const rodDiamondCost=level=>level>=50?20+2*(level-50):2+Math.floor(level/5);
 // One price per grade everywhere (×600 G), with a small bonus for later spots (1.0 → 1.6×), then weight.
 export const FISH_PRICE_BASE=480; // 2026-10-12: sale prices -20%
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;const bonus=SPOTS.find(x=>x.id===d.spot).bonus;return Math.max(10,Math.round(RARITIES[d.rarity].value*FISH_PRICE_BASE*bonus*(1.1+.3*Math.min(1,fish.weight/d.max))/10)*10);};
@@ -45,8 +51,20 @@ export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)re
 // previous table now that deep-spot top fish sell for more (신화 stays the best per fish).
 // 2026-10-12: 9 mythic ≈ half of the best hunting income (~340k/h).
 // Each grade's worst fish (any spot, lightest) out-earns the previous grade's best (any spot, heaviest), for sale and aquarium.
-export const AQUARIUM_RATE=[.9375,.65,.4625,.29375,.155,.16875]; // x1.25 with the -20% sale base: aquarium income unchanged // 신화 sale value 600→240 (2026-10-12); rate keeps its aquarium income
+export const AQUARIUM_RATE=[.9375,.65,.4625,.29375,.155,.16875,.1]; // x1.25 with the -20% sale base: aquarium income unchanged // 신화 sale value 600→240 (2026-10-12); rate keeps its aquarium income
 export const fishYield=fish=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishPrice(fish)*AQUARIUM_RATE[d.rarity])):0;};
 export const aquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
-export const resourceName=id=>({diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
+export const resourceName=id=>({addCube:'에디셔널 큐브',diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
+
+// 2026-10-25 다이아 교환소: 하루 30개(한국 시간 자정 초기화)까지 교환.
+export const DIAMOND_EXCHANGE=[{id:'addCube',name:'에디셔널 큐브',diamonds:5},{id:'highCube',name:'블랙 큐브',diamonds:3},{id:'potentialLock',name:'잠재 잠금석',diamonds:5}];
+export const DIAMOND_EXCHANGE_DAILY=30;
+// 2026-10-25 주간 대어 대회: 한 주(월요일 0시 KST)마다 낚시터 하나 · 대상 물고기 한 종. 가장 무거운 한 마리로 순위.
+export const CONTEST_REWARDS=[{rank:1,diamonds:100,addCube:50},{rank:2,diamonds:50,addCube:30},{rank:3,diamonds:50,addCube:30}];
+export const CONTEST_CLAIM_WEEKS=4,CONTEST_START='2026-10-26';
+export const contestWeek=(now=Date.now())=>{const d=new Date(Number(now)+9*3600000);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);};
+export const contestWeekEnd=week=>Date.parse(week+'T00:00:00+09:00')+7*86400000;
+// 대상: 낚싯대 50 이하로 갈 수 있는 낚시터의 레어·에픽 물고기 중 주마다 순서대로 한 종.
+export const CONTEST_POOL=FISH.filter(x=>(x.rarity===2||x.rarity===3)&&SPOTS.find(s=>s.id===x.spot).level<=50).map(x=>x.id);
+export const contestTarget=week=>{const index=Math.round(Date.parse(week+'T00:00:00Z')/604800000);const species=CONTEST_POOL[((index*7)%CONTEST_POOL.length+CONTEST_POOL.length)%CONTEST_POOL.length];const fish=FISH.find(x=>x.id===species);return {week,species,spot:fish.spot};};

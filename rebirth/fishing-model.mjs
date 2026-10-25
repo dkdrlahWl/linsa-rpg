@@ -1,4 +1,4 @@
-import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS} from './fishing-data.mjs';
+import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
@@ -6,7 +6,7 @@ const koreanDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
 export function normalizeFishing(s,now){
  s.fishing??={version:1,rod:1,xp:0,diamonds:0,bait:{worm:20},fish:[],aquarium:[],slots:3,bank:0,bankAt:now,collection:{},daily:{},cast:null,lastCatch:null};
  const f=s.fishing;
- if(f.daily.day!==koreanDay(now))f.daily={day:koreanDay(now),catch:0,rare:0,sell:0,claimed:[]};
+ if(f.daily.day!==koreanDay(now))f.daily={day:koreanDay(now),catch:0,rare:0,sell:0,exchanged:0,claimed:[]};
  if(f.cast&&now>f.cast.expires)f.cast=null;
  return f;
 }
@@ -37,7 +37,7 @@ export function fishingStep(cast,input,meter){
 }
 export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false});
 // Base grade weights per grade (2026-10-12).
-export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.00117,.000378];
+export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.00117,.000378,.000005];
 function rollCatch(c,ctx){
  const spot=SPOTS.find(x=>x.id===c.spot)||SPOTS[0],bait=BAITS.find(x=>x.id===c.bait)||BAITS[0],rod=c.rod||1;
  const available=FISH.filter(x=>x.spot===spot.id&&x.level<=rod);
@@ -52,6 +52,14 @@ function rollCatch(c,ctx){
  let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance;if(roll<0){reward=r.id;break;}}
  return {species:species.id,weight,reward};
 }
+// 주간 대어 대회: 이번 주 대상 물고기 중 가장 무거운 한 마리만 남긴다 (최근 몇 주만 보관).
+function recordContest(f,item){
+ const week=contestWeek(item.caughtAt);if(week<CONTEST_START||contestTarget(week).species!==item.species)return;
+ f.contest??={};const best=f.contest[week];
+ if(!best||item.weight>best.weight)f.contest[week]={species:item.species,weight:item.weight,at:item.caughtAt};
+ const keep=new Set(Array.from({length:CONTEST_CLAIM_WEEKS+1},(_,i)=>contestWeek(item.caughtAt-i*604800000)));
+ for(const key of Object.keys(f.contest))if(!keep.has(key))delete f.contest[key];
+}
 function landCatch(s,f,c,ctx){
  f.cast=null;
  if(!c.species)Object.assign(c,rollCatch(c,ctx));
@@ -61,6 +69,7 @@ function landCatch(s,f,c,ctx){
   const item={id:ctx.uuid(),species:c.species,weight:c.weight,caughtAt:ctx.now};f.fish.push(item);
   f.collection[c.species]=Math.max(f.collection[c.species]||0,c.weight);f.daily.catch++;f.totalCatch=(f.totalCatch||0)+1;
   if(FISH.find(x=>x.id===c.species).rarity>=1)f.daily.rare++;
+  recordContest(f,item);
   result.fish=item;result.gold=fishPrice(item);
  }else if(reward==='diamondChest'){const diamonds=3+Math.floor(ctx.random()*6);f.diamonds+=diamonds;result.diamonds=diamonds;}
  else{s.materials[reward]=(s.materials[reward]||0)+1;result.amount=1;}
@@ -133,6 +142,24 @@ export function fishingCommand(s,command,args,ctx){
   const q=FISHING_QUESTS.find(x=>x.id===args.id);require(q,'INVALID_FISHING_QUEST');
   require(!f.daily.claimed.includes(q.id),'FISHING_QUEST_CLAIMED');require(f.daily[q.id]>=q.goal,'FISHING_QUEST_REQUIRED');
   f.daily.claimed.push(q.id);f.diamonds+=q.diamonds;return {type:'fishQuestClaim',diamonds:q.diamonds};
+ }
+ if(command==='fishExchange'){
+  const item=DIAMOND_EXCHANGE.find(x=>x.id===args.item);require(item&&integer(args.count,1,DIAMOND_EXCHANGE_DAILY),'INVALID_FISHING_EXCHANGE');
+  require((f.daily.exchanged||0)+args.count<=DIAMOND_EXCHANGE_DAILY,'FISHING_EXCHANGE_LIMIT');
+  const cost=item.diamonds*args.count;require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');
+  f.diamonds-=cost;f.daily.exchanged=(f.daily.exchanged||0)+args.count;s.materials[item.id]=(s.materials[item.id]||0)+args.count;
+  return {type:'fishExchange',item:item.id,name:item.name,count:args.count,diamonds:cost};
+ }
+ if(command==='fishContestClaim'){
+  // The ranking comes from the server (rebirth_fishing_contest), never from the client.
+  const week=String(args.week||''),board=ctx.fishingContest;
+  require(/^\d{4}-\d{2}-\d{2}$/.test(week)&&contestWeekEnd(week)<=ctx.now&&ctx.now-contestWeekEnd(week)<CONTEST_CLAIM_WEEKS*604800000,'FISHING_CONTEST_CLOSED');
+  f.contestClaims??=[];require(!f.contestClaims.includes(week),'FISHING_CONTEST_CLAIMED');
+  const mine=(board?.rewards||[]).find(r=>r.week===week),reward=CONTEST_REWARDS.find(r=>r.rank===mine?.rank);
+  require(reward,'FISHING_CONTEST_NO_REWARD');
+  f.contestClaims=[...f.contestClaims.filter(w=>ctx.now-contestWeekEnd(w)<(CONTEST_CLAIM_WEEKS+1)*604800000),week];
+  f.diamonds+=reward.diamonds;s.materials.addCube=(s.materials.addCube||0)+reward.addCube;
+  return {type:'fishContestClaim',week,rank:reward.rank,diamonds:reward.diamonds,addCube:reward.addCube};
  }
  throw Error('UNKNOWN_FISHING_COMMAND');
 }

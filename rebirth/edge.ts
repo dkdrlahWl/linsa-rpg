@@ -4,6 +4,7 @@ import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 import {grantCitadelChests} from './citadel-rewards.mjs';
 import {fishingStateReply} from './fishing-sync.mjs';
+import {contestWeek} from './fishing-data.mjs';
 import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import {encodeCoopView} from './coop-wire.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
@@ -109,6 +110,9 @@ Deno.serve(async (req) => {
     }
     if(['investList','investBuy','investSell'].includes(body.command)){
       return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
+    }
+    if(body.command==='fishContestList'){
+      return reply({fishingContest:await rpc('rebirth_fishing_contest',{p_week:contestWeek(Date.now())})});
     }
     if(['lottoList','lottoBuy'].includes(body.command)){
       return reply(await rpc('rebirth_lotto',{p_action:body.command==='lottoBuy'?'buy':'list',p_args:body.args,p_request:body.requestId}));
@@ -233,6 +237,8 @@ Deno.serve(async (req) => {
       };
       // 칭호: SQL-backed stats (arena/lotto/market/investment) come from the server, never from the client.
       if (body.command === "titleSync" && snap.state) (ctx as any).titleStats = await rpc("rebirth_title_stats", {});
+      // 대어 대회 보상: 순위는 SQL 서버 집계만 믿는다.
+      if (body.command === "fishContestClaim" && snap.state) (ctx as any).fishingContest = await rpc("rebirth_fishing_contest", {p_week:contestWeek(Number(snap.now))});
       if (!snap.state && body.command !== "create")
         return reply({
           state: null,
