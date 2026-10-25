@@ -12,8 +12,8 @@ export function costumeMotionFrame(classId,dir,moving,acting,age=0,walk=0,costum
  // Keep the warrior facing the target through the whole swing; a few painted
  // cells in the side-attack row turn their back to the target.
  let cell=phase;
- if(acting&&classId==='warrior'&&direction===2)cell=[0,0,0,7,7,7,0,0][phase];
- if(acting&&classId==='warrior'&&direction===1&&phase===4)cell=3;
+ if(acting&&classId==='warrior'&&!layout.authoredAttack&&direction===2)cell=[0,0,0,7,7,7,0,0][phase];
+ if(acting&&classId==='warrior'&&!layout.authoredAttack&&direction===1&&phase===4)cell=3;
  return {layout,frame:layout.frames[row*8+cell],row,phase,flip:[3,4,5].includes(facing)?-1:1};
 }
 

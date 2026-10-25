@@ -67,6 +67,7 @@ function tintedAtlas(im,filter){
 // Some painted poses overlap a neighbouring atlas cell. Isolate the actual
 // character in each cell so stray weapon tips and hair never appear beside it.
 function cleanDirectionalAtlas(im,layout=null){
+  if(layout?.precleaned)return im;
   if(cleanAtlases.has(im))return cleanAtlases.get(im);
   try{
     const canvas=document.createElement('canvas');canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;
@@ -187,13 +188,13 @@ export class TowerRenderer {
     const costume=costumeById(costumeId,classId)||(classId==='priest'?PRIEST_DEFAULT:null);
     if(costume){
       // 2026-10-25: 서 있을 때도 일러스트 대신 모션 시트(정면 대기 프레임)를 쓴다.
-      const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
+      const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,moving&&!!costume.authoredWalk,acting,age,walk,costume.motionLayout);
       // Successful decoding and exact sheet dimensions prevent partial WebP data
       // from being treated as a usable motion sheet.
       if(decodedImages.has(im)&&pose&&im.naturalWidth===pose.layout.width&&im.naturalHeight===pose.layout.height){
         const source=cleanDirectionalAtlas(im,pose.layout),r=pose.frame;
         const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=costumeMotionScale(pose,bodySize,costume.renderBodyHeight);
-        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(riggedWalk)drawWalkingSprite(g,source,r,[r.body,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
+        g.save();try{g.translate(x,y);g.scale(pose.flip,1);g.globalAlpha=alpha;if(riggedWalk&&!costume.authoredWalk)drawWalkingSprite(g,source,r,[r.body,r.anchor,r.foot],scale,walk,pose.flip<0?(4-facing+8)%8:facing,classId==='priest');else g.drawImage(source,r.x,r.y,r.w,r.h,-r.anchor*scale,-r.foot*scale,r.w*scale,r.h*scale);}finally{g.restore();}
         return;
       }
       // Keep the costume visible only while its directional sheet is loading.

@@ -46,7 +46,7 @@ for(const s of fields){
  Object.assign(p,{level:300,stage:s.id,advancement:4,firstAdvancement:true,balanceVersion:'journey-20260925'});const w=makeItem(200,'warrior',0,false,ctx);w.baseStats={attack:1e12,stat:1e8,hp:1e12,defense:1e8};p.items=[w];p.equipped={0:w.id};
  assert.ok(huntingRate(p).survives);const reward=settle(p,{...ctx,now:60000});assert.ok(reward.kills>0&&reward.gold>0&&reward.xp>0);
 }
-assert.equal(COSTUMES.length,30);
+assert.equal(COSTUMES.length,36);
 for(const c of COSTUMES.slice(18)){
  const s=initialState(c.classId,'의상검수',ctx);s.gold=c.price;costumeCommand(s,'costumeBuy',c.id);assert.equal(s.gold,0);assert.equal(costumeAttackBonus(s),1);costumeCommand(s,'costumeEquip',c.id);assert.equal(equippedCostume(s).id,c.id);assert.throws(()=>costumeCommand(s,'costumeBuy',c.id),/COSTUME_OWNED/);s.classId=CLASSES.find(x=>x.id!==c.classId).id;assert.throws(()=>costumeCommand(s,'costumeEquip',c.id),/COSTUME_CLASS_MISMATCH/);
 }
@@ -61,5 +61,5 @@ console.log('PASS 40 normal/enraged 90s replays, 20 unique openers, warning time
 assert.equal(BOSSES.length,33);assert.deepEqual(BOSSES.filter(b=>b.chapter).map(b=>[b.id,b.name,b.hp,b.gearLevel,b.dropChance,b.weekly]),[[32,'유리등 해마',160000000,200,.015,false]]);
 console.log('PASS chapter daily bosses: only 유리등 해마 remains (HP 160M, Lv.200 boss gear)');
 
-assert.ok(COSTUMES.slice(0,18).every(c=>c.price===5000000));assert.ok(COSTUMES.slice(18,24).every(c=>c.price===10000000));assert.ok(COSTUMES.slice(24).every(c=>c.price===20000000));
+assert.ok(COSTUMES.slice(0,18).every(c=>c.price===5000000));assert.ok(COSTUMES.slice(18,24).every(c=>c.price===10000000));assert.ok(COSTUMES.slice(24,30).every(c=>c.price===20000000));
 console.log('PASS price isolation: original 18 costumes 5M; pose-revised 6 costumes 10M; approved new 6 costumes 20M');

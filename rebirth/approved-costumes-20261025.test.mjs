@@ -10,7 +10,7 @@ import {costumeMotionFrame} from './costume-motion.mjs';
 const newIds=['storm-lion-valkyrie','glacier-crystal-librarian','autumn-fox-archer','raven-masquerade','abyssal-pearl-corsair','golden-sun-oracle'];
 const oldIds=['sunrose-empress','astral-tea-mage','aurora-huntress','moonjewel-bladedancer','scarlet-sky-pilot','opal-dream-priest'];
 const ctx={now:0,random:()=>.5,uuid:randomUUID};
-assert.equal(COSTUMES.length,30);
+assert.equal(COSTUMES.length,36);
 assert.deepEqual(COSTUMES,SERVER_COSTUMES,'client and deployed server graph must share exact catalog');
 assert.equal(new Set(newIds.map(id=>costumeById(id).classId)).size,6);
 for(const id of [...oldIds,...newIds]){
@@ -35,5 +35,5 @@ for(const id of newIds){
 }
 const existing=normalizeCostumes({classId:'warrior',costumes:oldIds,equippedCostume:oldIds[0]});
 assert.deepEqual(existing.costumes,oldIds);assert.equal(equippedCostume(existing).id,oldIds[0]);
-const page=await readFile(new URL('index.html',import.meta.url),'utf8');assert.match(page,/approved-costumes-20261025/);
+const page=await readFile(new URL('index.html',import.meta.url),'utf8');assert.match(page,/costume30m-20261025/);
 console.log('PASS six new jobs at 20M, six existing at 10M, exact prices, duplicate/poor/wrong-job protection, saved ownership, two attack phases, paths and client/server catalog parity');
