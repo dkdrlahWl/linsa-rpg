@@ -1,3 +1,4 @@
+import {skillLookArtPath,skillLookPreviewPath} from './skill-look-designs.mjs';
 import assert from 'node:assert/strict';
 import {readFile,access} from 'node:fs/promises';
 import {initialState,execute,power} from './engine.mjs';
@@ -53,8 +54,8 @@ for(const c of SKILL_LOOKS){
   assert.deepEqual([1,12,26].map(time=>skillLookFrame(e,time).column),[0,1,2]);
   const art=arenaEffectArt(c.classId,slot,c.id);assert.equal(art.row,slot-1);assert.equal(art.cols,4);
  }
- await access(new URL(`./skill-looks/${c.id}-native-v2.webp`,import.meta.url));
- await access(new URL(`./skill-looks/${c.id}-preview-v1.webp`,import.meta.url));
+ await access(new URL(`./${skillLookArtPath(c.id)}`,import.meta.url));
+ await access(new URL(`./${skillLookPreviewPath(c.id)}`,import.meta.url));
  const self={classId:c.classId,actorId:'self',power:{skillLookId:c.id},allies:[{id:'ally',classId:c.classId,power:{}}]};
  const effect={owner:'self',classId:c.classId};assert.equal(skillLookForEffect(self,effect)?.id,c.id);
  assert.equal(skillLookForEffect(self,{...effect,owner:'ally'}),null,'no local skin leaking onto another actor');
