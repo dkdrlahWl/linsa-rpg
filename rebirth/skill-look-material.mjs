@@ -1,3 +1,4 @@
+import {skillLookSourceRect} from './skill-look-bounds.mjs';
 import {skillLookArtPath,skillLookDesign} from './skill-look-designs.mjs';
 import {skillLookById} from './skill-looks.mjs';
 const images=new Map(),loads=new Map(),sources=new WeakMap(),tints=new WeakMap();
@@ -38,8 +39,8 @@ export function skillLookContext(g,look,e){
      if(!cache.has(look.id)){const c=document.createElement('canvas');c.width=source.width;c.height=source.height;const q=c.getContext('2d');q.drawImage(source,0,0);q.globalCompositeOperation='source-atop';q.fillStyle=design.color;q.globalAlpha=.65;q.fillRect(0,0,c.width,c.height);cache.set(look.id,c);}
      return target.drawImage(cache.get(look.id),...args);
     }
-    const sw=im.naturalWidth/4,sh=im.naturalHeight/5,dest=args.length===8?args.slice(4):args.length===4?args:[args[0],args[1],source.width,source.height];
-    return target.drawImage(im,part.part*sw,(part.tier-1)*sh,sw,sh,...dest);
+    const rect=skillLookSourceRect(look.id,part.tier,part.part,im.naturalWidth,im.naturalHeight),dest=args.length===8?args.slice(4):args.length===4?args:[args[0],args[1],source.width,source.height];
+    return target.drawImage(im,rect.x,rect.y,rect.w,rect.h,...dest);
    };
    const value=target[key];return typeof value==='function'?value.bind(target):value;
   },
