@@ -186,17 +186,7 @@ export class TowerRenderer {
     const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:this.explorationView?.78:1)*(CLASS_RENDER_SCALE[classId]||1);
     const costume=costumeById(costumeId,classId)||(classId==='priest'?PRIEST_DEFAULT:null);
     if(costume){
-      // Approved shop poses are also the forward-facing resting appearance.
-      // Walking, rear views and attacks keep their authored directional atlas.
-      if(costume.approvedIdle&&!moving&&!acting&&[1,2,3].includes(facing)){
-        const portrait=image(costume.portrait);
-        if(decodedImages.has(portrait)&&portrait.naturalWidth){
-          const source=cleanDirectionalAtlas(portrait,{frames:[{x:0,y:0,w:portrait.naturalWidth,h:portrait.naturalHeight}]}),r=frameBounds(source,1,1)[0];
-          const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=bodySize/r.h;
-          g.save();try{g.translate(x,y);g.scale(facing===3?-1:1,1);g.globalAlpha=alpha;g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-bodySize,r.w*scale,bodySize);}finally{g.restore();}
-          return;
-        }
-      }
+      // 2026-10-25: 서 있을 때도 일러스트 대신 모션 시트(정면 대기 프레임)를 쓴다.
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
       // Successful decoding and exact sheet dimensions prevent partial WebP data
       // from being treated as a usable motion sheet.
