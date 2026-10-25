@@ -61,7 +61,11 @@ export function playSkillLookPreview(canvas,look,{loop=true,slot=1,cycle=true}={
  };
  draw(performance.now());return ()=>{stopped=true;cancelAnimationFrame(raf);};
 }
-export function playSkillLookOverlay(arena,look,slot){
+export async function playSkillLookOverlay(arena,look,slot){
+ await prepareSkillLookArt(look.id);
+ if(look.classId==='priest'){const{playHolyOverlay}=await import('./priest-overlay.mjs');playHolyOverlay(arena,slot,look);return;}
+ if(slot===5){const{playFifthOverlay}=await import('./fifth-overlay.mjs');return playFifthOverlay(arena,look.classId,look);}
+ if(slot===2){const{playSecondOverlay}=await import('./skill-overlay.mjs');playSecondOverlay(arena,look.classId,look);return;}
  const canvas=document.createElement('canvas');canvas.width=800;canvas.height=700;canvas.className='skill-sequence-overlay';canvas.setAttribute('aria-hidden','true');arena.append(canvas);
  const g=canvas.getContext('2d'),start=performance.now();void prepareNativePreview(look);
  const kind=['','first','second-sequence','third','fourth','fifth'][slot]||'first';
