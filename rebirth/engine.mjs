@@ -16,7 +16,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
-import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollBaseStats} from './gear-refine.mjs?v=refine3-20261025';
+import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from './gear-refine.mjs?v=refine4-20261025';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs?v=addpot-20261025';
 import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
 import {applyBetaTool} from './beta-tools.mjs?v=beta-level-250-20261011-lv300';
@@ -976,15 +976,16 @@ function executeCore(input, command, args = {}, ctx) {
         spend(s,material,1);s.pendingRefine={id:it.id,kind:"bonus",previous:Number.isInteger(it.bonusPct)?it.bonusPct:0,bonusPct:pct};
       }else{
         check(it.baseStats&&typeof it.baseStats==="object","ITEM_NOT_FOUND");
-        let next;for(let attempt=0;attempt<256;attempt++){next=rerollBaseStats(it,ctx.random);if(JSON.stringify(next)!==JSON.stringify(it.baseStats))break;check(attempt<255,"CUBE_RANDOM_RETRY");}
-        spend(s,material,1);s.pendingRefine={id:it.id,kind:"stats",previous:structuredClone(it.baseStats),baseStats:next};
+        // 2026-10-25: 보스 등급 장비는 등급까지 같이 재굴림(전체 범위 완전 랜덤).
+        let next;for(let attempt=0;attempt<256;attempt++){next=rerollGear(it,ctx.random);if(JSON.stringify(next.baseStats)!==JSON.stringify(it.baseStats)||(Number.isInteger(next.bossTier)&&next.bossTier!==it.bossTier))break;check(attempt<255,"CUBE_RANDOM_RETRY");}
+        spend(s,material,1);s.pendingRefine={id:it.id,kind:"stats",previous:structuredClone(it.baseStats),baseStats:next.baseStats,...(Number.isInteger(next.bossTier)?{bossTier:next.bossTier,previousTier:Number.isInteger(it.bossTier)?it.bossTier:0}:{})};
       }
       events.push({type:"refine",id:it.id,kind:s.pendingRefine.kind});break;
     }
     case "refineChoose": {
       check(s.pendingRefine,"NO_PENDING_CUBE");check(typeof args.apply==="boolean","INVALID_CHOICE");
       const p=s.pendingRefine,it=s.items.find(x=>x.id===p.id);
-      if(it&&args.apply){if(p.kind==="bonus")it.bonusPct=p.bonusPct;else it.baseStats=p.baseStats;}
+      if(it&&args.apply){if(p.kind==="bonus")it.bonusPct=p.bonusPct;else{it.baseStats=p.baseStats;if(Number.isInteger(p.bossTier)){it.bossTier=p.bossTier;s.collection??=[];const key=equipmentKey(it);if(!s.collection.includes(key))s.collection.push(key);}}}
       s.pendingRefine=null;break;
     }
     case "addCubeChoose": {

@@ -1,5 +1,5 @@
 import * as D from './data.mjs?v=prime-choice-158-lv300b';
-import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=refine3-20261025';
+import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=refine4-20261025';
 const materialArt=item=>`<img src="${item.art}" alt="" width="38" height="38" style="width:38px;height:38px;object-fit:contain;vertical-align:middle;margin-right:6px">`;
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
@@ -27,13 +27,13 @@ export function renderRefinePanel(it,state,protectedReason=''){
  <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>${materialArt(BONUS_FLAME)}${BONUS_FLAME.name} 보유 <b>${fmt(flames)}개</b></p>${button(bonus?'추가옵션 다시 굴리기':'추가옵션 부여','bonusRoll',it.id,!!flameBlock)}</div>
  <p class="enhance-help">${flameBlock||'1개 소모 · 결과를 보고 이전 유지 / 새 결과 적용 선택'}</p>${bonusOdds()}
  <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>${materialArt(REROLL_STONE)}${REROLL_STONE.name} 보유 <b>${fmt(stones)}개</b></p>${button('기본 수치 재굴림','statReroll',it.id,!!stoneBlock)}</div>
- <p class="enhance-help">${stoneBlock||'1개 소모 · 장비 범위 안에서 완전 랜덤 추첨(모든 수치 같은 확률) · 결과 선택 가능'}</p>
+ <p class="enhance-help">${stoneBlock||(D.isTieredBossGear(it)?'1개 소모 · 보스 장비 등급까지 다시 추첨 · 가장 낮은 등급 ~ 가장 높은 등급 전체 범위에서 완전 랜덤 · 결과 선택 가능':'1개 소모 · 장비 범위 안에서 완전 랜덤 추첨(모든 수치 같은 확률) · 결과 선택 가능')}</p>
  </section>`;
 }
 export function renderRefineChoice(it,pending,state){
  const bonus=pending.kind==='bonus',material=bonus?BONUS_FLAME:REROLL_STONE,count=state.materials[material.id]||0;
- const before=D.gearAttributes(it),after=D.gearAttributes({...it,...(bonus?{bonusPct:pending.bonusPct}:{baseStats:pending.baseStats})});
- const head=bonus?`<p class="refine-compare">추가옵션 <b>${pending.previous?'+'+pending.previous+'%':'없음'}</b> → <b class="refine-new">+${pending.bonusPct}%</b></p>`:'<p class="refine-compare">기본 수치 재굴림 결과</p>';
+ const before=D.gearAttributes(it),after=D.gearAttributes({...it,...(bonus?{bonusPct:pending.bonusPct}:{baseStats:pending.baseStats,...(Number.isInteger(pending.bossTier)?{bossTier:pending.bossTier}:{})})});
+ const tierName=n=>D.bossTierName({...it,bossTier:n}),head=bonus?`<p class="refine-compare">추가옵션 <b>${pending.previous?'+'+pending.previous+'%':'없음'}</b> → <b class="refine-new">+${pending.bonusPct}%</b></p>`:Number.isInteger(pending.bossTier)?`<p class="refine-compare">기본 수치 재굴림 결과 · 등급 <b>${tierName(pending.previousTier)}</b> → <b class="refine-new">${tierName(pending.bossTier)}</b></p>`:'<p class="refine-compare">기본 수치 재굴림 결과</p>';
  const baseRows=bonus?'':`<div class="refine-stats">${Object.entries(LABELS).map(([key,label])=>{const m=D.gearStatMultiplier(it)*(key==='hp'?D.gearHPMultiplier(it):1),a=pending.previous[key]*m,b=pending.baseStats[key]*m;return `<div><span>기본 ${label}</span><b>${statText(key,b)}</b><small class="${b>a?'up':b<a?'down':''}">이전 ${statText(key,a)}</small></div>`;}).join('')}</div>`;
  return `<div class="cube-choice-compact"><div class="cube-choice-controls" role="group" aria-label="결과 선택">
  ${button('이전 유지','refineChoose','no',false,'enhance-secondary')}${button('새 결과 적용','refineChoose','yes')}

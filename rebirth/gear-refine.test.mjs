@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initialState,execute,power,makeLootItem,addItem} from './engine.mjs';
-import {gearAttributes,gearStatRanges,MATERIALS} from './data.mjs';
+import {gearAttributes,gearStatRanges,gearStatFullRanges,isTieredBossGear,bossTierCount,equipmentKey,MATERIALS} from './data.mjs';
 import {BONUS_TABLE,rollBonusPct,BONUS_FLAME,REROLL_STONE} from './gear-refine.mjs';
 import {shopConsumable} from './consumables.mjs';
 
@@ -37,18 +37,20 @@ s=execute(s,'refineChoose',{apply:true},ctx()).state;assert.equal(s.items.find(x
 // Re-roll never returns the same percent.
 s=execute(s,'bonusRoll',{id:it.id},ctx(seq([.9999999,0]))).state;assert.equal(s.pendingRefine.bonusPct,1);assert.equal(s.pendingRefine.previous,10);s=execute(s,'refineChoose',{apply:false},ctx()).state;
 
-// Stat reroll: inside the item's range, tier kept, keep/apply.
+// Stat reroll: tiered boss gear re-rolls its tier too (whole range), keep/apply.
 const before=structuredClone(s.items.find(x=>x.id===it.id).baseStats),tier=s.items.find(x=>x.id===it.id).bossTier;
 s=execute(s,'statReroll',{id:it.id},ctx()).state;const p=s.pendingRefine;assert.equal(p.kind,'stats');assert.deepEqual(p.previous,before);assert.notDeepEqual(p.baseStats,before);
-const ranges=gearStatRanges(s.items.find(x=>x.id===it.id));for(const k of Object.keys(ranges))assert.ok(p.baseStats[k]>=ranges[k].min&&p.baseStats[k]<=ranges[k].max,k);
-s=execute(s,'refineChoose',{apply:true},ctx()).state;const after=s.items.find(x=>x.id===it.id);assert.deepEqual(after.baseStats,p.baseStats);assert.equal(after.bossTier,tier);assert.equal(after.bonusPct,10,'bonus survives reroll');
+const tiered=isTieredBossGear(s.items.find(x=>x.id===it.id));assert.equal(Number.isInteger(p.bossTier),tiered);
+const ranges=gearStatRanges({...s.items.find(x=>x.id===it.id),...(tiered?{bossTier:p.bossTier}:{})});for(const k of Object.keys(ranges))assert.ok(p.baseStats[k]>=ranges[k].min&&p.baseStats[k]<=ranges[k].max,k);
+s=execute(s,'refineChoose',{apply:true},ctx()).state;const after=s.items.find(x=>x.id===it.id);assert.deepEqual(after.baseStats,p.baseStats);assert.equal(after.bossTier,tiered?p.bossTier:tier);if(tiered)assert.ok(s.collection.includes(equipmentKey(after)),'new tier recorded in collection');assert.equal(after.bonusPct,10,'bonus survives reroll');
 assert.equal(s.materials.rerollStone,0);assert.throws(()=>execute(s,'statReroll',{id:it.id},ctx()),/INSUFFICIENT_REROLLSTONE/);
 assert.throws(()=>execute(s,'refineChoose',{apply:true},ctx()),/NO_PENDING_CUBE/);
 
 // Uniform: rerolled attack lands in the top 10% of the range about 10% of the time.
-let top=0;const n=20000;const r=gearStatRanges(after);
-for(let i=0;i<n;i++){const t=execute({...s,materials:{...s.materials,rerollStone:1}},'statReroll',{id:it.id},ctx()).state.pendingRefine.baseStats.attack;if(t>=r.attack.min+.9*(r.attack.max-r.attack.min))top++;}
+let top=0,low=0;const n=20000;const r=gearStatFullRanges(after);const tiers=new Set();
+for(let i=0;i<n;i++){const pr=execute({...s,materials:{...s.materials,rerollStone:1}},'statReroll',{id:it.id},ctx()).state.pendingRefine,t=pr.baseStats.attack;tiers.add(pr.bossTier);if(t>=r.attack.min+.9*(r.attack.max-r.attack.min))top++;if(t<r.attack.min+.1*(r.attack.max-r.attack.min))low++;}
+if(isTieredBossGear(after))assert.equal(tiers.size,bossTierCount(after),'every tier reachable');assert.ok(low/n>.08&&low/n<.13,'low '+low/n);
 assert.ok(top/n>.08&&top/n<.13,String(top/n));
 // Locked items are protected.
 s.items.find(x=>x.id===it.id).locked=true;s.materials.bonusFlame=1;assert.throws(()=>execute(s,'bonusRoll',{id:it.id},ctx()),/ITEM_PROTECTED/);
-console.log('PASS gear refine: bonus 1~10% on all stats (rarer high), 10M/100M shop, keep/apply, no repeat result, uniform reroll within range keeping tier, pending/lock guards, power applies');
+console.log('PASS gear refine: bonus 1~10% on all stats (rarer high), 10M/100M shop, keep/apply, no repeat result, uniform reroll over the whole tier range (tier re-rolled), pending/lock guards, power applies');

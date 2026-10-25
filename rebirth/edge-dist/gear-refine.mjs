@@ -2,9 +2,10 @@
 // - 추가옵션 불꽃 (10,000,000 G): rolls a bonus of 1~10% applied to every equipment stat
 //   (attack, main stat, HP, defense). Higher bonuses are rarer. Using it again re-rolls.
 // - 기본수치 재련석 (100,000,000 G): re-rolls the equipment base stats inside the item's own
-//   range, fully uniform (every value equally likely; 2026-10-25). Boss tier is kept.
+//   range, fully uniform (every value equally likely; 2026-10-25). Tiered boss gear also re-rolls its
+//   tier uniformly (2026-10-25 A안), so every stat is uniform over the whole tier-0..max range.
 // Both results go to a keep/apply choice, like the black cube.
-import {gearStatRanges} from './data.mjs';
+import {gearStatRanges,isTieredBossGear,bossTierCount} from './data.mjs';
 
 export const BONUS_FLAME = Object.freeze({id: 'bonusFlame', name: '추가옵션 불꽃', price: 10000000, art: 'currencies/bonus-flame-v1.webp', description: '장비 모든 스탯 +1~10% 추가치 · 이전 / 이후 선택'});
 export const REROLL_STONE = Object.freeze({id: 'rerollStone', name: '기본수치 재련석', price: 100000000, art: 'currencies/reroll-stone-v1.webp', description: '장비 기본 수치 재굴림 · 이전 / 이후 선택'});
@@ -26,7 +27,11 @@ export function rollBonusPct(random) {
 export const bonusPct = item => Number.isInteger(item?.bonusPct) && item.bonusPct >= BONUS_MIN && item.bonusPct <= BONUS_MAX ? item.bonusPct : 0;
 export const bonusMultiplier = item => 1 + bonusPct(item) / 100;
 
-export function rerollBaseStats(item, random) {
-  return Object.fromEntries(Object.entries(gearStatRanges(item)).map(([key, r]) =>
+export function rerollGear(item, random) {
+  const tiered = isTieredBossGear(item), bossTier = tiered ? Math.floor(random() * bossTierCount(item)) : undefined;
+  const target = tiered ? {...item, bossTier} : item;
+  const baseStats = Object.fromEntries(Object.entries(gearStatRanges(target)).map(([key, r]) =>
     [key, r.min + Math.min(r.max - r.min, Math.floor(random() * (r.max - r.min + 1)))]));
+  return {baseStats, bossTier};
 }
+export const rerollBaseStats = (item, random) => rerollGear(item, random).baseStats;
