@@ -47,3 +47,22 @@
  [data-citadel] .tower-skill-bar .tower-button small{display:block;font-size:11px;font-weight:800;color:#ffe7a6;margin-top:2px}
  [data-citadel] .tower-skill-bar .tower-button span{font-size:11px}
 }
+
+/* 2026-10-25 한눈에 보는 탐험 로비: 방 목록 맨 위, 카드 압축 */
+.exploration-lobby .exploration-head{padding:12px 14px}.exploration-lobby .exploration-head h2{margin:0 0 4px}.exploration-lobby .exploration-head p{margin:0 0 4px;font-size:13px}
+.exploration-lobby .exploration-head details summary,.exploration-card-rewards summary{cursor:pointer;font-size:12px;color:#c8b47d}
+.exploration-rooms{margin:10px 0!important;padding:10px 12px}.exploration-rooms-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.exploration-rooms-head h3{margin:0;font-size:15px}.exploration-rooms-head h3 b{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:10px;background:#c0392b;color:#fff;font-size:12px;text-align:center}
+.exploration-rooms-head button{min-height:32px;padding:4px 12px}
+.exploration-cards.compact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.exploration-cards.compact article{display:grid;grid-template-columns:72px minmax(0,1fr);overflow:hidden;min-width:0}
+.exploration-cards.compact img{width:72px;height:100%;min-height:118px;aspect-ratio:auto;object-fit:cover}
+.exploration-cards.compact .exploration-card-body{padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.exploration-cards.compact small{font-size:11px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exploration-cards.compact h3{margin:0;font-size:15px}
+.exploration-cards.compact .exploration-card-line{margin:0;font-size:11.5px;line-height:1.35;opacity:.9}
+.exploration-cards.compact .exploration-card-rewards p{font-size:11px;margin:4px 0}
+.exploration-cards.compact button{width:100%;min-height:34px;margin-top:auto;font-size:13px;padding:4px}
+.exploration-cards.compact article.locked{opacity:.65}
+@media(max-width:900px){.exploration-cards.compact{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.exploration-cards.compact{grid-template-columns:1fr}.exploration-cards.compact article{grid-template-columns:64px minmax(0,1fr)}.exploration-cards.compact img{width:64px;min-height:96px}}
