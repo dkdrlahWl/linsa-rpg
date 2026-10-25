@@ -16,3 +16,9 @@
 .consumable-shop-grid .consumable-affordable{display:none}
 .consumable-shop-panel .consumable-shop-grid .consumable-shop-card>button{grid-area:buy;width:100%;min-height:34px;padding:4px 8px;margin:4px 0 0;font-size:14px}
 @media(min-width:720px){.consumable-shop-panel .consumable-shop-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 2026-10-25: 레드 큐브 구매/판매 버튼 나란히 */
+.consumable-shop-grid .consumable-trade{grid-area:buy;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.consumable-shop-panel .consumable-shop-grid .consumable-trade>button{width:100%;min-height:34px;padding:4px 6px;margin:0;font-size:14px}
+.consumable-trade .consumable-sell{border:1px solid #c9a86a;border-radius:8px;background:#2a1f12;color:#ffe2a8;font-weight:bold;cursor:pointer}
+.consumable-trade .consumable-sell:disabled{opacity:.45;cursor:default}
+#shop-sell-total{color:#ffe39a;font-weight:bold;overflow-wrap:anywhere}#shop-sell-error{color:#ffc2b8;font-size:13px}

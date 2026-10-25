@@ -16,8 +16,8 @@ import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
 import {shopView} from './shop-ui.mjs?v=bm8-20261018';
 import {blackMarketPurchaseView,updateBlackMarketPurchase} from './black-market-ui.mjs?v=bm9-20261025';
 import {blackMarketRotation,blackMarketLimit,blackMarketOffersFor} from './black-market.mjs?v=bm9-20261025';
-import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase} from './consumable-ui.mjs?v=shop-cubes-185';
-import {LUCK_POTION,shopConsumable,shopPurchaseLimit} from './consumables.mjs?v=shop-cubes-185';
+import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase,consumableSellView,updateConsumableSale} from './consumable-ui.mjs?v=shop-cubes-185';
+import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=pnl-rankings-203';
@@ -1492,6 +1492,16 @@ document.addEventListener("click", async (e) => {
       const bought=result?.result?.events?.find(e=>e.type==='consumableBuy'&&e.id===arg);
       if(bought){modal.close();toast(item.name+' '+fmt(bought.quantity)+'개를 구매했어요.');}return;
     }
+    if(action==='consumableSellPick'){const item=shopConsumable(arg);if(!item||!SELL_PRICES[arg])return;open(item.name+' 판매',consumableSellView(state,arg));updateConsumableSale(state,modal);return;}
+    if(action==='consumableSellMax'){const input=modal.querySelector('#shop-sell-quantity');if(input){input.value=String(shopSellLimit(state,arg));updateConsumableSale(state,modal);}return;}
+    if(action==='consumableSellConfirm'){
+      if(busy)return;const item=shopConsumable(arg);if(!item)return;
+      const quantity=Number(modal.querySelector('#shop-sell-quantity')?.value);
+      if(!Number.isSafeInteger(quantity)||quantity<1||quantity>shopSellLimit(state,arg)){updateConsumableSale(state,modal);return;}
+      const result=await command('consumableSell',{id:arg,quantity});
+      const sold=result?.result?.events?.find(e=>e.type==='consumableSell'&&e.id===arg);
+      if(sold){modal.close();toast(item.name+' '+fmt(sold.quantity)+'개를 '+fmt(sold.gold)+' G에 판매했어요.');}return;
+    }
     if(action==='consumableUse'){if(busy)return;const result=await command('consumableUse',{id:arg});if(result)toast('행운 물약 시간 +5분 · 행운 +50% 효과가 유지됩니다.');return;}
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
     if(action==='costumeBuyPick'){
@@ -1921,7 +1931,7 @@ document.addEventListener("click", async (e) => {
     toast(message(err));
   }
 });
-document.addEventListener("input", e=>{if(/^skillAlpha[1-5]$/.test(e.target.id||'')&&e.target.nextElementSibling)e.target.nextElementSibling.textContent=Math.round(e.target.value*100)+'%';if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id==="bm-buy-quantity")updateBlackMarketPurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
+document.addEventListener("input", e=>{if(/^skillAlpha[1-5]$/.test(e.target.id||'')&&e.target.nextElementSibling)e.target.nextElementSibling.textContent=Math.round(e.target.value*100)+'%';if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id==="shop-sell-quantity")updateConsumableSale(state,modal);if(e.target.id==="bm-buy-quantity")updateBlackMarketPurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
 document.addEventListener("change", async (e) => {
   if(e.target.id==='cube-lock'){cubeLockChoice=Number(e.target.value);return;}
   if(e.target.id==='fishing-bait'){fishingUI.bait=e.target.value;render();return;}

@@ -1,6 +1,9 @@
 import {BONUS_FLAME,REROLL_STONE} from './gear-refine.mjs';
 export const LUCK_POTION = Object.freeze({id:'luckPotion',name:'행운 물약',price:5000000,duration:300000,cooldown:0,bonus:.5,art:'consumables/luck-potion-v1.webp',description:'일일보스, 주간보스, 레이드 보상 적용됨'});
 export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'}), Object.freeze({id:'addCube',name:'에디셔널 큐브',price:1000000,art:'currencies/cube-additional-v1.webp',description:'에디셔널 잠재능력 재설정 · 이전 / 이후 선택'}), BONUS_FLAME, REROLL_STONE]);
+// 2026-10-25: 상점 되팔기 (개당 판매가)
+export const SELL_PRICES=Object.freeze({cube:50000});
+export const shopSellLimit=(state,id)=>SELL_PRICES[id]?shopConsumableCount(state,id):0;
 export const shopConsumable=id=>SHOP_CONSUMABLES.find(item=>item.id===id);
 export function shopConsumableCount(state,id){return id===LUCK_POTION.id?potionCount(state):Math.max(0,Number.isSafeInteger(state?.materials?.[id])?state.materials[id]:0);}
 export function shopPurchaseLimit(state,id){
@@ -21,6 +24,15 @@ export function consumableCommand(state,command,id,now,quantity=1){
  const item=shopConsumable(id);
  if(!item)throw Error('INVALID_CONSUMABLE');
  const count=shopConsumableCount(state,id);
+ if(command==='consumableSell'){
+  const price=SELL_PRICES[id];if(!price)throw Error('INVALID_CONSUMABLE');
+  if(!Number.isSafeInteger(quantity)||quantity<1)throw Error('INVALID_CONSUMABLE_QUANTITY');
+  if(quantity>count)throw Error('INSUFFICIENT_CONSUMABLE');
+  const total=price*quantity;
+  state.materials={...state.materials,[id]:count-quantity};
+  state.gold=(Number(state.gold)||0)+total;
+  return {type:command,id,quantity,gold:total};
+ }
  if(command==='consumableBuy'){
   if(!Number.isSafeInteger(quantity)||quantity<1||(id===LUCK_POTION.id&&quantity!==1))throw Error('INVALID_CONSUMABLE_QUANTITY');
   if(quantity>1000000-count)throw Error('INVENTORY_CONSUMABLE_LIMIT');

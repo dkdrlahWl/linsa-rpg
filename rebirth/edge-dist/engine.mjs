@@ -575,7 +575,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   normalizeFishing(s,ctx.now);
   const events = [];
-  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableUse","blackMarketBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
+  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableSell","consumableUse","blackMarketBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
@@ -655,6 +655,7 @@ function executeCore(input, command, args = {}, ctx) {
       break;
     }
     case "consumableBuy":
+    case "consumableSell":
     case "consumableUse": {events.push(consumableCommand(s,command,args.id,ctx.now,args.quantity));break;}
     case "costumeBuy":
     case "costumeEquip":
