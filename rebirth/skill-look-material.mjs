@@ -1,3 +1,4 @@
+import {orientedSkillLookSource} from './skill-look-orientation.mjs';
 import {skillLookSourceRect} from './skill-look-bounds.mjs';
 import {skillLookArtPath,skillLookDesign} from './skill-look-designs.mjs';
 import {skillLookById} from './skill-looks.mjs';
@@ -5,7 +6,7 @@ const images=new Map(),loads=new Map(),sources=new WeakMap(),tints=new WeakMap()
 export const skillLookAtlasURL=id=>new URL(`./${skillLookArtPath(id)}`,import.meta.url).href;
 export function prepareSkillLookArt(id){
  if(!skillLookById(id))return Promise.resolve(null);
- if(!loads.has(id)){const im=new Image();im.src=skillLookAtlasURL(id);images.set(id,im);loads.set(id,im.decode().then(()=>im).catch(()=>null));}
+ if(!loads.has(id)){const im=new Image();im.src=skillLookAtlasURL(id);images.set(id,im);loads.set(id,im.decode().then(()=>{orientedSkillLookSource(id,5,0,im,skillLookSourceRect(id,5,0,im.naturalWidth,im.naturalHeight));return im;}).catch(()=>null));}
  return loads.get(id);
 }
 export function registerSkillLookSource(source,info){if(source)sources.set(source,info);return source;}
@@ -40,7 +41,8 @@ export function skillLookContext(g,look,e){
      return target.drawImage(cache.get(look.id),...args);
     }
     const rect=skillLookSourceRect(look.id,part.tier,part.part,im.naturalWidth,im.naturalHeight),dest=args.length===8?args.slice(4):args.length===4?args:[args[0],args[1],source.width,source.height];
-    return target.drawImage(im,rect.x,rect.y,rect.w,rect.h,...dest);
+    const paint=orientedSkillLookSource(look.id,part.tier,part.part,im,rect);
+    return target.drawImage(paint.image,paint.x,paint.y,paint.w,paint.h,...dest);
    };
    const value=target[key];return typeof value==='function'?value.bind(target):value;
   },
