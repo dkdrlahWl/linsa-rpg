@@ -35,7 +35,7 @@ function contestPanel(f){
 }
 function exchangePanel(f){
  const used=f.daily?.exchanged||0,left=Math.max(0,DIAMOND_EXCHANGE_DAILY-used);
- return `<div class="fishing-panel-title"><div><h2>다이아 교환소</h2><small>보유 다이아 ${fmt(f.diamonds)}개 · 오늘 ${used}/${DIAMOND_EXCHANGE_DAILY}개 교환 · 자정 초기화</small></div></div><div class="bait-shop">${DIAMOND_EXCHANGE.map(x=>{const most=Math.min(left,Math.floor((f.diamonds||0)/x.diamonds));return `<article>${image(x.id,'',x.name)}<div><h3>${x.name}</h3><small>다이아 ${x.diamonds}개 → 1개</small><b>최대 ${most}개 교환 가능</b></div><div class="fishing-exchange-buttons">${[1,5].map(n=>button(n+'개','fishExchange',x.id+':'+n,most<n)).join('')}${button('최대 '+most+'개','fishExchange',x.id+':'+most,most<1)}</div></article>`;}).join('')}</div>`;
+ return `<div class="fishing-panel-title"><div><h2>다이아 교환소</h2><small>보유 다이아 ${fmt(f.diamonds)}개 · 오늘 ${used}/${DIAMOND_EXCHANGE_DAILY}개 교환 · 자정 초기화</small></div></div><div class="fishing-exchange" data-no-currency-art>${DIAMOND_EXCHANGE.map(x=>{const most=Math.min(left,Math.floor((f.diamonds||0)/x.diamonds));const b=(label,n)=>`<button data-illustrated="none" data-action="fishExchange" data-arg="${x.id}:${n}" data-fish-write data-write="1" ${most<n||n<1?'disabled data-unavailable':''}>${label}</button>`;return `<article>${image(x.id,'',x.name)}<div><h3>${x.name}</h3><small>다이아 ${x.diamonds}개 → 1개 · 최대 ${most}개</small></div><div class="fishing-exchange-buttons">${b('1개',1)}${b('5개',5)}${b(`최대 ${most}`,most)}</div></article>`;}).join('')}</div>`;
 }
 function panelBody(s,f){
  if(fishingUI.panel==='contest')return contestPanel(f);

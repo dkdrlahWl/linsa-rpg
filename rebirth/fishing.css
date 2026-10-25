@@ -48,4 +48,10 @@
 .fishing-contest-board li.empty{display:block;opacity:.7}
 .fishing-contest-board li em{font-style:normal;color:#ffd477}
 .fishing-note{font-size:12px;opacity:.7;margin-top:10px}
-.fishing-exchange-buttons{display:flex;gap:5px;width:100%}.fishing-exchange-buttons button{flex:1}
+.fishing-exchange{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fishing-exchange article{min-width:0;display:grid;grid-template-columns:48px minmax(0,1fr);gap:6px 10px;align-items:center;background:#112736;border:1px solid #647273;border-radius:10px;padding:10px}
+.fishing-exchange article img{width:48px;height:48px;object-fit:contain}
+.fishing-exchange h3{margin:0 0 2px;font-size:15px}.fishing-exchange small{font-size:12px;opacity:.85}
+.fishing-exchange-buttons{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.fishing-exchange-buttons button{min-width:0;min-height:36px;padding:4px;border-radius:8px;font-size:13px;white-space:nowrap}
+@media(max-width:700px){.fishing-exchange{grid-template-columns:1fr}}
