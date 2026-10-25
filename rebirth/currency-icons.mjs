@@ -3,12 +3,13 @@ const currencyKeys = {
   '골드': 'gold', G: 'gold', '장비 파편': 'fragment', '파편': 'fragment',
   '잠재 해금 주문서': 'scroll', '잠재 부여 주문서': 'scroll', '주문서': 'scroll',
   '잠재 확장석': 'expand', '확장석': 'expand',
+  '에디셔널 큐브':'addCube', '추가옵션 불꽃':'bonusFlame', '기본수치 재련석':'rerollStone',
   '레드 큐브':'cube', '블랙 큐브':'highCube', '프라임 큐브':'primeCube',
   '레드큐브':'cube', '블랙큐브':'highCube', '프라임큐브':'primeCube',
   '일반 큐브': 'cube', '큐브': 'cube', '상급 큐브': 'highCube',
   '지역 재료': 'boss', '보스 재료': 'boss',
 };
-const labels = /잠재 해금 주문서|레드 큐브|블랙 큐브|프라임 큐브|레드큐브|블랙큐브|프라임큐브|상급 큐브|일반 큐브|잠재 부여 주문서|잠재 확장석|장비 파편|지역 재료|보스 재료|확장석|주문서|파편|큐브/g;
+const labels = /에디셔널 큐브|추가옵션 불꽃|기본수치 재련석|잠재 해금 주문서|레드 큐브|블랙 큐브|프라임 큐브|레드큐브|블랙큐브|프라임큐브|상급 큐브|일반 큐브|잠재 부여 주문서|잠재 확장석|장비 파편|지역 재료|보스 재료|확장석|주문서|파편|큐브/g;
 const ignored = 'script,style,textarea,select,option,[data-currency-label],[data-no-currency-art],.damage';
 const cubeArt={bonusFlame:"bonus-flame-v1.webp",rerollStone:"reroll-stone-v1.webp",scroll:"potential-scroll.webp",cube:"cube-red-v2.webp",highCube:"cube-black-v2.webp",primeCube:"cube-prime-v2.webp",addCube:"cube-additional-v1.webp"};
 export const currencyIconURL = key => new URL(['potentialLock','dungeonKey','diamond','diamondChest'].includes(key)?'./fishing/'+key+'.webp':"./currencies/"+(cubeArt[key]||key+".svg"),import.meta.url).href;

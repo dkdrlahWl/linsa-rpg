@@ -201,14 +201,15 @@ export const MATERIALS = {
   rerollStone: "기본수치 재련석",
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
+// 2026-10-25 개편: fishDiamond = 낚시 다이아(state.fishing.diamonds).
 export const ATTENDANCE_REWARDS = [
-  {gold:2000,fragment:10},
-  {cube:3},
-  {gold:3000,fragment:20},
-  {fragment:23},
-  {gold:5000,cube:5},
-  {highCube:1,fragment:30},
-  {gold:20000,fragment:100,highCube:3},
+  {gold:1000000,cube:20},
+  {highCube:5},
+  {gold:2000000,fragment:200},
+  {dungeonKey:2,addCube:5},
+  {highCube:10,scroll:2},
+  {gold:3000000,addCube:10},
+  {primeCube:2,bonusFlame:1,fishDiamond:30},
 ];
 export const OPTIONS = {
   STR: "STR",

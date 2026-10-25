@@ -78,7 +78,8 @@ const ROWS=[
  ['star20set','빛나는 별의 갑주','강화','legend','20성 이상 장비로 9부위 전부 착용',s=>{const e=equippedItems(s);return e.length>=9&&e.every(i=>(i.stars||0)>=20);}],
  ['boss200set','보스의 유산','장비','legend','Lv.200 보스 장비로 9부위 전부 착용',s=>{const e=equippedItems(s);return e.length>=9&&e.every(i=>i.boss&&i.level>=200);}],
  ['gold10','황금 산맥','재산','epic','골드 10억 보유',s=>(s.gold||0)>=1e9],
- ['explAll','모든 길의 개척자','탐험','legend','링구의 탐험 '+EXPLORATIONS.length+'곳 전부 클리어',s=>EXPLORATIONS.every(t=>expl(s,t.id))],
+ // 2026-10-25: 원래 3곳 기준 유지(4~6단계 추가와 무관).
+ ['explAll','모든 길의 개척자','탐험','legend','링구의 탐험 3곳 전부 클리어',s=>EXPLORATIONS.slice(0,3).every(t=>expl(s,t.id))],
  ['lv220','별빛의 계승자','레벨','epic','레벨 220 달성',s=>s.level>=220],
  ['lv230','공허의 왕관','레벨','legend','레벨 230 달성',s=>s.level>=230],
  ['kill100','백만의 전설','사냥','myth','누적 처치 100만',s=>(s.huntKills||0)>=1000000],

@@ -5,7 +5,8 @@ import {adminExplorationFloor} from './exploration-admin.mjs';
 import {startCoop} from './coop-model.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
 import {explorationLobby} from './exploration-ui.mjs';
-assert.deepEqual(EXPLORATION_REWARDS.map(r=>r.gold),[1000000,1400000,2000000,2600000,3400000,4400000,5600000,7000000,8600000,11000000]);
+// 2026-10-25: id 4~6 = 4~6단계 (id 3은 암흑성채).
+assert.deepEqual(EXPLORATION_REWARDS.map(r=>r.gold),[1000000,1400000,2000000,2600000,2600000,3400000,4400000,7000000,8600000,11000000]);
 const boundaries=[0,25,45,60,72,82,89,94,97,99];
 for(let i=0;i<10;i++){assert.equal(explorationGearLevel(()=>boundaries[i]/100),100+i*10);assert.equal(explorationGearLevel(()=>(boundaries[i]+.00001)/100),100+i*10);}
 assert.equal(explorationGearLevel(()=>.999999),190);

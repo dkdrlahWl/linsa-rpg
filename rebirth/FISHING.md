@@ -99,3 +99,4 @@ Spot scale ×10 [600,1000,1280,410,190]: ~300 casts/h ≈ rod1 0.29M, rod20 1.48
   1st: 100 diamonds + 50 에디셔널 큐브, 2nd–3rd: 50 + 30, no other rewards. Ranks come from `rebirth_fishing_contest` (fishing-contest.sql);
   claims are validated by the engine against that server ranking and can be collected within 4 weeks.
 - Placeholder art for the new fish and spots is recolored existing art; see FISHING-70-ART.md for the real art request.
+- 2026-10-25: diamond chest 0.5%, dungeon key 0.25% per cast (halved).

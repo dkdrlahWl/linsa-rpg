@@ -744,7 +744,11 @@ function executeCore(input, command, args = {}, ctx) {
       const day = (Number.isInteger(previous.day) && previous.day >= 0 && previous.day <= 7 ? previous.day % 7 : 0) + 1;
       const reward = ATTENDANCE_REWARDS[day-1];
       s.gold += reward.gold || 0;
-      for (const [key, amount] of Object.entries(reward)) if (key !== "gold") s.materials[key] += amount;
+      for (const [key, amount] of Object.entries(reward)) {
+        if (key === "gold") continue;
+        if (key === "fishDiamond") { const f = normalizeFishing(s, ctx.now); f.diamonds = (f.diamonds || 0) + amount; continue; }
+        s.materials[key] = (s.materials[key] || 0) + amount;
+      }
       s.attendance = {day,lastClaim:today};
       events.push({type:"attendance",day,reward});
       break;

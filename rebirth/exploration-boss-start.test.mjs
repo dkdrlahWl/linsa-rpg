@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {startCoop,advanceCoop} from './coop-model.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
 const power={attack:5e4,hp:1e5,defense:2000,crit:.3,critDamage:1.6,boss:3,cadence:1,advancement:4,firstJob:true,level:200};
-for(const theme of EXPLORATIONS){
+for(const theme of EXPLORATIONS.filter(Boolean)){
  const ids=['a','b','c','d'];
  let w=startCoop({id:'r'+theme.id,owner:'a',mode:'exploration',tier:theme.id,status:'waiting',members:ids.map((id,i)=>({id,name:id,classId:['warrior','mage','archer','priest'][i],advanced:true,power:{...power}}))},1000);
  assert.equal(w.floor,theme.floors,'starts on the boss floor');

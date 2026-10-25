@@ -6,7 +6,15 @@ export const EXPLORATIONS=[
  {id:0,name:'달빛 수림의 유적',floors:5,multiplier:1,level:200,art:'exploration-0',map:'exploration/map-0.webp',boss:'월림의 수호왕 아르보른',monsters:['달가시 늑대','이끼 갑옷돌','달밤 버섯'],seconds:1800,gold:50000},
  {id:1,name:'용암 수정 광산',floors:5,multiplier:1.5,level:205,art:'exploration-1',map:'exploration/map-1.webp',boss:'용철 거수 카르곤',monsters:['잿불 도마뱀','용암 수정게','불꽃 광부 임프'],seconds:1980,gold:70000},
  {id:2,name:'별의 심연 성전',floors:5,multiplier:2.25,level:210,art:'exploration-2',map:'exploration/map-2.webp',boss:'성운의 여제 아스트라',monsters:['별빛 해파리','공허 가고일','초승달 예언자'],seconds:2160,gold:100000},
+ , // id 3 = 암흑성채 (CITADEL_TIER, 별도 콘텐츠)
+ // 2026-10-25: 4~6단계. 보스 체력 = 1인 체력 × 인원수(linearHp), 공격력은 attackMultiplier, 입장 열쇠 keys개.
+ {id:4,name:'서리 왕관 빙궁',floors:5,multiplier:3.76,attackMultiplier:2,linearHp:true,keys:1,level:215,art:'exploration-4',map:'exploration/map-4.webp',boss:'빙결 여제 크리오네',monsters:['서리 송곳니 늑대','얼음 갑주 골렘','눈보라 정령'],seconds:2340,gold:130000},
+ {id:5,name:'잿빛 망령 요새',floors:5,multiplier:5.26,attackMultiplier:2.3,linearHp:true,keys:2,level:220,art:'exploration-5',map:'exploration/map-5.webp',boss:'망령 군주 모르가스',monsters:['잿불 해골병','저주받은 갑옷','망령 까마귀'],seconds:2520,gold:170000},
+ {id:6,name:'시간이 멈춘 탑',floors:5,multiplier:7.52,attackMultiplier:2.6,linearHp:true,keys:3,level:225,art:'exploration-6',map:'exploration/map-6.webp',boss:'시간의 파수꾼 크로노스',monsters:['태엽 기사','모래시계 정령','멈춘 시곗바늘 마도사'],seconds:2700,gold:220000},
 ];
+// 이전 단계(암흑성채 id 3은 건너뜀). 0단계는 null.
+export const explorationPrevious=tier=>{for(let i=tier-1;i>=0;i--)if(EXPLORATIONS[i])return i;return null;};
+export const explorationKeys=tier=>EXPLORATIONS[tier]?.keys||1;
 export const EXPLORATION_MOVE_SPEED=1.6,CITADEL_MOVE_SPEED=1.5;
 // Dark Citadel moves faster than Ringu exploration (Hammerwatch-like pace).
 export const dungeonMoveSpeed=w=>isCitadel(w)?CITADEL_MOVE_SPEED:EXPLORATION_MOVE_SPEED;
@@ -15,11 +23,12 @@ export const EXPLORATION_BASE={bossHp:95000000,attack:11500,referenceAttack:4910
 // Final-floor boss HP only (update 229: 30% HP nerf on every difficulty; attack unchanged).
 export const EXPLORATION_BOSS_SCALE=.7;
 export const explorationPopulation=n=>({hp:1+.30*(Math.max(1,Math.min(4,n))-1),attack:1+.12*(Math.max(1,Math.min(4,n))-1)});
+export const explorationScale=(tier,n)=>{const s=explorationPopulation(n);return EXPLORATIONS[tier]?.linearHp?{...s,hp:Math.max(1,Math.min(4,n))}:s;};
 export function explorationStats(tier,floor,count,boss=false){
  if(tier===CITADEL_TIER)return citadelStats(floor,count,boss);
  const theme=EXPLORATIONS[tier];if(!theme)throw Error('INVALID_EXPLORATION');
- const depth=.48+.52*(floor-1)/(theme.floors-1),scale=explorationPopulation(count),base=EXPLORATION_BASE;
- return {hp:Math.round(base.bossHp*(boss?EXPLORATION_BOSS_SCALE:.007)*theme.multiplier*depth*scale.hp),attack:Math.round(base.attack*(boss?1:.27)*theme.multiplier*depth*scale.attack),speed:boss?15:18+(tier%2)*2};
+ const depth=.48+.52*(floor-1)/(theme.floors-1),scale=explorationScale(tier,count),base=EXPLORATION_BASE;
+ return {hp:Math.round(base.bossHp*(boss?EXPLORATION_BOSS_SCALE:.007)*theme.multiplier*depth*scale.hp),attack:Math.round(base.attack*(boss?1:.27)*(theme.attackMultiplier??theme.multiplier)*depth*scale.attack),speed:boss?15:18+(tier%2)*2};
 }
 export const explorationArt=(tier,species,boss=false)=>tier===CITADEL_TIER?'citadel/'+(boss?'boss-9':'enemy-'+species)+'-213.webp':'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
 export function explorationFloor(w){
