@@ -66,7 +66,9 @@ export function explorationProgress(w){
    if(citadelStage(w.floor)?.boss&&!w.rewardChest){const at=w.bossDeath||w.exit;w.rewardChest={x:at.x,y:at.y,boss:citadelBossOrdinal(w.floor),floor:w.floor,at:w.tick};}
    w.exitLocked=citadelChestPending(w);if(w.exitLocked){for(const m of w.members)m.exitStay=0;return;}
   }
-  if(w.floor===theme.floors){w.status='won';w.chest=isCitadel(w)?null:{...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members)m.input=[0,0,0];return;}
+  if(w.floor===theme.floors){w.status='won';w.chest=isCitadel(w)?null:{...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members){m.input=[0,0,0];
+   // 2026-10-25: 링구의 탐험 클리어 시 쓰러진 동료(이탈 제외)는 체력 30%로 부활해 상자를 열 수 있다.
+   if(!isCitadel(w)&&!m.left&&m.hp<=0){m.hp=Math.max(1,Math.round(m.power.hp*.3));m.reviveProgress=0;m.reviver=null;m.inputAt=0;}}return;}
   // Citadel portals need a deliberate one-second stand, so running past never warps the party.
   if(isCitadel(w)){let go=false;for(const m of w.members){const near=!m.left&&m.hp>0&&Math.hypot(m.x-w.exit.x,m.y-w.exit.y)<150;m.exitStay=near?(m.exitStay||0)+1:0;if(m.exitStay>=10)go=true;}if(go){for(const m of w.members)delete m.exitStay;w.floor++;explorationFloor(w);}}
   else if(w.members.some(m=>!m.left&&m.hp>0&&Math.hypot(m.x-w.exit.x,m.y-w.exit.y)<190)){w.floor++;explorationFloor(w);}
