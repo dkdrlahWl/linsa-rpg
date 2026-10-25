@@ -74,7 +74,9 @@ function cleanDirectionalAtlas(im,layout=null){
     const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
     const w=canvas.width,h=canvas.height;
     if(im.src?.includes('mage-portrait-v1.webp'))for(let y=Math.floor(h*.4);y<Math.ceil(h*.76);y++)for(let x=0;x<Math.ceil(w*.1);x++){const p=(y*w+x)*4;if(data[p]>data[p+1]*1.35&&data[p]>data[p+2]*1.15)data[p+3]=0;}
-    const regions=layout?.frames||Array.from({length:16},(_,i)=>({x:i%4*canvas.width/4,y:Math.floor(i/4)*canvas.height/4,w:canvas.width/4,h:canvas.height/4}));
+    const frames=layout?.frames||Array.from({length:16},(_,i)=>({x:i%4*canvas.width/4,y:Math.floor(i/4)*canvas.height/4,w:canvas.width/4,h:canvas.height/4}));
+    // Several animation phases can share an authored cell. Clean it only once.
+    const regions=[...new Map(frames.map(r=>[`${r.x},${r.y},${r.w},${r.h}`,r])).values()];
     for(const region of regions){
       const sw=Math.floor(region.w),sh=Math.floor(region.h),size=sw*sh,ox=Math.floor(region.x),oy=Math.floor(region.y),groups=[null];
       const labels=new Int32Array(size),queue=new Int32Array(size),mask=new Uint8Array(size);
@@ -184,6 +186,17 @@ export class TowerRenderer {
     const spriteSize=(this.mobileActors.matches?215:180)*(this.citadelView?.52:this.explorationView?.78:1)*(CLASS_RENDER_SCALE[classId]||1);
     const costume=costumeById(costumeId,classId)||(classId==='priest'?PRIEST_DEFAULT:null);
     if(costume){
+      // Approved shop poses are also the forward-facing resting appearance.
+      // Walking, rear views and attacks keep their authored directional atlas.
+      if(costume.approvedIdle&&!moving&&!acting&&[1,2,3].includes(facing)){
+        const portrait=image(costume.portrait);
+        if(decodedImages.has(portrait)&&portrait.naturalWidth){
+          const source=cleanDirectionalAtlas(portrait,{frames:[{x:0,y:0,w:portrait.naturalWidth,h:portrait.naturalHeight}]}),r=frameBounds(source,1,1)[0];
+          const bodySize=spriteSize*(classId==='priest'?1:PRIEST_BODY_RATIO),scale=bodySize/r.h;
+          g.save();try{g.translate(x,y);g.scale(facing===3?-1:1,1);g.globalAlpha=alpha;g.drawImage(source,r.x,r.y,r.w,r.h,-r.w*scale/2,-bodySize,r.w*scale,bodySize);}finally{g.restore();}
+          return;
+        }
+      }
       const im=image(costume.atlas),pose=costumeMotionFrame(classId,facing,false,acting,age,walk,costume.motionLayout);
       // Successful decoding and exact sheet dimensions prevent partial WebP data
       // from being treated as a usable motion sheet.
