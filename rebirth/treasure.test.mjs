@@ -24,11 +24,11 @@ let survive5=0,first=0;const N=40000;for(let i=0;i<N;i++){let t=initialState('ro
 assert.ok(Math.abs(first/N-.12)<.01,first/N);assert.ok(Math.abs(survive5/N-.4957)<.012,survive5/N);
 // 보스장비 상자 → 150~190 보스장비.
 {let t=initialState('rogue','보물',ctx());t.hunting=false;t.treasure={tickets:1};t=execute(t,'treasureStart',{},ctx()).state;let n=0;const seq=[.99,.992];t=execute(t,'treasureDig',{cell:0},{...ctx(),random:()=>seq[n++]??.5}).state;assert.equal(t.treasure.run.opened[0].reward,'bossGear');const count=t.items.length;t=execute(t,'treasureCash',{},ctx()).state;assert.equal(t.items.length,count+1);const it=t.items.at(-1);assert.ok(it.boss&&it.level>=150&&it.level<=190);}
-// 낚시 티켓: 낚을 때마다 3%, 하루 최대 5장, 자정 초기화.
-{const f={treasure:{}};let n=0;for(let i=0;i<1000;i++)if(treasureTicketDrop(f,now,()=>0))n++;assert.equal(n,5);assert.equal(f.treasure.tickets,5);
- assert.equal(treasureTicketDrop({treasure:{}},now,()=>.03),false);assert.equal(treasureTicketDrop({treasure:{}},now,()=>.0299),true);
- assert.equal(treasureTicketDrop(f,now+86400000,()=>0),true,'next day');assert.equal(f.treasure.tickets,6);}
+// 낚시 티켓: 낚을 때마다 0.92% (600번이면 평균 5.5장), 일일 상한 없음.
+{const f={treasure:{}};let n=0;for(let i=0;i<20;i++)if(treasureTicketDrop(f,now,()=>0))n++;assert.equal(n,20);
+ assert.equal(treasureTicketDrop({treasure:{}},now,()=>.0092),false);assert.equal(treasureTicketDrop({treasure:{}},now,()=>.0091),true);
+ let total=0;const R=2000;for(let d=0;d<R;d++){const g={treasure:{}};for(let i=0;i<600;i++)if(treasureTicketDrop(g,now,Math.random))total++;}assert.ok(Math.abs(total/R-5.52)<.2,String(total/R));}
 {let t=initialState('rogue','낚시티켓',ctx());t.hunting=false;t.level=200;t.fishing={version:1,rod:70,xp:0,diamonds:0,bait:{worm:5000},fish:[],aquarium:[],slots:3,bank:0,bankAt:now,collection:{},daily:{},cast:null,lastCatch:null};
  let got=0;for(let i=0;i<400;i++){t=execute(t,'fishCast',{spot:'brook',bait:'worm',protocol:4},ctx()).state;const c=t.fishing.cast;now=c.biteAt;t=execute(t,'fishHook',{id:c.id},ctx()).state;if(t.fishing.lastCatch.treasureTicket)got++;if(t.fishing.fish.length>100)t.fishing.fish=[];}
- assert.equal(got,t.treasure.ticketsToday);assert.ok(got>=1&&got<=5,String(got));}
-console.log('PASS treasure: tickets from fishing (3%/catch, 5/day), 1 ticket per run, 3 runs/day, no restart mid-run, 3 mines (12% first cell, 50% survive 5), cash grants bag, boss gear box 150~190');
+ assert.equal(got,t.treasure.ticketsToday);assert.equal(got,t.treasure.tickets);}
+console.log('PASS treasure: tickets from fishing (0.92%/catch, ~5.5 per 600), 1 ticket per run, 3 runs/day, no restart mid-run, 3 mines (12% first cell, 50% survive 5), cash grants bag, boss gear box 150~190');

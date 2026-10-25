@@ -1,4 +1,4 @@
-import {TREASURE_CELLS,TREASURE_MINES,TREASURE_DAILY,TREASURE_TICKET_DAILY,TREASURE_TICKET_CHANCE,TREASURE_TICKET_MAX,TREASURE_GEAR_LEVELS,rollTreasureReward,treasureReward} from './treasure-data.mjs';
+import {TREASURE_CELLS,TREASURE_MINES,TREASURE_DAILY,TREASURE_TICKET_CHANCE,TREASURE_TICKET_MAX,TREASURE_GEAR_LEVELS,rollTreasureReward,treasureReward} from './treasure-data.mjs';
 const kstDay=now=>new Date(now+9*3600e3).toISOString().slice(0,10);
 // 보물 지뢰찾기 (서버 판정).
 // 지뢰 위치는 미리 정하지 않고, 칸을 열 때마다 "남은 지뢰 / 남은 칸" 확률로 판정한다.
@@ -15,10 +15,10 @@ export function normalizeTreasure(s,day){
  t.run=t.run&&typeof t.run==='object'?t.run:null;
  s.treasure=t;return t;
 }
-// 낚시로 하나 낚을 때마다 호출. 하루 최대 TREASURE_TICKET_DAILY장.
+// 낚시로 하나 낚을 때마다 호출.
 export function treasureTicketDrop(s,now,random){
  const t=normalizeTreasure(s,kstDay(now));
- if(t.ticketsToday>=TREASURE_TICKET_DAILY||t.tickets>=TREASURE_TICKET_MAX)return false;
+ if(t.tickets>=TREASURE_TICKET_MAX)return false;
  if(random()>=TREASURE_TICKET_CHANCE)return false;
  t.tickets++;t.ticketsToday++;return true;
 }

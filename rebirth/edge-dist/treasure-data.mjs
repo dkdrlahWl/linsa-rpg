@@ -1,10 +1,9 @@
 // 2026-10-26 보물 지뢰찾기: 5×5 판 · 지뢰 3개 · 티켓 1장당 1판 · 하루 최대 3판 · 터지면 모은 보상 전부 잃음.
-// 티켓은 낚시로 얻는다: 물고기·상자 등 낚을 때마다 TREASURE_TICKET_CHANCE 확률, 하루 최대 TREASURE_TICKET_DAILY장.
+// 티켓은 낚시로 얻는다: 물고기·상자 등 낚을 때마다 TREASURE_TICKET_CHANCE 확률 (하루 600번 낚으면 평균 5.5장).
 export const TREASURE_CELLS=25;
 export const TREASURE_MINES=3;
 export const TREASURE_DAILY=3;
-export const TREASURE_TICKET_DAILY=5;
-export const TREASURE_TICKET_CHANCE=.03;
+export const TREASURE_TICKET_CHANCE=.0092;
 export const TREASURE_TICKET_MAX=99;
 export const TREASURE_GEAR_LEVELS=[150,160,170,180,190];
 // 안전한 칸을 열 때마다 하나씩 나온다. chance 합계 = 1.
