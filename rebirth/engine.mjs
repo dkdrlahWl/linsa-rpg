@@ -2,7 +2,7 @@ import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=rogue-archer-20261019';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
-import {normalizeSkillLooks,equippedSkillLook,skillLookCommand} from './skill-looks.mjs';
+import {normalizeSkillLooks,equippedSkillLook,skillLookCommand,SKILL_LOOK_CRIT_DAMAGE,ownedSkillLookCount} from './skill-looks.mjs';
 import {bossSalePrice} from './shop-model.mjs';
 import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
 import {blackMarketBuy} from './black-market.mjs';
@@ -209,7 +209,7 @@ export function power(s) {
   // 2026-10-18: 사제 고유 보너스 HP +30%
   if (s.classId === "priest") hp = Math.floor(hp * 1.30);
   // 칭호 보유 효과: 칭호 하나당 치명타 피해 +0.5%p.
-  const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length;
+  const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length + SKILL_LOOK_CRIT_DAMAGE * ownedSkillLookCount(s);
   if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
   // 사제 리메이크: 사제도 다른 직업과 같은 공격력 계산식(LUK·공%·크리·보공 100%)을 쓴다.
   const costumeBonus=costumeAttackBonus(s);

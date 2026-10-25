@@ -22,6 +22,9 @@ const concepts=[
 ];
 export const SKILL_LOOKS=Object.freeze(concepts.map(([classId,id,name,motif,color,light,description])=>Object.freeze({classId,id,name,motif,color,light,description,price:SKILL_LOOK_PRICE})));
 export const skillLookById=id=>typeof id==='string'?SKILL_LOOKS.find(c=>c.id===id)||null:null;
+// 2026-10-25 보유 효과: 스킬 외형 1종당 치명타 피해 +1%p (모든 직업에 적용).
+export const SKILL_LOOK_CRIT_DAMAGE=.01;
+export const ownedSkillLookCount=s=>new Set((Array.isArray(s?.skillLooks)?s.skillLooks:[]).filter(id=>skillLookById(id))).size;
 export function equippedSkillLook(s){
  const c=skillLookById(s.equippedSkillLooks?.[s.classId]);
  return c&&c.classId===s.classId&&Array.isArray(s.skillLooks)&&s.skillLooks.includes(c.id)?c:null;

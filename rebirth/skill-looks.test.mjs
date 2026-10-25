@@ -32,10 +32,12 @@ for(const c of SKILL_LOOKS){
  assert.equal(equippedSkillLook(switched),null);
  assert.equal(equippedSkillLook(execute(switched,'changeClass',{classId:c.classId},ctx).state).id,c.id,'per-job equip survives switching');
  assert.equal(equippedSkillLook(normalizeSkillLooks(JSON.parse(JSON.stringify(worn)))).id,c.id);
- const naked=power(base),skinned=power(worn);
- assert.equal(skinned.skillLookId,c.id);delete naked.skillLookId;delete skinned.skillLookId;
- assert.deepEqual(naked,skinned,'all stats and power remain identical');
+ // 2026-10-25: 보유 효과 치명타 피해 +1%p/종. 장착 여부는 능력치에 영향 없음.
  const off=execute(worn,'skillLookUnequip',{},ctx).state;
+ assert.ok(Math.abs(power(bought).critDamage-power(base).critDamage-.01)<1e-9,'ownership adds +1%p crit damage');
+ const naked=power(off),skinned=power(worn);
+ assert.equal(skinned.skillLookId,c.id);delete naked.skillLookId;delete skinned.skillLookId;
+ assert.deepEqual(naked,skinned,'equipping does not change stats beyond ownership');
  assert.equal(equippedSkillLook(off),null);assert.deepEqual(off.skillLooks,[c.id]);assert.equal(off.gold,bought.gold);
  // Every skin replays 60 seconds with all five skills. Full world state (including
  // damage, hit areas, target selection, healing, cooldowns and timing) must match.
@@ -44,7 +46,7 @@ for(const c of SKILL_LOOKS){
  b.power.skillLookId=c.id;
  for(let tick=0;tick<600;tick++){const input=[0,0,1|8|2|16|32|64];towerStep(a,input);towerStep(b,input);}
  delete a.power.skillLookId;delete b.power.skillLookId;assert.deepEqual(a,b,`${c.id}: cosmetic must not alter simulation`);replays++;
- assert.deepEqual(simulateArena(base,base,'skin-parity'),simulateArena(worn,base,'skin-parity'),'arena damage and timings unchanged');
+ assert.deepEqual(simulateArena(off,base,'skin-parity'),simulateArena(worn,base,'skin-parity'),'equipping does not change arena damage and timings');
  for(let slot=1;slot<=5;slot++){
   const e={kind:c.classId==='priest'?'priest':['','first','second-sequence','third','fourth','fifth'][slot],slot,start:0,end:28};
   assert.equal(skillLookTier(e),slot);
@@ -69,4 +71,4 @@ assert.equal(execute(base,'skillLookBuy',{id:c.id},{...ctx,admin:true}).state.go
 const old=initialState('warrior','이전저장',ctx);delete old.skillLooks;delete old.equippedSkillLooks;
 assert.deepEqual(execute(old,'sync',{},ctx).state.skillLooks,[]);
 const source=await readFile(new URL('./app.mjs',import.meta.url),'utf8');assert.ok(source.includes("'skilllook'"));
-console.log(`PASS 18 skins / 6 jobs: exact 20M transactions, no duplicate debit, ownership persistence, job/battle guards, no stat bonus, ${replays} identical 60s all-skill combat replays, owner isolation and shop previews.`);
+console.log(`PASS 18 skins / 6 jobs: exact 20M transactions, no duplicate debit, ownership persistence, job/battle guards, +1% crit damage per owned look (equip is cosmetic), ${replays} identical 60s all-skill combat replays, owner isolation and shop previews.`);
