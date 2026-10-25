@@ -30,7 +30,7 @@ for(const id of newIds){
  const poor=initialState(c.classId,'금액검증',ctx);poor.hunting=false;poor.gold=c.price-1;
  assert.throws(()=>execute(poor,'costumeBuy',{id},ctx),/INSUFFICIENT_GOLD/);
  const stages=new Set(Array.from({length:8},(_,i)=>costumeMotionFrame(c.classId,2,false,true,i/9,0,c.motionLayout).frame.y));
- assert.equal(stages.size,2,'each new costume uses authored preparation and release');
+ assert.equal(stages.size,3,'each new costume uses authored preparation, release and standing recovery');
  assert.ok(costumeShop({...s,gold:20000000}).includes(c.name));
 }
 const existing=normalizeCostumes({classId:'warrior',costumes:oldIds,equippedCostume:oldIds[0]});

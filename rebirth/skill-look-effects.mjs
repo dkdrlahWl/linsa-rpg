@@ -1,17 +1,16 @@
 import {skillLookById} from './skill-looks.mjs';
 const clamp=v=>Math.max(0,Math.min(1,v)),mix=(a,b,t)=>a+(b-a)*t;
-const art=new Map(),loads=new Map();
-export const skillLookAtlasURL=id=>new URL(`./skill-looks/${id}-skills-v1.webp`,import.meta.url).href;
-export function prepareSkillLookArt(id){
- if(!skillLookById(id))return Promise.resolve(null);
- if(!loads.has(id)){
-  const image=new Image();image.src=skillLookAtlasURL(id);art.set(id,image);
-  loads.set(id,image.decode().then(()=>image).catch(()=>null));
- }
- return loads.get(id);
-}
+import {prepareSkillLookArt,skillLookAtlasURL,skillLookContext} from './skill-look-material.mjs';
+import {drawSecondSequence} from './second-effects.mjs';
+import {drawFourth,drawFourthGround} from './fourth-effects.mjs';
+import {drawFifth,drawFifthGround,prepareFifthArt} from './fifth-effects.mjs';
+import {drawPriestSkillArt,preparePriestSkillArt} from './priest-skill-art.mjs';
+export {prepareSkillLookArt,skillLookAtlasURL};
+const nativeImages=new Map();
+const nativeImage=path=>{if(!nativeImages.has(path)){const im=new Image();im.src=new URL('./'+path,import.meta.url).href;nativeImages.set(path,im);}return nativeImages.get(path);};
+export async function prepareNativePreview(look){await Promise.all([prepareSkillLookArt(look.id),prepareFifthArt([look.classId],nativeImage),look.classId==='priest'?preparePriestSkillArt():null,...['tower/second-job-atlas.webp','tower/third-job-atlas.webp','tower/second-sequence-atlas-v1.webp','tower/fourth-job-atlas.webp','tower/fourth-impact-atlas-v2.webp'].map(p=>nativeImage(p).decode().catch(()=>null))]);}
 export function skillLookIllustration(look){
- return `<img src="skill-looks/${look.id}-preview-v1.webp" alt="${look.name}" loading="lazy" class="skill-look-illustration">`;
+ return `<img src="skill-looks/${look.id}-preview-v2.webp" alt="${look.name}" loading="lazy" class="skill-look-illustration">`;
 }
 export const SKILL_LOOK_EFFECT_KINDS=Object.freeze(['first','second','second-sequence','third','fourth','fifth','fifth-field','priest']);
 export function skillLookTier(e){return e.kind==='priest'?Math.max(1,Math.min(5,e.slot||1)):e.kind==='first'?1:e.kind==='second'||e.kind==='second-sequence'?2:e.kind==='third'?3:e.kind==='fourth'?4:5;}
@@ -32,33 +31,24 @@ export function skillLookFrame(e,time){
  else column=p<.24?0:p<.76?1:2;
  return {tier,row:tier-1,column,progress:p};
 }
-export function drawSkillLook(g,e,time,look,owner=null){
- if(!look||!SKILL_LOOK_EFFECT_KINDS.includes(e.kind)||e.hostile||time<e.start||time>=e.end)return false;
- const image=art.get(look.id);if(!image?.complete||!image.naturalWidth){void prepareSkillLookArt(look.id);return false;}
- const {tier,row,column,progress:p}=skillLookFrame(e,time);
- const sw=image.naturalWidth/3,sh=image.naturalHeight/5;
- const orbit=e.orbit||e.mode==='self'||e.follow;
- let x=orbit&&owner?owner.x:e.x,y=orbit&&owner?owner.y:e.y;
- let rotation=0,w=Math.max(90,Math.min(1400,e.size||e.radius*2||470)),h=w;
- if(e.kind==='second-sequence'&&e.phase==='charge'){x=e.fromX??x;y=e.fromY??y;w*=.48;h=w;}
- else if(tier<=2&&e.fromX!==undefined&&e.impact!==undefined&&time<e.impact){
-  const fly=clamp((time-e.start)/Math.max(1,e.impact-e.start));
-  x=mix(e.fromX,x,fly);y=mix(e.fromY,y,fly);rotation=(e.angle||0)+.35;w*=.65;h=w;
- }
- // Wide fields keep the existing ground/range telegraph; the art rises above
- // that same center. The original effect objects remain untouched.
- if(tier>=4)h=w*1.04;
- g.save();g.translate(x,y-(tier>=3?h*.14:15));g.rotate(rotation);
- // 전투 중 투명도는 설정 > 스킬 투명도(skill-alpha.mjs)가 차수별로 곱한다.
- g.globalCompositeOperation='source-over';g.globalAlpha=Math.min(.94,(1-p)*6)* (e.phase==='charge'?.65:1)*(e.opacity??1);
- const breathe=1+Math.sin(p*Math.PI)*.035;w*=breathe;h*=breathe;
- g.drawImage(image,column*sw,row*sh,sw,sh,-w/2,-h*.65,w,h);
- g.restore();return true;
+// Previews use the same native choreography as combat, including projectile paths.
+export function drawSkillLook(ctx,e,time,look){
+ if(!look||e.hostile||time<e.start||time>=e.end)return false;
+ const tier=skillLookTier(e),classId=look.classId,g=skillLookContext(ctx,look,e),age=clamp((time-e.start)/(e.end-e.start)),frame=Math.min(3,Math.floor(age*4));
+ const event={...e,classId,slot:tier,fromX:e.x-200,fromY:e.y+20,angle:0,radius:180,size:360,impact:e.start+9,pulse:0,final:false,mode:classId==='mage'?'fixed':classId==='pirate'?'self':'tracking'};
+ if(classId==='priest'){drawPriestSkillArt(g,event,time,{scale:.36});return true;}
+ if(tier===2){drawSecondSequence(g,event,time,nativeImage('tower/second-sequence-atlas-v1.webp'),()=>{});return true;}
+ if(tier===4){event.orbit=['warrior','rogue'].includes(classId);drawFourthGround(g,event,time);drawFourth(g,event,time,{x:e.x,y:e.y},[],nativeImage('tower/fourth-job-atlas.webp'),nativeImage('tower/fourth-impact-atlas-v2.webp'));return true;}
+ if(tier===5){drawFifthGround(g,event,time);drawFifth(g,event,time);return true;}
+ const im=nativeImage(tier===3?'tower/third-job-atlas.webp':'tower/second-job-atlas.webp');if(!im.complete||!im.naturalWidth)return false;
+ const col=['warrior','mage','archer','rogue','pirate'].indexOf(classId),sw=im.naturalWidth/5,sh=im.naturalHeight/4;
+ const flight=['archer','pirate'].includes(classId)?Math.min(1,age*3):1,x=mix(event.fromX,event.x,flight);
+ g.save();g.globalAlpha=.9;g.drawImage(im,col*sw,frame*sh,sw,sh,x-180,event.y-230,360,288);g.restore();return true;
 }
 export function playSkillLookPreview(canvas,look,{loop=true,slot=1,cycle=true}={}){
  const g=canvas.getContext('2d');let stopped=false,raf,start=performance.now();
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- let ready=false;void prepareSkillLookArt(look.id).then(()=>{ready=true;});
+ let ready=false;void prepareNativePreview(look).then(()=>{ready=true;});
  const draw=now=>{
   if(stopped||!canvas.isConnected)return;
   const t=(now-start)/100,clock=loop?t%28:t,stage=cycle?1+Math.floor(t/28)%5:slot;
@@ -71,9 +61,13 @@ export function playSkillLookPreview(canvas,look,{loop=true,slot=1,cycle=true}={
  };
  draw(performance.now());return ()=>{stopped=true;cancelAnimationFrame(raf);};
 }
-export function playSkillLookOverlay(arena,look,slot){
+export async function playSkillLookOverlay(arena,look,slot){
+ await prepareSkillLookArt(look.id);
+ if(look.classId==='priest'){const{playHolyOverlay}=await import('./priest-overlay.mjs');playHolyOverlay(arena,slot,look);return;}
+ if(slot===5){const{playFifthOverlay}=await import('./fifth-overlay.mjs');return playFifthOverlay(arena,look.classId,look);}
+ if(slot===2){const{playSecondOverlay}=await import('./skill-overlay.mjs');playSecondOverlay(arena,look.classId,look);return;}
  const canvas=document.createElement('canvas');canvas.width=800;canvas.height=700;canvas.className='skill-sequence-overlay';canvas.setAttribute('aria-hidden','true');arena.append(canvas);
- const g=canvas.getContext('2d'),start=performance.now();void prepareSkillLookArt(look.id);
+ const g=canvas.getContext('2d'),start=performance.now();void prepareNativePreview(look);
  const kind=['','first','second-sequence','third','fourth','fifth'][slot]||'first';
  const frame=now=>{const time=(now-start)/100;if(!canvas.isConnected||time>=28){canvas.remove();return;}g.clearRect(0,0,800,700);drawSkillLook(g,{kind,classId:look.classId,x:425,y:365,size:520,start:0,end:28},time,look);requestAnimationFrame(frame);};requestAnimationFrame(frame);
 }

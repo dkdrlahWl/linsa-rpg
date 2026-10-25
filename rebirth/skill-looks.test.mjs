@@ -49,9 +49,9 @@ for(const c of SKILL_LOOKS){
   const e={kind:c.classId==='priest'?'priest':['','first','second-sequence','third','fourth','fifth'][slot],slot,start:0,end:28};
   assert.equal(skillLookTier(e),slot);
   assert.deepEqual([1,12,26].map(time=>skillLookFrame(e,time).column),[0,1,2]);
-  const art=arenaEffectArt(c.classId,slot,c.id);assert.equal(art.row,slot-1);assert.equal(art.cols,3);
+  const art=arenaEffectArt(c.classId,slot,c.id);assert.equal(art.row,slot-1);assert.equal(art.cols,4);
  }
- await access(new URL(`./skill-looks/${c.id}-skills-v1.webp`,import.meta.url));
+ await access(new URL(`./skill-looks/${c.id}-native-v2.webp`,import.meta.url));
  await access(new URL(`./skill-looks/${c.id}-preview-v1.webp`,import.meta.url));
  const self={classId:c.classId,actorId:'self',power:{skillLookId:c.id},allies:[{id:'ally',classId:c.classId,power:{}}]};
  const effect={owner:'self',classId:c.classId};assert.equal(skillLookForEffect(self,effect)?.id,c.id);

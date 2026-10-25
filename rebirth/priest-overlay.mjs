@@ -1,7 +1,8 @@
+import {skillLookContext,prepareSkillLookArt} from './skill-look-material.mjs';
 import {drawPriestSkillArt,preparePriestSkillArt} from './priest-skill-art.mjs?v=priest-perf-86';
 const overlays=new WeakMap();
-export function playHolyOverlay(arena,slot){
-  void preparePriestSkillArt();
+export function playHolyOverlay(arena,slot,look=null){
+  void preparePriestSkillArt();if(look)void prepareSkillLookArt(look.id);
   overlays.get(arena)?.remove();
   const canvas=document.createElement('canvas');canvas.width=600;canvas.height=525;
   canvas.className='skill-sequence-overlay';arena.append(canvas);overlays.set(arena,canvas);
@@ -12,7 +13,7 @@ export function playHolyOverlay(arena,slot){
     if(now-last>=1000/30){
       last=now;g.clearRect(0,0,600,525);g.save();g.scale(.75,.75);
       const t=(now-start)/100,age=Math.floor(t/10)*10;
-      drawPriestSkillArt(g,{slot,x:400,y:590,start:slot>=4?age:0,end:slot>=4?age+12:18},t,{scale:.82});
+      drawPriestSkillArt(skillLookContext(g,look,{kind:'priest',slot}),{slot,x:400,y:590,start:slot>=4?age:0,end:slot>=4?age+12:18},t,{scale:.82});
       g.restore();
     }
     requestAnimationFrame(render);
