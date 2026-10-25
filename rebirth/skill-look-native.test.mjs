@@ -1,3 +1,5 @@
+import {skillLookDestination} from './skill-look-fit.mjs';
+import {skillLookSourceRect} from './skill-look-bounds.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {SKILL_LOOKS} from './skill-looks.mjs';
@@ -14,7 +16,7 @@ for(const look of SKILL_LOOKS){
  await prepareSkillLookArt(look.id);
  for(const tier of [1,2,3,4,5]){
   const source=registerSkillLookSource({width:500,height:500},{tier,part:1}),a=context(),b=context();
-  a.g.drawImage(source,2,3,44,55,-112,-42,224,84);skillLookContext(b.g,look,{kind:'priest',slot:tier}).drawImage(source,2,3,44,55,-112,-42,224,84);assert.deepEqual(a.trace,b.trace,'source replacement must preserve exact destination geometry');
+  a.g.drawImage(source,2,3,44,55,-112,-42,224,84);skillLookContext(b.g,look,{kind:'priest',slot:tier}).drawImage(source,2,3,44,55,-112,-42,224,84);if(look.classId==='priest')assert.deepEqual(b.trace[0].slice(1),skillLookDestination(look,skillLookSourceRect(look.id,tier,1,1536,1920),[-112,-42,224,84]),'priest raster uses a single scale');else assert.deepEqual(a.trace,b.trace,'source replacement must preserve exact destination geometry');
  }
  if(look.classId==='priest')continue;
  for(const time of [1,5,12,24]){
