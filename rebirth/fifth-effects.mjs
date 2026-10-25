@@ -1,4 +1,5 @@
 import {registerSkillLookSource} from './skill-look-material.mjs';
+import {drawSkillLookSource} from './skill-look-source.mjs';
 const TAU=Math.PI*2;
 const colors={warrior:'#ffbb50',mage:'#b28aff',archer:'#82f3ac',rogue:'#bc9aff',pirate:'#66e5df'};
 const atlases=new Map(),lights=new Map(),seals=new Map(),waves=new Map();
@@ -63,7 +64,9 @@ function sprite(g,cls,cell,x,y,w,h,angle=0,alpha=1,flip=1){
  const f=atlases.get(cls)?.[cell];if(!f||alpha<=0)return;
  const [dw,dh]=dimensions(cls,cell,w,h);
  g.save();g.translate(x,y);g.rotate(angle);g.scale(flip,1);g.globalAlpha*=clamp(alpha);
- g.drawImage(f.im,f.x,f.y,f.w,f.h,-dw/2,-dh/2,dw,dh);g.restore();
+ // Resolve the celestial bow directly from the equipped theme. Do not rely on
+ // a cached native canvas being recognized by another module's WeakMap.
+ if(!(cls==='archer'&&cell===0&&drawSkillLookSource(g,5,0,[-dw/2,-dh/2,dw,dh])))g.drawImage(f.im,f.x,f.y,f.w,f.h,-dw/2,-dh/2,dw,dh);g.restore();
 }
 function glow(g,cls,x,y,size,alpha=1){const im=lights.get(cls);if(!im||alpha<=0)return;g.save();g.globalCompositeOperation='lighter';g.globalAlpha*=clamp(alpha);g.drawImage(im,x-size/2,y-size/2,size,size);g.restore();}
 function ring(g,cls,x,y,r,alpha,width=5,flat=.62){if(r<=0||alpha<=0)return;g.save();g.globalAlpha*=clamp(alpha);g.strokeStyle=colors[cls];g.lineWidth=width;g.beginPath();g.ellipse(x,y,r,r*flat,0,0,TAU);g.stroke();g.restore();}

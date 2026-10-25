@@ -1,4 +1,5 @@
 import {skillLookDestination} from './skill-look-fit.mjs';
+import {SKILL_LOOK_SOURCE} from './skill-look-source.mjs';
 import {orientedSkillLookSource} from './skill-look-orientation.mjs';
 import {skillLookSourceRect} from './skill-look-bounds.mjs';
 import {skillLookArtPath,skillLookDesign} from './skill-look-designs.mjs';
@@ -34,6 +35,7 @@ export function skillLookContext(g,look,e){
  const design=skillLookDesign(look.id),im=images.get(look.id);if(!im?.complete||!im.naturalWidth){void prepareSkillLookArt(look.id);return g;}
  return new Proxy(g,{
   get(target,key){
+   if(key===SKILL_LOOK_SOURCE)return (tier,part)=>orientedSkillLookSource(look.id,tier,part,im,skillLookSourceRect(look.id,tier,part,im.naturalWidth,im.naturalHeight));
    if(key==='drawImage')return (source,...args)=>{
     const part=skillLookSourcePart(source,args,e);if(!part)return target.drawImage(source,...args);
     if(part.tint){
