@@ -58,3 +58,8 @@ body:not(.tower-mode) #modal.cube-dialog .cube-choice-controls button{min-width:
 .refine-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}
 .refine-stats>div{display:flex;flex-direction:column;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.05)}
 .refine-stats span{font-size:12px;opacity:.75}.refine-stats small.up{color:#6ee7b7}.refine-stats small.down{color:#fca5a5}
+
+/* 2026-10-25 재련석 수치 범위 */
+.refine-stats .refine-range{display:block;font-size:11px;opacity:.75;color:inherit}
+.refine-range-list{display:grid;gap:3px;margin:6px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.04);font-size:12px}
+.refine-range-list>small{opacity:.8}.refine-range-list small{font-size:11px;opacity:.75}
