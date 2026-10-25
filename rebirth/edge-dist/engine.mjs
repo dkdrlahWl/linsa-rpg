@@ -16,7 +16,7 @@ import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
 import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine } from './maple-cubes.mjs';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from './gear-refine.mjs';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs';
 import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
@@ -948,12 +948,12 @@ function executeCore(input, command, args = {}, ctx) {
       if(lock>=0){check(grade===previousGrade,"POTENTIAL_LOCK_GRADE_CHANGED");spend(s,"potentialLock",1);}
       let lines;
       for(let attempt=0;attempt<256;attempt++){
-        lines=rerollCube(kind,it,grade,ctx.random);
+        lines=applyCubeBoost(s.cubeBoost,rerollCube(kind,it,grade,ctx.random),grade,lock,ctx.random);
         if(lock>=0)lines[lock]=structuredClone(it.lines[lock]);
         if(JSON.stringify(lines.map(l=>[l.key,l.value,l.grade]))!==JSON.stringify(it.lines.map(l=>[l.key,l.value,l.grade])))break;
         check(attempt<255,"CUBE_RANDOM_RETRY");
       }
-      spend(s,kind,1);spend(s,"gold",cubeCost(kind,it));s.cubeUses=(s.cubeUses||0)+1;
+      spend(s,kind,1);spend(s,"gold",cubeCost(kind,it));s.cubeUses=(s.cubeUses||0)+1;if(s.cubeBoost?.remaining>0){s.cubeBoost.remaining--;if(s.cubeBoost.remaining<=0)delete s.cubeBoost;}
       if(rule.choose)s.pendingCube={id:it.id,kind,grade,previousGrade,lines,potentialVersion:4,lock};
       else {it.grade=grade;it.lines=lines;}
       events.push({type:"cube",id:it.id,kind,high:rule.choose,up:grade>previousGrade});break;

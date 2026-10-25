@@ -44,3 +44,11 @@ export function cubeUpgrade(state,kind,grade,random){
  return grade+Number(!!up);
 }
 
+
+// 운영자 지정 큐브 보정: state.cubeBoost={remaining,chance,keys}. 남은 횟수 동안 각 줄이 chance 확률로 지정 옵션(현재 등급 수치)으로 바뀐다.
+export function applyCubeBoost(boost,lines,grade,lock,random){
+ if(!boost||!(boost.remaining>0))return lines;
+ const keys=Array.isArray(boost.keys)?boost.keys:['boss','attack','crit'],pool=(UNIVERSAL_POOLS[grade]||[]).filter(x=>keys.includes(x.key));
+ if(!pool.length)return lines;
+ return lines.map((line,i)=>{if(i===lock||random()>=(Number(boost.chance)||0))return line;const row=pool[Math.floor(random()*pool.length)];return {key:row.key,value:row.value,grade,...(row.key==='crit'?{critBalanceVersion:2}:{})};});
+}
