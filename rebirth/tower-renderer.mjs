@@ -1,3 +1,4 @@
+import {actorFacing} from './actor-facing.mjs';
 import {beginSkillAlpha,endSkillAlpha,skillAlpha,effectTier,withSkillAlpha} from './skill-alpha.mjs';
 import {drawCitadelWorld,drawCitadelMap,drawCitadelAmbience} from './citadel-renderer.mjs';
 import {skillLookForEffect,prepareSkillLookArt} from './skill-look-effects.mjs';
@@ -379,8 +380,9 @@ export class TowerRenderer {
     // Input previews can arrive before the first simulation tick creates start/end times.
     const actionAge=(start,end,preview,duration)=>b.tick<(end||0)?clamp((time-(start??end-duration))/duration):preview>now?clamp((now-preview+110)/(duration*100)):0;
     const attackAge=actionAge(b.attackStart,b.attackUntil,hint.attack,6),skillAge=actionAge(b.skillStart,b.skillUntil,hint.skill,8);
-    const moveDir=towerFacing(input[0],input[1],b.player.dir??6);
-    const dir=casting?(b.player.skillDir??moveDir):attacking?(b.player.attackDir??towerFacing(enemy.x-player.x,enemy.y-player.y,moveDir)):moving?moveDir:(b.player.dir??6);
+    const moveDir=towerFacing(moving?input[0]:dashing?b.dashX||0:0,moving?input[1]:dashing?b.dashY||0:0,b.player.dir??6);
+    const presentation=actorFacing({moving:moving||dashing,moveDir,idleDir:b.player.dir??6,casting,castDir:b.player.skillDir??towerFacing(enemy.x-player.x,enemy.y-player.y,moveDir),attacking,attackDir:b.player.attackDir??towerFacing(enemy.x-player.x,enemy.y-player.y,moveDir)});
+    const dir=presentation.dir;
     const forward=facingVector(dir);
     const stride=moving?Math.sin(((b.player.walk||0)+fraction)*2.25):0;
     const bob=moving&&!dashing?Math.abs(stride)*5:Math.sin(now/600)*1.2;
@@ -401,13 +403,13 @@ export class TowerRenderer {
       this.pet(b,player.x,player.y,time);
       if(b.waveMode&&b.hp<=0)return;
       const pose=!moving&&!dashing?fifthPose(selfField,time):null;
-      const lunge=pose?.lunge??(attacking?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0);
+      const lunge=pose?.lunge??(attacking&&!moving&&!dashing?Math.sin(attackAge*Math.PI)*(b.classId==='rogue'?20:14):0);
       const alpha=b.tick<b.invulnerableUntil?.7+.25*Math.sin(now/35):1;
       const x=player.x+forward.x*lunge,y=player.y+forward.y*lunge*.7+bob;
       if(b.classId==='priest'&&casting&&!b.power?.skillLookId&&!b.fifthCast?.holy){const slot=b.fifthCast?.holy?5:b.fourthCast?.holy?4:b.thirdCast?.holy?3:b.secondCast?.holy?2:1;drawPriestSkillArt(g,{slot,x:player.x,y:player.y,start:b.skillStart??b.tick,end:(b.skillUntil??b.tick)+5},time,{scale:.48,opacity:.42});}
       if(b.shield>0&&(!b.localSkillsOnly||b.shieldOwner===(b.actorId??b.id))&&(b.shieldPermanent||b.tick<b.shieldUntil))drawShield(b,player.x,player.y);
       drawPriestBuffAura(g,{...(b.localSkillsOnly?ownPriestAura(b,time):b),x:player.x,y:player.y},time,holyEffects);
-      this.actor(b.classId,pose?towerFacing(b.enemy.x-player.x,b.enemy.y-player.y,dir):dir,moving||dashing,!!pose||attacking||casting,pose?.age??(casting?skillAge:attackAge),(b.player.walk||0)+fraction,x,y,alpha,b.power?.costumeId);
+      this.actor(b.classId,pose?towerFacing(b.enemy.x-player.x,b.enemy.y-player.y,dir):dir,moving||dashing,!!pose||presentation.acting,pose?.age??(casting?skillAge:attackAge),(b.player.walk||0)+fraction,x,y,alpha,b.power?.costumeId);
       if(b.tick<b.guardUntil)this.effect('rune',player.x,player.y-20,110,80,-time*.04,.55);
     };
     const drawBoss=()=>{
@@ -456,10 +458,10 @@ export class TowerRenderer {
     }
     const holyEffects=[...holy.values()];for(const e of holyEffects)withSkillAlpha(g,e,()=>drawPriestRangeAura(g,e,time));for(const e of holyEffects)withSkillAlpha(g,e,()=>{const look=skillLookForEffect(b,e);drawPriestSkillArt(skillLookContext(g,look,{...e,kind:'priest'}),e,time);});
     const actors=[{y:player.y,draw:drawPlayer},{y:b.chest?.y??enemy.y,draw:drawBoss},...(b.allies||[]).map(m=>({y:m.y,draw:()=>{
-      const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),dir=(casting?m.skillDir:attacking?m.attackDir:m.dir)??6,alpha=m.hp>0?1:.35;
+      const attacking=b.tick<(m.attackUntil||0),casting=b.tick<(m.skillUntil||0),motion=actorFacing({moving:m.moving,moveDir:towerFacing(m.input?.[0]||0,m.input?.[1]||0,m.dir??6),idleDir:m.dir??6,casting,castDir:m.skillDir,attacking,attackDir:m.attackDir}),dir=motion.dir,alpha=m.hp>0?1:.35;
       this.pet(m,m.x,m.y,time,m.id);
       const pose=!m.moving?fifthPose(fifthAreas.find(e=>e.owner===m.id),time):null;
-      this.shadow(m.x,m.y,25);if(!b.localSkillsOnly&&m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawShield(m,m.x,m.y);if(!b.localSkillsOnly)drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||attacking||casting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId,false);
+      this.shadow(m.x,m.y,25);if(!b.localSkillsOnly&&m.shield>0&&(m.shieldPermanent||b.tick<m.shieldUntil))drawShield(m,m.x,m.y);if(!b.localSkillsOnly)drawPriestBuffAura(g,m,time,holyEffects);this.actor(m.classId,dir,m.moving,!!pose||motion.acting,pose?.age??clamp((time-(casting?m.skillStart:m.attackStart))/(casting?8:6)),(m.walk||0)+fraction,m.x,m.y,alpha,m.power?.costumeId,false);
       if(!b.localSkillsOnly&&b.tick<(m.guardUntil||0))this.effect('rune',m.x,m.y-20,110,80,-time*.04,.55);
       const labelY=m.y-(this.mobileActors.matches?215:180)-24;
       g.save();g.font='bold 20px sans-serif';g.textAlign='center';g.fillStyle='#b9ffe0';g.fillText(m.name,m.x,labelY);g.fillStyle='#25312d';g.fillRect(m.x-40,labelY+11,80,6);const health=healthSegments(m);g.fillStyle='#bfc7cf';g.fillRect(m.x-40+80*health.health/100,labelY+11,80*health.shieldWidth/100,6);g.fillStyle='#70dfa7';g.fillRect(m.x-40,labelY+11,80*health.health/100,6);g.restore();
