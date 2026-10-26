@@ -6,15 +6,18 @@ import {treasureTicketDrop} from './treasure-model.mjs';
 assert.ok(Math.abs(TREASURE_REWARDS.reduce((n,r)=>n+r.chance,0)-1)<1e-9);
 let now=Date.parse('2026-10-26T12:00:00+09:00');const ctx=()=>({now,random:Math.random,uuid:randomUUID,accountId:'a'});
 let s=initialState('rogue','보물',ctx());s.hunting=false;
-assert.throws(()=>execute(s,'treasureStart',{},ctx()),/TREASURE_TICKET_REQUIRED/);s.treasure={tickets:10};
-// 티켓 1장당 1판 · 하루 3판, 진행 중엔 새 판 불가, 빈 가방 수령 불가.
-for(let i=0;i<3;i++){s=execute(s,'treasureStart',{},ctx()).state;assert.throws(()=>execute(s,'treasureStart',{},ctx()),/TREASURE_RUN_ACTIVE/);assert.throws(()=>execute(s,'treasureCash',{},ctx()),/TREASURE_EMPTY_BAG/);
- // 안 터질 때까지 판다 → 같은 칸 재선택 거부.
- let cell=0;while(s.treasure.run.status==='digging'&&cell<25){s=execute(s,'treasureDig',{cell},ctx()).state;if(s.treasure.run.status==='digging')assert.throws(()=>execute(s,'treasureDig',{cell},ctx()),/TREASURE_CELL_OPEN/);cell++;}
- const r=s.treasure.run;assert.equal(r.mines.length,3);assert.ok(r.status==='boom'||r.status==='cleared');for(const m of r.mines)assert.ok(!r.opened.some(o=>o.cell===m));}
-assert.equal(s.treasure.tickets,7);assert.throws(()=>execute(s,'treasureStart',{},ctx()),/TREASURE_DAILY_LIMIT/);
-now+=86400000;s=execute(s,'treasureStart',{},ctx()).state;assert.equal(s.treasure.plays,1,'resets next day');assert.equal(s.treasure.tickets,6);
-{const z=initialState('rogue','보물',ctx());z.hunting=false;z.treasure={tickets:0};assert.throws(()=>execute(z,'treasureStart',{},ctx()),/TREASURE_TICKET_REQUIRED/);}
+s.treasure={tickets:4};
+const finish=()=>{let cell=0;while(s.treasure.run.status==='digging'&&cell<25){s=execute(s,'treasureDig',{cell},ctx()).state;if(s.treasure.run.status==='digging')assert.throws(()=>execute(s,'treasureDig',{cell},ctx()),/TREASURE_CELL_OPEN/);cell++;}
+ const r=s.treasure.run;assert.equal(r.mines.length,3);assert.ok(r.status==='boom'||r.status==='cleared');for(const m of r.mines)assert.ok(!r.opened.some(o=>o.cell===m));};
+// 하루 3판 무료 (티켓 안 씀), 진행 중엔 새 판 불가, 빈 가방 수령 불가.
+for(let i=0;i<3;i++){const ev=execute(s,'treasureStart',{},ctx());s=ev.state;assert.equal(ev.events.at(-1).free,true);assert.throws(()=>execute(s,'treasureStart',{},ctx()),/TREASURE_RUN_ACTIVE/);assert.throws(()=>execute(s,'treasureCash',{},ctx()),/TREASURE_EMPTY_BAG/);finish();}
+assert.equal(s.treasure.tickets,4);assert.equal(s.treasure.plays,3);
+// 무료 판 이후엔 티켓 1장당 1판, 하루 횟수 제한 없음.
+for(let i=0;i<4;i++){const ev=execute(s,'treasureStart',{},ctx());s=ev.state;assert.equal(ev.events.at(-1).free,false);finish();}
+assert.equal(s.treasure.tickets,0);assert.throws(()=>execute(s,'treasureStart',{},ctx()),/TREASURE_TICKET_REQUIRED/);
+s.treasure.tickets=7;
+now+=86400000;s=execute(s,'treasureStart',{},ctx()).state;assert.equal(s.treasure.plays,1,'resets next day');assert.equal(s.treasure.tickets,7,'free run keeps tickets');
+{const z=initialState('rogue','보물',ctx());z.hunting=false;z.treasure={tickets:0};const e=execute(z,'treasureStart',{},ctx());assert.equal(e.events.at(-1).free,true,'no ticket needed for free runs');}
 // 수령: 가방이 그대로 들어온다.
 {let t=structuredClone(s);const before={gold:t.gold,...t.materials};let k=0;while(t.treasure.run.opened.length<2&&t.treasure.run.status==='digging')t=execute(t,'treasureDig',{cell:k++},ctx()).state;
  if(t.treasure.run.status==='digging'){t=execute(t,'treasureCash',{},ctx()).state;assert.equal(t.treasure.run.status,'cashed');assert.equal(t.treasure.run.mines.length,3);
@@ -31,4 +34,4 @@ assert.ok(Math.abs(first/N-.12)<.01,first/N);assert.ok(Math.abs(survive5/N-.4957
 {let t=initialState('rogue','낚시티켓',ctx());t.hunting=false;t.level=200;t.fishing={version:1,rod:70,xp:0,diamonds:0,bait:{worm:5000},fish:[],aquarium:[],slots:3,bank:0,bankAt:now,collection:{},daily:{},cast:null,lastCatch:null};
  let got=0;for(let i=0;i<400;i++){t=execute(t,'fishCast',{spot:'brook',bait:'worm',protocol:4},ctx()).state;const c=t.fishing.cast;now=c.biteAt;t=execute(t,'fishHook',{id:c.id},ctx()).state;if(t.fishing.lastCatch.treasureTicket)got++;if(t.fishing.fish.length>100)t.fishing.fish=[];}
  assert.equal(got,t.treasure.ticketsToday);assert.equal(got,t.treasure.tickets);}
-console.log('PASS treasure: tickets from fishing (0.92%/catch, ~5.5 per 600), 1 ticket per run, 3 runs/day, no restart mid-run, 3 mines (12% first cell, 50% survive 5), cash grants bag, boss gear box 150~190');
+console.log('PASS treasure: tickets from fishing (0.92%/catch, ~5.5 per 600), 3 free runs/day then 1 ticket per run (no cap), no restart mid-run, 3 mines (12% first cell, 50% survive 5), cash grants bag, boss gear box 150~190');

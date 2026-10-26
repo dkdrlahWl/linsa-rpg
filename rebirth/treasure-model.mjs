@@ -43,10 +43,12 @@ export function treasureCommand(s,command,args,ctx,day,makeGear){
  const t=normalizeTreasure(s,day);
  if(command==='treasureStart'){
   if(t.run?.status==='digging')fail('TREASURE_RUN_ACTIVE');
-  if(t.plays>=TREASURE_DAILY)fail('TREASURE_DAILY_LIMIT');
-  if(t.tickets<1)fail('TREASURE_TICKET_REQUIRED');
-  t.tickets--;t.plays++;t.run={id:ctx.uuid(),status:'digging',opened:[],mines:[],startedAt:ctx.now};
-  return {type:'treasureStart',plays:t.plays,tickets:t.tickets};
+  // 하루 TREASURE_DAILY판은 무료, 그 뒤로는 티켓 1장당 1판 (횟수 제한 없음).
+  const free=t.plays<TREASURE_DAILY;
+  if(!free&&t.tickets<1)fail('TREASURE_TICKET_REQUIRED');
+  if(free)t.plays++;else t.tickets--;
+  t.run={id:ctx.uuid(),status:'digging',opened:[],mines:[],startedAt:ctx.now};
+  return {type:'treasureStart',free,plays:t.plays,tickets:t.tickets};
  }
  const run=t.run;if(!run||run.status!=='digging')fail('TREASURE_NO_RUN');
  if(command==='treasureDig'){
