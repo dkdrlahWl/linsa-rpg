@@ -73,7 +73,7 @@ const ROWS=[
  ['rod50','별을 낚는 손','낚시','epic','낚싯대 Lv.50',s=>(s.fishing?.rod||0)>=50],
  ['tank10','수족관 주인','낚시','epic','수족관 10칸까지 확장',s=>(s.fishing?.slots||0)>=10],
  ['lotto','대박의 주인공','운','legend','주간 로또 1등 당첨',s=>st(s).lottoWin===true],
- ['invest','큰손 투자자','투자','legend','투자 누적 수익 1억 G',s=>(st(s).investProfit||0)>=1e8],
+ ['invest','큰손 투자자','투자','legend','투자 누적 순수익 1억 G',s=>(st(s).investProfit||0)>=1e8],
  ['market','거래의 달인','거래소','rare','거래소 판매 100건',s=>(st(s).marketSales||0)>=100],
  ['cube1000','큐브 중독자','강화','epic','큐브 누적 1,000회 사용',s=>(s.cubeUses||0)>=1000],
  ['star20set','빛나는 별의 갑주','강화','legend','20성 이상 장비로 9부위 전부 착용',s=>{const e=equippedItems(s);return e.length>=9&&e.every(i=>(i.stars||0)>=20);}],
@@ -104,6 +104,14 @@ const ROWS=[
  ['look6jobs','여섯 빛의 조율자','수집','legend','6직업의 스킬 외형을 직업마다 1종 이상 보유',s=>new Set(SKILL_LOOKS.filter(c=>(Array.isArray(s.skillLooks)?s.skillLooks:[]).includes(c.id)).map(c=>c.classId)).size>=6],
  ['look9','별빛의 연출가','수집','legend','스킬 외형 9종 보유',s=>ownedSkillLookCount(s)>=9],
  ['look18','천상의 만화경','수집','myth','스킬 외형 18종 전부 보유',s=>SKILL_LOOKS.every(c=>(Array.isArray(s.skillLooks)?s.skillLooks:[]).includes(c.id))],
+ // 2026-10-26 투자 칭호 확장. 순수익 = 판매 수수료 반영 후 (수익 − 손실), 거래내역 '총 PnL'과 같은 값. 초기화 환급은 거래로 세지 않음.
+ ['invest1','첫 수익 실현','투자','common','코인 판매로 첫 수익 실현',s=>(st(s).investWins||0)>=1],
+ ['investLiq','깡통의 추억','투자','common','포지션 첫 청산',s=>(st(s).investLiquidations||0)>=1],
+ ['invest100','차트 중독자','투자','rare','코인 거래 100회 완료',s=>(st(s).investTrades||0)>=100],
+ ['invest10m','개미 투자자','투자','rare','투자 누적 순수익 1,000만 G',s=>(st(s).investProfit||0)>=1e7],
+ ['investShort','하락의 예언자','투자','epic','숏 포지션으로 수익 실현 30회',s=>(st(s).investShortWins||0)>=30],
+ ['investX2','한 방의 미학','투자','epic','한 번의 거래로 수익률 +100% 달성',s=>(st(s).investBestRate||0)>=1],
+ ['invest1b','시장의 지배자','투자','myth','투자 누적 순수익 10억 G',s=>(st(s).investProfit||0)>=1e9],
 ];
 // ALL_TITLES includes not-yet-released rows (art is pre-built); TITLES is what players can see/earn now.
 export const ALL_TITLES=ROWS.map(([id,name,category,grade,condition,check,when],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i,available:!when||!!when()}));
