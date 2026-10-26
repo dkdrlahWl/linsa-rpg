@@ -6,6 +6,7 @@ export const MIRROR_ROWS={
  'crimson-butterfly-dancer':[1,2,6],
  'sugar-ribbon-captain':[1,2,3,6,7,8],
  'wisteria-sanctuary-priest':[1,2,3,6,7,8],
+ 'autumn-fox-archer':[1,2,3,6,7,8],
 };
 
 // Canvas facing: E, SE, S, SW, W, NW, N, NE. Left views mirror right views.
