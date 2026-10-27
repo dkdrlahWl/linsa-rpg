@@ -1,0 +1,1 @@
+.advancement-boss .advancement-illustration{display:block;width:min(100%,240px);height:auto;aspect-ratio:2/3;object-fit:contain;margin:auto;border-radius:9px;border:1px solid #ad946244;background:#07101c}.party-room:has(.citadel-cover>img[src*="advancement-"]) .citadel-cover>img{object-position:center 35%}

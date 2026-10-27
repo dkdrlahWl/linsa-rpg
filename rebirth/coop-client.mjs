@@ -1,3 +1,4 @@
+import {advancementArt} from './advancement-art.mjs';
 import {partyRoomView} from './party-room.mjs';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 import {titleBadge} from './title-ui.mjs';
@@ -35,7 +36,8 @@ export function coopLobby(state,room,rooms=[],mode="rift"){
  if(room?.mode==='advancement'){
   const t=coopEncounter(room);void prepareCombatArt(room.members.map(m=>m.classId),t.art,room.members.map(m=>m.power?.costumeId),room.members.map(m=>m.power?.skillLookId));
   const adv=ADVANCEMENT_BOSSES.find(b=>b.stage===room.tier),frames=adv?.artFrames??3,all=room.members.filter(m=>!m.left).every(m=>m.ready);
-  return partyRoomView({room,max:2,cover:'tower/arena.webp',boss:{src:'tower/boss-'+(adv?.art||t.art)+'.webp',frames},eyebrow:'ADVANCEMENT TRIAL · Lv.'+t.level,title:t.name,tagline:adv?.pattern||'',head:'전직 보스 · 혼자 또는 2명 · 제한 '+t.seconds+'초',lines:['Lv.'+t.level+' 이상 입장'],notes:['인원에 따른 보스 강화 없음 · 완료한 전직도 도움 참가 가능 · 처치 시 전직 대상자만 승급'],start:{label:all?(room.members.filter(m=>!m.left).length===1?'혼자 출발':'둘이 출발'):'모두 준비 후 출발',disabled:room.owner!==room.me||!all}});
+  const art=advancementArt(adv?.art||t.art);
+  return partyRoomView({room,max:2,cover:art?.portrait||'tower/arena.webp',boss:art?null:{src:'tower/boss-'+(adv?.art||t.art)+'.webp',frames},eyebrow:'ADVANCEMENT TRIAL · Lv.'+t.level,title:t.name,tagline:adv?.pattern||'',head:'전직 보스 · 혼자 또는 2명 · 제한 '+t.seconds+'초',lines:['Lv.'+t.level+' 이상 입장'],notes:['인원에 따른 보스 강화 없음 · 완료한 전직도 도움 참가 가능 · 처치 시 전직 대상자만 승급'],start:{label:all?(room.members.filter(m=>!m.left).length===1?'혼자 출발':'둘이 출발'):'모두 준비 후 출발',disabled:room.owner!==room.me||!all}});
  }
  if(room?.mode==="wave"||(!room&&mode==="wave")){void prepareWaveCreature(image(WAVE_MONSTERS[0].art),0);void prepareWaveCreature(image(WAVE_MONSTERS[0].eliteArt),0);if(room)void prepareCombatArt(room.members.map(m=>m.classId),COOP_TIERS[0].art,room.members.map(m=>m.power?.costumeId),room.members.map(m=>m.power?.skillLookId));return waveLobby(state,room,rooms);}
  rooms=rooms.filter(r=>!r.mode||r.mode==="rift");
