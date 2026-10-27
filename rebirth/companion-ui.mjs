@@ -1,4 +1,4 @@
-import {COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs';
+import {COMPANIONS,COMPANION_GRADE_RATES,companionSummonChance,COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.floor((n||0)+1e-7).toLocaleString('ko-KR');
 const GRADE_ORDER=Object.fromEntries(COMPANION_GRADES.map((g,i)=>[g,i]));
@@ -73,7 +73,7 @@ export function companionView(s){
    <div class="cp-slots">${d.slots.map((slot,i)=>slotView(d,slot&&byId(slot.card),slot,i,now)).join('')}</div>
   </section>
   <section class="cp-panel cp-summon">
-   <div class="cp-ticket"><span class="cp-ticket-icon"></span><span>소환권</span><b>${fmt(d.tickets)}장</b></div>
+   <button data-illustrated="1" class="cp-ticket cp-help-button" data-action="companionHelp" aria-label="효과·확률 안내"><span>효과·확률 안내</span><b>소환권 ${fmt(d.tickets)}장</b></button>
    <button data-illustrated="1" class="cp-summon-btn one" data-action="companionSummon" data-arg="1"><b>1회 소환</b><small><span class="cp-ticket-mini"></span>1</small></button>
    <button data-illustrated="1" class="cp-summon-btn five" data-action="companionSummon" data-arg="5"><b>5회 소환</b><small><span class="cp-ticket-mini"></span>5</small></button>
    <button data-illustrated="1" class="cp-summon-btn cp-auto-equip" data-action="companionAutoEquip" ${d.cards.length?'':'disabled'} title="별·패시브와 현재 성장 상태를 반영한 8시간 기대 골드 기준"><b>최적 장착</b><small>패시브 반영</small></button>
@@ -147,8 +147,25 @@ function showSummon(cards,api){
  session.timer=setTimeout(next,180);
 }
 
+const percent=n=>Number((n*100).toFixed(4)).toLocaleString('ko-KR')+'%';
+function companionHelp(){
+ const p=COMPANION_PASSIVES;
+ return `<div class="cp-help-content" tabindex="-1" autofocus>
+ <h3>패시브 효과 · 수치 범위</h3><p>카드마다 패시브 1개가 붙어요. 등급·캐릭터와 관계없이 각 종류의 확률은 <b>1/3 (약 33.3333%)</b>로 같아요.</p>
+ <dl><dt>◈ ${p.gold.name} · +${p.gold.min}~${p.gold.max}%</dt><dd>배치 즉시 해당 카드의 분당 골드가 증가해요. 배치를 바꿔도 옵션은 유지돼요.</dd>
+ <dt>❧ ${p.growth.name} · 최대 +${p.growth.min}~${p.growth.max}%</dt><dd>배치 후 1시간이 지날 때마다 +5%씩 증가해요. 카드에 정해진 최대치에 도달하면 더 늘지 않아요. 골드 수령 시 성장은 유지되고, 배치를 해제하면 초기화돼요. 최대치 +30%는 6시간, +50%는 10시간에 도달해요.</dd>
+ <dt>✤ ${p.jackpot.name} · 발동 확률 ${p.jackpot.min}~${p.jackpot.max}%</dt><dd>그 카드의 골드를 수령할 때 표시된 확률로 수령 골드가 2배가 돼요. 배치 해제로 자동 수령할 때도 판정해요. 카드마다 따로 판정하며, 분당 골드 표기에는 대박 기대값을 더하지 않아요.</dd></dl>
+ <p>각 패시브 수치는 <b>${p.gold.min}~${p.gold.max} / ${p.growth.min}~${p.growth.max} / ${p.jackpot.min}~${p.jackpot.max}</b> 범위의 정수 중 동일 확률로 결정돼요. 종류별로 수치 한 가지가 나올 확률은 <b>1/21 (약 4.7619%)</b>예요. 예: 골드형 +40% 카드가 나올 확률은 전체 소환의 <b>1/63 (약 1.5873%)</b>예요.</p>
+ <h3>골드 계산 · 최적 장착</h3><p>분당 골드 = 기본 골드 × (1 + 별 보너스) × (1 + 현재 패시브 증가율). ★마다 +15%, ★5는 +60%예요. 성장형은 시간에 따라 달라지고, 대박형은 수령할 때 별도로 판정해요.</p><p>슬롯마다 최대 8시간 누적돼요. 최적 장착은 <b>앞으로 8시간의 기대 골드</b>를 비교해 3명을 골라요. 별·성장 단계·대박 확률을 반영하며 유지된 카드의 성장 시간은 보존돼요. 대박형 기대 보너스는 발동 확률과 같고, 실제 결과는 달라질 수 있어요.</p>
+ <h3>등급별 소환 확률</h3><table><thead><tr><th>등급</th><th>확률</th></tr></thead><tbody>${COMPANION_GRADES.map(g=>`<tr><td>${g}</td><td>${percent(COMPANION_GRADE_RATES[g])}</td></tr>`).join('')}</tbody></table>
+ <h3>캐릭터별 확률 · 기본 골드</h3><p>아래 확률은 전체 소환 기준이에요. 같은 등급에서도 기본 수입이 높은 캐릭터일수록 드물게 나와요. 기본 골드는 각 범위의 정수 중 동일 확률로 결정돼요.</p><table><thead><tr><th>등급 · 이름</th><th>기본 G/분</th><th>확률</th></tr></thead><tbody>${COMPANIONS.map(c=>`<tr><td>${c.grade} · ${esc(c.name)}</td><td>${fmt(c.min)}~${fmt(c.max)}</td><td>${percent(companionSummonChance(c.id))}</td></tr>`).join('')}</tbody></table>
+ <p>소환권 1장당 카드 1장, 5회 소환은 소환권 5장이 필요해요. 1회·5회 모두 카드마다 같은 확률로 독립 추첨하며, 확정 등급 보장·천장은 없어요. 동료 효과는 전투·아레나에 적용되지 않아요.</p>
+ </div><button data-illustrated="1" class="cp-btn gold cp-wide" data-action="close">확인</button>`;
+}
+
 // api: {state, command, open, close, toast, render}
 export async function companionAction(action,arg,api){
+ if(action==='companionHelp'){api.open('동료 효과·확률 안내',companionHelp(),true,'companion-dialog');return;}
  if(action==='companionRevealAll'){revealSession?.finish();return;}
  if(pending)return;
  const s=api.state(),d=data(s);

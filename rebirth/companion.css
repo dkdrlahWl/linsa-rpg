@@ -174,3 +174,7 @@ body:not(.tower-mode) .cp-summon-btn b{font-size:11px}
 @keyframes cp-light{0%{opacity:0;transform:scale(.7)}25%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
 .cp-reveal-actions{display:flex;gap:8px;margin-top:18px;justify-content:center}.cp-reveal-actions button{min-width:95px}
 @media(prefers-reduced-motion:reduce){.cp-summon-loading .cp-ticket-icon,.cp-unveiled,.cp-flash-A:before,.cp-flash-S:before{animation:none!important}.cp-summon-reveal .cp-reveal{transition:none}}
+
+.cp-help-tools{display:flex;align-items:center;gap:5px;min-width:0}.cp-help-button{min-height:24px!important;padding:3px 7px!important;font-size:10px!important;border:1px solid #9d895c!important;border-radius:5px;background:#102c45!important;color:#f8dfa5!important;white-space:nowrap}.cp-help-content{color:#d3dfee;font-size:13px;line-height:1.65}.cp-help-content h3{color:#ffe0a0;margin:18px 0 7px;font-size:15px}.cp-help-content dt{font-weight:bold;color:#f5deb0;margin-top:12px}.cp-help-content dd{margin:3px 0 0}.cp-help-content table{width:100%;border-collapse:collapse;font-size:11px}.cp-help-content th,.cp-help-content td{padding:6px 3px;border-bottom:1px solid #ffffff20;text-align:left}.cp-help-content b{color:#ffe5ac}@media(max-width:370px){.cp-help-tools>small{display:none}}
+
+.cp-ticket.cp-help-button{white-space:normal;flex-direction:column;gap:1px;font-size:9px!important;align-self:stretch;justify-content:center}.cp-ticket.cp-help-button b{font-size:9px}.cp-help-tools>small{font-size:10px}
