@@ -117,3 +117,6 @@ body:not(.tower-mode) .cp-tools button{background:#0a2137}
 .cp-slot:not(.cp-empty){padding:9px 6px 7px}
 body:not(.tower-mode) .cp-card{padding:8px 5px 6px}
 .cp-slot.selected,body:not(.tower-mode) .cp-card.selected{outline:none;box-shadow:0 0 5px var(--g)}
+
+/* Companion screen starts with placed cards; hide the two redundant header rows. */
+.fantasy-shell:has(.cp-screen) .fantasy-player-strip,.cp-screen>.cp-title{display:none}
