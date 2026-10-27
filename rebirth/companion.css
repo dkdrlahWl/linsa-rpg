@@ -120,3 +120,19 @@ body:not(.tower-mode) .cp-card{padding:8px 5px 6px}
 
 /* Companion screen starts with placed cards; hide the two redundant header rows. */
 .fantasy-shell:has(.cp-screen) .fantasy-player-strip,.cp-screen>.cp-title{display:none}
+/* Reserve two complete inventory rows before allocating space to other sections. */
+.cp-grid{min-height:234px}
+.cp-screen.cp-fit>.cp-bag{min-height:270px}
+.cp-screen.cp-fit .cp-grid{min-height:234px;grid-auto-rows:max(112px,calc((100% - 10px)/2))}
+@media(max-width:519px){
+ .cp-slot .cp-portrait{aspect-ratio:1.9}
+ .cp-slot{gap:1px}
+ .cp-slot:not(.cp-empty){padding:7px 5px 5px}
+ .cp-empty{min-height:0}
+ .cp-slots:not(:has(.cp-slot-card)) .cp-empty{min-height:150px}
+ .cp-summon{padding:4px 6px}
+ body:not(.tower-mode) .cp-summon-btn{min-height:34px;padding-block:3px}
+ .cp-selected-bar{padding:4px 6px;grid-template-columns:34px minmax(0,1fr) auto}
+ .cp-detail{gap:1px}
+ .cp-detail small:last-child{display:none}
+}
