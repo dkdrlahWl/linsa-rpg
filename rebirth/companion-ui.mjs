@@ -20,11 +20,13 @@ function slotView(d,card,slot,i,now){
  if(!card)return `<div class="cp-slot cp-empty"><b>빈 자리</b><small>아래 가방에서 카드를 고르고<br>배치를 눌러주세요</small></div>`;
  const g=def(card).grade,elapsed=Math.min(COMPANION_CAP_MS,now-slot.claimedAt),gold=slotAccrued(card,slot,now),full=elapsed>=COMPANION_CAP_MS;
  return `<div class="cp-slot cp-g-${g} ${ui.selected===card.i?'selected':''}" data-slot="${i}">
-  <button class="cp-slot-card" data-action="companionSelect" data-arg="${card.i}"><span class="cp-grade">${g}</span>${stars(card.s)}${portrait(card)}<span class="cp-name">${esc(def(card).name)}</span></button>
+  <button class="cp-slot-card" data-action="companionSelect" data-arg="${card.i}"><span class="cp-grade">${g}<em>${stars(card.s)}</em></span>${portrait(card)}<span class="cp-name">${esc(def(card).name)}</span></button>
   <p class="cp-rate"><span class="cp-coin"></span><b data-cp-rate="${i}">${fmt(companionRate(card,now-slot.placedAt))}</b> G / 분</p>
   ${passiveChip(card,true)}
-  <span class="cp-accrued-row"><small class="cp-label">누적</small><strong class="cp-accrued" data-cp-gold="${i}">${fmt(gold)} G</strong></span>
-  <span class="cp-time-row"><span class="cp-bar"><i data-cp-bar="${i}" style="width:${elapsed/COMPANION_CAP_MS*100}%"></i></span><small class="cp-time ${full?'full':''}" data-cp-time="${i}">${hhmm(elapsed)}</small></span>
+  <small class="cp-label">누적 골드</small>
+  <strong class="cp-accrued" data-cp-gold="${i}">${fmt(gold)} G</strong>
+  <span class="cp-bar"><i data-cp-bar="${i}" style="width:${elapsed/COMPANION_CAP_MS*100}%"></i></span>
+  <small class="cp-time ${full?'full':''}" data-cp-time="${i}">${hhmm(elapsed)} / 08:00</small>
   <button class="cp-claim" data-action="companionClaim" data-arg="${i}" ${gold>0?'':'disabled'}>수령</button>
  </div>`;
 }
@@ -50,7 +52,7 @@ function selectedBar(d){
  const at=placedAt(d,card.i),p=COMPANION_PASSIVES[card.t],dd=def(card);
  return `<section class="cp-panel cp-selected-bar cp-g-${dd.grade}">
   <span class="cp-thumb">${portrait(card)}</span>
-  <div class="cp-detail"><strong>${esc(dd.name)} <span class="cp-stars">★${card.s}</span></strong><small>${dd.grade}급 · 기본 ${fmt(card.r)} G/분 (${fmt(dd.min)}~${fmt(dd.max)})</small><small>${p.name}: ${p.text(card.v)}</small></div>
+  <div class="cp-detail"><strong>${esc(dd.name)} <span class="cp-stars">★${card.s}</span></strong><small>${p.name}: ${p.text(card.v)}</small><small>기본 ${fmt(card.r)} G/분 (${fmt(dd.min)}~${fmt(dd.max)})</small></div>
   <div class="cp-actions">
    <button class="cp-btn gold" data-action="${at>=0?'companionUnplace':'companionPlace'}" data-arg="${at>=0?at:card.i}">${at>=0?'해제':'배치'}</button>
    <button class="cp-btn blue" data-action="companionMerge" data-arg="${card.i}" ${card.s>=COMPANION_MAX_STAR?'disabled':''}>합성</button>
@@ -61,6 +63,7 @@ function selectedBar(d){
 export function companionView(s){
  const d=data(s),now=Date.now();
  if(ui.selected!==null&&!d.cards.some(x=>x.i===ui.selected))ui.selected=null;
+ if(ui.selected===null)ui.selected=d.slots.find(Boolean)?.card??sorted(d.cards)[0]?.i??null;
  const byId=id=>d.cards.find(x=>x.i===id);
  const placed=d.slots.filter(Boolean).length;
  return `<section class="cp-screen">
@@ -83,14 +86,14 @@ export function companionView(s){
  </section>`;
 }
 // 1초마다 누적 골드·시간만 갱신 (화면 전체를 다시 그리지 않음)
-// 배치·소환·가방·선택 바가 한 화면에 들어오도록 화면 높이를 맞춘다 (가방만 안에서 스크롤).
+// 배치·소환·가방·선택 바가 폰 한 화면에 들어오게 높이를 맞춘다. 가방만 안에서 스크롤.
 function fitScreen(){
  const el=document.querySelector('.cp-screen');if(!el)return;
+ el.style.height='';el.classList.remove('cp-fit');
  const dock=document.querySelector('.fantasy-dock'),dockH=dock?dock.getBoundingClientRect().height:0;
- const top=el.getBoundingClientRect().top+window.scrollY;
- const h=Math.floor(window.innerHeight-top-dockH-4);
+ const h=Math.floor(window.innerHeight-(el.getBoundingClientRect().top+window.scrollY)-dockH-2);
  el.style.height=h+'px';el.classList.add('cp-fit');
- // 화면이 너무 작아 다 안 들어가면 원래대로 페이지 스크롤.
+ // 너무 작은 화면이면 원래대로 페이지 스크롤.
  if(el.scrollHeight>el.clientHeight+1){el.style.height='';el.classList.remove('cp-fit');}
 }
 if(typeof window!=='undefined')window.addEventListener('resize',()=>fitScreen());
@@ -105,7 +108,7 @@ export function updateCompanionTimers(s,root){
    const card=slot&&d.cards.find(x=>x.i===slot.card);if(!card)return;
    const elapsed=Math.min(COMPANION_CAP_MS,now-slot.claimedAt),gold=slotAccrued(card,slot,now);
    const set=(k,v)=>{const el=root.querySelector(`[data-cp-${k}="${i}"]`);if(el)el.textContent=v;};
-   set('gold',fmt(gold)+' G');set('time',hhmm(elapsed));set('rate',fmt(companionRate(card,now-slot.placedAt)));
+   set('gold',fmt(gold)+' G');set('time',hhmm(elapsed)+' / 08:00');set('rate',fmt(companionRate(card,now-slot.placedAt)));
    const bar=root.querySelector(`[data-cp-bar="${i}"]`);if(bar)bar.style.width=elapsed/COMPANION_CAP_MS*100+'%';
    const btn=root.querySelector(`[data-action="companionClaim"][data-arg="${i}"]`);if(btn)btn.disabled=!(gold>0);
   });
@@ -120,7 +123,7 @@ const claimText=c=>c&&c.gold>0?(c.jackpot?'🍀 대박! ':'')+fmt(c.gold)+' G �
 // api: {state, command, open, close, toast, render}
 export async function companionAction(action,arg,api){
  const s=api.state(),d=data(s);
- if(action==='companionSelect'){const id=Number(arg);ui.selected=ui.selected===id?null:id;return api.render();}
+ if(action==='companionSelect'){ui.selected=Number(arg);return api.render();}
  if(action==='companionSort'){ui.sort=arg==='rate'?'rate':'grade';return api.render();}
  if(action==='companionSummon'){
   const count=arg==='10'?10:1;
