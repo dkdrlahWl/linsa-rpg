@@ -1,8 +1,8 @@
 import {COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
+const fmt=n=>Math.floor((n||0)+1e-7).toLocaleString('ko-KR');
 const GRADE_ORDER=Object.fromEntries(COMPANION_GRADES.map((g,i)=>[g,i]));
-const PASSIVE_ICON={gold:'🪙',growth:'🌿',jackpot:'🍀'};
+const PASSIVE_ICON={gold:'◈',growth:'❧',jackpot:'✤'};
 // 화면 상태(서버에 저장하지 않음)
 const ui={selected:null,sort:'grade'};
 let timer=null;
@@ -10,18 +10,17 @@ let timer=null;
 const data=s=>{const c=s.companions||{};return {tickets:c.tickets||0,cards:Array.isArray(c.cards)?c.cards:[],slots:Array.from({length:COMPANION_SLOTS},(_,i)=>c.slots?.[i]||null)};};
 const def=card=>COMPANION_BY_ID[card.c];
 const placedAt=(d,id)=>d.slots.findIndex(x=>x&&x.card===id);
-// 별은 등급 배지 아래에 세로로 쌓는다.
-const stars=n=>'<span class="cp-stars cp-stars-col" aria-label="'+n+'성">'+'<i>★</i>'.repeat(n)+'</span>';
-// 이미지는 companions/<id>.webp. 아직 없으면 이름 첫 글자로 대신 보여준다.
-const portrait=card=>{const d=def(card);return `<span class="cp-portrait"><span class="cp-initial">${esc(d.name[0])}</span><img src="companions/${d.id}.webp" alt="" loading="lazy" onerror="this.remove()"></span>`;};
-const passiveChip=(card,full=false)=>{const p=COMPANION_PASSIVES[card.t];return `<span class="cp-passive cp-${card.t}">${PASSIVE_ICON[card.t]} ${p.name}${full?' '+(card.t==='jackpot'?card.v+'%':'+'+card.v+'%'):''}</span>`;};
+// 글자·등급·별은 실제 UI로 표시하고, 제작한 인간 캐릭터 초상화 위에 등급 액자를 겹친다.
+const stars=n=>'<span class="cp-stars" aria-label="'+n+'성">★'+n+'</span>';
+const portrait=card=>{const d=def(card);return `<span class="cp-portrait"><img class="cp-art" src="companions/${d.id}-human-v1.webp" alt="${esc(d.name)}" loading="lazy" decoding="async"><img class="cp-frame" src="companions/frame-${d.grade.toLowerCase()}-v1.webp" alt="" aria-hidden="true"></span>`;};
+const passiveChip=(card,full=false)=>{const p=COMPANION_PASSIVES[card.t];return `<span class="cp-passive cp-${card.t}" title="${esc(p.text(card.v))}"><i aria-hidden="true">${PASSIVE_ICON[card.t]}</i> ${p.name}${full?' '+(card.t==='jackpot'?card.v+'%':'+'+card.v+'%'):''}</span>`;};
 const hhmm=ms=>{const m=Math.floor(Math.max(0,ms)/60e3);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');};
 
 function slotView(d,card,slot,i,now){
  if(!card)return `<div class="cp-slot cp-empty"><b>빈 자리</b><small>아래 가방에서 카드를 고르고<br>배치를 눌러주세요</small></div>`;
  const g=def(card).grade,elapsed=Math.min(COMPANION_CAP_MS,now-slot.claimedAt),gold=slotAccrued(card,slot,now),full=elapsed>=COMPANION_CAP_MS;
  return `<div class="cp-slot cp-g-${g} ${ui.selected===card.i?'selected':''}" data-slot="${i}">
-  <button class="cp-slot-card" data-action="companionSelect" data-arg="${card.i}"><span class="cp-grade">${g}</span>${stars(card.s)}${portrait(card)}<span class="cp-name">${esc(def(card).name)}</span></button>
+  <button class="cp-slot-card" data-action="companionSelect" data-arg="${card.i}"><span class="cp-grade">${g}</span>${portrait(card)}<span class="cp-name">${esc(def(card).name)} ${stars(card.s)}</span></button>
   <p class="cp-rate"><span class="cp-coin"></span><b data-cp-rate="${i}">${fmt(companionRate(card,now-slot.placedAt))}</b> G / 분</p>
   ${passiveChip(card,true)}
   <small class="cp-label">누적 골드</small>
@@ -34,10 +33,10 @@ function slotView(d,card,slot,i,now){
 function cardView(d,card){
  const g=def(card).grade,at=placedAt(d,card.i);
  return `<button class="cp-card cp-g-${g} ${ui.selected===card.i?'selected':''}" data-action="companionSelect" data-arg="${card.i}">
-  <span class="cp-grade">${g}</span>${stars(card.s)}${at>=0?'<span class="cp-placed">배치중</span>':''}${portrait(card)}
-  <span class="cp-name">${esc(def(card).name)}</span>
+  <span class="cp-grade">${g}</span>${at>=0?'<span class="cp-placed">배치중</span>':''}${portrait(card)}
+  <span class="cp-name">${esc(def(card).name)} ${stars(card.s)}</span>
   <span class="cp-rate"><span class="cp-coin"></span>${fmt(companionMaxRate(card))} G / 분</span>
-  ${passiveChip(card)}
+  ${passiveChip(card,true)}
   <small class="cp-quality">최대치 ${companionQuality(card)}%</small>
  </button>`;
 }
@@ -53,7 +52,7 @@ function selectedBar(d){
  const at=placedAt(d,card.i),p=COMPANION_PASSIVES[card.t],dd=def(card);
  return `<section class="cp-panel cp-selected-bar cp-g-${dd.grade}">
   <span class="cp-thumb">${portrait(card)}</span>
-  <div class="cp-detail"><strong>${esc(dd.name)} <span class="cp-stars">★${card.s}</span></strong><small>${p.name}: ${p.text(card.v)}</small><small>기본 ${fmt(card.r)} G/분 (${fmt(dd.min)}~${fmt(dd.max)})</small></div>
+  <div class="cp-detail"><strong>${esc(dd.name)} ${stars(card.s)}</strong><small>${fmt(companionMaxRate(card))} G/분 · ${p.name} ${card.t==='jackpot'?'':'+'}${card.v}%</small><small>최대치 ${companionQuality(card)}%</small></div>
   <div class="cp-actions">
    <button class="cp-btn gold" data-action="${at>=0?'companionUnplace':'companionPlace'}" data-arg="${at>=0?at:card.i}">${at>=0?'해제':'배치'}</button>
    <button class="cp-btn blue" data-action="companionMerge" data-arg="${card.i}" ${card.s>=COMPANION_MAX_STAR?'disabled':''}>합성</button>
@@ -68,6 +67,7 @@ export function companionView(s){
  const byId=id=>d.cards.find(x=>x.i===id);
  const placed=d.slots.filter(Boolean).length;
  return `<section class="cp-screen">
+  <div class="cp-title"><h1>동료 카드</h1><span>배치한 동료가 골드를 모아요 · 최대 8시간</span></div>
   <section class="cp-panel cp-slots-panel">
    <div class="cp-head"><h2>배치 동료 <b>${placed} / ${COMPANION_SLOTS}</b></h2><small>최대 8시간 누적</small></div>
    <div class="cp-slots">${d.slots.map((slot,i)=>slotView(d,slot&&byId(slot.card),slot,i,now)).join('')}</div>
@@ -91,12 +91,12 @@ function fitScreen(){
  const el=document.querySelector('.cp-screen');if(!el)return;
  el.style.height='';el.classList.remove('cp-fit');
  const dock=document.querySelector('.fantasy-dock'),dockH=dock?dock.getBoundingClientRect().height:0;
- const h=Math.floor(window.innerHeight-(el.getBoundingClientRect().top+window.scrollY)-dockH-2);
+ const h=Math.floor((window.visualViewport?.height||window.innerHeight)-(el.getBoundingClientRect().top)-dockH-2);
  el.style.height=h+'px';el.classList.add('cp-fit');
  // 너무 작은 화면이면 원래대로 페이지 스크롤.
  if(el.scrollHeight>el.clientHeight+1){el.style.height='';el.classList.remove('cp-fit');}
 }
-if(typeof window!=='undefined')window.addEventListener('resize',()=>fitScreen());
+if(typeof window!=='undefined'){window.addEventListener('resize',fitScreen);window.visualViewport?.addEventListener('resize',fitScreen);}
 export function updateCompanionTimers(s,root){
  clearInterval(timer);timer=null;
  if(!root?.querySelector('.cp-screen'))return;
@@ -116,7 +116,7 @@ export function updateCompanionTimers(s,root){
  timer=setInterval(tick,1000);
 }
 
-const resultCard=card=>{const g=def(card).grade;return `<div class="cp-card cp-g-${g} cp-reveal"><span class="cp-grade">${g}</span>${portrait(card)}<span class="cp-name">${esc(def(card).name)}</span><span class="cp-rate"><span class="cp-coin"></span>${fmt(companionMaxRate(card))} G / 분</span>${passiveChip(card)}<small class="cp-quality">최대치 ${companionQuality(card)}%</small></div>`;};
+const resultCard=card=>{const g=def(card).grade;return `<div class="cp-card cp-g-${g} cp-reveal"><span class="cp-grade">${g}</span>${portrait(card)}<span class="cp-name">${esc(def(card).name)} ${stars(card.s)}</span><span class="cp-rate"><span class="cp-coin"></span>${fmt(companionMaxRate(card))} G / 분</span>${passiveChip(card,true)}<small class="cp-quality">최대치 ${companionQuality(card)}%</small></div>`;};
 const ev=(r,type)=>r?.result?.events?.find(e=>e.type===type);
 const claimText=c=>c&&c.gold>0?(c.jackpot?'🍀 대박! ':'')+fmt(c.gold)+' G 수령':'';
 
