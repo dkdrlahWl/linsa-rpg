@@ -136,3 +136,7 @@ body:not(.tower-mode) .cp-card{padding:8px 5px 6px}
  .cp-detail{gap:1px}
  .cp-detail small:last-child{display:none}
 }
+
+/* Smaller upper-left grade badges leave more of each portrait visible. */
+.cp-grade{width:19px;height:19px;font-size:16px;left:3px;top:3px}
+.cp-card .cp-grade{width:16px;height:16px;font-size:13px;left:3px;top:3px}
