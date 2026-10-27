@@ -105,3 +105,15 @@ body:not(.tower-mode) .cp-bulk button{position:relative;display:flex;flex-direct
 /* Preserve faces on short phones; the inventory scrolls instead of crushing portraits. */
 .cp-screen.cp-fit .cp-grid{grid-auto-rows:max(112px,calc((100% - 6px)/2))}
 .cp-screen.cp-fit .cp-grid .cp-portrait{min-height:54px}
+/* The companion UI already supplies its artwork; suppress generic menu decoration. */
+body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button>.menu-art{display:none!important}
+body:not(.tower-mode) :is(.cp-screen,.companion-dialog) :is(.cp-claim,.cp-summon-btn,.cp-btn,.cp-tools button){background-size:100% 350%;padding-left:6px;padding-right:6px}
+body:not(.tower-mode) .cp-tools button{background:#0a2137}
+/* Use nine-slice frames on the actual card box, not an overlay floating on the face. */
+.cp-g-S{--frame:url('companions/frame-s-v1.webp')}.cp-g-A{--frame:url('companions/frame-a-v1.webp')}.cp-g-B{--frame:url('companions/frame-b-v1.webp')}.cp-g-C{--frame:url('companions/frame-c-v1.webp')}.cp-g-D{--frame:url('companions/frame-d-v1.webp')}.cp-g-F{--frame:url('companions/frame-f-v1.webp')}
+.cp-portrait .cp-frame{display:none}
+.cp-portrait .cp-art{inset:0;width:100%;height:100%;border-radius:4px}
+.cp-slot:not(.cp-empty),body:not(.tower-mode) .cp-card{border-image-source:var(--frame);border-image-slice:100 42 42;border-image-width:12px 6px 6px;border-image-repeat:stretch}
+.cp-slot:not(.cp-empty){padding:9px 6px 7px}
+body:not(.tower-mode) .cp-card{padding:8px 5px 6px}
+.cp-slot.selected,body:not(.tower-mode) .cp-card.selected{outline:none;box-shadow:0 0 5px var(--g)}
