@@ -127,3 +127,110 @@ body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button{isolation:auto;te
 body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button::before,body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button::after{content:none!important;display:none!important}
 body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button>.menu-art{display:none!important}
 body:not(.tower-mode) .cp-tools button.active{color:#ffe9b0!important;background:#16335c}
+
+/* ===== 한 화면 레이아웃 (시안 기준): 배치 · 소환 · 가방 2줄 · 선택 바 ===== */
+.cp-screen{padding:2px 2px 8px}
+.cp-title{margin:0 4px 6px;gap:8px}
+.cp-title h1{font-size:21px}
+.cp-title span{font-size:11px}
+.cp-panel{padding:7px;margin-bottom:7px}
+.cp-head{margin-bottom:5px}
+.cp-head h2{font-size:15px}.cp-head h2 b{font-size:14px}
+/* 배치 칸 */
+.cp-slots{gap:6px}
+.cp-slot{gap:2px;padding:4px 4px 5px}
+.cp-slot .cp-portrait{aspect-ratio:5/4}
+.cp-slot .cp-name{font-size:12px;margin-top:-11px}
+.cp-slot .cp-rate{font-size:11px;margin:1px 0 0}.cp-slot .cp-rate b{font-size:13px}
+.cp-slot .cp-passive{font-size:10px;padding:1px 6px}
+.cp-label{font-size:9px;margin-top:1px}
+.cp-accrued{font-size:13px}
+.cp-bar{height:5px}
+.cp-time{font-size:9px}
+body:not(.tower-mode) .cp-claim{min-height:30px;font-size:15px;border-radius:15px}
+.cp-empty{min-height:205px}
+/* 소환: 한 줄 */
+.cp-summon{grid-template-columns:auto 1fr 1fr;gap:6px;padding:6px 7px}
+.cp-ticket{grid-column:auto;font-size:13px;gap:5px;white-space:nowrap}
+.cp-ticket b{font-size:15px}
+.cp-ticket-icon{width:24px;height:16px}
+body:not(.tower-mode) .cp-summon-btn{min-height:44px}
+body:not(.tower-mode) .cp-summon-btn b{font-size:15px;line-height:1.1}
+body:not(.tower-mode) .cp-summon-btn small{font-size:11px;line-height:1.1}
+/* 가방: 2줄만 보이고 나머지는 칸 안에서 스크롤 */
+.cp-bag .cp-head{flex-wrap:nowrap}
+.cp-bag .cp-head h2{white-space:nowrap}
+body:not(.tower-mode) .cp-tools button{min-height:26px;padding:2px 7px;font-size:11px;white-space:nowrap}
+.cp-grid{gap:5px;max-height:232px;overflow-y:auto;overscroll-behavior:contain;padding:2px;scrollbar-width:thin}
+body:not(.tower-mode) .cp-card{gap:1px;padding:3px 3px 3px}
+.cp-card .cp-portrait{aspect-ratio:16/10}
+.cp-card .cp-initial{font-size:26px}
+body:not(.tower-mode) .cp-card .cp-name{font-size:11px;padding:0 7px;margin-top:-10px}
+body:not(.tower-mode) .cp-card .cp-rate{font-size:10px}
+body:not(.tower-mode) .cp-card .cp-passive{font-size:9px;padding:0 5px}
+.cp-quality{font-size:8px}
+.cp-card .cp-grade{min-width:20px;height:20px;font-size:14px;left:3px;top:3px}
+.cp-placed{top:18px;font-size:8px}
+.cp-coin{width:11px;height:11px;margin-right:3px}
+/* 선택 바: 한 줄, 화면 맨 아래 고정 아님 */
+.cp-selected-bar{position:static;grid-template-columns:42px minmax(0,1fr) auto;gap:7px;padding:6px 7px;margin-bottom:0}
+.cp-selected-bar.cp-hint{padding:8px}
+.cp-detail strong{font-size:14px}
+.cp-actions{grid-column:auto;gap:4px}
+body:not(.tower-mode) .cp-btn{min-height:36px;min-width:48px;padding:3px 8px;font-size:13px}
+@media(max-width:430px){
+ .cp-summon{grid-template-columns:auto 1fr 1fr}
+ .cp-ticket{grid-column:auto}
+ .cp-selected-bar{grid-template-columns:42px minmax(0,1fr) auto}
+ .cp-actions{grid-column:auto}
+ body:not(.tower-mode) .cp-actions .cp-btn{flex:none}
+ .cp-slot .cp-rate{font-size:10px}.cp-slot .cp-rate b{font-size:12px}
+ .cp-accrued{font-size:12px}
+}
+@media(max-width:370px){
+ .cp-ticket>span:not(.cp-ticket-icon){display:none}
+ body:not(.tower-mode) .cp-btn{min-width:42px;padding:3px 6px;font-size:12px}
+ .cp-detail small{font-size:9px}
+ .cp-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+/* ===== 화면 높이에 맞춤: 가방만 안에서 스크롤 ===== */
+.cp-screen.cp-fit{display:flex;flex-direction:column;overflow:hidden}
+.cp-screen.cp-fit>.cp-panel{flex:none}
+.cp-screen.cp-fit>.cp-bag{flex:1 1 auto;min-height:120px;display:flex;flex-direction:column}
+.cp-screen.cp-fit .cp-grid{flex:1 1 0;max-height:none;min-height:0}
+.cp-title{display:none}
+/* 배치 칸 더 납작하게 */
+.cp-slot .cp-portrait{aspect-ratio:2/1}
+.cp-slot .cp-initial{font-size:30px}
+.cp-slot .cp-grade{min-width:22px;height:22px;font-size:15px}
+.cp-accrued-row{display:flex;align-items:baseline;justify-content:center;gap:4px;width:100%}
+.cp-time-row{display:flex;align-items:center;gap:4px;width:100%}
+.cp-time-row .cp-bar{flex:1}
+.cp-slot .cp-label{margin:0}
+body:not(.tower-mode) .cp-claim{min-height:28px;font-size:14px}
+.cp-empty{min-height:150px}
+/* 가방 카드 납작하게 */
+.cp-card .cp-portrait{aspect-ratio:2/1}
+.cp-card .cp-initial{font-size:22px}
+.cp-grid{align-content:start}
+body:not(.tower-mode) .cp-summon-btn{min-height:40px}
+.cp-grid{grid-auto-rows:max-content}.cp-card>*,.cp-slot>*{flex-shrink:0}
+.cp-slot .cp-portrait{aspect-ratio:5/2}
+.cp-slot .cp-initial{font-size:24px}
+body:not(.tower-mode) .cp-claim{min-height:27px;font-size:14px}
+.cp-slots-panel .cp-head{margin-bottom:4px}
+.cp-screen.cp-fit>.cp-bag{min-height:150px}
+/* 실제 헤더 높이에서도 한 화면에 들어가도록 */
+.cp-screen .cp-panel{margin-bottom:6px}
+.cp-slots-panel{padding:6px}
+.cp-slots-panel .cp-head h2{font-size:14px}
+.cp-slot{gap:1px;padding:3px 3px 4px}
+.cp-summon{padding:5px 6px}
+body:not(.tower-mode) .cp-summon-btn{min-height:36px;flex-direction:row;gap:6px}
+body:not(.tower-mode) .cp-summon-btn b{font-size:14px}
+.cp-bag{padding:6px}
+.cp-bag .cp-head{margin-bottom:4px}
+.cp-screen.cp-fit>.cp-bag{min-height:128px}
+.cp-selected-bar.cp-hint{padding:6px;font-size:11px}
+.cp-selected-bar{padding:5px 6px}

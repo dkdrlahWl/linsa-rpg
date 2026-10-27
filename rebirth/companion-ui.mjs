@@ -23,10 +23,8 @@ function slotView(d,card,slot,i,now){
   <button class="cp-slot-card" data-action="companionSelect" data-arg="${card.i}"><span class="cp-grade">${g}</span>${stars(card.s)}${portrait(card)}<span class="cp-name">${esc(def(card).name)}</span></button>
   <p class="cp-rate"><span class="cp-coin"></span><b data-cp-rate="${i}">${fmt(companionRate(card,now-slot.placedAt))}</b> G / 분</p>
   ${passiveChip(card,true)}
-  <small class="cp-label">누적 골드</small>
-  <strong class="cp-accrued" data-cp-gold="${i}">${fmt(gold)} G</strong>
-  <span class="cp-bar"><i data-cp-bar="${i}" style="width:${elapsed/COMPANION_CAP_MS*100}%"></i></span>
-  <small class="cp-time ${full?'full':''}" data-cp-time="${i}">${hhmm(elapsed)} / 08:00</small>
+  <span class="cp-accrued-row"><small class="cp-label">누적</small><strong class="cp-accrued" data-cp-gold="${i}">${fmt(gold)} G</strong></span>
+  <span class="cp-time-row"><span class="cp-bar"><i data-cp-bar="${i}" style="width:${elapsed/COMPANION_CAP_MS*100}%"></i></span><small class="cp-time ${full?'full':''}" data-cp-time="${i}">${hhmm(elapsed)}</small></span>
   <button class="cp-claim" data-action="companionClaim" data-arg="${i}" ${gold>0?'':'disabled'}>수령</button>
  </div>`;
 }
@@ -85,9 +83,21 @@ export function companionView(s){
  </section>`;
 }
 // 1초마다 누적 골드·시간만 갱신 (화면 전체를 다시 그리지 않음)
+// 배치·소환·가방·선택 바가 한 화면에 들어오도록 화면 높이를 맞춘다 (가방만 안에서 스크롤).
+function fitScreen(){
+ const el=document.querySelector('.cp-screen');if(!el)return;
+ const dock=document.querySelector('.fantasy-dock'),dockH=dock?dock.getBoundingClientRect().height:0;
+ const top=el.getBoundingClientRect().top+window.scrollY;
+ const h=Math.floor(window.innerHeight-top-dockH-4);
+ el.style.height=h+'px';el.classList.add('cp-fit');
+ // 화면이 너무 작아 다 안 들어가면 원래대로 페이지 스크롤.
+ if(el.scrollHeight>el.clientHeight+1){el.style.height='';el.classList.remove('cp-fit');}
+}
+if(typeof window!=='undefined')window.addEventListener('resize',()=>fitScreen());
 export function updateCompanionTimers(s,root){
  clearInterval(timer);timer=null;
  if(!root?.querySelector('.cp-screen'))return;
+ fitScreen();
  const tick=()=>{
   if(!root.isConnected||!root.querySelector('.cp-screen')){clearInterval(timer);timer=null;return;}
   const d=data(s),now=Date.now();
@@ -95,7 +105,7 @@ export function updateCompanionTimers(s,root){
    const card=slot&&d.cards.find(x=>x.i===slot.card);if(!card)return;
    const elapsed=Math.min(COMPANION_CAP_MS,now-slot.claimedAt),gold=slotAccrued(card,slot,now);
    const set=(k,v)=>{const el=root.querySelector(`[data-cp-${k}="${i}"]`);if(el)el.textContent=v;};
-   set('gold',fmt(gold)+' G');set('time',hhmm(elapsed)+' / 08:00');set('rate',fmt(companionRate(card,now-slot.placedAt)));
+   set('gold',fmt(gold)+' G');set('time',hhmm(elapsed));set('rate',fmt(companionRate(card,now-slot.placedAt)));
    const bar=root.querySelector(`[data-cp-bar="${i}"]`);if(bar)bar.style.width=elapsed/COMPANION_CAP_MS*100+'%';
    const btn=root.querySelector(`[data-action="companionClaim"][data-arg="${i}"]`);if(btn)btn.disabled=!(gold>0);
   });
