@@ -29,7 +29,7 @@ export const COMPANION_BY_ID=Object.fromEntries(COMPANIONS.map(c=>[c.id,c]));
 export const COMPANION_PASSIVES={
  gold:{name:'골드형',min:20,max:40,text:v=>`분당 골드 +${v}%`},
  growth:{name:'성장형',min:30,max:50,text:v=>`배치 1시간마다 +5%, 최대 +${v}%`},
- jackpot:{name:'대박형',min:15,max:30,text:v=>`수령 시 ${v}% 확률로 골드 2배`},
+ jackpot:{name:'대박형',min:20,max:40,text:v=>`수령 시 ${v}% 확률로 골드 2배`},
 };
 export const COMPANION_PASSIVE_KEYS=['gold','growth','jackpot'];
 export const COMPANION_SLOTS=3;
@@ -49,6 +49,11 @@ export function normalizeCompanions(s){
  c.tickets=Number.isInteger(c.tickets)&&c.tickets>=0?c.tickets:0;
  c.nextId=Number.isInteger(c.nextId)&&c.nextId>0?c.nextId:1;
  c.cards=Array.isArray(c.cards)?c.cards.filter(x=>x&&COMPANION_BY_ID[x.c]):[];
+ // Preserve the original roll percentile when upgrading legacy 15~30% jackpots.
+ if(c.passiveVersion!==2){
+  c.cards=c.cards.map(card=>card.t==='jackpot'&&Number.isInteger(card.v)&&card.v>=15&&card.v<=30?{...card,v:20+Math.round((card.v-15)*20/15)}:card);
+  c.passiveVersion=2;
+ }
  const slots=Array.isArray(c.slots)?c.slots:[];
  c.slots=Array.from({length:COMPANION_SLOTS},(_,i)=>{const v=slots[i];return v&&c.cards.some(x=>x.i===v.card)?v:null;});
  c.summoned=Number.isInteger(c.summoned)?c.summoned:0;
@@ -100,6 +105,18 @@ export function slotAccrued(card,slot,now){
  while(t<to){const placed=t-slot.placedAt,next=Math.min(to,slot.placedAt+(Math.floor(placed/3600e3)+1)*3600e3);sum+=companionRate(card,placed)*(next-t)/MIN;t=next;}
  return Math.floor(sum);
 }
+// Compare production over the next full 8h window, including stepped growth
+// and jackpot expected value. Keep the age of an already-placed growth card.
+export function companionExpectedGold(card,placedMs=0){
+ const gold=slotAccrued(card,{placedAt:-Math.max(0,placedMs),claimedAt:0},COMPANION_CAP_MS);
+ return gold*(card.t==='jackpot'?1+card.v/100:1);
+}
+export function optimalCompanions(cards,slots,now){
+ const active=new Map(slots.filter(Boolean).map(slot=>[slot.card,slot]));
+ return cards.map(card=>({card,gold:companionExpectedGold(card,active.has(card.i)?now-active.get(card.i).placedAt:0)}))
+  .sort((a,b)=>b.gold-a.gold||Number(active.has(b.card.i))-Number(active.has(a.card.i))||a.card.i-b.card.i)
+  .slice(0,COMPANION_SLOTS);
+}
 function claimSlot(s,c,index,ctx){
  const slot=c.slots[index];if(!slot)return null;
  const card=c.cards.find(x=>x.i===slot.card);
@@ -116,7 +133,8 @@ const ids=v=>Array.isArray(v)?v:[];
 export function companionCommand(s,command,args,ctx){
  const c=normalizeCompanions(s);
  if(command==='companionSummon'){
-  const count=args.count===10?10:1;
+  const count=args.count??1;
+  check(count===1||count===5,'COMPANION_INVALID_SUMMON_COUNT');
   check(s.isAdmin||c.tickets>=count,'COMPANION_NO_TICKET');
   check(c.cards.length+count<=COMPANION_BAG,'COMPANION_BAG_FULL');
   if(!s.isAdmin)c.tickets-=count;
@@ -124,6 +142,22 @@ export function companionCommand(s,command,args,ctx){
   for(let k=0;k<count;k++){const card=rollCompanion(ctx.random,c.nextId++);c.cards.push(card);cards.push(card);}
   c.summoned+=count;
   return {type:'companionSummon',cards};
+ }
+ if(command==='companionAutoEquip'){
+  check(c.cards.length>0,'COMPANION_NOT_FOUND');
+  const best=optimalCompanions(c.cards,c.slots,ctx.now),chosen=new Set(best.map(x=>x.card.i));
+  const keep=new Set(c.slots.filter(slot=>slot&&chosen.has(slot.card)).map(slot=>slot.card));
+  const pending=best.filter(x=>!keep.has(x.card.i)).map(x=>x.card),claims=[];
+  let changed=0;
+  for(let i=0;i<COMPANION_SLOTS;i++){
+   const slot=c.slots[i];
+   if(slot&&keep.has(slot.card))continue;
+   if(slot){const claim=claimSlot(s,c,i,ctx);if(claim)claims.push(claim);}
+   const card=pending.shift();
+   c.slots[i]=card?{card:card.i,placedAt:ctx.now,claimedAt:ctx.now}:null;
+   if(slot||card)changed++;
+  }
+  return {type:'companionAutoEquip',ids:best.map(x=>x.card.i),expectedGold:best.reduce((sum,x)=>sum+x.gold,0),changed,claims};
  }
  if(command==='companionPlace'){
   const index=args.slot,card=cardById(c,args.id);

@@ -26,12 +26,12 @@ import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-1
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
-import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=human-frame-fit-20261027';
+import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=companion-reveal-gift-20261027';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=human-frame-fit-20261027';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=companion-reveal-gift-20261027';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -212,6 +212,7 @@ const errors = {
   COSTUME_OWNED: "이미 보유한 코스튬입니다.",
   COSTUME_NOT_OWNED: "먼저 코스튬을 구매해 주세요.",
   COSTUME_CLASS_MISMATCH: "현재 직업의 코스튬만 장착할 수 있습니다.",
+  COMPANION_INVALID_SUMMON_COUNT: "1회 또는 5회 소환을 선택해 주세요. 새로고침 후 다시 시도해 주세요.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
   BLACK_MARKET_EXPIRED: "암시장 진열이 바뀌었어요. 새 상품을 확인해 주세요.",
   BLACK_MARKET_SOLD_OUT: "남은 수량이 부족해요.",
@@ -458,6 +459,14 @@ async function fishingCommandRequest(action,args={}){
   const text=current?.querySelector('[data-fish-transaction]');if(text)text.textContent='';
  }
 }
+// Companion clicks queue behind existing writes instead of being silently dropped.
+async function companionCommandRequest(action,args={}){
+ const account=session?.user?.id;
+ activeBackgroundSync?.abort();
+ while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+ if(!state||session?.user?.id!==account)return;
+ return command(action,args);
+}
 async function command(command, args = {}, quiet = false, freshSnapshot = false, signal = null) {
   const claimOnly=command==='coopOpen'&&args.citadelClaim===true;
   const requestKey=pendingKey()+(claimOnly?'_citadel_claim':'');
@@ -643,8 +652,8 @@ function header(title, kicker = "새로운 여정") {
 }
 function systemInbox() {
   const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
-  const labels={scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
-  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":"개"}</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
+  const labels={companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
+  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":key==="companionTicket"?"장":"개"}</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
 }
 function systemMailButton() {
   const count=state.systemMailbox?.length||0;
@@ -653,7 +662,7 @@ function systemMailButton() {
 }
 function attendanceReady() { return state?.attendance?.lastClaim !== D.dayKey(Date.now()); }
 function attendanceReward(reward) {
-  return Object.entries(reward).map(([key,amount]) => `${key==="gold"?"골드":key==="fishDiamond"?"낚시 다이아":D.MATERIALS[key]} ${fmt(amount)}${key==="gold"?" G":"개"}`).join(" · ");
+  return Object.entries(reward).map(([key,amount]) => `${key==="gold"?"골드":key==="fishDiamond"?"낚시 다이아":D.MATERIALS[key]} ${fmt(amount)}${key==="gold"?" G":key==="companionTicket"?"장":"개"}`).join(" · ");
 }
 function attendance() {
   const claimed = !attendanceReady(), day = ((state.attendance?.day || 0) % 7) + 1;
@@ -1430,7 +1439,7 @@ document.addEventListener("click", async (e) => {
   if(action==='rankingProfile')return showRankingProfile(arg);
   sounds.start();sounds.music();
   sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage','shopCategory'].includes(action)?'ui-tab':'ui-click');
-  if(action.startsWith('companion'))return companionAction(action,arg,{state:()=>state,command:(c,a)=>command(c,a),open:(t,h,c=true,cls)=>{open(t,h,c);if(cls)modal.classList.add(cls);},close:()=>modal.close(),toast,render});
+  if(action.startsWith('companion')){try{await companionAction(action,arg,{state:()=>state,command:(c,a)=>companionCommandRequest(c,a),open:(t,h,c=true,cls)=>{open(t,h,c);if(cls)modal.classList.add(cls);},close:()=>modal.close(),toast,render});}catch(error){toast(message(error));}return;}
   if(action==='star')sounds.play('enhance-charge');
   try {
     if(action==='arenaOpen'){modal.close();view='arena';arenaPage='home';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}render();await loadArena();return;}

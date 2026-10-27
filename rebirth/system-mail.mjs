@@ -1,5 +1,11 @@
+import {normalizeCompanions} from './companion-model.mjs';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id:'companion-update-20261027-tickets-3',
+  title:'동료 업데이트 선물', sender:'링구 RPG 운영팀',
+  message:'동료 소환 연출, 최적 장착과 5회 소환을 업데이트했습니다. 소환권 3장을 선물로 보내드립니다!',
+  sentAt:'2026-10-27T06:05:10.399Z', rewards:{companionTicket:3},
+}, {
   id: 'weekend-20261017-fragment-5000',
   title: '주말 보상',
   sender: '링구 RPG 운영팀',
@@ -59,7 +65,8 @@ export function claimSystemMail(state, id, grantBossGear) {
   if (!mail || !state.systemMailbox.some(entry => entry.id === id)) throw new Error('MAIL_NOT_FOUND');
   // Amounts come from the server campaign, never from the request or UI.
   for (const [key, amount] of Object.entries(mail.rewards)) {
-    state.materials[key] = (state.materials[key] || 0) + amount;
+    if(key==='companionTicket')normalizeCompanions(state).tickets+=amount;
+    else state.materials[key] = (state.materials[key] || 0) + amount;
   }
   state.claimedSystemMail.push(id);
   state.systemMailbox = state.systemMailbox.filter(entry => entry.id !== id);

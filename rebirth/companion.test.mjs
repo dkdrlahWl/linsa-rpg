@@ -17,10 +17,10 @@ for(const [g,p] of Object.entries(COMPANION_GRADE_RATES))assert(Math.abs(tally[g
 
 // 소환권 없으면 실패
 assert.throws(()=>run('companionSummon',{count:1}),/COMPANION_NO_TICKET/);
-s.companions={tickets:12};
-assert.equal(run('companionSummon',{count:10}).cards.length,10);
+s.companions={tickets:7};
+assert.equal(run('companionSummon',{count:5}).cards.length,5);
 assert.equal(s.companions.tickets,2);
-assert.throws(()=>run('companionSummon',{count:10}),/COMPANION_NO_TICKET/);
+assert.throws(()=>run('companionSummon',{count:5}),/COMPANION_NO_TICKET/);
 
 // 배치 → 8시간 상한
 const card=s.companions.cards[0];

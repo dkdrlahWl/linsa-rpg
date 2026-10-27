@@ -12,7 +12,7 @@ const currencyKeys = {
 const labels = /에디셔널 큐브|추가옵션 불꽃|기본수치 재련석|잠재 해금 주문서|레드 큐브|블랙 큐브|프라임 큐브|레드큐브|블랙큐브|프라임큐브|상급 큐브|일반 큐브|잠재 부여 주문서|잠재 확장석|장비 파편|지역 재료|보스 재료|확장석|주문서|파편|큐브/g;
 const ignored = 'script,style,textarea,select,option,[data-currency-label],[data-no-currency-art],.damage';
 const cubeArt={bonusFlame:"bonus-flame-v1.webp",rerollStone:"reroll-stone-v1.webp",scroll:"potential-scroll.webp",cube:"cube-red-v2.webp",highCube:"cube-black-v2.webp",primeCube:"cube-prime-v2.webp",addCube:"cube-additional-v1.webp"};
-export const currencyIconURL = key => new URL(['potentialLock','dungeonKey','diamond','diamondChest'].includes(key)?'./fishing/'+key+'.webp':"./currencies/"+(cubeArt[key]||key+".svg"),import.meta.url).href;
+export const currencyIconURL = key => new URL(key==='companionTicket'?'./companions/summon-ticket-v1.webp':['potentialLock','dungeonKey','diamond','diamondChest'].includes(key)?'./fishing/'+key+'.webp':"./currencies/"+(cubeArt[key]||key+".svg"),import.meta.url).href;
 const iconURL=currencyIconURL;
 // Gold artwork is opt-in for purchase prices; tier names, balances and rewards stay text-only.
 export const goldPurchaseIcon=()=>`<img class="gold-purchase-icon" data-gold-purchase src="${currencyIconURL('gold')}" alt="" width="24" height="24" style="width:24px;height:24px;min-width:24px;object-fit:contain;vertical-align:middle;margin-right:4px">`;

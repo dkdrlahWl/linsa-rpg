@@ -75,7 +75,8 @@ export function companionView(s){
   <section class="cp-panel cp-summon">
    <div class="cp-ticket"><span class="cp-ticket-icon"></span><span>소환권</span><b>${fmt(d.tickets)}장</b></div>
    <button data-illustrated="1" class="cp-summon-btn one" data-action="companionSummon" data-arg="1"><b>1회 소환</b><small><span class="cp-ticket-mini"></span>1</small></button>
-   <button data-illustrated="1" class="cp-summon-btn ten" data-action="companionSummon" data-arg="10"><b>10회 소환</b><small><span class="cp-ticket-mini"></span>10</small></button>
+   <button data-illustrated="1" class="cp-summon-btn five" data-action="companionSummon" data-arg="5"><b>5회 소환</b><small><span class="cp-ticket-mini"></span>5</small></button>
+   <button data-illustrated="1" class="cp-summon-btn cp-auto-equip" data-action="companionAutoEquip" ${d.cards.length?'':'disabled'} title="별·패시브와 현재 성장 상태를 반영한 8시간 기대 골드 기준"><b>최적 장착</b><small>패시브 반영</small></button>
   </section>
   <section class="cp-panel cp-bag">
    <div class="cp-head"><h2>동료 가방 <b>${d.cards.length} / ${COMPANION_BAG}</b></h2>
@@ -120,22 +121,56 @@ const resultCard=card=>{const g=def(card).grade;return `<div class="cp-card cp-g
 const ev=(r,type)=>r?.result?.events?.find(e=>e.type===type);
 const claimText=c=>c&&c.gold>0?(c.jackpot?'🍀 대박! ':'')+fmt(c.gold)+' G 수령':'';
 
+let pending=false,revealSession=null;
+async function sendCompanion(api,command,args){
+ pending=true;
+ document.querySelectorAll('[data-action^="companion"]').forEach(b=>{if(b.tagName==='BUTTON')b.disabled=true;});
+ document.querySelector('.cp-screen')?.setAttribute('aria-busy','true');
+ try{return await api.command(command,args);}finally{pending=false;api.render();}
+}
+function showSummon(cards,api){
+ const session={index:0,timer:null,root:null};revealSession=session;
+ api.open(cards.length===5?'5회 소환 결과':'소환 결과',`<div class="cp-summon-reveal"><p class="cp-reveal-status" aria-live="polite">동료를 만나보세요</p><div class="cp-result ${cards.length===1?'cp-single':''}">${cards.map(c=>resultCard(c).replace('cp-reveal','cp-reveal cp-veiled')).join('')}</div><div class="cp-reveal-actions"><button data-illustrated="1" class="cp-btn" data-action="companionRevealAll">모두 보기</button><button data-illustrated="1" class="cp-btn gold" data-action="close" disabled>확인</button></div></div>`,true,'companion-dialog');
+ session.root=document.querySelector('.cp-summon-reveal');
+ const next=()=>{
+  if(revealSession!==session||!session.root?.isConnected)return;
+  const nodes=session.root.querySelectorAll('.cp-reveal');
+  if(session.index>=cards.length){session.root.querySelector('[data-action="close"]').disabled=false;session.root.querySelector('[data-action="companionRevealAll"]').hidden=true;session.root.querySelector('.cp-reveal-status').textContent='동료를 가방에 보관했어요';return;}
+  const i=session.index++,g=def(cards[i]).grade;
+  nodes[i].classList.remove('cp-veiled');nodes[i].classList.add('cp-unveiled');
+  session.root.classList.remove('cp-flash-A','cp-flash-S');void session.root.offsetWidth;
+  if(g==='A'||g==='S')session.root.classList.add('cp-flash-'+g);
+  session.root.querySelector('.cp-reveal-status').textContent=`${i+1} / ${cards.length} · ${g}등급 ${def(cards[i]).name}`;
+  session.timer=setTimeout(next,matchMedia('(prefers-reduced-motion: reduce)').matches?30:g==='S'?850:g==='A'?650:280);
+ };
+ session.finish=()=>{clearTimeout(session.timer);session.root.querySelectorAll('.cp-reveal').forEach(n=>{n.classList.remove('cp-veiled');n.classList.add('cp-unveiled');});session.index=cards.length;next();};
+ session.timer=setTimeout(next,180);
+}
+
 // api: {state, command, open, close, toast, render}
 export async function companionAction(action,arg,api){
+ if(action==='companionRevealAll'){revealSession?.finish();return;}
+ if(pending)return;
  const s=api.state(),d=data(s);
  if(action==='companionSelect'){ui.selected=Number(arg);return api.render();}
  if(action==='companionSort'){ui.sort=arg==='rate'?'rate':'grade';return api.render();}
  if(action==='companionSummon'){
-  const count=arg==='10'?10:1;
+  const count=arg==='5'?5:1;
   if(!s.isAdmin&&d.tickets<count)return api.toast(`소환권이 부족해요. (보유 ${d.tickets}장)`);
   if(d.cards.length+count>COMPANION_BAG)return api.toast('동료 가방이 가득 찼어요. 카드를 판매하거나 합성해 주세요.');
-  const r=await api.command('companionSummon',{count});const e=ev(r,'companionSummon');if(!e)return;
-  const best=Math.min(...e.cards.map(c=>GRADE_ORDER[def(c).grade]));
-  api.open(count===10?'10회 소환 결과':'소환 결과',`<div class="cp-result ${best<=1?'rare':''}">${e.cards.map(resultCard).join('')}</div><button data-illustrated="1" class="cp-btn gold cp-wide" data-action="close">확인</button>`,true,'companion-dialog');
+  api.open('동료 소환',`<div class="cp-summon-loading" role="status"><span class="cp-ticket-icon"></span><b>동료를 부르고 있어요…</b></div>`,false,'companion-dialog');
+  try{const r=await sendCompanion(api,'companionSummon',{count});const e=ev(r,'companionSummon');if(e)showSummon(e.cards,api);else api.close();}catch(error){api.close();throw error;}
   return;
  }
- if(action==='companionClaim'){const r=await api.command('companionClaim',{slot:Number(arg)});const e=ev(r,'companionClaim');if(e?.gold>0)api.toast(claimText(e));return;}
- if(action==='companionUnplace'){const r=await api.command('companionUnplace',{slot:Number(arg)});const e=ev(r,'companionUnplace');api.toast(['배치를 해제했어요.',claimText(e?.claim)].filter(Boolean).join(' '));return;}
+ if(action==='companionAutoEquip'){
+  if(!d.cards.length)return api.toast('먼저 동료 카드를 소환해 주세요.');
+  const r=await sendCompanion(api,'companionAutoEquip',{}),e=ev(r,'companionAutoEquip');if(!e)return;
+  ui.selected=e.ids[0]??null;api.render();
+  const gold=(e.claims||[]).reduce((sum,c)=>sum+c.gold,0);
+  api.toast((e.changed?'패시브를 반영해 최적 장착했어요.':'이미 가장 효율 좋은 조합이에요.')+(gold?' 교체 보상 '+fmt(gold)+' G 수령':''));return;
+ }
+ if(action==='companionClaim'){const r=await sendCompanion(api,'companionClaim',{slot:Number(arg)});const e=ev(r,'companionClaim');if(e?.gold>0)api.toast(claimText(e));return;}
+ if(action==='companionUnplace'){const r=await sendCompanion(api,'companionUnplace',{slot:Number(arg)});const e=ev(r,'companionUnplace');api.toast(['배치를 해제했어요.',claimText(e?.claim)].filter(Boolean).join(' '));return;}
  if(action==='companionPlace'||action==='companionPlaceAt'){
   const [idText,slotText]=String(arg).split(':'),id=Number(idText);
   let slot=slotText!==undefined?Number(slotText):d.slots.findIndex(x=>!x);
@@ -145,7 +180,7 @@ export async function companionAction(action,arg,api){
    return;
   }
   api.close();
-  const r=await api.command('companionPlace',{slot,id});const e=ev(r,'companionPlace');if(e)api.toast(['배치했어요.',claimText(e.claim)].filter(Boolean).join(' '));return;
+  const r=await sendCompanion(api,'companionPlace',{slot,id});const e=ev(r,'companionPlace');if(e)api.toast(['배치했어요.',claimText(e.claim)].filter(Boolean).join(' '));return;
  }
  if(action==='companionMerge'||action==='companionMergeConfirm'){
   const main=d.cards.find(x=>x.i===Number(arg));if(!main)return;
@@ -159,14 +194,14 @@ export async function companionAction(action,arg,api){
    return;
   }
   api.close();
-  const r=await api.command('companionMerge',{id:main.i,materials:mats.map(x=>x.i)});const e=ev(r,'companionMerge');if(e)api.toast(`합성 성공! ${def(main).name} ★${e.star}`);return;
+  const r=await sendCompanion(api,'companionMerge',{id:main.i,materials:mats.map(x=>x.i)});const e=ev(r,'companionMerge');if(e)api.toast(`합성 성공! ${def(main).name} ★${e.star}`);return;
  }
  if(action==='companionSell'||action==='companionSellConfirm'){
   const card=d.cards.find(x=>x.i===Number(arg));if(!card)return;
   const price=COMPANION_SELL[def(card).grade]*card.s;
   if(action==='companionSell'){api.open('동료 판매',`<p><b>${esc(def(card).name)}</b> ★${card.s} (${def(card).grade}급)을 ${fmt(price)} G에 판매할까요?</p><button data-illustrated="1" class="cp-btn cp-wide" data-action="companionSellConfirm" data-arg="${card.i}">판매하기</button>`,true,'companion-dialog');return;}
   api.close();ui.selected=null;
-  const r=await api.command('companionSell',{ids:[card.i]});const e=ev(r,'companionSell');if(e)api.toast(fmt(e.gold)+' G에 판매했어요.');return;
+  const r=await sendCompanion(api,'companionSell',{ids:[card.i]});const e=ev(r,'companionSell');if(e)api.toast(fmt(e.gold)+' G에 판매했어요.');return;
  }
  if(action==='companionBulkSell'){
   const counts=Object.fromEntries(COMPANION_GRADES.map(g=>[g,d.cards.filter(x=>def(x).grade===g&&placedAt(d,x.i)<0).length]));
@@ -178,6 +213,6 @@ export async function companionAction(action,arg,api){
   const gold=list.reduce((n,x)=>n+COMPANION_SELL[g]*x.s,0);
   if(action==='companionBulkGrade'){api.open('일괄 판매 확인',`<p>${g}급 카드 <b>${list.length}장</b>을 <b>${fmt(gold)} G</b>에 판매할까요?</p><button data-illustrated="1" class="cp-btn cp-wide" data-action="companionBulkConfirm" data-arg="${g}">판매하기</button>`,true,'companion-dialog');return;}
   api.close();
-  const r=await api.command('companionSell',{ids:list.map(x=>x.i)});const e=ev(r,'companionSell');if(e)api.toast(`${e.count}장을 ${fmt(e.gold)} G에 판매했어요.`);return;
+  const r=await sendCompanion(api,'companionSell',{ids:list.map(x=>x.i)});const e=ev(r,'companionSell');if(e)api.toast(`${e.count}장을 ${fmt(e.gold)} G에 판매했어요.`);return;
  }
 }

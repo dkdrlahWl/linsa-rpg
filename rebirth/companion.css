@@ -144,3 +144,33 @@ body:not(.tower-mode) .cp-card{padding:8px 5px 6px}
 /* Inventory boundary gestures continue to the page in either direction. */
 .cp-screen.cp-fit{overflow:visible}
 .cp-grid{overscroll-behavior-y:auto;touch-action:pan-y}
+
+/* Keep optimal placement beside the summon controls without adding a new row. */
+.cp-summon{grid-template-columns:1.1fr 1fr 1fr 1fr;gap:4px}
+.cp-summon>*{min-width:0}
+.cp-ticket{flex-wrap:wrap;gap:2px;font-size:10px}
+.cp-ticket b{font-size:10px}.cp-ticket-icon{width:20px;height:20px}
+body:not(.tower-mode) .cp-summon-btn{min-width:0;padding-inline:4px}
+body:not(.tower-mode) .cp-summon-btn b{font-size:11px}
+.cp-summon-btn small{font-size:9px}
+@media(max-width:370px){body:not(.tower-mode) .cp-summon-btn b{font-size:10px}.cp-ticket-icon{width:16px;height:16px}.cp-ticket{gap:1px;font-size:9px}.cp-ticket b{font-size:9px}}
+/* Immediate feedback, sequential card flips, and distinct rare-grade light. */
+.cp-screen[aria-busy=true]{cursor:progress}.cp-screen button:active{transform:scale(.96)}
+.cp-summon-loading{min-height:190px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:22px;color:#ffe5a0}
+.cp-summon-loading .cp-ticket-icon{width:64px;height:64px;animation:cp-call .8s ease-in-out infinite alternate}
+@keyframes cp-call{to{transform:translateY(-10px) rotate(12deg);filter:drop-shadow(0 0 18px #ffc954)}}
+.cp-summon-reveal{position:relative;isolation:isolate}.cp-reveal-status{text-align:center;min-height:20px;color:#ffe9b0;font-size:12px}
+.companion-dialog .cp-summon-reveal .cp-result{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.companion-dialog .cp-summon-reveal .cp-single{grid-template-columns:minmax(0,150px);justify-content:center}
+.cp-summon-reveal .cp-reveal{position:relative;animation:none;min-height:160px;transition:transform .35s,filter .35s;transform-style:preserve-3d}
+.cp-veiled{transform:rotateY(180deg);background:radial-gradient(ellipse,#254b78,#06152e)!important}
+.cp-veiled>*{visibility:hidden}.cp-veiled:after{content:'✦';position:absolute;inset:5px;display:grid;place-items:center;border:1px solid #c3a15a;border-radius:6px;font-size:40px;color:#e5ca83}
+.cp-unveiled{animation:cp-card-flip .4s ease-out!important}
+@keyframes cp-card-flip{from{transform:rotateY(90deg) scale(.9);filter:brightness(2)}to{transform:none;filter:brightness(1)}}
+.cp-summon-reveal .cp-g-A.cp-unveiled{box-shadow:0 0 12px #bd67ff,0 0 25px #8539ca}
+.cp-summon-reveal .cp-g-S.cp-unveiled{box-shadow:0 0 15px #ffe087,0 0 30px #e6a520}
+.cp-summon-reveal:before{content:'';pointer-events:none;position:absolute;inset:0;z-index:-1;opacity:0;background:radial-gradient(ellipse,var(--cp-light),transparent 70%)}
+.cp-flash-A{--cp-light:#a64dff88}.cp-flash-S{--cp-light:#ffcb4999}.cp-flash-A:before,.cp-flash-S:before{animation:cp-light .8s ease-out}
+@keyframes cp-light{0%{opacity:0;transform:scale(.7)}25%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
+.cp-reveal-actions{display:flex;gap:8px;margin-top:18px;justify-content:center}.cp-reveal-actions button{min-width:95px}
+@media(prefers-reduced-motion:reduce){.cp-summon-loading .cp-ticket-icon,.cp-unveiled,.cp-flash-A:before,.cp-flash-S:before{animation:none!important}.cp-summon-reveal .cp-reveal{transition:none}}

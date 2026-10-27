@@ -17,7 +17,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
 import {treasureCommand} from './treasure-model.mjs';
-import {companionCommand} from './companion-model.mjs';
+import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from './gear-refine.mjs';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs';
@@ -570,6 +570,7 @@ function executeCore(input, command, args = {}, ctx) {
   if(s.isAdmin){s.gold=999999999999;for(const key of Object.keys(MATERIALS))s.materials[key]=999999999999;}
   check(s.version === VERSION, "VERSION_MISMATCH");
   deliverSystemMail(s,ctx);
+  normalizeCompanions(s);
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
   const dailyDay=dayKey(ctx.now);
   if(s.daily?.day!==dailyDay)s.daily={day:dailyDay,hunt:0,boss:0,tower:0,claimed:[]};
