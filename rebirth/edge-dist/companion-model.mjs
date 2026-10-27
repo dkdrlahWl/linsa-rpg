@@ -5,24 +5,24 @@ export const COMPANION_GRADES=['S','A','B','C','D','F'];
 export const COMPANION_GRADE_RATES={S:.01,A:.05,B:.14,C:.25,D:.30,F:.25};
 // id는 이미지 파일명(companions/<id>.webp)으로도 쓴다.
 export const COMPANIONS=[
- {id:'s1',grade:'S',name:'엘리시아',min:4000,max:5000},
- {id:'s2',grade:'S',name:'카이로스',min:3500,max:4400},
- {id:'a1',grade:'A',name:'로제린',min:1500,max:2000},
- {id:'a2',grade:'A',name:'레오닉',min:2000,max:2500},
- {id:'a3',grade:'A',name:'이사벨',min:2500,max:3000},
- {id:'b1',grade:'B',name:'라파엘',min:800,max:1000},
- {id:'b2',grade:'B',name:'시그문트',min:1000,max:1200},
- {id:'b3',grade:'B',name:'아델린',min:1200,max:1500},
- {id:'c1',grade:'C',name:'에드릭',min:400,max:500},
- {id:'c2',grade:'C',name:'셀레네',min:500,max:600},
- {id:'c3',grade:'C',name:'루시안',min:600,max:800},
- {id:'d1',grade:'D',name:'카밀라',min:200,max:250},
- {id:'d2',grade:'D',name:'테오도르',min:250,max:300},
- {id:'d3',grade:'D',name:'비올라',min:300,max:400},
- {id:'f1',grade:'F',name:'에리온',min:50,max:80},
- {id:'f2',grade:'F',name:'클라리스',min:80,max:110},
- {id:'f3',grade:'F',name:'줄리안',min:110,max:140},
- {id:'f4',grade:'F',name:'에블린',min:140,max:180},
+ {id:'s1',grade:'S',name:'엘리시아',min:4000,max:5000,weight:35},
+ {id:'s2',grade:'S',name:'카이로스',min:3500,max:4400,weight:65},
+ {id:'a1',grade:'A',name:'로제린',min:1500,max:2000,weight:50},
+ {id:'a2',grade:'A',name:'레오닉',min:2000,max:2500,weight:30},
+ {id:'a3',grade:'A',name:'이사벨',min:2500,max:3000,weight:20},
+ {id:'b1',grade:'B',name:'라파엘',min:800,max:1000,weight:50},
+ {id:'b2',grade:'B',name:'시그문트',min:1000,max:1200,weight:30},
+ {id:'b3',grade:'B',name:'아델린',min:1200,max:1500,weight:20},
+ {id:'c1',grade:'C',name:'에드릭',min:400,max:500,weight:50},
+ {id:'c2',grade:'C',name:'셀레네',min:500,max:600,weight:30},
+ {id:'c3',grade:'C',name:'루시안',min:600,max:800,weight:20},
+ {id:'d1',grade:'D',name:'카밀라',min:200,max:250,weight:50},
+ {id:'d2',grade:'D',name:'테오도르',min:250,max:300,weight:30},
+ {id:'d3',grade:'D',name:'비올라',min:300,max:400,weight:20},
+ {id:'f1',grade:'F',name:'에리온',min:50,max:80,weight:40},
+ {id:'f2',grade:'F',name:'클라리스',min:80,max:110,weight:30},
+ {id:'f3',grade:'F',name:'줄리안',min:110,max:140,weight:20},
+ {id:'f4',grade:'F',name:'에블린',min:140,max:180,weight:10},
 ];
 export const COMPANION_BY_ID=Object.fromEntries(COMPANIONS.map(c=>[c.id,c]));
 // 패시브: 종류는 1/3씩, 수치는 등급 상관없이 같은 범위에서 랜덤(%).
@@ -59,8 +59,16 @@ export function rollGrade(random){
  for(const g of COMPANION_GRADES){r-=COMPANION_GRADE_RATES[g];if(r<0)return g;}
  return 'F';
 }
+// Within each grade, better base-income characters have lower weights.
+export function rollCompanionCharacter(grade,random){
+ const pool=COMPANIONS.filter(c=>c.grade===grade),total=pool.reduce((sum,c)=>sum+c.weight,0);
+ let roll=random()*total;
+ for(const c of pool){roll-=c.weight;if(roll<0)return c;}
+ return pool[pool.length-1];
+}
+export const companionSummonChance=id=>{const c=COMPANION_BY_ID[id];return c?COMPANION_GRADE_RATES[c.grade]*c.weight/COMPANIONS.filter(d=>d.grade===c.grade).reduce((sum,d)=>sum+d.weight,0):0;};
 export function rollCompanion(random,id){
- const grade=rollGrade(random),pool=COMPANIONS.filter(c=>c.grade===grade),def=pool[Math.floor(random()*pool.length)];
+ const grade=rollGrade(random),def=rollCompanionCharacter(grade,random);
  const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)],p=COMPANION_PASSIVES[t];
  return {i:id,c:def.id,r:rint(random,def.min,def.max),t,v:rint(random,p.min,p.max),s:1};
 }
