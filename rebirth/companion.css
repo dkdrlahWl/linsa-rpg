@@ -1,0 +1,129 @@
+/* 하단 메뉴 7칸: 동료 버튼이 들어가도록 기존 버튼을 조금 줄인다 */
+.fantasy-dock{grid-template-columns:repeat(7,minmax(0,1fr))!important}
+.fantasy-dock>button{font-size:10px;padding-inline:0;letter-spacing:-.02em}
+.fantasy-dock .menu-art{width:24px;height:24px;flex-basis:24px}
+@media(min-width:520px){.fantasy-dock>button{font-size:11px}.fantasy-dock .menu-art{width:26px;height:26px;flex-basis:26px}}
+
+/* 동료 카드 화면 */
+.cp-screen{--cp-gold:#e9c87e;--cp-line:#c9a65f;--cp-panel:linear-gradient(170deg,#102a4ef2,#071629f5);max-width:760px;margin:0 auto;padding:4px 2px 18px;color:#f6ebd2}
+.cp-screen *{box-sizing:border-box}
+.cp-screen button{font-family:inherit;cursor:pointer;margin:0}
+.cp-g-S{--g:#f2c14e;--g2:#7a5410}.cp-g-A{--g:#b77bf0;--g2:#4a1f7d}.cp-g-B{--g:#5fa3f2;--g2:#163f78}.cp-g-C{--g:#5cc47b;--g2:#1c5a30}.cp-g-D{--g:#aeb6c0;--g2:#3c434c}.cp-g-F{--g:#c98d5c;--g2:#5a361b}
+.cp-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 4px 10px}
+.cp-title h1{margin:0;font-family:Georgia,'Noto Serif KR','Noto Sans KR',serif;font-size:26px;color:#ffe3a1;text-shadow:0 2px 6px #000}
+.cp-title span{font-size:12px;color:#c9d5e6}
+.cp-panel{position:relative;border:1px solid var(--cp-line);border-radius:10px;background:var(--cp-panel);box-shadow:inset 0 0 0 2px #d8b36a1c,0 4px 14px #0007;padding:10px;margin-bottom:10px}
+.cp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.cp-head h2{margin:0;font-size:17px;color:#ffe2a0;font-family:Georgia,'Noto Serif KR','Noto Sans KR',serif}
+.cp-head h2 b{font-size:15px;color:#fff;margin-left:4px}
+.cp-head>small{font-size:11px;color:#cfdaea}
+
+/* 등급 배지 / 별 / 초상화 */
+.cp-grade{position:absolute;left:4px;top:4px;z-index:2;min-width:26px;height:26px;display:grid;place-items:center;font:900 19px/1 Georgia,serif;color:#fff;background:linear-gradient(var(--g),var(--g2));border:1px solid #fff6;border-radius:5px;text-shadow:0 1px 2px #000}
+.cp-stars{color:#ffd45c;font-size:12px;letter-spacing:-1px;text-shadow:0 1px 2px #000}
+body:not(.tower-mode) .cp-card>.cp-stars,body:not(.tower-mode) .cp-slot-card>.cp-stars{position:absolute;right:5px;top:5px;z-index:2}
+.cp-portrait{position:relative;display:block;width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:6px;background:radial-gradient(circle at 50% 35%,var(--g) -40%,var(--g2) 55%,#06101f 100%)}
+.cp-portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cp-initial{position:absolute;inset:0;display:grid;place-items:center;font:900 clamp(26px,9vw,46px)/1 Georgia,'Noto Serif KR',serif;color:#fff;opacity:.9;text-shadow:0 3px 10px #000}
+.cp-name{display:block;margin:-12px auto 0;position:relative;z-index:2;width:max-content;max-width:94%;padding:2px 12px;border:1px solid var(--g);border-radius:12px;background:#0a1a32f0;color:#fff4dc;font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-coin{display:inline-block;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff2b3,#e3a92c 60%,#8a5a12);box-shadow:0 0 0 1px #6b4310;vertical-align:-2px;margin-right:4px}
+.cp-passive{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:11px;border:1px solid #d6b46e88;background:#08162cd9;font-size:11px;font-weight:700;white-space:nowrap}
+.cp-gold{color:#ffd77a}.cp-growth{color:#8ee0a0}.cp-jackpot{color:#9ee8c4}
+
+/* 배치 3칸 */
+.cp-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.cp-slot{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:5px 5px 7px;border:2px solid var(--g,#5e6f86);border-radius:9px;background:linear-gradient(#0c2140,#060f1e);box-shadow:inset 0 0 14px #0009,0 0 10px color-mix(in srgb,var(--g,#000) 35%,transparent)}
+.cp-slot.selected{outline:2px solid #fff3c4;outline-offset:1px}
+body:not(.tower-mode) .cp-slot-card{position:relative;width:100%;padding:0;border:0;background:none;color:inherit}
+.cp-slot .cp-rate{margin:2px 0 0;font-size:13px;color:#ffe6a6;white-space:nowrap}
+.cp-slot .cp-rate b{font-size:14px}
+.cp-label{font-size:10px;color:#b9c7da;margin-top:2px}
+.cp-accrued{font-size:14px;color:#fff;line-height:1.1}
+.cp-bar{width:100%;height:7px;border-radius:5px;background:#020812;border:1px solid #44628a;overflow:hidden}
+.cp-bar i{display:block;height:100%;background:linear-gradient(90deg,#2d74d8,#8fd0ff);border-radius:5px}
+.cp-time{font-size:10px;color:#c9d6e6}.cp-time.full{color:#ffcf6b;font-weight:800}
+body:not(.tower-mode) .cp-claim{width:100%;min-height:36px;margin-top:2px!important;border:1px solid #fff0b5;border-radius:18px;background:linear-gradient(#ffe9a0,#d9a743 55%,#a77320);color:#3a2306;font-size:16px;font-weight:900;box-shadow:0 2px 0 #5d3d0d,inset 0 1px #fff8}
+body:not(.tower-mode) .cp-claim:disabled{filter:grayscale(.8) brightness(.7);cursor:default}
+.cp-empty{justify-content:center;min-height:250px;border-style:dashed;color:#b9c7da;gap:6px}
+.cp-empty b{color:#e9d6a8;font-size:14px}.cp-empty small{font-size:11px;line-height:1.5}
+
+/* 소환 */
+.cp-summon{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px;align-items:center}
+.cp-ticket{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700}
+.cp-ticket b{color:#fff;font-size:16px}
+.cp-ticket-icon,.cp-ticket-mini{display:inline-block;width:30px;height:20px;border-radius:3px;background:linear-gradient(135deg,#c2333d,#7a1018);border:1px solid #f0c27a;box-shadow:inset 0 0 0 3px #7a101880;transform:rotate(-12deg)}
+.cp-ticket-mini{width:15px;height:10px;margin-right:4px;vertical-align:-1px}
+body:not(.tower-mode) .cp-summon-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:56px;border:2px solid #f3d38b;border-radius:9px;color:#fff6dd;box-shadow:inset 0 0 0 2px #ffffff22,0 3px 7px #0007}
+body:not(.tower-mode) .cp-summon-btn b{font-size:17px;font-family:Georgia,'Noto Serif KR','Noto Sans KR',serif}
+body:not(.tower-mode) .cp-summon-btn small{font-size:12px}
+body:not(.tower-mode) .cp-summon-btn.one{background:linear-gradient(#2c6fd1,#0b3477)}
+body:not(.tower-mode) .cp-summon-btn.ten{background:linear-gradient(#9b46d8,#4a157f)}
+
+/* 가방 */
+.cp-tools{display:flex;gap:5px}
+body:not(.tower-mode) .cp-tools button{min-height:30px;padding:3px 10px;border:1px solid #b99556;border-radius:15px;background:#081a33;color:#e8dcc0;font-size:12px}
+body:not(.tower-mode) .cp-tools button.active{border-color:#ffe39c;color:#ffe9b0;box-shadow:inset 0 0 0 1px #ffe39c66}
+.cp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+body:not(.tower-mode) .cp-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 4px 5px;border:2px solid var(--g);border-radius:8px;background:linear-gradient(#0c2140,#060f1e);color:inherit;text-align:center;min-width:0}
+body:not(.tower-mode) .cp-card.selected{outline:2px solid #fff3c4;outline-offset:1px;box-shadow:0 0 12px var(--g)}
+body:not(.tower-mode) .cp-card .cp-name{font-size:12px;padding:1px 8px}
+body:not(.tower-mode) .cp-card .cp-rate{font-size:11px;color:#ffe6a6;white-space:nowrap}
+body:not(.tower-mode) .cp-card .cp-passive{font-size:10px;padding:1px 6px}
+.cp-quality{align-self:flex-end;font-size:9px;color:#c4d0df}
+.cp-placed{position:absolute;right:4px;top:22px;z-index:2;padding:0 5px;border-radius:7px;background:#1f6f3d;color:#e9ffe8;font-size:9px;font-weight:800}
+.cp-empty-bag{text-align:center;color:#c7d3e4;font-size:13px;padding:24px 4px}
+
+/* 선택 카드 바 */
+.cp-selected-bar{position:sticky;bottom:calc(66px + env(safe-area-inset-bottom));z-index:5;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px}
+.cp-selected-bar.cp-hint{display:block;text-align:center;font-size:12px;color:#c7d3e4;padding:9px}
+.cp-selected-bar.cp-hint p{margin:0}
+.cp-thumb .cp-portrait{border:2px solid var(--g)}
+.cp-detail{display:flex;flex-direction:column;gap:1px;min-width:0}
+.cp-detail strong{font-size:15px;color:#fff}
+.cp-detail small{font-size:10px;color:#c6d2e2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-actions{display:flex;gap:5px}
+body:not(.tower-mode) .cp-btn{min-height:40px;min-width:52px;padding:4px 10px;border:1px solid #d9b66c;border-radius:8px;background:#0a1b35;color:#f3e6c6;font-size:14px;font-weight:800}
+body:not(.tower-mode) .cp-btn.gold{background:linear-gradient(#ffe39a,#c99232);color:#3a2306;border-color:#fff0b5}
+body:not(.tower-mode) .cp-btn.blue{background:linear-gradient(#2f72d3,#0d377c);color:#fff;border-color:#9fc3f3}
+body:not(.tower-mode) .cp-btn:disabled{opacity:.45;cursor:default}
+.cp-wide{display:block;width:100%;margin-top:12px!important}
+
+/* 모달 */
+.companion-dialog .cp-result,.companion-dialog .cp-swap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;color:#f6ebd2}
+.companion-dialog .cp-swap{grid-template-columns:repeat(3,minmax(0,1fr))}
+body:not(.tower-mode) .companion-dialog .cp-result .cp-card,body:not(.tower-mode) .companion-dialog .cp-swap .cp-card{--cp-gold:#e9c87e}
+.cp-reveal{animation:cp-pop .45s both}
+.cp-reveal:nth-child(2){animation-delay:.05s}.cp-reveal:nth-child(3){animation-delay:.1s}.cp-reveal:nth-child(4){animation-delay:.15s}.cp-reveal:nth-child(5){animation-delay:.2s}.cp-reveal:nth-child(6){animation-delay:.25s}.cp-reveal:nth-child(7){animation-delay:.3s}.cp-reveal:nth-child(8){animation-delay:.35s}.cp-reveal:nth-child(9){animation-delay:.4s}.cp-reveal:nth-child(10){animation-delay:.45s}
+.cp-reveal.cp-g-S,.cp-reveal.cp-g-A{box-shadow:0 0 16px var(--g)}
+@keyframes cp-pop{from{opacity:0;transform:scale(.6) rotateY(90deg)}to{opacity:1;transform:none}}
+.cp-merge-line{font-size:16px;text-align:center}.cp-merge-line .up{color:#ffd45c}
+.cp-bulk{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+body:not(.tower-mode) .cp-bulk button{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:70px;padding:28px 4px 6px;border:2px solid var(--g);border-radius:8px;background:#081a33;color:#f3e6c6}
+body:not(.tower-mode) .cp-bulk button:disabled{opacity:.4}
+.cp-bulk small{font-size:10px;color:#c6d2e2}
+
+@media(max-width:430px){
+ .cp-title h1{font-size:23px}
+ .cp-slot{padding:4px 4px 6px}
+ .cp-slot .cp-rate{font-size:11px}.cp-slot .cp-rate b{font-size:12px}
+ .cp-slot .cp-passive{font-size:10px;padding:1px 5px}
+ .cp-accrued{font-size:12px}
+ body:not(.tower-mode) .cp-claim{min-height:32px;font-size:15px}
+ .cp-summon{grid-template-columns:1fr 1fr;gap:6px}
+ .cp-ticket{grid-column:1/-1;justify-content:center}
+ .cp-head h2{font-size:15px}
+ body:not(.tower-mode) .cp-tools button{padding:3px 7px;font-size:11px}
+ body:not(.tower-mode) .cp-card .cp-rate{font-size:10px}
+ body:not(.tower-mode) .cp-card .cp-name{font-size:11px;padding:1px 6px}
+ .cp-selected-bar{grid-template-columns:44px minmax(0,1fr);}
+ .cp-actions{grid-column:1/-1}
+ .cp-actions .cp-btn{flex:1}
+ .companion-dialog .cp-result{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:350px){.cp-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* 테마 버튼 장식(액자 이미지) 끄기 */
+body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button{isolation:auto;text-shadow:none}
+body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button::before,body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button::after{content:none!important;display:none!important}
+body:not(.tower-mode) :is(.cp-screen,.companion-dialog) button>.menu-art{display:none!important}
+body:not(.tower-mode) .cp-tools button.active{color:#ffe9b0!important;background:#16335c}

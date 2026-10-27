@@ -17,6 +17,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import {treasureCommand} from './treasure-model.mjs';
+import {companionCommand} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from './gear-refine.mjs?v=flame5m-20261025';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs?v=addpot-20261025';
@@ -647,6 +648,7 @@ function executeCore(input, command, args = {}, ctx) {
     return { state: s, events };
   }
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
+  if(command.startsWith("companion")){events.push(companionCommand(s,command,args,ctx));return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   if(command.startsWith("treasure")){events.push(treasureCommand(s,command,args,ctx,dayKey(ctx.now),level=>{const item=makeLootItem(level,s.classId,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);return item;}));return {state:s,events};}

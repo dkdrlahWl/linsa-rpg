@@ -26,11 +26,12 @@ import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-1
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
+import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=companion-20261027';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=arena-load-147';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=companion-20261027';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -152,6 +153,16 @@ function toast(text) {
   toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
 }
 const errors = {
+  COMPANION_NO_TICKET: "소환권이 부족해요.",
+  COMPANION_BAG_FULL: "동료 가방이 가득 찼어요. 카드를 판매하거나 합성해 주세요.",
+  COMPANION_NOT_FOUND: "동료 카드를 찾을 수 없어요. 새로고침 후 다시 시도해 주세요.",
+  COMPANION_ALREADY_PLACED: "이미 배치된 동료예요.",
+  COMPANION_PLACED: "배치 중인 동료는 판매하거나 재료로 쓸 수 없어요.",
+  COMPANION_INVALID_SLOT: "배치 자리가 올바르지 않아요.",
+  COMPANION_MAX_STAR: "이미 최대 ★5예요.",
+  COMPANION_MERGE_COUNT: "합성 재료 수가 맞지 않아요.",
+  COMPANION_MERGE_MISMATCH: "같은 캐릭터끼리만 합성할 수 있어요.",
+  COMPANION_UNKNOWN: "새로고침 후 다시 시도해 주세요.",
   FISHING_REFRESH_REQUIRED: "낚시가 업데이트됐어요. 새로고침 후 다시 시도해 주세요.",
   INVALID_FISHING_BAIT: "미끼 구매 수량이 올바르지 않아요. 새로고침 후 다시 구매해 주세요.",
   FISHING_HOOK_REQUIRED: "입질이 오면 먼저 챔질해 주세요.",
@@ -698,6 +709,7 @@ function render() {
       hunt: hunt,
       character: character,
       gear: inventory,
+      companion:()=>companionView(state),
       boss: bosses,
       market: market,
       shop:()=>shopView(state,D,gearMarkup,shopCategory,skillLookClass||state.classId),
@@ -716,6 +728,7 @@ function render() {
     const lottoScroll=app.querySelector('.lotto-scroll');
     if(lottoScroll)lottoScroll.scrollTop=preservedLottoScroll;
   }
+  updateCompanionTimers(state,view==='game'&&tab==='companion'?app:null);
   updatePetCountdown();
   updateLuckTimers(state);
   updateInvestmentClock(investmentData,investmentLoadedAt);
@@ -1052,7 +1065,7 @@ function open(title, html, closable = true) {
   stopSkillLookPreview?.();stopSkillLookPreview=null;
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=title.endsWith(" · 결과 선택")?0:dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
-  modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog", "title-dialog");
+  modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog", "title-dialog", "companion-dialog");
   replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = preservedModalScroll;
@@ -1417,6 +1430,7 @@ document.addEventListener("click", async (e) => {
   if(action==='rankingProfile')return showRankingProfile(arg);
   sounds.start();sounds.music();
   sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage','shopCategory'].includes(action)?'ui-tab':'ui-click');
+  if(action.startsWith('companion'))return companionAction(action,arg,{state:()=>state,command:(c,a)=>command(c,a),open:(t,h,c=true,cls)=>{open(t,h,c);if(cls)modal.classList.add(cls);},close:()=>modal.close(),toast,render});
   if(action==='star')sounds.play('enhance-charge');
   try {
     if(action==='arenaOpen'){modal.close();view='arena';arenaPage='home';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}render();await loadArena();return;}
