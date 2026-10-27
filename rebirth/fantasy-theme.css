@@ -161,3 +161,5 @@ body:not(.tower-mode) .class-choice>button{background:linear-gradient(#173654,#0
 .gear-preset-bar>span{margin-right:auto;font-weight:700}
 .gear-preset-bar .gear-preset-btn{min-width:42px;min-height:34px;padding:4px 12px;border-radius:9px;border:1px solid #6d5c38;background:#0b1a2e;color:#d6caaa;font-weight:800}
 .gear-preset-bar .gear-preset-btn.active{background:linear-gradient(180deg,#f1d48a,#b98b3e);color:#2a1a06;border-color:#f6e2a8;box-shadow:0 0 8px #e8c06a88}
+.bag-grid .bag-slot.equipped:not(.in-preset):after{content:none}
+.bag-grid .bag-slot.in-preset:after{content:attr(data-preset);position:absolute;left:3px;top:24px;bottom:auto;color:#c1f2ad;font-size:9px;line-height:1.4;background:#234419dd;padding:0 3px;border-radius:2px;white-space:nowrap;z-index:1}

@@ -3,7 +3,7 @@ import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel}
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
 import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
 import {normalizeSkillLooks,equippedSkillLook,skillLookCommand,SKILL_LOOK_CRIT_DAMAGE,ownedSkillLookCount} from './skill-looks.mjs';
-import {bossSalePrice} from './shop-model.mjs';
+import {bossSalePrice,inAnyGearPreset} from './shop-model.mjs';
 import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
 import {blackMarketBuy} from './black-market.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs';
@@ -883,6 +883,7 @@ function executeCore(input, command, args = {}, ctx) {
       check(it.boss===true,"SHOP_BOSS_ONLY");
       writable(s,it);
       check(!Object.values(s.equipped).includes(it.id),"ITEM_EQUIPPED");
+      check(!inAnyGearPreset(s,it.id),"ITEM_IN_PRESET");
       const gold=bossSalePrice(it);
       check(gold>0,"INVALID_SHOP_ITEM");
       check(Number.isSafeInteger(s.gold+gold),"INVALID_SHOP_GOLD_RANGE");
