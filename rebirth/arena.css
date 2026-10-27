@@ -214,3 +214,22 @@ body:not(.tower-mode) .fantasy-content .pvp-battle-controls>button{min-height:44
  .pvp-battle-heading .pvp-title h1{font-size:19px}
  .pvp-battle-heading .pvp-battle-status{padding-inline:6px;font-size:9px}
 }
+/* 결과 화면: 모바일 한 화면 안에 '다음 상대' 버튼까지 */
+.pvp-result-screen{min-height:0;padding-top:6px;padding-bottom:10px}
+.pvp-result-hero{height:clamp(150px,27dvh,230px);margin-bottom:6px}
+.pvp-result-crown{font-size:26px;bottom:6px;padding:2px 0}
+.pvp-result-detail{padding:9px 12px 10px}
+.pvp-result-detail h2,.pvp-result-screen .pvp-result-detail h2{font-size:19px;line-height:1.25}
+.pvp-result-detail>p{margin:3px 0}
+.pvp-result-detail>p .pvp-badge img{width:32px;height:32px}
+.pvp-result-detail>p .pvp-badge{font-size:12px}
+.pvp-result-change{font-size:17px;gap:12px;line-height:1.2}
+.pvp-result-change strong{font-size:25px}
+.pvp-result-delta{font-size:19px;margin:0 0 8px}
+.pvp-result-opponent{padding:3px 8px}
+.pvp-result-opponent .portrait.pvp-portrait{width:42px;height:42px;max-width:42px}
+.pvp-result-summary{margin-top:8px;padding-top:6px}
+.pvp-result-summary b{font-size:14px}
+.pvp-result-actions{margin-top:8px;position:sticky;bottom:0;z-index:2;padding:6px 0 4px;background:linear-gradient(#03102200,#031022 35%)}
+body:not(.tower-mode) .fantasy-content .pvp-screen .pvp-result-actions .pvp-button{min-height:46px}
+@media(max-height:700px){.pvp-result-hero{height:clamp(130px,23dvh,180px)}.pvp-result-crown{font-size:22px}}
