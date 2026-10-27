@@ -2,7 +2,7 @@
 // 소환권으로 카드를 뽑고, 3칸에 배치하면 칸마다 분당 골드가 최대 8시간 쌓인다.
 // 같은 캐릭터 카드끼리 합성하면 별이 오른다. 전투·아레나에는 영향 없음.
 export const COMPANION_GRADES=['S','A','B','C','D','F'];
-export const COMPANION_GRADE_RATES={S:.01,A:.05,B:.14,C:.25,D:.30,F:.25};
+export const COMPANION_GRADE_RATES={S:.01,A:.05,B:.10,C:.20,D:.25,F:.39};
 // id는 이미지 파일명(companions/<id>.webp)으로도 쓴다.
 export const COMPANIONS=[
  {id:'s1',grade:'S',name:'엘리시아',min:4000,max:5000,weight:35},

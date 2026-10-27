@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {COMPANIONS,COMPANION_GRADES,COMPANION_GRADE_RATES,rollCompanionCharacter,rollCompanion,companionSummonChance} from './companion-model.mjs';
-const expected={s1:.0035,s2:.0065,a1:.025,a2:.015,a3:.01,b1:.07,b2:.042,b3:.028,c1:.125,c2:.075,c3:.05,d1:.15,d2:.09,d3:.06,f1:.10,f2:.075,f3:.05,f4:.025};
+const expected={s1:.0035,s2:.0065,a1:.025,a2:.015,a3:.01,b1:.05,b2:.03,b3:.02,c1:.10,c2:.06,c3:.04,d1:.125,d2:.075,d3:.05,f1:.156,f2:.117,f3:.078,f4:.039};
 for(const grade of COMPANION_GRADES){
  const defs=COMPANIONS.filter(c=>c.grade===grade),seen={};
  // Stratified draws verify all weighted intervals without sampling noise.

@@ -45,7 +45,7 @@
 .cp-ticket-mini{display:inline-block;vertical-align:-2px;width:13px;height:13px;margin-right:3px;background:url('companions/summon-ticket-v1.webp') center/contain no-repeat}
 .cp-bag{min-height:0}
 .cp-tools{display:flex;align-items:center;gap:4px;min-width:0}
-.cp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:max-content;gap:6px;max-height:320px;overflow-y:auto;overscroll-behavior:contain;padding:2px;scrollbar-width:thin;scrollbar-color:#8c784b #061428}
+.cp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:max-content;gap:6px;max-height:320px;overflow-y:auto;overscroll-behavior:auto;padding:2px;scrollbar-width:thin;scrollbar-color:#8c784b #061428}
 .cp-card{position:relative;min-width:0}
 .cp-card .cp-portrait{aspect-ratio:1.38}
 .cp-card .cp-grade{width:21px;height:21px;font-size:18px;left:3px;top:3px}
@@ -140,3 +140,7 @@ body:not(.tower-mode) .cp-card{padding:8px 5px 6px}
 /* Smaller upper-left grade badges leave more of each portrait visible. */
 .cp-grade{width:19px;height:19px;font-size:16px;left:3px;top:3px}
 .cp-card .cp-grade{width:16px;height:16px;font-size:13px;left:3px;top:3px}
+
+/* Inventory boundary gestures continue to the page in either direction. */
+.cp-screen.cp-fit{overflow:visible}
+.cp-grid{overscroll-behavior-y:auto;touch-action:pan-y}
