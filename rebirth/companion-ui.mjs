@@ -209,7 +209,9 @@ export async function companionAction(action,arg,api){
   const mats=d.cards.filter(x=>x.c===main.c&&x.i!==main.i&&placedAt(d,x.i)<0).sort((a,b)=>a.s-b.s||companionQuality(a)-companionQuality(b)).slice(0,need);
   if(mats.length<need)return api.toast(`★${main.s}→★${main.s+1} 합성에는 같은 ${def(main).name} 카드 ${need}장이 필요해요. (보유 ${mats.length}장)`);
   if(action==='companionMerge'){
-   api.open('합성',`<p class="cp-merge-line"><b>${esc(def(main).name)}</b> ★${main.s} → <b class="up">★${main.s+1}</b> · 분당 골드 +15%</p><p class="note">아래 카드 ${need}장이 재료로 사라져요. (옵션이 낮은 카드부터 자동 선택)</p><div class="cp-result">${mats.map(resultCard).join('')}</div><button data-illustrated="1" class="cp-btn blue cp-wide" data-action="companionMergeConfirm" data-arg="${main.i}">합성하기</button>`,true,'companion-dialog');
+   // 메인(지금 고른 카드)은 분당 골드·패시브 수치를 그대로 두고 별만 오른다.
+   const better=mats.some(x=>companionQuality(x)>companionQuality(main));
+   api.open('합성',`<p class="cp-merge-line"><b>${esc(def(main).name)}</b> ★${main.s} → <b class="up">★${main.s+1}</b> · 분당 골드 +15%</p><p class="cp-merge-label">메인 · 수치 그대로 유지</p><div class="cp-result cp-merge-main">${resultCard(main)}</div><p class="cp-merge-label">재료 ${need}장 · 사라짐 (옵션 낮은 카드부터 자동 선택)</p>${better?'<p class="note cp-merge-warn">재료 중에 메인보다 옵션이 좋은 카드가 있어요. 그 카드를 메인으로 고르고 합성하는 게 이득이에요.</p>':''}<div class="cp-result">${mats.map(resultCard).join('')}</div><button data-illustrated="1" class="cp-btn blue cp-wide" data-action="companionMergeConfirm" data-arg="${main.i}">합성하기</button>`,true,'companion-dialog');
    return;
   }
   api.close();
