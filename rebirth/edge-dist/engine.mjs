@@ -405,6 +405,22 @@ export function settle(s, ctx) {
     stored: Math.max(0, gearCount - capacity),
   };
 }
+// Gear presets: three saved loadouts per class. The active slot mirrors s.equipped
+// and is snapshotted on switch; loading skips items that are gone or no longer usable.
+function classGearPresets(s,classId=s.classId){
+  if(!s.gearPresets||typeof s.gearPresets!=='object'||Array.isArray(s.gearPresets))s.gearPresets={};
+  let p=s.gearPresets[classId];
+  if(!p||typeof p!=='object'||!Array.isArray(p.list)||p.list.length!==3||!Number.isInteger(p.active)||p.active<0||p.active>2)p=s.gearPresets[classId]={active:0,list:[null,null,null]};
+  return p;
+}
+function loadGearPreset(s,saved){
+  const next={};
+  for(const [slot,id] of Object.entries(saved||{})){
+    const it=s.items.find(x=>x.id===id);
+    if(it&&!it.broken&&String(it.slot)===String(slot)&&canEquipClass(it,s.classId)&&it.level<=s.level)next[slot]=id;
+  }
+  return next;
+}
 function gear(s, id) {
   const it = s.items.find((x) => x.id === id);
   check(it, "ITEM_NOT_FOUND");
@@ -737,9 +753,11 @@ function executeCore(input, command, args = {}, ctx) {
       s.stats = restored ? {...restored} : {STR:4,DEX:4,INT:4,LUK:4};
       const allocated = Object.values(s.stats).reduce((total,value) => total + Math.max(0,value-4),0);
       s.points = Math.max(0,totalStatPoints(s.level)-allocated);
+      if(s.gearPresets?.[previousClass])classGearPresets(s,previousClass).list[s.gearPresets[previousClass].active]={...s.equipped};
       s.classId = target.id;
       s.equippedCostume = null;
       s.equipped = {};
+      if(s.gearPresets?.[target.id]){const p=classGearPresets(s);if(p.list[p.active])s.equipped=loadGearPreset(s,p.list[p.active]);}
       s.hunting = false;
       s.huntRemainder = 0;
       s.lastAt = ctx.now;
@@ -835,6 +853,19 @@ function executeCore(input, command, args = {}, ctx) {
         "ITEM_REQUIREMENT",
       );
       s.equipped[it.slot] = it.id;
+      break;
+    }
+    case "gearPreset": {
+      const to=Number(args.slot);
+      check(Number.isInteger(to)&&to>=0&&to<=2,"INVALID_SLOT");
+      const p=classGearPresets(s);
+      p.list[p.active]={...s.equipped};
+      if(to!==p.active){
+        if(p.list[to])s.equipped=loadGearPreset(s,p.list[to]);
+        p.active=to;
+        p.list[to]={...s.equipped};
+      }
+      events.push({type:"gearPreset",slot:to});
       break;
     }
     case "unequip": {

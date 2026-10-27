@@ -845,8 +845,9 @@ function itemMarkup(it) {
 function bagGroupsMarkup(groups){
  const items=groups.flatMap(g=>g.slots.flatMap(v=>v.items)),stackMap=new Map();for(const item of items){const key=salvageMode?item.id:D.equipmentKey(item);if(!stackMap.has(key))stackMap.set(key,[]);stackMap.get(key).push(item);}
  const stacks=[...stackMap.values()],pageSize=window.matchMedia('(max-width:700px)').matches?12:24,pages=Math.max(1,Math.ceil(stacks.length/pageSize));bagPage=Math.min(bagPage,pages-1);
- return '<div class="bag-pager">'+disabledBtn('이전','bagPage',bagPage-1,bagPage===0)+'<strong>'+(bagPage+1)+' / '+pages+' · '+stacks.length+'종 / '+items.length+'개</strong>'+disabledBtn('다음','bagPage',bagPage+1,bagPage>=pages-1)+'</div><div class="inventory-grid bag-grid">'+(stacks.slice(bagPage*pageSize,(bagPage+1)*pageSize).map(stack=>{let tile=bagTile(stack[0]);if(!salvageMode)tile=tile.replace('data-action="item"','data-action="itemGroup"').replace('</button>','<b class="bag-stack-count">보유 '+stack.length+'개</b></button>');if(!salvageMode&&stack.length>1){const stars=stack.map(x=>x.stars),lo=Math.min(...stars),hi=Math.max(...stars);tile=tile.replace(/<span class="tile-star">[^<]*<\/span>/,'<span class="tile-star">'+(lo===hi?lo:lo+'~'+hi)+'★</span>');}return tile;}).join('')||'<div class="empty">장비가 없습니다.</div>')+'</div>';
+ return '<div class="bag-pager">'+disabledBtn('이전','bagPage',bagPage-1,bagPage===0)+'<strong>'+(bagPage+1)+' / '+pages+' · '+stacks.length+'종 / '+items.length+'개</strong>'+disabledBtn('다음','bagPage',bagPage+1,bagPage>=pages-1)+'</div>'+(salvageMode?'':gearPresetBar())+'<div class="inventory-grid bag-grid">'+(stacks.slice(bagPage*pageSize,(bagPage+1)*pageSize).map(stack=>{let tile=bagTile(stack[0]);if(!salvageMode)tile=tile.replace('data-action="item"','data-action="itemGroup"').replace('</button>','<b class="bag-stack-count">보유 '+stack.length+'개</b></button>');if(!salvageMode&&stack.length>1){const stars=stack.map(x=>x.stars),lo=Math.min(...stars),hi=Math.max(...stars);tile=tile.replace(/<span class="tile-star">[^<]*<\/span>/,'<span class="tile-star">'+(lo===hi?lo:lo+'~'+hi)+'★</span>');}return tile;}).join('')||'<div class="empty">장비가 없습니다.</div>')+'</div>';
 }
+function gearPresetBar(){const active=state.gearPresets?.[state.classId]?.active??0,blocked=!!state.battle||!!state.partyRoom||!!state.pendingCube;return '<div class="gear-preset-bar"><span>장비 슬롯</span>'+[0,1,2].map(i=>disabledBtn(String(i+1),'gearPreset',i,blocked,'gear-preset-btn'+(i===active?' active':''))).join('')+'</div>';}
 function itemGroup(id){const first=state.items.find(x=>x.id===id);if(!first)return;const equipped=new Set(Object.values(state.equipped));const items=state.items.filter(x=>D.equipmentKey(x)===D.equipmentKey(first)).sort((a,b)=>Number(equipped.has(b.id))-Number(equipped.has(a.id)));if(items.length===1)return itemDetail(id);open(D.gearName(first)+' · '+items.length+'개','<p class="note">강화·잠재는 각각 유지됩니다. 사용할 장비를 고르세요.</p><div class="stack">'+items.map(it=>'<button data-action="item" data-arg="'+it.id+'" class="stack-equipment">'+itemMarkup(it)+'<small>'+it.lines.map(l=>D.OPTIONS[l.key]+' +'+l.value+D.optionUnit(l.key)).join(' · ')+'</small></button>').join('')+'</div>');}
 
 function bagTile(item) {
@@ -1176,6 +1177,7 @@ function showEvents(events) {
       continue;
     }
     if(e.type==="classChange") {rankingRows=[];rankingUpdated=0;toast(D.CLASSES.find(c=>c.id===e.to).name+"으로 직업을 변경했어요. 새 장비를 장착하고 사냥을 시작하세요.");}
+    if(e.type==="gearPreset")toast("장비 슬롯 "+(e.slot+1)+"번으로 전환했어요.");
     if(e.type==="autoEquip") {
       open("최적 장착 완료",`<div class="auto-equip-result"><span>${e.changed.length?e.changed.length+"개 부위 교체":"현재 장비 유지"}</span><div><b>${fmt(e.before)}</b><i>→</i><strong>${fmt(e.after)}</strong></div><p>전투력 +${fmt(e.after-e.before)}</p></div><p class="note">${e.changed.length?e.changed.map(slot=>D.SLOTS[slot]).join(" · ")+" 장비를 교체했습니다.":"이번 비교에서 더 높은 전투력 조합을 찾지 못해 현재 장비를 유지했습니다."}</p>`);
     }
@@ -1781,6 +1783,7 @@ document.addEventListener("click", async (e) => {
       return;
     }
     if (action === "autoEquip") return await command("autoEquip");
+    if (action === "gearPreset") return await command("gearPreset", { slot: Number(arg) });
     if (action === "autoStats") {
       if (!state.points) return toast("남은 포인트가 없습니다.");
       return await command("stats", {

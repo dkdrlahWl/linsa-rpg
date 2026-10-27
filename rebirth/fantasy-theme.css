@@ -156,3 +156,8 @@ body:not(.tower-mode) .class-choice>button{background:linear-gradient(#173654,#0
 @media(min-width:701px) and (max-width:899px){.fantasy-header{grid-template-columns:1fr;grid-template-rows:1fr 1fr;height:92px}.fantasy-brand-row{border-bottom:1px solid #ab8a4c60}.fantasy-brand>small{display:none}}
 /* Mail-style count badges on dock/menu/fishing buttons (fishing dailies ready to claim). */
 .fantasy-dock button,.fantasy-menu-grid button,.fishing-panels button,.lotto-event-switch button,.fishing-event-switch button,.event-switch button{position:relative}
+
+.gear-preset-bar{display:flex;align-items:center;gap:6px;margin:0 0 8px;padding:6px 9px;border:1px solid #9e854f;border-radius:12px;background:linear-gradient(135deg,#18375dea,#06152aee);color:#d6caaa;font-size:13px}
+.gear-preset-bar>span{margin-right:auto;font-weight:700}
+.gear-preset-bar .gear-preset-btn{min-width:42px;min-height:34px;padding:4px 12px;border-radius:9px;border:1px solid #6d5c38;background:#0b1a2e;color:#d6caaa;font-weight:800}
+.gear-preset-bar .gear-preset-btn.active{background:linear-gradient(180deg,#f1d48a,#b98b3e);color:#2a1a06;border-color:#f6e2a8;box-shadow:0 0 8px #e8c06a88}
