@@ -7,15 +7,17 @@ const artURL=src=>/^exploration\/(?:boss-[456]|map-[456])\.webp$/.test(src)?src+
 const fmt=n=>new Intl.NumberFormat('ko-KR').format(n);
 const btn=(label,action,arg='',off=false)=>'<button data-action="'+action+'" data-arg="'+esc(arg)+'" '+(off?'disabled':'')+'>'+label+'</button>';
 export const explorationUnlocked=(state,tier)=>Number.isInteger(tier)&&!!EXPLORATIONS[tier]&&(tier===0||(state.exploration?.cleared||[]).includes(explorationPrevious(tier)));
+// exploration-rewards.mjs의 EXPLORATION_COMPANION_TICKET_CHANCE와 같은 값.
+const COMPANION_TICKET_CHANCE=.25;
 const pctText=x=>(x*100).toFixed(0)+'%';
 function rewardList(t){
  const r=EXPLORATION_REWARDS[t.id],n=key=>explorationRewardCount(r,key),row=(label,p)=>'<li><span>'+label+'</span><b>'+pctText(p)+'</b></li>';
- return '<ul class="exploration-reward-list"><li><span>골드 '+fmt(r.gold)+' G</span><b>확정</b></li>'+row('잠재 해금 주문서 '+n('scroll')+'개',r.scroll)+row('블랙 큐브 '+n('highCube')+'개',r.highCube)+row('잠재 잠금석 '+n('potentialLock')+'개',r.potentialLock)+(r.addCube?row('에디셔널 큐브 '+n('addCube')+'개',r.addCube)+row('추가옵션 불꽃 '+n('bonusFlame')+'개',r.bonusFlame):'')+row(explorationGearRange(r)+'제 보스장비 1개',r.bossGear)+'</ul><p class="note">각각 독립 추첨 · 직업·부위 랜덤</p>';
+ return '<ul class="exploration-reward-list"><li><span>골드 '+fmt(r.gold)+' G</span><b>확정</b></li>'+row('잠재 해금 주문서 '+n('scroll')+'개',r.scroll)+row('블랙 큐브 '+n('highCube')+'개',r.highCube)+row('잠재 잠금석 '+n('potentialLock')+'개',r.potentialLock)+(r.addCube?row('에디셔널 큐브 '+n('addCube')+'개',r.addCube)+row('추가옵션 불꽃 '+n('bonusFlame')+'개',r.bonusFlame):'')+row(explorationGearRange(r)+'제 보스장비 1개',r.bossGear)+row('동료 소환권 1장',COMPANION_TICKET_CHANCE)+'</ul><p class="note">각각 독립 추첨 · 직업·부위 랜덤</p>';
 }
 function explorationCardNote(t){
  const r=EXPLORATION_REWARDS[t.id],n=key=>explorationRewardCount(r,key),extra=r.addCube?'<br>에디셔널 큐브 '+n('addCube')+'개 '+pctText(r.addCube)+' · 추가옵션 불꽃 '+n('bonusFlame')+'개 '+pctText(r.bonusFlame):'';
  const strength=t.linearHp?'보스 체력 1인 '+(66.5e6*t.multiplier/1e8).toFixed(1).replace(/\.0$/,'')+'억 × 인원수 · 입장 열쇠 '+(t.keys||1)+'개':'강도 '+t.multiplier+'배';
- return '<p class="note">'+strength+' · 골드 '+fmt(r.gold)+' G 확정<br>잠재해금 '+n('scroll')+'개 '+pctText(r.scroll)+' · 블랙 큐브 '+n('highCube')+'개 '+pctText(r.highCube)+'<br>잠재잠금석 '+n('potentialLock')+'개 '+pctText(r.potentialLock)+' · '+explorationGearRange(r)+'제 랜덤 보스장비 1개 '+pctText(r.bossGear)+extra+'<br>추가 보상은 각각 독립 추첨 · 직업·부위 랜덤 · 무기는 다른 각 부위의 절반 확률</p>';
+ return '<p class="note">'+strength+' · 골드 '+fmt(r.gold)+' G 확정<br>잠재해금 '+n('scroll')+'개 '+pctText(r.scroll)+' · 블랙 큐브 '+n('highCube')+'개 '+pctText(r.highCube)+'<br>잠재잠금석 '+n('potentialLock')+'개 '+pctText(r.potentialLock)+' · '+explorationGearRange(r)+'제 랜덤 보스장비 1개 '+pctText(r.bossGear)+extra+'<br>동료 소환권 1장 '+pctText(COMPANION_TICKET_CHANCE)+' (모든 테마 동일)<br>추가 보상은 각각 독립 추첨 · 직업·부위 랜덤 · 무기는 다른 각 부위의 절반 확률</p>';
 }
 export function explorationLobby(state,room,rooms=[]){
  if(room){const need=explorationKeys(room.tier),hostKeys=room.owner!==room.me||room.tier===3||(Number(state.materials?.dungeonKey)||0)>=need,theme=EXPLORATIONS[room.tier],members=room.members.filter(m=>!m.left),scale=room.tier===3?citadelPopulation(members.length):explorationScale(room.tier,members.length);

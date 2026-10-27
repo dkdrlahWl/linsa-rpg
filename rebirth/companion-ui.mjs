@@ -161,7 +161,7 @@ function companionHelp(){
  <h3>골드 계산 · 최적 장착</h3><p>분당 골드 = 기본 골드 × (1 + 별 보너스) × (1 + 현재 패시브 증가율). ★마다 +15%, ★5는 +60%예요. 성장형은 시간에 따라 달라지고, 대박형은 수령할 때 별도로 판정해요.</p><p>슬롯마다 최대 8시간 누적돼요. 최적 장착은 <b>앞으로 8시간의 기대 골드</b>를 비교해 3명을 골라요. 별·성장 단계·대박 확률을 반영하며 유지된 카드의 성장 시간은 보존돼요. 대박형 기대 보너스는 발동 확률과 같고, 실제 결과는 달라질 수 있어요.</p>
  <h3>등급별 소환 확률</h3><table><thead><tr><th>등급</th><th>확률</th></tr></thead><tbody>${COMPANION_GRADES.map(g=>`<tr><td>${g}</td><td>${percent(COMPANION_GRADE_RATES[g])}</td></tr>`).join('')}</tbody></table>
  <h3>캐릭터별 확률 · 기본 골드</h3><p>아래 확률은 전체 소환 기준이에요. 같은 등급에서도 기본 수입이 높은 캐릭터일수록 드물게 나와요. 기본 골드는 각 범위의 정수 중 동일 확률로 결정돼요.</p><table><thead><tr><th>등급 · 이름</th><th>기본 G/분</th><th>확률</th></tr></thead><tbody>${COMPANIONS.map(c=>`<tr><td>${c.grade} · ${esc(c.name)}</td><td>${fmt(c.min)}~${fmt(c.max)}</td><td>${percent(companionSummonChance(c.id))}</td></tr>`).join('')}</tbody></table>
- <p>소환권 1장당 카드 1장, 5회 소환은 소환권 5장이 필요해요. 1회·5회 모두 카드마다 같은 확률로 독립 추첨하며, 확정 등급 보장·천장은 없어요. 동료 효과는 전투·아레나에 적용되지 않아요.</p>
+ <h3>소환권 얻는 곳</h3><p>링구의 탐험 클리어(개인 상자) 시 <b>25%</b> 확률로 소환권 1장 · 모든 테마 동일</p><p>소환권 1장당 카드 1장, 5회 소환은 소환권 5장이 필요해요. 1회·5회 모두 카드마다 같은 확률로 독립 추첨하며, 확정 등급 보장·천장은 없어요. 동료 효과는 전투·아레나에 적용되지 않아요.</p>
  </div><button data-illustrated="1" class="cp-btn gold cp-wide" data-action="close">확인</button>`;
 }
 
