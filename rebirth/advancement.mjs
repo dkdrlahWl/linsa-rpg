@@ -11,9 +11,17 @@ export const THIRD_SKILLS={
  pirate:skill('오비탈 캐논',6,10/6,4,900,520,'area',4,'목표 지역에 6연속 포격 · 총 1000% · 대형 폭발'),
 };
 export const firstJobUnlocked=s=>s.firstAdvancement===true||(s.advancement||0)>=1;
-export const jobStage=s=>firstJobUnlocked(s)?Math.min(5,(s.advancement||0)+1):0;
+export const jobStage=s=>firstJobUnlocked(s)?Math.min(7,(s.advancement||0)+1):0;
+// 6차(250)·7차(300) 전직은 스킬 대신 잠재처럼 더해지는 능력치를 준다(누적). 공격력·HP ×1.1 전직 배율은 5차까지만.
+export const JOB_MULTIPLIER_STAGES=5;
+export const ADVANCEMENT_STAT_BONUS={5:{attack:12,boss:20,hp:12},6:{attack:15,boss:30,crit:10,hp:15}};
+export function advancementStatBonus(s){const out={};for(const [stage,b] of Object.entries(ADVANCEMENT_STAT_BONUS))if((s.advancement||0)>=Number(stage))for(const [k,v] of Object.entries(b))out[k]=(out[k]||0)+v;return out;}
+// 6·7차 보스는 2인 도전 시 체력 2배(혼자면 1배).
+export const trialHp=(trial,members=1)=>trial.stage>=5?trial.hp*Math.max(1,members):trial.hp;
 export const nextTrialStage=s=>jobStage(s);
 export const ADVANCEMENT_BOSSES=[
+ {stage:5,level:250,floor:10,name:'시간을 삼킨 자 크로노바스',art:'chronovas',artFrames:1,artSize:330,hp:360000000,attack:12000,seconds:120,pattern:'시계침 회전 · 시간 정지 장판 · 잔상 메아리 · 모래시계 붕괴',guide:'체력 3.6억(2인 도전 시 7.2억). 시계침은 차례로 돌아가니 바늘이 지나간 자리로 따라 이동하고, 정지 장판은 비어 있는 한 칸으로 피하세요. 잔상은 같은 자리에 한 번 더 터집니다. HP 35% 이하에서 공격이 빨라지고 바늘이 늘어납니다.'},
+ {stage:6,level:300,floor:10,name:'공허룡 아포칼리스',art:'apocalis',artFrames:1,artSize:360,hp:500000000,attack:15000,seconds:120,pattern:'공허 브레스 · 운석 낙하 · 블랙홀 · 날개 돌진',guide:'체력 5억(2인 도전 시 10억) · 200제 보스장비·25성·유효 잠재 27줄·코스튬 전부 기준으로 맞춘 보스입니다. 브레스는 부채꼴 바깥으로, 블랙홀은 보스 가까이 붙었다가 바로 빠져나오세요. 운석은 순서대로 떨어지니 먼저 떨어진 자리로 이동하세요. HP 35% 이하에서 공허 탄환이 추가됩니다.'},
  {stage:4,level:200,floor:10,name:'성멸의 심판자 아스트라엘',art:'astrael',artFrames:1,hp:60000000,attack:7200,seconds:120,pattern:'성멸의 교차검 · 붕괴 고리 · 추적 낙하',guide:'솔로 기준 전투력 약 25만 이상 권장 · 공격·체력·방어를 함께 강화하세요. 교차 광선을 피하고 두 폭발 사이 안전 고리로 진입하세요. HP 35% 이하 광폭화. 최대 2인 협동 가능.'},
  {stage:3,level:150,floor:10,name:"천공의 수문장 아우레온",art:"aureon",artFrames:1,hp:2050000,attack:1000,seconds:120,pattern:"천공의 십자창 · 황금 고리",guide:"150제 보스 장비 9부위·17성·유니크 잠재 권장. 추적 예고를 분산하고 안전 고리로 진입하세요."},
  {stage:0,level:30,floor:3,name:'수정 문지기 루멘',art:'lumen',hp:88000,attack:75,seconds:120,pattern:'수정 십자파 · 발밑 파열',guide:'십자 예고의 빈틈으로 이동하세요. 30제 보스 장비 9부위·15성·에픽 주스탯 잠재 권장.'},

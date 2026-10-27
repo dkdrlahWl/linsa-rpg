@@ -1,6 +1,6 @@
-import {supportTick} from './priest.mjs?v=sovereign-20261025';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=sovereign-20261025';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=sovereign-20261025';
+import {supportTick} from './priest.mjs?v=adv300-20261027';
+import {ADVANCEMENT_BOSSES,trialHp} from './advancement.mjs?v=adv300-20261027';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=adv300-20261027';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.
@@ -13,7 +13,7 @@ export function startTrialCoop(room,now){
  const w=structuredClone(room),first=w.members[0];
  const base=newTowerBattle(trial.floor,first.classId,first.power,now,w.id,1,first.advanced);
  copy(w,base,sharedKeys);
- Object.assign(w,{status:'fighting',started:now,tick:0,maxHp:trial.hp,hp:trial.hp});
+ const hp=trialHp(trial,w.members.length);Object.assign(w,{status:'fighting',started:now,tick:0,maxHp:hp,hp});
  w.members.forEach((m,i)=>{
   const b=newTowerBattle(trial.floor,m.classId,m.power,now,w.id,i+1,m.advanced);
   copy(m,b,actorKeys);
@@ -34,7 +34,7 @@ export function advanceTrialCoopRaw(w,user,input,now,frames=[]){
   const target=alive.reduce((a,b)=>Math.hypot(a.x-w.enemy.x,a.y-w.enemy.y)<=Math.hypot(b.x-w.enemy.x,b.y-w.enemy.y)?a:b);
   // Target runs first; followers take the same hazards without moving the boss twice.
   for(const m of [target,...alive.filter(m=>m!==target)]){
-   const b={...m,sharedTrial:true,soloSupport:w.members.length===1,kind:'tower',worldVersion:3,actorId:m.id,runId:w.id,floor:trial.floor,encounter:trial,advancementStage:w.tier,started:w.started,tick,enemyHp:w.hp,ended:false,won:false,player:{x:m.x,y:m.y,dir:m.dir,face:m.face,walk:m.walk,attackDir:m.attackDir,skillDir:m.skillDir}};
+   const b={...m,sharedTrial:true,soloSupport:w.members.length===1,kind:'tower',worldVersion:3,actorId:m.id,runId:w.id,floor:trial.floor,encounter:{...trial,hp:w.maxHp||trial.hp},advancementStage:w.tier,started:w.started,tick,enemyHp:w.hp,ended:false,won:false,player:{x:m.x,y:m.y,dir:m.dir,face:m.face,walk:m.walk,attackDir:m.attackDir,skillDir:m.skillDir}};
    copy(b,w,sharedKeys);
    const oldSerial=w.serial,oldHp=w.hp;
    towerStep(b,w.started+tick*100-m.inputAt<1500?m.input:[0,0,0],{advanceEnemy:m===target});

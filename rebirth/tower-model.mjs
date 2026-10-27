@@ -96,6 +96,53 @@ function pattern(b){const e=b.enemy,p=b.player,k=b.phase++,f=b.floor;
  if(sovereignTowerPattern(b,{circle,line},towerEncounter(b)))return;
  if(apexTowerPattern(b,{circle,line},towerEncounter(b)))return;
  if(upperTowerPattern(b,{circle,line},towerEncounter(b)))return;
+ // 6차 전직 · 시간을 삼킨 자 크로노바스: 차례로 도는 시계침, 빈 칸 하나만 남는 정지 장판, 같은 자리에 두 번 터지는 잔상.
+ if(b.advancementStage===5){
+  const enraged=b.enemyHp<towerEncounter(b).hp*.35,cycle=k%4;
+  b.enemyCastUntil=b.tick+20;b.enemyAttackStart=b.tick+20;b.enemyAttackUntil=b.tick+28;
+  if(cycle===0){
+   // 시계침: 보스를 지나는 바늘이 30°씩 차례로 휩쓴다. 지나간 바늘 쪽으로 따라 돌면 안전.
+   const base=Math.atan2(p.y-e.y,p.x-e.x)-Math.PI/6,hands=enraged?5:4;
+   for(let i=0;i<hands;i++){const a=base+i*Math.PI/6;line(b,e.x-Math.cos(a)*2600,e.y-Math.sin(a)*2600,e.x+Math.cos(a)*2600,e.y+Math.sin(a)*2600,190,16+i*7,2.3);}
+  }else if(cycle===1){
+   // 시간 정지 장판: 플레이어 주변 3×3 중 한 칸만 비운다(매번 다른 칸).
+   const safe=(k*5+3)%8,cells=[[-1,-1],[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0]];
+   circle(b,p.x,p.y,220,28,2.4);
+   cells.forEach(([cx,cy],i)=>{if(i!==safe)circle(b,p.x+cx*330,p.y+cy*330,220,28,2.4);});
+  }else if(cycle===2){
+   // 잔상 메아리: 같은 자리에 두 번. 두 번째 폭발 뒤 보스 바깥 고리.
+   circle(b,p.x,p.y,260,20,2.2);circle(b,p.x,p.y,260,34,2.6);
+   circle(b,e.x,e.y,4500,42,2.2,3,640);
+  }else{
+   // 모래시계 붕괴: 플레이어 십자 + 모래 탄환.
+   line(b,TOWER_BOUNDS.left,p.y,TOWER_BOUNDS.right,p.y,250,18,2.4);
+   line(b,p.x,TOWER_BOUNDS.top,p.x,TOWER_BOUNDS.bottom,250,24,2.4);
+   fan(b,enraged?9:6);
+  }
+  b.nextPattern=b.tick+(enraged?32:44);return;
+ }
+ // 7차 전직 · 공허룡 아포칼리스: 부채꼴 브레스, 순차 운석, 보스에게 붙어야 사는 블랙홀, 날개 돌진.
+ if(b.advancementStage===6){
+  const enraged=b.enemyHp<towerEncounter(b).hp*.35,cycle=k%4;
+  b.enemyCastUntil=b.tick+22;b.enemyAttackStart=b.tick+22;b.enemyAttackUntil=b.tick+30;
+  if(cycle===0){
+   // 공허 브레스: 플레이어 방향 부채꼴 3갈래(바깥으로 빠져야 함).
+   const a=Math.atan2(p.y-e.y,p.x-e.x);
+   for(let i=-1;i<=1;i++){const t=a+i*.22;line(b,e.x,e.y,e.x+Math.cos(t)*2400,e.y+Math.sin(t)*2400,230,24+Math.abs(i)*3,2.7);}
+  }else if(cycle===1){
+   // 운석 낙하: 플레이어 주변 6곳에 차례로. 먼저 떨어진 자리로 이동.
+   for(let i=0;i<6;i++){const t=(k+i)*1.047,r=i===0?0:300;circle(b,p.x+Math.cos(t)*r,p.y+Math.sin(t)*r,210,22+i*6,2.5);}
+  }else if(cycle===2){
+   // 블랙홀: 보스 근처(반경 600)만 안전 → 곧바로 보스 중심 폭발.
+   circle(b,e.x,e.y,4500,30,2.9,3,600);circle(b,e.x,e.y,360,46,2.6);
+  }else{
+   // 날개 돌진 + 착지 충격파.
+   line(b,e.x,e.y,p.x,p.y,340,16,2.8);b.charge={x:p.x,y:p.y,at:b.tick+16,end:b.tick+21};
+   circle(b,p.x,p.y,950,28,2.3,3,330);
+  }
+  if(enraged)fan(b,cycle===2?5:8);
+  b.nextPattern=b.tick+(enraged?30:42);return;
+ }
  if(b.advancementStage===4){
   const enraged=b.enemyHp<towerEncounter(b).hp*.35;
   b.enemyCastUntil=b.tick+22;b.enemyAttackStart=b.tick+22;b.enemyAttackUntil=b.tick+29;

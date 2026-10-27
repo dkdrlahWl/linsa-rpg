@@ -14,7 +14,7 @@ import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage
 import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-archer-20261019';
 import {rollRiftReward} from './rift-rewards.mjs';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird} from './advancement.mjs?v=rogue-archer-20261019';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird,advancementStatBonus,JOB_MULTIPLIER_STAGES} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import {treasureCommand} from './treasure-model.mjs';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
@@ -197,6 +197,8 @@ export function power(s) {
       else if (Object.hasOwn(pct, line.key)) pct[line.key] += line.value;
     }
   }
+  // 6·7차 전직: 잠재처럼 % 능력치에 더한다.
+  for (const [key, value] of Object.entries(advancementStatBonus(s))) pct[key] += value;
   primary *= 1 + pct[cl.stat] / 100;
   flat = (flat + primary * 0.65) * (1 + pct.attack / 100);
   hp = Math.floor(hp * (1 + pct.hp / 100));
@@ -212,7 +214,7 @@ export function power(s) {
   if (s.classId === "priest") hp = Math.floor(hp * 1.30);
   // 칭호 보유 효과: 칭호 하나당 치명타 피해 +0.5%p.
   const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length + SKILL_LOOK_CRIT_DAMAGE * ownedSkillLookCount(s);
-  if (firstJobUnlocked(s)) { const bonus=1.1**jobStage(s);flat *= bonus;hp = Math.floor(hp * bonus); }
+  if (firstJobUnlocked(s)) { const bonus=1.1**Math.min(JOB_MULTIPLIER_STAGES,jobStage(s));flat *= bonus;hp = Math.floor(hp * bonus); }
   // 사제 리메이크: 사제도 다른 직업과 같은 공격력 계산식(LUK·공%·크리·보공 100%)을 쓴다.
   const costumeBonus=costumeAttackBonus(s);
   flat *= 1 + costumeBonus / 100;
@@ -1043,7 +1045,7 @@ function executeCore(input, command, args = {}, ctx) {
     }
     case "advance":
     case "advancementStart": {
-      const next=nextTrialStage(s),stage=args.stage===undefined?next:args.stage;check(Number.isInteger(stage)&&stage>=0&&stage<=4,stage===5?'ALREADY_ADVANCED':'INVALID_TRIAL');const trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);check(stage<=next,'ADVANCEMENT_REQUIRED');const practice=stage<next;check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
+      const next=nextTrialStage(s),stage=args.stage===undefined?next:args.stage;check(Number.isInteger(stage)&&stage>=0&&stage<=6,stage===7?'ALREADY_ADVANCED':'INVALID_TRIAL');const trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);check(stage<=next,'ADVANCEMENT_REQUIRED');const practice=stage<next;check(s.level>=trial.level,'LEVEL_REQUIRED');check(!s.pendingCube,'ITEM_CUBE_PENDING');
       s.battle=newTowerBattle(trial.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,{advancementStage:stage,advancementPractice:practice,encounter:trial,enemyHp:trial.hp});s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "tutorial":

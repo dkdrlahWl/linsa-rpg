@@ -1,16 +1,17 @@
-import {extendChapters300,extendChapterBosses} from './chapters-300.mjs?v=sovereign-20261025';
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=sovereign-20261025';
-export {PRIEST_SKILLS} from './priest.mjs?v=sovereign-20261025';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=sovereign-20261025';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs?v=sovereign-20261025';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=sovereign-20261025';
-import {extendEndgameFields} from './endgame-field.mjs?v=sovereign-20261025';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=sovereign-20261025';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=sovereign-20261025';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=sovereign-20261025';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=sovereign-20261025";
-export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=sovereign-20261025";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=sovereign-20261025";
+import {extendChapters300,extendChapterBosses} from './chapters-300.mjs?v=adv300-20261027';
+export {ADD_CUBE} from './additional-potential.mjs?v=adv300-20261027';
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=adv300-20261027';
+export {PRIEST_SKILLS} from './priest.mjs?v=adv300-20261027';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=adv300-20261027';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,ADVANCEMENT_STAT_BONUS} from './advancement.mjs?v=adv300-20261027';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=adv300-20261027';
+import {extendEndgameFields} from './endgame-field.mjs?v=adv300-20261027';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=adv300-20261027';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=adv300-20261027';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=adv300-20261027';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=adv300-20261027";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=adv300-20261027";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=adv300-20261027";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -74,7 +75,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=sovereign-20261025';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=adv300-20261027';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
@@ -195,16 +196,20 @@ export const MATERIALS = {
   cube: "레드 큐브",
   highCube: "블랙 큐브",
   ...Object.fromEntries(Object.entries(CUBES).map(([key,c])=>[key,c.name])),
+  addCube: "에디셔널 큐브",
+  bonusFlame: "추가옵션 불꽃",
+  rerollStone: "기본수치 재련석",
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
+// 2026-10-25 개편: fishDiamond = 낚시 다이아(state.fishing.diamonds).
 export const ATTENDANCE_REWARDS = [
-  {gold:2000,fragment:10},
-  {cube:3},
-  {gold:3000,fragment:20},
-  {fragment:23},
-  {gold:5000,cube:5},
-  {highCube:1,fragment:30},
-  {gold:20000,fragment:100,highCube:3},
+  {gold:1000000,cube:20},
+  {highCube:5},
+  {gold:2000000,fragment:200},
+  {dungeonKey:2,addCube:5},
+  {highCube:10,scroll:2},
+  {gold:3000000,addCube:10},
+  {primeCube:2,bonusFlame:1,fishDiamond:30},
 ];
 export const OPTIONS = {
   STR: "STR",
@@ -312,8 +317,10 @@ function unbuffedGearAttributes(item,stars=item.stars) {
  const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
  return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};
 }
+// 추가옵션 불꽃: bonusPct (1~10) raises every equipment stat by that percent.
+export const gearBonusMultiplier=item=>1+(Number.isInteger(item?.bonusPct)&&item.bonusPct>=1&&item.bonusPct<=10?item.bonusPct:0)/100;
 export function gearAttributes(item,stars=item.stars) {
- const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item);
+ const attributes=unbuffedGearAttributes(item,stars),multiplier=gearStatMultiplier(item)*gearBonusMultiplier(item);
  return Object.fromEntries(Object.entries(attributes).map(([key,value])=>[key,value*multiplier*(key==='hp'?gearHPMultiplier(item):1)]));
 }
 export function starCost(item) {
@@ -426,6 +433,8 @@ export function normalizePotentialState(state) {
   for(const [old,key,ratio] of [["strangeCube","cube",1],["masterCube","cube",2],["artisanCube","highCube",1],["silverCube","highCube",1],["goldCube","highCube",2]]){state.materials[key]=(state.materials[key]||0)+(state.materials[old]||0)*ratio;delete state.materials[old];}
   if(["silverCube","goldCube"].includes(state.pendingCube?.kind))state.pendingCube.kind="highCube";
   for(const key of Object.keys(CUBES))state.materials[key]??=0;
+  state.materials.addCube??=0;state.pendingAddCube??=null;
+  state.materials.bonusFlame??=0;state.materials.rerollStone??=0;state.pendingRefine??=null;
   const pending=state.pendingCube;
   if(pending && pending.potentialVersion!==4){
     const item=state.items.find(x=>x.id===pending.id);

@@ -1,5 +1,5 @@
 // Four new chapters, three independently illustrated hunting grounds each.
-import {journeyXP,levelHours} from './journey-balance.mjs?v=sovereign-20261025';
+import {journeyXP,levelHours} from './journey-balance.mjs?v=adv300-20261027';
 export const CHAPTERS_300=[
  {id:13,chapter:1,name:'유리바다의 노래',stages:[
   [225,'유리파도의 해안','glass-tide','유리등 해마'],[230,'진주 산호궁','pearl-reef','진주갑 소라왕'],[235,'밀물의 왕좌','tide-throne','해류의 삼지창 수호자']]},

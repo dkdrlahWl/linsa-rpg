@@ -3,7 +3,7 @@ export {ADD_CUBE} from './additional-potential.mjs';
 export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs';
 export {PRIEST_SKILLS} from './priest.mjs';
 export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage} from './advancement.mjs';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,ADVANCEMENT_STAT_BONUS} from './advancement.mjs';
 import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs';
 import {extendEndgameFields} from './endgame-field.mjs';
 export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs';

@@ -12,8 +12,11 @@ s.battle.ended=true;s.battle.won=false;s=execute(s,'sync',{},ctx).state;assert.e
 const base=power(s);s=execute(s,'advance',{},ctx).state;s.battle.ended=true;s.battle.won=true;s=execute(s,'sync',{},ctx).state;
 assert.equal(s.firstAdvancement,true);assert.equal(jobStage(s),1);assert.equal(s.advancement,0);assert.equal(s.lastReward.stage,0);assert.equal(s.tower?.cleared?.length||0,0);assert.equal(s.daily.tower,0);assert.ok(Math.abs(power(s).attack/base.attack-1.1)<.02);
 for(const stage of [1,2,3,4]){const trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);s.level=trial.level-1;assert.throws(()=>execute(s,'advance',{},ctx),/LEVEL_REQUIRED/);s.level=trial.level;s=execute(s,'advance',{},ctx).state;assert.equal(s.battle.advancementStage,stage);s.battle.ended=true;s.battle.won=true;s=execute(s,'sync',{},ctx).state;assert.equal(jobStage(s),stage+1);}
-assert.throws(()=>execute(s,'advance',{},ctx),/ALREADY_ADVANCED/);
 const novice={...s,firstAdvancement:false,advancement:0};assert.ok(Math.abs(power(s).attack/power(novice).attack-1.61051)<.01);
+// 6·7차: 스킬 없이 잠재형 능력치, 공격력·HP ×1.1 배율은 5차까지만.
+{const before=power(s);for(const stage of [5,6]){const trial=ADVANCEMENT_BOSSES.find(t=>t.stage===stage);s.level=trial.level-1;assert.throws(()=>execute(s,'advance',{},ctx),/LEVEL_REQUIRED/);s.level=trial.level;s=execute(s,'advance',{},ctx).state;assert.equal(s.battle.advancementStage,stage);s.battle.ended=true;s.battle.won=true;s=execute(s,'sync',{},ctx).state;assert.equal(jobStage(s),stage+1);}
+const after=power(s);assert.ok(after.attack>before.attack&&after.hp>before.hp&&after.boss>before.boss&&after.crit>before.crit);assert.equal(jobStage(s),7);}
+assert.throws(()=>execute(s,'advance',{},ctx),/ALREADY_ADVANCED/);
 assert.equal(firstJobUnlocked({advancement:1}),true);assert.equal(jobStage({advancement:2}),3);
 for(const unlocked of [false,true]){const p={attack:10,hp:10000,defense:0,boss:1,crit:0,critDamage:1,cadence:1,advancement:0,firstJob:unlocked};const b=newTowerBattle(1,'warrior',p,0,'first',1,false);towerStep(b,[0,0,8]);assert.equal(b.ultimateReady>0,unlocked);let room=startCoop({tier:0,status:'waiting',members:[{id:'me',classId:'warrior',power:p,advanced:false}]},0);room=advanceCoop(room,'me',[0,0,8],0);room=advanceCoop(room,'me',[0,0,0],100);assert.equal((room.members[0].ultimateReady||0)>0,unlocked);}
 console.log('PASS 30/60/100/150 gates, first-job victory only, legacy advancement, 10% each, solo/co-op first skill lock');

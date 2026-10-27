@@ -58,7 +58,7 @@ const ctx={now:1000000,random:()=>.5,uuid:randomUUID};let s=initialState('warrio
 assert.throws(()=>execute(s,'advance',{},ctx),/LEVEL_REQUIRED/);s.level=200;const before=power(s);s=execute(s,'advance',{},ctx).state;assert.equal(s.battle.advancementStage,4);assert.equal(s.battle.enemyHp,ADVANCEMENT_BOSSES[4].hp);
 s.battle.ended=true;s.battle.won=false;s=execute(s,'sync',{},ctx).state;assert.equal(s.advancement,3);
 s=execute(s,'advance',{},ctx).state;s.battle.ended=true;s.battle.won=true;s=execute(s,'sync',{},ctx).state;assert.equal(s.advancement,4);assert.equal(jobStage(s),5);assert.ok(Math.abs(power(s).attack/before.attack-1.1)<.02);
-assert.throws(()=>execute(s,'advance',{},ctx),/ALREADY_ADVANCED/);const stats=power(s);s=execute(s,'advancementStart',{stage:4},ctx).state;assert.equal(s.battle.advancementPractice,true);s.battle.won=true;s.battle.ended=true;s=execute(s,'sync',{},ctx).state;assert.deepEqual(power(s),stats);
+assert.throws(()=>execute(s,'advance',{},ctx),/LEVEL_REQUIRED/);const stats=power(s);s=execute(s,'advancementStart',{stage:4},ctx).state;assert.equal(s.battle.advancementPractice,true);s.battle.won=true;s.battle.ended=true;s=execute(s,'sync',{},ctx).state;assert.deepEqual(power(s),stats);
 assert.equal(ADVANCEMENT_BOSSES[4].level,200);
 console.log('PASS fifth: exact totals, cooldown, level/victory gates, outside/death, execution, single-target arrows, guard, serialized replay, persistent fields, priest compatibility, solo/trial/raid and repeat victory safety');
 // Tracking keeps the live target, follows motion every tick, and reacquires nearest alive.

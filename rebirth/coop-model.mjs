@@ -8,7 +8,7 @@ import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=rogue-archer-20261019';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=fifth-114';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=fifth-impact-121';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=adv300-20261027';
 import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=rogue-archer-20261019';
 import {packPoints,unpackPoints} from './coop-wire.mjs';
 export const coopEncounter=room=>isCitadel(room)?CITADEL_CONTENT:room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
