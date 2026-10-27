@@ -3,6 +3,7 @@ import {EXPLORATIONS} from './exploration-data.mjs';
 import {EXPLORATION_REWARDS,EXPLORATION_REWARD_KEYS,explorationRewardCount,explorationGearLevelFor} from './exploration-reward-data.mjs?v=gear200-20261025';
 import {CLASSES,selectDesign,rollBaseStats} from './data.mjs';
 import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
+export const EXPLORATION_COMPANION_TICKET_CHANCE=.25;
 export function grantExplorationChest(input,room,ctx){
  if(isCitadel(room))throw Error('CITADEL_REWARDS_DISABLED');
  const theme=EXPLORATIONS[room.tier],rates=EXPLORATION_REWARDS[room.tier];if(!theme||!rates||room.status!=='won'||room.cleared!==theme.floors)throw Error('COOP_CHEST_NOT_READY');
@@ -17,6 +18,8 @@ export function grantExplorationChest(input,room,ctx){
   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
   state.items??=[];state.collection??=[];if(state.items.length>=300)reward.stored=1;addItem(state,item);reward.items.push(item);
  }
+ // 동료 소환권(기존 보상 판정 순서를 바꾸지 않도록 마지막에 굴림): 모든 테마 동일하게 클리어당 25% (열쇠가 횟수를 제한한다).
+ if(ctx.random()<EXPLORATION_COMPANION_TICKET_CHANCE){state.companions=state.companions&&typeof state.companions==='object'?state.companions:{};state.companions.tickets=(Number.isInteger(state.companions.tickets)&&state.companions.tickets>=0?state.companions.tickets:0)+1;reward.companionTicket=1;}
  state.exploration??={cleared:[],best:{}};if(!state.exploration.cleared.includes(room.tier))state.exploration.cleared.push(room.tier);state.exploration.best[room.tier]=Math.min(state.exploration.best[room.tier]||Infinity,room.tick/10);state.lastReward=reward;
  return {state,reward};
 }
