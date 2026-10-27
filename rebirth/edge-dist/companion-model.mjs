@@ -28,7 +28,7 @@ export const COMPANION_BY_ID=Object.fromEntries(COMPANIONS.map(c=>[c.id,c]));
 // 패시브: 종류는 1/3씩, 수치는 등급 상관없이 같은 범위에서 랜덤(%).
 export const COMPANION_PASSIVES={
  gold:{name:'골드형',min:20,max:40,text:v=>`분당 골드 +${v}%`},
- growth:{name:'성장형',min:30,max:50,text:v=>`배치 1시간마다 +5%, 최대 +${v}%`},
+ growth:{name:'성장형',min:30,max:50,text:v=>`배치 1시간마다 +10%, 최대 +${v}%`},
  jackpot:{name:'대박형',min:20,max:40,text:v=>`수령 시 ${v}% 확률로 골드 2배`},
 };
 export const COMPANION_PASSIVE_KEYS=['gold','growth','jackpot'];
@@ -36,7 +36,7 @@ export const COMPANION_SLOTS=3;
 export const COMPANION_BAG=100;
 export const COMPANION_MAX_STAR=5;
 export const COMPANION_STAR_BONUS=.15;
-export const COMPANION_GROWTH_STEP=.05;
+export const COMPANION_GROWTH_STEP=.10;
 export const COMPANION_CAP_MS=8*3600e3;
 export const COMPANION_SELL={S:1000000,A:300000,B:100000,C:30000,D:10000,F:3000};
 const MIN=60e3;
@@ -72,10 +72,20 @@ export function rollCompanionCharacter(grade,random){
  return pool[pool.length-1];
 }
 export const companionSummonChance=id=>{const c=COMPANION_BY_ID[id];return c?COMPANION_GRADE_RATES[c.grade]*c.weight/COMPANIONS.filter(d=>d.grade===c.grade).reduce((sum,d)=>sum+d.weight,0):0;};
+// Descending integer weights: lowest 21, highest 1 (total 231).
+export function companionPassiveValueChance(type,value){
+ const p=COMPANION_PASSIVES[type];if(!p||!Number.isInteger(value)||value<p.min||value>p.max)return 0;
+ const n=p.max-p.min+1;return (p.max-value+1)/(n*(n+1)/2);
+}
+export function rollCompanionPassiveValue(type,random){
+ const p=COMPANION_PASSIVES[type],n=p.max-p.min+1;let roll=random()*n*(n+1)/2;
+ for(let v=p.min;v<=p.max;v++){roll-=p.max-v+1;if(roll<0)return v;}
+ return p.max;
+}
 export function rollCompanion(random,id){
  const grade=rollGrade(random),def=rollCompanionCharacter(grade,random);
  const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)],p=COMPANION_PASSIVES[t];
- return {i:id,c:def.id,r:rint(random,def.min,def.max),t,v:rint(random,p.min,p.max),s:1};
+ return {i:id,c:def.id,r:rint(random,def.min,def.max),t,v:rollCompanionPassiveValue(t,random),s:1};
 }
 // 0~100: 분당 골드와 패시브 수치가 각자 범위에서 얼마나 높게 떴는지의 평균.
 export function companionQuality(card){

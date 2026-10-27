@@ -36,9 +36,9 @@ assert(claim.gold>0&&s.gold>=gold0+claim.gold);
 const top={i:1,c:'s1',r:5000,t:'gold',v:40,s:1};
 assert.equal(slotAccrued(top,{placedAt:0,claimedAt:0},COMPANION_CAP_MS)*3,10080000);
 assert.equal(slotAccrued({...top,s:5},{placedAt:0,claimedAt:0},COMPANION_CAP_MS)*3,16128000);
-// 성장형: 첫 1시간 +0%, 2시간째 +5%
+// 성장형: 첫 1시간 +0%, 2시간째 +10%
 const g={i:2,c:'s1',r:5000,t:'growth',v:50,s:1};
-assert.equal(slotAccrued(g,{placedAt:0,claimedAt:0},2*3600e3),5000*60+5250*60);
+assert.equal(slotAccrued(g,{placedAt:0,claimedAt:0},2*3600e3),5000*60+5500*60);
 
 // 합성: 같은 캐릭터 카드 만들어서 ★1→★2(1장), ★2→★3(2장)
 s.companions.cards.push({i:900,c:'f1',r:60,t:'gold',v:20,s:1},{i:901,c:'f1',r:70,t:'gold',v:20,s:1},{i:902,c:'f1',r:70,t:'gold',v:20,s:1},{i:903,c:'f1',r:70,t:'gold',v:20,s:1},{i:904,c:'f2',r:90,t:'gold',v:20,s:1});

@@ -10,9 +10,9 @@ const cards=[
 // Jackpot EV beats a larger displayed gold rate; fresh growth must ramp up.
 assert.equal(companionExpectedGold(cards[0]),67200);
 assert.equal(companionExpectedGold(cards[1]),68640);
-assert.equal(companionExpectedGold(cards[2]),62040);
+assert.equal(companionExpectedGold(cards[2]),69300);
 assert.equal(companionExpectedGold(cards[2],10*hour),79200);
-assert.deepEqual(optimalCompanions(cards,[],now).map(x=>x.card.i),[2,1,4]);
+assert.deepEqual(optimalCompanions(cards,[],now).map(x=>x.card.i),[3,2,1]);
 assert.deepEqual(optimalCompanions(cards,[{card:3,placedAt:now-10*hour,claimedAt:now-hour}],now).map(x=>x.card.i),[3,2,1]);
 const retained={card:3,placedAt:now-10*hour,claimedAt:now-hour};
 const s={gold:0,companions:{passiveVersion:2,cards:[...cards,{i:5,c:'f1',r:70,t:'gold',v:40,s:5},{i:6,c:'f1',r:50,t:'jackpot',v:30,s:1}],slots:[{...retained},{card:6,placedAt:now-2*hour,claimedAt:now-2*hour},null],tickets:0}};

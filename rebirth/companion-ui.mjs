@@ -1,4 +1,4 @@
-import {COMPANIONS,COMPANION_GRADE_RATES,companionSummonChance,COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs';
+import {companionPassiveValueChance,COMPANIONS,COMPANION_GRADE_RATES,companionSummonChance,COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.floor((n||0)+1e-7).toLocaleString('ko-KR');
 const GRADE_ORDER=Object.fromEntries(COMPANION_GRADES.map((g,i)=>[g,i]));
@@ -147,15 +147,17 @@ function showSummon(cards,api){
  session.timer=setTimeout(next,180);
 }
 
-const percent=n=>Number((n*100).toFixed(4)).toLocaleString('ko-KR')+'%';
+const percent=n=>Number((n*100).toFixed(4)).toLocaleString('ko-KR',{maximumFractionDigits:4})+'%';
 function companionHelp(){
  const p=COMPANION_PASSIVES;
  return `<div class="cp-help-content" tabindex="-1" autofocus>
  <h3>패시브 효과 · 수치 범위</h3><p>카드마다 패시브 1개가 붙어요. 등급·캐릭터와 관계없이 각 종류의 확률은 <b>1/3 (약 33.3333%)</b>로 같아요.</p>
  <dl><dt>◈ ${p.gold.name} · +${p.gold.min}~${p.gold.max}%</dt><dd>배치 즉시 해당 카드의 분당 골드가 증가해요. 배치를 바꿔도 옵션은 유지돼요.</dd>
- <dt>❧ ${p.growth.name} · 최대 +${p.growth.min}~${p.growth.max}%</dt><dd>배치 후 1시간이 지날 때마다 +5%씩 증가해요. 카드에 정해진 최대치에 도달하면 더 늘지 않아요. 골드 수령 시 성장은 유지되고, 배치를 해제하면 초기화돼요. 최대치 +30%는 6시간, +50%는 10시간에 도달해요.</dd>
+ <dt>❧ ${p.growth.name} · 최대 +${p.growth.min}~${p.growth.max}%</dt><dd>배치 후 1시간이 지날 때마다 +10%씩 증가해요. 카드에 정해진 최대치에 도달하면 더 늘지 않아요. 골드 수령 시 성장은 유지되고, 배치를 해제하면 초기화돼요. 최대치 +30%는 3시간, +50%는 5시간에 도달해요.</dd>
  <dt>✤ ${p.jackpot.name} · 발동 확률 ${p.jackpot.min}~${p.jackpot.max}%</dt><dd>그 카드의 골드를 수령할 때 표시된 확률로 수령 골드가 2배가 돼요. 배치 해제로 자동 수령할 때도 판정해요. 카드마다 따로 판정하며, 분당 골드 표기에는 대박 기대값을 더하지 않아요.</dd></dl>
- <p>각 패시브 수치는 <b>${p.gold.min}~${p.gold.max} / ${p.growth.min}~${p.growth.max} / ${p.jackpot.min}~${p.jackpot.max}</b> 범위의 정수 중 동일 확률로 결정돼요. 종류별로 수치 한 가지가 나올 확률은 <b>1/21 (약 4.7619%)</b>예요. 예: 골드형 +40% 카드가 나올 확률은 전체 소환의 <b>1/63 (약 1.5873%)</b>예요.</p>
+ <p>패시브 종류는 각 1/3로 같지만, <b>종류 안에서는 높은 수치일수록 드물어요.</b> 최저 수치의 추첨 가중치는 21, 다음은 20으로 줄어 최고 수치는 1이에요. 기존 카드의 수치는 유지돼요.</p>
+ <table><thead><tr><th>골드 / 대박</th><th>성장 최대</th><th>종류 내 확률</th><th>전체 소환</th></tr></thead><tbody>${Array.from({length:21},(_,i)=>`<tr><td>${20+i}%</td><td>+${30+i}%</td><td>${percent(companionPassiveValueChance('gold',20+i))}</td><td>${percent(companionPassiveValueChance('gold',20+i)/3)}</td></tr>`).join('')}</tbody></table><p>전체 소환 열은 <b>특정 패시브 1종과 해당 수치</b>가 함께 나올 확률이에요. 예: 골드형 +40%는 약 0.1443%예요. 기본 분당 골드의 범위 내 정수는 동일 확률이에요.</p>
+ <h3>세 패시브 효율 비교</h3><p>같은 기본 골드·별 기준, 새로 뽑아 8시간 배치했을 때 평균 보너스는 골드형 <b>+26.67%</b>, 대박형 기대값 <b>+26.67%</b>, 성장형 <b>+25.71%</b>예요. 성장형은 초반에 낮지만 계속 배치하면 최대치에 도달해 장기적으로 유리해져요. 골드를 수령해도 성장 단계는 유지돼요.</p>
  <h3>골드 계산 · 최적 장착</h3><p>분당 골드 = 기본 골드 × (1 + 별 보너스) × (1 + 현재 패시브 증가율). ★마다 +15%, ★5는 +60%예요. 성장형은 시간에 따라 달라지고, 대박형은 수령할 때 별도로 판정해요.</p><p>슬롯마다 최대 8시간 누적돼요. 최적 장착은 <b>앞으로 8시간의 기대 골드</b>를 비교해 3명을 골라요. 별·성장 단계·대박 확률을 반영하며 유지된 카드의 성장 시간은 보존돼요. 대박형 기대 보너스는 발동 확률과 같고, 실제 결과는 달라질 수 있어요.</p>
  <h3>등급별 소환 확률</h3><table><thead><tr><th>등급</th><th>확률</th></tr></thead><tbody>${COMPANION_GRADES.map(g=>`<tr><td>${g}</td><td>${percent(COMPANION_GRADE_RATES[g])}</td></tr>`).join('')}</tbody></table>
  <h3>캐릭터별 확률 · 기본 골드</h3><p>아래 확률은 전체 소환 기준이에요. 같은 등급에서도 기본 수입이 높은 캐릭터일수록 드물게 나와요. 기본 골드는 각 범위의 정수 중 동일 확률로 결정돼요.</p><table><thead><tr><th>등급 · 이름</th><th>기본 G/분</th><th>확률</th></tr></thead><tbody>${COMPANIONS.map(c=>`<tr><td>${c.grade} · ${esc(c.name)}</td><td>${fmt(c.min)}~${fmt(c.max)}</td><td>${percent(companionSummonChance(c.id))}</td></tr>`).join('')}</tbody></table>
