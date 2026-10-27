@@ -68,7 +68,6 @@ export function companionView(s){
  const byId=id=>d.cards.find(x=>x.i===id);
  const placed=d.slots.filter(Boolean).length;
  return `<section class="cp-screen">
-  <div class="cp-title"><h1>✧ 동료 카드</h1><span>동료를 배치하고 골드를 모으세요.</span></div>
   <section class="cp-panel cp-slots-panel">
    <div class="cp-head"><h2>배치 동료 <b>${placed} / ${COMPANION_SLOTS}</b></h2><small>최대 8시간 누적</small></div>
    <div class="cp-slots">${d.slots.map((slot,i)=>slotView(d,slot&&byId(slot.card),slot,i,now)).join('')}</div>

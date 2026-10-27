@@ -26,7 +26,7 @@ import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-1
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
-import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=star-20261027';
+import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=top-20261027';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';

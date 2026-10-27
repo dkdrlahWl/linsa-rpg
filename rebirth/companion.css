@@ -213,3 +213,10 @@ body:not(.tower-mode) .cp-btn{min-height:32px}
 .cp-stars-col i{line-height:.9}
 .cp-card .cp-placed{top:auto;right:auto;left:3px;top:30px}
 .cp-card .cp-placed{top:auto;bottom:4px;left:4px;right:auto}
+/* 빈 자리는 채워진 칸 높이에 맞춰 늘어나기만 하고, 스스로 칸을 키우지 않는다 */
+.cp-empty{min-height:0}
+.cp-slots:not(:has(.cp-slot-card)) .cp-empty{min-height:150px}
+.cp-empty small{font-size:10px}
+.cp-accrued{white-space:nowrap;font-size:14px;letter-spacing:-.02em}
+.cp-slot .cp-rate{letter-spacing:-.02em}
+.cp-card .cp-placed{font-size:8px;padding:0 4px;bottom:3px}
