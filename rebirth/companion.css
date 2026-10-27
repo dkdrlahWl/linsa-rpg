@@ -199,3 +199,17 @@ body:not(.tower-mode) .cp-btn{min-height:32px}
 .cp-screen.cp-fit>.cp-bag{flex:1 1 auto;min-height:150px;display:flex;flex-direction:column}
 .cp-screen.cp-fit .cp-grid{flex:1 1 0;min-height:0;max-height:none}
 .cp-screen.cp-fit>.cp-selected-bar{position:static}
+/* 별: 등급 배지 아래 세로 나열 */
+.cp-stars-col{display:flex;flex-direction:column;align-items:center;gap:0;letter-spacing:0}
+.cp-stars-col i{font-style:normal;display:block;line-height:.95}
+.cp-grade em{left:50%;top:calc(100% + 2px);transform:translateX(-50%)}
+.cp-card .cp-stars-col{font-size:12px}
+.cp-slot .cp-stars-col{font-size:14px}
+.cp-card .cp-placed{top:4px}
+/* 별: 오른쪽 위에서 아래로 세로 나열 (★5까지 초상화 안에 들어가게) */
+.cp-slot-card>.cp-stars-col,.cp-card>.cp-stars-col{position:absolute;right:4px;top:4px;z-index:4}
+.cp-slot .cp-stars-col{font-size:13px}
+.cp-card .cp-stars-col{font-size:10px}
+.cp-stars-col i{line-height:.9}
+.cp-card .cp-placed{top:auto;right:auto;left:3px;top:30px}
+.cp-card .cp-placed{top:auto;bottom:4px;left:4px;right:auto}

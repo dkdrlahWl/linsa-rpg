@@ -10,7 +10,8 @@ let timer=null;
 const data=s=>{const c=s.companions||{};return {tickets:c.tickets||0,cards:Array.isArray(c.cards)?c.cards:[],slots:Array.from({length:COMPANION_SLOTS},(_,i)=>c.slots?.[i]||null)};};
 const def=card=>COMPANION_BY_ID[card.c];
 const placedAt=(d,id)=>d.slots.findIndex(x=>x&&x.card===id);
-const stars=n=>'<span class="cp-stars" aria-label="'+n+'성">'+'★'.repeat(n)+'</span>';
+// 별은 등급 배지 아래에 세로로 쌓는다.
+const stars=n=>'<span class="cp-stars cp-stars-col" aria-label="'+n+'성">'+'<i>★</i>'.repeat(n)+'</span>';
 // 이미지는 companions/<id>.webp. 아직 없으면 이름 첫 글자로 대신 보여준다.
 const portrait=card=>{const d=def(card);return `<span class="cp-portrait"><span class="cp-initial">${esc(d.name[0])}</span><img src="companions/${d.id}.webp" alt="" loading="lazy" onerror="this.remove()"></span>`;};
 const passiveChip=(card,full=false)=>{const p=COMPANION_PASSIVES[card.t];return `<span class="cp-passive cp-${card.t}">${PASSIVE_ICON[card.t]} ${p.name}${full?' '+(card.t==='jackpot'?card.v+'%':'+'+card.v+'%'):''}</span>`;};
@@ -20,7 +21,7 @@ function slotView(d,card,slot,i,now){
  if(!card)return `<div class="cp-slot cp-empty"><b>빈 자리</b><small>아래 가방에서 카드를 고르고<br>배치를 눌러주세요</small></div>`;
  const g=def(card).grade,elapsed=Math.min(COMPANION_CAP_MS,now-slot.claimedAt),gold=slotAccrued(card,slot,now),full=elapsed>=COMPANION_CAP_MS;
  return `<div class="cp-slot cp-g-${g} ${ui.selected===card.i?'selected':''}" data-slot="${i}">
-  <button class="cp-slot-card" data-action="companionSelect" data-arg="${card.i}"><span class="cp-grade">${g}<em>${stars(card.s)}</em></span>${portrait(card)}<span class="cp-name">${esc(def(card).name)}</span></button>
+  <button class="cp-slot-card" data-action="companionSelect" data-arg="${card.i}"><span class="cp-grade">${g}</span>${stars(card.s)}${portrait(card)}<span class="cp-name">${esc(def(card).name)}</span></button>
   <p class="cp-rate"><span class="cp-coin"></span><b data-cp-rate="${i}">${fmt(companionRate(card,now-slot.placedAt))}</b> G / 분</p>
   ${passiveChip(card,true)}
   <small class="cp-label">누적 골드</small>
