@@ -22,7 +22,7 @@ import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumableP
 import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock,gearPresetSlots} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=coin5-20261029';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=feehalf-20261029';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
@@ -411,7 +411,7 @@ async function openCoinActivity(kind){
  });
 }
 function copyTradingMarkup(data){
- const rate=(w,l)=>{w=Number(w)||0;l=Number(l)||0;return w+l?`카피 승률 <b>${Math.round(w/(w+l)*100)}%</b> · 카피 ${w+l}회`:'카피 승률 기록 없음';};
+ const rate=(w,l)=>{w=Number(w)||0;l=Number(l)||0;return w+l?`카피 <b>${w+l}회</b>`:'카피 기록 없음';};
  const following=data.following,followers=data.followers||[];
  const head=following?`<p class="note"><b>${esc(following.name)}</b> 카피 중 · 상대가 산 종목을 보유 골드 비율만큼 같은 레버리지로 따라 사고, 상대가 팔면 같이 팔아요. 직접 매수는 막히고, 직접 매도하면 카피가 끝나요.</p><button data-action="investCopyStop" data-write data-illustrated="1">카피 종료</button>`:`<p class="note">상대가 매수할 때 쓴 보유 골드 비율만큼 같은 종목·방향·레버리지로 자동 매수하고, 상대가 팔면 같이 팔아요.<br>신청 조건: ${fmt(data.minGold||10000000)} 골드 이상 보유 · 보유 포지션 없음</p>`;
  const mine=(followers.length?`<p class="note">나를 카피 중: <b>${followers.map(f=>esc(f.name)).join(', ')}</b></p>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>')+`<p class="note">내 ${rate(data.myStats?.wins,data.myStats?.losses)}</p>`;
