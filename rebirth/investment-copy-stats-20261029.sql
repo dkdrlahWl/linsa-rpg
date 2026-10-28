@@ -52,3 +52,16 @@ create or replace function rebirth_private.coin_copy_status(u uuid) returns json
    from rebirth_private.players pl where pl.id<>u and pl.state is not null and coalesce(pl.state->>'isTester','false')<>'true' and coalesce(pl.state->>'isAdmin','false')<>'true'),'[]'::jsonb))
 $$;
 revoke all on function rebirth_private.coin_copy_status(uuid) from public,anon,authenticated;
+
+-- 내 정보도 목록 맨 위에 포함(self=true)
+do $m$
+declare def text;
+ a text:='''losses'',(select count(*) from rebirth_private.coin_copy_trades t where t.leader=pl.id and t.pnl<=0)) order by pl.state->>''name'')';
+ b text:='where pl.id<>u and pl.state is not null';
+begin
+ def:=pg_get_functiondef('rebirth_private.coin_copy_status(uuid)'::regprocedure);
+ if position(a in def)=0 or position(b in def)=0 then raise exception 'COPY_SELF_DRIFT'; end if;
+ def:=replace(def,a,'''losses'',(select count(*) from rebirth_private.coin_copy_trades t where t.leader=pl.id and t.pnl<=0),''self'',pl.id=u) order by (pl.id=u) desc,pl.state->>''name'')');
+ def:=replace(def,b,'where pl.state is not null');
+ execute def;
+end $m$;
