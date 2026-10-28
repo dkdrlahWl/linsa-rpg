@@ -54,3 +54,9 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-row small{opacity:.7;font-size:12px}
 .invest-copy-row em{font-style:normal;color:#f0cf75;font-size:13px}
 .invest-copy-row button{flex:none;padding:6px 12px}
+/* 2026-10-29 투자 비율 슬라이더 · 절반 판매 */
+.invest-percent-row{display:grid;grid-template-columns:auto minmax(0,1fr) 44px;align-items:center;gap:10px;margin:8px 0}
+.invest-percent-row label{font-size:13px;opacity:.8}
+.invest-percent-row input[type=range]{width:100%;accent-color:#f0cf75}
+.invest-percent-row output{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+.invest-sell-buttons{display:flex;gap:6px}

@@ -22,7 +22,7 @@ import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumableP
 import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock,gearPresetSlots} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=copy-20261029';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=half-20261029';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
@@ -155,6 +155,7 @@ function toast(text) {
   toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
 }
 const errors = {
+  INVESTMENT_HALF_TOO_SMALL: "수량이 2개 이상이어야 절반 판매할 수 있어요.",
   COPY_TRADING_ACTIVE: "카피 트레이딩 중에는 직접 매수할 수 없어요. 카피를 먼저 종료해 주세요.",
   COPY_ALREADY_ACTIVE: "이미 다른 유저를 카피 중이에요. 먼저 카피를 종료해 주세요.",
   COPY_HAS_FOLLOWERS: "나를 카피 중인 유저가 있어서 카피를 신청할 수 없어요.",
@@ -1466,7 +1467,7 @@ async function marketWrite(action, args) {
 // Percent buttons size the order by margin (gold × leverage); re-applied when leverage changes afterwards.
 let investPercentPick=0;
 function applyInvestPercent(){const price=investmentData?.coins[selectedCoin]?.price||10000;let q=Math.floor(state.gold*investPercentPick/100*investmentLeverage/price);while(q>0&&investmentMargin(q,price)>state.gold)q--;setInvestmentAmount(q);}
-document.addEventListener('input',e=>{if(e.target.id==='invest-amount'){investPercentPick=0;setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);}});
+document.addEventListener('input',e=>{if(e.target.id==='invest-percent'){investPercentPick=Number(e.target.value)||0;setInvestmentPercent(investPercentPick);applyInvestPercent();const out=document.querySelector('#invest-percent-value');if(out)out.textContent=investPercentPick+'%';const amt=document.querySelector('#invest-amount');if(amt)amt.value=investmentAmount;const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);return;}if(e.target.id==='invest-amount'){investPercentPick=0;setInvestmentPercent(0);const out=document.querySelector('#invest-percent-value'),rng=document.querySelector('#invest-percent');if(out)out.textContent='0%';if(rng)rng.value=0;setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);}});
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-action]");
   if (!b || b.disabled) return;
@@ -1495,9 +1496,10 @@ document.addEventListener("click", async (e) => {
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
     if(action==='investCoin'){selectCoin(arg);if(investPercentPick)applyInvestPercent();return render();}
     if(action==='investLeverage'){setInvestmentAmount(document.querySelector('#invest-amount')?.value||investmentAmount);setInvestmentLeverage(arg);if(investPercentPick)applyInvestPercent();return render();}
-    if(action==='investPercent'){investPercentPick=Number(arg);applyInvestPercent();return render();}
+    if(action==='investPercent'){investPercentPick=Number(arg);setInvestmentPercent(arg);applyInvestPercent();return render();}
     if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||investmentMargin(quantity,investmentData.coins[selectedCoin].price)>state.gold)return toast('증거금이 보유 골드를 넘어요. 수량을 줄여 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,leverage:investmentLeverage,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
     if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
+    if(action==='investSellHalf'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;if(Number(pos.quantity)<2)return toast('수량이 2개 이상이어야 절반 판매할 수 있어요.');return await command('investSell',{position:arg,portion:'half',price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
     if(action==='treasureStart'||action==='treasureCash'){if(busy)return;const result=await command(action,{});const e=result?.result?.events?.find(x=>x.type==='treasureCash');if(e){const gear=e.got?.bossGear;toast((e.cleared?'전부 찾았어요! ':'')+'보상 획득'+(gear?' · 보스장비 상자 '+gear+'개':''));}return;}
     if(action==='treasureDig'){if(busy)return;const result=await command('treasureDig',{cell:Number(arg)});const e=result?.result?.events?.[0];if(e?.type==='treasureBoom')toast('💥 지뢰! 모은 보상을 잃었어요.');else if(e?.type==='treasureCash')toast('🎉 안전한 칸을 전부 찾아서 보상을 받았어요!');return;}
     if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':arg==='treasure'?'treasure':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
