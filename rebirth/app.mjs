@@ -55,7 +55,7 @@ import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fift
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=tower20-174';
 import * as D from "./data.mjs?v=weekly200-hp140m-20261018-lv300b";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
-import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort-20261028";
+import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fifth-impact-121";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),

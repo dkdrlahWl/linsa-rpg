@@ -15,8 +15,9 @@ const items = [
 ];
 const groups = inventoryGroups(items, classes, "mage", ["mage-equipped"]);
 assert.deepEqual(groups.map(({ classId }) => classId), ["mage", "warrior", "archer"]);
-assert.deepEqual(groups[0].slots.map(({ slot }) => slot), [0, 1, 4]);
-assert.deepEqual(groups[0].slots[1].items.map(({ id }) => id), ["mage-equipped", "mage-stronger", "mage-helm"]);
+assert.deepEqual(groups[0].slots.map(({ slot }) => slot), [1, 0, 1, 4]);
+assert.deepEqual(groups[0].slots[0].items.map(({ id }) => id), ["mage-equipped"]);
+assert.deepEqual(groups[0].slots[2].items.map(({ id }) => id), ["mage-stronger", "mage-helm"]);
 assert.deepEqual(groups.map(({ count }) => count), [5, 2, 1]);
 assert.deepEqual(inventoryGroups(items, classes, "mage", [], "warrior", "1").flatMap((group) => group.slots.flatMap((slot) => slot.items.map((it) => it.id))), ["warrior-helm"]);
 assert.deepEqual(items.map(({ id }) => id), ["mage-gloves", "warrior-helm", "archer-weapon", "mage-weapon", "warrior-weapon", "mage-helm", "mage-equipped", "mage-stronger"]);
@@ -31,7 +32,7 @@ assert.deepEqual(items.map(({ id }) => id), ["mage-gloves", "warrior-helm", "arc
   ];
   const presets = { warrior: { active: 0, list: [null, { 3: "preset" }, null] } };
   const [warrior] = inventoryGroups(gear, classes, "warrior", ["worn"], "", "", presets);
-  assert.deepEqual(warrior.slots.map(({ slot }) => slot), [0, 3]);
-  assert.deepEqual(warrior.slots[1].items.map(({ id }) => id), ["worn", "preset", "lv200-0", "lv150-25", "lv200-normal"]);
+  assert.deepEqual(warrior.slots.map(({ slot }) => slot), [3, 0, 3]);
+  assert.deepEqual(warrior.slots.flatMap((g) => g.items.map(({ id }) => id)), ["worn", "preset", "weapon", "lv200-0", "lv150-25", "lv200-normal"]);
 }
-console.log("PASS: own class first, one header per slot, equipped/preset/boss/level priority, filters, original order preserved.");
+console.log("PASS: own class first, equipped first, equipped/preset/boss/level priority, filters, original order preserved.");

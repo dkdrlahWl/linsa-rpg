@@ -12,7 +12,8 @@ export function presetItemIds(gearPresets) {
   }
   return ids;
 }
-// 정렬: 내 직업 → 직업 순서 → 부위 → (부위 안에서) 장착 → 슬롯 등록 → 보스장비 → 레벨 → 스타포스 → 잠재 등급 → 잠금
+// 가방은 묶음 없이 한 줄 그리드로 보이므로 장착 장비, 장비 슬롯(E1~E3) 등록 장비를 맨 앞에 모은다.
+// 정렬: 장착 → 슬롯 등록 → 내 직업 → 직업 순서 → 부위 → 보스장비 → 레벨 → 스타포스 → 잠재 등급 → 잠금
 export function inventoryGroups(items, classes, ownClassId, equippedIds, filterClass = "", filterSlot = "", gearPresets = null) {
   const classOf = (item) => commonGear(item) ? ownClassId : item.classId;
   const classOrder = new Map(classes.map((entry, index) => [entry.id, index]));
@@ -24,11 +25,11 @@ export function inventoryGroups(items, classes, ownClassId, equippedIds, filterC
   );
   const flag = (set, item) => Number(set.has(item.id));
   visible.sort((a, b) =>
+    flag(equipped, b) - flag(equipped, a) ||
+    flag(inPreset, b) - flag(inPreset, a) ||
     Number(classOf(b) === ownClassId) - Number(classOf(a) === ownClassId) ||
     (classOrder.get(classOf(a)) ?? Infinity) - (classOrder.get(classOf(b)) ?? Infinity) ||
     a.slot - b.slot ||
-    flag(equipped, b) - flag(equipped, a) ||
-    flag(inPreset, b) - flag(inPreset, a) ||
     Number(!!b.boss) - Number(!!a.boss) ||
     (b.level || 0) - (a.level || 0) ||
     (b.stars || 0) - (a.stars || 0) ||
