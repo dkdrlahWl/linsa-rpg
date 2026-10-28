@@ -22,7 +22,7 @@ import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumableP
 import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock,gearPresetSlots} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=pnl-rankings-203';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=copy-20261029';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
@@ -155,6 +155,13 @@ function toast(text) {
   toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
 }
 const errors = {
+  COPY_TRADING_ACTIVE: "카피 트레이딩 중에는 직접 매수할 수 없어요. 카피를 먼저 종료해 주세요.",
+  COPY_ALREADY_ACTIVE: "이미 다른 유저를 카피 중이에요. 먼저 카피를 종료해 주세요.",
+  COPY_HAS_FOLLOWERS: "나를 카피 중인 유저가 있어서 카피를 신청할 수 없어요.",
+  COPY_LEADER_IS_COPYING: "그 유저는 다른 사람을 카피 중이라 신청할 수 없어요.",
+  COPY_GOLD_REQUIRED: "카피 트레이딩은 1,000만 골드 이상 보유해야 신청할 수 있어요.",
+  COPY_OPEN_POSITIONS: "보유 중인 포지션을 모두 정리해야 카피를 신청할 수 있어요.",
+  INVALID_COPY_LEADER: "카피할 수 없는 유저예요.",
   COMPANION_NO_TICKET: "소환권이 부족해요.",
   COMPANION_BAG_FULL: "동료 가방이 가득 찼어요. 카드를 판매하거나 합성해 주세요.",
   COMPANION_NOT_FOUND: "동료 카드를 찾을 수 없어요. 새로고침 후 다시 시도해 주세요.",
@@ -401,6 +408,28 @@ async function openCoinActivity(kind){
   if(loading||!more||list.scrollTop+list.clientHeight<list.scrollHeight-90)return;
   loading=true;updateEnd();try{const page=await fetchPage(last[kind==='news'?'publishedAt':'closedAt'],last.id);if(!modal.open||version!==activityVersion||session?.user?.id!==account)return;const next=page.items.slice(0,14);end.insertAdjacentHTML('beforebegin',next.map(n=>kind==='news'?investmentNewsItem(n,Date.parse(page.serverNow)):investmentTradeItem(n)).join(''));rows.push(...next);last=next.at(-1)||last;more=page.items.length>14;if(kind==='news')await acknowledge(next.map(n=>n.id));}catch{end.textContent='불러오지 못했습니다. 다시 내려 주세요.';}finally{loading=false;updateEnd();}
  });
+}
+function copyTradingMarkup(data){
+ const following=data.following,followers=data.followers||[];
+ const head=following?`<p class="note"><b>${esc(following.name)}</b> 카피 중 · 상대가 산 종목을 보유 골드 비율만큼 같은 레버리지로 따라 사고, 상대가 팔면 같이 팔아요. 직접 매수는 막히고, 직접 매도하면 카피가 끝나요.</p><button data-action="investCopyStop" data-write data-illustrated="1">카피 종료</button>`:`<p class="note">상대가 매수할 때 쓴 보유 골드 비율만큼 같은 종목·방향·레버리지로 자동 매수하고, 상대가 팔면 같이 팔아요.<br>신청 조건: ${fmt(data.minGold||10000000)} 골드 이상 보유 · 보유 포지션 없음</p>`;
+ const mine=followers.length?`<p class="note">나를 카피 중: <b>${followers.map(f=>esc(f.name)).join(', ')}</b></p>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>';
+ const list=(data.candidates||[]).map(u=>{const isLeader=following?.id===u.id;const blocked=!!following||u.copying||followers.length>0;return `<article class="invest-copy-row"><span><b>${esc(u.name)}</b><small>포지션 ${u.open}개 · 카피 ${u.copiers}명${u.copying?' · 다른 유저 카피 중':''}</small></span>${isLeader?'<em>카피 중</em>':`<button data-action="investCopyStart" data-arg="${esc(u.id)}" data-write data-illustrated="1" ${blocked?'disabled':''}>카피 신청</button>`}</article>`;}).join('');
+ return `<section class="invest-copy-feed">${head}${mine}<div class="invest-copy-list">${list}</div></section>`;
+}
+async function openCopyTrading(){
+ const account=session?.user?.id;await ensureToken();
+ const data=await request('/rest/v1/rpc/rebirth_coin_copy',{p_action:'status'});
+ if(session?.user?.id!==account)return;
+ open('카피 트레이딩',copyTradingMarkup(data));
+}
+async function copyTradingAction(kind,leader){
+ const account=session?.user?.id;
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy',kind==='start'?{p_action:'start',p_leader:leader}:{p_action:'stop'});
+  if(session?.user?.id!==account)return;
+  toast(kind==='start'?`${data.following?.name||''} 카피를 시작했어요.`:'카피 트레이딩을 종료했어요.');
+  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+  await command('investList',{},true);
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
 }
 async function openCoinRankings(){
  const account=session?.user?.id;await ensureToken();
@@ -1460,6 +1489,8 @@ document.addEventListener("click", async (e) => {
     if(action==='adminCoinDirection'){if(!state.isAdmin||b.disabled)return;const [coin,side]=arg.split(':');b.disabled=true;try{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_admin_coin_direction',{p_coin:Number(coin),p_side:side});toast(`${result.name} · ${new Date(result.scheduledAt).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'})} 봉 ${side==='long'?'상승':'하락'} 1회 지정`);}finally{b.disabled=false;}return;}
     if(action==='adminInventory'){if(!state?.isAdmin)return;return showAdminInventory({open,modal,allowed:()=>!!session&&state?.isAdmin===true,art:gearMarkup,fetchData:async id=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_inventory',{p_user:id});}});}
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
+    if(action==='investCopy'){b.disabled=true;try{await openCopyTrading();}finally{b.disabled=false;}return;}
+    if(action==='investCopyStart'||action==='investCopyStop'){if(busy)return;b.disabled=true;try{await copyTradingAction(action==='investCopyStart'?'start':'stop',arg);}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investRankings'){b.disabled=true;try{await openCoinRankings();}finally{b.disabled=false;}return;}
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
     if(action==='investCoin'){selectCoin(arg);if(investPercentPick)applyInvestPercent();return render();}
