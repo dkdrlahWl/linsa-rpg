@@ -233,3 +233,5 @@ body:not(.tower-mode) .fantasy-content .pvp-battle-controls>button{min-height:44
 .pvp-result-actions{margin-top:8px;position:sticky;bottom:0;z-index:2;padding:6px 0 4px;background:linear-gradient(#03102200,#031022 35%)}
 body:not(.tower-mode) .fantasy-content .pvp-screen .pvp-result-actions .pvp-button{min-height:46px}
 @media(max-height:700px){.pvp-result-hero{height:clamp(130px,23dvh,180px)}.pvp-result-crown{font-size:22px}}
+/* 2026-10-29 1등 상대 없음 안내 */
+.pvp-no-opponents{grid-column:1/-1;margin:6px 0;padding:14px 12px;border:1px dashed rgba(240,207,117,.45);border-radius:10px;text-align:center;font-size:13px;line-height:1.5;color:#e9dcb4;background:rgba(0,0,0,.18)}
