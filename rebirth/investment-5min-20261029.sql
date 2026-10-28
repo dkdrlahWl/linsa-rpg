@@ -9,3 +9,12 @@ begin
   execute replace(def,'15 minutes','5 minutes');
  end loop;
 end $m$;
+
+-- 2026-10-29: 일반 변동(뉴스 아닌 5분 변동) 한 번 폭 1~5% → 1~3%. 뉴스 속보 변동 폭은 그대로.
+do $m$
+declare def text;
+begin
+ def:=pg_get_functiondef('rebirth_private.coin_tick()'::regprocedure);
+ if (length(def)-length(replace(def,'(.01+random()*.04)','')))/length('(.01+random()*.04)')<>1 then raise exception 'COIN_CHANGE_DRIFT'; end if;
+ execute replace(def,'(.01+random()*.04)','(.01+random()*.02)');
+end $m$;
