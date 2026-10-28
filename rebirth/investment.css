@@ -70,3 +70,7 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .investment-screen .invest-tools .invest-news-button{padding-right:4px!important}
 .investment-screen .invest-tools .invest-news-button .invest-news-unread{position:absolute;top:5px;right:6px}
 @media(max-width:380px){.investment-screen .invest-tools .invest-tool{min-height:54px!important;font-size:12px!important}.investment-screen .invest-tools .invest-tool-icon{width:21px;height:21px}}
+/* 2026-10-29 빠른 비율 5·10·20·25·50·전액 */
+.investment-screen .invest-quick{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.investment-screen .invest-quick button{width:100%;padding:4px 0!important;text-align:center}
+.investment-screen .invest-quick small{grid-column:1/-1;margin-left:0;text-align:right}
