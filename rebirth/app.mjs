@@ -1,3 +1,4 @@
+import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
 import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
 import {citadelLobby} from './citadel-ui.mjs';
@@ -2145,7 +2146,7 @@ installMenuIcons();
 
 
 
-setInterval(updatePetCountdown,1000);
+setInterval(()=>{if(!document.hidden)updatePetCountdown();},1000);
 setInterval(()=>{if(state&&!document.hidden){updateLuckTimers(state);const bm=document.querySelector('[data-bm-end]');if(bm&&Date.now()>=Number(bm.dataset.bmEnd)&&!modal.open)render();}},1000);
 
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-action=rankingProfile]')){e.preventDefault();e.target.click();}});
