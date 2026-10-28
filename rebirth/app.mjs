@@ -411,10 +411,11 @@ async function openCoinActivity(kind){
  });
 }
 function copyTradingMarkup(data){
+ const rate=(w,l)=>{w=Number(w)||0;l=Number(l)||0;return w+l?`카피 승률 <b>${Math.round(w/(w+l)*100)}%</b> · 익절 ${w} · 손절 ${l}`:'카피 승률 기록 없음';};
  const following=data.following,followers=data.followers||[];
  const head=following?`<p class="note"><b>${esc(following.name)}</b> 카피 중 · 상대가 산 종목을 보유 골드 비율만큼 같은 레버리지로 따라 사고, 상대가 팔면 같이 팔아요. 직접 매수는 막히고, 직접 매도하면 카피가 끝나요.</p><button data-action="investCopyStop" data-write data-illustrated="1">카피 종료</button>`:`<p class="note">상대가 매수할 때 쓴 보유 골드 비율만큼 같은 종목·방향·레버리지로 자동 매수하고, 상대가 팔면 같이 팔아요.<br>신청 조건: ${fmt(data.minGold||10000000)} 골드 이상 보유 · 보유 포지션 없음</p>`;
- const mine=followers.length?`<p class="note">나를 카피 중: <b>${followers.map(f=>esc(f.name)).join(', ')}</b></p>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>';
- const list=(data.candidates||[]).map(u=>{const isLeader=following?.id===u.id;const blocked=!!following||u.copying||followers.length>0;return `<article class="invest-copy-row"><span><b>${esc(u.name)}</b><small>포지션 ${u.open}개 · 카피 ${u.copiers}명${u.copying?' · 다른 유저 카피 중':''}</small></span>${isLeader?'<em>카피 중</em>':`<button data-action="investCopyStart" data-arg="${esc(u.id)}" data-write data-illustrated="1" ${blocked?'disabled':''}>카피 신청</button>`}</article>`;}).join('');
+ const mine=(followers.length?`<p class="note">나를 카피 중: <b>${followers.map(f=>esc(f.name)).join(', ')}</b></p>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>')+`<p class="note">내 ${rate(data.myStats?.wins,data.myStats?.losses)}</p>`;
+ const list=(data.candidates||[]).map(u=>{const isLeader=following?.id===u.id;const blocked=!!following||u.copying||followers.length>0;return `<article class="invest-copy-row"><span><b>${esc(u.name)}</b><small>포지션 ${u.open}개 · 카피 ${u.copiers}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span>${isLeader?'<em>카피 중</em>':`<button data-action="investCopyStart" data-arg="${esc(u.id)}" data-write data-illustrated="1" ${blocked?'disabled':''}>카피 신청</button>`}</article>`;}).join('');
  return `<section class="invest-copy-feed">${head}${mine}<div class="invest-copy-list">${list}</div></section>`;
 }
 async function openCopyTrading(){

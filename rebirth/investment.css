@@ -74,3 +74,5 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .investment-screen .invest-quick{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
 .investment-screen .invest-quick button{width:100%;padding:4px 0!important;text-align:center}
 .investment-screen .invest-quick small{grid-column:1/-1;margin-left:0;text-align:right}
+.invest-copy-row .invest-copy-rate{opacity:.95;color:#d9c48a}
+.invest-copy-row .invest-copy-rate b{color:#f0cf75}
