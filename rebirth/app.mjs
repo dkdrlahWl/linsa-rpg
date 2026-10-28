@@ -2127,7 +2127,7 @@ function unavailable() {
 }
 window.addEventListener("online",()=>{ if(session&&!coopController) command("sync",{},true).catch(()=>{}); });
 window.addEventListener("offline",()=>{connectionLost=true;const banner=$("#connection-status");if(banner)banner.hidden=false;});
-setInterval(()=>{const el=document.querySelector('[data-arena-countdown]');if(el){const remaining=Math.max(0,new Date(el.dataset.arenaCountdown).getTime()-Date.now());el.textContent=`${Math.floor(remaining/3600000)}시간 ${String(Math.floor(remaining%3600000/60000)).padStart(2,'0')}분`;}if(view==='arena'&&!['battle','result'].includes(arenaPage)&&arenaData&&Date.now()>=new Date(arenaData.nextRefreshAt).getTime()&&!busy)loadArena();},30000);
+setInterval(()=>{const el=document.querySelector('[data-arena-countdown]');if(el){const remaining=Math.max(0,new Date(el.dataset.arenaCountdown).getTime()-Date.now());el.textContent=`${Math.floor(remaining/3600000)}시간 ${String(Math.floor(remaining%3600000/60000)).padStart(2,'0')}분`;}if(view==='arena'&&!['battle','result'].includes(arenaPage)&&arenaData&&Date.now()>=new Date(arenaData.nextRefreshAt).getTime()&&!busy)loadArena();},10000);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) sounds.pause();
   else {
