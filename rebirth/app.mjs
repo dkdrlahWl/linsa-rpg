@@ -22,7 +22,7 @@ import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumableP
 import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock,gearPresetSlots} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=copypnl-20261029';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=copytag-20261029';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';

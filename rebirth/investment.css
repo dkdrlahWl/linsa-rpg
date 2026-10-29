@@ -79,3 +79,4 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-row.is-self{border-color:#bca36b;background:rgba(240,207,117,.07)}
 
 .invest-pnl-summary+.invest-pnl-copy{margin-top:-3px}.invest-pnl-copy>div{border-color:#3f5f78}.invest-pnl-copy small{color:#9fc3dc}
+.invest-trade-item .invest-copy-tag{display:inline-block;margin-left:5px;padding:1px 5px;border:1px solid #4f7fa3;border-radius:4px;background:#0d2a40;color:#9fd2f5;font-size:10px;font-style:normal;font-weight:700;line-height:1.3;vertical-align:1px}
