@@ -25,7 +25,7 @@ body:not(.tower-mode) #modal.invest-activity-dialog{--activity-list-height:min(6
 @media(max-width:380px){.investment-screen .invest-news-toolbar{font-size:8px;gap:4px}.investment-screen .invest-history-button{font-size:9px!important;padding:3px 6px!important}.invest-trade-item{gap:6px}.invest-trade-item strong,.invest-trade-result b{font-size:12px}}
 @media(max-height:700px){.invest-activity-dialog .invest-news-item{padding:5px 7px}.invest-activity-dialog .invest-news-item p{font-size:11px;line-height:1.35;margin-top:3px}.invest-trade-item strong,.invest-trade-result b{font-size:12px}.invest-trade-item time,.invest-trade-result>span{font-size:9px}}
 
-body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600px,calc(100dvh - 205px))}.invest-pnl-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:6px 0 8px}.invest-pnl-summary>div{background:#071827;border:1px solid #5d5846;border-radius:6px;padding:7px 4px;text-align:center;min-width:0}.invest-pnl-summary small{display:block;color:#b9c5cc;font-size:10px;margin-bottom:4px}.invest-pnl-summary strong{font-size:12px;overflow-wrap:anywhere}.invest-pnl-summary .positive{color:#43df82}.invest-pnl-summary .negative{color:#ff6572}.invest-pnl-summary .currency-label{font-size:inherit}
+body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600px,calc(100dvh - 255px))}.invest-pnl-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:6px 0 8px}.invest-pnl-summary>div{background:#071827;border:1px solid #5d5846;border-radius:6px;padding:7px 4px;text-align:center;min-width:0}.invest-pnl-summary small{display:block;color:#b9c5cc;font-size:10px;margin-bottom:4px}.invest-pnl-summary strong{font-size:12px;overflow-wrap:anywhere}.invest-pnl-summary .positive{color:#43df82}.invest-pnl-summary .negative{color:#ff6572}.invest-pnl-summary .currency-label{font-size:inherit}
 
 .invest-coin-art.invest-ringu-owl{border-radius:0;box-shadow:none;background-image:url('investment/ringu-crow.webp?v=crow-14');background-size:100% 100%;background-position:center;background-repeat:no-repeat;image-rendering:auto}
 
@@ -77,3 +77,5 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-row .invest-copy-rate{opacity:.95;color:#d9c48a}
 .invest-copy-row .invest-copy-rate b{color:#f0cf75}
 .invest-copy-row.is-self{border-color:#bca36b;background:rgba(240,207,117,.07)}
+
+.invest-pnl-summary+.invest-pnl-copy{margin-top:-3px}.invest-pnl-copy>div{border-color:#3f5f78}.invest-pnl-copy small{color:#9fc3dc}
