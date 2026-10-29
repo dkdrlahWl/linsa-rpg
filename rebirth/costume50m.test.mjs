@@ -13,7 +13,7 @@ for(const cls of ['warrior','mage','archer','rogue','pirate','priest'])assert.eq
 const ctx={now:0,random:()=>.5,uuid:randomUUID};
 for(const c of added){
  await access(new URL(c.atlas,import.meta.url));await access(new URL(c.portrait,import.meta.url));
- assert.equal(c.attackBonus,1);assert.ok(c.authoredWalk&&c.twoLegWalk);
+ assert.equal(c.renderBodyHeight,undefined);assert.equal(c.attackBonus,1);assert.ok(c.authoredWalk&&c.twoLegWalk);
  let s=initialState(c.classId,'신규의상검수',ctx);s.hunting=false;s.gold=50000001;
  s=execute(s,'costumeBuy',{id:c.id},ctx).state;assert.equal(s.gold,1);assert.equal(costumeAttackBonus(s),1);
  assert.throws(()=>execute(s,'costumeBuy',{id:c.id},ctx),/COSTUME_OWNED/);
@@ -24,7 +24,7 @@ for(const c of added){
  for(let dir=0;dir<8;dir++)for(const acting of [false,true]){
   const poses=Array.from({length:8},(_,phase)=>costumeMotionFrame(c.classId,dir,true,acting,phase/9,phase/1.05+.001,c.id));
   assert.equal(new Set(poses.map(p=>p.frame.x+','+p.frame.y)).size,3);
-  for(const p of poses){assert.equal(p.layout.width,1600);assert.equal(p.layout.height,1600);assert.equal(p.layout.frames.length,80);assert.ok(p.frame.anchor>0&&p.frame.anchor<320);assert.ok(p.frame.foot>0&&p.frame.foot<=320);assert.ok(costumeMotionScale(p,180)>0);}
+  for(const p of poses){assert.equal(p.layout.width,1600);assert.equal(p.layout.height,1600);assert.equal(p.layout.frames.length,80);assert.ok(p.frame.anchor>0&&p.frame.anchor<320);assert.ok(p.frame.foot>0&&p.frame.foot<=320);assert.ok(costumeMotionScale(p,180)>0);assert.ok(Math.abs(p.frame.body*costumeMotionScale(p,180,c.renderBodyHeight)-180)<1e-6);}
  }
  const shop=costumeShop({...s,costumes:[]});assert.ok(shop.includes(c.name));assert.ok(shop.includes('50,000,000 G'));
 }
