@@ -30,7 +30,7 @@ for(const look of SKILL_LOOKS){
 const renderer=await readFile(new URL('./tower-renderer.mjs',import.meta.url),'utf8');
 assert.ok(!renderer.includes('drawSkillLook('),'battle must never replace choreography with a generic theme stamp');
 for(const c of COSTUMES.filter(c=>c.price>=10000000)){
- assert.equal(c.twoLegWalk,true);assert.equal(c.authoredWalk,true);assert.ok(!c.bobWalk);assert.match(c.atlas,/-motion-twolegs-v1.webp$/);
+ assert.equal(c.twoLegWalk,true);assert.equal(c.authoredWalk,true);assert.ok(!c.bobWalk);assert.match(c.atlas,/-motion-(?:twolegs-v1|fantasy-v2)\.webp$/);
  for(let dir=0;dir<8;dir++){
   const poses=Array.from({length:8},(_,i)=>costumeMotionFrame(c.classId,dir,true,false,0,i,c.motionLayout));
   assert.equal(new Set(poses.map(p=>p.frame.y)).size,3,'standing and two authored leg steps');
