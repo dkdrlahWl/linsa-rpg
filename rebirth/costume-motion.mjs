@@ -1,4 +1,4 @@
-import layouts from './costume-motion-layout.mjs?v=costume-motion-111';
+import layouts from './costume-motion-layout.mjs?v=costume50m-fantasy-20261029';
 
 // Some 30M sheets painted these rows facing left instead of right; mirror them back.
 export const MIRROR_ROWS={

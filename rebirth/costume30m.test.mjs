@@ -9,7 +9,7 @@ import {costumeShop} from './costume-ui.mjs';
 
 const ids=['swan-lake-knight','sapphire-night-mage','jade-peacock-ranger','crimson-butterfly-dancer','sugar-ribbon-captain','wisteria-sanctuary-priest'];
 const ctx={now:0,random:()=>.5,uuid:randomUUID};
-assert.equal(COSTUMES.length,36);
+assert.equal(COSTUMES.filter(c=>c.price<=30000000).length,36);
 assert.deepEqual(COSTUMES,SERVER_COSTUMES);
 assert.equal(new Set(ids.map(id=>costumeById(id).classId)).size,6);
 assert.ok(COSTUMES.slice(0,18).every(c=>c.price===5000000));
