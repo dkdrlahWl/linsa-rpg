@@ -28,4 +28,4 @@ for(const c of added){
  }
  const shop=costumeShop({...s,costumes:[]});assert.ok(shop.includes(c.name));assert.ok(shop.includes('50,000,000 G'));
 }
-console.log('PASS 12 Chinese high-fantasy 50M costumes: two per job, exact debit, duplicate/poor/wrong-job guards, persistence, bonuses, 8-direction motion, client/server parity.');
+console.log('PASS 12 high-fantasy 50M costumes: two per job, exact debit, duplicate/poor/wrong-job guards, persistence, bonuses, 8-direction motion, client/server parity.');

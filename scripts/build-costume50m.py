@@ -1,4 +1,4 @@
-"""Pack the 12 divine xianxia costumes using the existing 30M 5x5/80-frame rig.
+"""Pack the 12 high-fantasy costumes using the existing 30M 5x5/80-frame rig.
 
 Usage: python scripts/build-costume50m.py inputs.json
 Inputs are a list of {id, classId, name, motion, portrait?}.
@@ -27,8 +27,7 @@ def cuts(projection, extent):
     return result+[extent]
 
 # Correct source directions observed in the generated source sheets.
-MIRROR = {'azure-cloud-taoist': {(r,c) for r in range(5) for c in [1,2]},
-          'ink-plum-assassin': {(2,0)}}
+MIRROR = {cid: {(r,c) for r in range(5) for c in [1,2,3]} for cid in ['azure-cloud-taoist','violet-thunder-taoist','white-lotus-healer']}
 for item in items:
     cid = item['id']
     if item.get('portrait'):
@@ -37,7 +36,7 @@ for item in items:
         portrait.thumbnail((736,928), Image.Resampling.LANCZOS)
         canvas = Image.new('RGBA',(768,960))
         canvas.alpha_composite(portrait,((768-portrait.width)//2,(960-portrait.height)//2))
-        portrait_target=OUT/f'{cid}-portrait-50m-v1.webp'
+        portrait_target=OUT/f'{cid}-portrait-fantasy-v2.webp'
         canvas.save(portrait_target,quality=90,method=6)
         if portrait_target.stat().st_size==0: canvas.save(portrait_target,lossless=True,method=4)
     if '--portraits-only' in sys.argv: continue
@@ -78,8 +77,9 @@ for item in items:
     for direction in range(5):
         frames += [physical[r*5+direction] for r in [3,3,3,4,4,4,4,0]]
     layouts[cid]=dict(width=1600,height=1600,rows=10,bodyHeight=physical[0]['body'],frames=frames,precleaned=True,authoredAttack=True,twoLegWalk=True,attackRowsByDirection=[5,6,7,8,9])
-    atlas.save(OUT/f'{cid}-motion-twolegs-v1.webp',quality=88,method=4)
-    target=OUT/f'{cid}-motion-twolegs-v1.webp'
-    if target.stat().st_size==0: atlas.save(target,lossless=True,method=4)
+    atlas.save(OUT/f'{cid}-motion-fantasy-v2.webp',quality=88,method=4)
+    target=OUT/f'{cid}-motion-fantasy-v2.webp'
+    if target.stat().st_size==0: atlas.save(target,quality=82,method=0)
+    assert target.stat().st_size>0, (cid,"empty atlas")
     print(cid,'25 poses / 80 rig frames')
 layout_file.write_text('// Source bounds and body anchors for costume atlases.\nexport default '+json.dumps(layouts,separators=(',',':'))+';\n')
