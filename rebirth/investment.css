@@ -96,3 +96,7 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-reward-box span{display:grid;gap:2px;min-width:0}
 .invest-copy-reward-box b{font-size:18px;color:#ffdc86}
 .invest-copy-reward-box small{opacity:.7;font-size:12px}
+/* 2026-10-31 카피 한 줄 소개 */
+.invest-copy-intro-edit input{text-align:left}
+.invest-copy-intro-edit label small{font-weight:400;opacity:.65}
+.invest-copy-row small.invest-copy-intro{opacity:.95;font-style:italic;color:#ffdc86;white-space:normal;word-break:break-all}
