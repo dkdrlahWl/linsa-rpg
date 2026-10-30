@@ -13,3 +13,14 @@
 .fantasy-brand{flex-shrink:0}
 }
 @media(max-width:360px){.fantasy-brand>span{font-size:14px!important}.fantasy-brand-row{gap:2px!important;padding-inline:3px!important}.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:29px!important;width:29px!important}.fantasy-currencies{gap:2px!important}}
+
+/* Slightly larger header controls with consistent touch areas. */
+@media(min-width:361px) and (max-width:700px){
+.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:37px!important;width:37px!important;height:38px!important;min-height:38px!important}
+.fantasy-bank-entry img,.fantasy-wheel-entry img,.fantasy-arena-entry img,.fantasy-title-entry svg{width:27px!important;height:27px!important}
+.fantasy-brand-row{gap:4px!important}
+}
+@media(max-width:360px){
+.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:32px!important;width:32px!important;height:36px!important;min-height:36px!important}
+.fantasy-bank-entry img,.fantasy-wheel-entry img,.fantasy-arena-entry img,.fantasy-title-entry svg{width:25px!important;height:25px!important}
+}
