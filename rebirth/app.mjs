@@ -164,6 +164,8 @@ const errors = {
   COPY_GOLD_REQUIRED: "카피 트레이딩은 1,000만 골드 이상 보유해야 신청할 수 있어요.",
   COPY_OPEN_POSITIONS: "보유 중인 포지션을 모두 정리해야 카피를 신청할 수 있어요.",
   INVALID_COPY_LEADER: "카피할 수 없는 유저예요.",
+  COPY_LEADER_MIN_GOLD: "그 유저가 정한 최소 자본보다 보유 골드가 적어서 신청할 수 없어요.",
+  COPY_MIN_INVALID: "최소 자본은 1,000만~1조 골드 사이 숫자로 입력해 주세요.",
   COPY_LEADER_FULL: "그 유저는 이미 3명이 카피 중이라 신청할 수 없어요.",
   COMPANION_NO_TICKET: "소환권이 부족해요.",
   COMPANION_BAG_FULL: "동료 가방이 가득 찼어요. 카드를 판매하거나 합성해 주세요.",
@@ -416,8 +418,8 @@ function copyTradingMarkup(data){
  const rate=(w,l)=>{w=Number(w)||0;l=Number(l)||0;return w+l?`카피 승률 <b>${Math.round(w/(w+l)*100)}%</b> · 카피 ${w+l}회`:'카피 기록 없음';};
  const following=data.following,followers=data.followers||[];
  const head=following?`<p class="note"><b>${esc(following.name)}</b> 카피 중 · 상대가 산 종목을 보유 골드 비율만큼 같은 레버리지로 따라 사고, 상대가 팔면 같이 팔아요. 직접 매수는 막히고, 직접 매도하면 카피가 끝나요.</p><button data-action="investCopyStop" data-write data-illustrated="1">카피 종료</button>`:`<p class="note">상대가 매수할 때 쓴 보유 골드 비율만큼 같은 종목·방향·레버리지로 자동 매수하고, 상대가 팔면 같이 팔아요.<br>신청 조건: ${fmt(data.minGold||10000000)} 골드 이상 보유 · 보유 포지션 없음 · 한 유저당 최대 ${data.maxCopiers||2}명</p>`;
- const mine=(followers.length?`<p class="note">나를 카피 중: <b>${followers.map(f=>esc(f.name)).join(', ')}</b></p>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>')+`<p class="note">내 ${rate(data.myStats?.wins,data.myStats?.losses)}</p>`;
- const list=(data.candidates||[]).map(u=>{const isLeader=following?.id===u.id;if(u.self)return `<article class="invest-copy-row is-self"><span><b>${esc(u.name)} (나)</b><small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span><em>나</em></article>`;const maxC=data.maxCopiers||2,full=u.copiers>=maxC;const blocked=!!following||u.copying||followers.length>0||full;return `<article class="invest-copy-row"><span><b>${esc(u.name)}</b><small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span>${isLeader?'<em>카피 중</em>':full?'<em>인원 마감</em>':`<button data-action="investCopyStart" data-arg="${esc(u.id)}" data-write data-illustrated="1" ${blocked?'disabled':''}>카피 신청</button>`}</article>`;}).join('');
+ const mine=(followers.length?`<p class="note">나를 카피 중: <b>${followers.map(f=>esc(f.name)).join(', ')}</b></p>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>')+`<p class="note">내 ${rate(data.myStats?.wins,data.myStats?.losses)}</p>`+`<div class="invest-copy-min"><label for="copy-min-gold">나를 카피하려면 보유 골드</label><div><input id="copy-min-gold" inputmode="numeric" autocomplete="off" value="${fmt(data.myMinGold||10000000)}" aria-label="카피 신청 최소 자본"><span>G 이상</span><button data-action="investCopyMin" data-write data-illustrated="1">저장</button></div><small>새 카피 신청에만 적용돼요 · 1,000만~1조 골드</small></div>`;
+ const list=(data.candidates||[]).map(u=>{const isLeader=following?.id===u.id;if(u.self)return `<article class="invest-copy-row is-self"><span><b>${esc(u.name)} (나)</b><small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span><em>나</em></article>`;const maxC=data.maxCopiers||2,full=u.copiers>=maxC,min=Number(u.minGold)||10000000,poor=Number(state?.gold||0)<min;const blocked=!!following||u.copying||followers.length>0||full||poor;return `<article class="invest-copy-row"><span><b>${esc(u.name)}</b><small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-min-need${poor?' negative':''}">최소 자본 ${fmt(min)} G${poor?' · 골드 부족':''}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span>${isLeader?'<em>카피 중</em>':full?'<em>인원 마감</em>':`<button data-action="investCopyStart" data-arg="${esc(u.id)}" data-write data-illustrated="1" ${blocked?'disabled':''}>카피 신청</button>`}</article>`;}).join('');
  return `<section class="invest-copy-feed">${head}${mine}<div class="invest-copy-list">${list}</div></section>`;
 }
 async function openCopyTrading(){
@@ -425,6 +427,15 @@ async function openCopyTrading(){
  const data=await request('/rest/v1/rpc/rebirth_coin_copy',{p_action:'status'});
  if(session?.user?.id!==account)return;
  open('카피 트레이딩',copyTradingMarkup(data));
+}
+async function copyTradingMin(){
+ const account=session?.user?.id,raw=String(modal.querySelector('#copy-min-gold')?.value||'').replace(/[^0-9]/g,''),min=Number(raw);
+ if(!raw||!Number.isSafeInteger(min)||min<10000000||min>1000000000000){toast(errors.COPY_MIN_INVALID);return;}
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy_min',{p_min:min});
+  if(session?.user?.id!==account)return;
+  toast(`카피 최소 자본을 ${fmt(min)} G로 정했어요.`);
+  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
 }
 async function copyTradingAction(kind,leader){
  const account=session?.user?.id;
@@ -1494,6 +1505,7 @@ document.addEventListener("click", async (e) => {
     if(action==='adminInventory'){if(!state?.isAdmin)return;return showAdminInventory({open,modal,allowed:()=>!!session&&state?.isAdmin===true,art:gearMarkup,fetchData:async id=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_inventory',{p_user:id});}});}
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
     if(action==='investCopy'){b.disabled=true;try{await openCopyTrading();}finally{b.disabled=false;}return;}
+    if(action==='investCopyMin'){if(busy)return;b.disabled=true;try{await copyTradingMin();}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyStart'||action==='investCopyStop'){if(busy)return;b.disabled=true;try{await copyTradingAction(action==='investCopyStart'?'start':'stop',arg);}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investRankings'){b.disabled=true;try{await openCoinRankings();}finally{b.disabled=false;}return;}
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
