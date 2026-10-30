@@ -24,7 +24,10 @@ export const COMPANIONS=[
  {id:'f3',grade:'F',name:'줄리안',min:110,max:140,weight:20},
  {id:'f4',grade:'F',name:'에블린',min:140,max:180,weight:10},
 ];
-export const COMPANION_BY_ID=Object.fromEntries(COMPANIONS.map(c=>[c.id,c]));
+export const PICKUP_COMPANION={id:'pickup-astria',grade:'S',name:'아스트리아',min:8000,max:10000,pickup:true};
+export const PICKUP_RATE=.005;
+export const PICKUP_PITY=80;
+export const COMPANION_BY_ID=Object.fromEntries([...COMPANIONS,PICKUP_COMPANION].map(c=>[c.id,c]));
 // 패시브: 종류는 1/3씩, 수치는 등급 상관없이 같은 범위에서 랜덤(%).
 export const COMPANION_PASSIVES={
  gold:{name:'골드형',min:20,max:40,text:v=>`분당 골드 +${v}%`},
@@ -47,6 +50,8 @@ const rint=(random,min,max)=>min+Math.floor(random()*(max-min+1));
 export function normalizeCompanions(s){
  const c=s.companions&&typeof s.companions==='object'?s.companions:{};
  c.tickets=Number.isInteger(c.tickets)&&c.tickets>=0?c.tickets:0;
+ c.pickupTickets=Number.isInteger(c.pickupTickets)&&c.pickupTickets>=0?c.pickupTickets:0;
+ c.pickupPity=Number.isInteger(c.pickupPity)&&c.pickupPity>=0&&c.pickupPity<PICKUP_PITY?c.pickupPity:0;
  c.nextId=Number.isInteger(c.nextId)&&c.nextId>0?c.nextId:1;
  c.cards=Array.isArray(c.cards)?c.cards.filter(x=>x&&COMPANION_BY_ID[x.c]):[];
  // Preserve the original roll percentile when upgrading legacy 15~30% jackpots.
@@ -87,14 +92,24 @@ export function rollCompanion(random,id){
  const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)],p=COMPANION_PASSIVES[t];
  return {i:id,c:def.id,r:rint(random,def.min,def.max),t,v:rollCompanionPassiveValue(t,random),s:1};
 }
+export const companionPassiveDef=card=>{const p=COMPANION_PASSIVES[card.t];return COMPANION_BY_ID[card.c]?.pickup?{...p,min:p.min*2,max:p.max*2}:p;};
+export function rollGuaranteedPickup(random,id){
+ const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)];
+ return {i:id,c:PICKUP_COMPANION.id,r:rint(random,PICKUP_COMPANION.min,PICKUP_COMPANION.max),t,v:2*rollCompanionPassiveValue(t,random),s:1};
+}
+export function rollPickupCompanion(random,id){
+ const gradeRoll=random();
+ if(gradeRoll>=PICKUP_RATE){let first=true;return rollCompanion(()=>{if(first){first=false;return gradeRoll;}return random();},id);}
+ return rollGuaranteedPickup(random,id);
+}
 // 0~100: 분당 골드와 패시브 수치가 각자 범위에서 얼마나 높게 떴는지의 평균.
 export function companionQuality(card){
- const d=COMPANION_BY_ID[card.c],p=COMPANION_PASSIVES[card.t];
+ const d=COMPANION_BY_ID[card.c],p=companionPassiveDef(card);
  const a=d.max>d.min?(card.r-d.min)/(d.max-d.min):1,b=p.max>p.min?(card.v-p.min)/(p.max-p.min):1;
  return Math.round((a+b)/2*100);
 }
 const starMul=card=>1+COMPANION_STAR_BONUS*((card.s||1)-1);
-const growthAt=(card,ms)=>Math.min(card.v/100,COMPANION_GROWTH_STEP*Math.floor(Math.max(0,ms)/3600e3));
+const growthAt=(card,ms)=>Math.min(card.v/100,COMPANION_GROWTH_STEP*(COMPANION_BY_ID[card.c]?.pickup?2:1)*Math.floor(Math.max(0,ms)/3600e3));
 // 지금 화면에 보여줄 분당 골드 (성장형은 현재 성장치 포함).
 export function companionRate(card,placedMs=0){
  let rate=card.r*starMul(card);
@@ -143,15 +158,17 @@ const ids=v=>Array.isArray(v)?v:[];
 export function companionCommand(s,command,args,ctx){
  const c=normalizeCompanions(s);
  if(command==='companionSummon'){
-  const count=args.count??1;
+  const count=args.count??1,pickup=args.banner==='pickup';
+  check(args.banner===undefined||args.banner==='normal'||pickup,'COMPANION_INVALID_BANNER');
+  const wallet=pickup?'pickupTickets':'tickets';
   check(count===1||count===5,'COMPANION_INVALID_SUMMON_COUNT');
-  check(s.isAdmin||c.tickets>=count,'COMPANION_NO_TICKET');
+  check(s.isAdmin||c[wallet]>=count,'COMPANION_NO_TICKET');
   check(c.cards.length+count<=COMPANION_BAG,'COMPANION_BAG_FULL');
-  if(!s.isAdmin)c.tickets-=count;
+  if(!s.isAdmin)c[wallet]-=count;
   const cards=[];
-  for(let k=0;k<count;k++){const card=rollCompanion(ctx.random,c.nextId++);c.cards.push(card);cards.push(card);}
+  for(let k=0;k<count;k++){const card=pickup&&c.pickupPity===PICKUP_PITY-1?rollGuaranteedPickup(ctx.random,c.nextId++):(pickup?rollPickupCompanion:rollCompanion)(ctx.random,c.nextId++);if(pickup)c.pickupPity=card.c===PICKUP_COMPANION.id?0:c.pickupPity+1;c.cards.push(card);cards.push(card);}
   c.summoned+=count;
-  return {type:'companionSummon',cards};
+  return {type:'companionSummon',banner:pickup?'pickup':'normal',cards};
  }
  if(command==='companionAutoEquip'){
   check(c.cards.length>0,'COMPANION_NOT_FOUND');

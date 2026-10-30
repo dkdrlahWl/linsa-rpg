@@ -56,3 +56,13 @@ Icons: Transparent two-cell atlas; golden parchment summoning ticket with star s
 - 종류는 1/3 유지. 각 수치 가중치 21→1(합231): 최저9.0909%, 최고0.4329%(종류 내). 특정 종류+최고옵은 전체0.1443%. 기존 옵션 수치 유지.
 - 성장 시간당 +10%, 최대30~50% 유지. 새 카드 첫8시간 평균 보너스: 골드/대박26.6667%, 성장25.7143%. 기존 성장 카드도 향상된 증가 속도 적용.
 - 안내 버튼에21개 옵션별 종류 내/전체 확률과 효율 비교를 공개.
+
+## 2026-10-30 일반 / 픽업 소환
+- 소환 버튼 하나 → 상단 일반/픽업 탭. 열 때마다 일반 탭으로 시작.
+- 일반권 기존 지갑, 픽업권 `companions.pickupTickets` 별도 지갑. 1/5회 서버 차감.
+- 픽업 S 아스트리아: 기본 8,000~10,000 G/분, 패시브 종류 1/3. 일반 수치 추첨 결과를 2배: 골드/대박40~80, 성장60~100·시간당20. 최고 옵션은 기존처럼 희귀. 일반 풀에는 포함하지 않음.
+- S급 전체1% = 픽업0.5% + 일반S0.5%(엘리시아0.175%, 카이로스0.325%). A~F는 일반 소환과 동일. 천장 없음. 전용권 획득처/가격/지급은 별도 지정 전까지 추가하지 않음. 운영 우편 보상 `pickupTicket` 지원.
+- 이미지 생성 도구로 신규 초상·배경·전용권/버튼/프레임 아틀라스 제작, WebP 적용. 경로: `pickup-astria-human-v1.webp`, `pickup-ticket-v1.webp`, `summon-sanctum-v1.webp`, `summon-button{,-active}-v1.webp`, `summon-frame-v1.webp`.
+- 프롬프트: celestial adult human queen, silver hair/violet eyes/navy-gold gown and star crystal, portrait; moonlit celestial gothic sanctuary empty center; transparent 2x2 atlas pickup star ticket, navy button, violet button, hollow gold dialog frame. No lettering. Built-in image generation.
+
+- 픽업 소환 80번째 확정, 중간에 아스트리아 등장 시 누적 횟수 0으로 초기화. 남은 횟수 표시.
