@@ -1,28 +1,28 @@
-import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
-import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
-import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
-import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from './costumes.mjs';
-import {normalizeSkillLooks,equippedSkillLook,skillLookCommand,SKILL_LOOK_CRIT_DAMAGE,ownedSkillLookCount} from './skill-looks.mjs';
-import {bossSalePrice,inAnyGearPreset} from './shop-model.mjs';
-import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
-import {blackMarketBuy} from './black-market.mjs';
-import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs';
-import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
-import {RAID_ENCOUNTERS} from './raid-content.mjs';
-import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE,PRIEST_ATTACK_RATE} from './priest.mjs';
-import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
-import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
-import {rollRiftReward} from './rift-rewards.mjs';
-import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird,advancementStatBonus,JOB_MULTIPLIER_STAGES} from './advancement.mjs';
-import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
-import {treasureCommand} from './treasure-model.mjs';
-import {companionCommand,normalizeCompanions} from './companion-model.mjs';
-import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
-import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from './gear-refine.mjs';
-import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs';
-import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
-import {applyBetaTool} from './beta-tools.mjs';
+import {fishingCommand,normalizeFishing} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/fishing-model.mjs';
+import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/lucky-wheel.mjs';
+import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/fifth-job.mjs';
+import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/costumes.mjs';
+import {normalizeSkillLooks,equippedSkillLook,skillLookCommand,SKILL_LOOK_CRIT_DAMAGE,ownedSkillLookCount} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/skill-looks.mjs';
+import {bossSalePrice,inAnyGearPreset} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/shop-model.mjs';
+import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/consumables.mjs';
+import {blackMarketBuy} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/black-market.mjs';
+import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/pet-event.mjs';
+import {deliverSystemMail,claimSystemMail} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/system-mail.mjs';
+import {RAID_ENCOUNTERS} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/raid-content.mjs';
+import {raidWeeklyStatus,rollRaidReward} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/raid-rewards.mjs';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE,PRIEST_ATTACK_RATE} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/priest.mjs';
+import {scheduleCombatSkill,stepCombatSkills} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/combat-skills.mjs';
+import {FOURTH_SKILLS,beginFourth,stepFourth} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/fourth-job.mjs';
+import {rollRiftReward} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/rift-rewards.mjs';
+import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird,advancementStatBonus,JOB_MULTIPLIER_STAGES} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/advancement.mjs';
+import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/journey-balance.mjs';
+import {treasureCommand} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/treasure-model.mjs';
+import {companionCommand,normalizeCompanions} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/companion-model.mjs';
+import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/maple-cubes.mjs';
+import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/gear-refine.mjs';
+import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/additional-potential.mjs';
+import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/titles-data.mjs';
+import {applyBetaTool} from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/beta-tools.mjs';
 import {
   VERSION,
   normalizePotentialState,
@@ -60,9 +60,9 @@ import {
   MAX_LEVEL,
   statPointsForLevel,
   totalStatPoints,
-} from "./data.mjs";
+} from "https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/data.mjs";
 
-import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs';
+import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from 'https://raw.githubusercontent.com/dkdrlahWl/linsa-rpg/b94202de92fbf670bcd52e179fff9d0f0cddbc1f/rebirth/edge-dist/tower-model.mjs';
 const fail = (message) => {
   throw new Error(message);
 };
@@ -1105,16 +1105,25 @@ export function grantCoopChest(input,tier,ctx){
 
 export function grantRaidChest(input,tier,ctx){
  const s=normalizePotentialState(structuredClone(input)),raid=RAID_ENCOUNTERS[tier];check(raid,'INVALID_RAID');const weekly=raidWeeklyStatus(s,ctx.now),practice=weekly.remaining===0;
+ const forced=s.adminNextRaidGear;const scheduled=forced&&forced.tier===tier;const forceNow=scheduled&&forced.remaining===1;
  const reward=practice?{type:'coop',mode:'raid',name:raid.name,won:true,practice:true,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]}:rollRaidReward(tier,ctx.random,s,ctx.now);
  if(!practice){
   s.gold+=reward.gold;
   for(const key of ['cube','highCube','primeCube','fragment','scroll'])s.materials[key]=(s.materials[key]||0)+reward[key];
-  if(ctx.random()<rewardChance(raid.bossGearChance??0.6,s,ctx.now)){
+  if(!forceNow&&ctx.random()<rewardChance(raid.bossGearChance??0.6,s,ctx.now)){
    const level=raid.level,classId=pick(CLASSES,ctx).id,slot=balanceBossGearSlot(Math.floor(ctx.random()*SLOTS.length),ctx),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
    const stored=s.items.length>=300;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;
   }
   s.raidWeekly={week:weekly.week,count:weekly.used+1};
+ }
+ if(scheduled){
+  if(forceNow){
+   const level=raid.level,classId=s.classId,slot=forced.slot==='random'?balanceBossGearSlot(Math.floor(ctx.random()*SLOTS.length),ctx):1,design=selectDesign(level,classId,slot,true,ctx.random);
+   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
+   const stored=s.items.length>=300;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;
+   delete s.adminNextRaidGear;
+  }else if(Number.isSafeInteger(forced.remaining)&&forced.remaining>1)s.adminNextRaidGear={...forced,remaining:forced.remaining-1};
  }
  Object.assign(reward,{weeklyUsed:weekly.used+(practice?0:1),weeklyLimit:weekly.limit,weeklyRemaining:Math.max(0,weekly.remaining-(practice?0:1))});
  if(!(s.raidCleared||[]).includes(tier))s.raidCleared=[...(s.raidCleared||[]),tier];
