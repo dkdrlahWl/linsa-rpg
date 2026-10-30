@@ -7,6 +7,7 @@ export const COMPANION_GRADE_RATES={S:.01,A:.05,B:.10,C:.20,D:.25,F:.39};
 export const COMPANIONS=[
  {id:'s1',grade:'S',name:'엘리시아',min:4000,max:5000,weight:35},
  {id:'s2',grade:'S',name:'카이로스',min:3500,max:4400,weight:65},
+ {id:'s3',grade:'S',name:'세라피온',min:5500,max:6500,weight:20},
  {id:'a1',grade:'A',name:'로제린',min:1500,max:2000,weight:50},
  {id:'a2',grade:'A',name:'레오닉',min:2000,max:2500,weight:30},
  {id:'a3',grade:'A',name:'이사벨',min:2500,max:3000,weight:20},
