@@ -1,6 +1,11 @@
 import {normalizeCompanions} from './companion-model.mjs';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id:'companion-update-20261030-tickets-10-pickup-10',
+  title:'동료 업데이트 기념 선물', sender:'링구 RPG 운영팀',
+  message:'동료 업데이트를 기념해 동료 소환권 10장과 픽업 소환권 10장을 보내드립니다!',
+  sentAt:'2026-10-30T07:24:00Z', rewards:{companionTicket:10,pickupTicket:10},
+}, {
   id:'companion-gift-20261027-tickets-5',
   title:'동료 소환권 선물', sender:'링구 RPG 운영팀',
   message:'동료 카드를 즐겨주셔서 감사합니다! 동료 소환권 5장을 보내드립니다.',
