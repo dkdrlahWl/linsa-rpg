@@ -24,3 +24,6 @@
 .fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:32px!important;width:32px!important;height:36px!important;min-height:36px!important}
 .fantasy-bank-entry img,.fantasy-wheel-entry img,.fantasy-arena-entry img,.fantasy-title-entry svg{width:25px!important;height:25px!important}
 }
+
+@media(min-width:361px) and (max-width:700px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:44.4px!important;width:44.4px!important}.fantasy-brand-row{gap:2px!important;padding-inline:3px!important}.fantasy-brand>span{font-size:14px!important}.fantasy-currencies{gap:2px!important}.fantasy-currencies .fantasy-wallet,.fantasy-diamond-wallet{padding-inline:3px!important}}
+@media(max-width:360px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:38.4px!important;width:38.4px!important}.fantasy-brand>span{font-size:12px!important}.fantasy-currencies strong{font-size:9px!important}}
