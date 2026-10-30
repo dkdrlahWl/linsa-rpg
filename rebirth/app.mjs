@@ -163,7 +163,7 @@ const errors = {
   COPY_GOLD_REQUIRED: "카피 트레이딩은 1,000만 골드 이상 보유해야 신청할 수 있어요.",
   COPY_OPEN_POSITIONS: "보유 중인 포지션을 모두 정리해야 카피를 신청할 수 있어요.",
   INVALID_COPY_LEADER: "카피할 수 없는 유저예요.",
-  COPY_LEADER_FULL: "그 유저는 이미 2명이 카피 중이라 신청할 수 없어요.",
+  COPY_LEADER_FULL: "그 유저는 이미 3명이 카피 중이라 신청할 수 없어요.",
   COMPANION_NO_TICKET: "소환권이 부족해요.",
   COMPANION_BAG_FULL: "동료 가방이 가득 찼어요. 카드를 판매하거나 합성해 주세요.",
   COMPANION_NOT_FOUND: "동료 카드를 찾을 수 없어요. 새로고침 후 다시 시도해 주세요.",
