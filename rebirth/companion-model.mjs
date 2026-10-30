@@ -54,6 +54,7 @@ export function normalizeCompanions(s){
  c.pickupPity=Number.isInteger(c.pickupPity)&&c.pickupPity>=0&&c.pickupPity<PICKUP_PITY?c.pickupPity:0;
  c.nextId=Number.isInteger(c.nextId)&&c.nextId>0?c.nextId:1;
  c.cards=Array.isArray(c.cards)?c.cards.filter(x=>x&&COMPANION_BY_ID[x.c]):[];
+ if(c.pickupPassiveVersion!==1){for(const card of c.cards){if(card.c===PICKUP_COMPANION.id)card.v=Math.round(card.v/2);}c.pickupPassiveVersion=1;}
  // Preserve the original roll percentile when upgrading legacy 15~30% jackpots.
  if(c.passiveVersion!==2){
   c.cards=c.cards.map(card=>card.t==='jackpot'&&Number.isInteger(card.v)&&card.v>=15&&card.v<=30?{...card,v:20+Math.round((card.v-15)*20/15)}:card);
@@ -92,10 +93,10 @@ export function rollCompanion(random,id){
  const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)],p=COMPANION_PASSIVES[t];
  return {i:id,c:def.id,r:rint(random,def.min,def.max),t,v:rollCompanionPassiveValue(t,random),s:1};
 }
-export const companionPassiveDef=card=>{const p=COMPANION_PASSIVES[card.t];return COMPANION_BY_ID[card.c]?.pickup?{...p,min:p.min*2,max:p.max*2}:p;};
+export const companionPassiveDef=card=>{const p=COMPANION_PASSIVES[card.t];return p;};
 export function rollGuaranteedPickup(random,id){
  const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)];
- return {i:id,c:PICKUP_COMPANION.id,r:rint(random,PICKUP_COMPANION.min,PICKUP_COMPANION.max),t,v:2*rollCompanionPassiveValue(t,random),s:1};
+ return {i:id,c:PICKUP_COMPANION.id,r:rint(random,PICKUP_COMPANION.min,PICKUP_COMPANION.max),t,v:rollCompanionPassiveValue(t,random),s:1};
 }
 export function rollPickupCompanion(random,id){
  const gradeRoll=random();
@@ -109,7 +110,7 @@ export function companionQuality(card){
  return Math.round((a+b)/2*100);
 }
 const starMul=card=>1+COMPANION_STAR_BONUS*((card.s||1)-1);
-const growthAt=(card,ms)=>Math.min(card.v/100,COMPANION_GROWTH_STEP*(COMPANION_BY_ID[card.c]?.pickup?2:1)*Math.floor(Math.max(0,ms)/3600e3));
+const growthAt=(card,ms)=>Math.min(card.v/100,COMPANION_GROWTH_STEP*Math.floor(Math.max(0,ms)/3600e3));
 // 지금 화면에 보여줄 분당 골드 (성장형은 현재 성장치 포함).
 export function companionRate(card,placedMs=0){
  let rate=card.r*starMul(card);
