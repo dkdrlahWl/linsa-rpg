@@ -1,4 +1,4 @@
-import {bankView} from './bank-ui.mjs?v=bank-20261031';
+import {bankView} from './bank-ui.mjs?v=bank12h-20261031';
 import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
 import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';

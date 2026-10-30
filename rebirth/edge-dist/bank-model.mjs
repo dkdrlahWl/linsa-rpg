@@ -1,4 +1,4 @@
-export const BANK_DAY=86400000;
+export const BANK_DAY=43200000; // 2026-10-31: 이자 지급 주기 24시간 → 12시간 (1%씩 복리)
 export const BANK_LIMIT=9000000000000;
 export function bankTotal(bank){return (bank?.lots||[]).reduce((n,l)=>n+l.gold,0);}
 export function settleBank(s,now){
