@@ -88,3 +88,6 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-min span{font-size:13px;opacity:.8;white-space:nowrap}
 .invest-copy-min small{opacity:.65;font-size:12px}
 .invest-copy-row small.invest-copy-min-need.negative{opacity:1;color:#ee5260}
+.invest-copy-row small.invest-copy-min-need{opacity:1;font-weight:700}
+.invest-copy-row small.invest-copy-min-need.negative{color:#ee5260}
+.invest-copy-row small.invest-copy-min-need.positive{color:#35da76}
