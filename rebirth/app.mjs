@@ -168,7 +168,7 @@ const errors = {
   COPY_REWARD_EMPTY: "받을 카피 보상이 없어요.",
   COPY_INTRO_TOO_LONG: "한 줄 소개는 60자까지 쓸 수 있어요.",
   COPY_MIN_INVALID: "최소 자본은 1,000만~1조 골드 사이 숫자로 입력해 주세요.",
-  COPY_LEADER_FULL: "그 유저는 이미 3명이 카피 중이라 신청할 수 없어요.",
+  COPY_LEADER_FULL: "그 유저는 이미 5명이 카피 중이라 신청할 수 없어요.",
   COMPANION_NO_TICKET: "소환권이 부족해요.",
   COMPANION_BAG_FULL: "동료 가방이 가득 찼어요. 카드를 판매하거나 합성해 주세요.",
   COMPANION_NOT_FOUND: "동료 카드를 찾을 수 없어요. 새로고침 후 다시 시도해 주세요.",
