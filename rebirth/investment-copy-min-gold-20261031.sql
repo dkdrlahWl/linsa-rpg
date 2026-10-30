@@ -16,7 +16,8 @@ begin
  on conflict(leader) do update set min_gold=excluded.min_gold,updated_at=now();
  return rebirth_private.coin_copy_status(u)||jsonb_build_object('serverNow',clock_timestamp());
 end $f$;
-revoke all on function rebirth_private.coin_copy_set_min(numeric) from public,anon,authenticated;
+revoke all on function rebirth_private.coin_copy_set_min(numeric) from public,anon;
+grant execute on function rebirth_private.coin_copy_set_min(numeric) to authenticated; -- 기존 coin_copy와 같은 방식(공개 래퍼가 invoker라 필요)
 
 create or replace function public.rebirth_coin_copy_min(p_min numeric)
 returns jsonb language sql set search_path to '' as $f$select rebirth_private.coin_copy_set_min(p_min)$f$;
