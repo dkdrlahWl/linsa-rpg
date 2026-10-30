@@ -25,7 +25,8 @@ export const COMPANIONS=[
  {id:'f4',grade:'F',name:'에블린',min:140,max:180,weight:10},
 ];
 export const PICKUP_COMPANION={id:'pickup-astria',grade:'S',name:'아스트리아',min:8000,max:10000,pickup:true};
-export const PICKUP_RATE=.01;
+export const PICKUP_RATE=.005;
+export const PICKUP_PITY=80;
 export const COMPANION_BY_ID=Object.fromEntries([...COMPANIONS,PICKUP_COMPANION].map(c=>[c.id,c]));
 // 패시브: 종류는 1/3씩, 수치는 등급 상관없이 같은 범위에서 랜덤(%).
 export const COMPANION_PASSIVES={
@@ -50,6 +51,7 @@ export function normalizeCompanions(s){
  const c=s.companions&&typeof s.companions==='object'?s.companions:{};
  c.tickets=Number.isInteger(c.tickets)&&c.tickets>=0?c.tickets:0;
  c.pickupTickets=Number.isInteger(c.pickupTickets)&&c.pickupTickets>=0?c.pickupTickets:0;
+ c.pickupPity=Number.isInteger(c.pickupPity)&&c.pickupPity>=0&&c.pickupPity<PICKUP_PITY?c.pickupPity:0;
  c.nextId=Number.isInteger(c.nextId)&&c.nextId>0?c.nextId:1;
  c.cards=Array.isArray(c.cards)?c.cards.filter(x=>x&&COMPANION_BY_ID[x.c]):[];
  // Preserve the original roll percentile when upgrading legacy 15~30% jackpots.
@@ -91,10 +93,14 @@ export function rollCompanion(random,id){
  return {i:id,c:def.id,r:rint(random,def.min,def.max),t,v:rollCompanionPassiveValue(t,random),s:1};
 }
 export const companionPassiveDef=card=>{const p=COMPANION_PASSIVES[card.t];return COMPANION_BY_ID[card.c]?.pickup?{...p,min:p.min*2,max:p.max*2}:p;};
-export function rollPickupCompanion(random,id){
- if(random()>=PICKUP_RATE)return rollCompanion(random,id);
+export function rollGuaranteedPickup(random,id){
  const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)];
  return {i:id,c:PICKUP_COMPANION.id,r:rint(random,PICKUP_COMPANION.min,PICKUP_COMPANION.max),t,v:2*rollCompanionPassiveValue(t,random),s:1};
+}
+export function rollPickupCompanion(random,id){
+ const gradeRoll=random();
+ if(gradeRoll>=PICKUP_RATE){let first=true;return rollCompanion(()=>{if(first){first=false;return gradeRoll;}return random();},id);}
+ return rollGuaranteedPickup(random,id);
 }
 // 0~100: 분당 골드와 패시브 수치가 각자 범위에서 얼마나 높게 떴는지의 평균.
 export function companionQuality(card){
@@ -160,7 +166,7 @@ export function companionCommand(s,command,args,ctx){
   check(c.cards.length+count<=COMPANION_BAG,'COMPANION_BAG_FULL');
   if(!s.isAdmin)c[wallet]-=count;
   const cards=[];
-  for(let k=0;k<count;k++){const card=(pickup?rollPickupCompanion:rollCompanion)(ctx.random,c.nextId++);c.cards.push(card);cards.push(card);}
+  for(let k=0;k<count;k++){const card=pickup&&c.pickupPity===PICKUP_PITY-1?rollGuaranteedPickup(ctx.random,c.nextId++):(pickup?rollPickupCompanion:rollCompanion)(ctx.random,c.nextId++);if(pickup)c.pickupPity=card.c===PICKUP_COMPANION.id?0:c.pickupPity+1;c.cards.push(card);cards.push(card);}
   c.summoned+=count;
   return {type:'companionSummon',banner:pickup?'pickup':'normal',cards};
  }

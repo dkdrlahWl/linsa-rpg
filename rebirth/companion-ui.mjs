@@ -1,4 +1,4 @@
-import {PICKUP_COMPANION,PICKUP_RATE,companionPassiveDef,companionPassiveValueChance,COMPANIONS,COMPANION_GRADE_RATES,companionSummonChance,COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs';
+import {PICKUP_COMPANION,PICKUP_RATE,PICKUP_PITY,companionPassiveDef,companionPassiveValueChance,COMPANIONS,COMPANION_GRADE_RATES,companionSummonChance,COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.floor((n||0)+1e-7).toLocaleString('ko-KR');
 const GRADE_ORDER=Object.fromEntries(COMPANION_GRADES.map((g,i)=>[g,i]));
@@ -7,7 +7,7 @@ const PASSIVE_ICON={gold:'◈',growth:'❧',jackpot:'✤'};
 const ui={selected:null,sort:'grade',banner:'normal'};
 let timer=null;
 
-const data=s=>{const c=s.companions||{};return {pickupTickets:c.pickupTickets||0,tickets:c.tickets||0,cards:Array.isArray(c.cards)?c.cards:[],slots:Array.from({length:COMPANION_SLOTS},(_,i)=>c.slots?.[i]||null)};};
+const data=s=>{const c=s.companions||{};return {pickupPity:c.pickupPity||0,pickupTickets:c.pickupTickets||0,tickets:c.tickets||0,cards:Array.isArray(c.cards)?c.cards:[],slots:Array.from({length:COMPANION_SLOTS},(_,i)=>c.slots?.[i]||null)};};
 const def=card=>COMPANION_BY_ID[card.c];
 const placedAt=(d,id)=>d.slots.findIndex(x=>x&&x.card===id);
 // 글자·등급·별은 실제 UI로 표시하고, 제작한 인간 캐릭터 초상화 위에 등급 액자를 겹친다.
@@ -151,10 +151,11 @@ function summonWindow(s){
  return `<div class="cp-sanctum ${pickup?'cp-pickup':''}">
   <div class="cp-banner-tabs" role="tablist" aria-label="소환 종류">${['normal','pickup'].map(b=>`<button data-illustrated="1" role="tab" aria-selected="${ui.banner===b}" class="cp-banner-tab ${ui.banner===b?'active':''}" data-action="companionBanner" data-arg="${b}">${b==='normal'?'일반 소환':'픽업 소환'}</button>`).join('')}</div>
   <div class="cp-banner-hero"><img class="cp-banner-art" src="companions/${dd.id}-human-v1.webp" alt="${dd.name}"><div class="cp-banner-copy"><small>${pickup?'S · PICK UP':'COMPANION SUMMON'}</small><h2>${pickup?'별의 여왕 아스트리아':'별빛에 이끌린 인연'}</h2><p>${pickup?'기본 골드 · 패시브 수치 2배':'소환권으로 새로운 동료를 만나보세요'}</p></div></div>
-  <div class="cp-banner-info">${pickup?`<b>S급 아스트리아 · 등장 확률 1%</b><p>기본 ${fmt(dd.min)}~${fmt(dd.max)} G/분</p><p>패시브 1종 · 골드 +40~80% / 성장 시간당 +20%, 최대 +60~100% / 대박 40~80%</p><small>각 종류 1/3 · 높은 수치는 더 희귀 · 나머지 99%는 일반 소환과 동일 추첨. 일반 소환에서는 등장하지 않아요.</small>`:'<b>S급 1% · A급 5%</b><p>기존 동료 · 확률 · 패시브 그대로</p><small>소환권은 링구의 탐험 개인 상자에서 25% 확률로 획득해요.</small>'}</div>
+  <div class="cp-banner-info">${pickup?`<b>S급 아스트리아 · 등장 확률 0.5%</b><p>기본 ${fmt(dd.min)}~${fmt(dd.max)} G/분</p><p>패시브 1종 · 골드 +40~80% / 성장 시간당 +20%, 최대 +60~100% / 대박 40~80%</p><small>각 종류 1/3 · 높은 수치는 더 희귀 · S급 전체 1% = 픽업 0.5% + 기존 S급 0.5%. A~F 확률은 일반 소환과 같아요. 일반 소환에서는 등장하지 않아요.</small>`:'<b>S급 1% · A급 5%</b><p>기존 동료 · 확률 · 패시브 그대로</p><small>소환권은 링구의 탐험 개인 상자에서 25% 확률로 획득해요.</small>'}</div>
+  ${pickup?`<div class="cp-banner-pity">픽업 확정까지 <b>${PICKUP_PITY-d.pickupPity}회</b> 남음 <small>80회째 확정 · 픽업 등장 시 초기화</small></div>`:''}
   <div class="cp-banner-wallet"><img src="companions/${pickup?'pickup-ticket-v1':'summon-ticket-v1'}.webp" alt="">${pickup?'픽업 소환권':'소환권'} <b>${fmt(pickup?d.pickupTickets:d.tickets)}장</b></div>
   <div class="cp-banner-pulls">${[1,5].map(n=>`<button data-illustrated="1" class="cp-banner-tab active" data-action="companionSummon" data-arg="${n}"><b>${n}회 소환</b><small>${pickup?'픽업 소환권':'소환권'} ${n}장</small></button>`).join('')}</div>
-  <p class="cp-banner-note">1회·5회 동일 확률 · 천장 없음 · 가방 ${d.cards.length}/${COMPANION_BAG}</p>
+  <p class="cp-banner-note">1회·5회 같은 확률 · 가방 ${d.cards.length}/${COMPANION_BAG}</p>
  </div>`;
 }
 function openSummon(api){api.open('동료 소환',summonWindow(api.state()),true,'companion-dialog');}
@@ -163,7 +164,7 @@ const percent=n=>Number((n*100).toFixed(4)).toLocaleString('ko-KR',{maximumFract
 function companionHelp(){
  const p=COMPANION_PASSIVES;
  return `<div class="cp-help-content" tabindex="-1" autofocus>
- <h3>픽업 소환</h3><p>픽업 소환권만 사용해요. 아스트리아 1%, 나머지 99%는 일반 동료 확률로 추첨해요. 아스트리아의 기본 골드·패시브 수치·성장 속도는 기존 최고 S급 범위의 2배예요. 일반 소환에서는 나오지 않아요. 아래 표는 일반 소환 기준이에요.</p><h3>패시브 효과 · 수치 범위</h3><p>카드마다 패시브 1개가 붙어요. 등급·캐릭터와 관계없이 각 종류의 확률은 <b>1/3 (약 33.3333%)</b>로 같아요.</p>
+ <h3>픽업 소환</h3><p>픽업 소환권만 사용해요. S급 전체 1% 중 아스트리아 0.5%, 기존 S급 합계 0.5%예요. 픽업 80회째 확정이며 픽업 등장 시 횟수가 초기화돼요. 엘리시아 0.175%, 카이로스 0.325%이며 A~F는 일반 소환과 같아요. 아스트리아의 기본 골드·패시브 수치·성장 속도는 기존 최고 S급 범위의 2배예요. 일반 소환에서는 나오지 않아요. 아래 표는 일반 소환 기준이에요.</p><h3>패시브 효과 · 수치 범위</h3><p>카드마다 패시브 1개가 붙어요. 등급·캐릭터와 관계없이 각 종류의 확률은 <b>1/3 (약 33.3333%)</b>로 같아요.</p>
  <dl><dt>◈ ${p.gold.name} · +${p.gold.min}~${p.gold.max}%</dt><dd>배치 즉시 해당 카드의 분당 골드가 증가해요. 배치를 바꿔도 옵션은 유지돼요.</dd>
  <dt>❧ ${p.growth.name} · 최대 +${p.growth.min}~${p.growth.max}%</dt><dd>배치 후 1시간이 지날 때마다 +10%씩 증가해요. 카드에 정해진 최대치에 도달하면 더 늘지 않아요. 골드 수령 시 성장은 유지되고, 배치를 해제하면 초기화돼요. 최대치 +30%는 3시간, +50%는 5시간에 도달해요.</dd>
  <dt>✤ ${p.jackpot.name} · 발동 확률 ${p.jackpot.min}~${p.jackpot.max}%</dt><dd>그 카드의 골드를 수령할 때 표시된 확률로 수령 골드가 2배가 돼요. 배치 해제로 자동 수령할 때도 판정해요. 카드마다 따로 판정하며, 분당 골드 표기에는 대박 기대값을 더하지 않아요.</dd></dl>

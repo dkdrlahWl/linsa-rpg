@@ -202,3 +202,5 @@ body:not(.tower-mode) .cp-open-summon{background-position:center!important;min-h
 body:not(.tower-mode) .cp-open-summon b{display:block!important;font-size:14px!important;line-height:1.2}
 .cp-banner-pulls .cp-banner-tab{background-size:100% 100%!important;gap:2px;min-height:72px;padding:13px 12px!important;line-height:1.15}
 .cp-banner-pulls .cp-banner-tab b{font-size:15px;line-height:1.2}.cp-banner-pulls .cp-banner-tab small{color:#fff3d6;line-height:1.2}
+
+.cp-banner-pity{text-align:center;background:#12112fe8;border:1px solid #a990c8;border-radius:7px;padding:7px;margin:6px 0;font-size:13px}.cp-banner-pity b{color:#f7d783}.cp-banner-pity small{display:block;color:#d3c5e7;font-size:10px}
