@@ -243,3 +243,17 @@ dialog.companion-dialog:has(.cp-sanctum):not([open]){display:none}
 .cp-banner-hero{flex:1 1 auto;min-height:140px;height:auto!important}
 .cp-banner-art{object-fit:cover!important;object-position:center 24%!important}
 .cp-banner-copy{padding:30px 10px 7px!important}
+
+.cp-odds-open{align-self:center;flex-shrink:0;padding:3px 16px!important;min-height:26px!important;font-size:11px!important;margin:2px}
+.cp-odds-dialog{width:min(620px,calc(100% - 16px));max-height:calc(100dvh - 16px);overflow:auto}
+.cp-odds-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:sticky;top:0;z-index:3;background:#0b2038;padding:6px 0}
+.cp-odds-intro,.cp-odds-pity{font-size:12px;line-height:1.5;text-align:center;color:#cbd7e8}
+.cp-odds-pity{color:#f5d99f;background:#201836;padding:8px;border-radius:6px}
+.cp-odds-group h3{color:#ffe1a0;font-size:17px;margin:16px 0 7px;border-bottom:1px solid #987b48;padding-bottom:5px}
+.cp-odds-group h3 span{float:right;font-size:12px;color:#cbd7e8}
+.cp-odds-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cp-odds-card{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 4px 8px;border:1px solid var(--g,#ac9159);border-radius:7px;background:#07162d;text-align:center}
+.cp-odds-art{position:relative;width:100%;aspect-ratio:1/1.12;overflow:hidden;border-radius:4px}
+.cp-odds-art img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.cp-odds-art span{position:absolute;left:3px;top:3px;font-size:11px;color:#ffe2a0;background:#08162bbb;padding:2px 5px;border-radius:4px}
+.cp-odds-card>b{font-size:12px;color:#ffefc8}.cp-odds-card>strong{font-size:15px;color:#f9d36e}.cp-odds-card>small{font-size:9px;color:#bccbdd}
