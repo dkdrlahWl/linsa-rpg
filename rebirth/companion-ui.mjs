@@ -129,12 +129,12 @@ async function sendCompanion(api,command,args){
 }
 function showSummon(cards,api){
  const session={index:0,timer:null,root:null};revealSession=session;
- api.open(cards.length===5?'5회 소환 결과':'소환 결과',`<div class="cp-summon-reveal"><p class="cp-reveal-status" aria-live="polite">동료를 만나보세요</p><div class="cp-result ${cards.length===1?'cp-single':''}">${cards.map(c=>resultCard(c).replace('cp-reveal','cp-reveal cp-veiled')).join('')}</div><div class="cp-reveal-actions"><button data-illustrated="1" class="cp-btn" data-action="companionRevealAll">모두 보기</button><button data-illustrated="1" class="cp-btn gold" data-action="close" disabled>확인</button></div></div>`,true,'companion-dialog');
+ api.open(cards.length===5?'5회 소환 결과':'소환 결과',`<div class="cp-summon-reveal"><p class="cp-reveal-status" aria-live="polite">동료를 만나보세요</p><div class="cp-result ${cards.length===1?'cp-single':''}">${cards.map(c=>resultCard(c).replace('cp-reveal','cp-reveal cp-veiled')).join('')}</div><div class="cp-reveal-actions"><button data-illustrated="1" class="cp-btn" data-action="companionRevealAll">모두 보기</button><button data-illustrated="1" class="cp-btn gold" data-action="companionSummonReturn" disabled>확인</button></div></div>`,true,'companion-dialog');
  session.root=document.querySelector('.cp-summon-reveal');
  const next=()=>{
   if(revealSession!==session||!session.root?.isConnected)return;
   const nodes=session.root.querySelectorAll('.cp-reveal');
-  if(session.index>=cards.length){session.root.querySelector('[data-action="close"]').disabled=false;session.root.querySelector('[data-action="companionRevealAll"]').hidden=true;session.root.querySelector('.cp-reveal-status').textContent='동료를 가방에 보관했어요';return;}
+  if(session.index>=cards.length){session.root.querySelector('[data-action="companionSummonReturn"]').disabled=false;session.root.querySelector('[data-action="companionRevealAll"]').hidden=true;session.root.querySelector('.cp-reveal-status').textContent='동료를 가방에 보관했어요';return;}
   const i=session.index++,g=def(cards[i]).grade;
   nodes[i].classList.remove('cp-veiled');nodes[i].classList.add('cp-unveiled');
   session.root.classList.remove('cp-flash-A','cp-flash-S');void session.root.offsetWidth;
@@ -179,6 +179,7 @@ function companionHelp(){
 
 // api: {state, command, open, close, toast, render}
 export async function companionAction(action,arg,api){
+ if(action==='companionSummonReturn'){clearTimeout(revealSession?.timer);revealSession=null;openSummon(api);return;}
  if(action==='companionSummonOpen'){ui.banner='normal';openSummon(api);return;}
  if(action==='companionBanner'){if(pending)return;ui.banner=arg==='pickup'?'pickup':'normal';openSummon(api);return;}
  if(action==='companionHelp'){api.open('동료 효과·확률 안내',companionHelp(),true,'companion-dialog');return;}
