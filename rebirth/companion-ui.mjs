@@ -152,6 +152,7 @@ function summonWindow(s){
   <div class="cp-banner-tabs" role="tablist" aria-label="소환 종류">${['normal','pickup'].map(b=>`<button data-illustrated="1" role="tab" aria-selected="${ui.banner===b}" class="cp-banner-tab ${ui.banner===b?'active':''}" data-action="companionBanner" data-arg="${b}">${b==='normal'?'일반 소환':'픽업 소환'}</button>`).join('')}</div>
   <div class="cp-banner-hero"><img class="cp-banner-art" src="companions/${dd.id}-human-v1.webp" alt="${dd.name}"><div class="cp-banner-copy"><small>${pickup?'S · PICK UP':'COMPANION SUMMON'}</small><h2>${pickup?'별의 여왕 아스트리아':'별빛에 이끌린 인연'}</h2></div></div>
   ${pickup?`<div class="cp-pickup-overview"><div class="cp-pickup-stats"><strong>S급 아스트리아 <em>0.5%</em></strong><span>기본 골드 <b>${fmt(dd.min)}~${fmt(dd.max)} G/분</b></span><span>골드형 <b>+20~40%</b></span><span>성장형 <b>시간당 +10% · 최대 +30~50%</b></span><span>대박형 <b>발동 20~40% · 골드 2배</b></span><small>패시브 3종 중 1개 · 높은 수치일수록 희귀</small></div><div class="cp-pickup-card cp-g-S"><span class="cp-grade">S</span><img src="companions/pickup-astria-human-v1.webp" alt="아스트리아 카드 미리보기"><b>아스트리아 ★1</b><small>8,000~10,000 G/분</small></div></div><div class="cp-banner-pity">픽업 확정까지 <b>${PICKUP_PITY-d.pickupPity}회</b> 남음 <small>80회째 확정 · 등장 시 초기화</small></div><p class="cp-pickup-odds">S급 전체 1% · 픽업 0.5% / 기존 S급 0.5% · A~F는 일반과 동일</p>`:`<div class="cp-normal-info">S급 1% · A급 5% <small>기존 소환권 사용 · 탐험 개인 상자에서 25% 확률로 획득</small></div>`}
+  <button class="cp-btn cp-odds-open" data-action="companionOdds" data-arg="${pickup?'pickup':'normal'}">소환 확률 보기</button>
   <div class="cp-banner-wallet"><img src="companions/${pickup?'pickup-ticket-v1':'summon-ticket-v1'}.webp" alt="">${pickup?'픽업 소환권':'소환권'} <b>${fmt(pickup?d.pickupTickets:d.tickets)}장</b></div>
   <div class="cp-banner-pulls">${[1,5].map(n=>`<button data-illustrated="1" class="cp-banner-tab active" data-action="companionSummon" data-arg="${n}"><b>${n}회 소환</b><small>${pickup?'픽업 소환권':'소환권'} ${n}장</small></button>`).join('')}</div>
   <p class="cp-banner-note">1회·5회 같은 확률 · 가방 ${d.cards.length}/${COMPANION_BAG}</p>
@@ -160,6 +161,13 @@ function summonWindow(s){
 function openSummon(api){api.open('동료 소환',summonWindow(api.state()),true,'companion-dialog');}
 
 const percent=n=>Number((n*100).toFixed(4)).toLocaleString('ko-KR',{maximumFractionDigits:4})+'%';
+
+function companionOdds(banner){
+ const pickup=banner==='pickup',pool=pickup?[PICKUP_COMPANION,...COMPANIONS]:COMPANIONS;
+ const chance=c=>c.pickup?PICKUP_RATE:companionSummonChance(c.id)*(pickup&&c.grade==='S'?.5:1);
+ return `<div class="cp-odds-window"><div class="cp-odds-tabs" role="tablist" aria-label="확률 종류">${['normal','pickup'].map(b=>`<button class="cp-btn ${b===banner?'gold':''}" role="tab" aria-selected="${b===banner}" data-action="companionOdds" data-arg="${b}">${b==='normal'?'일반 소환':'픽업 소환'}</button>`).join('')}</div><p class="cp-odds-intro">${pickup?'픽업 소환권 사용 · 아스트리아 0.5% · 기존 S급 합계 0.5%':'일반 소환권 사용 · 아스트리아는 등장하지 않아요'}</p>${pickup?'<p class="cp-odds-pity">80회째 아스트리아 확정 · 등장하면 천장 초기화<br>아래는 천장 보정 전 1회 소환 확률이에요.</p>':''}${COMPANION_GRADES.map(g=>`<section class="cp-odds-group"><h3>${g}급 <span>전체 ${percent(COMPANION_GRADE_RATES[g])}</span></h3><div class="cp-odds-grid">${pool.filter(c=>c.grade===g).map(c=>`<article class="cp-odds-card cp-g-${g}"><div class="cp-odds-art"><img src="companions/${c.id}-human-v1.webp" alt="${esc(c.name)}" loading="lazy"><span>${g}${c.pickup?' · PICK UP':''}</span></div><b>${esc(c.name)}</b><strong>${percent(chance(c))}</strong><small>${fmt(c.min)}~${fmt(c.max)} G/분</small></article>`).join('')}</div></section>`).join('')}<p class="cp-odds-intro">1회·5회 소환의 각 카드 확률은 같아요. 표시는 반올림되어 합계에 미세한 차이가 생길 수 있어요.</p><button class="cp-btn gold cp-wide" data-action="companionSummonReturn">소환 화면으로</button></div>`;
+}
+
 function companionHelp(){
  const p=COMPANION_PASSIVES;
  return `<div class="cp-help-content" tabindex="-1" autofocus>
@@ -182,6 +190,7 @@ export async function companionAction(action,arg,api){
  if(action==='companionSummonReturn'){clearTimeout(revealSession?.timer);revealSession=null;openSummon(api);return;}
  if(action==='companionSummonOpen'){ui.banner='normal';openSummon(api);return;}
  if(action==='companionBanner'){if(pending)return;ui.banner=arg==='pickup'?'pickup':'normal';openSummon(api);return;}
+ if(action==='companionOdds'){api.open('동료 소환 확률',companionOdds(arg==='pickup'?'pickup':'normal'),true,'companion-dialog cp-odds-dialog');return;}
  if(action==='companionHelp'){api.open('동료 효과·확률 안내',companionHelp(),true,'companion-dialog');return;}
  if(action==='companionRevealAll'){revealSession?.finish();return;}
  if(pending)return;
