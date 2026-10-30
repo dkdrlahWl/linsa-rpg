@@ -1,3 +1,4 @@
+import {settleBank,bankCommand} from './bank-model.mjs';
 import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
@@ -589,6 +590,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(s.version === VERSION, "VERSION_MISMATCH");
   deliverSystemMail(s,ctx);
   normalizeCompanions(s);
+  settleBank(s,ctx.now);
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
   const dailyDay=dayKey(ctx.now);
   if(s.daily?.day!==dailyDay)s.daily={day:dailyDay,hunt:0,boss:0,tower:0,claimed:[]};
@@ -596,6 +598,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   normalizeFishing(s,ctx.now);
   const events = [];
+  if(command==='bankDeposit'||command==='bankWithdraw'){events.push(bankCommand(s,command,args,ctx.now));return {state:s,events};}
   if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableSell","consumableUse","blackMarketBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);

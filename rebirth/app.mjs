@@ -1,3 +1,4 @@
+import {bankView} from './bank-ui.mjs?v=bank-20261031';
 import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
 import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
@@ -33,7 +34,7 @@ import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleA
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=companion-weighted-passives-20261027';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=bank-20261031';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -1632,6 +1633,8 @@ document.addEventListener("click", async (e) => {
       if(result&&!chest)systemInbox();
       return;
     }
+    if(action==="bankOpen"){await command('sync',{},true);open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
+    if(action==="bankDeposit"||action==="bankWithdraw"){if(busy)return;const raw=document.querySelector('#bank-amount')?.value?.trim()||'';if(arg!=='all'&&!/^\d+$/.test(raw))return toast('골드 금액을 숫자로 입력해 주세요.');const amount=arg==='all'?'all':Number(raw);await command(action,{amount});open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
     if(action==="titleOpen"){setTitleFilter('all');open("칭호",titlePanelView(state));modal.classList.add("title-dialog");await command('titleSync',{},true).catch(()=>{});if(modal.open&&modal.classList.contains('title-dialog'))open("칭호",titlePanelView(state)),modal.classList.add("title-dialog");return;}
     if(action==="titleDetail"){setTitleDetail(arg);open("칭호",titlePanelView(state));modal.classList.add("title-dialog");return;}
     if(action==="titleFilter"){setTitleFilter(arg);open("칭호",titlePanelView(state));modal.classList.add("title-dialog");return;}
