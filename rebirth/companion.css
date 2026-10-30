@@ -225,3 +225,10 @@ dialog.companion-dialog:has(.cp-sanctum)>.close{margin:0;min-height:32px;padding
 .cp-banner-pulls{gap:4px}.cp-banner-pulls .cp-banner-tab{min-height:48px;padding:7px!important}.cp-banner-pulls .cp-banner-tab b{font-size:13px}.cp-banner-pulls .cp-banner-tab small{font-size:9px}.cp-banner-note{margin:2px 0 0;font-size:9px}
 @media(max-height:670px){.cp-banner-hero{height:115px}.cp-pickup-stats{gap:1px;padding:5px}.cp-banner-pity{padding:2px}.cp-banner-pulls .cp-banner-tab{min-height:43px}}
 @media(max-width:360px){.cp-pickup-overview{grid-template-columns:minmax(0,1fr) 85px}.cp-pickup-stats{font-size:10px}.cp-pickup-stats strong{font-size:11px}.cp-pickup-card small{font-size:7px}}
+
+/* Preserve character heads across placed cards and summon results. */
+.cp-portrait .cp-art{object-position:center top!important}
+.cp-banner-art{object-fit:contain!important;object-position:center top!important;background:#08162c}
+.cp-banner-copy{padding:8px 9px 5px!important;background:linear-gradient(transparent,#07142be8)!important}
+.cp-banner-copy p{display:none}
+.cp-pickup-card img{object-position:center top!important}
