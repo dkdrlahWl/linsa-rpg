@@ -70,7 +70,8 @@ export function claimSystemMail(state, id, grantBossGear) {
   if (!mail || !state.systemMailbox.some(entry => entry.id === id)) throw new Error('MAIL_NOT_FOUND');
   // Amounts come from the server campaign, never from the request or UI.
   for (const [key, amount] of Object.entries(mail.rewards)) {
-    if(key==='companionTicket')normalizeCompanions(state).tickets+=amount;
+    if(key==='pickupTicket')normalizeCompanions(state).pickupTickets+=amount;
+    else if(key==='companionTicket')normalizeCompanions(state).tickets+=amount;
     else state.materials[key] = (state.materials[key] || 0) + amount;
   }
   state.claimedSystemMail.push(id);

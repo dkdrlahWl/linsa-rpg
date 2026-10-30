@@ -181,3 +181,24 @@ body:not(.tower-mode) .cp-summon-btn b{font-size:11px}
 .cp-merge-label{margin:10px 0 5px;font-size:12px;font-weight:800;color:#ffe2a0}
 .companion-dialog .cp-merge-main{grid-template-columns:minmax(0,110px);justify-content:center}
 .cp-merge-warn{color:#ffb4a8!important;font-size:12px}
+/* Painted summon window: separate wallets, normal tab on every new opening. */
+.cp-summon{grid-template-columns:1.1fr 1.6fr 1.1fr!important}
+.cp-open-summon{background-image:url('companions/summon-button-v1.webp')!important;background-size:100% 100%!important}
+.cp-sanctum{position:relative;isolation:isolate;padding:8px 10px 10px;border-radius:12px;background:linear-gradient(#07122c55,#08132be8),url('companions/summon-sanctum-v1.webp') center/cover;color:#fff0d3;overflow:hidden}
+.cp-sanctum:after{content:'';position:absolute;z-index:-1;inset:0;pointer-events:none;border:12px solid transparent;border-image:url('companions/summon-frame-v1.webp') 70 stretch}
+.cp-banner-tabs,.cp-banner-pulls{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}
+.cp-banner-tab{border:0!important;border-radius:0!important;background:transparent url('companions/summon-button-v1.webp') center/100% 100% no-repeat!important;color:#fff0d3!important;min-height:52px;padding:12px 10px!important;font-weight:800;font-size:15px;text-shadow:0 2px 4px #000;box-shadow:none!important;cursor:pointer}
+.cp-banner-tab.active{background-image:url('companions/summon-button-active-v1.webp')!important;color:#fff7df!important}
+.cp-banner-tab:focus-visible{outline:2px solid #f6dd9a;outline-offset:2px}
+.cp-banner-hero{height:clamp(210px,36dvh,380px);position:relative;margin-top:8px;overflow:hidden;border-radius:8px;box-shadow:0 4px 20px #0008}
+.cp-banner-art{width:100%;height:100%;object-fit:cover;object-position:center 28%}
+.cp-banner-copy{position:absolute;inset:auto 0 0;padding:36px 14px 12px;background:linear-gradient(transparent,#07142bec 60%);text-align:left;text-shadow:0 2px 5px #000}
+.cp-banner-copy small{color:#ebd38b;letter-spacing:.16em;font-size:10px}.cp-banner-copy h2{margin:3px 0;font-size:23px;color:#ffe9ad}.cp-banner-copy p{margin:0;font-size:12px}
+.cp-banner-info{margin:8px 0;padding:9px 10px;background:#07162dd9;border:1px solid #b49a6955;border-radius:6px;font-size:12px;line-height:1.5}.cp-banner-info b{color:#f4d895}.cp-banner-info p{margin:3px 0}.cp-banner-info small{display:block;color:#c8cfdf;font-size:11px}
+.cp-banner-wallet{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;margin:3px 0}.cp-banner-wallet img{width:38px;height:30px;object-fit:contain}.cp-banner-wallet b{color:#ffe6a2}
+.cp-banner-pulls .cp-banner-tab{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:65px}.cp-banner-pulls small{font-size:10px;font-weight:500}.cp-banner-note{text-align:center;color:#b7c5d8;font-size:10px;margin:5px 0}
+@media(max-width:380px){.cp-banner-copy h2{font-size:20px}.cp-banner-info{font-size:11px}.cp-banner-tab{font-size:13px}}
+body:not(.tower-mode) .cp-open-summon{background-position:center!important;min-height:44px}
+body:not(.tower-mode) .cp-open-summon b{display:block!important;font-size:14px!important;line-height:1.2}
+.cp-banner-pulls .cp-banner-tab{background-size:100% 100%!important;gap:2px;min-height:72px;padding:13px 12px!important;line-height:1.15}
+.cp-banner-pulls .cp-banner-tab b{font-size:15px;line-height:1.2}.cp-banner-pulls .cp-banner-tab small{color:#fff3d6;line-height:1.2}
