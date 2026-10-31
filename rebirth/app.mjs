@@ -166,6 +166,7 @@ const errors = {
   INVALID_COPY_LEADER: "카피할 수 없는 유저예요.",
   COPY_LEADER_MIN_GOLD: "그 유저가 정한 최소 자본보다 보유 골드가 적어서 신청할 수 없어요.",
   COPY_REWARD_EMPTY: "받을 카피 보상이 없어요.",
+  INVALID_COPY_ACTION: "카피 해산은 서버 준비 중이에요. 잠시 후 다시 시도해 주세요.",
   COPY_NO_FOLLOWERS: "나를 카피 중인 유저가 없어요.",
   COPY_DISBAND_OPEN_POSITIONS: "보유 포지션을 먼저 모두 판매해야 카피를 해산할 수 있어요.",
   COPY_WALLET_NOT_COPYING: "카피 계좌는 다른 유저를 카피 중일 때만 쓸 수 있어요.",
