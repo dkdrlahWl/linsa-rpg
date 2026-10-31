@@ -109,3 +109,10 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-wallet-row{display:flex;gap:8px}
 .invest-copy-wallet-row input{flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:inherit;font:inherit;text-align:right}
 .invest-copy-wallet-row button{flex:1;white-space:nowrap}
+/* 2026-10-31 리더용 팔로워 카피 계좌 */
+.invest-copy-followers{display:grid;gap:6px;margin:6px 0}
+.invest-copy-follower{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:13px}
+.invest-copy-follower span{opacity:.85;text-align:right}
+.invest-copy-follower em{font-style:normal;font-weight:700}
+.invest-copy-follower em.positive{color:#35da76}
+.invest-copy-follower em.negative{color:#ee5260}
