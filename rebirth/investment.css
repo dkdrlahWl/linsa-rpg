@@ -100,3 +100,12 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-intro-edit input{text-align:left}
 .invest-copy-intro-edit label small{font-weight:400;opacity:.65}
 .invest-copy-row small.invest-copy-intro{opacity:.95;font-style:italic;color:#ffdc86;white-space:normal;word-break:break-all}
+/* 2026-10-31 카피 계좌 */
+.invest-copy-wallet{display:grid;gap:8px;margin:8px 0;padding:10px 12px;border:1px solid rgba(53,218,118,.45);border-radius:10px;background:rgba(53,218,118,.06)}
+.invest-copy-wallet-head{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.invest-copy-wallet-head span{display:grid;gap:2px}
+.invest-copy-wallet-head b{font-size:18px;color:#35da76}
+.invest-copy-wallet small{opacity:.7;font-size:12px}
+.invest-copy-wallet-row{display:flex;gap:8px}
+.invest-copy-wallet-row input{flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:inherit;font:inherit;text-align:right}
+.invest-copy-wallet-row button{flex:1;white-space:nowrap}

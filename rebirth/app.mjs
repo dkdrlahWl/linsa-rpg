@@ -166,6 +166,9 @@ const errors = {
   INVALID_COPY_LEADER: "카피할 수 없는 유저예요.",
   COPY_LEADER_MIN_GOLD: "그 유저가 정한 최소 자본보다 보유 골드가 적어서 신청할 수 없어요.",
   COPY_REWARD_EMPTY: "받을 카피 보상이 없어요.",
+  COPY_WALLET_NOT_COPYING: "카피 계좌는 다른 유저를 카피 중일 때만 쓸 수 있어요.",
+  COPY_WALLET_INVALID_AMOUNT: "금액을 1골드 이상 숫자로 입력해 주세요.",
+  COPY_WALLET_INSUFFICIENT: "카피 계좌 잔액이 부족해요.",
   COPY_INTRO_TOO_LONG: "한 줄 소개는 60자까지 쓸 수 있어요.",
   COPY_MIN_INVALID: "최소 자본은 1,000만~1조 골드 사이 숫자로 입력해 주세요.",
   COPY_LEADER_FULL: "그 유저는 이미 5명이 카피 중이라 신청할 수 없어요.",
@@ -419,7 +422,7 @@ async function openCoinActivity(kind){
 function copyTradingMarkup(data){
  const rate=(w,l)=>{w=Number(w)||0;l=Number(l)||0;return w+l?`카피 승률 <b>${Math.round(w/(w+l)*100)}%</b> · 카피 ${w+l}회`:'카피 기록 없음';};
  const following=data.following,followers=data.followers||[];
- const head=following?`<p class="note"><b>${esc(following.name)}</b> 카피 중 · 상대가 산 종목을 보유 골드 비율만큼 같은 레버리지로 따라 사고, 상대가 팔면 같이 팔아요. 직접 매수는 막히고, 직접 매도하면 카피가 끝나요.</p><button data-action="investCopyStop" data-write data-illustrated="1">카피 종료</button>`:`<p class="note">상대가 매수할 때 쓴 보유 골드 비율만큼 같은 종목·방향·레버리지로 자동 매수하고, 상대가 팔면 같이 팔아요.<br>신청 조건: ${fmt(data.minGold||10000000)} 골드 이상 보유 · 보유 포지션 없음 · 한 유저당 최대 ${data.maxCopiers||2}명</p>`;
+ const head=following?`<p class="note"><b>${esc(following.name)}</b> 카피 중 · 상대가 산 종목을 <b>카피 계좌</b> 잔액 비율만큼 같은 레버리지로 따라 사고, 상대가 팔면 같이 팔아 카피 계좌로 돌려받아요. 직접 매수는 막히고, 직접 매도하면 카피가 끝나요.</p><div class="invest-copy-wallet"><div class="invest-copy-wallet-head"><span><small>카피 계좌</small><b>${fmt(data.copyWallet||0)} G</b></span><small>보유 골드 ${fmt(state?.gold||0)} G</small></div><div class="invest-copy-wallet-row"><input id="copy-wallet-amount" inputmode="numeric" autocomplete="off" placeholder="금액" aria-label="카피 계좌 입출금 금액"><button type="button" data-action="investCopyWalletMax" data-arg="deposit" data-illustrated="1">입금 최대</button><button type="button" data-action="investCopyWalletMax" data-arg="withdraw" data-illustrated="1">출금 최대</button></div><div class="invest-copy-wallet-row"><button data-action="investCopyWallet" data-arg="deposit" data-write data-illustrated="1">입금</button><button data-action="investCopyWallet" data-arg="withdraw" data-write data-illustrated="1">출금</button></div><small>카피는 이 계좌에 넣은 돈으로만 해요 · 포지션에 들어간 돈은 팔린 뒤에 출금할 수 있어요 · 카피를 끝내면 남은 잔액은 자동으로 보유 골드로 돌아가요</small></div><button data-action="investCopyStop" data-write data-illustrated="1">카피 종료</button>`:`<p class="note">상대가 매수할 때 쓴 보유 골드 비율만큼 같은 종목·방향·레버리지로 자동 매수하고, 상대가 팔면 같이 팔아요.<br>신청 조건: ${fmt(data.minGold||10000000)} 골드 이상 보유 · 보유 포지션 없음 · 한 유저당 최대 ${data.maxCopiers||2}명</p>`;
  const mine=(followers.length?`<p class="note">나를 카피 중: <b>${followers.map(f=>esc(f.name)).join(', ')}</b></p>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>')+`<p class="note">내 ${rate(data.myStats?.wins,data.myStats?.losses)}</p>`+`<div class="invest-copy-reward-box"><span><small>쌓인 카피 보상</small><b>${fmt(data.rewardPending||0)} G</b><small>지금까지 받은 보상 ${fmt(data.rewardClaimed||0)} G</small></span><button data-action="investCopyClaim" data-write data-illustrated="1" ${Number(data.rewardPending)>0?'':'disabled'}>수령</button></div>`+`<div class="invest-copy-min invest-copy-intro-edit"><label for="copy-intro">내 한 줄 소개 <small>(다른 유저가 카피할 때 참고해요)</small></label><div><input id="copy-intro" maxlength="60" autocomplete="off" placeholder="예: 3배 롱 위주 · 손절 빠름 · 하루 10회 이상" value="${esc(data.myIntro||'')}" aria-label="카피 한 줄 소개"><button data-action="investCopyIntro" data-write data-illustrated="1">저장</button></div><small>최대 60자</small></div>`+`<div class="invest-copy-min"><label for="copy-min-gold">나를 카피하려면 보유 골드</label><div><input id="copy-min-gold" inputmode="numeric" autocomplete="off" value="${fmt(data.myMinGold||10000000)}" aria-label="카피 신청 최소 자본"><span>G 이상</span><button data-action="investCopyMin" data-write data-illustrated="1">저장</button></div><small>새 카피 신청에만 적용돼요 · 1,000만~1조 골드</small></div>`;
  const list=(data.candidates||[]).map(u=>{const isLeader=following?.id===u.id;if(u.self)return `<article class="invest-copy-row is-self"><span><b>${esc(u.name)} (나)</b>${u.intro?`<small class="invest-copy-intro">“${esc(u.intro)}”</small>`:''}<small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span><em>나</em></article>`;const maxC=data.maxCopiers||2,full=u.copiers>=maxC,min=Number(u.minGold)||10000000,poor=Number(state?.gold||0)<min;const blocked=!!following||u.copying||followers.length>0||full||poor;return `<article class="invest-copy-row"><span><b>${esc(u.name)}</b>${u.intro?`<small class="invest-copy-intro">“${esc(u.intro)}”</small>`:''}<small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-min-need ${poor?'negative':'positive'}">최소 자본 ${fmt(min)} G${poor?' · 골드 부족':' · 신청 가능'}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span>${isLeader?'<em>카피 중</em>':full?'<em>인원 마감</em>':`<button data-action="investCopyStart" data-arg="${esc(u.id)}" data-write data-illustrated="1" ${blocked?'disabled':''}>카피 신청</button>`}</article>`;}).join('');
  return `<section class="invest-copy-feed">${head}<p class="note invest-copy-reward">💰 카피로 같이 판 거래가 <b>수익</b>이면, 카피한 유저 순수익의 <b>10%</b>를 리더 보상함에 쌓아줘요. 카피한 유저 돈에서 빠지는 게 아니라 <b>따로 지급</b>돼요. 손실·청산이면 보상 없어요.</p>${mine}<div class="invest-copy-list">${list}</div></section>`;
@@ -437,6 +440,16 @@ async function copyTradingClaim(){
   toast(`카피 보상 ${fmt(data.claimed||0)} G를 받았어요.`);
   if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
   await command('investList',{},true);
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
+}
+async function copyTradingWallet(kind){
+ const account=session?.user?.id,amount=Number(String(modal.querySelector('#copy-wallet-amount')?.value||'').replace(/[^0-9]/g,''));
+ if(!Number.isSafeInteger(amount)||amount<1){toast(errors.COPY_WALLET_INVALID_AMOUNT);return;}
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy_wallet',{p_action:kind,p_amount:amount});
+  if(session?.user?.id!==account)return;
+  await command('investList',{},true);
+  toast(kind==='deposit'?`카피 계좌에 ${fmt(amount)} G를 넣었어요.`:`카피 계좌에서 ${fmt(amount)} G를 뺐어요.`);
+  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
  }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
 }
 async function copyTradingIntro(){
@@ -1526,6 +1539,8 @@ document.addEventListener("click", async (e) => {
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
     if(action==='investCopy'){b.disabled=true;try{await openCopyTrading();}finally{b.disabled=false;}return;}
     if(action==='investCopyClaim'){if(busy)return;b.disabled=true;try{await copyTradingClaim();}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyWalletMax'){const input=modal.querySelector('#copy-wallet-amount'),w=modal.querySelector('.invest-copy-wallet-head b');if(input)input.value=fmt(arg==='deposit'?Math.floor(state?.gold||0):Number(String(w?.textContent||'').replace(/[^0-9]/g,'')));return;}
+    if(action==='investCopyWallet'){if(busy)return;b.disabled=true;try{await copyTradingWallet(arg);}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyIntro'){if(busy)return;b.disabled=true;try{await copyTradingIntro();}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyMin'){if(busy)return;b.disabled=true;try{await copyTradingMin();}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyStart'||action==='investCopyStop'){if(busy)return;b.disabled=true;try{await copyTradingAction(action==='investCopyStart'?'start':'stop',arg);}finally{if(b.isConnected)b.disabled=false;}return;}
