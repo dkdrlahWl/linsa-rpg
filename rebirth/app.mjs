@@ -444,13 +444,15 @@ async function copyTradingClaim(){
   await command('investList',{},true);
  }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
 }
-async function copyTradingDisband(b){
- if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='한 번 더 누르면 해산돼요';setTimeout(()=>{if(b.isConnected){delete b.dataset.confirm;b.textContent='카피 해산';}},4000);return;}
+function copyTradingDisbandAsk(){
+ open('카피 해산',`<div class="stack"><p>나를 카피 중인 유저를 <b>모두 해제</b>할까요?</p><p class="note">각자 카피 계좌에 남은 돈은 보유 골드로 자동으로 돌아가요. 되돌릴 수 없어요.</p><div class="invest-copy-wallet-row"><button data-action="investCopy" data-illustrated="1">취소</button><button class="invest-copy-disband" data-action="investCopyDisbandConfirm" data-write data-illustrated="1">확인</button></div></div>`);
+}
+async function copyTradingDisband(){
  const account=session?.user?.id;
  try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy',{p_action:'disband'});
   if(session?.user?.id!==account)return;
   toast('카피를 해산했어요. 카피 중이던 유저가 모두 해제됐어요.');
-  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+  if(modal.open)open('카피 트레이딩',copyTradingMarkup(data));
  }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
 }
 async function copyTradingWallet(kind){
@@ -1550,7 +1552,8 @@ document.addEventListener("click", async (e) => {
     if(action==='adminPositions'){if(!state.isAdmin)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&state?.isAdmin===true,fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
     if(action==='investCopy'){b.disabled=true;try{await openCopyTrading();}finally{b.disabled=false;}return;}
     if(action==='investCopyClaim'){if(busy)return;b.disabled=true;try{await copyTradingClaim();}finally{if(b.isConnected)b.disabled=false;}return;}
-    if(action==='investCopyDisband'){if(busy)return;const first=b.dataset.confirm!=='1';if(first){await copyTradingDisband(b);return;}b.disabled=true;try{await copyTradingDisband(b);}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyDisband'){copyTradingDisbandAsk();return;}
+    if(action==='investCopyDisbandConfirm'){if(busy)return;b.disabled=true;try{await copyTradingDisband();}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyWalletMax'){const input=modal.querySelector('#copy-wallet-amount'),w=modal.querySelector('.invest-copy-wallet-head b');if(input)input.value=fmt(arg==='deposit'?Math.floor(state?.gold||0):Number(String(w?.textContent||'').replace(/[^0-9]/g,'')));return;}
     if(action==='investCopyWallet'){if(busy)return;b.disabled=true;try{await copyTradingWallet(arg);}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyIntro'){if(busy)return;b.disabled=true;try{await copyTradingIntro();}finally{if(b.isConnected)b.disabled=false;}return;}
