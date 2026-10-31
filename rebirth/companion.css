@@ -261,3 +261,4 @@ dialog.companion-dialog:has(.cp-sanctum):not([open]){display:none}
 .cp-screen.cp-scroll{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8c784b #061428}
 .cp-screen.cp-scroll .cp-grid{max-height:none;overflow:visible}
 .cp-screen.cp-scroll .cp-selected-bar{position:sticky;bottom:0;background:#071326f2;border-top:1px solid #a78a5088}
+@media(pointer:fine){.cp-screen .cp-grid,.cp-screen.cp-scroll{cursor:grab}.cp-screen .cp-grid:active{cursor:grabbing}.cp-screen .cp-grid img{-webkit-user-drag:none;user-select:none}}

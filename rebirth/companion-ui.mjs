@@ -98,6 +98,22 @@ function fitScreen(){
  if(el.scrollHeight>el.clientHeight+1){el.classList.remove('cp-fit');el.classList.add('cp-scroll');}
 }
 if(typeof window!=='undefined'){window.addEventListener('resize',fitScreen);window.visualViewport?.addEventListener('resize',fitScreen);}
+// PC 마우스로 동료 가방(또는 화면 전체)을 끌어서 스크롤. 5px 넘게 끌면 카드 클릭은 무시한다.
+if(typeof document!=='undefined'){
+ let drag=null;
+ document.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse'||e.button!==0)return;
+  const screen=e.target.closest?.('.cp-screen');if(!screen||e.target.closest('.cp-selected-bar'))return;
+  const grid=e.target.closest('.cp-grid'),box=grid&&grid.scrollHeight>grid.clientHeight+1?grid:screen.scrollHeight>screen.clientHeight+1?screen:null;
+  if(!box)return;
+  if(e.offsetX>box.clientWidth&&e.target===box)return; // 스크롤바 직접 잡은 경우는 브라우저에 맡김
+  drag={box,y:e.clientY,top:box.scrollTop,moved:false};
+ },true);
+ document.addEventListener('pointermove',e=>{if(!drag||e.pointerType!=='mouse')return;const dy=e.clientY-drag.y;if(!drag.moved&&Math.abs(dy)<5)return;drag.moved=true;drag.box.scrollTop=drag.top-dy;e.preventDefault();},{passive:false});
+ document.addEventListener('pointerup',()=>{if(drag?.moved){const stop=ev=>{ev.stopPropagation();ev.preventDefault();};document.addEventListener('click',stop,{capture:true,once:true});setTimeout(()=>document.removeEventListener('click',stop,{capture:true}),0);}drag=null;},true);
+ document.addEventListener('pointercancel',()=>{drag=null;},true);
+ document.addEventListener('dragstart',e=>{if(e.target.closest?.('.cp-screen'))e.preventDefault();},true);
+}
 export function updateCompanionTimers(s,root){
  clearInterval(timer);timer=null;
  if(!root?.querySelector('.cp-screen'))return;
