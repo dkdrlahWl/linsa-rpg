@@ -6,6 +6,9 @@ import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} fro
 import {normalizeSkillLooks,equippedSkillLook,skillLookCommand,SKILL_LOOK_CRIT_DAMAGE,ownedSkillLookCount} from './skill-looks.mjs';
 import {bossSalePrice,inAnyGearPreset} from './shop-model.mjs';
 import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
+// 2026-11-01(일) 하루 이벤트: 200제 일일보스(모르가리온) 보스장비 드롭 기본 20% (행운 물약 적용 시 30%). 한국시간 11/1 00:00~24:00.
+const BOSS_DROP_EVENTS={30:{from:Date.parse('2026-11-01T00:00:00+09:00'),to:Date.parse('2026-11-02T00:00:00+09:00'),chance:.20}};
+const bossGearChance=(boss,now)=>{const e=BOSS_DROP_EVENTS[boss.id];return e&&now>=e.from&&now<e.to?e.chance:boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE);};
 import {blackMarketBuy} from './black-market.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=priest-potential-83';
@@ -517,7 +520,7 @@ function bossSettle(s, ctx, events) {
       s.materials.highCube+=2;
 
     }
-    if (ctx.random() < rewardChance(boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE),s,ctx.now)) {
+    if (ctx.random() < rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)) {
         const it = makeLootItem(
           boss.gearLevel,
           pick(CLASSES, ctx).id,
@@ -614,7 +617,7 @@ function executeCore(input, command, args = {}, ctx) {
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
       if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});const forcedGear=s.adminNextBossGear;const forceNow=forcedGear&&forcedGear.bossId===boss.id&&ctx.now>=(forcedGear.after||0);if(forceNow)delete s.adminNextBossGear;
         // 운영자 지정 드롭(DB): adminNextBossGear={bossId,after,slot?}. 무기 제외 부위 중 하나로 확정 지급.
-        if(forceNow||ctx.random()<rewardChance(boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE),s,ctx.now)){const level=boss.gearLevel;const slot=forceNow?(Number.isInteger(forcedGear.slot)&&forcedGear.slot>=1&&forcedGear.slot<=8?forcedGear.slot:1+Math.floor(ctx.random()*8)):boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random()*9);const item=makeLootItem(level,forceNow?s.classId:pick(CLASSES,ctx).id,slot,true,ctx,undefined,forceNow||!!boss.exactHalfWeapon);addItem(s,item);reward.items.push(item.id);}}
+        if(forceNow||ctx.random()<rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)){const level=boss.gearLevel;const slot=forceNow?(Number.isInteger(forcedGear.slot)&&forcedGear.slot>=1&&forcedGear.slot<=8?forcedGear.slot:1+Math.floor(ctx.random()*8)):boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random()*9);const item=makeLootItem(level,forceNow?s.classId:pick(CLASSES,ctx).id,slot,true,ctx,undefined,forceNow||!!boss.exactHalfWeapon);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){
