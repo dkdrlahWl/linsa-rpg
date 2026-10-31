@@ -89,12 +89,13 @@ export function companionView(s){
 // 배치·소환·가방·선택 바가 폰 한 화면에 들어오게 높이를 맞춘다. 가방만 안에서 스크롤.
 function fitScreen(){
  const el=document.querySelector('.cp-screen');if(!el)return;
- el.style.height='';el.classList.remove('cp-fit');
+ el.style.height='';el.classList.remove('cp-fit','cp-scroll');
  const dock=document.querySelector('.fantasy-dock'),dockH=dock?dock.getBoundingClientRect().height:0;
  const h=Math.floor((window.visualViewport?.height||window.innerHeight)-(el.getBoundingClientRect().top)-dockH-2);
  el.style.height=h+'px';el.classList.add('cp-fit');
- // 너무 작은 화면이면 원래대로 페이지 스크롤.
- if(el.scrollHeight>el.clientHeight+1){el.style.height='';el.classList.remove('cp-fit');}
+ // 한 화면에 안 들어가면(PC 등) 동료 화면 안에서 스크롤하고, 선택 바(배치·합성)는 아래에 고정한다.
+ // 페이지 스크롤에 맡기면 하단 메뉴에 가려 버튼을 못 누르는 경우가 있었다.
+ if(el.scrollHeight>el.clientHeight+1){el.classList.remove('cp-fit');el.classList.add('cp-scroll');}
 }
 if(typeof window!=='undefined'){window.addEventListener('resize',fitScreen);window.visualViewport?.addEventListener('resize',fitScreen);}
 export function updateCompanionTimers(s,root){
