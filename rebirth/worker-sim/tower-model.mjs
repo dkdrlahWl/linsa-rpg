@@ -1,14 +1,14 @@
-import {SOVEREIGN_TOWER_FLOORS,sovereignTowerPattern} from './sovereign-tower.mjs?v=adv300-20261027';
-import {APEX_TOWER_FLOORS,apexTowerPattern} from './apex-tower.mjs?v=adv300-20261027';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=adv300-20261027';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=adv300-20261027';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=adv300-20261027';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=adv300-20261027';
-import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=adv300-20261027';
-import {incomingDamage} from './journey-balance.mjs?v=adv300-20261027';
-import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=adv300-20261027';
+import {SOVEREIGN_TOWER_FLOORS,sovereignTowerPattern} from './sovereign-tower.mjs?v=citadel-short-20261101';
+import {APEX_TOWER_FLOORS,apexTowerPattern} from './apex-tower.mjs?v=citadel-short-20261101';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=citadel-short-20261101';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=citadel-short-20261101';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=citadel-short-20261101';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=citadel-short-20261101';
+import {beginThird,stepThird,ADVANCEMENT_BOSSES} from './advancement.mjs?v=citadel-short-20261101';
+import {incomingDamage} from './journey-balance.mjs?v=citadel-short-20261101';
+import {UPPER_TOWER_FLOORS,upperTowerPattern} from './upper-tower.mjs?v=citadel-short-20261101';
 // Shared deterministic combat. Only input vectors/buttons cross the network.
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=adv300-20261027';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=citadel-short-20261101';
 export const TOWER_STEP = 100;
 export const CHEST_REACH=150;
 export const canOpenChest=b=>!!b.chest&&Math.hypot(b.player.x-b.chest.x,b.player.y-b.chest.y)<=CHEST_REACH;

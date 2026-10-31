@@ -2,7 +2,7 @@
 // Same option kinds and odds as the main potential pool of the same grade,
 // at one tenth of the value. Flat options are rounded to whole numbers.
 // Rolled only with the additional cube (no red/black/prime cube, no pity).
-import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=adv300-20261027';
+import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=citadel-short-20261101';
 
 export const ADDITIONAL_SCALE = 10;
 export const ADDITIONAL_UNLOCK_CHANCE = 0.1;

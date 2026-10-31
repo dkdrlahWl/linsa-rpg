@@ -1,5 +1,5 @@
-import {buildCitadelRegion} from './citadel-map.mjs?v=adv300-20261027';
-import {dungeonMove,nearestWalkable} from './exploration-dungeon.mjs?v=adv300-20261027';
+import {buildCitadelRegion} from './citadel-map.mjs?v=citadel-short-20261101';
+import {dungeonMove,nearestWalkable} from './exploration-dungeon.mjs?v=citadel-short-20261101';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
 export const CITADEL_TIER=3,CITADEL_VERSION='citadel-hw-218';
@@ -99,7 +99,7 @@ export function citadelFloor(w,walkable,reveal){
  w.citadelVersion=CITADEL_VERSION;w.citadelStage=st;w.floorAt=w.tick;w.floorDeadline=Number.MAX_SAFE_INTEGER;delete w.bossBattleAt;delete w.bossDeath;w.exitOpen=!st.boss;w.dungeon=makeCitadelDungeon(w.floor,(w.mapSeed??w.started)>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;w.citadelBossCleared=false;w.hearts=[];w.traps=[];
  const slots=[];for(const r of w.dungeon.rooms){if(r.id===3)continue;for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(walkable(w.dungeon,(x+.5)*100,(y+.5)*100))slots.push({x:(x+.5)*100,y:(y+.5)*100});}
  for(let i=slots.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}
- const count=st.boss?0:Math.min(slots.length-12-CITADEL_HEARTS,Math.round((CITADEL_MONSTERS.base+st.act*CITADEL_MONSTERS.perAct+Math.floor(random()*CITADEL_MONSTERS.spread))*CITADEL_MONSTER_SCALE));
+ const count=st.boss?0:Math.min(slots.length-12-CITADEL_HEARTS,Math.round((CITADEL_MONSTERS.base+st.act*CITADEL_MONSTERS.perAct+Math.floor(random()*CITADEL_MONSTERS.spread))*CITADEL_MONSTER_SCALE*(w.dungeon.monsterScale??1)));
  const make=(i,point,extra={})=>{const stats=citadelStats(w.floor,w.population,!!extra.boss),species=st.biome*4+i%4;return {id:-(w.floor*10000+i+1),...point,species,name:CITADEL_BIOMES[st.biome].enemies[i%4],citadel:true,explorationTier:3,art:citadelAsset('enemy',species),level:200,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,ready:w.tick+15,walk:0,face:1,elite:i%13===0,role:[6,11,13,21,25].includes(species)?'ranged':[3,9,14,15,22,26,27,31].includes(species)?'caster':'melee',...extra};};
  for(let i=0;i<count;i++)w.monsters.push(make(i,slots.pop()));
  if(st.boss){const order=[0,1,2,3];for(let j=3;j>0;j--){const k=Math.floor(random()*(j+1));[order[j],order[k]]=[order[k],order[j]];}const n=st.boss==='harbingers'?2:st.boss==='serpents'?3:1,artIndex={totem:0,shadow:4,plant:5,harbingers:6,serpents:8,avatar:9}[st.boss];

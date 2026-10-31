@@ -10,7 +10,26 @@
 //  5 barracks – parade ground surrounded by furnished halls
 //  6 royal    – open palace garden with wings, hedges and fountains
 //  7 corridor – one long winding dark passage with side chambers
-export const CITADEL_MAP_VERSION='citadel-map-218';
+export const CITADEL_MAP_VERSION='citadel-map-219';
+// 2026-11-01: 2막 일반 지역(숲 3·신전·묘지 1·2)은 입구→출구 길이를 약 1/3로 줄인다.
+export const CITADEL_SHORT_ACTS={2:1/3};
+// 출구를 원래 거리의 ratio 지점 근처의 넓은 칸으로 옮기고, 그보다 먼 곳은 벽으로 막는다.
+function shortenRegion(c,layout,ratio){
+ const dist=distances(c.grid,layout.start.x,layout.start.y),D=dist[layout.exit.y*SIZE+layout.exit.x];
+ if(!(D>0))return 1;
+ const target=Math.max(12,Math.round(D*ratio));
+ let best=null,bestScore=Infinity;
+ // 넓은 칸(5x5) 우선, 목표 거리 근처에 없으면 3x3 칸까지 본다(묘지처럼 방이 좁은 지역).
+ for(const r of [2,1]){for(let y=4;y<SIZE-4;y++)for(let x=4;x<SIZE-4;x++){const d=dist[y*SIZE+x];if(d<0||!open(c.grid,x,y,r))continue;const score=Math.abs(d-target)+(d<target?.5:0)+(r===1?3:0);if(score<bestScore){best={x,y};bestScore=score;}}if(best&&bestScore<=target*.25)break;}
+ if(!best)return 1;
+ const cut=dist[best.y*SIZE+best.x]+6;
+ const before=c.grid.reduce((n,r)=>n+r.filter(floor).length,0);
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(floor(c.grid[y][x])&&dist[y*SIZE+x]>cut)c.grid[y][x]='0';
+ const after=c.grid.reduce((n,r)=>n+r.filter(floor).length,0);
+ layout.rooms=layout.rooms.filter(r=>{if(r.id===0)return false;const p=centre(r);return floor(c.grid[p.y]?.[p.x])&&dist[p.y*SIZE+p.x]<=cut-2;});
+ layout.rooms.push(boxAt(0,best.x,best.y,3));layout.exit=best;
+ return Math.max(.2,after/before);
+}
 const SIZE=64,CELL=100;
 const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
 
@@ -275,8 +294,10 @@ export function buildCitadelRegion(stage,floorNumber,seed,version){
   const tp=p=>{const [x,y]=T(p.x,p.y);return {x,y};};
   layout.start=tp(layout.start);layout.exit=tp(layout.exit);
   layout.rooms=layout.rooms.map(r=>{const cc=centre(r),[cx,cy]=T(cc.x,cc.y),odd=(turn&3)%2===1,w=odd?r.h:r.w,h=odd?r.w:r.h;return {id:r.id,x:cx-Math.floor(w/2),y:cy-Math.floor(h/2),w,h};});}
+ let monsterScale=1;
+ if(!stage.boss&&CITADEL_SHORT_ACTS[stage.act])monsterScale=shortenRegion(c,layout,CITADEL_SHORT_ACTS[stage.act]);
  // Never leave a resident zone or the exit disconnected.
  if(!reachableAll(c.grid,[layout.start,layout.exit,...layout.rooms.map(centre)]))throw Error('CITADEL_MAP_DISCONNECTED');
  const point=p=>({x:(p.x+.5)*CELL,y:(p.y+.5)*CELL});
- return {id:version+':'+CITADEL_MAP_VERSION+':'+floorNumber+':'+(seed>>>0),size:SIZE,cell:CELL,tiles:c.grid.map(r=>r.join('')),rooms:layout.rooms,start:point(layout.start),exit:point(layout.exit),seen:Array(SIZE).fill('0'.repeat(SIZE)),citadel:true,shadowWalls:[],biome:stage.biome,boss:stage.boss||null,bossArena:!!stage.boss};
+ return {id:version+':'+CITADEL_MAP_VERSION+':'+floorNumber+':'+(seed>>>0),size:SIZE,cell:CELL,tiles:c.grid.map(r=>r.join('')),rooms:layout.rooms,start:point(layout.start),exit:point(layout.exit),seen:Array(SIZE).fill('0'.repeat(SIZE)),citadel:true,shadowWalls:[],biome:stage.biome,boss:stage.boss||null,bossArena:!!stage.boss,monsterScale};
 }

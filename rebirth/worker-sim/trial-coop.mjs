@@ -1,6 +1,6 @@
-import {supportTick} from './priest.mjs?v=adv300-20261027';
-import {ADVANCEMENT_BOSSES,trialHp} from './advancement.mjs?v=adv300-20261027';
-import {newTowerBattle,towerStep} from './tower-model.mjs?v=adv300-20261027';
+import {supportTick} from './priest.mjs?v=citadel-short-20261101';
+import {ADVANCEMENT_BOSSES,trialHp} from './advancement.mjs?v=citadel-short-20261101';
+import {newTowerBattle,towerStep} from './tower-model.mjs?v=citadel-short-20261101';
 
 // The existing trial simulation supplies all damage, movement and boss patterns.
 // Only one actor advances the shared boss timeline each tick.
