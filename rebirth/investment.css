@@ -116,3 +116,4 @@ body:not(.tower-mode) #modal.invest-trade-dialog{--activity-list-height:min(600p
 .invest-copy-follower em{font-style:normal;font-weight:700}
 .invest-copy-follower em.positive{color:#35da76}
 .invest-copy-follower em.negative{color:#ee5260}
+.invest-copy-disband{margin-top:4px;border-color:#ee5260!important;color:#ee5260}
