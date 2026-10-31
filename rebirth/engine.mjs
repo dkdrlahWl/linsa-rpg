@@ -6,8 +6,9 @@ import {normalizeCostumes,equippedCostume,costumeCommand,costumeAttackBonus} fro
 import {normalizeSkillLooks,equippedSkillLook,skillLookCommand,SKILL_LOOK_CRIT_DAMAGE,ownedSkillLookCount} from './skill-looks.mjs';
 import {bossSalePrice,inAnyGearPreset} from './shop-model.mjs';
 import {consumableCommand,rewardChance,BOSS_GEAR_RATE_SCALE} from './consumables.mjs';
-// 2026-11-01(일) 하루 이벤트: 200제 일일보스(모르가리온) 보스장비 드롭 기본 20% (행운 물약 적용 시 30%). 한국시간 11/1 00:00~24:00.
-const BOSS_DROP_EVENTS={30:{from:Date.parse('2026-11-01T00:00:00+09:00'),to:Date.parse('2026-11-02T00:00:00+09:00'),chance:.20}};
+// 2026-11-01(일) 하루 이벤트: 200제 보장 드롭 일일보스 2종(모르가리온·유리등 해마) 기본 20% (행운 물약 적용 시 30%). 한국시간 11/1 00:00~24:00.
+const BOSS_DROP_SUNDAY={from:Date.parse('2026-11-01T00:00:00+09:00'),to:Date.parse('2026-11-02T00:00:00+09:00'),chance:.20};
+const BOSS_DROP_EVENTS={30:BOSS_DROP_SUNDAY,32:BOSS_DROP_SUNDAY};
 const bossGearChance=(boss,now)=>{const e=BOSS_DROP_EVENTS[boss.id];return e&&now>=e.from&&now<e.to?e.chance:boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE);};
 import {blackMarketBuy} from './black-market.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
