@@ -1,0 +1,83 @@
+{
+  "generator": "built-in image_gen",
+  "transparent_background": true,
+  "shared_prompt": "Use case: stylized-concept. Asset type: ONE transparent-background button icon for a polished Korean mobile high fantasy RPG. Style: luxurious hand-painted 2.5D fantasy inventory art, antique gold, royal blue and amethyst jewel palette, crisp rich materials, thick readable silhouette, small controlled highlights. Center ONE emblem fully visible with generous 12 percent transparent margin. Must be legible at 26px. Not a circular app tile: free-standing object silhouette. Transparent background, no backdrop, no square tile, no border frame, no floor, no drop shadow plane, no words, letters, digits, UI, watermark. Primary subject: ",
+  "assets": [
+    {
+      "file": "arena-v1.webp",
+      "subject": "a royal blue enchanted knight shield with crossed silver lances and gold laurel wings, arena combat emblem"
+    },
+    {
+      "file": "wheel-v1.webp",
+      "subject": "a jewel-encrusted gold fortune wheel with eight colorful crystal segments, a small gold pointer at top"
+    },
+    {
+      "file": "title-v1.webp",
+      "subject": "an elaborate royal gold crown with three violet jewels, delicate small winglike filigree sides, prestige title emblem"
+    },
+    {
+      "file": "bank-v1.webp",
+      "subject": "an ornate gold vault door slightly ajar with stacked gold coins and violet crystal within, fantasy bank emblem"
+    },
+    {
+      "file": "investment-v1.webp",
+      "subject": "three rising emerald crystal bars behind two embossed gold coins and a curving upward gold arrow, investment emblem"
+    },
+    {
+      "file": "market-v1.webp",
+      "subject": "golden balance scales above a compact blue treasure chest and one violet gem, player trading market emblem"
+    },
+    {
+      "file": "attendance-v1.webp",
+      "subject": "an ivory parchment calendar page on dark blue backing with a large gold sun wax seal and one purple ribbon, daily attendance emblem"
+    },
+    {
+      "file": "mail-v1.webp",
+      "subject": "a sealed ivory envelope with violet wax seal and two tiny gold feather wings, fantasy mailbox emblem"
+    },
+    {
+      "file": "ranking-v1.webp",
+      "subject": "a polished golden trophy cup with deep sapphire inset, flanked by a small laurel wreath, leaderboard emblem"
+    },
+    {
+      "file": "menu-v1.webp",
+      "subject": "an open dark blue magic grimoire with gold clasps and a luminous violet compass rose floating above pages, main menu emblem"
+    },
+    {
+      "file": "warrior3d-v1.webp",
+      "subject": "an enchanted golden armillary sphere surrounding a floating faceted sapphire training crystal, combat laboratory emblem"
+    },
+    {
+      "file": "exploration-v1.webp",
+      "subject": "a golden adventure compass with emerald needle, coiled map parchment and one tiny blue gemstone, exploration emblem"
+    },
+    {
+      "file": "citadel-v1.webp",
+      "subject": "a dark obsidian gothic fortress with three tall pointed towers and glowing violet gate, silver and gold edges, dark citadel emblem"
+    },
+    {
+      "file": "raid-v1.webp",
+      "subject": "a fierce crimson dragon head with ivory horns and a gold raid crest behind it, cooperative dragon raid emblem"
+    },
+    {
+      "file": "daily-v1.webp",
+      "subject": "a radiant golden sun disk above a small azure dungeon archway, daily boss emblem"
+    },
+    {
+      "file": "weekly-v1.webp",
+      "subject": "an ornate golden hourglass filled with violet stardust, held within a silver crescent moon, weekly boss emblem"
+    },
+    {
+      "file": "training-v1.webp",
+      "subject": "a wooden practice training dummy with straw arms wearing a blue cloth chest pad with a gold bullseye, training emblem"
+    },
+    {
+      "file": "tower-v1.webp",
+      "subject": "a tall ivory and gold magical tower with three tiers and glowing violet crystal spire, trial tower emblem"
+    },
+    {
+      "file": "advancement-v1.webp",
+      "subject": "a rising silver sword encircled by gold wings and luminous violet ascension crystal, job advancement boss emblem"
+    }
+  ]
+}

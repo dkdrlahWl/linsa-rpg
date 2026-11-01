@@ -1,0 +1,12 @@
+/* Dedicated generated emblems for header and boss category buttons. */
+img.top-nav-icon,img.boss-menu-art{background:none!important;object-fit:contain;object-position:center;filter:drop-shadow(0 1px 2px #0008);display:inline-block;vertical-align:middle}
+.fantasy-brand-row .header-button-image{width:28px;height:28px;object-fit:contain;display:block;filter:drop-shadow(0 1px 2px #0008);flex-shrink:0}
+.fantasy-title-entry .header-button-image{width:25px;height:25px}
+.subnav img.boss-menu-art{width:27px;height:27px;min-width:27px;flex:0 0 27px;margin-right:6px}
+.fantasy-main-nav img.top-nav-icon{width:25px;height:25px;flex:0 0 25px;margin:0}
+@media(max-width:700px){
+ .fantasy-brand-row .header-button-image{width:29px!important;height:29px!important}
+ .fantasy-main-nav img.top-nav-icon{width:21px;height:21px;flex-basis:21px}
+ .subnav img.boss-menu-art{width:23px;height:23px;min-width:23px;flex-basis:23px;margin-right:4px}
+}
+@media(max-width:370px){.fantasy-main-nav img.top-nav-icon{width:19px;height:19px;flex-basis:19px}.subnav img.boss-menu-art{width:21px;height:21px;min-width:21px;flex-basis:21px;margin-right:3px}}

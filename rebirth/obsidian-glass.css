@@ -1,0 +1,77 @@
+/* Obsidian glass: shared interface surfaces; artwork and combat maps stay in their own layers. */
+:root{--glass:rgba(7,8,11,.80);--glass-soft:rgba(12,13,17,.66);--glass-deep:rgba(3,4,6,.91);--glass-line:rgba(194,170,112,.33);--glass-gold:#e0c28b;--glass-ink:#eeeae1;--glass-muted:#b5b4b0}
+body,body:not(.tower-mode){--bg:#050608;--panel:rgba(7,8,11,.8);--gold:#dec28b;--ink:#eeeae1;--muted:#b5b4b0;--line:rgba(194,170,112,.33);color:var(--glass-ink)}
+body:not(.tower-mode){background:#050608 url('ui/fantasy/obsidian-sanctuary-v1.webp') center center/cover fixed!important}
+body:not(.tower-mode):before{background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.24) 40%,rgba(0,0,0,.58))!important}
+body:not(.tower-mode) .fantasy-shell{background:transparent!important}
+body :is(.fantasy-header,.fantasy-dock){background:rgba(5,6,8,.89)!important;background-image:none!important;border-color:var(--glass-line)!important;box-shadow:0 3px 16px #0006!important;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+body .fantasy-brand-row{border-color:var(--glass-line)!important}
+body .fantasy-player-strip{background:rgba(5,6,8,.72)!important;border-color:var(--glass-line)!important;color:var(--glass-muted)}
+/* Replace the legacy blue/gold painted frames with live glass controls. */
+body button{background:rgba(10,11,14,.82)!important;background-image:none!important;border:1px solid var(--glass-line)!important;box-shadow:inset 0 1px #ffffff07!important;color:var(--glass-ink)!important;text-shadow:none!important;border-radius:9px}
+body button:before{background:none!important;background-image:none!important;box-shadow:none!important;content:none!important}
+body button:hover:not(:disabled){border-color:rgba(224,194,139,.7)!important;background:rgba(30,29,26,.9)!important;filter:none}
+body button:is(.gold,.active,.selected,.current,.enhance-primary,.cube-primary,[aria-pressed="true"],[aria-selected="true"]),body .token-screen button.tk:is(.gold,.active){background:linear-gradient(180deg,rgba(102,81,43,.72),rgba(34,29,20,.88))!important;border-color:rgba(224,194,139,.85)!important;color:#f6e0b4!important;text-shadow:none!important;box-shadow:inset 0 1px #fff1c514!important}
+body button.danger{background:rgba(47,20,23,.8)!important;border-color:#a6656570!important;color:#edb6b6!important}
+body button:disabled{box-shadow:none!important}
+body button:focus-visible,body :is(input,select,textarea):focus-visible{outline:2px solid #dfc490!important;outline-offset:2px}
+body :is(.fantasy-main-nav,.fantasy-dock)>button{border-radius:0;border-color:rgba(194,170,112,.16)!important;background:transparent!important}
+body :is(.fantasy-main-nav,.fantasy-dock)>button.active{background:rgba(120,96,49,.19)!important;box-shadow:inset 0 -2px #d7bb83!important}
+body :is(.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry){background:rgba(11,12,15,.86)!important;border-color:#9c875c9c!important;box-shadow:inset 0 1px #ffffff0c!important}
+body :is(.fantasy-token-wallet,.fantasy-diamond-wallet,.fantasy-wallet,.token-wallet){background:rgba(4,5,7,.74)!important;border-color:#a58d5b88!important;box-shadow:none!important;color:#efe2bf!important}
+body .fantasy-diamond-wallet{border-color:#7e999a88!important;color:#d6e1e0!important}
+body :is(.fantasy-mail-count,.mail-count){background:#51353be8;border-color:#b9966d;color:#f6e8d3}
+/* Main cards and dialogs share one dark neutral material. */
+body:not(.tower-mode) :is(.panel,.auto-equip-card,.bag-pager,.bag-class-group,.party-member,.quest,.system-mail,.wave-tier,.wave-loot,.raid-waiting,.cp-panel,.token-shop-group,.token-runner-table,.token-slip,.token-dungeon-head,.token-info,.invest-rules,.invest-chart-panel,.invest-order,.invest-portfolio,.invest-copy-panel,.invest-copy-card,.invest-news-panel,.invest-trade-feed,.invest-activity-card,.fishing-console,.fishing-panel,.fishing-loot,.lotto-panel,.lotto-card,.lotto-summary,.treasure-panel,.bank-balance,.pvp-summary,.pvp-opponent,.pvp-standing,.pvp-ranking,.attendance-day,.mail-reward,.title-panel-head,.admin-resource,.admin-gear-card,.rank-profile-arena,.token-stage-list){background:var(--glass)!important;background-image:none!important;border-color:var(--glass-line)!important;box-shadow:inset 0 1px #ffffff05,0 4px 16px #0003!important}
+body:not(.tower-mode) .fantasy-content :is(.hero,.journal-banner,.advancement-card,.relic-card,.tower-intro,.coop-intro,.page-head){background:var(--glass-soft)!important;background-image:none!important;border-color:var(--glass-line)!important;box-shadow:none!important}
+body:not(.tower-mode) .fantasy-content .page-head:after{content:none}
+body:not(.tower-mode) :is(.metrics>div,.stat-grid>div,.currency,.craft-stats>div,.stat-detail,.character-metrics>div,.token-subline,.token-rules,.invest-portfolio article,.invest-activity-item,.bank-summary,.cp-slot,.cp-owned-card,.cp-bag-card,.cp-wallet,.cp-help,.pet-odds,.pet-owned-card,.pet-card,.market-row,.market-card,.market-listing,.trade-summary,.enhance-summary,.attendance-day,.cube-help,.gear-detail-stats,.enhance-wallet){background:rgba(9,10,13,.7)!important;background-image:none!important;box-shadow:none!important;border-color:rgba(194,170,112,.2)!important}
+body :is(dialog,#modal,.login){background:rgba(6,7,10,.96)!important;background-image:none!important;border:1px solid rgba(194,170,112,.5)!important;color:var(--glass-ink)!important;box-shadow:0 18px 60px #000a,inset 0 1px #ffffff08!important}
+body dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+body :is(input,select,textarea){background:rgba(1,2,4,.66)!important;background-image:none!important;color:var(--glass-ink)!important;border-color:rgba(194,170,112,.36)!important;box-shadow:inset 0 1px 5px #0005!important;accent-color:#d7bb83}
+body select option{background:#101114;color:#eeeae1}
+body :is(.note,.footer-note,.token-target,.cp-title>span,.cp-head>small,.invest-help,.invest-empty,.invest-day-range,.invest-news-intro){color:var(--glass-muted)!important}
+body :is(.fantasy-content .page-head h2,.cp-title h1,.investment-screen h1,.token-head h2){color:#efe4cc!important;text-shadow:0 2px 5px #0008}
+/* Preserve illustrations, icon atlases, tier colors, health bars and scene art. */
+body .token-boss-showcase{background:radial-gradient(ellipse at 25% 70%,#8f6d2c20,transparent 60%),rgba(8,8,12,.84)!important;border-color:#a58d5b70;box-shadow:none}
+body :is(.token-scene-hero,.fishing-scene,.cp-banner,.cp-summon-banner,.pet-scene,.lumi-film){border-color:#a58d5b70}
+body .token-scene-hero:after{background:linear-gradient(0deg,#050608f2,transparent 85%)}
+body .token-screen .token-tabs,body :is(.enhance-tabs,.shop-categories,.fishing-panels,.cp-tabs,.pet-tabs,.arena-tabs){background:rgba(4,5,7,.8)!important;border-color:var(--glass-line)!important;box-shadow:none!important}
+body .token-screen .token-runner-row.tk{background:rgba(12,13,16,.76)!important;border-left-color:var(--lc)!important;color:var(--glass-ink)!important}
+body .token-screen .token-runner-row.tk:is(.selected,.mine){background:rgba(84,68,39,.3)!important;border-color:#bfa16a!important;border-left-color:var(--lc)!important}
+body .invest-long{background:rgba(9,18,13,.88)!important;border-color:#6f9a7570!important;color:#bed5bf!important}
+body .invest-short{background:rgba(24,11,15,.88)!important;border-color:#9a6f7870!important;color:#e0bcc1!important}
+body :is(.invest-coin,.invest-quick button,.invest-leverage button,.invest-portfolio article button,.invest-copy-banner,.invest-chart-tools button){background:rgba(8,9,12,.84)!important;background-image:none!important;border-color:var(--glass-line)!important;box-shadow:none!important}
+body .invest-coin.selected{border-color:#d9bb82!important;background:rgba(72,58,34,.52)!important}
+body .cp-name{background:linear-gradient(90deg,#05060840,#050608e8 20%,#050608e8 80%,#05060840)}
+body .cp-screen{--cp-line:rgba(194,170,112,.36);--cp-ink:#eeeae1}
+body .bank-panel,body .rank-profile{color:var(--glass-ink)}
+body .bank-hero{filter:drop-shadow(0 2px 5px #0005)}
+body .fantasy-menu-grid>button{background:rgba(10,11,14,.82)!important;border-color:var(--glass-line)!important}
+body .fantasy-menu-grid>button>small{color:var(--glass-muted)}
+body .pill{background:rgba(10,11,14,.72);border-color:#ad945b55;color:#e6d8b9}
+body .token-locked-note{background:rgba(49,25,28,.72);color:#dcb9b3}
+/* Battle controls receive the same material; the rendered battlefield is untouched. */
+body.tower-mode :is(.tower-hud,.tower-footer,.tower-player-health,.tower-dummy-metrics,.coop-hud){background:rgba(5,6,8,.88)!important;background-image:none!important;border-color:var(--glass-line)!important}
+body.tower-mode .tower-button{background:rgba(5,6,8,.76)!important;border-color:#a58d5b88!important;color:#eee6d7!important;box-shadow:inset 0 1px #ffffff08!important}
+body.tower-mode .tower-stick{background:rgba(4,5,7,.57)!important;border-color:#a58d5b88!important}
+@media(prefers-reduced-transparency:reduce){:root{--glass:#0c0d10;--glass-soft:#101114}body :is(.fantasy-header,.fantasy-dock){backdrop-filter:none;-webkit-backdrop-filter:none}}
+/* Override legacy per-feature !important button colors at the application boundary. */
+body :is(#app,#modal,dialog,.login) button{background:rgba(9,10,13,.82)!important;background-image:none!important;color:var(--glass-ink)!important;text-shadow:none!important;box-shadow:inset 0 1px #ffffff07!important}
+body :is(#app,#modal,dialog,.login) button:not(.bag-slot,.gear-cell,.cp-slot,.cube-card,.change-class-card){border-color:var(--glass-line)!important}
+body :is(#app,#modal,dialog,.login) button:is(.gold,.active,.selected,.current,.enhance-primary,.cube-primary,[aria-pressed="true"],[aria-selected="true"]){background:linear-gradient(180deg,rgba(102,81,43,.72),rgba(34,29,20,.88))!important;border-color:#cfb17fbd!important;color:#f6e0b4!important}
+body :is(#app,#modal,dialog,.login) button.danger{background:rgba(47,20,23,.8)!important;border-color:#a6656570!important;color:#edb6b6!important}
+body .token-screen .token-tabs button.tk.active{color:#f6e0b4!important}
+body :is(#app,#modal,dialog,.login) .invest-long{background:rgba(9,18,13,.88)!important;color:#bed5bf!important}
+body :is(#app,#modal,dialog,.login) .invest-short{background:rgba(24,11,15,.88)!important;color:#e0bcc1!important}
+/* Feature-specific containers that previously carried their own blue/green palette. */
+body:not(.tower-mode) :is(.investment-screen,.invest-trading-panel,.shop-merchant,.shop-sale-section,.shop-price-guide,.shop-gear-card,.shop-confirm-price,.black-market-merchant,.black-market-catalog,.cp-banner-info,.cp-banner-pity,.cp-pickup-stats,.cp-pickup-card,.cp-odds-tabs,.cp-odds-pity,.cp-odds-card,.cp-selected-bar,.cp-banner-wallet,.fish-card,.fishing-bank,.fishing-odds,.fishing-instant-note,.fishing-contest-target,.fishing-contest-board li,.pvp-panel,.pvp-rank-hero,.pvp-tabs,.pvp-dock,.pvp-refresh,.pvp-combatants,.pvp-combat-log,.pvp-result-crown,.pvp-result-opponent,.pvp-stat,.pvp-reward-hero,.pvp-reward-amount,.pvp-reward-group,.pvp-skill-callout,.lotto-prize,.lotto-event-switch,.lotto-tabs,.pet-lotto-link,.title-card,.title-tile,.invest-news-item,.invest-trade-item,.invest-pnl-summary>div){background:var(--glass)!important;background-image:none!important;border-color:var(--glass-line)!important;box-shadow:inset 0 1px #ffffff05!important}
+body:not(.tower-mode) :is(.fishing-screen,.lotto-screen,.pvp-screen,.cp-screen){background:transparent!important;background-image:none!important}
+body :is(.cp-banner-copy,.fishing-scene-shade){background:linear-gradient(transparent,rgba(3,4,6,.86))!important}
+body :is(.cp-portrait,.cp-veiled){background:rgba(4,5,8,.8)!important}
+body .investment-screen{font-family:inherit}
+body :is(.cp-bar i,.pvp-progress span,.pvp-reward-progress>i){background:linear-gradient(90deg,#8b754b,#d6bd8a)!important}
+body :is(.rod-milestones span,.fishing-scene-wallet span,.fishing-catch-notice,.fishing-rod-chip,.fish-portrait span){background:rgba(5,6,8,.78)!important;border-color:var(--glass-line)!important}
+body:not(.tower-mode) :is(.costume-card,.skill-look-current,.skill-look-card,.consumable-panel,.consumable-times>span,.luck-buff-status,.consumable-shop-card,.consumable-trade,.treasure-bag,.treasure-rules,.citadel-lobby,.citadel-recruit){background:var(--glass)!important;background-image:none!important;border-color:var(--glass-line)!important;box-shadow:none!important}
+body .citadel-cover-shade{background:linear-gradient(transparent 40%,rgba(4,5,7,.92))}
+body .skill-look-preview canvas{background:#08090c}
