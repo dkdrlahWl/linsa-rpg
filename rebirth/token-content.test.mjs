@@ -7,10 +7,51 @@ const t0=Date.UTC(2026,10,2,3);
 const base=initialState('warrior','토큰',ctx(t0));
 const run=(s,cmd,args,c)=>execute(s,cmd,args,c).state;
 
-// 잠금: 공개 전에는 일반 유저 입장·교환·경마 불가
-assert.equal(TOKEN_CONTENT_OPEN,false);
-for(const [cmd,args] of [['tokenBossStart',{stage:1}],['tokenShopBuy',{id:'cube'}],['raceCard',{}],['raceBet',{cardId:1,lane:1,type:'win',bet:1}]])
- assert.throws(()=>execute(base,cmd,args,ctx(t0)),/TOKEN_LOCKED/,cmd);
+// 2026-11-02 전체 공개: 일반 유저 기준 전체 흐름
+assert.equal(TOKEN_CONTENT_OPEN,true);
+{
+ let u=structuredClone(base);
+ // 1단계만 열림, 2단계는 잠김
+ assert.throws(()=>execute(u,'tokenBossStart',{stage:2},ctx(t0)),/TOKEN_STAGE_LOCKED/);
+ assert.throws(()=>execute(u,'tokenBossStart',{stage:0},ctx(t0)),/INVALID_TOKEN_STAGE/);
+ assert.throws(()=>execute(u,'tokenBossStart',{stage:11},ctx(t0)),/INVALID_TOKEN_STAGE/);
+ // 시간 초과 실패: 토큰 0, 횟수 그대로
+ u=run(u,'tokenBossStart',{stage:1},ctx(t0));assert.equal(u.battle.tokenStage,1);assert.equal(u.battle.enemyHp,TOKEN_BOSS_STAGES[0].hp);
+ assert.throws(()=>execute(u,'tokenBossStart',{stage:1},ctx(t0)),/BATTLE_IN_PROGRESS/);
+ assert.throws(()=>execute(u,'tokenShopBuy',{id:'cube'},ctx(t0)),/BATTLE_IN_PROGRESS/);
+ let r=execute(u,'sync',{},ctx(t0+61000));u=r.state;
+ assert.equal(u.battle,null);assert.equal(r.events.find(e=>e.type==='tokenBoss').tokens,0);assert.equal(tokenTriesLeft(u,t0),2);
+ // 나가기: 토큰 0, 횟수 그대로
+ u=run(u,'tokenBossStart',{stage:1},ctx(t0+62000));r=execute(u,'towerLeave',{},ctx(t0+63000));u=r.state;
+ assert.equal(u.battle,null);assert.equal(r.events.find(e=>e.type==='tokenBoss').reason,'leave');assert.equal(tokenTriesLeft(u,t0),2);assert.equal(u.tokens||0,0);
+ // 처치: 토큰 지급, 1회 차감, 2단계 열림, 탑 보상·층 기록은 안 생김
+ const towerBefore=JSON.stringify(u.tower||null),goldBefore=u.gold;
+ u=run(u,'tokenBossStart',{stage:1},ctx(t0+64000));u.battle.enemyHp=1;u.battle.won=true;u.battle.ended=true;
+ r=execute(u,'sync',{},ctx(t0+65000));u=r.state;
+ assert.equal(u.tokens,TOKEN_BOSS_STAGES[0].tokens);assert.equal(tokenTriesLeft(u,t0),1);assert.equal(JSON.stringify(u.tower||null),towerBefore);assert.ok(u.gold>=goldBefore);
+ assert.equal(r.events.filter(e=>e.type==='tokenBoss').length,1);
+ // 같은 결과로 다시 sync해도 두 번 지급되지 않음
+ const again=execute(u,'sync',{},ctx(t0+66000));assert.equal(again.state.tokens,u.tokens);
+ // 2단계 처치 → 횟수 소진 → 입장 불가
+ u=run(u,'tokenBossStart',{stage:2},ctx(t0+67000));u.battle.enemyHp=1;u.battle.won=true;u.battle.ended=true;u=run(u,'sync',{},ctx(t0+68000));
+ assert.equal(u.tokens,TOKEN_BOSS_STAGES[0].tokens+TOKEN_BOSS_STAGES[1].tokens);assert.equal(tokenTriesLeft(u,t0),0);
+ assert.throws(()=>execute(u,'tokenBossStart',{stage:1},ctx(t0+69000)),/TOKEN_DAILY_LIMIT/);
+ // 다음 날 00시(한국) 지나면 2회 복구, 최고 기록은 유지
+ const tomorrow=t0+24*3600e3;assert.equal(tokenTriesLeft(u,tomorrow),2);
+ u=run(u,'tokenBossStart',{stage:3},ctx(tomorrow));assert.equal(u.battle.tokenStage,3);u=run(u,'towerLeave',{},ctx(tomorrow+1000));
+ // 교환소·경마도 일반 유저 사용 가능, 토큰 부족 검사
+ u=run(u,'tokenShopBuy',{id:'cube',quantity:2},ctx(tomorrow));
+ assert.throws(()=>execute(u,'tokenShopBuy',{id:'rerollStone'},ctx(tomorrow)),/NOT_ENOUGH_TOKENS/);
+ assert.throws(()=>execute(u,'tokenShopBuy',{id:'cube',quantity:0},ctx(tomorrow)),/INVALID_QUANTITY/);
+ u=run(u,'raceCard',{},ctx(tomorrow));const card=u.race.card;
+ assert.throws(()=>execute(u,'raceBet',{cardId:card.id,lane:1,type:'win',bet:101},ctx(tomorrow)),/INVALID_RACE_AMOUNT/);
+ assert.throws(()=>execute(u,'raceBet',{cardId:card.id+1,lane:1,type:'win',bet:1},ctx(tomorrow)),/RACE_CARD_CHANGED/);
+ const before=u.tokens;u=run(u,'raceBet',{cardId:card.id,lane:1,type:'place',bet:5},ctx(tomorrow));assert.ok(u.tokens===before-5||u.tokens>before-5);assert.equal(u.race.played,1);
+ // 하루 30판 제한
+ u.race.played=30;assert.throws(()=>execute(u,'raceBet',{cardId:u.race.card.id,lane:1,type:'win',bet:1},ctx(tomorrow)),/RACE_DAILY_LIMIT/);
+ // 관리자 아님: 매 요청 isAdmin=false로 재계산
+ assert.equal(u.isAdmin,false);
+}
 
 // 단계 표: 10단계, 토큰 20,40,...,200, 60초, 체력·공격 단조 증가
 assert.equal(TOKEN_BOSS_STAGES.length,10);

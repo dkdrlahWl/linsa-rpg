@@ -1,6 +1,6 @@
 // 2026-11-01 토큰 콘텐츠: 토큰 던전(파밍 보스 10단계, 하루 2회, 60초) · 토큰 교환소 · 토큰 경마.
 // 아직 공개 전: TOKEN_CONTENT_OPEN=false 동안 일반 유저는 입장·교환·경마 모두 막히고 관리자만 시험할 수 있다.
-export const TOKEN_CONTENT_OPEN=false;
+export const TOKEN_CONTENT_OPEN=true; // 2026-11-02 도현: 전체 유저 공개
 export const TOKEN_MAX=9_999_999;
 export const TOKEN_DAILY_TRIES=2;
 export const TOKEN_BOSS_SECONDS=60;
