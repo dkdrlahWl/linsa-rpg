@@ -1,6 +1,6 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {currencyIconURL} from './currency-icons.mjs';
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought} from './token-content.mjs';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought} from './token-content.mjs?v=token-daily-20261102';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -29,18 +29,18 @@ function dungeon(s,now){
 const SHOP_GROUPS=[
  ['강화 재료',['cube','highCube','primeCube','addCube','scroll','potentialLock','bonusFlame','fragment']],
  ['재화 · 소모품',['gold','diamond','luckPotion','dungeonKey']],
- ['주간 한정',['treasureTicket','companionTicket','pickupTicket','rerollStone']],
+ ['일일 한정',['treasureTicket','companionTicket','pickupTicket','rerollStone']],
 ];
 const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp'};
 const offerIcon=o=>o.id==='treasureTicket'?'<span class="token-tile-emoji" aria-hidden="true">🗺️</span>':`<img src="${SHOP_ART[o.id]||currencyIconURL(o.key||o.id)}" alt="" loading="lazy">`;
 const offerName=o=>o.name.replace(/\s*\d[\d,]*\s*(만|개)?$/,'');
 const offerAmount=o=>o.kind==='gold'?'100만 골드':o.amount>1?'×'+fmt(o.amount):'';
 function shopTile(s,o,now){
- const have=tokenCount(s),bought=o.weekly?tokenShopBought(s,o.id,now):0,left=o.weekly?o.weekly-bought:Infinity,soldOut=left<=0,afford=have>=o.cost;
- const ten=!o.weekly||o.weekly>=10;
+ const have=tokenCount(s),bought=o.daily?tokenShopBought(s,o.id,now):0,left=o.daily?o.daily-bought:Infinity,soldOut=left<=0,afford=have>=o.cost;
+ const ten=!o.daily||o.daily>=10;
  return `<article class="token-tile${soldOut?' sold-out':''}${!afford&&!soldOut?' poor':''}" data-no-currency-art>
-  <div class="token-tile-art">${offerIcon(o)}${o.weekly?`<span class="token-tile-limit">${soldOut?'품절':`남은 ${left}/${o.weekly}`}</span>`:''}</div>
-  <strong>${esc(offerName(o))}</strong><small>${offerAmount(o)||'&nbsp;'}${o.weekly?`<span class="m-only">${offerAmount(o)?' · ':''}${soldOut?'품절':`이번 주 ${left}/${o.weekly}`}</span>`:''}</small>
+  <div class="token-tile-art">${offerIcon(o)}${o.daily?`<span class="token-tile-limit">${soldOut?'품절':`오늘 ${left}/${o.daily}`}</span>`:''}</div>
+  <strong>${esc(offerName(o))}</strong><small>${offerAmount(o)||'&nbsp;'}${o.daily?`<span class="m-only">${offerAmount(o)?' · ':''}${soldOut?'품절':`오늘 ${left}/${o.daily}`}</span>`:''}</small>
   <b class="token-tile-price">◆ ${fmt(o.cost)}</b>
   <div class="token-tile-buy">${b(soldOut?'품절':'1개','tokenShopBuy',o.id+':1','gold',soldOut||!afford)}${ten?b('10개','tokenShopBuy',o.id+':10','',soldOut||have<o.cost*10||left<10):''}</div>
  </article>`;
@@ -49,7 +49,7 @@ function shop(s,now){
  const byId=new Map(TOKEN_SHOP.map(o=>[o.id,o])),used=new Set();
  const groups=SHOP_GROUPS.map(([title,ids])=>{const list=ids.map(id=>byId.get(id)).filter(Boolean);list.forEach(o=>used.add(o.id));return [title,list];});
  const rest=TOKEN_SHOP.filter(o=>!used.has(o.id));if(rest.length)groups.push(['기타',rest]);
- return `<p class="token-subline">토큰 1개 ≈ 20만 골드 · 주간 한정은 월요일 00시 초기화</p>${groups.filter(([,l])=>l.length).map(([title,list])=>`<section class="token-shop-group"><h3>${title}</h3><div class="token-tile-grid">${list.map(o=>shopTile(s,o,now)).join('')}</div></section>`).join('')}`;
+ return `<p class="token-subline">토큰 1개 ≈ 20만 골드 · 일일 한정은 매일 00시 초기화</p>${groups.filter(([,l])=>l.length).map(([title,list])=>`<section class="token-shop-group"><h3>${title}</h3><div class="token-tile-grid">${list.map(o=>shopTile(s,o,now)).join('')}</div></section>`).join('')}`;
 }
 
 // 경마: 트랙 → 출전표(한 줄에 컨디션 막대·단승·연승) → 베팅 슬립 순서로 위에서 아래로 한 번에 읽힌다.

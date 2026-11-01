@@ -54,7 +54,7 @@ export function tokenBossFinish(s,b,now){
 
 // ── 토큰 교환소 ──
 // 기준: 토큰 1개 ≈ 20만 골드 가치. 하루 최대 56개(10단계 2회) · 1단계만 해도 하루 20개.
-// 상점·암시장 골드 가격을 토큰으로 환산하고, 희귀한 것(재련석·소환권)은 주간 한도로 묶는다.
+// 상점·암시장 골드 가격을 토큰으로 환산하고, 희귀한 것(재련석·소환권·티켓)은 일일 한도로 묶는다(매일 00시 초기화).
 export const TOKEN_SHOP=Object.freeze([
  {id:'gold',name:'골드 100만',kind:'gold',amount:1000000,cost:5},
  {id:'fragment',name:'장비 파편 100개',kind:'material',key:'fragment',amount:100,cost:3},
@@ -68,19 +68,18 @@ export const TOKEN_SHOP=Object.freeze([
  {id:'bonusFlame',name:'추가옵션 불꽃',kind:'material',key:'bonusFlame',amount:1,cost:25},
  {id:'dungeonKey',name:'던전 열쇠',kind:'material',key:'dungeonKey',amount:1,cost:25},
  {id:'diamond',name:'낚시 다이아',kind:'diamond',amount:1,cost:1},
- {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:10,weekly:10},
- {id:'companionTicket',name:'동료 소환권',kind:'companionTicket',amount:1,cost:40,weekly:5},
- {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:60,weekly:3},
- {id:'rerollStone',name:'기본수치 재련석',kind:'material',key:'rerollStone',amount:1,cost:400,weekly:1},
+ {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:10,daily:30},
+ {id:'companionTicket',name:'동료 소환권',kind:'companionTicket',amount:1,cost:40,daily:10},
+ {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:60,daily:5},
+ {id:'rerollStone',name:'기본수치 재련석',kind:'material',key:'rerollStone',amount:1,cost:400,daily:3},
 ].map(Object.freeze));
-const weekKey=now=>{const d=new Date(now+9*3600e3);const day=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-day);return d.toISOString().slice(0,10);};
-export function tokenShopBought(s,id,now){const w=weekKey(now);return s.tokenShop?.week===w?(s.tokenShop.bought?.[id]||0):0;}
+export function tokenShopBought(s,id,now){const d=dayKey(now);return s.tokenShop?.day===d?(s.tokenShop.bought?.[id]||0):0;}
 export function tokenShopBuy(s,args,now,{normalizeFishing,normalizeCompanions,normalizeTreasure}){
  check(tokenOpenFor(s),'TOKEN_LOCKED');
  const offer=TOKEN_SHOP.find(o=>o.id===args?.id);check(offer,'INVALID_TOKEN_ITEM');
  const quantity=args.quantity===undefined?1:args.quantity;check(Number.isInteger(quantity)&&quantity>=1&&quantity<=999,'INVALID_QUANTITY');
- const w=weekKey(now);if(s.tokenShop?.week!==w)s.tokenShop={week:w,bought:{}};
- if(offer.weekly)check((s.tokenShop.bought[offer.id]||0)+quantity<=offer.weekly,'TOKEN_WEEKLY_LIMIT');
+ const d=dayKey(now);if(s.tokenShop?.day!==d)s.tokenShop={day:d,bought:{}};
+ if(offer.daily)check((s.tokenShop.bought[offer.id]||0)+quantity<=offer.daily,'TOKEN_DAILY_LIMIT');
  const cost=offer.cost*quantity;check(tokenCount(s)>=cost,'NOT_ENOUGH_TOKENS');
  const amount=offer.amount*quantity;
  if(offer.kind==='gold')s.gold=Math.min(9e12,s.gold+amount);

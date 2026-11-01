@@ -28,11 +28,13 @@ s=run(base,'tokenBossStart',{stage:10},ctx(t0,true));s.battle.enemyHp=1;s.battle
 r=execute(s,'sync',{},ctx(t0+1000,true));
 const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);assert.equal(win.tokens,28);assert.equal(r.state.tokens,28);
 
-// 교환소: 토큰 차감·지급·주간 한도
+// 교환소: 토큰 차감·지급·일일 한도
 s=r.state;s.tokens=1000;
 s=run(s,'tokenShopBuy',{id:'cube',quantity:5},ctx(t0,true));assert.equal(s.tokens,995);
-s=run(s,'tokenShopBuy',{id:'companionTicket',quantity:5},ctx(t0,true));assert.equal(s.companions.tickets>=5,true);
-assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0,true)),/TOKEN_WEEKLY_LIMIT/);
+s=run(s,'tokenShopBuy',{id:'companionTicket',quantity:10},ctx(t0,true));assert.equal(s.companions.tickets>=10,true);
+assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0,true)),/TOKEN_DAILY_LIMIT/);
+// 다음 날 00시(한국)가 지나면 한도가 초기화된다
+s=run(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0+24*3600e3,true));
 s=run(s,'tokenShopBuy',{id:'treasureTicket',quantity:2},ctx(t0,true));assert.equal(s.treasure.tickets>=2,true);
 s=run(s,'tokenShopBuy',{id:'luckPotion'},ctx(t0,true));assert.equal(s.consumables.luckPotion>=1,true);
 s=run(s,'tokenShopBuy',{id:'diamond',quantity:3},ctx(t0,true));
