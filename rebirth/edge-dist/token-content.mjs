@@ -7,13 +7,13 @@ export const TOKEN_BOSS_SECONDS=60;
 
 // 단계 기준 (2026-11-01 도현): 1단계 = 시련의 탑 25층급, 2단계 = 27층급, 3단계 = 30층급, 그 뒤로 10단계까지 계속 상승.
 // 각 단계는 해당 탑 층의 패턴·공격력을 그대로 쓰고, 제한이 90초→60초라 체력은 2/3 (같은 초당 딜이면 잡힘).
-// 4~10단계: 왕좌의 탑 33·36·39·42·45·48·50층급. 토큰은 1단계 10개부터 단계마다 +2개(10단계 28개).
+// 4~10단계: 왕좌의 탑 33·36·39·42·45·48·50층급. 토큰은 1단계 20개부터 단계마다 +20개(10단계 200개).
 import {TOWER_FLOORS} from './tower-model.mjs';
 export const TOKEN_BOSS_FLOORS=Object.freeze([25,27,30,33,36,39,42,45,48,50]);
 export const TOKEN_BOSS_NAME='황금 금고지기 마몬';
 export const TOKEN_BOSS_STAGES=Object.freeze(TOKEN_BOSS_FLOORS.map((floor,i)=>{const f=TOWER_FLOORS[floor-1];return Object.freeze({
  stage:i+1,floor,name:TOKEN_BOSS_NAME,art:'hourglass-colossus',level:f.level,
- hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:f.attack,seconds:TOKEN_BOSS_SECONDS,tokens:10+i*10,pattern:f.pattern,
+ hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:f.attack,seconds:TOKEN_BOSS_SECONDS,tokens:20+i*20,pattern:f.pattern,
  guide:f.guide||'바닥 경고 문양과 돌진 경로를 피하면서 60초 안에 쓰러뜨리세요.',
  target:'시련의 탑 '+floor+'층급 (패턴·공격력 동일, 60초 기준 체력)',
 });}));
@@ -33,27 +33,26 @@ export const tokenTriesLeft=(s,now)=>{const d=s.tokenBoss?.day===dayKey(now)?s.t
 // 한 단계씩 깨야 다음 단계가 열린다. (관리자는 전부 열림)
 export const tokenStageOpen=(s,stage)=>s?.isAdmin===true||stage<=Math.min(10,(s?.tokenBoss?.best||0)+1);
 
-// 입장: 도전 횟수는 입장할 때 1회 차감(실패해도 차감). 반환값은 tower 전투에 붙일 필드.
+// 입장: 남은 도전이 있어야 입장할 수 있다. 횟수는 처치했을 때만 1회 차감(실패·나가기는 차감 없음, 2026-11-02 도현). 반환값은 tower 전투에 붙일 필드.
 export function tokenBossEnter(s,stage,now){
  check(tokenOpenFor(s),'TOKEN_LOCKED');
  check(Number.isInteger(stage)&&stage>=1&&stage<=TOKEN_BOSS_STAGES.length,'INVALID_TOKEN_STAGE');
  check(tokenStageOpen(s,stage),'TOKEN_STAGE_LOCKED');
  const d=tokenDaily(s,now);
  check(s.isAdmin||d.tries<TOKEN_DAILY_TRIES,'TOKEN_DAILY_LIMIT');
- if(!s.isAdmin)d.tries++;
  const t=TOKEN_BOSS_STAGES[stage-1];
  return {tokenStage:stage,floor:t.floor,enemyHp:t.hp,encounter:{name:t.name+' · '+stage+'단계',art:t.art,level:t.level,hp:t.hp,attack:t.attack,seconds:t.seconds,pattern:t.pattern,guide:t.guide}};
 }
 export function tokenBossFinish(s,b,now){
  const stage=b.tokenStage,t=TOKEN_BOSS_STAGES[stage-1],won=!!b.won;
  const reward={type:'tokenBoss',stage,won,tokens:0,seconds:b.tick/10,reason:b.reason||''};
- if(won){reward.tokens=t.tokens;s.tokens=Math.min(TOKEN_MAX,tokenCount(s)+t.tokens);const d=tokenDaily(s,now);d.best=Math.max(d.best||0,stage);reward.best=d.best;}
+ if(won){reward.tokens=t.tokens;s.tokens=Math.min(TOKEN_MAX,tokenCount(s)+t.tokens);const d=tokenDaily(s,now);if(!s.isAdmin)d.tries=(d.tries||0)+1;d.best=Math.max(d.best||0,stage);reward.best=d.best;}
  reward.total=tokenCount(s);
  return reward;
 }
 
 // ── 토큰 교환소 ──
-// 기준: 토큰 1개 ≈ 20만 골드 가치. 하루 최대 56개(10단계 2회) · 1단계만 해도 하루 20개.
+// 기준: 토큰 1개 ≈ 20만 골드 가치. 하루 최대 400개(10단계 2회) · 1단계만 해도 하루 40개.
 // 상점·암시장 골드 가격을 토큰으로 환산하고, 희귀한 것(재련석·소환권·티켓)은 일일 한도로 묶는다(매일 00시 초기화).
 export const TOKEN_SHOP=Object.freeze([
  {id:'gold',name:'골드 100만',kind:'gold',amount:1000000,cost:5},

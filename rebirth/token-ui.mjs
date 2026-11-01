@@ -1,6 +1,6 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {currencyIconURL} from './currency-icons.mjs';
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought} from './token-content.mjs?v=token-reward-20261102';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought} from './token-content.mjs?v=token-reward2-20261102';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -22,7 +22,7 @@ function dungeon(s,now){
   const open=tokenStageOpen(s,t.stage),cleared=best>=t.stage;
   return `<article class="panel token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>${esc(t.name)}</strong><small>HP ${big(t.hp)} · 공격 ${big(t.attack)} · 60초</small><small class="token-target">${esc(t.target)}</small></div><div class="token-stage-side"><b class="token-reward">◆ ${t.tokens}</b>${b(open?'도전':'이전 단계 클리어 필요','tokenBossStart',t.stage,'gold',!open||!left||!!s.battle)}</div></article>`;
  }).join('');
- return `<section class="panel pad token-info"><p>매일 <b>${TOKEN_DAILY_TRIES}회</b> 도전 · 남은 도전 <b>${left}/${TOKEN_DAILY_TRIES}</b> · 최고 클리어 <b>${best||0}단계</b></p><p class="note">입장하면 도전 1회 차감(실패해도 차감) · 제한 60초 · 처치하면 그 단계 토큰 지급 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화</p></section><div class="token-stage-list">${cards}</div>`;
+ return `<section class="panel pad token-info"><p>매일 <b>${TOKEN_DAILY_TRIES}회</b> 도전 · 남은 도전 <b>${left}/${TOKEN_DAILY_TRIES}</b> · 최고 클리어 <b>${best||0}단계</b></p><p class="note">처치했을 때만 도전 1회 차감(실패하거나 나가면 차감 없음) · 제한 60초 · 처치하면 그 단계 토큰 지급 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화</p></section><div class="token-stage-list">${cards}</div>`;
 }
 
 // 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
