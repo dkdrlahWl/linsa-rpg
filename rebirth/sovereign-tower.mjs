@@ -31,7 +31,7 @@ export const SOVEREIGN_TOWER_FLOORS=specs.map(([name,pattern,guide],i)=>({
 const clamp=n=>Math.max(350,Math.min(2850,n));
 export function sovereignTowerPattern(b,{circle,line},f){
  const i=b.floor-31;
- if(i<0||i>=20||b.encounter||b.weeklyBossId!==undefined||b.advancementStage!==undefined)return false;
+ if(i<0||i>=20||(b.encounter&&b.tokenStage===undefined)||b.weeklyBossId!==undefined||b.advancementStage!==undefined)return false;
  const e=b.enemy,p=b.player,k=b.phase-1,phase=k%4,rage=b.enemyHp<f.hp*.35;
  const delay=rage?18:23,damage=rage?2.7:2.3,a=Math.atan2(p.y-e.y,p.x-e.x),travel=(p.dir??6)*Math.PI/4;
  b.enemyCastUntil=b.tick+delay;b.enemyAttackStart=b.tick+delay;b.enemyAttackUntil=b.tick+delay+7;

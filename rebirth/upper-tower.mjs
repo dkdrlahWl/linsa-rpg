@@ -24,7 +24,7 @@ const clamp=n=>Math.max(350,Math.min(2850,n));
 // All mechanics use the same server/client hazard geometry and visible wind-up.
 export function upperTowerPattern(b,{circle,line},encounter){
  const index=b.floor-11;
- if(index<0||index>=10||b.encounter||b.weeklyBossId!==undefined||b.advancementStage!==undefined)return false;
+ if(index<0||index>=10||(b.encounter&&b.tokenStage===undefined)||b.weeklyBossId!==undefined||b.advancementStage!==undefined)return false;
  const e=b.enemy,p=b.player,k=b.phase-1,cycle=k%3,enraged=b.enemyHp<encounter.hp*.35;
  const turn=Math.atan2(p.y-e.y,p.x-e.x),travel=(p.dir??6)*Math.PI/4;
  const damage=enraged?2.3:2,delay=enraged?14:18;

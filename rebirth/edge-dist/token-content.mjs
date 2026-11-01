@@ -5,20 +5,18 @@ export const TOKEN_MAX=9_999_999;
 export const TOKEN_DAILY_TRIES=2;
 export const TOKEN_BOSS_SECONDS=60;
 
-// 단계 기준 (2026-11-01 도현):
-//  1단계 = 키야가 혼자 잡는 정도, 2단계 = 민당이 혼자 잡는 정도, 3단계 = 도현 2번 슬롯 장비로 잡히는 정도,
-//  4~10단계 = 그보다 계속 강하게. 토큰은 1단계 10개부터 단계마다 +2개(10단계 28개).
-// hp: 기준 캐릭터가 60초 동안 넣는 딜의 약 85% (조금 여유 있게 잡히도록). 실제 수치는 token-boss-calibrate.mjs로 다시 맞춘다.
-// floor: 기존 시련의 탑 1~10층 패턴을 단계 순서대로 써서 위로 갈수록 패턴도 빡빡해진다.
-const HP=[2.0e8,3.0e8,4.5e8,6.3e8,8.8e8,1.23e9,1.73e9,2.42e9,3.38e9,4.74e9];
-const ATTACK=[80000,110000,150000,195000,254000,330000,429000,557000,725000,942000];
+// 단계 기준 (2026-11-01 도현): 1단계 = 시련의 탑 25층급, 2단계 = 27층급, 3단계 = 30층급, 그 뒤로 10단계까지 계속 상승.
+// 각 단계는 해당 탑 층의 패턴·공격력을 그대로 쓰고, 제한이 90초→60초라 체력은 2/3 (같은 초당 딜이면 잡힘).
+// 4~10단계: 왕좌의 탑 33·36·39·42·45·48·50층급. 토큰은 1단계 10개부터 단계마다 +2개(10단계 28개).
+import {TOWER_FLOORS} from './tower-model.mjs';
+export const TOKEN_BOSS_FLOORS=Object.freeze([25,27,30,33,36,39,42,45,48,50]);
 export const TOKEN_BOSS_NAME='황금 금고지기 마몬';
-export const TOKEN_BOSS_STAGES=Object.freeze(HP.map((hp,i)=>Object.freeze({
- stage:i+1,floor:i+1,name:TOKEN_BOSS_NAME,art:'hourglass-colossus',level:250+i*5,
- hp,attack:ATTACK[i],seconds:TOKEN_BOSS_SECONDS,tokens:10+i*2,pattern:'황금 모래 폭풍',
- guide:'바닥 경고 문양과 돌진 경로를 피하면서 60초 안에 쓰러뜨리세요.',
- target:i===0?'키야 혼자 잡는 정도':i===1?'민당 혼자 잡는 정도':i===2?'도현 2번 슬롯 장비로 잡히는 정도':(i+1)+'단계 · 이전 단계보다 강함',
-})));
+export const TOKEN_BOSS_STAGES=Object.freeze(TOKEN_BOSS_FLOORS.map((floor,i)=>{const f=TOWER_FLOORS[floor-1];return Object.freeze({
+ stage:i+1,floor,name:TOKEN_BOSS_NAME,art:'hourglass-colossus',level:f.level,
+ hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:f.attack,seconds:TOKEN_BOSS_SECONDS,tokens:10+i*2,pattern:f.pattern,
+ guide:f.guide||'바닥 경고 문양과 돌진 경로를 피하면서 60초 안에 쓰러뜨리세요.',
+ target:'시련의 탑 '+floor+'층급 (패턴·공격력 동일, 60초 기준 체력)',
+});}));
 
 const dayKey=now=>new Date(now+9*3600e3).toISOString().slice(0,10);
 const fail=code=>{throw new Error(code);};
@@ -44,7 +42,7 @@ export function tokenBossEnter(s,stage,now){
  check(s.isAdmin||d.tries<TOKEN_DAILY_TRIES,'TOKEN_DAILY_LIMIT');
  if(!s.isAdmin)d.tries++;
  const t=TOKEN_BOSS_STAGES[stage-1];
- return {tokenStage:stage,enemyHp:t.hp,encounter:{name:t.name+' · '+stage+'단계',art:t.art,level:t.level,hp:t.hp,attack:t.attack,seconds:t.seconds,pattern:t.pattern,guide:t.guide}};
+ return {tokenStage:stage,floor:t.floor,enemyHp:t.hp,encounter:{name:t.name+' · '+stage+'단계',art:t.art,level:t.level,hp:t.hp,attack:t.attack,seconds:t.seconds,pattern:t.pattern,guide:t.guide}};
 }
 export function tokenBossFinish(s,b,now){
  const stage=b.tokenStage,t=TOKEN_BOSS_STAGES[stage-1],won=!!b.won;

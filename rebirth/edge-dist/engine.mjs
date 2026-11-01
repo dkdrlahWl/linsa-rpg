@@ -684,7 +684,7 @@ function executeCore(input, command, args = {}, ctx) {
     case "tokenBossStart": {
       check(!s.pendingCube,"ITEM_CUBE_PENDING");
       const fields=tokenBossEnter(s,args.stage,ctx.now);
-      s.battle=newTowerBattle(fields.tokenStage,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,fields);
+      s.battle=newTowerBattle(fields.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,fields);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "tokenShopBuy": {events.push(tokenShopBuy(s,args,ctx.now,{normalizeFishing,normalizeCompanions,normalizeTreasure:(st,now)=>normalizeTreasure(st,dayKey(now))}));break;}

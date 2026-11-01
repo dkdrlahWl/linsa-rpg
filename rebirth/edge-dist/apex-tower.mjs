@@ -16,7 +16,7 @@ const attacks=[44500,51200,58900,67800,78000,89700,103200,118700,136500,157000];
 export const APEX_TOWER_FLOORS=specs.map(([name,art,pattern,guide],i)=>({floor:i+21,name,art,artFrames:1,artSize:i===9?350:310,level:Math.min(250,210+i*5),hp:hp[i],attack:attacks[i],seconds:90,pattern,guide:guide+' · HP 35% 이하 광폭화 · 붉은 예고 후 공격',reward:{gold:3*Math.round(3000*(i+21)**1.3),fragment:0,cube:6*(i+21),highCube:30+i*3,primeCube:i===9?5:i===4?3:i>=5?2:1}}));
 const clamp=n=>Math.max(350,Math.min(2850,n));
 export function apexTowerPattern(b,{circle,line},f){
- const i=b.floor-21;if(i<0||i>=10||b.encounter||b.weeklyBossId!==undefined||b.advancementStage!==undefined)return false;
+ const i=b.floor-21;if(i<0||i>=10||(b.encounter&&b.tokenStage===undefined)||b.weeklyBossId!==undefined||b.advancementStage!==undefined)return false;
  const e=b.enemy,p=b.player,k=b.phase-1,cycle=k%(i===9?4:3),rage=b.enemyHp<f.hp*.35;
  const delay=rage?16:21,damage=rage?2.5:2.15,a=Math.atan2(p.y-e.y,p.x-e.x),travel=(p.dir??6)*Math.PI/4;
  b.enemyCastUntil=b.tick+delay;b.enemyAttackStart=b.tick+delay;b.enemyAttackUntil=b.tick+delay+7;
