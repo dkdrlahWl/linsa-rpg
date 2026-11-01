@@ -19,6 +19,18 @@ const concepts=[
  ['priest','wisteria-hymn','등꽃 성소의 찬송','wisteria','#c8a6ff','#e4f7ff','보랏빛 등꽃 송이와 은빛 성환의 축복'],
  ['priest','dawn-seraph','여명 세라핌의 기도','wing','#ffe1a0','#fff3e7','천사의 날개와 여명의 금빛 깃털의 축복'],
  ['priest','lily-sanctuary','백합 정원의 서약','lily','#d5ffe8','#f9d4f1','백합 꽃잎과 진주빛 정원이 피어나는 축복'],
+ ['warrior','warrior-dark','흑월 백조의 검무','swan','#9765e8','#b8c9ff','검은 백조의 날개와 보랏빛 월광이 흐르는 검기'],
+ ['warrior','warrior-fallen','핏빛 타락의 검무','swan','#e64068','#ffb0a0','붉게 물든 백조 날개와 저주의 초승달 검기'],
+ ['mage','mage-dark','심연 은하의 왈츠','star','#9765e8','#b8c9ff','먹빛 성운과 보랏빛 별무리가 소용돌이치는 마법'],
+ ['mage','mage-fallen','타락 성운의 종말','star','#e64068','#ffb0a0','진홍 성운과 타락한 별의 궤도가 폭발하는 마법'],
+ ['archer','archer-dark','흑화 벚꽃의 노래','blossom','#9765e8','#b8c9ff','검보라 벚꽃과 차가운 영혼빛이 흩날리는 화살'],
+ ['archer','archer-fallen','핏빛 낙화의 저주','blossom','#e64068','#ffb0a0','피처럼 붉은 꽃잎과 타락의 불꽃을 두른 화살'],
+ ['rogue','rogue-dark','흑월 가면의 춤','crescent','#9765e8','#b8c9ff','검은 가면과 보라색 쌍초승달이 교차하는 칼날'],
+ ['rogue','rogue-fallen','혈월 타락의 춤','crescent','#e64068','#ffb0a0','핏빛 가면과 저주받은 붉은 달의 잔상 칼날'],
+ ['pirate','pirate-dark','심해 망령의 포격','shell','#9765e8','#b8c9ff','검은 진주와 유령빛 심해 파도가 터지는 포격'],
+ ['pirate','pirate-fallen','타락 혈해의 포격','shell','#e64068','#ffb0a0','핏빛 산호와 저주받은 진주의 파괴적인 포격'],
+ ['priest','priest-dark','흑익 세라핌의 기도','wing','#9765e8','#b8c9ff','검보라 여섯 날개와 차가운 영혼 성환의 축복'],
+ ['priest','priest-fallen','타락 세라핌의 심판','wing','#e64068','#ffb0a0','진홍빛 타락 천사와 금이 간 붉은 성환의 축복'],
 ];
 export const SKILL_LOOKS=Object.freeze(concepts.map(([classId,id,name,motif,color,light,description])=>Object.freeze({classId,id,name,motif,color,light,description,price:SKILL_LOOK_PRICE})));
 export const skillLookById=id=>typeof id==='string'?SKILL_LOOKS.find(c=>c.id===id)||null:null;
