@@ -112,3 +112,62 @@
  .token-slip-sum div:first-child{grid-column:1/-1}
 }
 @media (prefers-reduced-motion:reduce){.token-runner{transition-duration:.01s}}
+
+/* 2026-11-02: 공용 판타지 버튼 그림(:before)·자동 아이콘을 끄고 토큰 화면 전용의 단정한 버튼을 쓴다. */
+.token-screen button.tk{position:relative;min-height:0;padding:8px 10px;border:1px solid #8a7146;border-radius:9px;background:linear-gradient(#1c3352,#0f1f37);box-shadow:inset 0 1px #ffffff14;color:#efe3c6;font-size:.86rem;font-weight:700;line-height:1.2;text-shadow:none;cursor:pointer}
+.token-screen button.tk:before{display:none}
+.token-screen button.tk:hover:not(:disabled){border-color:#d9b874}
+.token-screen button.tk.active{border-color:#e6c47c;background:linear-gradient(#3a3020,#1d1a14);color:#ffe2a0}
+.token-screen button.tk.gold{border-color:#ffe0a0;background:linear-gradient(#f3d27f,#b9893a);color:#2a1904;text-shadow:none}
+.token-screen button.tk:disabled{opacity:.4;filter:none;cursor:default}
+/* 탭: 한 줄 세그먼트 */
+.token-screen .token-tabs{gap:0;padding:3px;border:1px solid #8a7146;border-radius:12px;background:rgba(10,12,24,.85)}
+.token-screen .token-tabs button.tk{padding:9px 4px;border:0;border-radius:9px;background:transparent;box-shadow:none;color:#bfb49b;white-space:nowrap}
+.token-screen .token-tabs button.tk.active{background:linear-gradient(#f3d27f,#b9893a);color:#2a1904}
+/* 교환소 구매 버튼 */
+.token-screen .token-tile-buy button.tk{padding:7px 0;font-size:.8rem}
+.token-screen .token-tile-buy button.tk:not(.gold){background:#132640}
+/* 경마 출전표 행 */
+.token-screen .token-runner-row.tk{display:grid;grid-template-columns:30px 1fr 58px 58px;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.08);border-left:4px solid var(--lc);border-radius:10px;background:rgba(255,255,255,.04);text-align:left;font-weight:400;color:#efe3c6}
+.token-screen .token-runner-row.tk.selected,.token-screen .token-runner-row.tk.mine{border-color:#e6c47c;border-left-color:var(--lc);background:rgba(230,196,124,.14)}
+.token-screen .token-runner-row.tk:disabled{opacity:1}
+/* 베팅 슬립 */
+.token-screen .token-slip .seg button.tk{padding:8px 2px;font-size:.84rem}
+.token-screen .token-slip .seg button.tk.active{background:linear-gradient(#3a3020,#1d1a14)}
+.token-screen button.tk.token-go{padding:12px;font-size:1rem;border-radius:11px}
+/* 던전 도전 버튼 */
+.token-screen .token-stage-side button.tk{padding:8px 14px}
+@media (max-width:520px){
+ .token-screen .token-runner-row.tk{grid-template-columns:26px 1fr 48px 48px;gap:6px;padding:7px 8px}
+ .token-screen .token-tabs button.tk{font-size:.82rem}
+}
+
+.token-screen button.tk.active{color:#ffe2a0!important}
+.token-screen button.tk.gold,.token-screen .token-tabs button.tk.active{color:#2a1904!important}
+/* 던전: 단계 카드 한 줄 */
+.token-dungeon-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(10,12,24,.85);border:1px solid rgba(223,189,120,.25)}
+.token-dungeon-boss{display:grid;gap:2px}
+.token-dungeon-boss strong{color:#ffe2a0}
+.token-dungeon-boss small{color:var(--muted);font-size:.78rem}
+.token-tries{display:grid;justify-items:end}
+.token-tries small{font-size:.7rem;color:var(--muted)}
+.token-tries b{font-size:1.5rem;color:#ffd76a;line-height:1}
+.token-tries i{font-style:normal;font-size:.9rem;color:var(--muted)}
+.token-stage-list{padding:6px 8px;border-radius:14px;background:rgba(10,12,24,.82);border:1px solid rgba(223,189,120,.18);gap:0!important}
+.token-stage{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.07)}
+.token-stage:last-child{border-bottom:0}
+.token-stage-no{width:42px;height:42px;border-radius:10px;font-size:1.15rem}
+.token-stage-body strong{font-size:.9rem}
+.token-stage-body small{font-size:.74rem}
+.token-clear{white-space:nowrap;margin-left:4px;padding:0 6px;border-radius:999px;background:#2f5a36;color:#bff0c5;font-style:normal;font-size:.68rem;vertical-align:1px}
+.token-stage-side{display:flex!important;align-items:center;gap:8px}
+.token-stage-side .token-reward{min-width:52px;text-align:right}
+.token-screen .token-stage-side button.tk{min-width:64px;padding:8px 12px}
+@media (max-width:520px){
+ .token-stage{grid-template-columns:38px 1fr auto;gap:8px}
+ .token-stage-no{width:38px;height:38px}
+ .token-stage-side{grid-column:auto!important;display:flex!important}
+ .token-stage-side .token-reward{min-width:44px;font-size:.88rem}
+ .token-screen .token-stage-side button.tk{min-width:56px;padding:7px 8px}
+}
+.token-stage-body strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

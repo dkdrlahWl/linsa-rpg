@@ -5,12 +5,12 @@ import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_B
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const big=n=>n>=1e8?(n/1e8).toFixed(n>=1e9?1:2).replace(/\.?0+$/,'')+'억':fmt(n);
-const b=(label,action,arg='',cls='',disabled=false)=>`<button class="${cls}" data-action="${action}" data-arg="${esc(arg)}" data-write${disabled?' disabled data-unavailable':''}>${label}</button>`;
+const b=(label,action,arg='',cls='',disabled=false)=>`<button data-illustrated="1" class="tk ${cls}" data-action="${action}" data-arg="${esc(arg)}" data-write${disabled?' disabled data-unavailable':''}>${label}</button>`;
 const todayKey=now=>new Date(now+9*3600e3).toISOString().slice(0,10);
 export const tokenVisible=s=>TOKEN_CONTENT_OPEN||s?.isAdmin===true;
 
 function tabs(page){
- return `<nav class="token-tabs">${[['dungeon','토큰 던전'],['shop','토큰 교환소'],['race','토큰 경마']].map(([k,l])=>`<button class="${page===k?'active':''}" data-action="tokenPage" data-arg="${k}">${l}</button>`).join('')}</nav>`;
+ return `<nav class="token-tabs">${[['dungeon','토큰 던전'],['shop','토큰 교환소'],['race','토큰 경마']].map(([k,l])=>`<button data-illustrated="1" class="tk ${page===k?'active':''}" data-action="tokenPage" data-arg="${k}">${l}</button>`).join('')}</nav>`;
 }
 function head(s){
  return `<header class="token-head"><div><p class="eyebrow">TOKEN</p><h2>토큰 콘텐츠</h2></div><div class="token-wallet"><span class="token-coin" aria-hidden="true">◆</span><b>${fmt(tokenCount(s))}</b><small>토큰</small></div></header>${TOKEN_CONTENT_OPEN?'':'<p class="token-locked-note">🔒 공개 전 · 관리자만 시험할 수 있어요. 다른 유저에게는 보이지 않습니다.</p>'}`;
@@ -20,9 +20,9 @@ function dungeon(s,now){
  const left=tokenTriesLeft(s,now),best=s.tokenBoss?.best||0;
  const cards=TOKEN_BOSS_STAGES.map(t=>{
   const open=tokenStageOpen(s,t.stage),cleared=best>=t.stage;
-  return `<article class="panel token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>${esc(t.name)}</strong><small>HP ${big(t.hp)} · 공격 ${big(t.attack)} · 60초</small><small class="token-target">${esc(t.target)}</small></div><div class="token-stage-side"><b class="token-reward">◆ ${t.tokens}</b>${b(open?'도전':'이전 단계 클리어 필요','tokenBossStart',t.stage,'gold',!open||!left||!!s.battle)}</div></article>`;
+  return `<article class="token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>시련의 탑 ${t.floor}층급${cleared?' <em class="token-clear">클리어</em>':''}</strong><small>HP ${big(t.hp)} · 공격 ${big(t.attack)}</small></div><div class="token-stage-side"><b class="token-reward">◆ ${t.tokens}</b>${b(open?'도전':'🔒','tokenBossStart',t.stage,open?'gold':'',!open||!left||!!s.battle)}</div></article>`;
  }).join('');
- return `<section class="panel pad token-info"><p>매일 <b>${TOKEN_DAILY_TRIES}회</b> 도전 · 남은 도전 <b>${left}/${TOKEN_DAILY_TRIES}</b> · 최고 클리어 <b>${best||0}단계</b></p><p class="note">처치했을 때만 도전 1회 차감(실패하거나 나가면 차감 없음) · 제한 60초 · 처치하면 그 단계 토큰 지급 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화</p></section><div class="token-stage-list">${cards}</div>`;
+ return `<section class="token-dungeon-head"><div class="token-dungeon-boss"><strong>${esc(TOKEN_BOSS_STAGES[0].name)}</strong><small>제한 60초 · 처치하면 그 단계 토큰 지급</small></div><div class="token-tries"><small>남은 도전</small><b>${left}<i>/${TOKEN_DAILY_TRIES}</i></b></div></section><p class="token-subline">처치했을 때만 도전 1회 차감 · 실패하거나 나가면 차감 없음 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화 · 최고 클리어 <b>${best||0}단계</b></p><div class="token-stage-list">${cards}</div>`;
 }
 
 // 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
@@ -63,7 +63,7 @@ function race(s,now){
  const track=`<div class="token-track${anim?' running':''}${anim?.go?' go':''}">${showCard.horses.map(h=>{const rank=rankOf(h);return `<div class="token-lane"><span class="token-runner${anim&&anim.lane===h.lane?' mine':''}" style="--rank:${rank};--t:${anim?(3.4+rank*.35).toFixed(2):0}s;--lc:${LANE_COLORS[(h.lane-1)%6]}">🐎<i>${h.lane}</i></span></div>`;}).join('')}<div class="token-finish"></div></div>`;
  const rows=showCard.horses.map(h=>{
   const sel=!anim&&raceUI.lane===h.lane,mine=anim&&anim.lane===h.lane,rank=rankOf(h),showRank=rank&&anim.done;
-  return `<button class="token-runner-row${sel?' selected':''}${mine?' mine':''}" data-action="raceLane" data-arg="${h.lane}" ${anim?'disabled':''} style="--lc:${LANE_COLORS[(h.lane-1)%6]}">
+  return `<button data-illustrated="1" class="tk token-runner-row${sel?' selected':''}${mine?' mine':''}" data-action="raceLane" data-arg="${h.lane}" ${anim?'disabled':''} style="--lc:${LANE_COLORS[(h.lane-1)%6]}">
    <span class="lane">${h.lane}</span>
    <span class="who"><b>${esc(h.name)}${showRank?` <em class="rank r${rank}">${rank}등</em>`:''}</b><span class="cond" title="컨디션 ${h.power.toFixed(1)}"><i style="width:${Math.max(4,Math.min(100,h.power*10))}%"></i></span><small>컨디션 ${h.power.toFixed(1)}</small></span>
    <span class="odd${raceUI.type==='win'?' on':''}">${h.win.toFixed(1)}<small>배</small></span>
@@ -77,8 +77,8 @@ function race(s,now){
  }else{
   const horse=card.horses[raceUI.lane-1],odds=horse?.[raceUI.type]||0,bet=Math.min(raceUI.bet,have),limit=!s.isAdmin&&played>=RACE_DAILY;
   slip=`<div class="panel token-slip">
-   <div class="token-slip-row"><span>방식</span><div class="seg">${Object.entries(RACE_BETS).map(([k,l])=>`<button class="${raceUI.type===k?'active':''}" data-action="raceType" data-arg="${k}">${l.split(' · ')[0]}<small>${l.split(' · ')[1]||''}</small></button>`).join('')}</div></div>
-   <div class="token-slip-row"><span>금액</span><div class="seg">${[1,5,10,50,100].map(n=>`<button class="${raceUI.bet===n?'active':''}" data-action="raceAmount" data-arg="${n}" ${have<n?'data-short':''}>◆ ${n}</button>`).join('')}</div></div>
+   <div class="token-slip-row"><span>방식</span><div class="seg">${Object.entries(RACE_BETS).map(([k,l])=>`<button data-illustrated="1" class="tk ${raceUI.type===k?'active':''}" data-action="raceType" data-arg="${k}">${l.split(' · ')[0]}<small>${l.split(' · ')[1]||''}</small></button>`).join('')}</div></div>
+   <div class="token-slip-row"><span>금액</span><div class="seg">${[1,5,10,50,100].map(n=>`<button data-illustrated="1" class="tk ${raceUI.bet===n?'active':''}" data-action="raceAmount" data-arg="${n}" ${have<n?'data-short':''}>◆ ${n}</button>`).join('')}</div></div>
    <div class="token-slip-sum"><div><small>내 선택</small><b><i class="dot" style="--lc:${LANE_COLORS[(raceUI.lane-1)%6]}"></i>${raceUI.lane}번 ${esc(horse?.name||'')}</b></div><div><small>${RACE_BETS[raceUI.type].split(' · ')[0]} 배당</small><b>${odds.toFixed(1)}배</b></div><div><small>적중 시</small><b class="gain">◆ ${fmt(Math.floor(bet*odds))}</b></div></div>
    ${b(limit?'오늘 경주 끝':`◆ ${bet} 걸고 출발`,'raceBet','','gold token-go',bet<RACE_MIN_BET||limit)}
   </div>`;
