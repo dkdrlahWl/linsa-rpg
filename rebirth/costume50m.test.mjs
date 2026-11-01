@@ -7,9 +7,12 @@ import {COSTUMES as SERVER} from './edge-dist/costumes.mjs';
 import {costumeMotionFrame,costumeMotionScale} from './costume-motion.mjs';
 import {costumeShop} from './costume-ui.mjs';
 const added=COSTUMES.filter(c=>c.price===50000000);
-assert.equal(COSTUMES.length,48);assert.equal(added.length,12);assert.deepEqual(COSTUMES,SERVER);
-assert.equal(new Set(COSTUMES.map(c=>c.id)).size,48);
-for(const cls of ['warrior','mage','archer','rogue','pirate','priest'])assert.equal(added.filter(c=>c.classId===cls).length,2);
+assert.equal(COSTUMES.length,60);assert.equal(added.length,24);assert.deepEqual(COSTUMES,SERVER);
+assert.equal(new Set(COSTUMES.map(c=>c.id)).size,60);
+for(const cls of ['warrior','mage','archer','rogue','pirate','priest'])assert.equal(added.filter(c=>c.classId===cls).length,4);
+const dark=added.filter(c=>c.collection==='dark-20261102');
+assert.equal(dark.length,12);
+for(const cls of ['warrior','mage','archer','rogue','pirate','priest'])assert.equal(dark.filter(c=>c.classId===cls).length,2);
 const ctx={now:0,random:()=>.5,uuid:randomUUID};
 for(const c of added){
  await access(new URL(c.atlas,import.meta.url));await access(new URL(c.portrait,import.meta.url));
@@ -28,4 +31,4 @@ for(const c of added){
  }
  const shop=costumeShop({...s,costumes:[]});assert.ok(shop.includes(c.name));assert.ok(shop.includes('50,000,000 G'));
 }
-console.log('PASS 12 high-fantasy 50M costumes: two per job, exact debit, duplicate/poor/wrong-job guards, persistence, bonuses, 8-direction motion, client/server parity.');
+console.log('PASS 24 fantasy/dark 50M costumes: four per job, exact debit, duplicate/poor/wrong-job guards, persistence, bonuses, 8-direction motion, client/server parity.');

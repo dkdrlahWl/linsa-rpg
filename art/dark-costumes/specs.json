@@ -1,0 +1,98 @@
+[
+  {
+    "id": "dread-crown-knight",
+    "classId": "warrior",
+    "name": "망각왕관 암흑기사",
+    "design": "Female silver bob hair, garnet eyes, jagged black iron crown, charcoal plate armor with silver edge highlights and small ruby cracks, short torn crimson cape, massive black greatsword with crimson crystal core. Dread sovereign knight. No wings.",
+    "attack": "overhead sword slash",
+    "price": 50000000
+  },
+  {
+    "id": "fallen-oath-valkyrie",
+    "classId": "warrior",
+    "name": "타락한 서약의 발키리",
+    "design": "Female long ash-blonde hair, violet eyes, broken silver halo, black feather shoulder wings, violet-black articulated knight armor, tarnished gold trim, purple gemstone, violet crystal longsword. Fallen valkyrie. Short split armored skirt exposes separate greaved legs.",
+    "attack": "sword slash",
+    "price": 50000000
+  },
+  {
+    "id": "eclipse-hex-witch",
+    "classId": "mage",
+    "name": "일식의 저주 마녀",
+    "design": "Female long lavender hair, amber eyes, tall crooked black witch hat with eclipsed sun medallion, black layered velvet dress with violet lining, silver chains and a short split skirt above two knee boots, staff crowned with a black sun ring and violet orb.",
+    "attack": "casting a violet hex from staff",
+    "price": 50000000
+  },
+  {
+    "id": "void-thorn-sorcerer",
+    "classId": "mage",
+    "name": "공허가시 마도사",
+    "design": "Male white swept hair, teal eyes, angular dark violet collar, charcoal fitted sorcerer coat split above two visible boots, glowing teal rune trim, floating small thorn crystals close to shoulders, tall staff with jagged obsidian crystal and teal core.",
+    "attack": "casting teal void magic from staff",
+    "price": 50000000
+  },
+  {
+    "id": "raven-dusk-huntress",
+    "classId": "archer",
+    "name": "황혼까마귀 사냥꾼",
+    "design": "Female dark blue hair, pale silver eyes, raven feather hood folded back, charcoal leather ranger tunic, silver buckles, small blue feather mantle, split short coat above trousers and two boots, recurved raven-wing black bow with icy blue string and quiver.",
+    "attack": "drawing and releasing bow arrow",
+    "price": 50000000
+  },
+  {
+    "id": "blighted-briar-ranger",
+    "classId": "archer",
+    "name": "타락한 가시숲 궁수",
+    "design": "Male ash green hair, golden eyes, black antler circlet, blackened green leather armor and leaf cape, dark bronze edging, short split coat and visible two boots, curved thornwood bow glowing toxic emerald, small quiver on back.",
+    "attack": "drawing and releasing emerald arrow",
+    "price": 50000000
+  },
+  {
+    "id": "bloodmoon-twinblade",
+    "classId": "rogue",
+    "name": "혈월의 쌍검 처형자",
+    "design": "Female silver high ponytail, crimson eyes, tiny black horn ornaments, black fitted leather armor, crimson short scarf, silver straps, separate fitted trousers and two boots, paired curved crimson-and-black daggers.",
+    "attack": "paired dagger slashing",
+    "price": 50000000
+  },
+  {
+    "id": "mourning-veil-assassin",
+    "classId": "rogue",
+    "name": "장송의 그림자 암살자",
+    "design": "Female dark violet bob hair, pale violet eyes, delicate black lace head veil ending at shoulders, charcoal tailored assassin coat with silver skull clasp and lilac trim, split coat over trousers and two boots, twin narrow obsidian daggers with violet edges.",
+    "attack": "paired dagger lunging",
+    "price": 50000000
+  },
+  {
+    "id": "black-tide-admiral",
+    "classId": "pirate",
+    "name": "검은파도 심연 제독",
+    "design": "Male silver hair, violet eyes, charcoal tricorne hat with purple gem, black naval admiral coat with tarnished silver braids, short split coat tails, visible two tall boots, one ornate flintlock pistol with purple glowing chamber, belt cutlass.",
+    "attack": "aiming and firing flintlock pistol",
+    "price": 50000000
+  },
+  {
+    "id": "cursed-brass-corsair",
+    "classId": "pirate",
+    "name": "저주받은 황동 해적",
+    "design": "Female auburn hair, amber eyes, black bandana and small dark captain hat, charcoal leather corsair coat with antique brass armor fittings, burnt orange scarf, visible two trouser legs and boots, heavy brass-and-obsidian hand cannon with ember core.",
+    "attack": "aiming and firing hand cannon",
+    "price": 50000000
+  },
+  {
+    "id": "fallen-seraph-priest",
+    "classId": "priest",
+    "name": "타락천사 성흔 사제",
+    "design": "Female long pearl white hair, amethyst eyes, broken tilted black halo, compact black feather wings, charcoal cleric dress with silver sacred embroidery and violet gems, short open split skirt above two visible silver boots, staff with fractured dark crystal cross.",
+    "attack": "casting violet sacred magic from cross staff",
+    "price": 50000000
+  },
+  {
+    "id": "requiem-cathedral-saint",
+    "classId": "priest",
+    "name": "진혼성당의 검은 성녀",
+    "design": "Female long smoky rose hair, crimson eyes, black gothic cleric headdress with silver rose, black-and-burgundy cleric battle dress trimmed pearl silver, short divided skirt above visible two boots, ornate black silver staff with crimson rose crystal and small hanging censer.",
+    "attack": "casting crimson requiem spell from staff",
+    "price": 50000000
+  }
+]

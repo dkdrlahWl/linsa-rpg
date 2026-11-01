@@ -35,5 +35,8 @@ for(const id of newIds){
 }
 const existing=normalizeCostumes({classId:'warrior',costumes:oldIds,equippedCostume:oldIds[0]});
 assert.deepEqual(existing.costumes,oldIds);assert.equal(equippedCostume(existing).id,oldIds[0]);
-const page=await readFile(new URL('index.html',import.meta.url),'utf8');assert.match(page,/costume50m-fantasy-20261029/);
+const page=await readFile(new URL('index.html',import.meta.url),'utf8');
+const imports=JSON.parse(page.match(/<script type="importmap">(.*?)<\/script>/s)[1]).imports;
+assert.equal(imports['./costumes.mjs'],'./costumes.mjs?v=dark-costumes-20261102');
+assert.equal(imports['./costume-motion-layout.mjs'],'./costume-motion-layout.mjs?v=dark-costumes-20261102');
 console.log('PASS six new jobs at 20M, six existing at 10M, exact prices, duplicate/poor/wrong-job protection, saved ownership, two attack phases, paths and client/server catalog parity');
