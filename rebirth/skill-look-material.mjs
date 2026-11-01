@@ -2,22 +2,13 @@ import {skillLookDestination} from './skill-look-fit.mjs';
 import {SKILL_LOOK_SOURCE} from './skill-look-source.mjs';
 import {orientedSkillLookSource} from './skill-look-orientation.mjs';
 import {skillLookSourceRect} from './skill-look-bounds.mjs';
-import {skillLookArtPath,skillLookDesign,skillLookPalette} from './skill-look-designs.mjs';
+import {skillLookArtPath,skillLookDesign} from './skill-look-designs.mjs';
 import {skillLookById} from './skill-looks.mjs';
-// Palettes are baked once per equipped theme; drawing frames adds no pixel work.
-function themedAtlas(im,id){
- const palette=skillLookPalette(id);if(!palette)return im;
- const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
- const q=c.getContext('2d'),stops=palette.map(hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)));
- q.drawImage(im,0,0);const pixels=q.getImageData(0,0,c.width,c.height),d=pixels.data;
- for(let i=0;i<d.length;i+=4){if(!d[i+3])continue;const level=Math.min(2.999,Math.pow((d[i]*.2126+d[i+1]*.7152+d[i+2]*.0722)/255,.85)*3),n=Math.floor(level),t=level-n;for(let k=0;k<3;k++)d[i+k]=Math.round(stops[n][k]*(1-t)+stops[n+1][k]*t);}
- q.putImageData(pixels,0,0);c.naturalWidth=c.width;c.naturalHeight=c.height;return c;
-}
 const images=new Map(),loads=new Map(),sources=new WeakMap(),tints=new WeakMap();
 export const skillLookAtlasURL=id=>new URL(`./${skillLookArtPath(id)}`,import.meta.url).href;
 export function prepareSkillLookArt(id){
  if(!skillLookById(id))return Promise.resolve(null);
- if(!loads.has(id)){const im=new Image();im.src=skillLookAtlasURL(id);images.set(id,im);loads.set(id,im.decode().then(()=>{const painted=themedAtlas(im,id);images.set(id,painted);orientedSkillLookSource(id,5,0,painted,skillLookSourceRect(id,5,0,painted.naturalWidth,painted.naturalHeight));return painted;}).catch(()=>null));}
+ if(!loads.has(id)){const im=new Image();im.src=skillLookAtlasURL(id);images.set(id,im);loads.set(id,im.decode().then(()=>{orientedSkillLookSource(id,5,0,im,skillLookSourceRect(id,5,0,im.naturalWidth,im.naturalHeight));return im;}).catch(()=>null));}
  return loads.get(id);
 }
 export function registerSkillLookSource(source,info){if(source)sources.set(source,info);return source;}
