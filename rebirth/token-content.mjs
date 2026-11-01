@@ -13,7 +13,7 @@ export const TOKEN_BOSS_FLOORS=Object.freeze([25,27,30,33,36,39,42,45,48,50]);
 export const TOKEN_BOSS_NAME='황금 금고지기 마몬';
 export const TOKEN_BOSS_STAGES=Object.freeze(TOKEN_BOSS_FLOORS.map((floor,i)=>{const f=TOWER_FLOORS[floor-1];return Object.freeze({
  stage:i+1,floor,name:TOKEN_BOSS_NAME,art:'hourglass-colossus',level:f.level,
- hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:f.attack,seconds:TOKEN_BOSS_SECONDS,tokens:10+i*2,pattern:f.pattern,
+ hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:f.attack,seconds:TOKEN_BOSS_SECONDS,tokens:10+i*10,pattern:f.pattern,
  guide:f.guide||'바닥 경고 문양과 돌진 경로를 피하면서 60초 안에 쓰러뜨리세요.',
  target:'시련의 탑 '+floor+'층급 (패턴·공격력 동일, 60초 기준 체력)',
 });}));

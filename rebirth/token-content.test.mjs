@@ -12,9 +12,9 @@ assert.equal(TOKEN_CONTENT_OPEN,false);
 for(const [cmd,args] of [['tokenBossStart',{stage:1}],['tokenShopBuy',{id:'cube'}],['raceCard',{}],['raceBet',{cardId:1,lane:1,type:'win',bet:1}]])
  assert.throws(()=>execute(base,cmd,args,ctx(t0)),/TOKEN_LOCKED/,cmd);
 
-// 단계 표: 10단계, 토큰 10,12,...,28, 60초, 체력·공격 단조 증가
+// 단계 표: 10단계, 토큰 10,20,...,100, 60초, 체력·공격 단조 증가
 assert.equal(TOKEN_BOSS_STAGES.length,10);
-assert.deepEqual(TOKEN_BOSS_STAGES.map(t=>t.tokens),[10,12,14,16,18,20,22,24,26,28]);
+assert.deepEqual(TOKEN_BOSS_STAGES.map(t=>t.tokens),[10,20,30,40,50,60,70,80,90,100]);
 assert.ok(TOKEN_BOSS_STAGES.every((t,i)=>t.seconds===60&&(i===0||t.hp>TOKEN_BOSS_STAGES[i-1].hp&&t.attack>TOKEN_BOSS_STAGES[i-1].attack)));
 
 // 관리자: 입장 → 60초 타임아웃 패배 → 토큰 0
@@ -26,7 +26,7 @@ assert.equal(r.state.battle,null);const ev=r.events.find(e=>e.type==='tokenBoss'
 // 승리 처리: 체력을 0으로 만든 뒤 한 틱 진행 → 토큰 지급
 s=run(base,'tokenBossStart',{stage:10},ctx(t0,true));s.battle.enemyHp=1;s.battle.won=true;s.battle.ended=true;
 r=execute(s,'sync',{},ctx(t0+1000,true));
-const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);assert.equal(win.tokens,28);assert.equal(r.state.tokens,28);
+const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);assert.equal(win.tokens,100);assert.equal(r.state.tokens,100);
 
 // 교환소: 토큰 차감·지급·일일 한도
 s=r.state;s.tokens=1000;
