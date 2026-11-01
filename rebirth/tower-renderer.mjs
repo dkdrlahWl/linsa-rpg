@@ -1,3 +1,4 @@
+import {tokenEncounterArt} from './token-art.mjs';
 import {advancementArt} from './advancement-art.mjs';
 import {actorFacing} from './actor-facing.mjs';
 import {beginSkillAlpha,endSkillAlpha,skillAlpha,effectTier,withSkillAlpha} from './skill-alpha.mjs';
@@ -27,7 +28,7 @@ import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER
 const arenaBackdrops=new WeakMap();
 const cache=new Map(),spriteBounds=new WeakMap(),decodedImages=new WeakSet();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h,empty:true});}result.maxWidth=Math.max(...result.map(v=>v.w));result.maxHeight=Math.max(...result.map(v=>v.h));spriteBounds.set(im,result);return result;}
-export const asset=name=>(name.startsWith('boss-')&&advancementArt(name.slice(5))?.sprite)||'tower/'+name+'.webp';
+export const asset=name=>name==='boss-token-mammon-v1'?'token/mammon-v1.webp':(name.startsWith('boss-')&&advancementArt(name.slice(5))?.sprite)||'tower/'+name+'.webp';
 export const motionAsset=name=>'tower/'+name+'.webp';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=/^exploration\/(?:boss-[456]|map-[456]|arena-[456]-196)\.webp$/.test(src)?src+'?v=exploration-art456-20261025':src;cache.set(src,im);im.decode().then(()=>decodedImages.add(im)).catch(()=>{});}return cache.get(src);}
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -340,7 +341,7 @@ export class TowerRenderer {
     // for the rest of the session. Blur is the most expensive state on weaker GPUs/CPUs and long frames
     // also cause visible prediction catch-up snaps.
     if(!this.lowDetail&&this.last){const ft=now-this.last;if(ft<400){this.frameEma=(this.frameEma??ft)*.94+ft*.06;this.slowFrames=this.frameEma>1450/this.maxFps?(this.slowFrames||0)+1:0;if(this.slowFrames>40)this.setLowDetail();}}
-    const g=this.g,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
+    const g=this.g,f=tokenEncounterArt(b,towerEncounter(b)),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const drawShield=(actor,x,y)=>{
       const e={kind:'priest',classId:'priest',slot:3,owner:actor.shieldOwner,x,y,size:260,start:time-6,end:time+6,opacity:.35},look=skillLookForEffect(b,e);
       drawPriestSkillArt(skillLookContext(g,look,e),e,time,{scale:.38,opacity:.3,frame:2});

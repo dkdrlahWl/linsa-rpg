@@ -1,3 +1,4 @@
+import {tokenEncounterArt} from './token-art.mjs';
 import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';
 import {autoSkillBits} from './auto-skills.mjs?v=fifth-impact-121';
 import {canOpenChest,towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerStep,TOWER_STEP,upgradeTowerBattle,trainingDps} from './tower-model.mjs?v=fifth-impact-121';
@@ -15,10 +16,10 @@ export class TowerController {
     Object.assign(this,{host,send,sound,options,b:structuredClone(b),serverTick:b.tick,frames:[],keys:new Set(),buttonPointers:new Map(),stick:{x:0,y:0},stickPointer:null,abort:new AbortController(),last:performance.now(),lastSend:0,lastHud:0,lastSound:b.serial||0,pending:false,disposed:false,loaded:false,error:'',retryAfter:0,failures:0,autoAttack:false,autoSkills:false});
     this.options.audio?.(this.b);
     upgradeTowerBattle(this.b);this.sampler=new TowerInput(TOWER_STEP);this.previous=snapshot(this.b);this.hint={attack:0,skill:0,dash:0};this.correction={x:0,y:0};
-    this.artReady=false;prepareCombatArt([b.classId],towerEncounter(b).art,[b.power?.costumeId],[b.power?.skillLookId]).then(()=>{this.artReady=true;});
+    this.artReady=false;prepareCombatArt([b.classId],tokenEncounterArt(b,towerEncounter(b)).art,[b.power?.costumeId],[b.power?.skillLookId]).then(()=>{this.artReady=true;});
     this.canvas=host.querySelector('canvas');this.renderer=new TowerRenderer(this.canvas);
     this.canvas.addEventListener('click',()=>{if(canOpenChest(this.b))this.openChest();},{signal:this.abort.signal});
-    this.required=['effects','boss-'+towerEncounter(b).art,'second-job-atlas','reward-chest'].map(asset);
+    this.required=['effects','boss-'+tokenEncounterArt(b,towerEncounter(b)).art,'second-job-atlas','reward-chest'].map(asset);
     this.required.push(...(b.classId==='priest'?['tower/priest-default-v2.webp']:[asset('hero-'+b.classId+'-directions'),asset('hero-'+b.classId+'-motion-v4')]));
     this.required.push(...['arena-overhead-v3','attack-slash-v2','attack-burst-v2','attack-beam-v2','attack-bolt-v2','second-sequence-atlas-v1'].map(motionAsset));
     this.required.push(asset('third-job-atlas'));if(b.classId==='warrior')this.required.push(asset('hero-warrior-east-v4'));this.required.forEach(image);
@@ -145,7 +146,7 @@ export class TowerController {
     if(now-this.lastHud>=50){this.updateHud();this.lastHud=now;}
   }
   updateHud(){
-    const b=this.b,f=towerEncounter(b),c=TOWER_CLASSES[b.classId],input=this.input(),distance=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
+    const b=this.b,f=tokenEncounterArt(b,towerEncounter(b)),c=TOWER_CLASSES[b.classId],input=this.input(),distance=Math.hypot(b.player.x-b.enemy.x,b.player.y-b.enemy.y);
     const text=(id,value)=>{if(this.nodes[id]&&this.nodes[id].textContent!==value)this.nodes[id].textContent=value;};
     if(b.dummyMode){const dps=trainingDps(b);text('dummy-recent',format(dps.recent));text('dummy-average',format(dps.average));text('dummy-total',format(b.dummyTotalDamage||0));}
     else {text('enemy-hp',`${format(b.enemyHp)} / ${format(f.hp)}`);this.nodes['enemy-bar'].style.transform=`scaleX(${b.enemyHp/f.hp})`;}

@@ -34,7 +34,7 @@ import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleA
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=bank-20261031';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=token-art-20261102';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -50,16 +50,16 @@ import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
 import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=citadel-interval-20261018';
 import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
-import {installMenuIcons} from './menu-icons.mjs?v=priest-potential-83';
+import {installMenuIcons} from './menu-icons.mjs?v=token-art-20261102';
 import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide, renderAdditionalSection, renderAddCubeChoice } from './cube-ui.mjs?v=prime-choice-158';
 import { renderRefinePanel, renderRefineChoice } from './refine-ui.mjs?v=flame5m-20261025';
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
-import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-20261101';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-art-20261102';
 import * as D from "./data.mjs?v=weekly200-hp140m-20261018-lv300b";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=token-reward2-20261102";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=token-tidy-20261102";
+import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=token-art-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
