@@ -66,7 +66,6 @@ export const TOKEN_SHOP=Object.freeze([
  {id:'luckPotion',name:'행운 물약',kind:'potion',amount:1,cost:20},
  {id:'bonusFlame',name:'추가옵션 불꽃',kind:'material',key:'bonusFlame',amount:1,cost:25},
  {id:'dungeonKey',name:'던전 열쇠',kind:'material',key:'dungeonKey',amount:1,cost:25},
- {id:'diamond',name:'낚시 다이아',kind:'diamond',amount:1,cost:1},
  {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:10,daily:30},
  {id:'companionTicket',name:'동료 소환권',kind:'companionTicket',amount:1,cost:40,daily:10},
  {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:60,daily:5},
