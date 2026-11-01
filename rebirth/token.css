@@ -1,0 +1,62 @@
+/* 토큰 던전 · 교환소 · 경마 */
+.token-screen{display:grid;gap:10px}
+.token-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.token-head h2{margin:0}
+.token-wallet{display:flex;align-items:baseline;gap:6px;padding:8px 14px;border:1px solid var(--gold);border-radius:999px;background:rgba(223,189,120,.08)}
+.token-wallet b{font-size:1.25rem;color:var(--gold)}
+.token-wallet small{color:var(--muted)}
+.token-coin,.token-reward,.token-price{color:#ffd76a}
+.token-locked-note{margin:0;padding:8px 12px;border-radius:10px;background:rgba(255,120,90,.12);color:#ffb7a3;font-size:.86rem}
+.token-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.token-tabs button{padding:10px 4px}
+.token-tabs button.active{border-color:var(--gold);color:var(--gold)}
+.token-info p{margin:.2rem 0}
+.token-stage-list,.token-shop-list{display:grid;gap:8px}
+.token-stage{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:10px;padding:10px}
+.token-stage.locked{opacity:.55}
+.token-stage.cleared .token-stage-no{border-color:#7fd18b;color:#7fd18b}
+.token-stage-no{display:grid;place-items:center;width:52px;height:52px;border:2px solid var(--gold);border-radius:12px;font-size:1.3rem;font-weight:800;color:var(--gold);line-height:1}
+.token-stage-no small{font-size:.62rem;font-weight:500}
+.token-stage-body{display:grid;gap:2px;min-width:0}
+.token-stage-body small{color:var(--muted)}
+.token-target{color:#c9b5ff!important}
+.token-stage-side{display:grid;gap:6px;justify-items:end}
+.token-stage-side button{white-space:nowrap}
+.token-offer{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:10px}
+.token-offer div{display:grid;gap:2px;min-width:0}
+.token-offer small{color:var(--muted)}
+.token-buy{display:flex!important;gap:6px}
+.token-result .token-reward-big{font-size:1.2rem;font-weight:800;color:#ffd76a}
+/* 경마 */
+.token-track{position:relative;display:grid;gap:4px;padding:8px 34px 8px 8px;border-radius:12px;background:linear-gradient(90deg,#24361f,#2d4527);overflow:hidden}
+.token-lane{position:relative;height:30px;border-bottom:1px dashed rgba(255,255,255,.15)}
+.token-runner{position:absolute;left:0;top:2px;font-size:22px;transform:scaleX(-1);transition:left var(--t) cubic-bezier(.3,.05,.4,1)}
+.token-runner i{position:absolute;top:-2px;right:-6px;transform:scaleX(-1);font-style:normal;font-size:.7rem;font-weight:800;color:#fff;background:#0008;border-radius:6px;padding:0 4px}
+.token-runner.mine i{background:#d4a028}
+.token-track.go .token-runner{left:calc(100% - 26px - var(--rank)*6px)}
+.token-finish{position:absolute;top:0;bottom:0;right:28px;width:6px;background:repeating-linear-gradient(#fff 0 6px,#111 6px 12px)}
+.token-horses{display:grid;gap:6px}
+.token-horse{display:grid;grid-template-columns:28px 1fr auto auto auto;align-items:center;gap:8px;padding:8px 10px;text-align:left}
+.token-horse.selected,.token-horse.mine{border-color:var(--gold);background:rgba(223,189,120,.1)}
+.token-horse .lane{font-weight:800;color:var(--gold)}
+.token-horse .cond{color:var(--muted);font-size:.8rem}
+.token-horse .odd{font-size:.8rem;white-space:nowrap}
+.token-horse .rank{grid-column:1/-1;justify-self:end;font-weight:800}
+.token-horse .rank.r1{color:#ffd76a}
+.token-bet{display:grid;gap:8px}
+.token-bet .seg{display:flex;flex-wrap:wrap;gap:6px}
+.token-bet .seg button{flex:1 1 auto}
+.token-bet .seg button.active{border-color:var(--gold);color:var(--gold)}
+.token-race-status{font-weight:800;text-align:center}
+.token-rules p{font-size:.86rem;color:var(--muted)}
+@media (max-width:520px){
+ .token-horse{grid-template-columns:24px 1fr auto;row-gap:2px}
+ .token-horse .cond{grid-column:2}
+ .token-stage{grid-template-columns:44px 1fr;}
+ .token-stage-no{width:44px;height:44px}
+ .token-stage-side{grid-column:1/-1;grid-template-columns:auto 1fr;align-items:center;justify-items:stretch}
+ .token-offer{grid-template-columns:1fr auto}
+ .token-buy{grid-column:1/-1}
+ .token-buy button{flex:1}
+}
+@media (prefers-reduced-motion:reduce){.token-runner{transition-duration:.01s}}

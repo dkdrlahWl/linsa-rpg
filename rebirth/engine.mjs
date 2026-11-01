@@ -21,7 +21,8 @@ import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs?v=rogue-arc
 import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird,advancementStatBonus,JOB_MULTIPLIER_STAGES} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
-import {treasureCommand} from './treasure-model.mjs';
+import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
+import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from './gear-refine.mjs?v=flame5m-20261025';
@@ -548,6 +549,7 @@ function towerFinish(s,ctx,events) {
   if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);return;}
   const reward={type:'boss',bossId:b.weeklyBossId,won:false,practice:b.practice,items:[],materials:0};s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);return;
  }
+ if(b.tokenStage!==undefined){const reward=tokenBossFinish(s,b,ctx.now);s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  if(b.advancementStage!==undefined){const stage=b.advancementStage,won=b.won,practice=!!b.advancementPractice;if(won&&!practice){check(nextTrialStage(s)===stage,'ALREADY_ADVANCED');s.firstAdvancement=true;s.advancement=stage;s.advancementVictories||={};s.advancementVictories[stage]=ctx.now;}const reward={type:'advancementTrial',stage,won,practice,seconds:b.tick/10};s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
  const first=b.won&&!s.tower.cleared.includes(b.floor);
@@ -679,6 +681,15 @@ function executeCore(input, command, args = {}, ctx) {
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   if(command.startsWith("treasure")){events.push(treasureCommand(s,command,args,ctx,dayKey(ctx.now),level=>{const item=makeLootItem(level,s.classId,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);return item;}));return {state:s,events};}
   switch (command) {
+    case "tokenBossStart": {
+      check(!s.pendingCube,"ITEM_CUBE_PENDING");
+      const fields=tokenBossEnter(s,args.stage,ctx.now);
+      s.battle=newTowerBattle(fields.tokenStage,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,fields);
+      s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
+    }
+    case "tokenShopBuy": {events.push(tokenShopBuy(s,args,ctx.now,{normalizeFishing,normalizeCompanions,normalizeTreasure:(st,now)=>normalizeTreasure(st,dayKey(now))}));break;}
+    case "raceCard": {check(tokenOpenFor(s),"TOKEN_LOCKED");raceState(s,ctx.now,ctx.random);events.push({type:"raceCard"});break;}
+    case "raceBet": {events.push(raceBet(s,args,ctx.now,ctx.random));break;}
     case "skillLookBuy":
     case "skillLookEquip":
     case "skillLookUnequip": {events.push(skillLookCommand(s,command,args.id));break;}
