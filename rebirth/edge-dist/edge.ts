@@ -175,6 +175,10 @@ Deno.serve(async (req) => {
           const room=unpackCitadelWorld(current.coop);
           if(!room&&["input","sync"].includes(action))return reply(current);
           if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
+          // 성채 쓰기 합치기 (2026-11-01): 4인이 각자 방 전체(수십 KB)를 다시 저장해 DB가 막혔다.
+          // 방이 200ms 안에 이미 진행됐으면 이 입력은 frame_snapshot이 큐에 넣어 둔 채로 두고
+          // 저장을 건너뛴다. 다음 저장자가 큐를 소비하고, 클라이언트는 미확인 입력을 다시 보낸다.
+          if(queueInput&&room&&isCitadel(room)&&room.status==='fighting'&&!room.entryWaiting&&!room.pendingOutcome&&Number.isFinite(room.started)&&Math.floor((Number(current.now)-room.started)/100)-room.tick<2)return reply(current);
           const world=action==='sync'&&body.args.explorationFloor!==undefined?adminExplorationFloor(room,user.id,body.args.explorationFloor,ctx.admin||user.app_metadata?.ringu_tester===true):action==='sync'&&body.args.waveSpeed!==undefined?setWaveSpeed(room,user.id,body.args.waveSpeed,Number(current.now)):action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
           if(action==='input'&&world===room)return reply(current);
           let claim=null;
