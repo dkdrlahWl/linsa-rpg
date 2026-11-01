@@ -33,9 +33,9 @@ with rewards(ord,label,min_score,gold,black,prime,min_rank,max_rank) as (values
 (30,'40~31위',0,6000000,180,30,31,40),
 (31,'30~21위',0,6500000,190,32,21,30),
 (32,'20~11위',0,7000000,200,34,11,20),
-(33,'그랜드 마스터',2600,10000000,300,50,null,null),
-(34,'챌린저',2600,15000000,450,75,null,null),
-(35,'챔피언',2600,20000000,600,100,null,null)
+(33,'그랜드 마스터',2600,50000000,300,50,null,null),
+(34,'챌린저',2600,75000000,450,75,null,null),
+(35,'챔피언',2600,100000000,600,100,null,null)
 ), base as (
 select * from rewards where ord=case
 when p_score>=2600 and p_rank between 1 and 10 then case when p_rank=1 then 35 when p_rank<=3 then 34 else 33 end
