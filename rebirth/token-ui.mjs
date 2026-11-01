@@ -1,4 +1,5 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
+import {currencyIconURL} from './currency-icons.mjs';
 import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought} from './token-content.mjs';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
@@ -24,30 +25,65 @@ function dungeon(s,now){
  return `<section class="panel pad token-info"><p>매일 <b>${TOKEN_DAILY_TRIES}회</b> 도전 · 남은 도전 <b>${left}/${TOKEN_DAILY_TRIES}</b> · 최고 클리어 <b>${best||0}단계</b></p><p class="note">입장하면 도전 1회 차감(실패해도 차감) · 제한 60초 · 처치하면 그 단계 토큰 지급 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화</p></section><div class="token-stage-list">${cards}</div>`;
 }
 
+// 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
+const SHOP_GROUPS=[
+ ['강화 재료',['cube','highCube','primeCube','addCube','scroll','potentialLock','bonusFlame','fragment']],
+ ['재화 · 소모품',['gold','diamond','luckPotion','dungeonKey']],
+ ['주간 한정',['treasureTicket','companionTicket','pickupTicket','rerollStone']],
+];
+const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp'};
+const offerIcon=o=>o.id==='treasureTicket'?'<span class="token-tile-emoji" aria-hidden="true">🗺️</span>':`<img src="${SHOP_ART[o.id]||currencyIconURL(o.key||o.id)}" alt="" loading="lazy">`;
+const offerName=o=>o.name.replace(/\s*\d[\d,]*\s*(만|개)?$/,'');
+const offerAmount=o=>o.kind==='gold'?'100만 골드':o.amount>1?'×'+fmt(o.amount):'';
+function shopTile(s,o,now){
+ const have=tokenCount(s),bought=o.weekly?tokenShopBought(s,o.id,now):0,left=o.weekly?o.weekly-bought:Infinity,soldOut=left<=0,afford=have>=o.cost;
+ const ten=!o.weekly||o.weekly>=10;
+ return `<article class="token-tile${soldOut?' sold-out':''}${!afford&&!soldOut?' poor':''}" data-no-currency-art>
+  <div class="token-tile-art">${offerIcon(o)}${o.weekly?`<span class="token-tile-limit">${soldOut?'품절':`남은 ${left}/${o.weekly}`}</span>`:''}</div>
+  <strong>${esc(offerName(o))}</strong><small>${offerAmount(o)||'&nbsp;'}${o.weekly?`<span class="m-only">${offerAmount(o)?' · ':''}${soldOut?'품절':`이번 주 ${left}/${o.weekly}`}</span>`:''}</small>
+  <b class="token-tile-price">◆ ${fmt(o.cost)}</b>
+  <div class="token-tile-buy">${b(soldOut?'품절':'1개','tokenShopBuy',o.id+':1','gold',soldOut||!afford)}${ten?b('10개','tokenShopBuy',o.id+':10','',soldOut||have<o.cost*10||left<10):''}</div>
+ </article>`;
+}
 function shop(s,now){
- const rows=TOKEN_SHOP.map(o=>{
-  const bought=o.weekly?tokenShopBought(s,o.id,now):0,soldOut=o.weekly&&bought>=o.weekly,afford=tokenCount(s)>=o.cost;
-  const amount=o.kind==='gold'?'':o.amount>1?` ×${fmt(o.amount)}`:'';
-  return `<article class="panel token-offer"><div><strong>${esc(o.name)}${amount}</strong><small>${o.weekly?`주 ${o.weekly}회 한정 · 이번 주 ${bought}/${o.weekly}`:'제한 없음'}</small></div><b class="token-price">◆ ${fmt(o.cost)}</b><div class="token-buy">${b('1개','tokenShopBuy',o.id+':1','gold',soldOut||!afford)}${o.weekly&&o.weekly<10?'':b('10개','tokenShopBuy',o.id+':10','',soldOut||tokenCount(s)<o.cost*10||(o.weekly&&bought+10>o.weekly))}</div></article>`;
- }).join('');
- return `<section class="panel pad token-info"><p>토큰으로 게임 안의 소모품·재화를 교환해요.</p><p class="note">기준: 토큰 1개 ≈ 20만 골드 · 희귀 품목은 주간 한도(월요일 00시 초기화)</p></section><div class="token-shop-list">${rows}</div>`;
+ const byId=new Map(TOKEN_SHOP.map(o=>[o.id,o])),used=new Set();
+ const groups=SHOP_GROUPS.map(([title,ids])=>{const list=ids.map(id=>byId.get(id)).filter(Boolean);list.forEach(o=>used.add(o.id));return [title,list];});
+ const rest=TOKEN_SHOP.filter(o=>!used.has(o.id));if(rest.length)groups.push(['기타',rest]);
+ return `<p class="token-subline">토큰 1개 ≈ 20만 골드 · 주간 한정은 월요일 00시 초기화</p>${groups.filter(([,l])=>l.length).map(([title,list])=>`<section class="token-shop-group"><h3>${title}</h3><div class="token-tile-grid">${list.map(o=>shopTile(s,o,now)).join('')}</div></section>`).join('')}`;
 }
 
+// 경마: 트랙 → 출전표(한 줄에 컨디션 막대·단승·연승) → 베팅 슬립 순서로 위에서 아래로 한 번에 읽힌다.
 export const raceUI={lane:1,type:'win',bet:10,anim:null};
+const LANE_COLORS=['#e8574d','#f2a33a','#e8d14a','#5bc46a','#4a9be8','#a87ce8'];
 function race(s,now){
  const r=s.race,card=r?.card;
  if(!card)return `<section class="panel pad token-info"><p>경주표를 불러오는 중…</p>${b('경주표 불러오기','raceCard')}</section>`;
- const played=r.day===todayKey(now)?r.played||0:0,anim=raceUI.anim;
- const showCard=anim?anim.card:card;
- const horses=showCard.horses.map(h=>{
-  const sel=!anim&&raceUI.lane===h.lane,rank=anim?anim.order.indexOf(h.lane)+1:0;
-  return `<button class="token-horse${sel?' selected':''}${anim&&anim.lane===h.lane?' mine':''}" data-action="raceLane" data-arg="${h.lane}" ${anim?'disabled':''}><span class="lane">${h.lane}</span><span class="name">${esc(h.name)}</span><span class="cond">컨디션 ${h.power.toFixed(1)}</span><span class="odd">단승 <b>${h.win.toFixed(1)}배</b></span><span class="odd">연승 <b>${h.place.toFixed(1)}배</b></span>${rank?`<span class="rank r${rank}">${rank}등</span>`:''}</button>`;
+ const played=r.day===todayKey(now)?r.played||0:0,anim=raceUI.anim,showCard=anim?anim.card:card,have=tokenCount(s);
+ const rankOf=h=>anim?anim.order.indexOf(h.lane)+1:0;
+ const track=`<div class="token-track${anim?' running':''}${anim?.go?' go':''}">${showCard.horses.map(h=>{const rank=rankOf(h);return `<div class="token-lane"><span class="token-runner${anim&&anim.lane===h.lane?' mine':''}" style="--rank:${rank};--t:${anim?(3.4+rank*.35).toFixed(2):0}s;--lc:${LANE_COLORS[(h.lane-1)%6]}">🐎<i>${h.lane}</i></span></div>`;}).join('')}<div class="token-finish"></div></div>`;
+ const rows=showCard.horses.map(h=>{
+  const sel=!anim&&raceUI.lane===h.lane,mine=anim&&anim.lane===h.lane,rank=rankOf(h),showRank=rank&&anim.done;
+  return `<button class="token-runner-row${sel?' selected':''}${mine?' mine':''}" data-action="raceLane" data-arg="${h.lane}" ${anim?'disabled':''} style="--lc:${LANE_COLORS[(h.lane-1)%6]}">
+   <span class="lane">${h.lane}</span>
+   <span class="who"><b>${esc(h.name)}${showRank?` <em class="rank r${rank}">${rank}등</em>`:''}</b><span class="cond" title="컨디션 ${h.power.toFixed(1)}"><i style="width:${Math.max(4,Math.min(100,h.power*10))}%"></i></span><small>컨디션 ${h.power.toFixed(1)}</small></span>
+   <span class="odd${raceUI.type==='win'?' on':''}">${h.win.toFixed(1)}<small>배</small></span>
+   <span class="odd${raceUI.type==='place'?' on':''}">${h.place.toFixed(1)}<small>배</small></span>
+  </button>`;
  }).join('');
- const track=`<div class="token-track${anim?' running':''}${anim?.go?' go':''}">${showCard.horses.map(h=>{const rank=anim?anim.order.indexOf(h.lane)+1:0;return `<div class="token-lane"><span class="token-runner${anim&&anim.lane===h.lane?' mine':''}" style="--rank:${rank};--t:${anim?(3.4+rank*.35).toFixed(2):0}s">🐎<i>${h.lane}</i></span></div>`;}).join('')}<div class="token-finish"></div></div>`;
- const horse=card.horses[raceUI.lane-1],odds=horse?.[raceUI.type]||0,bet=Math.min(raceUI.bet,tokenCount(s));
- const controls=anim?`<p class="token-race-status">${anim.done?(anim.hit?`🎉 적중! ◆ ${fmt(anim.payout)} 획득 (${anim.odds.toFixed(1)}배)`:`아쉽게도 ${anim.rank}등 · ◆ ${fmt(anim.bet)} 잃음`):'달리는 중…'}</p>${anim.done?b('다음 경주','raceNext','','gold'):''}`
-  :`<div class="token-bet"><div class="seg">${Object.entries(RACE_BETS).map(([k,l])=>`<button class="${raceUI.type===k?'active':''}" data-action="raceType" data-arg="${k}">${l}</button>`).join('')}</div><div class="seg">${[1,5,10,50,100].map(n=>`<button class="${raceUI.bet===n?'active':''}" data-action="raceAmount" data-arg="${n}">◆ ${n}</button>`).join('')}</div><p>${raceUI.lane}번 ${esc(horse?.name||'')} · ${RACE_BETS[raceUI.type].split(' · ')[0]} ${odds.toFixed(1)}배 · 적중 시 ◆ ${fmt(Math.floor(bet*odds))}</p>${b(`◆ ${bet} 걸고 출발`,'raceBet','','gold',bet<RACE_MIN_BET||(!s.isAdmin&&played>=RACE_DAILY))}</div>`;
- return `<section class="panel pad token-info"><p>오늘 경주 <b>${played}/${RACE_DAILY}</b> · 한 판 ◆ ${RACE_MIN_BET}~${RACE_MAX_BET}</p></section>${track}<div class="token-horses">${horses}</div>${controls}<details class="token-rules"><summary>경마 규칙 · 배당</summary><p>말 6마리가 달려요. 말마다 컨디션(1~10)이 있고, 컨디션이 높을수록 1등 할 확률이 높아요. 순위는 컨디션에 비례한 확률로 1등부터 차례로 정해집니다.</p><p>배당 = ${Math.round(RACE_RTP*100)}% ÷ 실제 확률 (소수 첫째 자리 내림, 최소 1.1배). 예) 1등 확률 30%인 말의 단승 배당은 3.0배. 오래 하면 건 토큰의 약 ${Math.round(RACE_RTP*100)}%가 돌아오고 나머지는 사라져요.</p><p>단승: 고른 말이 1등이면 적중 · 연승: 고른 말이 2등 안에 들면 적중(배당 낮음). 경주표는 베팅 전에 정해지고, 순위는 출발하는 순간 서버가 정합니다. 하루 ${RACE_DAILY}판.</p></details>`;
+ const table=`<div class="token-runner-table"><div class="token-runner-head"><span>번</span><span>말 · 컨디션</span><span>단승</span><span>연승</span></div>${rows}</div>`;
+ let slip;
+ if(anim){
+  slip=`<div class="panel token-slip result${anim.done?(anim.hit?' hit':' miss'):''}"><p class="token-race-status">${anim.done?(anim.hit?`🎉 적중! ◆ ${fmt(anim.payout)} 획득 <small>(${anim.odds.toFixed(1)}배)</small>`:`아쉽게도 ${anim.rank}등 · ◆ ${fmt(anim.bet)} 잃음`):'달리는 중…'}</p>${anim.done?b('다음 경주','raceNext','','gold'):''}</div>`;
+ }else{
+  const horse=card.horses[raceUI.lane-1],odds=horse?.[raceUI.type]||0,bet=Math.min(raceUI.bet,have),limit=!s.isAdmin&&played>=RACE_DAILY;
+  slip=`<div class="panel token-slip">
+   <div class="token-slip-row"><span>방식</span><div class="seg">${Object.entries(RACE_BETS).map(([k,l])=>`<button class="${raceUI.type===k?'active':''}" data-action="raceType" data-arg="${k}">${l.split(' · ')[0]}<small>${l.split(' · ')[1]||''}</small></button>`).join('')}</div></div>
+   <div class="token-slip-row"><span>금액</span><div class="seg">${[1,5,10,50,100].map(n=>`<button class="${raceUI.bet===n?'active':''}" data-action="raceAmount" data-arg="${n}" ${have<n?'data-short':''}>◆ ${n}</button>`).join('')}</div></div>
+   <div class="token-slip-sum"><div><small>내 선택</small><b><i class="dot" style="--lc:${LANE_COLORS[(raceUI.lane-1)%6]}"></i>${raceUI.lane}번 ${esc(horse?.name||'')}</b></div><div><small>${RACE_BETS[raceUI.type].split(' · ')[0]} 배당</small><b>${odds.toFixed(1)}배</b></div><div><small>적중 시</small><b class="gain">◆ ${fmt(Math.floor(bet*odds))}</b></div></div>
+   ${b(limit?'오늘 경주 끝':`◆ ${bet} 걸고 출발`,'raceBet','','gold token-go',bet<RACE_MIN_BET||limit)}
+  </div>`;
+ }
+ return `<p class="token-subline">오늘 경주 <b>${played}/${RACE_DAILY}</b> · 한 판 ◆ ${RACE_MIN_BET}~${RACE_MAX_BET} · 말을 눌러 고르세요</p>${track}${table}${slip}<details class="token-rules"><summary>경마 규칙 · 배당</summary><p>말 6마리가 달려요. 말마다 컨디션(1~10)이 있고, 컨디션이 높을수록 1등 할 확률이 높아요. 순위는 컨디션에 비례한 확률로 1등부터 차례로 정해집니다.</p><p>배당 = ${Math.round(RACE_RTP*100)}% ÷ 실제 확률 (소수 첫째 자리 내림, 최소 1.1배). 예) 1등 확률 30%인 말의 단승 배당은 3.0배. 오래 하면 건 토큰의 약 ${Math.round(RACE_RTP*100)}%가 돌아오고 나머지는 사라져요.</p><p>단승: 고른 말이 1등이면 적중 · 연승: 고른 말이 2등 안에 들면 적중(배당 낮음). 경주표는 베팅 전에 정해지고, 순위는 출발하는 순간 서버가 정합니다. 하루 ${RACE_DAILY}판.</p></details>`;
 }
 
 export function tokenView(s,page='dungeon',now=Date.now()){

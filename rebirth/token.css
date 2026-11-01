@@ -22,41 +22,93 @@
 .token-target{color:#c9b5ff!important}
 .token-stage-side{display:grid;gap:6px;justify-items:end}
 .token-stage-side button{white-space:nowrap}
-.token-offer{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:10px}
-.token-offer div{display:grid;gap:2px;min-width:0}
-.token-offer small{color:var(--muted)}
-.token-buy{display:flex!important;gap:6px}
 .token-result .token-reward-big{font-size:1.2rem;font-weight:800;color:#ffd76a}
+/* 교환소: 타일 격자 */
+.token-subline{margin:0;padding:7px 12px;border-radius:10px;background:rgba(10,12,24,.78);color:#c9c3b3;font-size:.84rem}
+.token-subline b{color:var(--text,#fff)}
+.token-shop-group{padding:10px;border-radius:14px;background:rgba(10,12,24,.82);border:1px solid rgba(223,189,120,.18)}
+.token-shop-group h3{margin:0 2px 8px;font-size:.9rem;color:var(--gold);letter-spacing:.02em}
+.token-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.token-tile{position:relative;display:grid;justify-items:center;gap:3px;padding:10px 8px 8px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);text-align:center}
+.token-tile-art{position:relative;display:grid;place-items:center;width:52px;height:52px;margin-bottom:2px;border-radius:12px;background:rgba(0,0,0,.25)}
+.token-tile-art img{width:40px;height:40px;object-fit:contain}
+.token-tile-emoji{font-size:28px;line-height:1}
+.token-tile-limit{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:1px 6px;border-radius:999px;background:#5a3fb0;color:#fff;font-size:.66rem;font-weight:700}
+.token-tile strong{font-size:.88rem;line-height:1.2;margin-top:4px}
+.token-tile small{color:var(--muted);font-size:.74rem;min-height:1em}
+.token-tile-price{font-size:1.05rem;color:#ffd76a}
+.token-tile.poor .token-tile-price{color:#ff8a7a}
+.token-tile-buy{display:flex;gap:4px;width:100%;margin-top:2px}
+.token-tile-buy button{flex:1;padding:6px 2px;font-size:.8rem}
+.token-tile.sold-out{opacity:.45}
+.token-tile .m-only{display:none}
+.token-tile.sold-out .token-tile-limit{background:#555}
 /* 경마 */
-.token-track{position:relative;display:grid;gap:4px;padding:8px 34px 8px 8px;border-radius:12px;background:linear-gradient(90deg,#24361f,#2d4527);overflow:hidden}
-.token-lane{position:relative;height:30px;border-bottom:1px dashed rgba(255,255,255,.15)}
-.token-runner{position:absolute;left:0;top:2px;font-size:22px;transform:scaleX(-1);transition:left var(--t) cubic-bezier(.3,.05,.4,1)}
-.token-runner i{position:absolute;top:-2px;right:-6px;transform:scaleX(-1);font-style:normal;font-size:.7rem;font-weight:800;color:#fff;background:#0008;border-radius:6px;padding:0 4px}
-.token-runner.mine i{background:#d4a028}
+.token-track{position:relative;display:grid;gap:3px;padding:8px 34px 8px 8px;border-radius:12px;background:linear-gradient(90deg,#24361f,#2d4527);overflow:hidden}
+.token-lane{position:relative;height:24px;border-bottom:1px dashed rgba(255,255,255,.15)}
+.token-runner{position:absolute;left:0;top:0;font-size:20px;transform:scaleX(-1);transition:left var(--t) cubic-bezier(.3,.05,.4,1)}
+.token-runner i{position:absolute;top:-2px;right:-6px;transform:scaleX(-1);font-style:normal;font-size:.7rem;font-weight:800;color:#111;background:var(--lc,#fff);border-radius:6px;padding:0 4px}
+.token-runner.mine{filter:drop-shadow(0 0 4px #ffd76a)}
 .token-track.go .token-runner{left:calc(100% - 26px - var(--rank)*6px)}
 .token-finish{position:absolute;top:0;bottom:0;right:28px;width:6px;background:repeating-linear-gradient(#fff 0 6px,#111 6px 12px)}
-.token-horses{display:grid;gap:6px}
-.token-horse{display:grid;grid-template-columns:28px 1fr auto auto auto;align-items:center;gap:8px;padding:8px 10px;text-align:left}
-.token-horse.selected,.token-horse.mine{border-color:var(--gold);background:rgba(223,189,120,.1)}
-.token-horse .lane{font-weight:800;color:var(--gold)}
-.token-horse .cond{color:var(--muted);font-size:.8rem}
-.token-horse .odd{font-size:.8rem;white-space:nowrap}
-.token-horse .rank{grid-column:1/-1;justify-self:end;font-weight:800}
-.token-horse .rank.r1{color:#ffd76a}
-.token-bet{display:grid;gap:8px}
-.token-bet .seg{display:flex;flex-wrap:wrap;gap:6px}
-.token-bet .seg button{flex:1 1 auto}
-.token-bet .seg button.active{border-color:var(--gold);color:var(--gold)}
-.token-race-status{font-weight:800;text-align:center}
+.token-runner-table{display:grid;gap:4px;padding:8px;border-radius:14px;background:rgba(10,12,24,.82);border:1px solid rgba(223,189,120,.18)}
+.token-runner-head,.token-runner-row{display:grid;grid-template-columns:30px 1fr 58px 58px;align-items:center;gap:8px}
+.token-runner-head{padding:0 10px;font-size:.72rem;color:var(--muted)}
+.token-runner-head span:nth-child(n+3){text-align:center}
+.token-runner-row{position:relative;padding:7px 10px;text-align:left;border-left:4px solid var(--lc)}
+.token-runner-row:disabled{opacity:1;cursor:default}
+.token-runner-row.selected,.token-runner-row.mine{border-color:var(--gold);border-left-color:var(--lc);background:rgba(223,189,120,.12)}
+.token-runner-row .lane{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--lc);color:#111;font-weight:800}
+.token-runner-row .who{display:grid;gap:3px;min-width:0}
+.token-runner-row .who b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.token-runner-row .who small{color:var(--muted);font-size:.7rem}
+.token-runner-row .cond{display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.token-runner-row .cond i{display:block;height:100%;background:linear-gradient(90deg,#6fbf73,#ffd76a)}
+.token-runner-row .odd{text-align:center;font-weight:700;color:var(--muted);border-radius:8px;padding:4px 0}
+.token-runner-row .odd small{font-size:.7rem;font-weight:500}
+.token-runner-row .odd.on{color:#ffd76a;background:rgba(255,215,106,.1)}
+.token-runner-row .rank{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;background:#333;color:#ddd;font-style:normal;font-weight:800;font-size:.72rem;vertical-align:1px}
+.token-runner-row .rank.r1{background:#ffd76a;color:#111}
+.token-runner-row .rank.r2{background:#cfd6e0;color:#111}
+.token-slip{display:grid;gap:8px;padding:10px;background:rgba(10,12,24,.88)}
+.token-slip-row{display:grid;grid-template-columns:36px 1fr;align-items:center;gap:8px}
+.token-slip-row>span{font-size:.78rem;color:var(--muted)}
+.token-slip .seg{display:flex;gap:6px}
+.token-slip .seg button{flex:1 1 0;padding:7px 2px;display:grid;gap:1px}
+.token-slip .seg button small{font-size:.66rem;color:var(--muted);font-weight:400}
+.token-slip .seg button.active{border-color:var(--gold);color:var(--gold)}
+.token-slip .seg button[data-short]{opacity:.5}
+.token-slip-sum{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;padding:8px;border-radius:10px;background:rgba(0,0,0,.25)}
+.token-slip-sum div{display:grid;gap:2px;min-width:0}
+.token-slip-sum small{font-size:.7rem;color:var(--muted)}
+.token-slip-sum b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.token-slip-sum .gain{color:#ffd76a}
+.token-slip-sum .dot{display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:50%;background:var(--lc)}
+.token-go{padding:11px;font-size:1rem}
+.token-slip.result{text-align:center}
+.token-slip.hit{border-color:#ffd76a}
+.token-race-status{margin:0;font-weight:800;font-size:1.05rem}
 .token-rules p{font-size:.86rem;color:var(--muted)}
 @media (max-width:520px){
- .token-horse{grid-template-columns:24px 1fr auto;row-gap:2px}
- .token-horse .cond{grid-column:2}
  .token-stage{grid-template-columns:44px 1fr;}
  .token-stage-no{width:44px;height:44px}
  .token-stage-side{grid-column:1/-1;grid-template-columns:auto 1fr;align-items:center;justify-items:stretch}
- .token-offer{grid-template-columns:1fr auto}
- .token-buy{grid-column:1/-1}
- .token-buy button{flex:1}
+ .token-shop-group{padding:6px 8px}
+ .token-tile-grid{grid-template-columns:1fr;gap:0}
+ .token-tile{grid-template-columns:38px 1fr auto 96px;grid-template-areas:"art name price buy" "art sub price buy";justify-items:start;align-items:center;column-gap:8px;row-gap:0;padding:7px 2px;border:0;border-bottom:1px solid rgba(255,255,255,.07);border-radius:0;background:none;text-align:left}
+ .token-tile:last-child{border-bottom:0}
+ .token-tile-art{grid-area:art;width:38px;height:38px;margin:0;border-radius:9px}
+ .token-tile-art img{width:30px;height:30px}
+ .token-tile-emoji{font-size:22px}
+ .token-tile-limit{display:none}
+ .token-tile strong{grid-area:name;margin:0;font-size:.86rem}
+ .token-tile small{grid-area:sub;min-height:0;font-size:.7rem}
+ .token-tile .m-only{display:inline;color:#b9a6ff}
+ .token-tile-price{grid-area:price;justify-self:end;font-size:.92rem}
+ .token-tile-buy{grid-area:buy;margin:0;gap:4px}
+ .token-tile-buy button{padding:6px 0;font-size:.74rem;min-height:0}
+ .token-runner-head,.token-runner-row{grid-template-columns:26px 1fr 48px 48px;gap:6px}
+ .token-slip-sum{grid-template-columns:1fr 1fr}
+ .token-slip-sum div:first-child{grid-column:1/-1}
 }
 @media (prefers-reduced-motion:reduce){.token-runner{transition-duration:.01s}}
