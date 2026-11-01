@@ -1,0 +1,19 @@
+/* 2026-11-02 도현: 상단 '링구 RPG' 글자를 빼고 아이콘 4개 + 재화 3개를 한 줄로 나열. (다른 CSS보다 뒤에 로드) */
+.fantasy-brand{display:none!important}
+.fantasy-brand-row,.pet-screen .fantasy-brand-row{display:flex!important;flex-wrap:nowrap!important;align-items:center;gap:5px!important;padding:5px 8px!important;min-width:0}
+.fantasy-brand-row>button{flex:0 0 auto}
+.fantasy-currencies{grid-column:auto!important;justify-self:auto!important;margin-left:auto!important;flex-wrap:nowrap!important;flex-shrink:1;min-width:0;gap:4px!important}
+@media(max-width:700px){
+ .fantasy-header,.pet-screen>.fantasy-header,.fishing-screen>.fantasy-header{min-height:0!important;grid-template-rows:auto 34px!important}
+ .fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex:0 0 40px!important;width:40px!important;height:40px!important}
+ .fantasy-currencies .fantasy-wallet,.fantasy-diamond-wallet,.fantasy-token-wallet{height:26px!important;padding:2px 6px!important}
+ .fantasy-currencies strong{font-size:11px!important}
+}
+@media(max-width:380px){
+ .fantasy-brand-row,.pet-screen .fantasy-brand-row{gap:3px!important;padding-inline:5px!important}
+ .fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:34px!important;width:34px!important;height:34px!important}
+ .fantasy-currencies{gap:3px!important}
+ .fantasy-currencies .fantasy-wallet,.fantasy-diamond-wallet,.fantasy-token-wallet{padding:2px 4px!important}
+ .fantasy-currencies img{width:15px!important;height:15px!important}
+ .fantasy-currencies strong{font-size:10px!important}
+}

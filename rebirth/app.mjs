@@ -34,7 +34,7 @@ import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleA
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=token-art-20261102';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=row1-20261102';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
