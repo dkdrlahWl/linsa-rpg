@@ -59,7 +59,7 @@ import * as D from "./data.mjs?v=weekly200-hp140m-20261018-lv300b";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=token-open-20261102";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=token-open-20261102";
+import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=race4s-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
@@ -1718,7 +1718,7 @@ document.addEventListener("click", async (e) => {
       let result;try{result=await command('raceBet',{cardId:card.id,lane:raceUI.lane,type:raceUI.type,bet},true);}catch{return;}
       const ev=result?.result?.events?.find(e=>e.type==='raceResult');if(!ev)return;
       raceUI.anim={...ev,done:false,go:false};render();requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!raceUI.anim)return;raceUI.anim.go=true;document.querySelector('.token-track')?.classList.add('go');}));
-      clearTimeout(raceTimer);raceTimer=setTimeout(()=>{if(!raceUI.anim)return;raceUI.anim.done=true;if(tab==='boss'&&bossTab==='token')render();toast(ev.hit?'🎉 적중! 토큰 '+fmt(ev.payout)+'개':'아쉽게도 '+ev.rank+'등');},4800);
+      clearTimeout(raceTimer);raceTimer=setTimeout(()=>{if(!raceUI.anim)return;raceUI.anim.done=true;if(tab==='boss'&&bossTab==='token')render();toast(ev.hit?'🎉 적중! 토큰 '+fmt(ev.payout)+'개':'아쉽게도 '+ev.rank+'등');},4150);
       return;
     }
     if(action==='towerStart'){modal.close();tab='boss';bossTab='tower';view='game';return await command('towerStart',{floor:Number(arg)});}

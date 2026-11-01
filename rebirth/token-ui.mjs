@@ -62,7 +62,7 @@ function race(s,now){
  if(!card)return `${sceneHero('race','왕실 경마장','여섯 마리의 질주, 승부의 순간')}<section class="panel pad token-info"><p>경주표를 불러오는 중…</p>${b('경주표 불러오기','raceCard')}</section>`;
  const played=r.day===todayKey(now)?r.played||0:0,anim=raceUI.anim,showCard=anim?anim.card:card,have=tokenCount(s);
  const rankOf=h=>anim?anim.order.indexOf(h.lane)+1:0;
- const track=`<div class="token-track${anim?' running':''}${anim?.go?' go':''}">${showCard.horses.map(h=>{const rank=rankOf(h);return `<div class="token-lane"><span class="token-runner${anim&&anim.lane===h.lane?' mine':''}" style="--rank:${rank};--t:${anim?(3.4+rank*.35).toFixed(2):0}s;--lc:${LANE_COLORS[(h.lane-1)%6]}"><img src="${TOKEN_ART.horse}" alt="" decoding="async"><i>${h.lane}</i></span></div>`;}).join('')}<div class="token-finish"></div></div>`;
+ const track=`<div class="token-track${anim?' running':''}${anim?.go?' go':''}">${showCard.horses.map(h=>{const rank=rankOf(h);return `<div class="token-lane"><span class="token-runner${anim&&anim.lane===h.lane?' mine':''}" style="--rank:${rank};--t:${anim?(3.4+(rank-1)*.12).toFixed(2):0}s;--lc:${LANE_COLORS[(h.lane-1)%6]}"><img src="${TOKEN_ART.horse}" alt="" decoding="async"><i>${h.lane}</i></span></div>`;}).join('')}<div class="token-finish"></div></div>`;
  const rows=showCard.horses.map(h=>{
   const sel=!anim&&raceUI.lane===h.lane,mine=anim&&anim.lane===h.lane,rank=rankOf(h),showRank=rank&&anim.done;
   return `<button data-illustrated="1" class="tk token-runner-row${sel?' selected':''}${mine?' mine':''}" data-action="raceLane" data-arg="${h.lane}" ${anim?'disabled':''} style="--lc:${LANE_COLORS[(h.lane-1)%6]}">
