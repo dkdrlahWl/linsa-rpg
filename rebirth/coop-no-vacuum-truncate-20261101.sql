@@ -6,3 +6,7 @@
 set local lock_timeout='5s';
 alter table rebirth_private.coop_rooms set (vacuum_truncate=false, toast.vacuum_truncate=false);
 alter table rebirth_private.coop_input_frames set (vacuum_truncate=false, toast.vacuum_truncate=false);
+-- 같은 이유로 자주 갱신되는 세이브·코인 테이블도 끈다.
+alter table rebirth_private.players set (vacuum_truncate=false, toast.vacuum_truncate=false);
+alter table rebirth_private.coin_market set (vacuum_truncate=false, toast.vacuum_truncate=false);
+-- 적용 완료: 2026-11-01 15:02 KST
