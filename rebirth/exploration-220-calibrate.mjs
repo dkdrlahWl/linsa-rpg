@@ -10,7 +10,8 @@ import {SKILL_LOOKS} from './skill-looks.mjs';
 import {TITLE_BY_ID} from './titles-data.mjs';
 const SECONDS=120,LEVEL=300,ADV=6;
 let serial=0;
-const maxVal=key=>{for(const g of [5,4]){try{return optionRange(key,g).max;}catch{}}throw Error(key);};
+// 레전더리 잠재 최대값(universal-cube-pools 5등급): 주스탯·공·HP·크리 12, 보공 35.
+const maxVal=key=>key==='boss'?35:12;
 function perfect(classId){
  const ctx={now:0,random:()=>.999999,uuid:()=>'p'+(++serial)},cl=CLASSES.find(c=>c.id===classId),s=initialState(classId,'완벽200',ctx);
  Object.assign(s,{level:LEVEL,firstAdvancement:true,advancement:ADV,items:[],equipped:{}});s.stats[cl.stat]=4+(LEVEL-1)*5;
@@ -22,7 +23,7 @@ function perfect(classId){
 function setLines(s,counts){const lines=Object.entries(counts).flatMap(([key,n])=>Array.from({length:n},()=>({key,value:maxVal(key),grade:5})));s.items.forEach((i,n)=>i.lines=lines.slice(n*3,n*3+3));}
 function best(classId){
  const main=CLASSES.find(c=>c.id===classId).stat,s=perfect(classId);let top={score:0};
- for(let attack=0;attack<=27;attack+=3)for(let m=0;m<=27-attack;m+=3)for(let crit=0;crit<=27-attack-m;crit+=3){const counts={attack,[main]:m,crit,boss:27-attack-m-crit};setLines(s,counts);const p=power(s),score=p.dps*p.boss;if(score>top.score)top={score,counts};}
+ for(let attack=0;attack<=27;attack++)for(let m=0;m<=27-attack;m++)for(let crit=0;crit<=27-attack-m;crit++){const counts={attack,[main]:m,crit,boss:27-attack-m-crit};setLines(s,counts);const p=power(s),score=p.dps*p.boss;if(score>top.score)top={score,counts};}
  setLines(s,top.counts);const p=power(s);return {classId,counts:top.counts,critDamage:p.critDamage,crit:p.crit,costume:p.costumeAttackBonus,dps:rotation(s,SECONDS)};
 }
 const rows=CLASSES.filter(c=>c.id!=='priest').map(c=>best(c.id)),avg=rows.reduce((n,r)=>n+r.dps,0)/rows.length;
