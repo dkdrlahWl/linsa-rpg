@@ -33,7 +33,8 @@ export const COMPANIONS=[
  {id:'f3',grade:'F',name:'줄리안',min:110,max:140,weight:20},
  {id:'f4',grade:'F',name:'에블린',min:140,max:180,weight:10},
 ];
-export const PICKUP_COMPANION={id:'pickup-celestia',grade:'SS',name:'셀레스티아',title:'천상의 여제 셀레스티아',min:14000,max:17000,pickup:true};
+// 2026-11-02 도현: SS 상향 14,000~17,000 → 20,000~25,000 G/분 (이미 뽑은 카드는 같은 위치 비율로 옮김).
+export const PICKUP_COMPANION={id:'pickup-celestia',grade:'SS',name:'셀레스티아',title:'천상의 여제 셀레스티아',min:20000,max:25000,pickup:true};
 export const PICKUP_RATE=.005;
 export const PICKUP_PITY=80;
 export const COMPANION_BY_ID=Object.fromEntries([...COMPANIONS,PICKUP_COMPANION].map(c=>[c.id,c]));
@@ -63,6 +64,7 @@ export function normalizeCompanions(s){
  c.pickupPity=Number.isInteger(c.pickupPity)&&c.pickupPity>=0&&c.pickupPity<PICKUP_PITY?c.pickupPity:0;
  c.nextId=Number.isInteger(c.nextId)&&c.nextId>0?c.nextId:1;
  c.cards=Array.isArray(c.cards)?c.cards.filter(x=>x&&COMPANION_BY_ID[x.c]):[];
+ if(c.ssRateVersion!==1){for(const card of c.cards){if(card.c==='pickup-celestia'&&card.r<20000)card.r=Math.round(20000+Math.min(1,Math.max(0,(card.r-14000)/3000))*5000);}c.ssRateVersion=1;}
  if(c.pickupPassiveVersion!==1){for(const card of c.cards){if(card.c==='pickup-astria')card.v=Math.round(card.v/2);}c.pickupPassiveVersion=1;}
  // Preserve the original roll percentile when upgrading legacy 15~30% jackpots.
  if(c.passiveVersion!==2){

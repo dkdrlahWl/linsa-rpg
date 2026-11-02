@@ -1,4 +1,4 @@
-import {PICKUP_COMPANION,PICKUP_RATE,PICKUP_PITY,companionPassiveDef,companionPassiveValueChance,COMPANIONS,COMPANION_GRADE_RATES,companionSummonChance,COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs?v=companion-ss-20261102';
+import {PICKUP_COMPANION,PICKUP_RATE,PICKUP_PITY,companionPassiveDef,companionPassiveValueChance,COMPANIONS,COMPANION_GRADE_RATES,companionSummonChance,COMPANION_BY_ID,COMPANION_PASSIVES,COMPANION_SLOTS,COMPANION_BAG,COMPANION_MAX_STAR,COMPANION_CAP_MS,COMPANION_SELL,COMPANION_GRADES,companionRate,companionMaxRate,companionQuality,slotAccrued} from './companion-model.mjs?v=companion-ss2-20261102';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.floor((n||0)+1e-7).toLocaleString('ko-KR');
 const GRADE_ORDER=Object.fromEntries(COMPANION_GRADES.map((g,i)=>[g,i]));
