@@ -1,4 +1,4 @@
-import {positionValue} from './investment-ui.mjs?v=leverage-fee-110';
+import {positionValue} from './investment-ui.mjs?v=fee1-20261102';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2});
 export function adminPositionsView(data){

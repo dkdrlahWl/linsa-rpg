@@ -15,7 +15,7 @@ import {getSkillAlpha,setSkillAlpha,skillAlpha} from './skill-alpha.mjs';
 // 사냥 화면 DOM 스킬 연출도 설정 > 스킬 투명도를 따른다.
 function fadeSkillOverlay(arena,slot){const a=skillAlpha(slot);if(!(a<.999))return;const before=new Set(arena.children),mark=()=>{for(const el of arena.children)if(!before.has(el)&&!el.dataset.skillAlpha){el.dataset.skillAlpha='1';const f=getComputedStyle(el).filter;el.style.filter=(f&&f!=='none'?f+' ':'')+`opacity(${a})`;}};const mo=new MutationObserver(mark);mo.observe(arena,{childList:true});setTimeout(()=>{mark();mo.disconnect();},2500);}
 import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
-import {showAdminPositions} from './admin-positions.mjs?v=leverage-fee-110';
+import {showAdminPositions} from './admin-positions.mjs?v=fee1-20261102';
 import {shopView} from './shop-ui.mjs?v=preset-e-20261028';
 import {blackMarketPurchaseView,updateBlackMarketPurchase} from './black-market-ui.mjs?v=bm9-20261025';
 import {blackMarketRotation,blackMarketLimit,blackMarketOffersFor} from './black-market.mjs?v=bm9-20261025';
@@ -23,7 +23,7 @@ import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumableP
 import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=shop-cubes-185';
 import {bossSalePrice,bossSaleBlock,gearPresetSlots} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
-import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=spot-20261102';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=fee1-20261102';
 let investmentData=null,investmentLoadedAt=0;
 import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
