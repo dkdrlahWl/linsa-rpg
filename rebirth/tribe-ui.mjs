@@ -8,6 +8,12 @@ export const TRIBE_TICKET_COST=100,TRIBE_TICKET_DAILY=5;
 const img=(id,cls='tribe-art')=>`<img class="${cls}" src="tribes/${id}.webp" alt="" decoding="async" onerror="this.remove()">`;
 // 이름표: 종족마다 다른 색 · 등급이 높을수록 강하게 빛남(전설은 반짝임, 신화는 무지개 흐름).
 export function tribeName(id,extra=''){const t=TRIBE_BY_ID[id]||TRIBE_BY_ID.human;return `<span class="tribe-name tribe-g-${t.grade} ${extra}" style="--tc:${t.color}">${esc(t.name)}</span>`;}
+// 다른 유저 종족: 랭킹 조회 결과(rebirth_rankings의 tribe)를 기억해 두고 멀티 방 참가자 이름 앞에 쓴다.
+const knownTribes=new Map();
+export function rememberTribes(rows){for(const r of rows||[])if(r?.id&&TRIBE_BY_ID[r.tribe])knownTribes.set(r.id,r.tribe);}
+export const rememberTribe=(id,tribe)=>{if(id&&TRIBE_BY_ID[tribe])knownTribes.set(id,tribe);};
+export const memberTribe=m=>TRIBE_BY_ID[m?.tribe]?m.tribe:knownTribes.get(m?.id)||null;
+export const knownTribeCount=()=>knownTribes.size;
 export function tribeTag(id){const t=TRIBE_BY_ID[id]||TRIBE_BY_ID.human;return `<span class="tribe-tag tribe-g-${t.grade}" style="--tc:${t.color}">${esc(t.name)}</span>`;}
 export const tribeHeaderButton=s=>{const g=s?.tribeGacha||{},ready=(g.tickets||0)+(g.pending?1:0);return `<button class="fantasy-bank-entry fantasy-tribe-entry" data-action="tribeOpen" aria-label="종족 뽑기${g.tickets?' · 뽑기권 '+g.tickets+'장':''}"><i class="tribe-entry-glyph" aria-hidden="true">族</i><img class="header-button-image" src="ui/top-buttons/tribe-v1.webp" alt="" onerror="this.remove()"><span>종족</span>${ready?`<b class="fantasy-mail-count">${g.pending?'!':ready}</b>`:''}</button>`;};
 
