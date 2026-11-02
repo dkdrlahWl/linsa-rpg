@@ -83,3 +83,46 @@
 .tribe-odds-row span{color:#cfc8b8}
 @media(max-width:420px){.tribe-name.big{font-size:1.25rem}.tribe-reel-cell b{font-size:1.1rem}.tribe-card p{font-size:.74rem}}
 @media(prefers-reduced-motion:reduce){.tribe-name,.tribe-tag,.tribe-machine-lights i{animation:none!important}}
+
+/* Illustrated lineage sanctuary. Layout and draw rules remain unchanged. */
+.tribe-dialog{width:min(560px,calc(100vw - 24px));max-width:560px;border:1px solid #a494bd;background:linear-gradient(155deg,#242335f5,#111825fa 65%,#242137f5);box-shadow:0 24px 80px #0009,inset 0 0 0 1px #f1dcb21a}
+.tribe-screen{gap:14px;padding:2px;color:#ebe9f5}
+.tribe-sanctum{min-height:148px;position:relative;isolation:isolate;overflow:hidden;border-radius:16px;border:1px solid #c4ab7355;background:#14182a url('tribes/polished-v1/sanctum.webp') center 42%/cover}
+.tribe-sanctum:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#11172edb,transparent 80%),linear-gradient(0deg,#0d1229bb,transparent 65%)}
+.tribe-sanctum>div{padding:24px 20px}.tribe-sanctum span{display:block;font-size:11px;letter-spacing:.22em;color:#d8c49d}.tribe-sanctum h3{margin:9px 0 7px;color:#fff1cc;font-size:clamp(19px,4vw,25px);text-shadow:0 2px 14px #12172b}.tribe-sanctum p{margin:0;font-size:12px;color:#d2d7e9}
+.tribe-now{grid-template-columns:80px minmax(0,1fr);padding:14px 16px;background:linear-gradient(120deg,color-mix(in srgb,var(--tc) 12%,#182132),#151b2ce8);border-color:color-mix(in srgb,var(--tc) 35%,#586078)}
+.tribe-now-art{width:80px;height:80px;border-radius:18px;border:1px solid color-mix(in srgb,var(--tc) 45%,#ffffff14);box-shadow:0 4px 16px #0005}
+.tribe-art,.tribe-reel-art,.tribe-odds-face{object-fit:contain;border-radius:inherit}
+.tribe-now p{margin-top:7px;line-height:1.6;color:#d5d9e6;font-size:12px}
+.tribe-machine{padding:14px;border:1px solid #b3a073;border-radius:16px;background:radial-gradient(ellipse at 50% 20%,#41325299,#141b2ded 72%);box-shadow:inset 0 0 0 3px #e4c98b0d,0 6px 22px #0004}
+.tribe-machine-lights{inset:5px 12px}.tribe-machine-lights i{width:3px;height:3px;opacity:.6;box-shadow:0 0 5px #ffe7ae}
+.tribe-reel{border:1px solid #b0a4cb55;background:linear-gradient(90deg,#0d1424,#1b2340,#0d1424);border-radius:12px}
+.tribe-reel-cell{grid-template-columns:44px 46px minmax(0,1fr);padding:0 14px;gap:10px}
+.tribe-reel-cell>.tribe-name{font-size:20px;overflow:hidden;text-overflow:ellipsis}
+.tribe-reel-art{border-radius:10px;box-shadow:0 0 10px color-mix(in srgb,var(--tc) 22%,transparent)}
+.tribe-reel-line{border-color:#eee1b2;border-width:1px;box-shadow:0 0 12px #cab28d55,inset 0 0 20px #c9bbff18;background:linear-gradient(90deg,#ffffff08,transparent,#ffffff08)}
+.tribe-machine-info{gap:7px;margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;font-size:11px}
+.tribe-machine-info>span{display:flex;align-items:center;justify-content:center;gap:3px;padding:7px 3px;border:1px solid #acb6d322;border-radius:8px;background:#10182caa;white-space:nowrap}
+.tribe-ticket-icon{width:16px;height:16px;object-fit:contain}
+.tribe-screen .tribe-art-button{position:relative;min-height:62px!important;border:1px solid #b5a27a99!important;border-radius:12px!important;background:#392c26 url('tribes/polished-v1/button-summon.webp') center/100% 100% no-repeat!important;color:#fff0c8!important;box-shadow:0 4px 12px #0005!important;text-shadow:0 1px 4px #000,0 0 8px #201520!important;padding:12px 14px!important;transition:filter .15s,transform .15s}
+.tribe-screen .tribe-art-button:not(:disabled):hover{filter:brightness(1.14);transform:translateY(-1px)}.tribe-screen .tribe-art-button:active{transform:translateY(1px)}
+.tribe-screen .tribe-buy{background-image:url('tribes/polished-v1/button-buy.webp')!important;color:#e4eeff!important}
+.tribe-screen .tribe-keep{background-image:url('tribes/polished-v1/button-keep.webp')!important;color:#dce6f7!important}
+.tribe-screen .tribe-take{background-image:url('tribes/polished-v1/button-take.webp')!important;color:#fff1da!important}
+.tribe-screen .tribe-art-button:disabled{filter:grayscale(.45);opacity:.5;cursor:not-allowed}
+.tribe-art-button:focus-visible{outline:2px solid #fff1bb;outline-offset:3px}
+.tribe-actions{grid-template-columns:1.15fr 1fr;gap:10px}.tribe-actions button{font-weight:800;letter-spacing:.02em}.tribe-actions small{font-size:10px!important;opacity:1;color:#e4d6bf}
+.tribe-card{padding:15px 10px;gap:8px;background:linear-gradient(150deg,color-mix(in srgb,var(--tc) 13%,#1d263a),#10192d);border-radius:15px}.tribe-card-art{width:100px;height:100px;border-radius:18px}.tribe-card p{font-size:11px;line-height:1.65}
+.tribe-choose h3{margin:6px 0 14px;font-size:16px;color:#f1e7cb}.tribe-card-label{letter-spacing:.03em;color:#bdc7db}.tribe-choose-actions{gap:10px;margin-top:12px}
+.tribe-odds{padding:12px 14px;border-radius:12px;border:1px solid #a8b4ce33;background:#10192ab8}.tribe-odds summary{font-size:13px;font-weight:700;color:#d9e2f3}.tribe-odds .note{line-height:1.75;color:#aebad1}
+.tribe-odds-group{padding:10px;border-color:#acb7d322;background:#18233888}.tribe-odds-group h4{display:flex;justify-content:space-between;gap:6px;align-items:center;margin-bottom:9px;color:#e7ddc8}.tribe-odds-group h4 small{font-size:10px}
+.tribe-odds-row{grid-template-columns:32px 82px minmax(0,1fr);gap:8px;align-items:center;padding:7px 0;font-size:11px}
+.tribe-odds-face{width:32px;height:32px;border-radius:8px}.tribe-odds-row>span:last-child{color:#b8c7db;line-height:1.65}
+.tribe-odds-row .tribe-name{color:var(--tc);font-size:12px}
+.tribe-name.tribe-g-legend,.tribe-odds-row .tribe-name.tribe-g-legend{color:transparent;background-image:linear-gradient(105deg,#c59642 0%,#ffe6a2 25%,#fff9dd 45%,#e7b653 60%,#fff0b1 80%,#c59642 100%);filter:drop-shadow(0 0 5px #e4b65388);animation:tribe-shine 4.5s linear infinite}
+.tribe-name.tribe-g-myth,.tribe-odds-row .tribe-name.tribe-g-myth{color:transparent;background-image:linear-gradient(100deg,#e2b4ff,#fff6ce,#a8f6ff,#ffd1ea,#e2b4ff);filter:drop-shadow(0 0 6px #e5c7ffb0);animation:tribe-rainbow 6s linear infinite}
+.tribe-name.big{font-size:clamp(20px,4vw,26px)}.fantasy-tribe-entry{border-color:#cbb385!important;background:linear-gradient(#3d3857,#20283b)!important}.fantasy-tribe-entry .header-button-image{object-fit:contain;filter:drop-shadow(0 0 3px #c7b6ff66)}
+@media(max-width:420px){.tribe-screen{gap:11px}.tribe-sanctum{min-height:134px}.tribe-sanctum>div{padding:21px 15px}.tribe-now{grid-template-columns:64px minmax(0,1fr);padding:12px;gap:10px}.tribe-now-art{width:64px;height:64px}.tribe-machine{padding:10px}.tribe-reel-cell{padding:0 9px;gap:7px}.tribe-machine-info{font-size:9px;gap:4px}.tribe-card-art{width:84px;height:84px}.tribe-card p{font-size:10px}.tribe-odds-row{grid-template-columns:28px 74px minmax(0,1fr);gap:6px}.tribe-odds-face{width:28px;height:28px}.tribe-odds-row .tribe-name{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.tribe-screen *,.tribe-tag{animation:none!important;transition:none!important}}
+
+.tribe-screen .tribe-take{color:#291c43!important;text-shadow:0 1px 2px #fff9!important}
