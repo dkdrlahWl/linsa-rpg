@@ -71,7 +71,7 @@ function tieredIdentity(item){
   if(Number(item.level)>=220){
     const names=common?['성운의','천상의','창세의']:['별의 맹세','성운의 계시','천상의 권능','창세의 심판','무한의 왕권'];
     const name=names[tier]+' '+(common?COMMON_ARMOR_NOUNS[item.slot]:type);
-    const art=common?`equipment/boss220/common-${item.slot}.webp`:`equipment/boss220/${item.classId}.webp`;
+    const art=common?`equipment/boss220/distinct-v2/common-t${tier}-${item.slot}.webp`:`equipment/boss220/distinct-v2/${item.classId}-t${tier}.webp`;
     return {key:equipmentKey(item),name,art,type,tier,tierName:bossTierName(item),common,standalone:true,grid:false,column:0,row:0,columns:1,rows:1};
   }
   const name=common?TIER_ARMOR_PREFIX[tier]+' '+COMMON_ARMOR_NOUNS[item.slot]:TIER_WEAPON_PREFIX[tier]+'의 '+type;
