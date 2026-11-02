@@ -53,9 +53,9 @@ assert.equal(TOKEN_CONTENT_OPEN,true);
  assert.equal(u.isAdmin,false);
 }
 
-// 단계 표: 10단계, 토큰 20,40,...,200, 60초, 체력·공격 단조 증가
+// 단계 표: 10단계, 토큰 20,40,80부터 2배, 60초, 체력·공격 단조 증가
 assert.equal(TOKEN_BOSS_STAGES.length,10);
-assert.deepEqual(TOKEN_BOSS_STAGES.map(t=>t.tokens),[20,40,60,80,100,120,140,160,180,200]);
+assert.deepEqual(TOKEN_BOSS_STAGES.map(t=>t.tokens),[20,40,80,160,320,640,1280,2560,5120,10240]);
 assert.ok(TOKEN_BOSS_STAGES.every((t,i)=>t.seconds===60&&(i===0||t.hp>TOKEN_BOSS_STAGES[i-1].hp&&t.attack>TOKEN_BOSS_STAGES[i-1].attack)));
 
 // 관리자: 입장 → 60초 타임아웃 패배 → 토큰 0
@@ -67,11 +67,11 @@ assert.equal(r.state.battle,null);const ev=r.events.find(e=>e.type==='tokenBoss'
 // 승리 처리: 체력을 0으로 만든 뒤 한 틱 진행 → 토큰 지급
 s=run(base,'tokenBossStart',{stage:10},ctx(t0,true));s.battle.enemyHp=1;s.battle.won=true;s.battle.ended=true;
 r=execute(s,'sync',{},ctx(t0+1000,true));
-const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);assert.equal(win.tokens,200);assert.equal(r.state.tokens,200);
+const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);assert.equal(win.tokens,10240);assert.equal(r.state.tokens,10240);
 // 일반 유저: 실패·나가기는 도전 횟수 차감 없음, 처치했을 때만 1회 차감
 {const u={isAdmin:false,tokens:0},b3={tokenStage:3,tick:600,won:false,reason:'timeout'};
  tokenBossFinish(u,b3,t0);tokenBossFinish(u,{...b3,reason:'leave'},t0);assert.equal(tokenTriesLeft(u,t0),2);
- tokenBossFinish(u,{...b3,won:true,tick:300},t0);assert.equal(tokenTriesLeft(u,t0),1);assert.equal(u.tokens,60);
+ tokenBossFinish(u,{...b3,won:true,tick:300},t0);assert.equal(tokenTriesLeft(u,t0),1);assert.equal(u.tokens,80);
  tokenBossFinish(u,{...b3,won:true,tick:300},t0);assert.equal(tokenTriesLeft(u,t0),0);}
 
 // 교환소: 토큰 차감·지급·일일 한도

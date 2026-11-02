@@ -24,3 +24,5 @@ export const EXPLORATION_REWARD_KEYS=['scroll','highCube','potentialLock','addCu
 export const explorationRewardCount=(rates,key)=>rates.counts?.[key]??EXPLORATION_REWARD_COUNTS[key]??1;
 export function explorationGearLevelFor(rates,random){if(!rates.gear)return explorationGearLevel(random);const total=rates.gear.reduce((n,[,w])=>n+w,0);let roll=random()*total;for(const [level,w] of rates.gear){roll-=w;if(roll<0)return level;}return rates.gear.at(-1)[0];}
 export const explorationGearRange=rates=>rates.gear?rates.gear[0][0]+'~'+rates.gear.at(-1)[0]:'100~190';
+// 확률보기용: 레벨 구간별 [레벨, 보스장비 안에서 비중, 판당 확률].
+export function explorationGearTable(rates){const list=rates.gear||EXPLORATION_GEAR_WEIGHTS.map((w,i)=>[100+i*10,w]);const total=list.reduce((n,[,w])=>n+w,0);return list.map(([level,w])=>[level,w/total,rates.bossGear*w/total]);}

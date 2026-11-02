@@ -3,7 +3,7 @@ import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
 import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
 import {citadelLobby} from './citadel-ui.mjs';
-import {explorationLobby} from './exploration-ui.mjs?v=exploration-190';
+import {explorationLobby} from './exploration-ui.mjs?v=geartable-20261102';
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance-153';
 import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
@@ -47,7 +47,7 @@ import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
 import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=citadel-interval-20261018';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=geartable-20261102';
 import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=top-icons-20261102';
@@ -58,8 +58,8 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-
 import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=transcend2-20261102";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=ticket-icon-20261102";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=token-x2-20261102";
+import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=token-x2-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
