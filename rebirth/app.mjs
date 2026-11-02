@@ -943,7 +943,7 @@ function characterMetrics(p,c,summaryOnly=false) {
 function gearLevelRange(base){const r=D.equipmentLevelRange(base);return r.min===r.max?requiredLevel(r.min):requiredLevel(r.min)+" / "+requiredLevel(r.max);}
 function gearRollLabel(it){return "기본 공격력 "+D.gearAttributes(it,0).attack.toFixed(1);}
 function itemMarkup(it) {
-  if(it.kind==="consumable")return `<div class="consumable-market-icon">◆</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
+  if(it.kind==="consumable")return `<div class="consumable-market-icon">${it.key==='treasureTicket'?'🎫':it.key==='companionTicket'?`<img src="${currencyIconURL('companionTicket')}" alt="" style="width:80%;height:80%;object-fit:contain">`:'◆'}</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">${gearRollLabel(it)}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? D.RARITIES[it.grade] : "잠재 미개방"}</span></div>`;
 }
 function bagGroupsMarkup(groups){
@@ -1488,17 +1488,19 @@ function updateSellPrice() {
   $("#sell-reason").innerHTML=esc(reason||"선택한 장비 1개를 등록합니다. 판매 수수료는 5%입니다.").replace("Lv.20",requiredLevel(20));
   const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
 }
-// Market materials: regular materials plus 다이아 (stored in the fishing record).
-const MARKET_MATERIALS=()=>({...D.MATERIALS,diamond:'다이아'});
-const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):(state.materials?.[k]||0);
-const materialName=k=>k==='diamond'?'다이아':(D.MATERIALS[k]||k);
+// Market materials: regular materials plus 다이아 (fishing record), 동료 소환권 (companions), 보물찾기 티켓 (treasure).
+const MARKET_EXTRA={diamond:'다이아',companionTicket:'동료 소환권',treasureTicket:'보물찾기 티켓'};
+const MARKET_MATERIALS=()=>({...D.MATERIALS,...MARKET_EXTRA});
+const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
+const materialName=k=>MARKET_EXTRA[k]||D.MATERIALS[k]||k;
+const marketMaterialIcon=(k,cls='')=>k==='treasureTicket'?`<span class="${cls} market-emoji-icon" aria-hidden="true">🎫</span>`:`<img${cls?` class="${cls}"`:''} src="${currencyIconURL(k)}" alt="">`;
 function consumableSellDialog(key=null){
  if(!key){
-  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(MARKET_MATERIALS()).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${marketHave(k)>0?"":"disabled"}><img class="material-tile-image" src="${currencyIconURL(k)}" alt=""><strong class="market-card-name">${name}</strong><small>보유 ${fmt(marketHave(k))}개</small><span class="market-card-status">${marketHave(k)>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
+  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(MARKET_MATERIALS()).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${marketHave(k)>0?"":"disabled"}>${marketMaterialIcon(k,'material-tile-image')}<strong class="market-card-name">${name}</strong><small>보유 ${fmt(marketHave(k))}개</small><span class="market-card-status">${marketHave(k)>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
   return;
  }
  if(!Object.hasOwn(MARKET_MATERIALS(),key)||!(marketHave(key)>0))return;
- open("소모품 판매 등록",`${btn("← 소모품 목록","marketSellConsumables")}<div class="material-picked" data-currency-label><img src="${currencyIconURL(key)}" alt=""><div><strong>${materialName(key)}</strong><p>보유 ${fmt(marketHave(key))}개</p></div></div><input id="material-sell-key" type="hidden" value="${key}"><label>등록 수량<input id="material-sell-count" type="number" inputmode="numeric" min="1" max="${Math.min(1e6,marketHave(key))}" step="1" value="1"></label><label>개당 가격 (G)<input id="material-sell-price" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="100"></label><p id="material-sale-total" class="note"></p><p class="note">필요한 수량만 판매합니다. 등록 7일 · 수수료 없음. 취소 시 남은 수량을 돌려받습니다.</p>${btn("소모품 등록","sellConsumableConfirm","","gold")}`);
+ open("소모품 판매 등록",`${btn("← 소모품 목록","marketSellConsumables")}<div class="material-picked" data-currency-label>${marketMaterialIcon(key)}<div><strong>${materialName(key)}</strong><p>보유 ${fmt(marketHave(key))}개</p></div></div><input id="material-sell-key" type="hidden" value="${key}"><label>등록 수량<input id="material-sell-count" type="number" inputmode="numeric" min="1" max="${Math.min(1e6,marketHave(key))}" step="1" value="1"></label><label>개당 가격 (G)<input id="material-sell-price" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="100"></label><p id="material-sale-total" class="note"></p><p class="note">필요한 수량만 판매합니다. 등록 7일 · 수수료 없음. 취소 시 남은 수량을 돌려받습니다.</p>${btn("소모품 등록","sellConsumableConfirm","","gold")}`);
  updateMaterialSale();
 }
 function updateMaterialSale(){const key=$('#material-sell-key')?.value;if(!key)return;const count=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value),total=count*price,valid=Number.isSafeInteger(count)&&count>=1&&count<=Math.min(1e6,marketHave(key))&&Number.isSafeInteger(price)&&price>=1&&total<=1e9;$('#material-sale-total').textContent=valid?'전량 판매 시 총 '+fmt(total)+' G · 예상 수령 '+fmt(total)+' G':'보유 수량 안에서 정수로 입력하세요. 총 등록 금액은 10억 G 이하입니다.';modal.querySelector('[data-action=sellConsumableConfirm]').disabled=!valid;}
