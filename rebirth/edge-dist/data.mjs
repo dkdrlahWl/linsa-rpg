@@ -248,7 +248,7 @@ export const HIGH_CUBE_UP = CUBES.highCube.up;
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
 export const EQUIP_DROP = 0.0013;
 export const FIELD_BOSS_DROP = 0;
-export function equipmentLevelRange(base){const min=dropEquipmentLevel(base);return {min,max:min};}
+export function equipmentLevelRange(base){const min=Number(base)===220?220:dropEquipmentLevel(base);return {min,max:min};}
 export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
@@ -278,6 +278,14 @@ export const TIERED_BOSS_MAX_SCALE=1.3;
 // 200레벨 공통 방어구 공격력: 기존 최소값 유지, 최대값은 화면 표기 기준 1,200 (3세트 균등 분할)
 export const TIERED_BOSS_ARMOR_ATTACK_MAX=1200;
 export function gearStatRanges(item) {
+ // 220: minimum exceeds the full 200 maximum by 25%; maximum is 3.2x that maximum.
+ if(item.boss&&Number(item.level)>=220){
+  const previous=gearStatFullRanges({...item,level:200}),tiers=bossTierCount(item),tier=bossTier(item);
+  return Object.fromEntries(Object.entries(previous).map(([key,r])=>{
+   const min=Math.ceil(r.max*1.25),top=Math.ceil(r.max*3.2),width=(top-min+1)/tiers;
+   return [key,{min:min+Math.floor(tier*width),max:tier===tiers-1?top:min+Math.floor((tier+1)*width)-1}];
+  }));
+ }
  const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
  const low=Number.isInteger(item.design)?(item.boss?2.8+item.design*.45:.75+item.design*.3):(item.boss?2:.85),high=Number.isInteger(item.design)?low+.16:(item.boss?2.5:1.4);
  const ranges=Object.fromEntries(Object.entries(base).map(([key,value])=>[key,{min:Math.max(1,Math.floor(value*low)),max:Math.max(1,Math.ceil(value*high))}]));
@@ -305,7 +313,7 @@ export function rollBaseStats(item,random=Math.random) {
 // Apply equipment balance at calculation time, preserving every stored roll.
 export const gearStatMultiplier = item => {
  const level=Number(item.level);
- const endgame=level===200?1.5:1;
+ const endgame=level>=200?1.5:1;
  // 사제 리메이크: 사제 장비도 다른 직업과 같은 160레벨 이상 보너스를 받는다.
  const classBonus=level>=160?1.2:1;
  return endgame*classBonus;
@@ -370,7 +378,7 @@ export function normalizePotentialItem(item) {
   if (!item) return item;
   // Preserve identity, stars, rolls' relative positions, potentials and locks.
   if (Number.isFinite(item.level)) {
-    const level=Math.max(1,Math.floor(Math.min(200,item.level)/10)*10);
+    const level=Math.max(1,Math.floor(Math.min(220,item.level)/10)*10);
     if(level!==item.level){
       const before=item.baseStats?gearStatRanges(item):null;
       item.level=level;

@@ -66,7 +66,7 @@ import {
   MAX_LEVEL,
   statPointsForLevel,
   totalStatPoints,
-} from "./data.mjs?v=unique-boss-25-20261015-lv300b";
+} from "./data.mjs?v=boss220-20261102";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fifth-impact-121';
 const fail = (message) => {
