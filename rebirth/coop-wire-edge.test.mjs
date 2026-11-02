@@ -6,13 +6,14 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {startCoop,coopClientView} from './coop-model.mjs';
+import {unpackCitadelWorld} from './citadel-zero.mjs';
 const sortKeys=v=>v===null||typeof v!=='object'?v:Array.isArray(v)?v.map(sortKeys):Object.fromEntries(Object.keys(v).sort((a,b)=>a.length-b.length||(a<b?-1:a>b?1:0)).map(k=>[k,sortKeys(v[k])]));
 const jsonb=v=>sortKeys(JSON.parse(JSON.stringify(v)));
 let handler;globalThis.Deno={env:{get:k=>({SUPABASE_URL:'https://db.test',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'service'})[k]},serve:h=>{handler=h;}};
 const power={attack:3e5,hp:4e6,defense:5e4,boss:1,crit:.3,critDamage:1.6,cadence:1,firstJob:true,advancement:4,level:200};
 const ids=[0,1,2,3].map(()=>randomUUID());
 let now=1e12,revision=1,queue=[],rpcBytes=0;
-let world=startCoop({id:'room',owner:ids[0],mode:'citadel',tier:0,status:'waiting',members:['warrior','mage','archer','priest'].map((classId,i)=>({id:ids[i],name:'P'+i,classId,advanced:true,power:{...power}}))},now);
+let world=startCoop({id:'room',owner:ids[0],mode:process.env.COOP_MODE||'citadel',tier:0,status:'waiting',members:['warrior','mage','archer','priest'].map((classId,i)=>({id:ids[i],name:'P'+i,classId,advanced:true,power:{...power}}))},now);
 world.entryWaiting=false;for(const m of world.members)m.entryMoved=true;world=JSON.stringify(jsonb(world));
 const current=me=>({revision:1,coop:{...JSON.parse(world),_queuedInputs:queue.filter(f=>f.user!==me),id:'room',revision,me},now,stateUnchanged:true,result:{events:[]}});
 globalThis.fetch=async(url,init)=>{
@@ -28,7 +29,7 @@ globalThis.fetch=async(url,init)=>{
  }
  throw Error('unexpected rpc '+name);
 };
-await import('./edge-dist/edge.ts');
+await import(process.env.COOP_EDGE_MODULE||'./edge-dist/edge.ts');
 const clients=await Promise.all(ids.map((_,i)=>import('./coop-wire.mjs?client='+i)));
 const call=async(i,args)=>{const res=await handler(new Request('https://edge.test',{method:'POST',headers:{authorization:'Bearer '+ids[i]},body:JSON.stringify({command:'coopInput',requestId:randomUUID(),args})}));const data=await res.json();if(data.error)throw Error(data.error);return data;};
 const sent=[0,0,0,0];let compact=0,full=0,cached=0,legacy=0;
@@ -38,7 +39,7 @@ for(let step=0;step<240;step++){
  const oldClient=step%11===5;
  const args={frames:frames.slice(-35),compact:true,protocol:2,...(oldClient?{}:clients[i].coopWireArgs())};
  const data=await call(i,args);
- const expected=jsonb(coopClientView({...JSON.parse(world),id:'room',revision,me:ids[i]},2));
+ const expected=jsonb(coopClientView(unpackCitadelWorld({...JSON.parse(world),id:'room',revision,me:ids[i]}),2));
  if(oldClient){assert.equal(data.coop.wire,undefined);assert.deepEqual(jsonb(data.coop),expected);legacy++;continue;}
  assert.equal(data.coop.wire,2);compact++;if(data.coop.$cached)cached++;else full++;
  assert.deepEqual(jsonb(clients[i].decodeCoopReply(data.coop)),expected,'step '+step);

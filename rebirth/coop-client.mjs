@@ -118,6 +118,7 @@ export class CoopController{
  press(bits){if((bits&1)&&this.predicted?.status==='won'){const me=this.predicted.members.find(m=>m.id===this.room.me),chest=this.predicted.chest;if(chest&&Math.hypot(me.x-chest.x,me.y-chest.y)<=180){this.openingAt??=performance.now();this.host.querySelector('#tower-status').textContent='상자를 여는 중…';}this.pendingBits|=1;this.nextSend=0;void this.flush();return;}if(!bits||this.room.entryWaiting||this.artReady===false)return;this.pendingBits|=bits;this.sampler.press(bits);this.lastHud=0;const now=performance.now();if(bits&4)this.hint.dash=now+110;else if(bits&1)this.hint.attack=now+110;else if(bits&122)this.hint.skill=now+110;}
  async flush(){
   if(this.busy||this.disposed||document.hidden||navigator.onLine===false||performance.now()<this.nextSend)return;
+  if(this.received&&performance.now()-this.received>4500)this.needsResync=true;
   this.busy=true;const started=performance.now(),taps=this.pendingBits,resync=!!this.needsResync;this.pendingBits=0;let opening=false;
   try{
    const room=this.predicted,me=room.members.find(m=>m.id===room.me),chest=room.chest;
@@ -151,7 +152,8 @@ export class CoopController{
    const result=await this.send(open?'coopOpen':'coopInput',open?{protocol:2,...coopWireArgs()}:this.room.entryWaiting?{input:[entryInput[0],entryInput[1],0],compact:true,protocol:2}:{frames,compact:true,protocol:2,...coopWireArgs()},!open,false,this.abort?.signal);
    if(this.disposed)return;
    if(!result)this.pendingBits|=taps;
-   if(result){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
+   if(result?.coop?.id===this.room.id){if(resync)this.needsResync=false;this.failures=0;const rtt=performance.now()-started;this.rtt=this.rtt?this.rtt*.75+rtt*.25:rtt;}
+   else if(result){this.needsResync=true;this.failures=(this.failures||0)+1;}
   }catch(error){if(this.disposed)return;this.pendingBits|=taps;
    if(opening&&['COOP_CHEST_TOO_FAR','COOP_CHEST_NOT_READY','COOP_DAMAGE_REQUIRED'].includes(error.message)){this.openPausedUntil=performance.now()+1000;this.openingAt=undefined;this.nextSend=0;return;}
    this.failures=(this.failures||0)+1;if(error.message==='INVALID_COOP_FUTURE'||performance.now()-this.received>3500)this.needsResync=true;}
