@@ -12,10 +12,10 @@ export const EXPLORATIONS=[
  {id:5,name:'잿빛 망령 요새',floors:5,multiplier:5.26,attackMultiplier:2.3,linearHp:true,keys:2,level:220,art:'exploration-5',map:'exploration/map-5.webp',boss:'망령 군주 모르가스',monsters:['잿불 해골병','저주받은 갑옷','망령 까마귀'],seconds:2520,gold:170000},
  {id:6,name:'시간이 멈춘 탑',floors:5,multiplier:7.52,attackMultiplier:2.6,linearHp:true,keys:3,level:225,art:'exploration-6',map:'exploration/map-6.webp',boss:'시간의 파수꾼 크로노스',monsters:['태엽 기사','모래시계 정령','멈춘 시곗바늘 마도사'],seconds:2700,gold:220000},
  // 2026-11-02 7단계(200제 보장): 보스 1인 체력 7억(6단계 5억 · 8단계 9.27억 사이). 10.53 × 9,500만 × 0.7 ≈ 7억. 그림은 임시로 5단계 것을 복사.
- {id:7,name:'심연 수정 회랑',floors:5,multiplier:10.53,attackMultiplier:2.9,linearHp:true,keys:4,level:228,art:'exploration-5',map:'exploration/map-5.webp',boss:'심연의 수정 군주 벨락시스',monsters:['수정 갑각 전갈','심연 등불 망령','깨진 거울 기사'],seconds:2790,gold:250000},
+ {id:7,name:'심연 수정 회랑',floors:5,multiplier:10.53,attackMultiplier:2.9,linearHp:true,keys:4,level:228,art:'exploration-7',map:'exploration/arena-7-original-v1.webp',arena:'exploration/arena-7-original-v1.webp',boss:'심연의 수정 군주 벨락시스',monsters:['수정 갑각 전갈','심연 등불 망령','깨진 거울 기사'],seconds:2790,gold:250000},
  // 2026-11-02 8단계(220제 보장): 보스 1인 체력 17.5억(도현 확정). 기준 = 200제 종언급·25성·불꽃5%·보스용 잠재27줄(레전 보공 35%)·코스튬90%·치피200%·Lv.300·300전직,
  // 사제 제외 평균 120초 풀딜 약 17.9억(에디셔널 제외). 26.3158 × 9,500만 × 0.7 ≈ 17.5억. 그림은 임시로 6단계 것을 복사해 사용.
- {id:8,name:'별이 무너진 천공 신전',floors:5,multiplier:26.3158,attackMultiplier:3.2,linearHp:true,keys:5,level:230,art:'exploration-6',map:'exploration/map-6.webp',boss:'천공의 붕괴자 아스트라뮤트',monsters:['성운 파편 골렘','별빛 칼날 수호자','공허 예언자'],seconds:2880,gold:280000},
+ {id:8,name:'별이 무너진 천공 신전',floors:5,multiplier:26.3158,attackMultiplier:3.2,linearHp:true,keys:5,level:230,art:'exploration-8',map:'exploration/arena-8-original-v1.webp',arena:'exploration/arena-8-original-v1.webp',boss:'천공의 붕괴자 아스트라뮤트',monsters:['성운 파편 골렘','별빛 칼날 수호자','공허 예언자'],seconds:2880,gold:280000},
 ];
 // 이전 단계(암흑성채 id 3은 건너뜀). 0단계는 null.
 export const explorationPrevious=tier=>{for(let i=tier-1;i>=0;i--)if(EXPLORATIONS[i])return i;return null;};
@@ -35,7 +35,7 @@ export function explorationStats(tier,floor,count,boss=false){
  const depth=.48+.52*(floor-1)/(theme.floors-1),scale=explorationScale(tier,count),base=EXPLORATION_BASE;
  return {hp:Math.round(base.bossHp*(boss?EXPLORATION_BOSS_SCALE:.007)*theme.multiplier*depth*scale.hp),attack:Math.round(base.attack*(boss?1:.27)*(theme.attackMultiplier??theme.multiplier)*depth*scale.attack),speed:boss?15:18+(tier%2)*2};
 }
-export const explorationArt=(tier,species,boss=false)=>tier===CITADEL_TIER?'citadel/'+(boss?'boss-9':'enemy-'+species)+'-213.webp':'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
+export const explorationArt=(tier,species,boss=false)=>boss&&(tier===7||tier===8)?'exploration/boss-'+tier+'-original-v1.webp':tier===CITADEL_TIER?'citadel/'+(boss?'boss-9':'enemy-'+species)+'-213.webp':'exploration/'+(boss?'boss-':'monster-')+tier+(boss?'':'-'+species)+'.webp';
 export function explorationFloor(w){
  if(isCitadel(w)){delete w.rewardChest;delete w.exitLocked;return citadelFloor(w,dungeonWalkable,revealDungeon);}
  const theme=EXPLORATIONS[w.tier],final=w.floor===theme.floors;w.floorAt=w.tick;w.floorDeadline=w.tick+1800;delete w.bossBattleAt;w.exitOpen=false;delete w.bossDeath;w.dungeon=(final?makeExplorationArena:makeExplorationDungeon)(w.tier,w.floor,(w.mapSeed??w.started)>>>0);w.exit={...w.dungeon.exit};w.monsters=[];w.hazards=[];w.projectiles=[];w.effects=[];w.numbers=[];w.cleared=w.floor-1;

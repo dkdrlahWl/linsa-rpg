@@ -1,0 +1,25 @@
+{
+  "mode": "built-in image generation",
+  "jobs": [
+    {
+      "id": "boss7",
+      "transparent": true,
+      "prompt": "Use case stylized-concept. Single production boss sprite for Korean fantasy top-down action RPG, full body isolated on genuinely transparent background. Velaxis abyss crystal sovereign: enormous low-slung six-legged obsidian crystal scorpion dragon, jagged amethyst and deep teal quartz armor, crystalline crown with one bright cyan central eye, two massive asymmetric prism claws and curved segmented crystal tail. Ancient armored living mineral monarch, intimidating beautiful handcrafted fantasy game art, 3/4 overhead front view, readable chunky silhouette and richly painted detail, subtle restrained violet cyan glow attached to body only. ALL legs claws tail and crystals fully inside image with 15 percent transparent margin. No floor, no scenery, no shadow rectangle, no text. Square composition. Clearly creature rather than human knight."
+    },
+    {
+      "id": "boss8",
+      "transparent": true,
+      "prompt": "Use case stylized-concept. Single production boss sprite for Korean fantasy top-down action RPG, entire figure isolated on genuinely transparent background. Astramute the sky collapse sovereign: gigantic levitating celestial armored colossus, dark midnight armor with luminous ivory gold edges, broken crown halo, hollow eclipsed star core in chest, six huge disjointed wing-like pieces of ruined marble architecture orbiting shoulders, two enormous floating gauntlets, tapering lower body of broken stone fragments and cosmic energy. Royal cosmic destroyer, majestic menacing and beautiful, hand painted high quality game boss, 3/4 overhead front view. Ivory rose gold and deep indigo constellation highlights, restrained magic aura connected to body, crisp readable silhouette. Entire figure and floating wings fully contained with 15 percent transparent margin. No scene, no ground, no text, no UI. Square composition. Fundamentally different from a crystal scorpion."
+    },
+    {
+      "id": "arena7",
+      "transparent": false,
+      "prompt": "Use case stylized-concept. Production playable boss arena background for Korean fantasy overhead action RPG. SQUARE image, strict straight-down orthographic camera, NO horizon, no isometric angle. Abyss crystal corridor throne hall. Giant SQUARE tiled stone combat floor fills exact central 86 percent of width and height, floor flush straight aligned edges; open walkable rectangular space, subtle engraved concentric crystal sigils at center, no obstacles within central 76 percent. Dense dramatic jagged amethyst cyan quartz formations, ruined black stone columns, dark turquoise underground chasm ONLY in outer 7 percent border. Upper edge throne recess made of enormous violet crystals, lower center small entrance threshold flush with floor. Floor itself medium-dark blue slate with luminous turquoise veins, decorative edges violet magenta. Rich elegant beautifully painted fantasy dungeon, legible floor texture, overhead lighting. No characters, no monsters, no objects blocking center, no UI, no text, no arrows. Combat floor should appear traversable everywhere in center and match square collision bounds."
+    },
+    {
+      "id": "arena8",
+      "transparent": false,
+      "prompt": "Use case stylized-concept. Production playable boss arena background for Korean fantasy overhead action RPG. SQUARE image, strict straight-down orthographic camera, NO horizon, no isometric perspective. Temple of fallen stars floating in a celestial void. Giant SQUARE ivory marble platform fills exact central 86 percent of width and height, straight aligned outer edges; intact open walkable rectangular floor, gold astronomical inlays and subtle central eclipsed star seal. Ruined elegant ivory columns, broken golden orrery arches, floating marble debris and flowing indigo nebula ONLY in outer 7 percent border. Top center broken star altar outside main combat area, bottom center small entrance threshold flush with floor. Platform looks bright cool pearl marble with gold celestial patterns against midnight blue violet cosmos. Completely different layout and material from crystal cavern, majestic airy ornate endgame fantasy art. No holes or raised obstacles in central 76 percent floor, no characters, no monsters, no UI, no text."
+    }
+  ]
+}

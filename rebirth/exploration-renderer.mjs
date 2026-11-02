@@ -2,6 +2,10 @@ import {CITADEL_BIOMES,citadelAsset,citadelStage} from './citadel-zero.mjs';
 import {dungeonSeen,dungeonFloorTile} from './exploration-dungeon.mjs';
 export const explorationTerrainSource=(tier,floor=1)=>tier===3?citadelAsset('terrain',citadelStage(floor).biome):'exploration/terrain-'+tier+'-193.webp';
 const moods=[{base:'#242a25',fog:'#101c25',glow:'#70eeb0'},{base:'#2b211e',fog:'#211520',glow:'#ff963f'},{base:'#292838',fog:'#13182c',glow:'#a4b0ff'}];
+// Dedicated palettes for the new crystal abyss and fallen-star arenas.
+moods[7]={base:'#182338',fog:'#090c20',glow:'#80e9ff'};
+moods[8]={base:'#242039',fog:'#0b1027',glow:'#ffe6b5'};
+
 function cell(g,im,index,x,y,width,height=width,flip=false){
  const sw=im.naturalWidth/3,sh=im.naturalHeight/2;
  g.save();g.translate(x,y);if(flip)g.scale(-1,1);
