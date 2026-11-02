@@ -211,5 +211,6 @@ dialog.tribe-dialog .tribe-screen:has(.tribe-choose) :is(.tribe-sanctum,.tribe-n
 /* 2026-11-02 도현: 랭킹·멀티 방 종족 표시 = 확률표의 빛나는 종족 이름 그대로(그림·알약 테두리 없음) */
 .tribe-tag{display:inline-flex!important;align-items:center;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;animation:none!important;text-shadow:none;filter:none;margin-right:6px!important;font-size:.9em!important}
 .tribe-name-line .tribe-tag .tribe-name{display:inline!important;margin:0!important;font-size:inherit!important;width:auto!important}
-.tribe-name-line .tribe-tag .tribe-name{color:var(--tc)!important}
+.tribe-name-line .tribe-tag .tribe-name{color:#b8c7db!important}
 .tribe-name-line .tribe-tag .tribe-name.tribe-g-legend,.tribe-name-line .tribe-tag .tribe-name.tribe-g-myth{color:transparent!important}
+.tribe-name-line .tribe-tag .tribe-name.tribe-g-legend,.tribe-name-line .tribe-tag .tribe-name.tribe-g-myth{text-shadow:none!important}
