@@ -9,8 +9,8 @@ export const TOKEN_BOSS_SECONDS=60;
 // 각 단계는 해당 탑 층의 패턴·공격력을 그대로 쓰고, 제한이 90초→60초라 체력은 2/3 (같은 초당 딜이면 잡힘).
 // 4~10단계: 왕좌의 탑 33·36·39·42·45·48·50층급. 토큰 보상은 TOKEN_BOSS_REWARDS.
 import {TOWER_FLOORS} from './tower-model.mjs';
-// 토큰 보상 (2026-11-02 도현): 1·2단계 20·40개 그대로, 3단계 80개부터 단계마다 2배(10단계 10,240개).
-export const TOKEN_BOSS_REWARDS=Object.freeze([20,40,80,160,320,640,1280,2560,5120,10240]);
+// 토큰 보상 (2026-11-02 도현): 1·2단계 20·40개 그대로, 3단계 80개부터 단계마다 약 1.5배(10단계 1,200개).
+export const TOKEN_BOSS_REWARDS=Object.freeze([20,40,80,120,180,270,400,600,900,1200]);
 export const TOKEN_BOSS_FLOORS=Object.freeze([25,27,30,33,36,39,42,45,48,50]);
 export const TOKEN_BOSS_NAME='황금 금고지기 마몬';
 export const TOKEN_BOSS_STAGES=Object.freeze(TOKEN_BOSS_FLOORS.map((floor,i)=>{const f=TOWER_FLOORS[floor-1];return Object.freeze({
