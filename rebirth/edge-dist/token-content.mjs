@@ -7,6 +7,7 @@ export const TOKEN_BOSS_SECONDS=60;
 
 // 단계 기준 (2026-11-01 도현): 1단계 = 시련의 탑 25층급, 2단계 = 27층급, 3단계 = 30층급, 그 뒤로 10단계까지 계속 상승.
 // 각 단계는 해당 탑 층의 패턴·공격력을 그대로 쓰고, 제한이 90초→60초라 체력은 2/3 (같은 초당 딜이면 잡힘).
+// 2026-11-03 도현: 보스 공격력은 해당 층의 1/3.
 // 4~10단계: 왕좌의 탑 33·36·39·42·45·48·50층급. 토큰 보상은 TOKEN_BOSS_REWARDS.
 import {TOWER_FLOORS} from './tower-model.mjs';
 // 토큰 보상 (2026-11-02 도현): 1·2단계 20·40개 그대로, 3단계 80개부터 단계마다 약 1.5배(10단계 1,200개).
@@ -15,7 +16,7 @@ export const TOKEN_BOSS_FLOORS=Object.freeze([25,27,30,33,36,39,42,45,48,50]);
 export const TOKEN_BOSS_NAME='황금 금고지기 마몬';
 export const TOKEN_BOSS_STAGES=Object.freeze(TOKEN_BOSS_FLOORS.map((floor,i)=>{const f=TOWER_FLOORS[floor-1];return Object.freeze({
  stage:i+1,floor,name:TOKEN_BOSS_NAME,art:'hourglass-colossus',level:f.level,
- hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:f.attack,seconds:TOKEN_BOSS_SECONDS,tokens:TOKEN_BOSS_REWARDS[i],pattern:f.pattern,
+ hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:Math.max(1,Math.round(f.attack/3)),seconds:TOKEN_BOSS_SECONDS,tokens:TOKEN_BOSS_REWARDS[i],pattern:f.pattern,
  guide:f.guide||'바닥 경고 문양과 돌진 경로를 피하면서 60초 안에 쓰러뜨리세요.',
  target:'시련의 탑 '+floor+'층급 (패턴·공격력 동일, 60초 기준 체력)',
 });}));

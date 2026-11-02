@@ -24,7 +24,7 @@ import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MO
 import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
 import {tribeCommand,normalizeTribe} from './tribe-model.mjs?v=balance-20261102';
 import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=balance-20261102';
-import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=cube-price-20261102';
+import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=bossatk-20261103';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';
