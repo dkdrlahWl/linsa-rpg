@@ -146,3 +146,39 @@
 .tribe-odds-row{grid-template-columns:32px minmax(0,1fr)}
 .tribe-machine-info{grid-template-columns:1fr 1fr}
 @media(max-width:420px){.tribe-odds-row{grid-template-columns:28px minmax(0,1fr)}}
+/* 2026-11-02 도현: 뽑기·이전/이후 선택 화면을 한눈에 — 전체 크기를 줄이고 창을 화면 위쪽에 붙인다 */
+dialog#modal.tribe-dialog{position:fixed;top:8px;bottom:auto;margin:0 auto!important;max-height:calc(100dvh - 16px);padding:10px 12px 12px;width:min(480px,calc(100% - 16px))}
+dialog.tribe-dialog>h2{margin:0 0 6px;font-size:17px}
+dialog.tribe-dialog .tribe-screen{gap:8px}
+dialog.tribe-dialog .tribe-sanctum{min-height:0;border-radius:12px}
+dialog.tribe-dialog .tribe-sanctum>div{padding:9px 12px}
+dialog.tribe-dialog .tribe-sanctum span{font-size:9px;letter-spacing:.16em}
+dialog.tribe-dialog .tribe-sanctum h3{margin:2px 0 0;font-size:15px}
+dialog.tribe-dialog .tribe-sanctum p{display:none}
+dialog.tribe-dialog .tribe-now{grid-template-columns:48px minmax(0,1fr);gap:9px;padding:8px 10px;border-radius:12px}
+dialog.tribe-dialog .tribe-now-art{width:48px;height:48px;border-radius:12px}
+dialog.tribe-dialog .tribe-now small{font-size:10px}
+dialog.tribe-dialog .tribe-now .tribe-name.big{font-size:18px}
+dialog.tribe-dialog .tribe-now p{margin-top:2px;font-size:11px;line-height:1.4}
+dialog.tribe-dialog .tribe-machine{padding:8px 10px;border-radius:12px}
+dialog.tribe-dialog .tribe-reel{height:132px}
+dialog.tribe-dialog .tribe-reel-cell{height:44px;grid-template-columns:34px 42px minmax(0,1fr);gap:8px;padding:0 12px}
+dialog.tribe-dialog .tribe-reel-art{width:34px;height:34px}
+dialog.tribe-dialog .tribe-reel-cell b,dialog.tribe-dialog .tribe-reel-cell>.tribe-name{font-size:16px}
+dialog.tribe-dialog .tribe-reel-line{top:44px;height:44px}
+dialog.tribe-dialog .tribe-machine-info{margin-top:6px;gap:5px;font-size:10px}
+dialog.tribe-dialog .tribe-machine-info>span{padding:4px 3px}
+dialog.tribe-dialog .tribe-screen .tribe-art-button{min-height:44px!important}
+dialog.tribe-dialog .tribe-actions{gap:8px}
+dialog.tribe-dialog .tribe-actions button{padding:6px 4px;font-size:14px}
+dialog.tribe-dialog .tribe-choose h3{margin:0 0 6px;font-size:14px}
+dialog.tribe-dialog .tribe-choose-cards{gap:6px}
+dialog.tribe-dialog .tribe-card{padding:8px 6px;gap:3px;border-radius:12px}
+dialog.tribe-dialog .tribe-card-art{width:56px;height:56px;border-radius:12px}
+dialog.tribe-dialog .tribe-card .tribe-name.big{font-size:17px}
+dialog.tribe-dialog .tribe-card p{font-size:10.5px;line-height:1.4}
+dialog.tribe-dialog .tribe-card-label{font-size:10px}
+dialog.tribe-dialog .tribe-choose-actions{gap:6px;margin-top:6px}
+dialog.tribe-dialog .tribe-odds{padding:7px 10px}
+dialog.tribe-dialog .tribe-odds summary{font-size:12px}
+dialog.tribe-dialog .tribe-screen:has(.tribe-choose) :is(.tribe-sanctum,.tribe-now){display:none}

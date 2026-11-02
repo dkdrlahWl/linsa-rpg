@@ -1,5 +1,5 @@
 import {TOP_BUTTON_ART,topNavArt} from './top-button-art.mjs';
-import {tribeHeaderButton} from './tribe-ui.mjs?v=tribe-fit-20261102';
+import {tribeHeaderButton} from './tribe-ui.mjs?v=tribe-half-20261102';
 import {TOKEN_ART} from './token-art.mjs';
 import {newsUnreadBadge} from './investment-notifications.mjs?v=invest-unread-6';
 import {fishingQuestsReady} from './fishing-data.mjs';

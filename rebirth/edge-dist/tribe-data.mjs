@@ -1,12 +1,12 @@
 // 2026-11-02 종족 뽑기: 외형은 그대로, 능력치만 바뀐다. 모두 인간(효과 없음)으로 시작.
 // 뽑으면 지금 종족(이전)과 새 종족(이후) 중 하나를 고른다. 효과는 잠재처럼 % 능력치에 더한다(합연산).
-// 확률(등급 안에서는 균등): 일반 73% · 희귀 21% · 영웅 4.8% · 전설 1% · 신화 0.2%.
+// 확률(등급 안에서는 균등): 일반 85.9% · 희귀 10.5% · 영웅 2.4% · 전설 1% · 신화 0.2%. (2026-11-02 희귀·영웅 절반으로 하향)
 // 천장 없음: 매회 기본 등급 확률로 독립 추첨. 뽑기권은 토큰 교환소(100토큰 · 하루 5장).
 export const TRIBE_GRADES=Object.freeze([
  {id:'start',name:'시작',chance:0},
- {id:'common',name:'일반',chance:.73},
- {id:'rare',name:'희귀',chance:.21},
- {id:'epic',name:'영웅',chance:.048},
+ {id:'common',name:'일반',chance:.859},
+ {id:'rare',name:'희귀',chance:.105},
+ {id:'epic',name:'영웅',chance:.024},
  {id:'legend',name:'전설',chance:.01},
  {id:'myth',name:'신화',chance:.002},
 ].map(Object.freeze));

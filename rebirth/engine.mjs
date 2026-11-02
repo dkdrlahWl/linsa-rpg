@@ -23,7 +23,7 @@ import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
 import {tribeCommand,normalizeTribe} from './tribe-model.mjs?v=tribe-20261102';
-import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=tribe-20261102';
+import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=tribe-half-20261102';
 import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=tribe-20261102';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';

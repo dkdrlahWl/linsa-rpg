@@ -1,7 +1,7 @@
 // node rebirth/tribe.test.mjs
 import assert from 'node:assert/strict';
 import {initialState,execute,power} from './engine.mjs';
-import {TRIBES,TRIBE_GRADES,rollTribe,TRIBE_LEGEND_PITY,TRIBE_MYTH_PITY,tribeChance} from './tribe-data.mjs';
+import {TRIBES,TRIBE_GRADES,rollTribe,tribeChance} from './tribe-data.mjs';
 let n=0;const ctx=(now,admin=false,random=Math.random)=>({now,random,uuid:()=>'t'+(++n),admin});
 const t0=Date.UTC(2026,10,2,3);
 const base=initialState('warrior','종족',ctx(t0));
@@ -29,16 +29,11 @@ assert.ok(pd.attack>ph.attack&&pd.hp>ph.hp&&pd.boss>ph.boss&&pd.crit>ph.crit);
 assert.equal(Math.round((pd.bonuses.attack-ph.bonuses.attack)*100)/100,9);
 // 마족: HP 감소
 const dm=structuredClone(s);dm.tribe='demon';assert.ok(power(dm).hp<ph.hp);
-// 천장: 99번 연속 일반이면 100번째는 전설 이상, 399번째까지 신화 없으면 400번째 신화
-assert.ok(['legend','myth'].includes(rollTribe(()=>.99,{legend:TRIBE_LEGEND_PITY-1,myth:0}).tribe.grade));
-assert.equal(rollTribe(()=>.99,{legend:0,myth:TRIBE_MYTH_PITY-1}).tribe.grade,'myth');
-assert.equal(rollTribe(()=>.99,{legend:TRIBE_LEGEND_PITY-2,myth:0}).tribe.grade,'common');
+// 확률: 희귀 10.5% · 영웅 2.4%
+assert.equal(TRIBE_GRADES.find(g=>g.id==='rare').chance,.105);assert.equal(TRIBE_GRADES.find(g=>g.id==='epic').chance,.024);
 // 몬테카를로 분포 + 엔진 천장 동작
 const counts={};for(let i=0;i<400000;i++){const g=rollTribe(Math.random).tribe.grade;counts[g]=(counts[g]||0)+1;}
 for(const g of TRIBE_GRADES.filter(g=>g.chance))assert.ok(Math.abs(counts[g.id]/400000-g.chance)<Math.max(.003,g.chance*.15),g.id+' '+counts[g.id]);
-let a=structuredClone(base);a=execute(a,'sync',{},ctx(t0)).state;a.tribeGacha.tickets=500;let legends=0,maxGap=0,gap=0,myth=0;
-for(let i=0;i<450;i++){const x=execute(a,'tribeRoll',{},ctx(t0,false,()=>.5)).events[0];a=execute(execute(a,'tribeRoll',{},ctx(t0,false,()=>.5)).state,'tribeChoose',{take:false},ctx(t0)).state;}
-assert.ok(a.tribeGacha.rolls===450);assert.ok(['legend','myth'].includes(TRIBES.find(t=>t.id===a.tribeGacha.best).grade));
 // 전투 중 불가
 const b=structuredClone(s);b.battle={kind:'boss'};b.tribeGacha.tickets=1;assert.throws(()=>execute(b,'tribeRoll',{},ctx(t0)));
 console.log('tribe ok',counts);
