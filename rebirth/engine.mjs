@@ -22,7 +22,7 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird,advancementStatBonus,JOB_MULTIPLIER_STAGES} from './advancement.mjs?v=rogue-archer-20261019';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs?v=journey-250-20261011';
 import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
-import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=token-x15-20261102';
+import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=token-weekly-20261102';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';

@@ -98,3 +98,13 @@ assert.ok(Math.abs(wins/N-fav.winChance)<.015,`win ${wins/N} vs ${fav.winChance}
 assert.ok(Math.abs(places/N-fav.placeChance)<.015,`place ${places/N} vs ${fav.placeChance}`);
 assert.throws(()=>execute(st,'raceBet',{cardId:card.id+1,lane:1,type:'win',bet:1},ctx(t0,true)),/RACE_CARD_CHANGED/);
 console.log('token content ok',{favWin:fav.winChance.toFixed(3),odds:fav.win});
+// 재련석: 주 3개 (일일 한도 아님)
+{const {TOKEN_SHOP:SHOP}=await import('./token-content.mjs');const st=SHOP.find(o=>o.id==='rerollStone');assert.equal(st.weekly,3);assert.equal(st.daily,undefined);
+ const mon=Date.UTC(2026,10,1,15,30);// 11/2(월) 00:30 KST
+ let w=structuredClone(base);w.tokens=5000;const C=(t)=>({now:t,random:Math.random,uuid:()=>'w'+(++n),admin:false});
+ w=execute(w,'tokenShopBuy',{id:'rerollStone',quantity:2},C(mon)).state;
+ w=execute(w,'tokenShopBuy',{id:'rerollStone'},C(mon+2*86400e3)).state;// 수요일
+ assert.throws(()=>execute(w,'tokenShopBuy',{id:'rerollStone'},C(mon+5*86400e3)),/TOKEN_WEEKLY_LIMIT/);// 토요일
+ w=execute(w,'tokenShopBuy',{id:'rerollStone',quantity:3},C(mon+7*86400e3)).state;// 다음 월요일
+ assert.equal(w.tokens,5000-400*6);}
+console.log('reroll weekly ok');
