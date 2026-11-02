@@ -13,9 +13,9 @@ export const EXPLORATIONS=[
  {id:6,name:'시간이 멈춘 탑',floors:5,multiplier:7.52,attackMultiplier:2.6,linearHp:true,keys:3,level:225,art:'exploration-6',map:'exploration/map-6.webp',boss:'시간의 파수꾼 크로노스',monsters:['태엽 기사','모래시계 정령','멈춘 시곗바늘 마도사'],seconds:2700,gold:220000},
  // 2026-11-02 7단계(200제 보장): 보스 1인 체력 7억(6단계 5억 · 8단계 9.27억 사이). 10.53 × 9,500만 × 0.7 ≈ 7억. 그림은 임시로 5단계 것을 복사.
  {id:7,name:'심연 수정 회랑',floors:5,multiplier:10.53,attackMultiplier:2.9,linearHp:true,keys:4,level:228,art:'exploration-5',map:'exploration/map-5.webp',boss:'심연의 수정 군주 벨락시스',monsters:['수정 갑각 전갈','심연 등불 망령','깨진 거울 기사'],seconds:2790,gold:250000},
- // 2026-11-02 8단계(220제 보장): 보스 1인 체력 9.27억 = 200제 종언급·25성·불꽃5%·보스용 잠재27줄·코스튬90%·치피200%·Lv.300·300전직, 사제 제외 평균 120초 풀딜(에디셔널 제외).
- // 13.94 × 9,500만 × 0.7 = 9.27억. 그림은 임시로 6단계 것을 복사해 사용.
- {id:8,name:'별이 무너진 천공 신전',floors:5,multiplier:13.94,attackMultiplier:3.2,linearHp:true,keys:5,level:230,art:'exploration-6',map:'exploration/map-6.webp',boss:'천공의 붕괴자 아스트라뮤트',monsters:['성운 파편 골렘','별빛 칼날 수호자','공허 예언자'],seconds:2880,gold:280000},
+ // 2026-11-02 8단계(220제 보장): 보스 1인 체력 17.5억(도현 확정). 기준 = 200제 종언급·25성·불꽃5%·보스용 잠재27줄(레전 보공 35%)·코스튬90%·치피200%·Lv.300·300전직,
+ // 사제 제외 평균 120초 풀딜 약 17.9억(에디셔널 제외). 26.3158 × 9,500만 × 0.7 ≈ 17.5억. 그림은 임시로 6단계 것을 복사해 사용.
+ {id:8,name:'별이 무너진 천공 신전',floors:5,multiplier:26.3158,attackMultiplier:3.2,linearHp:true,keys:5,level:230,art:'exploration-6',map:'exploration/map-6.webp',boss:'천공의 붕괴자 아스트라뮤트',monsters:['성운 파편 골렘','별빛 칼날 수호자','공허 예언자'],seconds:2880,gold:280000},
 ];
 // 이전 단계(암흑성채 id 3은 건너뜀). 0단계는 null.
 export const explorationPrevious=tier=>{for(let i=tier-1;i>=0;i--)if(EXPLORATIONS[i])return i;return null;};

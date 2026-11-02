@@ -9,7 +9,7 @@ import {existsSync} from 'node:fs';
 const t=EXPLORATIONS[8],t7=EXPLORATIONS[7];assert.ok(t&&t.id===8&&t7&&t7.id===7);
 assert.equal(explorationPrevious(8),7);assert.equal(explorationPrevious(7),6);assert.equal(explorationKeys(8),5);assert.equal(explorationKeys(7),4);
 assert.ok(Math.abs(explorationStats(7,t7.floors,1,true).hp-7e8)<1e6,'7단계 1인 7억');
-const solo=explorationStats(8,t.floors,1,true).hp;assert.ok(Math.abs(solo-9.27e8)<1e6,'1인 9.27억 '+solo);
+const solo=explorationStats(8,t.floors,1,true).hp;assert.ok(Math.abs(solo-1.75e9)<1e6,'1인 17.5억 '+solo);
 assert.equal(explorationStats(8,t.floors,3,true).hp,solo*3,'인원수만큼');
 for(const f of [t.map,'exploration/arena-8-196.webp','exploration/terrain-8-193.webp',explorationArt(8,0),explorationArt(8,1),explorationArt(8,2),explorationArt(8,3,true)])assert.ok(existsSync(new URL('./'+f,import.meta.url)),f);
 const r=EXPLORATION_REWARDS[8];assert.equal(r.bossGear,.16);assert.equal(EXPLORATION_REWARDS[7].bossGear,.14);
