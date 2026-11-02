@@ -59,7 +59,7 @@ import * as D from "./data.mjs?v=weekly200-hp140m-20261018-lv300b";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=token-open-20261102";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=race4s-20261102";
+import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=ticket-icon-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
@@ -943,7 +943,7 @@ function characterMetrics(p,c,summaryOnly=false) {
 function gearLevelRange(base){const r=D.equipmentLevelRange(base);return r.min===r.max?requiredLevel(r.min):requiredLevel(r.min)+" / "+requiredLevel(r.max);}
 function gearRollLabel(it){return "기본 공격력 "+D.gearAttributes(it,0).attack.toFixed(1);}
 function itemMarkup(it) {
-  if(it.kind==="consumable")return `<div class="consumable-market-icon">${it.key==='treasureTicket'?'🎫':it.key==='companionTicket'?`<img src="${currencyIconURL('companionTicket')}" alt="" style="width:80%;height:80%;object-fit:contain">`:'◆'}</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
+  if(it.kind==="consumable")return `<div class="consumable-market-icon">${['treasureTicket','companionTicket'].includes(it.key)?`<img src="${currencyIconURL(it.key)}" alt="" style="width:80%;height:80%;object-fit:contain">`:'◆'}</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">${gearRollLabel(it)}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? D.RARITIES[it.grade] : "잠재 미개방"}</span></div>`;
 }
 function bagGroupsMarkup(groups){
@@ -1493,7 +1493,7 @@ const MARKET_EXTRA={diamond:'다이아',companionTicket:'동료 소환권',treas
 const MARKET_MATERIALS=()=>({...D.MATERIALS,...MARKET_EXTRA});
 const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
 const materialName=k=>MARKET_EXTRA[k]||D.MATERIALS[k]||k;
-const marketMaterialIcon=(k,cls='')=>k==='treasureTicket'?`<span class="${cls} market-emoji-icon" aria-hidden="true">🎫</span>`:`<img${cls?` class="${cls}"`:''} src="${currencyIconURL(k)}" alt="">`;
+const marketMaterialIcon=(k,cls='')=>`<img${cls?` class="${cls}"`:''} src="${currencyIconURL(k)}" alt="">`;
 function consumableSellDialog(key=null){
  if(!key){
   open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(MARKET_MATERIALS()).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${marketHave(k)>0?"":"disabled"}>${marketMaterialIcon(k,'material-tile-image')}<strong class="market-card-name">${name}</strong><small>보유 ${fmt(marketHave(k))}개</small><span class="market-card-status">${marketHave(k)>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
