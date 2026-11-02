@@ -126,3 +126,18 @@
 @media(prefers-reduced-motion:reduce){.tribe-screen *,.tribe-tag{animation:none!important;transition:none!important}}
 
 .tribe-screen .tribe-take{color:#291c43!important;text-shadow:0 1px 2px #fff9!important}
+
+/* 이름 줄: [종족][이름] 한 줄 고정, 생략 없음(길면 JS가 글자 크기를 줄임) */
+.tribe-name-line{display:inline-flex;align-items:center;flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap;vertical-align:middle}
+.tribe-name-line .tribe-tag{flex:none;white-space:nowrap;font-size:.78em;padding:0 5px;margin-right:4px;line-height:1.4;writing-mode:horizontal-tb}
+.tribe-name-line .rank-name-text,.tribe-name-line .party-name-text{flex:none!important;max-width:none!important;overflow:visible!important;text-overflow:clip!important;white-space:nowrap}
+.rank-podium>strong,.rank-person>strong,.rank-my-card span,.party-member strong{text-overflow:clip!important}
+.rank-podium>strong>.tribe-name-line{font-size:.92em}
+.party-member strong{display:flex;align-items:center;gap:3px;overflow:hidden}
+.party-member strong>.tribe-name-line{flex:1 1 auto}
+/* 다른 화면의 span{display:block} 규칙을 이기도록 고정 */
+.tribe-name-line{display:inline-flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:auto!important;margin:0!important}
+.tribe-name-line>.tribe-tag,.tribe-name-line>.rank-name-text,.tribe-name-line>.party-name-text{display:inline-block!important;width:auto!important;margin-top:0!important;margin-bottom:0!important}
+.citadel-party-members .party-member strong{width:100%;max-width:100%;justify-content:center;box-sizing:border-box}.party-member strong>.tribe-name-line{flex:0 1 auto!important}
+.citadel-party-members{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:600px){.citadel-party-members{grid-template-columns:repeat(2,minmax(0,1fr))}}.citadel-party-members .party-member{min-width:0}
+.tribe-name-line>.rank-name-text,.tribe-name-line>.party-name-text{font-size:inherit!important;line-height:1.3!important;padding:0!important;border:0!important;background:none!important}.tribe-name-line>.tribe-tag{font-size:.78em!important}

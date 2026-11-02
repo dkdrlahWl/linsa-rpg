@@ -1,6 +1,6 @@
 import {fishingQuestsReady} from './fishing-data.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
-import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=tribe-name-20261102';
+import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=tribe-fit-20261102';
 import {TREASURE_CELLS,TREASURE_MINES,TREASURE_DAILY,TREASURE_TICKET_CHANCE,TREASURE_REWARDS,treasureReward} from './treasure-data.mjs';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');

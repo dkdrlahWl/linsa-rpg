@@ -56,3 +56,20 @@ export function spinTribeReel(root,resultId,{duration=4800}={}){
   try{const anim=strip.animate([{transform:'translateY(0)'},{transform:`translateY(${-target}px)`}],{duration:ms,easing:'cubic-bezier(.08,.6,.12,1)',fill:'forwards'});anim.finished.then(done,done);}catch{done();}
  });
 }
+
+// 이름 맞춤: [종족][이름]을 한 줄로 두고, 칸보다 길면 글자 크기를 줄여 생략 없이 가로로 다 보이게 한다.
+export function fitNames(root=document){
+ for(const el of root.querySelectorAll('[data-fit]')){
+  el.style.fontSize='';
+  const base=parseFloat(getComputedStyle(el).fontSize)||14;let size=base;
+  for(let i=0;i<4&&el.scrollWidth>el.clientWidth+1&&el.clientWidth>0;i++){size=Math.max(6,size*el.clientWidth/el.scrollWidth-.2);el.style.fontSize=size+'px';}
+ }
+}
+let fitQueued=false;
+export function installNameFit(){
+ if(typeof MutationObserver==='undefined'||installNameFit.done)return;installNameFit.done=true;
+ const run=()=>{fitQueued=false;fitNames(document);};
+ const queue=()=>{if(!fitQueued){fitQueued=true;requestAnimationFrame(run);}};
+ new MutationObserver(muts=>{for(const m of muts)for(const n of m.addedNodes)if(n.nodeType===1&&(n.matches?.('[data-fit]')||n.querySelector?.('[data-fit]'))){queue();return;}}).observe(document.documentElement,{childList:true,subtree:true});
+ addEventListener('resize',queue);queue();
+}
