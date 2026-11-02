@@ -24,7 +24,7 @@ import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MO
 import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
 import {tribeCommand,normalizeTribe} from './tribe-model.mjs?v=tribe-20261102';
 import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=tribe-half-20261102';
-import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=tribe-20261102';
+import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=wheel-dice-20261102';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';
@@ -739,6 +739,7 @@ function executeCore(input, command, args = {}, ctx) {
       if(slot.gold)s.gold=Math.min(9e12,s.gold+slot.gold);
       for(const [key,amount] of Object.entries(slot.materials||{}))s.materials[key]=(s.materials[key]||0)+amount;
       if(slot.diamonds){const f=normalizeFishing(s,ctx.now);f.diamonds+=slot.diamonds;}
+      if(slot.tribeTickets)normalizeTribe(s).tickets+=slot.tribeTickets;
       let mail=null;
       if(slot.chest){
         s.wheelJackpots=(s.wheelJackpots||0)+1;

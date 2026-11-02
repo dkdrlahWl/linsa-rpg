@@ -739,6 +739,7 @@ function executeCore(input, command, args = {}, ctx) {
       if(slot.gold)s.gold=Math.min(9e12,s.gold+slot.gold);
       for(const [key,amount] of Object.entries(slot.materials||{}))s.materials[key]=(s.materials[key]||0)+amount;
       if(slot.diamonds){const f=normalizeFishing(s,ctx.now);f.diamonds+=slot.diamonds;}
+      if(slot.tribeTickets)normalizeTribe(s).tickets+=slot.tribeTickets;
       let mail=null;
       if(slot.chest){
         s.wheelJackpots=(s.wheelJackpots||0)+1;

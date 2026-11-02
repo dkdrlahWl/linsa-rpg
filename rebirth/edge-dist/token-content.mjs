@@ -71,7 +71,7 @@ export const TOKEN_SHOP=Object.freeze([
  {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:20,daily:30},
  {id:'companionTicket',name:'동료 소환권',kind:'companionTicket',amount:1,cost:40,daily:10},
  {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:60,daily:5},
- {id:'tribeTicket',name:'종족 뽑기권',kind:'tribeTicket',amount:1,cost:100,daily:5},
+ {id:'tribeTicket',name:'종족 주사위',kind:'tribeTicket',amount:1,cost:100,daily:5},
  {id:'rerollStone',name:'기본수치 재련석',kind:'material',key:'rerollStone',amount:1,cost:800,weekly:3},
 ].map(Object.freeze));
 // 주간 한도는 월요일 00시(한국) 초기화. 일일 한도와 따로 센다.

@@ -4,7 +4,7 @@ import {currencyIconURL} from './currency-icons.mjs';
 
 const N=LUCKY_WHEEL.length,SEG=360/N;
 let rotation=0,spinning=false;
-const icon=slot=>slot.id==='jackpot'?'ui/lucky-wheel-chest.svg':slot.id==='gold'?currencyIconURL('gold'):currencyIconURL(slot.id);
+const icon=slot=>slot.id==='tribeDice'?'tribes/polished-v1/ticket.webp':slot.id==='jackpot'?'ui/lucky-wheel-chest.svg':slot.id==='gold'?currencyIconURL('gold'):currencyIconURL(slot.id);
 const pct=c=>(c*100).toFixed(c<.01?1:0)+'%';
 const polar=(r,deg)=>{const a=(deg-90)*Math.PI/180;return [Math.cos(a)*r,Math.sin(a)*r];};
 

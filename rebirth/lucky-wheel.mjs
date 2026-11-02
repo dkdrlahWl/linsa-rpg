@@ -2,10 +2,11 @@
 export const LUCKY_WHEEL_SPINS=3;
 export const LUCKY_WHEEL=[
  {id:'gold',name:'골드',label:'20만 G',chance:.30,gold:200000,color:'#f2c14e'},
- {id:'fragment',name:'장비 파편',label:'파편 50',chance:.22,materials:{fragment:50},color:'#8fb7d9'},
- {id:'cube',name:'레드 큐브',label:'레드 큐브 2',chance:.18,materials:{cube:2},color:'#e0605b'},
+ // 2026-11-02 도현: 장비 파편 자리 → 레드 큐브, 레드 큐브 자리 → 블랙 큐브, 블랙 큐브 자리 → 종족 주사위.
+ {id:'cube',name:'레드 큐브',label:'레드 큐브 2',chance:.22,materials:{cube:2},color:'#e0605b'},
+ {id:'highCube',name:'블랙 큐브',label:'블랙 큐브',chance:.18,materials:{highCube:1},color:'#5b5568'},
  {id:'diamond',name:'다이아',label:'다이아 3',chance:.12,diamonds:3,color:'#6fd6ef'},
- {id:'highCube',name:'블랙 큐브',label:'블랙 큐브',chance:.09,materials:{highCube:1},color:'#5b5568'},
+ {id:'tribeDice',name:'종족 주사위',label:'종족 주사위',chance:.09,tribeTickets:1,color:'#b48cff'},
  {id:'scroll',name:'잠재 해금 주문서',label:'해금 주문서',chance:.04,materials:{scroll:1},color:'#b48cf2'},
  {id:'dungeonKey',name:'던전 열쇠',label:'던전 열쇠',chance:.03,materials:{dungeonKey:1},color:'#7fd18b'},
  {id:'potentialLock',name:'잠재 잠금석',label:'잠금석',chance:.015,materials:{potentialLock:1},color:'#f29bc2'},
