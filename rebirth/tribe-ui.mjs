@@ -14,8 +14,8 @@ export function rememberTribes(rows){for(const r of rows||[])if(r?.id&&TRIBE_BY_
 export const rememberTribe=(id,tribe)=>{if(id&&TRIBE_BY_ID[tribe])knownTribes.set(id,tribe);};
 export const memberTribe=m=>TRIBE_BY_ID[m?.tribe]?m.tribe:knownTribes.get(m?.id)||null;
 export const knownTribeCount=()=>knownTribes.size;
-// 랭킹·멀티 방 이름 앞 표시: 확률표처럼 종족 얼굴 + 빛나는 종족 이름(테두리 없음).
-export function tribeTag(id){const t=TRIBE_BY_ID[id]||TRIBE_BY_ID.human;return `<span class="tribe-tag tribe-g-${t.grade}" style="--tc:${t.color}">${img(t.id,'tribe-tag-face')}<span class="tribe-name tribe-g-${t.grade}">${esc(t.name)}</span></span>`;}
+// 랭킹·멀티 방 이름 앞 표시: 확률표와 같은 빛나는 종족 이름만(그림 없음).
+export function tribeTag(id){const t=TRIBE_BY_ID[id]||TRIBE_BY_ID.human;return `<span class="tribe-tag tribe-g-${t.grade}" style="--tc:${t.color}">${tribeName(t.id)}</span>`;}
 export const tribeHeaderButton=s=>{const g=s?.tribeGacha||{},ready=(g.tickets||0)+(g.pending?1:0);return `<button class="fantasy-bank-entry fantasy-tribe-entry" data-action="tribeOpen" aria-label="종족 강림${g.tickets?' · 종족 주사위 '+g.tickets+'개':''}"><i class="tribe-entry-glyph" aria-hidden="true">族</i><span>종족</span>${ready?`<b class="fantasy-mail-count">${g.pending?'!':ready}</b>`:''}</button>`;};
 
 function card(id,label,cls=''){const t=TRIBE_BY_ID[id]||TRIBE_BY_ID.human,g=TRIBE_GRADE_BY_ID[t.grade];return `<article class="tribe-card tribe-g-${t.grade} ${cls}" style="--tc:${t.color}"><small class="tribe-card-label">${label}</small><div class="tribe-card-art">${img(t.id)}</div><span class="tribe-grade-chip">${g.name}</span>${tribeName(t.id,'big')}<p>${tribeEffectText(t)}</p></article>`;}

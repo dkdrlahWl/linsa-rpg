@@ -208,15 +208,8 @@ dialog.tribe-dialog .tribe-screen:has(.tribe-choose) :is(.tribe-sanctum,.tribe-n
 .fantasy-tribe-entry .tribe-entry-glyph[hidden]{display:none!important}.fantasy-tribe-entry .header-button-image{object-fit:cover;border-radius:7px}
 .fantasy-tribe-entry .header-button-image{transform:scale(1.45);border-radius:50%;clip-path:circle(36% at 50% 50%)}.fantasy-tribe-entry .fantasy-mail-count{z-index:3}
 
-/* 2026-11-02 도현: 랭킹·멀티 방 종족 표시를 확률표처럼 — 얼굴 + 빛나는 이름, 알약 테두리 없음 */
-.tribe-tag{display:inline-flex!important;align-items:center;gap:4px;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;animation:none!important;text-shadow:none;font-weight:800;margin-right:6px}
-.tribe-tag .tribe-tag-face{width:1.7em;height:1.7em;border-radius:6px;object-fit:cover;flex:none;box-shadow:0 0 6px color-mix(in srgb,var(--tc) 45%,transparent)}
-.tribe-tag .tribe-name{color:var(--tc);font-size:1em;white-space:nowrap}
-.tribe-tag.tribe-g-common .tribe-name{text-shadow:0 0 4px color-mix(in srgb,var(--tc) 55%,transparent)}
-.tribe-tag.tribe-g-rare .tribe-name{text-shadow:0 0 6px color-mix(in srgb,var(--tc) 75%,transparent)}
-.tribe-tag.tribe-g-epic .tribe-name{text-shadow:0 0 6px var(--tc),0 0 12px color-mix(in srgb,var(--tc) 60%,transparent)}
-.tribe-tag.tribe-g-start .tribe-name{opacity:.85}
-.tribe-name-line .tribe-tag{font-size:.9em!important}
-.tribe-name-line .tribe-tag,.tribe-name-line .tribe-tag .tribe-name{display:inline-flex!important;margin:0!important;font-size:inherit;width:auto!important}
-.tribe-name-line .tribe-tag .tribe-name{display:inline!important;color:var(--tc)!important}
-.tribe-name-line .tribe-tag{display:inline-flex!important;gap:4px;margin-right:6px!important;font-size:.9em!important}
+/* 2026-11-02 도현: 랭킹·멀티 방 종족 표시 = 확률표의 빛나는 종족 이름 그대로(그림·알약 테두리 없음) */
+.tribe-tag{display:inline-flex!important;align-items:center;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;animation:none!important;text-shadow:none;filter:none;margin-right:6px!important;font-size:.9em!important}
+.tribe-name-line .tribe-tag .tribe-name{display:inline!important;margin:0!important;font-size:inherit!important;width:auto!important}
+.tribe-name-line .tribe-tag .tribe-name{color:var(--tc)!important}
+.tribe-name-line .tribe-tag .tribe-name.tribe-g-legend,.tribe-name-line .tribe-tag .tribe-name.tribe-g-myth{color:transparent!important}
