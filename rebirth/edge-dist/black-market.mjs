@@ -14,7 +14,7 @@ export const BLACK_MARKET_GOODS=Object.freeze([
  {id:'highCube',kind:'material',name:'블랙 큐브',price:400000,stock:10,weight:12},
  {id:'primeCube',kind:'material',name:'프라임 큐브',price:500000,stock:10,weight:7},
  {id:'scroll',kind:'material',name:'잠재 해금 주문서',price:1000000,stock:2,weight:12},
- {id:'potentialLock',kind:'material',name:'잠재 잠금석',price:2000000,stock:2,weight:10},
+ {id:'potentialLock',kind:'material',name:'잠재 잠금석',price:2000000,stock:5,weight:10},
  {id:'dungeonKey',kind:'material',name:'던전 열쇠',price:5000000,stock:1,weight:8},
  {id:'fragment',kind:'material',name:'장비 파편',price:5000,stock:500,weight:15},
  {id:'luckPotion',kind:'potion',name:'행운 물약',price:4000000,stock:1,weight:9},
