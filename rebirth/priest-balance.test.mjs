@@ -25,10 +25,10 @@ for(const level of [10,30,60,100,150,200])for(const stars of [0,15,25]){
 }
 assert.ok(power(setLines(fixture('priest'),{LUK:1})).attack>base.attack);
 for(const slot of [1,2,3,4,5])assert.equal(PRIEST_SKILLS[slot].hpRatio,0,'no max-HP damage');
-// Damage target: 80~90% of the other jobs' average from level 60 (level 30 ≤ 91%), and always below the weakest job.
+// Damage target (2026-11-03 도현): 종결 세팅에서 다른 직업 평균의 93%. 성장 구간은 86~95%, 항상 가장 약한 직업보다 아래.
 for(const opts of [{level:30,stars:10},{level:60,stars:12},{level:100,stars:15},{level:150,stars:17},{level:200,stars:20},{level:200,stars:25}]){
  const rows=CLASSES.map(c=>bestBuild(c.id,opts)),others=rows.filter(r=>r.classId!=='priest'),avg=others.reduce((n,r)=>n+r.dps,0)/others.length,min=Math.min(...others.map(r=>r.dps)),priest=rows.find(r=>r.classId==='priest').dps;
- assert.ok(priest/avg>=.8&&priest/avg<=(opts.level<60?.91:.9),`priest/avg ${opts.level}: ${(priest/avg).toFixed(3)}`);
- assert.ok(priest/min<.96,`priest/weakest ${opts.level}: ${(priest/min).toFixed(3)}`);
+ assert.ok(priest/avg>=.86&&priest/avg<=.95,`priest/avg ${opts.level}: ${(priest/avg).toFixed(3)}`);
+ assert.ok(priest/min<.98,`priest/weakest ${opts.level}: ${(priest/min).toFixed(3)}`);
 }
-console.log(`PASS: ${comparisons} HP/attack potential comparisons, standard priest formula, no HP damage, skill-only 80~90% damage at six stages`);
+console.log(`PASS: ${comparisons} HP/attack potential comparisons, standard priest formula, no HP damage, skill-only 86~95% damage at six stages (endgame 93%)`);

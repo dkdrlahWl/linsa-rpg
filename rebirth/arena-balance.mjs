@@ -3,25 +3,28 @@ import {absorbDamage} from './priest.mjs';
 import {CLASSES,CLASS_SKILLS,SECOND_SKILLS,THIRD_SKILLS,FOURTH_SKILLS,FIFTH_SKILLS,convertPriestPotentials,PRIEST_REMAKE_VERSION} from './data.mjs';
 
 // These rules apply only to arena simulations. Shared PvE stats and skills stay intact.
-// 2026-10-18 재보정: 같은 장비 6직업 리그전 승률 50%(±2.5%p) 목표로 단계·압박 구간별 배율 재계산.
-export const ARENA_BALANCE_VERSION='arena-balance-even-20261018';
+// 2026-11-03 도현 재보정: 같은 장비 6직업 1:1 승률 전부 약 50%(사제 49% 목표). 압박 구간을 현재 장비 분포(0.96~2.66)에 맞춰 11점으로 다시 잡음.
+export const ARENA_BALANCE_VERSION='arena-even-20261103';
 export const ARENA_BALANCE=Object.freeze({
  hpMultiplier:30,
  damageByStage:Object.freeze([
-  Object.freeze({"warrior":0.9009,"mage":0.9542,"archer":1.1205,"rogue":0.9619,"pirate":1.0310,"priest":1.1114}),
-  Object.freeze({"warrior":0.9074,"mage":0.9462,"archer":1.1182,"rogue":0.9394,"pirate":1.0370,"priest":1.0504}),
-  Object.freeze({"warrior":0.9046,"mage":1.0089,"archer":1.0783,"rogue":0.9075,"pirate":1.0109,"priest":0.9522}),
-  Object.freeze({"warrior":0.8086,"mage":1.2023,"archer":1.1092,"rogue":0.8502,"pirate":1.1042,"priest":0.8896}),
+  Object.freeze({"warrior":0.9174,"mage":0.9209,"archer":1.0304,"rogue":1.0958,"pirate":0.9837,"priest":1.0646}),
+  Object.freeze({"warrior":0.9114,"mage":0.9283,"archer":1.0223,"rogue":1.1126,"pirate":1.0118,"priest":1.0271}),
+  Object.freeze({"warrior":0.9192,"mage":1.0057,"archer":0.9711,"rogue":1.1627,"pirate":0.9970,"priest":0.9611}),
+  Object.freeze({"warrior":0.8069,"mage":1.2132,"archer":1.0081,"rogue":1.0747,"pirate":1.1093,"priest":0.8499}),
  ]),
  fifthDamageCurve:Object.freeze([
-  Object.freeze({pressure:0.599304,damage:Object.freeze({"warrior":0.8129,"mage":1.0811,"archer":1.0792,"rogue":0.8635,"pirate":1.0803,"priest":0.7607})}),
-  Object.freeze({pressure:0.924760,damage:Object.freeze({"warrior":0.7687,"mage":1.2603,"archer":1.1105,"rogue":0.8510,"pirate":1.0843,"priest":0.7421})}),
-  Object.freeze({pressure:1.140731,damage:Object.freeze({"warrior":0.7630,"mage":1.2216,"archer":1.0696,"rogue":0.9068,"pirate":1.0626,"priest":0.7342})}),
-  Object.freeze({pressure:1.351928,damage:Object.freeze({"warrior":0.7675,"mage":1.2292,"archer":1.0573,"rogue":0.8787,"pirate":1.0693,"priest":0.7138})}),
-  Object.freeze({pressure:1.394762,damage:Object.freeze({"warrior":0.7338,"mage":1.2153,"archer":1.1474,"rogue":0.9235,"pirate":1.1208,"priest":0.6390})}),
-  Object.freeze({pressure:1.454493,damage:Object.freeze({"warrior":0.7460,"mage":1.2013,"archer":1.0493,"rogue":0.9634,"pirate":1.0384,"priest":0.7179})}),
-  Object.freeze({pressure:1.551428,damage:Object.freeze({"warrior":0.7549,"mage":1.2368,"archer":1.0778,"rogue":0.8811,"pirate":1.0945,"priest":0.6921})}),
-  Object.freeze({pressure:1.581989,damage:Object.freeze({"warrior":0.7548,"mage":1.2263,"archer":1.0817,"rogue":0.8809,"pirate":1.0811,"priest":0.6823})}),
+  Object.freeze({pressure:0.961772,damage:Object.freeze({"warrior":0.8671,"mage":1.1256,"archer":1.0436,"rogue":1.1035,"pirate":1.1192,"priest":0.7950})}),
+  Object.freeze({pressure:1.476836,damage:Object.freeze({"warrior":0.8288,"mage":1.2725,"archer":1.0263,"rogue":1.1099,"pirate":1.1028,"priest":0.7548})}),
+  Object.freeze({pressure:1.542534,damage:Object.freeze({"warrior":0.8118,"mage":1.2733,"archer":1.0296,"rogue":1.1053,"pirate":1.1180,"priest":0.7603})}),
+  Object.freeze({pressure:1.792664,damage:Object.freeze({"warrior":0.8070,"mage":1.2914,"archer":1.0387,"rogue":1.0846,"pirate":1.1361,"priest":0.7482})}),
+  Object.freeze({pressure:2.102369,damage:Object.freeze({"warrior":0.7954,"mage":1.2664,"archer":1.0720,"rogue":1.1503,"pirate":1.1575,"priest":0.6955})}),
+  Object.freeze({pressure:2.150676,damage:Object.freeze({"warrior":0.7858,"mage":1.2788,"archer":1.0864,"rogue":1.1566,"pirate":1.1653,"priest":0.6796})}),
+  Object.freeze({pressure:2.160569,damage:Object.freeze({"warrior":0.7915,"mage":1.2721,"archer":1.0779,"rogue":1.1564,"pirate":1.1579,"priest":0.6860})}),
+  Object.freeze({pressure:2.321942,damage:Object.freeze({"warrior":0.7820,"mage":1.2496,"archer":1.0963,"rogue":1.2174,"pirate":1.1650,"priest":0.6582})}),
+  Object.freeze({pressure:2.405475,damage:Object.freeze({"warrior":0.7794,"mage":1.2412,"archer":1.1065,"rogue":1.2460,"pirate":1.1676,"priest":0.6409})}),
+  Object.freeze({pressure:2.573492,damage:Object.freeze({"warrior":0.7950,"mage":1.2172,"archer":1.1158,"rogue":1.2834,"pirate":1.1737,"priest":0.6148})}),
+  Object.freeze({pressure:2.659116,damage:Object.freeze({"warrior":0.8079,"mage":1.2113,"archer":1.1170,"rogue":1.2940,"pirate":1.1749,"priest":0.6017})}),
  ]),
  // 사제 고유 HP +30%(2026-10-18)는 아레나에서 상쇄한다.
  hp:Object.freeze({warrior:.9,mage:1.1,priest:1/1.3}),

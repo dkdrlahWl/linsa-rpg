@@ -7,7 +7,7 @@ import {beginFifth,stepFifth,fifthUnlocked} from './fifth-job.mjs';
 import {supportTick,holyDamage} from './priest.mjs';
 import {botName} from './arena-names.mjs?v=arena-points-151';
 import {makeItem,power} from './engine.mjs';
-import {ARENA_BALANCE,ARENA_BALANCE_VERSION,arenaPower,arenaSkillScale,arenaAbsorbDamage,scaleArenaSupport,arenaHealThreshold,arenaDamageScale} from './arena-balance.mjs?v=arena-balance-153';
+import {ARENA_BALANCE,ARENA_BALANCE_VERSION,arenaPower,arenaSkillScale,arenaAbsorbDamage,scaleArenaSupport,arenaHealThreshold,arenaDamageScale} from './arena-balance.mjs?v=priest93-20261103';
 
 export const ARENA_BOT_COUNT=2000;
 export const ARENA_CLASSES=['warrior','mage','archer','rogue','pirate','priest'];

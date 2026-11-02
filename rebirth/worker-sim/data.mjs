@@ -1,17 +1,17 @@
-import {extendChapters300,extendChapterBosses} from './chapters-300.mjs?v=citadel-short-20261101';
-export {ADD_CUBE} from './additional-potential.mjs?v=citadel-short-20261101';
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=citadel-short-20261101';
-export {PRIEST_SKILLS} from './priest.mjs?v=citadel-short-20261101';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=citadel-short-20261101';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,ADVANCEMENT_STAT_BONUS} from './advancement.mjs?v=citadel-short-20261101';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=citadel-short-20261101';
-import {extendEndgameFields} from './endgame-field.mjs?v=citadel-short-20261101';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=citadel-short-20261101';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=citadel-short-20261101';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=citadel-short-20261101';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=citadel-short-20261101";
-export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=citadel-short-20261101";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=citadel-short-20261101";
+import {extendChapters300,extendChapterBosses} from './chapters-300.mjs?v=priest93-20261103';
+export {ADD_CUBE} from './additional-potential.mjs?v=priest93-20261103';
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=priest93-20261103';
+export {PRIEST_SKILLS} from './priest.mjs?v=priest93-20261103';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=priest93-20261103';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,ADVANCEMENT_STAT_BONUS} from './advancement.mjs?v=priest93-20261103';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=priest93-20261103';
+import {extendEndgameFields} from './endgame-field.mjs?v=priest93-20261103';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=priest93-20261103';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=priest93-20261103';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=priest93-20261103';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=priest93-20261103";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, canTranscendTier, transcendCost, TRANSCEND_LEVEL, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=priest93-20261103";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=priest93-20261103";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
@@ -75,7 +75,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=citadel-short-20261101';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=priest93-20261103';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
@@ -199,6 +199,7 @@ export const MATERIALS = {
   addCube: "에디셔널 큐브",
   bonusFlame: "추가옵션 불꽃",
   rerollStone: "기본수치 재련석",
+  transcendStone: "초월석",
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
 // 2026-10-25 개편: fishDiamond = 낚시 다이아(state.fishing.diamonds).
@@ -248,7 +249,7 @@ export const HIGH_CUBE_UP = CUBES.highCube.up;
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
 export const EQUIP_DROP = 0.0013;
 export const FIELD_BOSS_DROP = 0;
-export function equipmentLevelRange(base){const min=dropEquipmentLevel(base);return {min,max:min};}
+export function equipmentLevelRange(base){const min=Number(base)===220?220:dropEquipmentLevel(base);return {min,max:min};}
 export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
@@ -278,6 +279,14 @@ export const TIERED_BOSS_MAX_SCALE=1.3;
 // 200레벨 공통 방어구 공격력: 기존 최소값 유지, 최대값은 화면 표기 기준 1,200 (3세트 균등 분할)
 export const TIERED_BOSS_ARMOR_ATTACK_MAX=1200;
 export function gearStatRanges(item) {
+ // 220: minimum exceeds the full 200 maximum by 25%; maximum is 3.2x that maximum.
+ if(item.boss&&Number(item.level)>=220){
+  const previous=gearStatFullRanges({...item,level:200}),tiers=bossTierCount(item),tier=bossTier(item);
+  return Object.fromEntries(Object.entries(previous).map(([key,r])=>{
+   const min=Math.ceil(r.max*1.25),top=Math.ceil(r.max*3.2),width=(top-min+1)/tiers;
+   return [key,{min:min+Math.floor(tier*width),max:tier===tiers-1?top:min+Math.floor((tier+1)*width)-1}];
+  }));
+ }
  const base={attack:(5+item.level**1.28)*(item.slot===0?.9:.11),stat:2+item.level*.5,hp:item.level*4,defense:item.level*.2};
  const low=Number.isInteger(item.design)?(item.boss?2.8+item.design*.45:.75+item.design*.3):(item.boss?2:.85),high=Number.isInteger(item.design)?low+.16:(item.boss?2.5:1.4);
  const ranges=Object.fromEntries(Object.entries(base).map(([key,value])=>[key,{min:Math.max(1,Math.floor(value*low)),max:Math.max(1,Math.ceil(value*high))}]));
@@ -305,14 +314,15 @@ export function rollBaseStats(item,random=Math.random) {
 // Apply equipment balance at calculation time, preserving every stored roll.
 export const gearStatMultiplier = item => {
  const level=Number(item.level);
- const endgame=level===200?1.5:1;
+ const endgame=level>=200?1.5:1;
  // 사제 리메이크: 사제 장비도 다른 직업과 같은 160레벨 이상 보너스를 받는다.
  const classBonus=level>=160?1.2:1;
  return endgame*classBonus;
 };
 export const gearHPMultiplier = () => 1;
 function unbuffedGearAttributes(item,stars=item.stars) {
- const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
+ // 220제(2026-11-02 도현): 25성 합계는 기존과 같은 약 3.0배, 대신 20성까지는 완만(20성 1.9배)하고 21~25성에서 크게 오른다(+0.12·+0.19·+0.23·+0.26·+0.29).
+ const growth=Number(item.level)>=220?1+stars*.045+Math.max(0,stars-20)**1.5*.0783:1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
  const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
  return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};
@@ -328,7 +338,8 @@ export function starCost(item) {
     45 * (1 + item.level / 25) ** 1.3 * (item.stars + 1) ** 1.35 * (1 + Math.max(0,item.stars-15)*0.5),
   );
   // Keep the late-star price curve increasing after the 20-star boundary.
-  return base * (item.boss && item.level >= 150 ? 3 : 1);
+  // 2026-11-02 도현: 220제부터 스타포스 비용 4배 (대신 별 하나당 상승폭이 크다).
+  return base * (item.boss && item.level >= 150 ? 3 : 1) * (Number(item.level) >= 220 ? 4 : 1);
 }
 export function starOdds(stars) {
  const success=stars>=25?0:STAR_SUCCESS[stars];return {success,keep:1-success,down:0,destroy:0};
@@ -370,7 +381,7 @@ export function normalizePotentialItem(item) {
   if (!item) return item;
   // Preserve identity, stars, rolls' relative positions, potentials and locks.
   if (Number.isFinite(item.level)) {
-    const level=Math.max(1,Math.floor(Math.min(200,item.level)/10)*10);
+    const level=Math.max(1,Math.floor(Math.min(220,item.level)/10)*10);
     if(level!==item.level){
       const before=item.baseStats?gearStatRanges(item):null;
       item.level=level;

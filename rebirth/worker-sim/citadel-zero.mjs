@@ -1,5 +1,5 @@
-import {buildCitadelRegion} from './citadel-map.mjs?v=citadel-short-20261101';
-import {dungeonMove,nearestWalkable} from './exploration-dungeon.mjs?v=citadel-short-20261101';
+import {buildCitadelRegion} from './citadel-map.mjs?v=priest93-20261103';
+import {dungeonMove,nearestWalkable} from './exploration-dungeon.mjs?v=priest93-20261103';
 // Dark Citadel NG+0 structure: official developer-linked wiki, checked 2026-10-11.
 // Camera, dimensions, densities and combat values are Ringu adaptations, not unpublished original values.
 export const CITADEL_TIER=3,CITADEL_VERSION='citadel-hw-218';
@@ -59,7 +59,9 @@ function packTerrain(w){
  if(!w.dungeon||w.dungeon.$terrain||!Number.isFinite(w.floor))return w;
  const terrain=citadelTerrain(w);if(terrain.id!==w.dungeon.id)return w;
  const {seen,...rest}=w.dungeon;if(JSON.stringify(rest)!==JSON.stringify((({seen:_,...t})=>t)(terrain)))return w;
- return {...w,dungeon:{$terrain:1,id:w.dungeon.id,...(seen!==undefined?{seen}:{})}};
+ // 성채는 안개를 쓰지 않아 seen이 항상 지형 기본값(전부 0, 약 4.4KB)이다. 같으면 저장하지 않고 읽을 때 지형에서 복원한다.
+ const keepSeen=seen!==undefined&&JSON.stringify(seen)!==JSON.stringify(terrain.seen);
+ return {...w,dungeon:{$terrain:1,id:w.dungeon.id,...(keepSeen?{seen}:{})}};
 }
 // 2026-10-25: 몬스터 저장 압축. 이름·그림·스탯처럼 안 바뀌는 값은 템플릿 한 번만 저장하고,
 // 몬스터마다 위치·체력 같은 바뀌는 값만 키 순서대로 배열로 저장한다(키 순서까지 그대로 복원).
