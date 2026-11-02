@@ -785,7 +785,9 @@ function attendance() {
 // 테스터 계정 전용: 직업별 보스용 종결 세트로 한 번에 전환(직업 변경 + 그 직업 장비 프리셋 자동 장착).
 function testerSetBar(){
   if(state?.name!=="테스터")return "";
-  return `<div class="subnav tester-set-bar" aria-label="테스터 직업 세트"><small style="align-self:center;opacity:.7">테스터 세트</small>${D.CLASSES.map(c=>`<button data-action="testerSet" data-arg="${c.id}" ${c.id===state.classId?"disabled class=\"active\"":""}>${c.name}</button>`).join("")}</div>`;
+  // 프리셋 1 = 200제 종결, 프리셋 2 = 220제 종결. 지금 직업·프리셋과 같은 버튼은 비활성.
+  const row=(label,preset)=>`<div class="subnav tester-set-bar" aria-label="테스터 ${label} 세트"><small style="align-self:center;opacity:.7">${label}</small>${D.CLASSES.map(c=>{const on=c.id===state.classId&&(state.gearPresets?.[c.id]?.active??0)===preset;return `<button data-action="testerSet" data-arg="${c.id}:${preset}" ${on?"disabled class=\"active\"":""}>${c.name}</button>`;}).join("")}</div>`;
+  return row("200제",0)+row("220제",1);
 }
 function changeClassDialog() {
   const current = D.CLASSES.find(c=>c.id===state.classId);
@@ -1812,7 +1814,7 @@ document.addEventListener("click", async (e) => {
     if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
     if (action === "petEquip") return await command("petEquip",{id:arg||null});
     if (action === "attendanceClaim") return await command("attendanceClaim");
-    if (action === "testerSet") {if(state?.name!=="테스터"||arg===state.classId)return;await command("changeClass",{classId:arg});filterClass="";salvageSelection.clear();return render();}
+    if (action === "testerSet") {if(state?.name!=="테스터")return;const [cid,ps]=String(arg).split(":"),preset=Number(ps)||0;if(cid!==state.classId){await command("changeClass",{classId:cid});filterClass="";salvageSelection.clear();}if((state.gearPresets?.[cid]?.active??0)!==preset)await command("gearPreset",{slot:preset});return render();}
     if (action === "changeClass") return changeClassDialog();
     if (action === "changeClassPick") return confirmClassChange(arg);
     if (action === "changeClassConfirm") {await command("changeClass",{classId:arg});modal.close();filterClass="";salvageSelection.clear();tab="character";view="game";return render();}
