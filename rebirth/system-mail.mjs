@@ -1,6 +1,12 @@
 import {normalizeCompanions} from './companion-model.mjs';
+import {normalizeTribe} from './tribe-model.mjs?v=descent-20261102';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id:'tribe-descent-20261102-dice-3',
+  title:'종족 강림 업데이트 선물', sender:'링구 RPG 운영팀',
+  message:'종족 강림이 열렸습니다! 종족 주사위 3개를 보내드립니다. 상단 族 버튼에서 강림을 시작해 보세요.',
+  sentAt:'2026-11-02T11:10:00Z', rewards:{tribeTicket:3},
+}, {
   id:'companion-update-20261030-tickets-10-pickup-10',
   title:'동료 업데이트 기념 선물', sender:'링구 RPG 운영팀',
   message:'동료 업데이트를 기념해 동료 소환권 10장과 픽업 소환권 10장을 보내드립니다!',
@@ -77,6 +83,7 @@ export function claimSystemMail(state, id, grantBossGear) {
   for (const [key, amount] of Object.entries(mail.rewards)) {
     if(key==='pickupTicket')normalizeCompanions(state).pickupTickets+=amount;
     else if(key==='companionTicket')normalizeCompanions(state).tickets+=amount;
+    else if(key==='tribeTicket')normalizeTribe(state).tickets+=amount;
     else state.materials[key] = (state.materials[key] || 0) + amount;
   }
   state.claimedSystemMail.push(id);

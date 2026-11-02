@@ -1,5 +1,5 @@
 // 종족 뽑기 서버 처리: tribeRoll(뽑기권 1장 → 결과 보류) · tribeChoose(이전 유지 / 이후 변경).
-import {TRIBE_BY_ID,TRIBE_GRADE_BY_ID,rollTribe} from './tribe-data.mjs?v=tribe-half-20261102';
+import {TRIBE_BY_ID,TRIBE_GRADE_BY_ID,rollTribe} from './tribe-data.mjs?v=descent-20261102';
 const fail=code=>{throw new Error(code);};
 const check=(ok,code)=>{if(!ok)fail(code);};
 const nat=n=>Number.isSafeInteger(n)&&n>=0?n:0;

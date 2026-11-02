@@ -1,4 +1,4 @@
-/* 종족 뽑기 */
+/* 종족 강림 */
 .tribe-name{color:var(--tc);font-weight:800;letter-spacing:.01em;white-space:nowrap}
 .tribe-name.big{font-size:1.45rem;line-height:1.2}
 .tribe-g-common .tribe-name,.tribe-name.tribe-g-common{text-shadow:0 0 3px color-mix(in srgb,var(--tc) 45%,transparent)}
