@@ -15,7 +15,8 @@ assert.equal(rerollStoneAllowed(old200),true);assert.equal(rerollStoneAllowed(we
 // 3) 220 스타포스 비용 4배, 별당 상승폭 증가
 const c200=starCost({level:200,boss:true,stars:10}),c220=starCost({level:220,boss:true,stars:10});
 assert.ok(c220/c200>4&&c220/c200<4.6,'220 cost ≈ 4x (+레벨 차이)');
-const g=st=>gearAttributes({...weapon,stars:st}).attack;assert.ok(g(25)/g(0)>3.8,'25성 약 3.9배');
+const g=st=>gearAttributes({...weapon,stars:st}).attack;const r25=g(25)/g(0),r20=g(20)/g(0);assert.ok(r25>2.95&&r25<3.1,'25성 약 3.0배');assert.ok(r20<2,'20성까지 완만');
+{const steps=[];for(let st=20;st<25;st++)steps.push(g(st+1)-g(st));const early=g(10)-g(9);assert.ok(steps.every((d,i)=>d>early*2&&(i===0||d>steps[i-1])),'21~25성 크게·점점 크게');}
 // 4) 초월 흐름
 let s=structuredClone(s0);s.materials.transcendStone=20;addItem(s,structuredClone(weapon));addItem(s,structuredClone(armor));
 const wid=s.items.at(-2).id,aid=s.items.at(-1).id,W=()=>s.items.find(i=>i.id===wid),A=()=>s.items.find(i=>i.id===aid);
@@ -39,4 +40,4 @@ assert.throws(()=>execute(p,'transcend',{id:p.items.at(-1).id},ctx()),/INSUFFICI
 // 200제는 초월 대상 아님
 let q=structuredClone(s0);addItem(q,structuredClone(old200));q.items.at(-1).stars=25;q.materials.transcendStone=5;
 assert.throws(()=>execute(q,'transcend',{id:q.items.at(-1).id},ctx()),/TRANSCEND_UNAVAILABLE/);
-console.log('transcend ok',{weaponCosts:costs,armorCosts:acosts,cost220vs200:(c220/c200).toFixed(2),growth25:(g(25)/g(0)).toFixed(2)});
+console.log('transcend ok',{weaponCosts:costs,armorCosts:acosts,cost220vs200:(c220/c200).toFixed(2),growth20:(g(20)/g(0)).toFixed(2),growth25:(g(25)/g(0)).toFixed(2)});

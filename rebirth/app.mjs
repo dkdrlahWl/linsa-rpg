@@ -55,10 +55,10 @@ import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide, renderAdd
 import { renderRefinePanel, renderRefineChoice } from './refine-ui.mjs?v=transcend-20261102';
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-art-20261102';
-import * as D from "./data.mjs?v=transcend-20261102";
+import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=transcend-20261102";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=transcend2-20261102";
 import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=ticket-icon-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),

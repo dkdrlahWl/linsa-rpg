@@ -321,8 +321,8 @@ export const gearStatMultiplier = item => {
 };
 export const gearHPMultiplier = () => 1;
 function unbuffedGearAttributes(item,stars=item.stars) {
- // 220제: 별 하나당 상승폭을 키운다(25성 기준 약 3.0배 → 3.9배).
- const growth=Number(item.level)>=220?1+stars*.08+Math.max(0,stars-15)**1.4*.035:1+stars*.055+Math.max(0,stars-15)**1.4*.025;
+ // 220제(2026-11-02 도현): 25성 합계는 기존과 같은 약 3.0배, 대신 20성까지는 완만(20성 1.9배)하고 21~25성에서 크게 오른다(+0.12·+0.19·+0.23·+0.26·+0.29).
+ const growth=Number(item.level)>=220?1+stars*.045+Math.max(0,stars-20)**1.5*.0783:1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
  const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
  return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};

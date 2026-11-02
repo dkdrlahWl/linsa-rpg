@@ -70,7 +70,7 @@ import {
   MAX_LEVEL,
   statPointsForLevel,
   totalStatPoints,
-} from "./data.mjs?v=transcend-20261102";
+} from "./data.mjs?v=transcend2-20261102";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fifth-impact-121';
 const fail = (message) => {
