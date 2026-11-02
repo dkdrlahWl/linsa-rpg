@@ -33,7 +33,7 @@ const SHOP_GROUPS=[
  ['재화 · 소모품',['gold','luckPotion','dungeonKey']],
  ['한정 품목',['tribeTicket','treasureTicket','companionTicket','pickupTicket','rerollStone']],
 ];
-const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp',tribeTicket:'tribes/polished-v1/ticket.webp'};
+const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp',tribeTicket:'tribes/polished-v1/ticket-transparent-v2.webp'};
 const offerIcon=o=>`<img src="${SHOP_ART[o.id]||currencyIconURL(o.key||o.id)}" alt="" loading="lazy">`;
 const offerName=o=>o.name.replace(/\s*\d[\d,]*\s*(만|개)?$/,'');
 const offerAmount=o=>o.kind==='gold'?'100만 골드':o.amount>1?'×'+fmt(o.amount):'';
