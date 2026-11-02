@@ -1,4 +1,4 @@
-import {bankView} from './bank-ui.mjs?v=bank1h-20261101';
+import {bankView} from './bank-ui.mjs?v=bank03-20261102';
 import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
 import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
@@ -58,7 +58,7 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-
 import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=gift-20261102";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=bank03-20261102";
 import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=cube-price-20261102";
 import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=tribe-face-20261102";
 installNameFit();
