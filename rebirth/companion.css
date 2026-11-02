@@ -262,7 +262,8 @@ dialog.companion-dialog:has(.cp-sanctum):not([open]){display:none}
 .cp-screen.cp-scroll .cp-grid{max-height:none;overflow:visible}
 .cp-screen.cp-scroll .cp-selected-bar{position:sticky;bottom:0;background:#071326f2;border-top:1px solid #a78a5088}
 @media(pointer:fine){.cp-screen .cp-grid,.cp-screen.cp-scroll{cursor:grab}.cp-screen .cp-grid:active{cursor:grabbing}.cp-screen .cp-grid img{-webkit-user-drag:none;user-select:none}}
-/* 2026-11-02 SS급(픽업 전용): 분홍빛 금색 + 무지개 테두리 */
-.cp-g-SS{--g:#ffd1f0;--g2:#7a2f6a;--gl:#fff3fb;--frame:url('companions/frame-ss-v1.webp')}
-.cp-g-SS .cp-grade{background:linear-gradient(90deg,#ff7ac8,#ffe066,#7ff0ff,#b48cff);color:#2a0d22;font-weight:900;text-shadow:none}
-.cp-g-SS.cp-unveiled,.cp-g-SS.cp-card,.cp-pickup-card.cp-g-SS{box-shadow:0 0 14px #ff9ad5,0 0 30px #b48cff99}
+/* 2026-11-02 SS급(픽업 전용): S보다 진한 금색 */
+.cp-g-SS{--g:#d9a011;--g2:#4f3204;--gl:#ffd860;--frame:url('companions/frame-ss-v1.webp')}
+.cp-g-SS .cp-grade{background:linear-gradient(180deg,#ffe27a,#d9a011 55%,#8a5c08);color:#2b1a00;font-weight:900;text-shadow:0 1px 0 #ffeeb0;border-color:#ffd860}
+.cp-g-SS.cp-unveiled,.cp-g-SS.cp-card,.cp-pickup-card.cp-g-SS{box-shadow:0 0 16px #ffc81e,0 0 34px #c88a0a}
+.cp-portrait:has(img[src*="frame-ss"]) .cp-frame,.cp-g-SS .cp-frame{filter:saturate(1.6) brightness(.92) sepia(.25)}
