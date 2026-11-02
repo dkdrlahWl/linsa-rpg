@@ -59,9 +59,9 @@ export function tokenBossFinish(s,b,now){
 // 2026-11-02 도현: 동료·픽업 소환권 빼고 전부 가격 2배.
 export const TOKEN_SHOP=Object.freeze([
  {id:'gold',name:'골드 100만',kind:'gold',amount:1000000,cost:10},
- {id:'cube',name:'레드 큐브',kind:'material',key:'cube',amount:1,cost:2},
+ {id:'cube',name:'레드 큐브',kind:'material',key:'cube',amount:1,cost:1},
  {id:'highCube',name:'블랙 큐브',kind:'material',key:'highCube',amount:1,cost:4},
- {id:'primeCube',name:'프라임 큐브',kind:'material',key:'primeCube',amount:1,cost:6},
+ {id:'primeCube',name:'프라임 큐브',kind:'material',key:'primeCube',amount:1,cost:5},
  {id:'addCube',name:'에디셔널 큐브',kind:'material',key:'addCube',amount:1,cost:10},
  {id:'scroll',name:'잠재 해금 주문서',kind:'material',key:'scroll',amount:1,cost:10},
  {id:'potentialLock',name:'잠재 잠금석',kind:'material',key:'potentialLock',amount:1,cost:20},

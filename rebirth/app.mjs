@@ -58,11 +58,11 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-
 import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=balance-20261102";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=balance-20261102";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-price-20261102";
+import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=cube-price-20261102";
 import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=glyph-20261102";
 installNameFit();
-import {tokenShopBought} from "./token-content.mjs?v=balance-20261102";
+import {tokenShopBought} from "./token-content.mjs?v=cube-price-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
