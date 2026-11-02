@@ -1,5 +1,5 @@
 import {normalizeCompanions} from './companion-model.mjs';
-import {normalizeTribe} from './tribe-model.mjs?v=descent-20261102';
+import {normalizeTribe} from './tribe-model.mjs?v=dice150-20261102';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
   id:'tribe-descent-20261102-dice-3',

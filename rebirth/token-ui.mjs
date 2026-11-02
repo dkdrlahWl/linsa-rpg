@@ -1,7 +1,7 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {TOKEN_ART,tokenIcon} from './token-art.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=descent-20261102';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=dice150-20261102';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -33,7 +33,7 @@ const SHOP_GROUPS=[
  ['재화 · 소모품',['gold','luckPotion','dungeonKey']],
  ['한정 품목',['tribeTicket','treasureTicket','companionTicket','pickupTicket','rerollStone']],
 ];
-const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp',tribeTicket:'ui/top-buttons/tribe-v1.webp'};
+const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp',tribeTicket:'tribes/polished-v1/ticket.webp'};
 const offerIcon=o=>`<img src="${SHOP_ART[o.id]||currencyIconURL(o.key||o.id)}" alt="" loading="lazy">`;
 const offerName=o=>o.name.replace(/\s*\d[\d,]*\s*(만|개)?$/,'');
 const offerAmount=o=>o.kind==='gold'?'100만 골드':o.amount>1?'×'+fmt(o.amount):'';

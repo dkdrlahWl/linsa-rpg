@@ -1,10 +1,10 @@
 // 종족 강림 화면: 슬롯머신 릴이 빠르게 돌다가 천천히 멈추며 결과를 보여주고, 이전/이후 중 하나를 고른다.
 // 그림은 tribes/<id>.webp (없으면 이름만 보임), 상단 버튼은 ui/top-buttons/tribe-v1.webp.
-import {TRIBES,TRIBE_BY_ID,TRIBE_GRADE_BY_ID,tribeOf,tribeEffectText,tribeChance} from './tribe-data.mjs?v=descent-20261102';
+import {TRIBES,TRIBE_BY_ID,TRIBE_GRADE_BY_ID,tribeOf,tribeEffectText,tribeChance} from './tribe-data.mjs?v=dice150-20261102';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const pct=x=>{const v=x*100;return (v>=1?+v.toFixed(2):+v.toFixed(3))+'%';};
-export const TRIBE_TICKET_COST=100,TRIBE_TICKET_DAILY=5;
+export const TRIBE_TICKET_COST=150,TRIBE_TICKET_DAILY=3;
 const img=(id,cls='tribe-art')=>`<img class="${cls}" src="tribes/polished-v1/${id}.webp" alt="" decoding="async" onerror="this.remove()">`;
 // 이름표: 종족마다 다른 색 · 등급이 높을수록 강하게 빛남(전설은 반짝임, 신화는 무지개 흐름).
 export function tribeName(id,extra=''){const t=TRIBE_BY_ID[id]||TRIBE_BY_ID.human;return `<span class="tribe-name tribe-g-${t.grade} ${extra}" style="--tc:${t.color}">${esc(t.name)}</span>`;}

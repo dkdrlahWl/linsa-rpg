@@ -13,12 +13,12 @@ assert.ok(Math.abs(TRIBES.reduce((a,t)=>a+tribeChance(t),0)-1)<1e-12);
 let s=execute(base,'sync',{},ctx(t0)).state;assert.equal(s.tribe,'human');
 assert.throws(()=>execute(s,'tribeRoll',{},ctx(t0)),/TRIBE_TICKET_REQUIRED/);
 // 교환소에서 뽑기권 구매(100토큰, 하루 5장)
-s.tokens=1000;s=execute(s,'tokenShopBuy',{id:'tribeTicket',quantity:5},ctx(t0)).state;assert.equal(s.tribeGacha.tickets,5);assert.equal(s.tokens,500);
+s.tokens=1000;s=execute(s,'tokenShopBuy',{id:'tribeTicket',quantity:3},ctx(t0)).state;assert.equal(s.tribeGacha.tickets,3);assert.equal(s.tokens,550);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'tribeTicket'},ctx(t0)),/TOKEN_DAILY_LIMIT/);
 // 뽑기 → 보류 → 다시 뽑기 불가 → 이후 선택하면 바뀜, 이전 선택하면 그대로
 const p0=power(s);
 let r=execute(s,'tribeRoll',{},ctx(t0,false,()=>0.999));s=r.state;const ev=r.events.find(e=>e.type==='tribeRoll');
-assert.equal(ev.grade,'common');assert.equal(s.tribeGacha.tickets,4);assert.equal(s.tribe,'human');
+assert.equal(ev.grade,'common');assert.equal(s.tribeGacha.tickets,2);assert.equal(s.tribe,'human');
 assert.throws(()=>execute(s,'tribeRoll',{},ctx(t0)),/TRIBE_PENDING/);
 s=execute(s,'tribeChoose',{take:true},ctx(t0)).state;assert.equal(s.tribe,ev.id);assert.equal(s.tribeGacha.pending,null);
 s=execute(s,'tribeRoll',{},ctx(t0,false,()=>0.0001)).state;assert.equal(s.tribeGacha.pending.id.length>0,true);
