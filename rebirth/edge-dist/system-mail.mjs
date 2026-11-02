@@ -2,6 +2,11 @@ import {normalizeCompanions} from './companion-model.mjs';
 import {normalizeTribe} from './tribe-model.mjs';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id:'big-update-20261102-gift',
+  title:'대규모 업데이트 기념 선물', sender:'링구 RPG 운영팀',
+  message:'토큰 던전·종족 강림·동료 SS급 등 대규모 업데이트를 기념해 선물을 보내드립니다! 200제 보스 장비 상자는 직업·부위 랜덤(무기는 다른 부위의 절반 확률)이에요.',
+  sentAt:'2026-11-02T12:58:00Z', rewards:{companionTicket:30,pickupTicket:20,dungeonKey:20,tribeTicket:3,tokens:100,bossChest200:1},
+}, {
   id:'tribe-descent-20261102-dice-3',
   title:'종족 강림 업데이트 선물', sender:'링구 RPG 운영팀',
   message:'종족 강림이 열렸습니다! 종족 주사위 3개를 보내드립니다. 상단 族 버튼에서 강림을 시작해 보세요.',
@@ -80,7 +85,11 @@ export function claimSystemMail(state, id, grantBossGear) {
   const mail = SYSTEM_MAIL.find(mail => mail.id === id);
   if (!mail || !state.systemMailbox.some(entry => entry.id === id)) throw new Error('MAIL_NOT_FOUND');
   // Amounts come from the server campaign, never from the request or UI.
+  const items=[];
+  if(mail.rewards.bossChest200&&!grantBossGear)throw new Error('INVALID_MAIL_REWARD');
   for (const [key, amount] of Object.entries(mail.rewards)) {
+    if(key==='bossChest200'){for(let k=0;k<amount;k++)items.push(grantBossGear({kind:'wheelBossChest',minLevel:200,maxLevel:200}));continue;}
+    if(key==='tokens'){state.tokens=Math.min(9999999,(Number.isSafeInteger(state.tokens)?state.tokens:0)+amount);continue;}
     if(key==='pickupTicket')normalizeCompanions(state).pickupTickets+=amount;
     else if(key==='companionTicket')normalizeCompanions(state).tickets+=amount;
     else if(key==='tribeTicket')normalizeTribe(state).tickets+=amount;
@@ -88,5 +97,5 @@ export function claimSystemMail(state, id, grantBossGear) {
   }
   state.claimedSystemMail.push(id);
   state.systemMailbox = state.systemMailbox.filter(entry => entry.id !== id);
-  return { type: 'systemMail', id, rewards: { ...mail.rewards } };
+  return { type: 'systemMail', id, rewards: { ...mail.rewards }, items };
 }

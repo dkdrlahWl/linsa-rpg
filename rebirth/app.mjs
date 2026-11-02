@@ -58,7 +58,7 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-
 import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=cube-price-20261102";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=gift-20261102";
 import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=cube-price-20261102";
 import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=glyph-20261102";
 installNameFit();
@@ -764,8 +764,8 @@ function header(title, kicker = "새로운 여정") {
 }
 function systemInbox() {
   const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
-  const labels={tribeTicket:"종족 주사위",pickupTicket:"픽업 소환권",companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
-  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${key==='tribeTicket'?'tribes/polished-v1/ticket.webp':currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
+  const labels={tokens:"토큰",bossChest200:"200제 보스 장비 상자 (직업·부위 랜덤)",tribeTicket:"종족 주사위",pickupTicket:"픽업 소환권",companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
+  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${key==='tribeTicket'?'tribes/polished-v1/ticket.webp':key==='tokens'?'token/token-v1.webp':key==='bossChest200'?'ui/lucky-wheel-chest.svg':currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
 }
 function systemMailButton() {
   const count=state.systemMailbox?.length||0;
@@ -1286,7 +1286,10 @@ function showEvents(events) {
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":e.resource==="diamond"?"다이아":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
-      toast("장비 잠재 개방 주문서 "+fmt(e.rewards.scroll||0)+"개 · 장비 파편 "+fmt(e.rewards.fragment||0)+"개를 받았습니다.");
+      const MAIL_NAMES={tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
+      const text=Object.entries(e.rewards||{}).filter(([k])=>k!=="bossChest200").map(([k,n])=>(MAIL_NAMES[k]||D.MATERIALS[k]||k)+" "+fmt(n)+(["companionTicket","pickupTicket"].includes(k)?"장":"개")).join(" · ");
+      if(e.items?.length){const it=e.items[0];modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("우편 보상 수령",`<p>${esc(text)}</p>${gearMarkup(it.item,"big-item")}<h3>${esc(D.gearName(it.item))}</h3><p>Lv.${it.item.level} 보스 장비 · ${it.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});}
+      else toast(text+" 받았습니다.");
       continue;
     }
     if (e.type === "attendance") {

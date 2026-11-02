@@ -12,7 +12,7 @@ const BOSS_DROP_EVENTS={30:BOSS_DROP_SUNDAY,32:BOSS_DROP_SUNDAY};
 const bossGearChance=(boss,now)=>{const e=BOSS_DROP_EVENTS[boss.id];return e&&now>=e.from&&now<e.to?e.chance:boss.dropChance*(boss.gearRateScale??BOSS_GEAR_RATE_SCALE);};
 import {blackMarketBuy} from './black-market.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs?v=priest-potential-83';
-import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=balance-20261102';
+import {deliverSystemMail,claimSystemMail} from './system-mail.mjs?v=gift-20261102';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
 import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE,PRIEST_ATTACK_RATE} from './priest.mjs?v=fifth-114';
@@ -825,7 +825,7 @@ function executeCore(input, command, args = {}, ctx) {
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
     case "claimSystemMail": {
-      events.push(claimSystemMail(s,args.id,chest=>{if(chest?.kind===WHEEL_CHEST.kind){const tiers=(WHEEL_CHEST.maxLevel-WHEEL_CHEST.minLevel)/10+1,level=WHEEL_CHEST.minLevel+10*Math.floor(ctx.random()*tiers),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
+      events.push(claimSystemMail(s,args.id,chest=>{if(chest?.kind===WHEEL_CHEST.kind){const lo=chest.minLevel??WHEEL_CHEST.minLevel,hi=chest.maxLevel??WHEEL_CHEST.maxLevel,tiers=(hi-lo)/10+1,level=lo+10*Math.floor(ctx.random()*tiers),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
       break;
     }
     case "claimMail": {
