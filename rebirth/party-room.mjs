@@ -1,7 +1,7 @@
 // Shared waiting-room layout for every boss party (raid, exploration, advancement, citadel):
 // cover art with the boss, entry info bar, member cards with arena tier + title.
 import {titleBadge} from './title-ui.mjs';
-import {tribeTag,memberTribe} from './tribe-ui.mjs?v=glyph-20261102';
+import {tribeTag,memberTribe} from './tribe-ui.mjs?v=tribe-face-20261102';
 import {arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CLASS_NAMES={warrior:'전사',archer:'궁수',mage:'마법사',rogue:'도적',pirate:'해적',priest:'사제'};
