@@ -34,7 +34,7 @@ import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleA
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=top-icons-20261102';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=tribe-20261102';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -58,8 +58,10 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-
 import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=token-pickup60-20261102";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=token-pickup60-20261102";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=tribe-20261102";
+import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=tribe-20261102";
+import {tribeView,spinTribeReel,tribeTag} from "./tribe-ui.mjs?v=tribe-20261102";
+import {tokenShopBought} from "./token-content.mjs?v=tribe-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
@@ -111,6 +113,8 @@ let arenaData=null,arenaPage='home',arenaBattle=null,arenaPlayback=null,arenaErr
 let shopCategory="boss";
 let skillLookClass=null,stopSkillLookPreview=null;
 modal.addEventListener('close',()=>{stopSkillLookPreview?.();stopSkillLookPreview=null;});
+function openTribe(){open('종족 뽑기',tribeView(state,{spinning:tribeSpinning,shop:{bought:tokenShopBought(state,'tribeTicket',Date.now())}}),!tribeSpinning);modal.classList.add('tribe-dialog');}
+let tribeSpinning=false;
 let tokenPage="dungeon",raceTimer=0;
 let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
 let connectionLost = false, marketRequest = 0, lastVisualHit = 0, lastBattleRequestAt = 0;
@@ -1135,8 +1139,8 @@ function rankings() {
   const className=r=>r.advancement>=4?D.FIFTH_NAMES[r.classId]:r.advancement>=3?D.FOURTH_NAMES[r.classId]:r.advancement>=2?D.THIRD_NAMES[r.classId]:r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name||"모험가";
   const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
   const portrait=r=>`<div class="rank-portrait portrait ${r.classId==='priest'?'priest-portrait':''}" style="${portraitStyle(r.classId,r.costumeId,portraitPosition(r.classId))}" aria-hidden="true"></div>`;
-  const podium=rows.slice(0,3).map(r=>`<article role="button" tabindex="0" data-action="rankingProfile" data-arg="${esc(r.id)}" class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}"><span class="rank-name-text">${esc(r.name)}</span>${arenaTierIcon(r.arenaScore,r.arenaRank)}</strong>${r.title?`<div class="podium-title">${titleBadge(r.title)}</div>`:""}<small>${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
-  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}${state.title?titleBadge(state.title):""}${arenaTierIcon(me?.arenaScore,me?.arenaRank)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div role="button" tabindex="0" data-action="rankingProfile" data-arg="${esc(r.id)}" class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong><span class="rank-name-text">${esc(r.name)}</span>${r.title?titleBadge(r.title):""}${arenaTierIcon(r.arenaScore,r.arenaRank)}${r.isMe?'<i>나</i>':""}</strong><small>${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><div class="rank-score"><b>${score(r)}</b>${!r.isMe&&r.id&&!state.isTester?(state.isAdmin?btn("관리자 송금","adminTransferOpen",r.id,"rank-transfer-button"):btn("골드 송금","goldTransferOpen",r.id,"rank-transfer-button")):""}</div></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
+  const podium=rows.slice(0,3).map(r=>`<article role="button" tabindex="0" data-action="rankingProfile" data-arg="${esc(r.id)}" class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}"><span class="rank-name-text">${esc(r.name)}</span>${arenaTierIcon(r.arenaScore,r.arenaRank)}</strong>${r.title?`<div class="podium-title">${titleBadge(r.title)}</div>`:""}<small>${tribeTag(r.tribe)}${className(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
+  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span>${esc(state.name)}${state.title?titleBadge(state.title):""}${arenaTierIcon(me?.arenaScore,me?.arenaRank)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div role="button" tabindex="0" data-action="rankingProfile" data-arg="${esc(r.id)}" class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong><span class="rank-name-text">${esc(r.name)}</span>${r.title?titleBadge(r.title):""}${arenaTierIcon(r.arenaScore,r.arenaRank)}${r.isMe?'<i>나</i>':""}</strong><small>${tribeTag(r.tribe)}${className(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><div class="rank-score"><b>${score(r)}</b>${!r.isMe&&r.id&&!state.isTester?(state.isAdmin?btn("관리자 송금","adminTransferOpen",r.id,"rank-transfer-button"):btn("골드 송금","goldTransferOpen",r.id,"rank-transfer-button")):""}</div></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
 }
 function journal() {
   const goals=[["첫 토벌",state.cleared.length,1,"보스 첫 처치"],["장비 수집가",state.collection.length,50,"서로 다른 장비 50종 발견"],["직업의 길",D.firstJobUnlocked(state)?1:0,1,requiredLevel(30)+" · 수정 문지기 처치 후 전직"],["숙련 모험가",state.level,100,requiredLevel(100,"100레벨 달성")],["왕좌를 넘어",state.cleared.length,30,"멸신왕 벨제리온 처치"],["새벽의 탐험가",state.dungeonClaims.relic?1:0,1,"여명의 폐허 클리어"]];
@@ -1181,7 +1185,7 @@ function open(title, html, closable = true) {
   stopSkillLookPreview?.();stopSkillLookPreview=null;
   if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
   const scrollKey=(selected||"")+"|"+title,preservedModalScroll=title.endsWith(" · 결과 선택")?0:dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
-  modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog", "title-dialog", "companion-dialog");
+  modal.classList.remove("enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog", "title-dialog", "companion-dialog", "tribe-dialog");
   replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
   modal.setAttribute("aria-labelledby", "dialog-title");
   modal.scrollTop = preservedModalScroll;
@@ -1310,6 +1314,8 @@ function showEvents(events) {
 
     if(e.type==='advancementTrial'){tab='boss';bossTab='advancement';view='game';render();advancementResult(e);continue;}
     if(e.type==='tokenBoss'){tab='boss';bossTab='token';tokenPage='dungeon';view='game';render();tokenBossReward(e);continue;}
+    if(e.type==='tribeRoll'||e.type==='tribeChoose')continue;
+    if(e.type==='tokenShopBuy'&&e.id==='tribeTicket'){continue;}
     if(e.type==='tokenShopBuy'){toast(e.name+' '+e.quantity+'개 교환 완료 · 남은 토큰 '+fmt(e.tokens));continue;}
     if(e.type==='tower'){tab='boss';bossTab='tower';view='game';render();towerReward(e);continue;}
     if (e.type === "combat") continue;
@@ -1757,6 +1763,18 @@ document.addEventListener("click", async (e) => {
       if(result&&!chest)systemInbox();
       return;
     }
+    if(action==="tribeOpen"){await command('sync',{},true);openTribe();return;}
+    if(action==="tribeBuy"){if(busy||tribeSpinning)return;try{await command('tokenShopBuy',{id:'tribeTicket',quantity:1},true);toast('종족 뽑기권 1장 구매');}catch{}openTribe();return;}
+    if(action==="tribeRoll"){
+      if(busy||tribeSpinning)return;
+      let result;try{result=await command('tribeRoll',{},true);}catch{openTribe();return;}
+      const ev=result?.result?.events?.find(e=>e.type==='tribeRoll');if(!ev){openTribe();return;}
+      tribeSpinning=true;openTribe();
+      try{await spinTribeReel(modal.querySelector('[data-tribe-screen]'),ev.id);await new Promise(r=>setTimeout(r,ev.grade==='myth'||ev.grade==='legend'?1400:700));}finally{tribeSpinning=false;}
+      if(modal.open&&modal.querySelector('[data-tribe-screen]'))openTribe();
+      return;
+    }
+    if(action==="tribeChoose"){if(busy||tribeSpinning)return;let r;try{r=await command('tribeChoose',{take:arg==='take'},true);}catch{openTribe();return;}const e=r?.result?.events?.find(x=>x.type==='tribeChoose');if(e)toast(e.took?'종족이 바뀌었어요.':'지금 종족을 유지했어요.');openTribe();return;}
     if(action==="bankOpen"){await command('sync',{},true);open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
     if(action==="bankDeposit"||action==="bankWithdraw"){if(busy)return;const raw=document.querySelector('#bank-amount')?.value?.trim()||'';if(arg!=='all'&&!/^\d+$/.test(raw))return toast('골드 금액을 숫자로 입력해 주세요.');const amount=arg==='all'?'all':Number(raw);await command(action,{amount});open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
     if(action==="titleOpen"){setTitleFilter('all');open("칭호",titlePanelView(state));modal.classList.add("title-dialog");await command('titleSync',{},true).catch(()=>{});if(modal.open&&modal.classList.contains('title-dialog'))open("칭호",titlePanelView(state)),modal.classList.add("title-dialog");return;}

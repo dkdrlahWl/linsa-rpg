@@ -71,13 +71,14 @@ export const TOKEN_SHOP=Object.freeze([
  {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:20,daily:30},
  {id:'companionTicket',name:'동료 소환권',kind:'companionTicket',amount:1,cost:40,daily:10},
  {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:60,daily:5},
+ {id:'tribeTicket',name:'종족 뽑기권',kind:'tribeTicket',amount:1,cost:100,daily:5},
  {id:'rerollStone',name:'기본수치 재련석',kind:'material',key:'rerollStone',amount:1,cost:800,weekly:3},
 ].map(Object.freeze));
 // 주간 한도는 월요일 00시(한국) 초기화. 일일 한도와 따로 센다.
 const weekKey=now=>{const d=new Date(now+9*3600e3);d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);};
 export const tokenShopLimit=o=>o.weekly||o.daily||0;
 export function tokenShopBought(s,id,now){const o=TOKEN_SHOP.find(x=>x.id===id);if(o?.weekly){const w=weekKey(now);return s.tokenShopWeek?.week===w?(s.tokenShopWeek.bought?.[id]||0):0;}const d=dayKey(now);return s.tokenShop?.day===d?(s.tokenShop.bought?.[id]||0):0;}
-export function tokenShopBuy(s,args,now,{normalizeFishing,normalizeCompanions,normalizeTreasure}){
+export function tokenShopBuy(s,args,now,deps){const {normalizeFishing,normalizeCompanions,normalizeTreasure}=deps;
  check(tokenOpenFor(s),'TOKEN_LOCKED');
  const offer=TOKEN_SHOP.find(o=>o.id===args?.id);check(offer,'INVALID_TOKEN_ITEM');
  const quantity=args.quantity===undefined?1:args.quantity;check(Number.isInteger(quantity)&&quantity>=1&&quantity<=999,'INVALID_QUANTITY');
@@ -92,6 +93,7 @@ export function tokenShopBuy(s,args,now,{normalizeFishing,normalizeCompanions,no
  else if(offer.kind==='diamond'){const f=normalizeFishing(s,now);f.diamonds=(f.diamonds||0)+amount;}
  else if(offer.kind==='companionTicket')normalizeCompanions(s).tickets+=amount;
  else if(offer.kind==='pickupTicket')normalizeCompanions(s).pickupTickets+=amount;
+ else if(offer.kind==='tribeTicket'){const t=deps.normalizeTribe(s);t.tickets+=amount;}
  else if(offer.kind==='treasureTicket'){const t=normalizeTreasure(s,now);t.tickets=(t.tickets||0)+amount;}
  s.tokens=tokenCount(s)-cost;if(offer.weekly)s.tokenShopWeek.bought[offer.id]=(s.tokenShopWeek.bought[offer.id]||0)+quantity;else s.tokenShop.bought[offer.id]=(s.tokenShop.bought[offer.id]||0)+quantity;
  return {type:'tokenShopBuy',id:offer.id,name:offer.name,quantity,amount,cost,tokens:s.tokens};

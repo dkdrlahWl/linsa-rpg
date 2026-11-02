@@ -22,6 +22,8 @@ import {rollRiftReward} from './rift-rewards.mjs';
 import {THIRD_SKILLS,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,beginThird,stepThird,advancementStatBonus,JOB_MULTIPLIER_STAGES} from './advancement.mjs';
 import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MONSTER_SECONDS} from './journey-balance.mjs';
 import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
+import {tribeCommand,normalizeTribe} from './tribe-model.mjs';
+import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs';
 import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
@@ -209,6 +211,8 @@ export function power(s) {
   }
   // 6·7차 전직: 잠재처럼 % 능력치에 더한다.
   for (const [key, value] of Object.entries(advancementStatBonus(s))) pct[key] += value;
+  // 종족: 잠재처럼 % 능력치에 더한다.
+  for (const [key, value] of Object.entries(tribeStatBonus(s))) pct[key] += value;
   primary *= 1 + pct[cl.stat] / 100;
   flat = (flat + primary * 0.65) * (1 + pct.attack / 100);
   hp = Math.floor(hp * (1 + pct.hp / 100));
@@ -223,7 +227,7 @@ export function power(s) {
   // 2026-10-18: 사제 고유 보너스 HP +30%
   if (s.classId === "priest") hp = Math.floor(hp * 1.30);
   // 칭호 보유 효과: 칭호 하나당 치명타 피해 +0.5%p.
-  const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length + SKILL_LOOK_CRIT_DAMAGE * ownedSkillLookCount(s);
+  const critDamage = (s.classId === "rogue" ? 1.9 : 1.6) + TITLE_CRIT_DAMAGE * Object.keys(s.titles || {}).filter(id => TITLE_BY_ID[id]).length + SKILL_LOOK_CRIT_DAMAGE * ownedSkillLookCount(s) + tribeCritDamage(s);
   if (firstJobUnlocked(s)) { const bonus=1.1**Math.min(JOB_MULTIPLIER_STAGES,jobStage(s));flat *= bonus;hp = Math.floor(hp * bonus); }
   // 사제 리메이크: 사제도 다른 직업과 같은 공격력 계산식(LUK·공%·크리·보공 100%)을 쓴다.
   const costumeBonus=costumeAttackBonus(s);
@@ -600,6 +604,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(s.version === VERSION, "VERSION_MISMATCH");
   deliverSystemMail(s,ctx);
   normalizeCompanions(s);
+  normalizeTribe(s);
   settleBank(s,ctx.now);
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
   const dailyDay=dayKey(ctx.now);
@@ -682,6 +687,7 @@ function executeCore(input, command, args = {}, ctx) {
   if(command==="battlePotion"){const b=s.battle;check(b&&b.kind!=="tower","NO_BATTLE");check((b.potions||0)<3&&ctx.now>=(b.potionReady||0),"SKILL_COOLDOWN");b.potions=(b.potions||0)+1;b.potionReady=ctx.now+20000;b.hp=Math.min(b.power.hp,b.hp+b.power.hp*.25);return {state:s,events};}
   if(command.startsWith("companion")){events.push(companionCommand(s,command,args,ctx));return {state:s,events};}
   check(!s.battle, "BATTLE_IN_PROGRESS");
+  if(command==="tribeRoll"||command==="tribeChoose"){events.push(tribeCommand(s,command,args,ctx.now,ctx.random));return {state:s,events};}
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   if(command.startsWith("treasure")){events.push(treasureCommand(s,command,args,ctx,dayKey(ctx.now),level=>{const item=makeLootItem(level,s.classId,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);return item;}));return {state:s,events};}
   switch (command) {
@@ -691,7 +697,7 @@ function executeCore(input, command, args = {}, ctx) {
       s.battle=newTowerBattle(fields.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,fields);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
-    case "tokenShopBuy": {events.push(tokenShopBuy(s,args,ctx.now,{normalizeFishing,normalizeCompanions,normalizeTreasure:(st,now)=>normalizeTreasure(st,dayKey(now))}));break;}
+    case "tokenShopBuy": {events.push(tokenShopBuy(s,args,ctx.now,{normalizeFishing,normalizeCompanions,normalizeTreasure:(st,now)=>normalizeTreasure(st,dayKey(now)),normalizeTribe}));break;}
     case "raceCard": {check(tokenOpenFor(s),"TOKEN_LOCKED");raceState(s,ctx.now,ctx.random);events.push({type:"raceCard"});break;}
     case "raceBet": {events.push(raceBet(s,args,ctx.now,ctx.random));break;}
     case "skillLookBuy":

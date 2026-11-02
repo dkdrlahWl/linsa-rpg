@@ -1,6 +1,6 @@
 import {fishingQuestsReady} from './fishing-data.mjs';
 import {goldPurchaseIcon} from './currency-icons.mjs';
-import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=short-18';
+import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=tribe-20261102';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const date=v=>new Date(v).toLocaleDateString('ko-KR',{timeZone:'Asia/Seoul',month:'numeric',day:'numeric'});

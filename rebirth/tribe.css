@@ -1,0 +1,85 @@
+/* 종족 뽑기 */
+.tribe-name{color:var(--tc);font-weight:800;letter-spacing:.01em;white-space:nowrap}
+.tribe-name.big{font-size:1.45rem;line-height:1.2}
+.tribe-g-common .tribe-name,.tribe-name.tribe-g-common{text-shadow:0 0 3px color-mix(in srgb,var(--tc) 45%,transparent)}
+.tribe-name.tribe-g-rare{text-shadow:0 0 6px color-mix(in srgb,var(--tc) 70%,transparent)}
+.tribe-name.tribe-g-epic{text-shadow:0 0 6px var(--tc),0 0 14px color-mix(in srgb,var(--tc) 60%,transparent)}
+.tribe-name.tribe-g-legend{background:linear-gradient(100deg,var(--tc) 0 38%,#fff 48%,var(--tc) 58% 100%);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 5px var(--tc)) drop-shadow(0 0 12px color-mix(in srgb,var(--tc) 55%,transparent));animation:tribe-shine 2.6s linear infinite}
+.tribe-name.tribe-g-myth{background:linear-gradient(90deg,#ff4d6d,#ffb347,#ffe066,#7ff0ff,#b48cff,#ff4d6d);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 6px var(--tc)) drop-shadow(0 0 16px #ff9ad5aa);animation:tribe-rainbow 3s linear infinite,tribe-pulse 1.6s ease-in-out infinite}
+@keyframes tribe-shine{from{background-position:130% 0}to{background-position:-130% 0}}
+@keyframes tribe-rainbow{to{background-position:300% 0}}
+@keyframes tribe-pulse{50%{filter:drop-shadow(0 0 9px var(--tc)) drop-shadow(0 0 22px #ffd0f0cc)}}
+/* 랭킹·작은 표시용 태그 */
+.tribe-tag{display:inline-block;margin-right:5px;padding:0 6px;border:1px solid color-mix(in srgb,var(--tc) 55%,transparent);border-radius:999px;color:var(--tc);font-size:.92em;font-weight:800;line-height:1.45;background:color-mix(in srgb,var(--tc) 10%,transparent);vertical-align:1px}
+.tribe-tag.tribe-g-start{opacity:.75;font-weight:600}
+.tribe-tag.tribe-g-rare{box-shadow:0 0 5px color-mix(in srgb,var(--tc) 35%,transparent)}
+.tribe-tag.tribe-g-epic{box-shadow:0 0 7px color-mix(in srgb,var(--tc) 55%,transparent);text-shadow:0 0 5px var(--tc)}
+.tribe-tag.tribe-g-legend{box-shadow:0 0 9px color-mix(in srgb,var(--tc) 70%,transparent);text-shadow:0 0 6px var(--tc);animation:tribe-tag-glow 2.2s ease-in-out infinite}
+.tribe-tag.tribe-g-myth{border-color:#ffd0f0;color:#fff;background:linear-gradient(90deg,#ff4d6d55,#ffe06655,#7ff0ff55,#b48cff55,#ff4d6d55);background-size:300% 100%;text-shadow:0 0 6px var(--tc),0 0 12px #ff9ad5;box-shadow:0 0 10px #ff9ad5aa;animation:tribe-rainbow 3s linear infinite}
+@keyframes tribe-tag-glow{50%{box-shadow:0 0 14px var(--tc)}}
+/* 상단 버튼 */
+.fantasy-tribe-entry{position:relative;background:linear-gradient(#4a2a6e,#1a1638)!important;border-color:#c79cff!important;box-shadow:inset 0 0 12px #b48cff55,0 2px 8px #0008!important}
+.fantasy-tribe-entry .tribe-entry-glyph{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:17px;color:#ffe9a8;text-shadow:0 0 6px #ffb347,0 0 12px #b48cff}
+.fantasy-tribe-entry img{position:relative;z-index:1}
+@media(max-width:700px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:38px!important;width:38px!important}.fantasy-bank-entry img,.fantasy-wheel-entry img,.fantasy-arena-entry img,.fantasy-title-entry svg{width:24px!important;height:24px!important}}
+@media(max-width:380px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:33px!important;width:33px!important}.fantasy-bank-entry img,.fantasy-wheel-entry img,.fantasy-arena-entry img,.fantasy-title-entry svg{width:21px!important;height:21px!important}.fantasy-tribe-entry .tribe-entry-glyph{font-size:14px}}
+/* 모달 */
+.tribe-dialog{max-width:520px}
+.tribe-screen{display:grid;gap:12px}
+.tribe-now{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--tc) 45%,#0000);background:radial-gradient(120% 140% at 0 0,color-mix(in srgb,var(--tc) 18%,#0000),#0c0f1ccc 60%)}
+.tribe-now small{display:block;color:var(--muted);font-size:.78rem}
+.tribe-now p{margin:2px 0 0;font-size:.86rem;color:#d8d2c4}
+.tribe-now-art,.tribe-card-art{display:grid;place-items:center;width:64px;height:64px;border-radius:14px;background:radial-gradient(circle,color-mix(in srgb,var(--tc) 35%,#0000),#0000 70%);overflow:hidden}
+.tribe-art{width:100%;height:100%;object-fit:contain}
+.tribe-machine{position:relative;padding:14px 14px 10px;border-radius:18px;border:2px solid #d4a54a;background:linear-gradient(#2a1a3c,#120d1f);box-shadow:inset 0 0 24px #000a,0 0 18px #d4a54a33}
+.tribe-machine-lights{position:absolute;inset:4px;display:flex;justify-content:space-between;pointer-events:none}
+.tribe-machine-lights i{width:6px;height:6px;margin-top:-2px;border-radius:50%;background:#ffd76a;box-shadow:0 0 6px #ffd76a;animation:tribe-bulb 1.2s steps(2) infinite}
+.tribe-machine-lights i:nth-child(odd){animation-delay:.6s}
+.tribe-machine.spinning .tribe-machine-lights i{animation-duration:.25s}
+@keyframes tribe-bulb{50%{opacity:.25;box-shadow:none}}
+.tribe-reel{position:relative;height:192px;overflow:hidden;border-radius:12px;background:#07060d;border:1px solid #5a4630;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.tribe-reel-strip{will-change:transform}
+.tribe-reel-cell{height:64px;box-sizing:border-box;display:grid;grid-template-columns:44px auto 1fr;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #ffffff0d}
+.tribe-reel-cell b{color:var(--tc);font-size:1.25rem;font-weight:800;text-shadow:0 0 8px color-mix(in srgb,var(--tc) 60%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tribe-reel-art{width:44px;height:44px;object-fit:contain;grid-column:1}
+.tribe-reel-cell .tribe-grade-chip{grid-column:2}
+.tribe-reel-cell:not(:has(img)) .tribe-grade-chip{grid-column:1/3;justify-self:start}
+.tribe-reel-line{position:absolute;left:6px;right:6px;top:64px;height:64px;border-top:2px solid #ffd76a;border-bottom:2px solid #ffd76a;border-radius:6px;box-shadow:0 0 12px #ffd76a66,inset 0 0 18px #ffd76a22;pointer-events:none}
+.tribe-reel.landed .tribe-reel-line{animation:tribe-land .9s ease-out}
+.tribe-reel.land-epic .tribe-reel-line{border-color:#c79cff;box-shadow:0 0 18px #b48cffaa,inset 0 0 22px #b48cff44}
+.tribe-reel.land-legend .tribe-reel-line{border-color:#ffc94a;box-shadow:0 0 26px #ffc94a,inset 0 0 30px #ffc94a66;animation:tribe-land .9s ease-out,tribe-glow 1s ease-in-out .9s infinite}
+.tribe-reel.land-myth .tribe-reel-line{border-color:#fff;box-shadow:0 0 30px #ff9ad5,0 0 50px #7ff0ff88,inset 0 0 34px #ffe06688;animation:tribe-land .9s ease-out,tribe-glow .7s ease-in-out .9s infinite}
+.tribe-reel.land-myth{animation:tribe-shake .5s ease-in-out}
+@keyframes tribe-land{0%{transform:scale(1.12);filter:brightness(2.2)}100%{transform:none;filter:none}}
+@keyframes tribe-glow{50%{filter:brightness(1.6)}}
+@keyframes tribe-shake{20%,60%{transform:translateX(-3px)}40%,80%{transform:translateX(3px)}}
+.tribe-machine-info{display:flex;justify-content:space-between;gap:6px;margin-top:9px;font-size:.78rem;color:#cdbfa3;flex-wrap:wrap}
+.tribe-machine-info b{color:#ffd76a}
+.tribe-grade-chip{display:inline-block;padding:1px 7px;border-radius:999px;font-size:.7rem;font-weight:700;color:#111;background:var(--tc);white-space:nowrap}
+.tribe-g-common .tribe-grade-chip{background:#b9b3a2}
+.tribe-g-rare .tribe-grade-chip{background:#6fb6ff}
+.tribe-g-epic .tribe-grade-chip{background:#b48cff}
+.tribe-g-legend .tribe-grade-chip{background:#ffc94a}
+.tribe-g-myth .tribe-grade-chip{background:linear-gradient(90deg,#ff4d6d,#ffe066,#7ff0ff,#b48cff);color:#1a0b14}
+.tribe-g-start .tribe-grade-chip{background:#888}
+.tribe-actions{display:grid;grid-template-columns:1.3fr 1fr;gap:8px}
+.tribe-actions button{display:grid;gap:2px;padding:11px 6px;font-size:1.02rem}
+.tribe-actions small{font-size:.72rem;opacity:.8;font-weight:500}
+.tribe-spin:not([disabled]){box-shadow:0 0 14px #ffd76a55}
+.tribe-choose h3{margin:0 0 8px;text-align:center}
+.tribe-choose-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tribe-card{display:grid;justify-items:center;gap:4px;padding:10px 8px;border-radius:14px;text-align:center;border:1px solid color-mix(in srgb,var(--tc) 40%,#0000);background:radial-gradient(120% 120% at 50% 0,color-mix(in srgb,var(--tc) 16%,#0000),#0c0f1ccc 70%)}
+.tribe-card.new{border-width:2px;box-shadow:0 0 16px color-mix(in srgb,var(--tc) 45%,transparent)}
+.tribe-card p{margin:0;font-size:.8rem;color:#d8d2c4;line-height:1.4}
+.tribe-card-label{font-size:.72rem;color:var(--muted)}
+.tribe-choose-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.tribe-choose-actions button{padding:11px 4px}
+.tribe-odds summary{cursor:pointer;color:var(--gold)}
+.tribe-odds .note{font-size:.8rem}
+.tribe-odds-group{margin:8px 0;padding:8px 10px;border-radius:12px;background:#0c0f1c99;border:1px solid #ffffff12}
+.tribe-odds-group h4{margin:0 0 4px;font-size:.88rem}
+.tribe-odds-group h4 small{color:var(--muted);font-weight:500}
+.tribe-odds-row{display:grid;grid-template-columns:76px 1fr;gap:8px;padding:3px 0;font-size:.8rem;border-top:1px solid #ffffff0a}
+.tribe-odds-row span{color:#cfc8b8}
+@media(max-width:420px){.tribe-name.big{font-size:1.25rem}.tribe-reel-cell b{font-size:1.1rem}.tribe-card p{font-size:.74rem}}
+@media(prefers-reduced-motion:reduce){.tribe-name,.tribe-tag,.tribe-machine-lights i{animation:none!important}}
