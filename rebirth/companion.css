@@ -273,3 +273,23 @@ dialog.companion-dialog:has(.cp-sanctum):not([open]){display:none}
 .cp-pickup .cp-banner-hero{background:url('companions/pickup-celestia-sanctum-v1.webp') center/cover;border:1px solid #efd28d80}
 .cp-pickup .cp-banner-art{object-fit:contain!important;object-position:center!important;background:transparent;filter:drop-shadow(0 0 15px #e5c67860)}
 .cp-pickup .cp-banner-copy{background:linear-gradient(transparent,#07132ddd)}
+
+/* Painted rarity crests; the live grade letter stays crisp at phone size. */
+.cp-g-SS{--cp-grade-art:url('companions/grades/crest-ss-v1.webp')}
+.cp-g-S{--cp-grade-art:url('companions/grades/crest-s-v1.webp')}
+.cp-g-A{--cp-grade-art:url('companions/grades/crest-a-v1.webp')}
+.cp-g-B{--cp-grade-art:url('companions/grades/crest-b-v1.webp')}
+.cp-g-C{--cp-grade-art:url('companions/grades/crest-c-v1.webp')}
+.cp-g-D{--cp-grade-art:url('companions/grades/crest-d-v1.webp')}
+.cp-g-F{--cp-grade-art:url('companions/grades/crest-f-v1.webp')}
+:is(.cp-screen,.companion-dialog) .cp-grade{
+ width:34px;height:36px;left:1px;top:0;z-index:4;padding:2px 0 0;
+ border:0;border-radius:0;background:var(--cp-grade-art) center/contain no-repeat;
+ box-shadow:none;color:#fff3cf;font:800 14px/1 Georgia,serif;
+ text-shadow:0 1px 2px #000,0 0 3px #000;filter:drop-shadow(0 2px 2px #0009);
+ pointer-events:none;
+}
+:is(.cp-screen,.companion-dialog) .cp-card .cp-grade{width:28px;height:30px;font-size:12px;left:0;top:0}
+:is(.cp-screen,.companion-dialog) .cp-g-SS .cp-grade{font-size:11px;color:#fff3c2}
+.companion-dialog .cp-pickup-card .cp-grade{width:34px;height:36px;font-size:12px;left:1px;top:0;z-index:3}
+.companion-dialog .cp-bulk .cp-grade{width:32px;height:34px;font-size:13px;left:calc(50% - 16px);top:0}

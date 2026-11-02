@@ -1,0 +1,34 @@
+{
+  "version": "painted-grade-v1",
+  "generator": "built-in imagegen",
+  "assets": [
+    {
+      "id": "ss",
+      "prompt": "Use case: stylized-concept. Production UI rarity emblem for Korean high fantasy RPG companion card upper left corner. Single small ornate sculpted metallic heraldic insignia: supreme imperial winged crown, radiant gold platinum filigree, sapphire diamond highlights, three elegant crown tips, most prestigious. Premium hand painted fantasy game inventory art, crisply rendered metal and precious stones. Symmetric compact silhouette, center has a large dark smooth blank enamel inset reserved for a letter overlay, blank center fills about 42 percent of emblem width and height. Decoration hugs inset, no excessive tiny details, legible when reduced to 32 pixels. Complete isolated ornament centered with 12 percent transparent padding around every edge, square composition. Truly transparent background. No letters, no words, no text, no watermark. Not a flat vector or basic geometric shape."
+    },
+    {
+      "id": "a",
+      "prompt": "Use case: stylized-concept. Production UI rarity emblem for Korean high fantasy RPG companion card upper left corner. Single small ornate sculpted metallic heraldic insignia: amethyst silver arcane flourishes, violet gemstone ornament, elegant. Premium hand painted fantasy game inventory art, crisply rendered metal and precious stones. Symmetric compact silhouette, center has a large dark smooth blank enamel inset reserved for a letter overlay, blank center fills about 42 percent of emblem width and height. Decoration hugs inset, no excessive tiny details, legible when reduced to 32 pixels. Complete isolated ornament centered with 12 percent transparent padding around every edge, square composition. Truly transparent background. No letters, no words, no text, no watermark. Not a flat vector or basic geometric shape."
+    },
+    {
+      "id": "d",
+      "prompt": "Use case: stylized-concept. Production UI rarity emblem for Korean high fantasy RPG companion card upper left corner. Single small ornate sculpted metallic heraldic insignia: antique silver knight crest with subtle blue grey gemstone, restrained. Premium hand painted fantasy game inventory art, crisply rendered metal and precious stones. Symmetric compact silhouette, center has a large dark smooth blank enamel inset reserved for a letter overlay, blank center fills about 42 percent of emblem width and height. Decoration hugs inset, no excessive tiny details, legible when reduced to 32 pixels. Complete isolated ornament centered with 12 percent transparent padding around every edge, square composition. Truly transparent background. No letters, no words, no text, no watermark. Not a flat vector or basic geometric shape."
+    },
+    {
+      "id": "s",
+      "prompt": "Use case: stylized-concept. Production UI rarity emblem for Korean high fantasy RPG companion card upper left corner. Single small ornate sculpted metallic heraldic insignia: golden royal phoenix wings and small crown, warm amber gemstone accents, prestigious. Premium hand painted fantasy game inventory art, crisply rendered metal and precious stones. Symmetric compact silhouette, center has a large dark smooth blank enamel inset reserved for a letter overlay, blank center fills about 42 percent of emblem width and height. Decoration hugs inset, no excessive tiny details, legible when reduced to 32 pixels. Complete isolated ornament centered with 12 percent transparent padding around every edge, square composition. Truly transparent background. No letters, no words, no text, no watermark. Not a flat vector or basic geometric shape."
+    },
+    {
+      "id": "b",
+      "prompt": "Use case: stylized-concept. Production UI rarity emblem for Korean high fantasy RPG companion card upper left corner. Single small ornate sculpted metallic heraldic insignia: sapphire steel feathered crest, ice blue jewel accents. Premium hand painted fantasy game inventory art, crisply rendered metal and precious stones. Symmetric compact silhouette, center has a large dark smooth blank enamel inset reserved for a letter overlay, blank center fills about 42 percent of emblem width and height. Decoration hugs inset, no excessive tiny details, legible when reduced to 32 pixels. Complete isolated ornament centered with 12 percent transparent padding around every edge, square composition. Truly transparent background. No letters, no words, no text, no watermark. Not a flat vector or basic geometric shape."
+    },
+    {
+      "id": "c",
+      "prompt": "Use case: stylized-concept. Production UI rarity emblem for Korean high fantasy RPG companion card upper left corner. Single small ornate sculpted metallic heraldic insignia: emerald silver leaf ornament, refined green jewel accents. Premium hand painted fantasy game inventory art, crisply rendered metal and precious stones. Symmetric compact silhouette, center has a large dark smooth blank enamel inset reserved for a letter overlay, blank center fills about 42 percent of emblem width and height. Decoration hugs inset, no excessive tiny details, legible when reduced to 32 pixels. Complete isolated ornament centered with 12 percent transparent padding around every edge, square composition. Truly transparent background. No letters, no words, no text, no watermark. Not a flat vector or basic geometric shape."
+    },
+    {
+      "id": "f",
+      "prompt": "Use case: stylized-concept. Production UI rarity emblem for Korean high fantasy RPG companion card upper left corner. Single small ornate sculpted metallic heraldic insignia: antique bronze adventurer crest with copper leaf filigree, modest but beautifully crafted. Premium hand painted fantasy game inventory art, crisply rendered metal and precious stones. Symmetric compact silhouette, center has a large dark smooth blank enamel inset reserved for a letter overlay, blank center fills about 42 percent of emblem width and height. Decoration hugs inset, no excessive tiny details, legible when reduced to 32 pixels. Complete isolated ornament centered with 12 percent transparent padding around every edge, square composition. Truly transparent background. No letters, no words, no text, no watermark. Not a flat vector or basic geometric shape."
+    }
+  ]
+}
