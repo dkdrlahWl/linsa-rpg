@@ -1,13 +1,21 @@
 // 동료 카드 (서버 판정).
 // 소환권으로 카드를 뽑고, 3칸에 배치하면 칸마다 분당 골드가 최대 8시간 쌓인다.
 // 같은 캐릭터 카드끼리 합성하면 별이 오른다. 전투·아레나에는 영향 없음.
-export const COMPANION_GRADES=['S','A','B','C','D','F'];
-export const COMPANION_GRADE_RATES={S:.01,A:.05,B:.10,C:.20,D:.25,F:.39};
+// 2026-11-02 도현: 동료 버프 — SS급 신설(픽업 전용), 아스트리아는 일반 소환 S급으로 이동, 더 좋은 S급 5종 추가.
+export const COMPANION_GRADES=['SS','S','A','B','C','D','F'];
+export const COMPANION_GRADE_RATES={SS:0,S:.01,A:.05,B:.10,C:.20,D:.25,F:.39};
 // id는 이미지 파일명(companions/<id>.webp)으로도 쓴다.
 export const COMPANIONS=[
  {id:'s1',grade:'S',name:'엘리시아',min:4000,max:5000,weight:35},
  {id:'s2',grade:'S',name:'카이로스',min:3500,max:4400,weight:65},
  {id:'s3',grade:'S',name:'세라피온',min:5500,max:6500,weight:20},
+ {id:'s4',grade:'S',name:'루미엘',min:6500,max:7500,weight:16},
+ {id:'s5',grade:'S',name:'아르카나',min:7000,max:8000,weight:13},
+ {id:'s6',grade:'S',name:'발레리안',min:7500,max:8500,weight:10},
+ {id:'s7',grade:'S',name:'오로라',min:8000,max:9000,weight:8},
+ {id:'s8',grade:'S',name:'제피르',min:8500,max:9500,weight:7},
+ // 이전 픽업 캐릭터. id는 기존 카드·그림 유지를 위해 그대로 둔다.
+ {id:'pickup-astria',grade:'S',name:'아스트리아',min:8000,max:10000,weight:6},
  {id:'a1',grade:'A',name:'로제린',min:1500,max:2000,weight:50},
  {id:'a2',grade:'A',name:'레오닉',min:2000,max:2500,weight:30},
  {id:'a3',grade:'A',name:'이사벨',min:2500,max:3000,weight:20},
@@ -25,7 +33,7 @@ export const COMPANIONS=[
  {id:'f3',grade:'F',name:'줄리안',min:110,max:140,weight:20},
  {id:'f4',grade:'F',name:'에블린',min:140,max:180,weight:10},
 ];
-export const PICKUP_COMPANION={id:'pickup-astria',grade:'S',name:'아스트리아',min:8000,max:10000,pickup:true};
+export const PICKUP_COMPANION={id:'pickup-celestia',grade:'SS',name:'셀레스티아',title:'천상의 여제 셀레스티아',min:14000,max:17000,pickup:true};
 export const PICKUP_RATE=.005;
 export const PICKUP_PITY=80;
 export const COMPANION_BY_ID=Object.fromEntries([...COMPANIONS,PICKUP_COMPANION].map(c=>[c.id,c]));
@@ -42,7 +50,7 @@ export const COMPANION_MAX_STAR=5;
 export const COMPANION_STAR_BONUS=.15;
 export const COMPANION_GROWTH_STEP=.10;
 export const COMPANION_CAP_MS=8*3600e3;
-export const COMPANION_SELL={S:1000000,A:300000,B:100000,C:30000,D:10000,F:3000};
+export const COMPANION_SELL={SS:3000000,S:1000000,A:300000,B:100000,C:30000,D:10000,F:3000};
 const MIN=60e3;
 const fail=m=>{throw new Error(m);};
 const check=(ok,m)=>{if(!ok)fail(m);};
@@ -55,7 +63,7 @@ export function normalizeCompanions(s){
  c.pickupPity=Number.isInteger(c.pickupPity)&&c.pickupPity>=0&&c.pickupPity<PICKUP_PITY?c.pickupPity:0;
  c.nextId=Number.isInteger(c.nextId)&&c.nextId>0?c.nextId:1;
  c.cards=Array.isArray(c.cards)?c.cards.filter(x=>x&&COMPANION_BY_ID[x.c]):[];
- if(c.pickupPassiveVersion!==1){for(const card of c.cards){if(card.c===PICKUP_COMPANION.id)card.v=Math.round(card.v/2);}c.pickupPassiveVersion=1;}
+ if(c.pickupPassiveVersion!==1){for(const card of c.cards){if(card.c==='pickup-astria')card.v=Math.round(card.v/2);}c.pickupPassiveVersion=1;}
  // Preserve the original roll percentile when upgrading legacy 15~30% jackpots.
  if(c.passiveVersion!==2){
   c.cards=c.cards.map(card=>card.t==='jackpot'&&Number.isInteger(card.v)&&card.v>=15&&card.v<=30?{...card,v:20+Math.round((card.v-15)*20/15)}:card);
