@@ -182,3 +182,26 @@ dialog.tribe-dialog .tribe-choose-actions{gap:6px;margin-top:6px}
 dialog.tribe-dialog .tribe-odds{padding:7px 10px}
 dialog.tribe-dialog .tribe-odds summary{font-size:12px}
 dialog.tribe-dialog .tribe-screen:has(.tribe-choose) :is(.tribe-sanctum,.tribe-now){display:none}
+
+/* Give the complete identity its own line; keep transfer controls compact. */
+.rank-list-row .rank-person{min-width:0}
+.rank-list-row .rank-person>strong{display:flex!important;align-items:center;gap:4px;min-width:0;width:100%;overflow:hidden}
+.rank-list-row .rank-person>strong>.tribe-name-line{display:flex!important;flex:1 1 auto!important;width:100%!important;max-width:100%;min-width:0;font-size:14px;line-height:1.5}
+.rank-list-row .rank-person>strong>i{flex:none;font-size:9px}
+.rank-list-row .rank-identity-badges{display:flex;align-items:center;gap:6px;max-width:100%;min-height:26px;margin:5px 0;overflow:hidden}
+.rank-identity-badges .title-plate{max-width:calc(100% - 28px);flex:0 1 auto}
+.rank-identity-badges .rank-arena-icon{flex:none;width:24px;height:28px}
+.rank-list-row .rank-score{min-width:0;align-self:center}
+.rank-list-row .rank-score .rank-transfer-button{display:inline-flex!important;align-items:center;justify-content:center;width:max-content!important;max-width:100%;min-width:0!important;min-height:26px!important;height:26px!important;margin:6px 0 0!important;padding:3px 7px!important;font-size:10px!important;line-height:1.2!important;letter-spacing:0!important;white-space:nowrap!important;word-break:keep-all!important;gap:0!important;border-radius:7px!important;background:#202633!important;border:1px solid #857a62!important;box-shadow:none!important}
+.rank-transfer-button .menu-art,.rank-transfer-button img,.rank-transfer-button svg,.rank-transfer-button:before,.rank-transfer-button:after{display:none!important;content:none!important}
+@media(max-width:600px){
+ .rank-list-row{display:grid!important;grid-template-columns:20px 46px minmax(0,1fr) 80px!important;gap:8px!important;padding:13px 9px!important;align-items:center!important}
+ .rank-list-row .rank-portrait{width:46px!important;max-width:46px;height:68px!important}
+ .rank-list-row .rank-score>b{font-size:13px!important;white-space:nowrap}
+ .rank-list-row .rank-person>small{font-size:10px;line-height:1.6;overflow-wrap:anywhere}
+ .rank-list-row .rank-number{font-size:14px}
+ .rank-list-row .rank-identity-badges{gap:4px}
+}
+@media(max-width:360px){.rank-list-row{grid-template-columns:18px 40px minmax(0,1fr) 70px!important;gap:6px!important}.rank-list-row .rank-score>b{font-size:11px!important}.rank-list-row .rank-score .rank-transfer-button{font-size:9px!important;padding:3px 5px!important}}
+
+.rank-identity-badges .title-plate{height:28px!important;max-height:28px!important;width:auto!important;max-width:calc(100% - 30px)!important}.rank-identity-badges .title-plate img{height:100%!important;width:auto!important;max-width:100%;object-fit:contain}.rank-identity-badges .rank-arena-icon{flex:none;width:24px!important;height:28px!important}.rank-identity-badges .rank-arena-icon img{width:24px!important;height:24px!important}
