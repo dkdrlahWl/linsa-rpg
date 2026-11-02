@@ -6,7 +6,7 @@ const nat=n=>Number.isSafeInteger(n)&&n>=0?n:0;
 export function normalizeTribe(s){
  if(!TRIBE_BY_ID[s.tribe])s.tribe='human';
  const g=s.tribeGacha&&typeof s.tribeGacha==='object'?s.tribeGacha:{};
- s.tribeGacha={tickets:nat(g.tickets),rolls:nat(g.rolls),legendPity:nat(g.legendPity),mythPity:nat(g.mythPity),pending:g.pending&&TRIBE_BY_ID[g.pending.id]?{id:g.pending.id,prev:TRIBE_BY_ID[g.pending.prev]?g.pending.prev:s.tribe,at:Number(g.pending.at)||0,pity:g.pending.pity||null}:null,best:TRIBE_BY_ID[g.best]?g.best:null,last:g.last||null};
+ s.tribeGacha={tickets:nat(g.tickets),rolls:nat(g.rolls),pending:g.pending&&TRIBE_BY_ID[g.pending.id]?{id:g.pending.id,prev:TRIBE_BY_ID[g.pending.prev]?g.pending.prev:s.tribe,at:Number(g.pending.at)||0}:null,best:TRIBE_BY_ID[g.best]?g.best:null,last:g.last||null};
  return s.tribeGacha;
 }
 const rank=id=>['start','common','rare','epic','legend','myth'].indexOf(TRIBE_BY_ID[id]?.grade);
@@ -16,13 +16,11 @@ export function tribeCommand(s,command,args,now,random){
   check(!g.pending,'TRIBE_PENDING');
   check(s.isAdmin||g.tickets>=1,'TRIBE_TICKET_REQUIRED');
   if(!s.isAdmin)g.tickets--;
-  const r=rollTribe(random,{legend:g.legendPity,myth:g.mythPity}),t=r.tribe,grade=t.grade;
+  const r=rollTribe(random),t=r.tribe,grade=t.grade;
   g.rolls++;
-  g.legendPity=grade==='legend'||grade==='myth'?0:g.legendPity+1;
-  g.mythPity=grade==='myth'?0:g.mythPity+1;
   if(!g.best||rank(t.id)>rank(g.best))g.best=t.id;
   g.pending={id:t.id,prev:s.tribe,at:now,pity:r.pity};
-  return {type:'tribeRoll',id:t.id,name:t.name,grade,gradeName:TRIBE_GRADE_BY_ID[grade].name,prev:s.tribe,pity:r.pity,tickets:g.tickets,legendPity:g.legendPity,mythPity:g.mythPity};
+  return {type:'tribeRoll',id:t.id,name:t.name,grade,gradeName:TRIBE_GRADE_BY_ID[grade].name,prev:s.tribe,pity:r.pity,tickets:g.tickets};
  }
  if(command==='tribeChoose'){
   check(g.pending,'TRIBE_NOT_PENDING');

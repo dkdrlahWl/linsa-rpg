@@ -1,7 +1,7 @@
 // 2026-11-02 종족 뽑기: 외형은 그대로, 능력치만 바뀐다. 모두 인간(효과 없음)으로 시작.
 // 뽑으면 지금 종족(이전)과 새 종족(이후) 중 하나를 고른다. 효과는 잠재처럼 % 능력치에 더한다(합연산).
 // 확률(등급 안에서는 균등): 일반 73% · 희귀 21% · 영웅 4.8% · 전설 1% · 신화 0.2%.
-// 천장: 100회 안에 전설 이상 확정 · 400회 안에 신화 확정. 뽑기권은 토큰 교환소(100토큰 · 하루 5장).
+// 천장 없음: 매회 기본 등급 확률로 독립 추첨. 뽑기권은 토큰 교환소(100토큰 · 하루 5장).
 export const TRIBE_GRADES=Object.freeze([
  {id:'start',name:'시작',chance:0},
  {id:'common',name:'일반',chance:.73},
@@ -37,7 +37,6 @@ export const TRIBES=Object.freeze([
 ].map(Object.freeze));
 export const TRIBE_BY_ID=Object.freeze(Object.fromEntries(TRIBES.map(t=>[t.id,t])));
 export const TRIBE_GRADE_BY_ID=Object.freeze(Object.fromEntries(TRIBE_GRADES.map(g=>[g.id,g])));
-export const TRIBE_LEGEND_PITY=100,TRIBE_MYTH_PITY=400;
 export const TRIBE_STAT_NAMES=Object.freeze({attack:'공격력',boss:'보스 피해',hp:'최대 HP',crit:'치명타 확률',critDamage:'치명타 피해'});
 export const tribeOf=s=>TRIBE_BY_ID[s?.tribe]||TRIBE_BY_ID.human;
 export const tribeChance=t=>{const g=TRIBE_GRADE_BY_ID[t.grade];const n=TRIBES.filter(x=>x.grade===t.grade).length;return g.chance/n;};
@@ -45,12 +44,10 @@ export function tribeEffectText(t){const e=Object.entries(t.stats);return e.leng
 // power()에 더할 % 능력치. critDamage는 배율(+0.05 = +5%)로 따로 돌려준다.
 export function tribeStatBonus(s){const t=tribeOf(s),out={};for(const [k,v] of Object.entries(t.stats))if(k!=='critDamage')out[k]=v;return out;}
 export const tribeCritDamage=s=>(tribeOf(s).stats.critDamage||0)/100;
-// 한 번 굴리기. pity = {legend: 마지막 전설 이상 이후 횟수, myth: 마지막 신화 이후 횟수} (이번 판 포함 전).
-export function rollTribe(random,pity={legend:0,myth:0}){
+// 천장·누적 횟수 없이 매회 기본 확률로 독립 추첨.
+export function rollTribe(random){
  const pool=g=>TRIBES.filter(t=>t.grade===g);
  const pick=list=>list[Math.min(list.length-1,Math.floor(random()*list.length))];
- if(pity.myth+1>=TRIBE_MYTH_PITY)return {tribe:pick(pool('myth')),pity:'myth'};
- if(pity.legend+1>=TRIBE_LEGEND_PITY){const top=random()<TRIBE_GRADE_BY_ID.myth.chance/(TRIBE_GRADE_BY_ID.myth.chance+TRIBE_GRADE_BY_ID.legend.chance)?'myth':'legend';return {tribe:pick(pool(top)),pity:'legend'};}
  let r=random();
  for(const g of ['myth','legend','epic','rare','common']){r-=TRIBE_GRADE_BY_ID[g].chance;if(r<0)return {tribe:pick(pool(g)),pity:null};}
  return {tribe:pick(pool('common')),pity:null};
