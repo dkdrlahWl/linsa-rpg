@@ -1,7 +1,7 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {TOKEN_ART,tokenIcon} from './token-art.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=dice150-20261102';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=balance-20261102';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

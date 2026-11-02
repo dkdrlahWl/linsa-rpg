@@ -7,7 +7,7 @@ const t0=Date.UTC(2026,10,2,3);
 const base=initialState('warrior','종족',ctx(t0));
 // 확률 합 1, 인간은 뽑기에 없음, 21종
 assert.ok(Math.abs(TRIBE_GRADES.reduce((a,g)=>a+g.chance,0)-1)<1e-12);
-assert.equal(TRIBES.filter(t=>t.grade!=='start').length,21);
+assert.equal(TRIBES.filter(t=>t.grade!=='start').length,22);assert.equal(TRIBES.filter(t=>t.grade==='myth').length,3);
 assert.ok(Math.abs(TRIBES.reduce((a,t)=>a+tribeChance(t),0)-1)<1e-12);
 // 시작은 인간, 뽑기권 없으면 실패
 let s=execute(base,'sync',{},ctx(t0)).state;assert.equal(s.tribe,'human');
@@ -26,7 +26,7 @@ const kept=s.tribe;s=execute(s,'tribeChoose',{take:false},ctx(t0)).state;assert.
 // 능력치: 신족이면 공격력·HP·보스·치명 오름(합연산)
 const div=structuredClone(s);div.tribe='divine';const pd=power(div),ph=power({...structuredClone(s),tribe:'human'});
 assert.ok(pd.attack>ph.attack&&pd.hp>ph.hp&&pd.boss>ph.boss&&pd.crit>ph.crit);
-assert.equal(Math.round((pd.bonuses.attack-ph.bonuses.attack)*100)/100,9);
+assert.equal(Math.round((pd.bonuses.attack-ph.bonuses.attack)*100)/100,10);
 // 마족: HP 감소
 const dm=structuredClone(s);dm.tribe='demon';assert.ok(power(dm).hp<ph.hp);
 // 확률: 희귀 10.5% · 영웅 2.4%

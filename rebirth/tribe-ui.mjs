@@ -1,6 +1,6 @@
 // 종족 강림 화면: 슬롯머신 릴이 빠르게 돌다가 천천히 멈추며 결과를 보여주고, 이전/이후 중 하나를 고른다.
 // 그림은 tribes/<id>.webp (없으면 이름만 보임), 상단 버튼은 ui/top-buttons/tribe-v1.webp.
-import {TRIBES,TRIBE_BY_ID,TRIBE_GRADE_BY_ID,tribeOf,tribeEffectText,tribeChance} from './tribe-data.mjs?v=dice150-20261102';
+import {TRIBES,TRIBE_BY_ID,TRIBE_GRADE_BY_ID,tribeOf,tribeEffectText,tribeChance} from './tribe-data.mjs?v=balance-20261102';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const pct=x=>{const v=x*100;return (v>=1?+v.toFixed(2):+v.toFixed(3))+'%';};

@@ -34,7 +34,7 @@ import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleA
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=emblem-20261102';
+import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=balance-20261102';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -58,11 +58,11 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-
 import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=dice150-20261102";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=dice150-20261102";
-import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=emblem-20261102";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=balance-20261102";
+import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=balance-20261102";
+import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=balance-20261102";
 installNameFit();
-import {tokenShopBought} from "./token-content.mjs?v=dice150-20261102";
+import {tokenShopBought} from "./token-content.mjs?v=balance-20261102";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
