@@ -1,6 +1,6 @@
 // 2026-11-02 종족 뽑기: 외형은 그대로, 능력치만 바뀐다. 모두 인간(효과 없음)으로 시작.
 // 뽑으면 지금 종족(이전)과 새 종족(이후) 중 하나를 고른다. 효과는 잠재처럼 % 능력치에 더한다(합연산).
-// 2026-11-02 밸런스: HP 종족 딜 보강(드워프·오크·인어·골렘·거인·주작), 신족 상향, 신화 성좌족 추가(신화 3종이 0.2%를 나눠 가짐).
+// 2026-11-02 밸런스: HP 종족 딜 보강(드워프·오크·인어·골렘·거인·주작), 신족 상향, 신화 성좌 추가(신화 3종이 0.2%를 나눠 가짐).
 // 확률(등급 안에서는 균등): 일반 85.9% · 희귀 10.5% · 영웅 2.4% · 전설 1% · 신화 0.2%. (2026-11-02 희귀·영웅 절반으로 하향)
 // 천장 없음: 매회 기본 등급 확률로 독립 추첨. 뽑기권은 토큰 교환소(100토큰 · 하루 5장).
 export const TRIBE_GRADES=Object.freeze([
@@ -35,7 +35,7 @@ export const TRIBES=Object.freeze([
  {id:'jujak',name:'주작',grade:'legend',color:'#ff7a45',stats:{attack:8,boss:8,hp:12}},
  {id:'ancientdragon',name:'고대룡',grade:'myth',color:'#ff4d6d',stats:{attack:8,boss:12,critDamage:8}},
  {id:'divine',name:'신족',grade:'myth',color:'#ffe066',stats:{attack:10,boss:10,crit:3,hp:12}},
- {id:'starborn',name:'성좌족',grade:'myth',color:'#a8c8ff',stats:{attack:6,boss:2,crit:5,critDamage:12}},
+ {id:'starborn',name:'성좌',grade:'myth',color:'#a8c8ff',stats:{attack:6,boss:2,crit:5,critDamage:12}},
 ].map(Object.freeze));
 export const TRIBE_BY_ID=Object.freeze(Object.fromEntries(TRIBES.map(t=>[t.id,t])));
 export const TRIBE_GRADE_BY_ID=Object.freeze(Object.fromEntries(TRIBE_GRADES.map(g=>[g.id,g])));
