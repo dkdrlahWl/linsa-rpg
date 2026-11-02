@@ -1,7 +1,7 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {TOKEN_ART,tokenIcon} from './token-art.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought} from './token-content.mjs?v=token-x2-20261102';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought} from './token-content.mjs?v=token-nofrag-20261102';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -29,7 +29,7 @@ function dungeon(s,now){
 
 // 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
 const SHOP_GROUPS=[
- ['강화 재료',['cube','highCube','primeCube','addCube','scroll','potentialLock','bonusFlame','fragment']],
+ ['강화 재료',['cube','highCube','primeCube','addCube','scroll','potentialLock','bonusFlame']],
  ['재화 · 소모품',['gold','luckPotion','dungeonKey']],
  ['일일 한정',['treasureTicket','companionTicket','pickupTicket','rerollStone']],
 ];

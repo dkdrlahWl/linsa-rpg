@@ -84,7 +84,7 @@ s=run(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0+24*3600e3,true));
 s=run(s,'tokenShopBuy',{id:'treasureTicket',quantity:2},ctx(t0,true));assert.equal(s.treasure.tickets>=2,true);
 s=run(s,'tokenShopBuy',{id:'luckPotion'},ctx(t0,true));assert.equal(s.consumables.luckPotion>=1,true);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'diamond'},ctx(t0,true)),/INVALID_TOKEN_ITEM/);
-assert.ok(TOKEN_SHOP.length>=15);
+assert.ok(TOKEN_SHOP.length>=13);assert.ok(!TOKEN_SHOP.some(o=>o.id==='fragment'));
 
 // 경마: 배당 = 0.9 / 실제확률(소수 첫째 자리 내림) → 환급률 ≤ 90%
 for(let k=0;k<200;k++){const c=newRaceCard(Math.random);const pw=c.horses.map(h=>h.power),o=raceOdds(pw);

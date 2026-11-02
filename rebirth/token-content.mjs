@@ -58,7 +58,6 @@ export function tokenBossFinish(s,b,now){
 // 상점·암시장 골드 가격을 토큰으로 환산하고, 희귀한 것(재련석·소환권·티켓)은 일일 한도로 묶는다(매일 00시 초기화).
 export const TOKEN_SHOP=Object.freeze([
  {id:'gold',name:'골드 100만',kind:'gold',amount:1000000,cost:5},
- {id:'fragment',name:'장비 파편 100개',kind:'material',key:'fragment',amount:100,cost:3},
  {id:'cube',name:'레드 큐브',kind:'material',key:'cube',amount:1,cost:1},
  {id:'highCube',name:'블랙 큐브',kind:'material',key:'highCube',amount:1,cost:2},
  {id:'primeCube',name:'프라임 큐브',kind:'material',key:'primeCube',amount:1,cost:3},
