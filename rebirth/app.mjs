@@ -782,6 +782,11 @@ function attendance() {
   open("7일 출석 보상", `<p class="attendance-lead">${claimed?"오늘 출석 완료! 내일 "+day+"일차 보상을 받을 수 있어요.":"오늘은 "+day+"일차 보상을 받을 수 있어요."}</p><div class="attendance-grid">${D.ATTENDANCE_REWARDS.map((reward,i)=>`<div class="attendance-day ${i===6?"attendance-grand":""} ${i+1===day&&!claimed?"attendance-next":""} ${i+1<=completed?"attendance-done":""}"><strong>${i+1}일차 ${i===6?"★ 특별 보상":""}</strong><span>${attendanceReward(reward)}</span>${i+1===day&&!claimed?"<small>오늘 수령 가능</small>":""}</div>`).join("")}</div><p class="note">매일 오전 0시(한국 시간)에 다음 보상을 받을 수 있어요. 하루를 놓쳐도 진행일은 유지되며 7일차를 받은 뒤 다시 1일차부터 반복됩니다.</p><div class="actions">${claimed?btn("내일 다시 받기","close","","",false):state.battle||state.partyRoom?'<button disabled>전투 종료 후 받기</button>':btn(day+"일차 보상 받기","attendanceClaim","","gold",true)}</div>`);
   modal.classList.add("attendance-dialog");
 }
+// 테스터 계정 전용: 직업별 보스용 종결 세트로 한 번에 전환(직업 변경 + 그 직업 장비 프리셋 자동 장착).
+function testerSetBar(){
+  if(state?.name!=="테스터")return "";
+  return `<div class="subnav tester-set-bar" aria-label="테스터 직업 세트"><small style="align-self:center;opacity:.7">테스터 세트</small>${D.CLASSES.map(c=>`<button data-action="testerSet" data-arg="${c.id}" ${c.id===state.classId?"disabled class=\"active\"":""}>${c.name}</button>`).join("")}</div>`;
+}
 function changeClassDialog() {
   const current = D.CLASSES.find(c=>c.id===state.classId);
   open("직업 변경", `<p class="note">현재 ${current.name} · 변경하면 장착 장비가 모두 가방으로 돌아가고 자동사냥이 멈춥니다. 전직·레벨·보스 기록은 유지돼요.</p><div class="change-class-grid">${D.CLASSES.map((c,i)=>`<button class="change-class-card ${c.id===state.classId?"current":""}" data-action="changeClassPick" data-arg="${c.id}" ${c.id===state.classId?"disabled":""}><span class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(c.id)}% 0" aria-hidden="true"></span><strong>${c.name}</strong><small>${c.stat} · ${c.weapon}</small><span>1차 ${D.CLASS_SKILLS[c.id].name}<br>2차 ${D.SECOND_SKILLS[c.id].name}</span>${c.id===state.classId?"<em>현재 직업</em>":""}</button>`).join("")}</div><p class="note">직업별 스탯 배분은 따로 저장됩니다. 처음 바꾸는 직업의 기본 무기는 가방 또는 보관함에 한 번 지급됩니다.</p>`);
@@ -916,7 +921,7 @@ function regions() {
 function character() {
   const c = D.CLASSES.find((x) => x.id === state.classId),
     p = power(state);
-  return `${header("캐릭터", (state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}${btn("직업 변경","changeClass")}${btn("코스튬","costumeWardrobe")}</div><section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${D.jobStage(state)?D.jobStage(state)+"차 직업":"견습 모험가"} · ${state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name}</strong><p class="note">1차 Lv.30 / 2차 Lv.60 / 3차 Lv.100 / 4차 Lv.150 / 5차 Lv.200 / 6차 Lv.250 / 7차 Lv.300 · 전용 보스 처치 · 1~5차 공격력·HP +10%, 6·7차 잠재형 능력치</p></div>${btn("전직 보스","advance","","gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="${portraitStyle(c.id,equippedCostume(state)?.id,portraitPosition(c.id))}" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+  return `${header("캐릭터", (state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}${btn("직업 변경","changeClass")}${btn("코스튬","costumeWardrobe")}</div>${testerSetBar()}<section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${D.jobStage(state)?D.jobStage(state)+"차 직업":"견습 모험가"} · ${state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name}</strong><p class="note">1차 Lv.30 / 2차 Lv.60 / 3차 Lv.100 / 4차 Lv.150 / 5차 Lv.200 / 6차 Lv.250 / 7차 Lv.300 · 전용 보스 처치 · 1~5차 공격력·HP +10%, 6·7차 잠재형 능력치</p></div>${btn("전직 보스","advance","","gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="${portraitStyle(c.id,equippedCostume(state)?.id,portraitPosition(c.id))}" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
     state.stats,
   )
     .map(
@@ -1807,6 +1812,7 @@ document.addEventListener("click", async (e) => {
     if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
     if (action === "petEquip") return await command("petEquip",{id:arg||null});
     if (action === "attendanceClaim") return await command("attendanceClaim");
+    if (action === "testerSet") {if(state?.name!=="테스터"||arg===state.classId)return;await command("changeClass",{classId:arg});filterClass="";salvageSelection.clear();return render();}
     if (action === "changeClass") return changeClassDialog();
     if (action === "changeClassPick") return confirmClassChange(arg);
     if (action === "changeClassConfirm") {await command("changeClass",{classId:arg});modal.close();filterClass="";salvageSelection.clear();tab="character";view="game";return render();}
