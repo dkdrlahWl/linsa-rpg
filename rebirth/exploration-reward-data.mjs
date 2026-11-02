@@ -12,6 +12,8 @@ export function explorationGearLevel(random){let roll=random()*100;for(const [i,
 const EXTRA=[
  [4,{gold:2600000,scroll:.30,highCube:.30,potentialLock:.05,addCube:.30,bonusFlame:.03,bossGear:.08,counts:{scroll:3,highCube:5,potentialLock:2,addCube:3,bonusFlame:1},gear:[[150,25],[160,22],[170,18],[180,15],[190,12]]}],
  [5,{gold:3400000,scroll:.32,highCube:.35,potentialLock:.06,addCube:.40,bonusFlame:.05,bossGear:.10,counts:{scroll:3,highCube:6,potentialLock:2,addCube:5,bonusFlame:1},gear:[[170,35],[180,30],[190,25],[200,10]]}],
+ // 2026-11-02 도현: 7단계 이상은 보스장비 180제 이상만. 8단계 = 보스장비 1%(개인), 그중 220제 10%(5단계의 200제 비중과 같음) · 200제 31%(5→6단계 +7%p 상승폭 이어서).
+ [8,{gold:8600000,scroll:.38,highCube:.45,potentialLock:.08,addCube:.60,bonusFlame:.10,bossGear:.01,counts:{scroll:3,highCube:10,potentialLock:2,addCube:10,bonusFlame:1},gear:[[180,30],[190,29],[200,31],[220,10]]}],
  [6,{gold:4400000,scroll:.35,highCube:.40,potentialLock:.07,addCube:.50,bonusFlame:.08,bossGear:.12,counts:{scroll:3,highCube:8,potentialLock:2,addCube:8,bonusFlame:1},gear:[[180,50],[190,33],[200,17]]}],
 ];
 for(const [id,r] of EXTRA)EXPLORATION_REWARDS[id]=r;

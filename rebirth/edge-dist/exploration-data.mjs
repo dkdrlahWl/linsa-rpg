@@ -11,6 +11,10 @@ export const EXPLORATIONS=[
  {id:4,name:'서리 왕관 빙궁',floors:5,multiplier:3.76,attackMultiplier:2,linearHp:true,keys:1,level:215,art:'exploration-4',map:'exploration/map-4.webp',boss:'빙결 여제 크리오네',monsters:['서리 송곳니 늑대','얼음 갑주 골렘','눈보라 정령'],seconds:2340,gold:130000},
  {id:5,name:'잿빛 망령 요새',floors:5,multiplier:5.26,attackMultiplier:2.3,linearHp:true,keys:2,level:220,art:'exploration-5',map:'exploration/map-5.webp',boss:'망령 군주 모르가스',monsters:['잿불 해골병','저주받은 갑옷','망령 까마귀'],seconds:2520,gold:170000},
  {id:6,name:'시간이 멈춘 탑',floors:5,multiplier:7.52,attackMultiplier:2.6,linearHp:true,keys:3,level:225,art:'exploration-6',map:'exploration/map-6.webp',boss:'시간의 파수꾼 크로노스',monsters:['태엽 기사','모래시계 정령','멈춘 시곗바늘 마도사'],seconds:2700,gold:220000},
+ , // id 7 = 200제 보장 단계 (추후)
+ // 2026-11-02 8단계(220제 보장): 보스 1인 체력 9.27억 = 200제 종언급·25성·불꽃5%·보스용 잠재27줄·코스튬90%·치피200%·Lv.300·300전직, 사제 제외 평균 120초 풀딜(에디셔널 제외).
+ // 13.94 × 9,500만 × 0.7 = 9.27억. 그림은 임시로 6단계 것을 복사해 사용.
+ {id:8,name:'별이 무너진 천공 신전',floors:5,multiplier:13.94,attackMultiplier:3.2,linearHp:true,keys:5,level:230,art:'exploration-6',map:'exploration/map-6.webp',boss:'천공의 붕괴자 아스트라뮤트',monsters:['성운 파편 골렘','별빛 칼날 수호자','공허 예언자'],seconds:2880,gold:280000},
 ];
 // 이전 단계(암흑성채 id 3은 건너뜀). 0단계는 null.
 export const explorationPrevious=tier=>{for(let i=tier-1;i>=0;i--)if(EXPLORATIONS[i])return i;return null;};
