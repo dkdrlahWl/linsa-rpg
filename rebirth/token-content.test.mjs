@@ -76,7 +76,7 @@ const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);asse
 
 // 교환소: 토큰 차감·지급·일일 한도
 s=r.state;s.tokens=1000;
-s=run(s,'tokenShopBuy',{id:'cube',quantity:5},ctx(t0,true));assert.equal(s.tokens,995);
+s=run(s,'tokenShopBuy',{id:'cube',quantity:5},ctx(t0,true));assert.equal(s.tokens,990);
 s=run(s,'tokenShopBuy',{id:'companionTicket',quantity:10},ctx(t0,true));assert.equal(s.companions.tickets>=10,true);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0,true)),/TOKEN_DAILY_LIMIT/);
 // 다음 날 00시(한국)가 지나면 한도가 초기화된다
@@ -106,5 +106,5 @@ console.log('token content ok',{favWin:fav.winChance.toFixed(3),odds:fav.win});
  w=execute(w,'tokenShopBuy',{id:'rerollStone'},C(mon+2*86400e3)).state;// 수요일
  assert.throws(()=>execute(w,'tokenShopBuy',{id:'rerollStone'},C(mon+5*86400e3)),/TOKEN_WEEKLY_LIMIT/);// 토요일
  w=execute(w,'tokenShopBuy',{id:'rerollStone',quantity:3},C(mon+7*86400e3)).state;// 다음 월요일
- assert.equal(w.tokens,5000-400*6);}
+ assert.equal(w.tokens,5000-800*6);}
 console.log('reroll weekly ok');

@@ -1,7 +1,7 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {TOKEN_ART,tokenIcon} from './token-art.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=token-weekly-20261102';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=token-price2-20261102';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -51,7 +51,7 @@ function shop(s,now){
  const byId=new Map(TOKEN_SHOP.map(o=>[o.id,o])),used=new Set();
  const groups=SHOP_GROUPS.map(([title,ids])=>{const list=ids.map(id=>byId.get(id)).filter(Boolean);list.forEach(o=>used.add(o.id));return [title,list];});
  const rest=TOKEN_SHOP.filter(o=>!used.has(o.id));if(rest.length)groups.push(['기타',rest]);
- return `${sceneHero('exchange','토큰 교환소','모험의 증표를 보물로')}<p class="token-subline">토큰 1개 ≈ 20만 골드 · 일일 한정은 매일 00시 · 주간 한정은 월요일 00시 초기화</p>${groups.filter(([,l])=>l.length).map(([title,list])=>`<section class="token-shop-group"><h3>${title}</h3><div class="token-tile-grid">${list.map(o=>shopTile(s,o,now)).join('')}</div></section>`).join('')}`;
+ return `${sceneHero('exchange','토큰 교환소','모험의 증표를 보물로')}<p class="token-subline">토큰 1개 ≈ 10만 골드 · 일일 한정은 매일 00시 · 주간 한정은 월요일 00시 초기화</p>${groups.filter(([,l])=>l.length).map(([title,list])=>`<section class="token-shop-group"><h3>${title}</h3><div class="token-tile-grid">${list.map(o=>shopTile(s,o,now)).join('')}</div></section>`).join('')}`;
 }
 
 // 경마: 트랙 → 출전표(한 줄에 컨디션 막대·단승·연승) → 베팅 슬립 순서로 위에서 아래로 한 번에 읽힌다.

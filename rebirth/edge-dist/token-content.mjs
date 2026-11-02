@@ -56,21 +56,22 @@ export function tokenBossFinish(s,b,now){
 // ── 토큰 교환소 ──
 // 기준: 토큰 1개 ≈ 20만 골드 가치. 하루 최대 400개(10단계 2회) · 1단계만 해도 하루 40개.
 // 상점·암시장 골드 가격을 토큰으로 환산하고, 희귀한 것(재련석·소환권·티켓)은 일일 한도로 묶는다(매일 00시 초기화).
+// 2026-11-02 도현: 동료 소환권 빼고 전부 가격 2배.
 export const TOKEN_SHOP=Object.freeze([
- {id:'gold',name:'골드 100만',kind:'gold',amount:1000000,cost:5},
- {id:'cube',name:'레드 큐브',kind:'material',key:'cube',amount:1,cost:1},
- {id:'highCube',name:'블랙 큐브',kind:'material',key:'highCube',amount:1,cost:2},
- {id:'primeCube',name:'프라임 큐브',kind:'material',key:'primeCube',amount:1,cost:3},
- {id:'addCube',name:'에디셔널 큐브',kind:'material',key:'addCube',amount:1,cost:5},
- {id:'scroll',name:'잠재 해금 주문서',kind:'material',key:'scroll',amount:1,cost:5},
- {id:'potentialLock',name:'잠재 잠금석',kind:'material',key:'potentialLock',amount:1,cost:10},
- {id:'luckPotion',name:'행운 물약',kind:'potion',amount:1,cost:20},
- {id:'bonusFlame',name:'추가옵션 불꽃',kind:'material',key:'bonusFlame',amount:1,cost:25},
- {id:'dungeonKey',name:'던전 열쇠',kind:'material',key:'dungeonKey',amount:1,cost:25},
- {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:10,daily:30},
+ {id:'gold',name:'골드 100만',kind:'gold',amount:1000000,cost:10},
+ {id:'cube',name:'레드 큐브',kind:'material',key:'cube',amount:1,cost:2},
+ {id:'highCube',name:'블랙 큐브',kind:'material',key:'highCube',amount:1,cost:4},
+ {id:'primeCube',name:'프라임 큐브',kind:'material',key:'primeCube',amount:1,cost:6},
+ {id:'addCube',name:'에디셔널 큐브',kind:'material',key:'addCube',amount:1,cost:10},
+ {id:'scroll',name:'잠재 해금 주문서',kind:'material',key:'scroll',amount:1,cost:10},
+ {id:'potentialLock',name:'잠재 잠금석',kind:'material',key:'potentialLock',amount:1,cost:20},
+ {id:'luckPotion',name:'행운 물약',kind:'potion',amount:1,cost:40},
+ {id:'bonusFlame',name:'추가옵션 불꽃',kind:'material',key:'bonusFlame',amount:1,cost:50},
+ {id:'dungeonKey',name:'던전 열쇠',kind:'material',key:'dungeonKey',amount:1,cost:50},
+ {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:20,daily:30},
  {id:'companionTicket',name:'동료 소환권',kind:'companionTicket',amount:1,cost:40,daily:10},
- {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:60,daily:5},
- {id:'rerollStone',name:'기본수치 재련석',kind:'material',key:'rerollStone',amount:1,cost:400,weekly:3},
+ {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:120,daily:5},
+ {id:'rerollStone',name:'기본수치 재련석',kind:'material',key:'rerollStone',amount:1,cost:800,weekly:3},
 ].map(Object.freeze));
 // 주간 한도는 월요일 00시(한국) 초기화. 일일 한도와 따로 센다.
 const weekKey=now=>{const d=new Date(now+9*3600e3);d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10);};
