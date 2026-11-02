@@ -1,0 +1,30 @@
+{
+  "portraits": [
+    {
+      "id": "s5",
+      "prompt": "Use case: stylized-concept. Production portrait artwork for Korean luxury fantasy RPG companion card. Arcana, mysterious adult female arcane sorceress, dark violet hair, ornate indigo silk, floating golden tarot cards, violet arcane library. Exquisitely painted semi-realistic anime fantasy, highly polished detailed face, rich materials, dramatic beautiful aura. Single human character, centered head and upper torso, complete head and hair with 12% clear margin above, face within upper middle, shoulders fully visible. Square canvas. Distinct character identity, tasteful atmospheric backdrop matching character. No letters, text, numbers, frames, logos or watermark."
+    },
+    {
+      "id": "s6",
+      "prompt": "Use case: stylized-concept. Production portrait artwork for Korean luxury fantasy RPG companion card. Valerian, noble adult male crimson knight, black swept hair, engraved red gold plate armor, ornate sword, burning rose palace. Exquisitely painted semi-realistic anime fantasy, highly polished detailed face, rich materials, dramatic beautiful aura. Single human character, centered head and upper torso, complete head and hair with 12% clear margin above, face within upper middle, shoulders fully visible. Square canvas. Distinct character identity, tasteful atmospheric backdrop matching character. No letters, text, numbers, frames, logos or watermark."
+    },
+    {
+      "id": "s4",
+      "prompt": "Use case: stylized-concept. Production portrait artwork for Korean luxury fantasy RPG companion card. Lumiel, elegant male light mage, long pearl hair, luminous ivory gold robes, floating sun crystal, dawn cathedral. Exquisitely painted semi-realistic anime fantasy, highly polished detailed face, rich materials, dramatic beautiful aura. Single human character, centered head and upper torso, complete head and hair with 12% clear margin above, face within upper middle, shoulders fully visible. Square canvas. Distinct character identity, tasteful atmospheric backdrop matching character. No letters, text, numbers, frames, logos or watermark."
+    },
+    {
+      "id": "s7",
+      "prompt": "Use case: stylized-concept. Production portrait artwork for Korean luxury fantasy RPG companion card. Aurora, adult female aurora priestess, flowing pale mint silver hair, iridescent white dress, prismatic staff, northern lights garden. Exquisitely painted semi-realistic anime fantasy, highly polished detailed face, rich materials, dramatic beautiful aura. Single human character, centered head and upper torso, complete head and hair with 12% clear margin above, face within upper middle, shoulders fully visible. Square canvas. Distinct character identity, tasteful atmospheric backdrop matching character. No letters, text, numbers, frames, logos or watermark."
+    },
+    {
+      "id": "s8",
+      "prompt": "Use case: stylized-concept. Production portrait artwork for Korean luxury fantasy RPG companion card. Zephyr, adult male wind ranger, teal hair, emerald silver embroidered coat, elegant bow, floating verdant sky islands. Exquisitely painted semi-realistic anime fantasy, highly polished detailed face, rich materials, dramatic beautiful aura. Single human character, centered head and upper torso, complete head and hair with 12% clear margin above, face within upper middle, shoulders fully visible. Square canvas. Distinct character identity, tasteful atmospheric backdrop matching character. No letters, text, numbers, frames, logos or watermark."
+    },
+    {
+      "id": "pickup-celestia",
+      "prompt": "Use case: stylized-concept. Production portrait artwork for Korean luxury fantasy RPG companion card. Celestia celestial empress, regal adult woman, flowing platinum blonde hair, sapphire eyes, intricate white gold sapphire gown and crown, radiant stellar halo, celestial imperial palace. Exquisitely painted semi-realistic anime fantasy, highly polished detailed face, rich materials, dramatic beautiful aura. Single human character, centered head and upper torso, complete head and hair with 12% clear margin above, face within upper middle, shoulders fully visible. Square canvas. Distinct character identity, tasteful atmospheric backdrop matching character. No letters, text, numbers, frames, logos or watermark."
+    }
+  ],
+  "background": "Celestia celestial imperial palace: ivory marble, gold astronomical rings, sapphire stars, cloud stairways and blue violet starfield; environment only.",
+  "artVersion": "complete-art-v1"
+}

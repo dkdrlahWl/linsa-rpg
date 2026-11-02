@@ -267,3 +267,9 @@ dialog.companion-dialog:has(.cp-sanctum):not([open]){display:none}
 .cp-g-SS .cp-grade{background:linear-gradient(180deg,#ffe27a,#d9a011 55%,#8a5c08);color:#2b1a00;font-weight:900;text-shadow:0 1px 0 #ffeeb0;border-color:#ffd860}
 .cp-g-SS.cp-unveiled,.cp-g-SS.cp-card,.cp-pickup-card.cp-g-SS{box-shadow:0 0 16px #ffc81e,0 0 34px #c88a0a}
 .cp-portrait:has(img[src*="frame-ss"]) .cp-frame,.cp-g-SS .cp-frame{filter:saturate(1.6) brightness(.92) sepia(.25)}
+
+/* Complete companion art release: dedicated Celestia pickup environment. */
+.cp-sanctum.cp-pickup{background:linear-gradient(#07122c38,#08132bd9 65%,#08132bf5),url('companions/pickup-celestia-sanctum-v1.webp') center/cover}
+.cp-pickup .cp-banner-hero{background:url('companions/pickup-celestia-sanctum-v1.webp') center/cover;border:1px solid #efd28d80}
+.cp-pickup .cp-banner-art{object-fit:contain!important;object-position:center!important;background:transparent;filter:drop-shadow(0 0 15px #e5c67860)}
+.cp-pickup .cp-banner-copy{background:linear-gradient(transparent,#07132ddd)}
