@@ -10,7 +10,7 @@ export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs";
-export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, canTranscendTier, transcendCost, TRANSCEND_LEVEL, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
@@ -199,6 +199,7 @@ export const MATERIALS = {
   addCube: "에디셔널 큐브",
   bonusFlame: "추가옵션 불꽃",
   rerollStone: "기본수치 재련석",
+  transcendStone: "초월석",
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
 // 2026-10-25 개편: fishDiamond = 낚시 다이아(state.fishing.diamonds).
@@ -320,7 +321,8 @@ export const gearStatMultiplier = item => {
 };
 export const gearHPMultiplier = () => 1;
 function unbuffedGearAttributes(item,stars=item.stars) {
- const growth=1+stars*.055+Math.max(0,stars-15)**1.4*.025;
+ // 220제: 별 하나당 상승폭을 키운다(25성 기준 약 3.0배 → 3.9배).
+ const growth=Number(item.level)>=220?1+stars*.08+Math.max(0,stars-15)**1.4*.035:1+stars*.055+Math.max(0,stars-15)**1.4*.025;
  if(item.baseStats){const b=item.baseStats;return {attack:b.attack*growth+stars,stat:Math.floor(b.stat*growth)+stars,hp:b.hp+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:b.defense};}
  const base=(5+item.level**1.28)*(item.boss?1.9:1)*qualityMultiplier(item);
  return {attack:base*(item.slot===0?.9:.11)*growth+stars,stat:Math.floor((2+item.level*.5)*growth*qualityMultiplier(item)*(item.boss?1.9:1))+stars,hp:Math.floor(item.level*4*(item.boss?1.9:1))+(item.slot>=1&&item.slot<=5?stars*Math.max(2,Math.ceil(item.level*.35)):0),defense:item.level*.2*(item.boss?1.9:1)};
@@ -336,7 +338,8 @@ export function starCost(item) {
     45 * (1 + item.level / 25) ** 1.3 * (item.stars + 1) ** 1.35 * (1 + Math.max(0,item.stars-15)*0.5),
   );
   // Keep the late-star price curve increasing after the 20-star boundary.
-  return base * (item.boss && item.level >= 150 ? 3 : 1);
+  // 2026-11-02 도현: 220제부터 스타포스 비용 4배 (대신 별 하나당 상승폭이 크다).
+  return base * (item.boss && item.level >= 150 ? 3 : 1) * (Number(item.level) >= 220 ? 4 : 1);
 }
 export function starOdds(stars) {
  const success=stars>=25?0:STAR_SUCCESS[stars];return {success,keep:1-success,down:0,destroy:0};

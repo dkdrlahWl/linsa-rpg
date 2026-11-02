@@ -25,7 +25,7 @@ import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
 import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=token-open-20261102';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
-import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear} from './gear-refine.mjs?v=flame5m-20261025';
+import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs?v=addpot-20261025';
 import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
 import {applyBetaTool} from './beta-tools.mjs?v=beta-level-250-20261011-lv300';
@@ -45,6 +45,10 @@ import {
   OPTIONS,
   STAR_SUCCESS,
   rollBaseStats,
+  canTranscendTier,
+  transcendCost,
+  bossTier,
+  bossTierName,
   selectDesign,
   rollEquipmentLevel,
   salvageYield,
@@ -66,7 +70,7 @@ import {
   MAX_LEVEL,
   statPointsForLevel,
   totalStatPoints,
-} from "./data.mjs?v=boss220-20261102";
+} from "./data.mjs?v=transcend-20261102";
 
 import { TOWER_FLOORS, canOpenChest, clearVictoryEffects, towerEncounter, newTowerBattle, towerStep, TOWER_STEP, upgradeTowerBattle } from './tower-model.mjs?v=fifth-impact-121';
 const fail = (message) => {
@@ -933,6 +937,19 @@ function executeCore(input, command, args = {}, ctx) {
  const task=DAILY_TASKS[args.key];check(task&&s.daily[args.key]>=task.goal&&!s.daily.claimed.includes(args.key),"DAILY_NOT_READY");
  s.daily.claimed.push(args.key);s.gold+=task.gold;for(const key of ["fragment","cube","highCube"])s.materials[key]+=task[key];levelUp(s,xpNeeded(s.level)*.05);events.push({type:"daily",name:task.name});break;
  }
+    case "transcend": {
+      // 25성 220제 등급 보스장비 → 다음 등급. 스탯은 새 등급 범위에서 다시 랜덤, 스타포스만 0성으로. 잠재·추가옵션 유지.
+      const it=gear(s,args.id);writable(s,it);
+      check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");
+      check(canTranscendTier(it),"TRANSCEND_UNAVAILABLE");
+      check(it.stars>=25,"TRANSCEND_STARS_REQUIRED");
+      const cost=transcendCost(it),from=bossTier(it),fromName=bossTierName(it);
+      spend(s,"transcendStone",cost);
+      it.bossTier=from+1;it.baseStats=rollBaseStats(it,ctx.random);it.stars=0;
+      s.collection??=[];const key=equipmentKey(it);if(!s.collection.includes(key))s.collection.push(key);
+      events.push({type:"transcend",id:it.id,from,to:it.bossTier,fromName,toName:bossTierName(it),cost});
+      break;
+    }
     case "star": {
       const it = gear(s, args.id);
       writable(s, it);
@@ -1044,6 +1061,7 @@ function executeCore(input, command, args = {}, ctx) {
         spend(s,material,1);s.pendingRefine={id:it.id,kind:"bonus",previous:Number.isInteger(it.bonusPct)?it.bonusPct:0,bonusPct:pct};
       }else{
         check(it.baseStats&&typeof it.baseStats==="object","ITEM_NOT_FOUND");
+        check(rerollStoneAllowed(it),"REROLL_STONE_200_ONLY");
         // 2026-10-25: 보스 등급 장비는 등급까지 같이 재굴림(전체 범위 완전 랜덤).
         let next;for(let attempt=0;attempt<256;attempt++){next=rerollGear(it,ctx.random);if(JSON.stringify(next.baseStats)!==JSON.stringify(it.baseStats)||(Number.isInteger(next.bossTier)&&next.bossTier!==it.bossTier))break;check(attempt<255,"CUBE_RANDOM_RETRY");}
         spend(s,material,1);s.pendingRefine={id:it.id,kind:"stats",previous:structuredClone(it.baseStats),baseStats:next.baseStats,...(Number.isInteger(next.bossTier)?{bossTier:next.bossTier,previousTier:Number.isInteger(it.bossTier)?it.bossTier:0}:{})};

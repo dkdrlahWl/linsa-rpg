@@ -54,8 +54,13 @@ export const isTieredBossGear=item=>!!item?.boss&&Number(item.level)>=TIERED_BOS
 export const isCommonBossGear=item=>isTieredBossGear(item)&&Number(item.slot)!==0;
 export const bossTierCount=item=>Number(item?.slot)===0?5:3;
 export const bossTier=item=>Math.max(0,Math.min(bossTierCount(item)-1,Number.isInteger(item?.bossTier)?item.bossTier:0));
+// 초월: 220제 등급 보스장비를 25성에서 초월석으로 다음 등급으로. n번째 초월에 초월석 n개(무기 1·2·3·4, 방어구 1·2).
+export const TRANSCEND_LEVEL=220;
+export const canTranscendTier=item=>!!item?.boss&&Number(item.level)>=TRANSCEND_LEVEL&&bossTier(item)<bossTierCount(item)-1;
+export const transcendCost=item=>bossTier(item)+1;
 export const bossTierName=item=>(Number(item?.slot)===0?BOSS_WEAPON_TIER_NAMES:BOSS_ARMOR_TIER_NAMES)[bossTier(item)];
-export function rollBossTier(item,random=Math.random){const weights=Number(item.slot)===0?BOSS_WEAPON_TIER_WEIGHTS:BOSS_ARMOR_TIER_WEIGHTS,total=weights.reduce((a,b)=>a+b,0);let r=random()*total;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<0)return i;}return weights.length-1;}
+// 2026-11-02 도현: 220제부터는 얻을 때 무조건 가장 낮은 등급. 높은 등급은 초월로만 올린다.
+export function rollBossTier(item,random=Math.random){if(Number(item?.level)>=220)return 0;const weights=Number(item.slot)===0?BOSS_WEAPON_TIER_WEIGHTS:BOSS_ARMOR_TIER_WEIGHTS,total=weights.reduce((a,b)=>a+b,0);let r=random()*total;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<0)return i;}return weights.length-1;}
 // 공통 장비는 어느 직업이든 착용할 수 있다. 무기는 기존처럼 직업 전용.
 export const canEquipClass=(item,classId)=>!!item&&(isCommonBossGear(item)||item.classId===classId);
 export function selectDesign(level,classId,slot,boss,random=Math.random){return designItem(level,classId,slot,boss,boss?2:Math.min(1,Math.floor(random()*2)));}
@@ -71,7 +76,7 @@ function tieredIdentity(item){
   if(Number(item.level)>=220){
     const names=common?['성운의','천상의','창세의']:['별의 맹세','성운의 계시','천상의 권능','창세의 심판','무한의 왕권'];
     const name=names[tier]+' '+(common?COMMON_ARMOR_NOUNS[item.slot]:type);
-    const art=common?`equipment/boss220/common-${item.slot}.webp`:`equipment/boss220/${item.classId}.webp`;
+    const art=common?`equipment/boss220/distinct-v2/common-t${tier}-${item.slot}.webp`:`equipment/boss220/distinct-v2/${item.classId}-t${tier}.webp`;
     return {key:equipmentKey(item),name,art,type,tier,tierName:bossTierName(item),common,standalone:true,grid:false,column:0,row:0,columns:1,rows:1};
   }
   const name=common?TIER_ARMOR_PREFIX[tier]+' '+COMMON_ARMOR_NOUNS[item.slot]:TIER_WEAPON_PREFIX[tier]+'의 '+type;

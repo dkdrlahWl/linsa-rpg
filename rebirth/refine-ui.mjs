@@ -1,5 +1,5 @@
 import * as D from './data.mjs?v=prime-choice-158-lv300b';
-import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE} from './gear-refine.mjs?v=flame5m-20261025';
+import {BONUS_FLAME,REROLL_STONE,BONUS_TABLE,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';
 const materialArt=item=>`<img src="${item.art}" alt="" width="38" height="38" style="width:38px;height:38px;object-fit:contain;vertical-align:middle;margin-right:6px">`;
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const button=(label,action,arg,disabled=false,cls='enhance-primary')=>`<button class="${cls}" data-action="${action}" data-arg="${arg}" ${disabled?'disabled':''}>${label}</button>`;
@@ -24,7 +24,7 @@ export function renderRefinePanel(it,state,protectedReason=''){
  const flames=state.materials.bonusFlame||0,stones=state.materials.rerollStone||0,bonus=Number.isInteger(it.bonusPct)?it.bonusPct:0;
  const base=statsWith(it,{bonusPct:0}),now=D.gearAttributes(it);
  const flameBlock=protectedReason||(flames<1?'추가옵션 불꽃이 부족합니다. 상점 소모품에서 구매할 수 있어요.':'');
- const stoneBlock=protectedReason||(!it.baseStats?'기본 수치가 없는 장비입니다.':stones<1?'기본수치 재련석이 부족합니다. 상점 소모품에서 구매할 수 있어요.':'');
+ const stoneBlock=protectedReason||(!it.baseStats?'기본 수치가 없는 장비입니다.':!rerollStoneAllowed(it)?(it.boss&&Number(it.level)>=220?'220제부터는 기본수치 재련석을 쓸 수 없어요. 25성에서 초월하면 다음 등급으로 바뀌며 수치가 다시 정해집니다.':'기본수치 재련석은 200제 보스장비 전용입니다.'):stones<1?'기본수치 재련석이 부족합니다. 상점 소모품에서 구매할 수 있어요.':'');
  return `<section class="panel pad refine-panel">
  <h4>추가옵션 <b class="refine-bonus">${bonus?'+'+bonus+'%':'없음'}</b></h4>
  <p class="note">추가옵션은 장비의 공격력·주스탯·HP·방어력 전체에 같은 비율로 붙습니다. (스타포스 포함 장비 능력치 기준)</p>

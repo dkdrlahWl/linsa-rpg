@@ -98,3 +98,10 @@ dialog.market-picker-dialog{width:min(96vw,940px);max-width:940px;max-height:92d
 
 /* Equipment info uses the same readable dark surface as legendary cube panels. */
 .enhance-dialog .potential:has(.grade-color-5){background:#1e281a;border-color:#657d3f;color:#b6dd69;padding:12px 14px}.enhance-dialog .potential .grade-color-5{font-size:14px;font-weight:600;line-height:1.65;margin:6px 0}
+/* 2026-11-02 초월 */
+.transcend-box{margin:10px 0 4px;padding:12px;border:1px solid #c9a3ff;border-radius:12px;background:linear-gradient(160deg,#2a1747e6,#120c24ee);box-shadow:0 0 18px #9b6bff33,inset 0 0 0 1px #ffffff10;color:#efe6ff}
+.transcend-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.transcend-head span{font-size:11px;letter-spacing:.18em;color:#cdb2ff}
+.transcend-head b{font-size:16px;color:#fff}.transcend-head i{font-style:normal;color:#cdb2ff;margin:0 4px}
+.transcend-box p{margin:4px 0;font-size:13px}.transcend-box ul{margin:6px 0;padding-left:18px;font-size:12px;color:#d9ccf5}.transcend-box li{margin:2px 0}
+.transcend-cost{display:flex;align-items:center;gap:6px}.transcend-cost img{width:24px;height:24px;object-fit:contain}

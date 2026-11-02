@@ -34,4 +34,6 @@ export function rerollGear(item, random) {
     [key, r.min + Math.min(r.max - r.min, Math.floor(random() * (r.max - r.min + 1)))]));
   return {baseStats, bossTier};
 }
+// 2026-11-02 도현: 기본수치 재련석은 200제 보스장비(보장) 전용. 220제부터는 초월로만 등급이 오른다.
+export const rerollStoneAllowed = item => isTieredBossGear(item) && Number(item.level) < 220;
 export const rerollBaseStats = (item, random) => rerollGear(item, random).baseStats;
