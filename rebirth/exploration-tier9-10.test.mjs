@@ -8,7 +8,7 @@ for(const [tier,solo,keys] of [[9,25e8,5],[10,35e8,5]]){
  for(const n of [1,2,4]){const hp=explorationStats(tier,5,n,true).hp;assert.ok(Math.abs(hp-solo*n)/(solo*n)<.001,tier+' '+n+' '+hp);}
  assert.equal(explorationKeys(tier),keys);assert.equal(explorationPrevious(tier),tier-1);
  assert.ok(explorationStats(tier,5,1,true).attack>explorationStats(tier-1,5,1,true).attack);
- assert.equal(explorationArt(tier,3,true),'exploration/boss-'+tier+'-original-v1.webp');
+ assert.equal(explorationArt(tier,3,true),'exploration/boss-'+tier+'-original-v2.webp');
  // 보상: 8단계보다 확률·개수 모두 같거나 높다
  const r=EXPLORATION_REWARDS[tier],prev=EXPLORATION_REWARDS[tier-1];
  for(const k of ['gold','scroll','highCube','potentialLock','addCube','bonusFlame','bossGear'])assert.ok(r[k]>prev[k],tier+' '+k);
