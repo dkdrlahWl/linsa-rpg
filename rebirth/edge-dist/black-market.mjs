@@ -8,11 +8,10 @@ export const BLACK_MARKET_HOURS=Object.freeze([0,12,18]);
 export const BLACK_MARKET_SLOTS=3;
 export const MATERIAL_CAP=1000000;
 
-// 일반 상품: 가중치 합 95 (보스장비 5%는 따로 판정)
+// 일반 상품: 가중치 비율로 뽑음 (보스장비 5%는 따로 판정). 2026-11-03 도현: 프라임 큐브 제외.
 export const BLACK_MARKET_GOODS=Object.freeze([
  {id:'cube',kind:'material',name:'레드 큐브',price:100000,stock:10,weight:14},
  {id:'highCube',kind:'material',name:'블랙 큐브',price:400000,stock:10,weight:12},
- {id:'primeCube',kind:'material',name:'프라임 큐브',price:500000,stock:10,weight:7},
  {id:'scroll',kind:'material',name:'잠재 해금 주문서',price:1000000,stock:2,weight:12},
  {id:'potentialLock',kind:'material',name:'잠재 잠금석',price:2000000,stock:5,weight:10},
  {id:'dungeonKey',kind:'material',name:'던전 열쇠',price:5000000,stock:1,weight:8},
