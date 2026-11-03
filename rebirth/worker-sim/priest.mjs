@@ -1,4 +1,4 @@
-import {petHealTick} from './pet-event.mjs?v=expl910b-20261103';
+import {petHealTick} from './pet-event.mjs?v=expl910c-20261103';
 // Support uses the caster's maximum HP; same scheduler in solo and multiplayer.
 // 사제 평타·전투력은 다른 직업과 동일(배율 1). 딜은 스킬 계수로만 맞춘다.
 // 2026-11-03 도현: 스킬 계수 전부 ×1.1937 → 종결 세팅(Lv.300·200제) 기준 다른 직업 평균의 93%.

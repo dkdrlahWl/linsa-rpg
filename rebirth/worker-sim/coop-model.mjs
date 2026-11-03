@@ -1,30 +1,31 @@
-import {isCitadel,isDungeon,CITADEL_CONTENT,makeCitadelDungeon} from './citadel-zero.mjs?v=expl910b-20261103';
-import {dungeonMove,revealDungeon,makeExplorationDungeon,makeExplorationArena} from './exploration-dungeon.mjs?v=expl910b-20261103';
-import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=expl910b-20261103';
-import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=expl910b-20261103';
-import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=expl910b-20261103';
-import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=expl910b-20261103';
-import {RAID_ENCOUNTERS} from './raid-content.mjs?v=expl910b-20261103';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=expl910b-20261103';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=expl910b-20261103';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=expl910b-20261103';
-import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=expl910b-20261103';
-import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=expl910b-20261103';
-import {packPoints,unpackPoints} from './coop-wire.mjs?v=expl910b-20261103';
+import {isCitadel,isDungeon,CITADEL_CONTENT,makeCitadelDungeon} from './citadel-zero.mjs?v=expl910c-20261103';
+import {dungeonMove,revealDungeon,makeExplorationDungeon,makeExplorationArena} from './exploration-dungeon.mjs?v=expl910c-20261103';
+import {EXPLORATIONS,EXPLORATION_MOVE_SPEED,dungeonMoveSpeed,collectExplorationHearts} from './exploration-data.mjs?v=expl910c-20261103';
+import {initializeExploration,advanceExplorationRaw} from './exploration-model.mjs?v=expl910c-20261103';
+import {beginCoopEntry,advanceCoopEntry} from './coop-entry.mjs?v=expl910c-20261103';
+import {startRaid,advanceRaidRaw} from './raid-model.mjs?v=expl910c-20261103';
+import {RAID_ENCOUNTERS} from './raid-content.mjs?v=expl910c-20261103';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=expl910c-20261103';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=expl910c-20261103';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=expl910c-20261103';
+import {startTrialCoop,advanceTrialCoopRaw} from './trial-coop.mjs?v=expl910c-20261103';
+import {ADVANCEMENT_BOSSES} from './advancement.mjs?v=expl910c-20261103';
+import {packPoints,unpackPoints} from './coop-wire.mjs?v=expl910c-20261103';
 export const coopEncounter=room=>isCitadel(room)?CITADEL_CONTENT:room.mode==='exploration'?EXPLORATIONS[room.tier]:room.mode==='raid'?RAID_ENCOUNTERS[room.tier]:room.mode==='advancement'?ADVANCEMENT_BOSSES[room.tier]:{...COOP_TIERS[room.tier],seconds:90};
 const coopLimit=room=>coopEncounter(room).seconds*10;
-import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=expl910b-20261103';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=expl910b-20261103';
-import {beginThird,stepThird} from './advancement.mjs?v=expl910b-20261103';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=expl910b-20261103';
-import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=expl910b-20261103';
-import {incomingDamage} from './journey-balance.mjs?v=expl910b-20261103';
-import {COOP_TIERS} from './rift-rewards.mjs?v=expl910b-20261103';
+import {initializeWave,advanceWaveRaw} from './wave-model.mjs?v=expl910c-20261103';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=expl910c-20261103';
+import {beginThird,stepThird} from './advancement.mjs?v=expl910c-20261103';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=expl910c-20261103';
+import {CLASS_SKILLS,SECOND_SKILLS} from './data.mjs?v=expl910c-20261103';
+import {incomingDamage} from './journey-balance.mjs?v=expl910c-20261103';
+import {COOP_TIERS} from './rift-rewards.mjs?v=expl910c-20261103';
 export {COOP_TIERS};
 const clamp=n=>Math.max(120,Math.min(3080,n));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startCoop(room,now){return beginCoopEntry(startCoopCombat(room,now),now);}
-function startCoopCombat(room,now){if(room.mode==='raid')return startRaid(room,now);if(room.mode==='advancement')return startTrialCoop(room,now);const w=structuredClone(room),tier=COOP_TIERS[w.tier];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=tier.hp;w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return isDungeon(w)?initializeExploration(w):w.mode==='wave'?initializeWave(w):w;}
+// 2026-11-03: 균열 표(COOP_TIERS)는 0~9뿐 — 링구의 탐험 10단계 시작 시 tier.hp 오류(연결 지연)를 막기 위해 없는 단계는 0번 값으로 시작(탐험은 이후 initializeExploration이 덮어씀).
+function startCoopCombat(room,now){if(room.mode==='raid')return startRaid(room,now);if(room.mode==='advancement')return startTrialCoop(room,now);const w=structuredClone(room),tier=COOP_TIERS[w.tier]||COOP_TIERS[0];if(w.status!=='waiting'||w.members.length<1)throw Error('INVALID_COOP_ROOM');w.status='fighting';w.started=now;w.tick=0;w.maxHp=tier.hp;w.hp=w.maxHp;w.enemy={x:1600,y:1400,face:1};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.serial=0;w.nextPattern=20;w.phase=0;w.members.forEach((m,i)=>Object.assign(m,{x:1300+i*200,y:1900,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,guardReady:0,immune:0,hurtReady:0,damage:0,face:1,dir:6,walk:0,ultimateReady:0,guardUntil:0,secondUntil:0,attackUntil:0,skillUntil:0}));return isDungeon(w)?initializeExploration(w):w.mode==='wave'?initializeWave(w):w;}
 export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
  const w=owned?room:structuredClone(room);
  if(input&&(!Array.isArray(input)||input.length!==3||!input.every(Number.isFinite)||Math.abs(input[0])>1||Math.abs(input[1])>1||!Number.isInteger(input[2])||input[2]<0||input[2]>127))throw Error('INVALID_COOP_INPUT');
@@ -50,7 +51,7 @@ export function advanceCoopRaw(room,user,input,now,frames=[],owned=false){
  if(w.mode==='wave')return advanceWaveRaw(w,user,input,now,frames,true);
  if(w.status!=='fighting')return w;
  w.effects||=[];w.numbers||=[];w.projectiles||=[];w.serial||=0;
- const tier=COOP_TIERS[w.tier],upto=Math.min(900,Math.floor((now-w.started)/100));
+ const tier=COOP_TIERS[w.tier]||COOP_TIERS[0],upto=Math.min(900,Math.floor((now-w.started)/100));
  // Only a bounded, recent backlog is interactive; long disconnections still time out.
  if(upto-w.tick>100){w.tick=upto-100;for(const m of w.members)m.input=[0,0,0];}
  for(;w.tick<upto&&w.status==='fighting';w.tick++){
