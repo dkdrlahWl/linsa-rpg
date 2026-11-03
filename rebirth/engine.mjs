@@ -811,6 +811,10 @@ function executeCore(input, command, args = {}, ctx) {
       for (const [key, amount] of Object.entries(reward)) {
         if (key === "gold") continue;
         if (key === "fishDiamond") { const f = normalizeFishing(s, ctx.now); f.diamonds = (f.diamonds || 0) + amount; continue; }
+        if (key === "tokens") { s.tokens = Math.min(9999999, (Number.isSafeInteger(s.tokens) ? s.tokens : 0) + amount); continue; }
+        if (key === "companionTicket") { normalizeCompanions(s).tickets += amount; continue; }
+        if (key === "pickupTicket") { normalizeCompanions(s).pickupTickets += amount; continue; }
+        if (key === "tribeTicket") { normalizeTribe(s).tickets += amount; continue; }
         s.materials[key] = (s.materials[key] || 0) + amount;
       }
       s.attendance = {day,lastClaim:today};

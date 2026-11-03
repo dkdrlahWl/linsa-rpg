@@ -204,13 +204,14 @@ export const MATERIALS = {
 // One claim per Korean calendar day. The cycle advances on a successful claim.
 // 2026-10-25 개편: fishDiamond = 낚시 다이아(state.fishing.diamonds).
 export const ATTENDANCE_REWARDS = [
-  {gold:1000000,cube:20},
-  {highCube:5},
-  {gold:2000000,fragment:200},
-  {dungeonKey:2,addCube:5},
-  {highCube:10,scroll:2},
-  {gold:3000000,addCube:10},
-  {primeCube:2,bonusFlame:1,fishDiamond:30},
+  // 2026-11-03 개편(도현): 출석 보상 대폭 상향.
+  {potentialLock:20},
+  {highCube:100},
+  {dungeonKey:15},
+  {addCube:50},
+  {scroll:10,bonusFlame:10},
+  {companionTicket:30,pickupTicket:10},
+  {tribeTicket:3,tokens:300},
 ];
 export const OPTIONS = {
   STR: "STR",

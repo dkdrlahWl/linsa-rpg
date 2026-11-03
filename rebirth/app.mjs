@@ -774,7 +774,7 @@ function systemMailButton() {
 }
 function attendanceReady() { return state?.attendance?.lastClaim !== D.dayKey(Date.now()); }
 function attendanceReward(reward) {
-  return Object.entries(reward).map(([key,amount]) => `${key==="gold"?"골드":key==="fishDiamond"?"낚시 다이아":key==="tribeTicket"?"종족 주사위":D.MATERIALS[key]} ${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}`).join(" · ");
+  return Object.entries(reward).map(([key,amount]) => `${key==="gold"?"골드":key==="fishDiamond"?"낚시 다이아":key==="tribeTicket"?"종족 주사위":key==="tokens"?"토큰":key==="companionTicket"?"동료 소환권":key==="pickupTicket"?"픽업 소환권":D.MATERIALS[key]} ${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}`).join(" · ");
 }
 function attendance() {
   const claimed = !attendanceReady(), day = ((state.attendance?.day || 0) % 7) + 1;
