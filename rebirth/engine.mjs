@@ -929,10 +929,9 @@ function executeCore(input, command, args = {}, ctx) {
       check(!s.battle,"BATTLE_IN_PROGRESS");
       check(it.bound===true,"ITEM_NOT_BOUND");
       check(Number(it.level)>1,"ITEM_NOT_TRADABLE");
-      // 장비 하나당 평생 1번만(거래로 주인이 바뀌어도 hairUsed는 장비에 남는다).
-      check(!it.hairUsed,"HAIR_ALREADY_USED");
+      // 2026-11-03 도현: 장비당 사용 횟수 제한 없음(거래 불가가 될 때마다 다시 바를 수 있음).
       spend(s,"ringuHair",1);
-      it.bound=false;it.hairUnbound=true;it.hairUsed=true;
+      it.bound=false;it.hairUnbound=true;delete it.hairUsed;
       events.push({type:"hairApply",id:it.id});
       break;
     }

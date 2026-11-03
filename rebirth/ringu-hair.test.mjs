@@ -18,7 +18,7 @@ const p=structuredClone(s0);p.materials.ringuHair=0;assert.throws(()=>execute(p,
 // 시작 장비(Lv.1)는 대상 아님
 const st=s0.items.find(i=>i.level===1&&i.bound);if(st)assert.throws(()=>execute(s0,'hairApply',{id:st.id},ctx()),/ITEM_NOT_TRADABLE/);
 console.log('PASS ringu hair: unbind once, re-bind on 220 enhance, cost 1');
-// 장비 하나당 1번만: 강화로 다시 묶인 뒤에도 재사용 불가
-{const t=structuredClone(s0);t.gold=1e12;let u=execute(t,'hairApply',{id:it.id},ctx()).state;u=execute(u,'star',{id:it.id},ctx()).state;assert.throws(()=>execute(u,'hairApply',{id:it.id},ctx()),/HAIR_ALREADY_USED/);console.log('PASS once per item');}
+// 횟수 제한 없음: 강화로 다시 묶이면 또 바를 수 있다
+{const t=structuredClone(s0);t.gold=1e12;let u=execute(t,'hairApply',{id:it.id},ctx()).state;u=execute(u,'star',{id:it.id},ctx()).state;u=execute(u,'hairApply',{id:it.id},ctx()).state;const y=u.items.find(i=>i.id===it.id);assert.equal(y.bound,false);assert.equal(u.materials.ringuHair,0);console.log('PASS no per-item limit');}
 // 상점 소모품: 1억 G에 구매
 {const t=structuredClone(s0);t.gold=250000000;t.materials.ringuHair=0;const u=execute(t,'consumableBuy',{id:'ringuHair',quantity:2},ctx()).state;assert.equal(u.materials.ringuHair,2);assert.equal(u.gold,50000000);console.log('PASS shop 1억');}
