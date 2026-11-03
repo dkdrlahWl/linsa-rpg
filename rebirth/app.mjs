@@ -1258,6 +1258,8 @@ function itemDetail(id, section=id===selected?itemSection:"info") {
   if(section==="star")body=starPanel(it);
   if(section==="potential")body=cubePanel(it);
   if(section==="baseStats")body=baseStatsPanel(it);
+  // 2026-11-03: 220제 이상은 강화하는 순간 거래 불가.
+  if(section!=="info"&&Number(it.level)>=220&&!it.bound)body=`<p class="trade-bind-warn">⚠ 220제 이상 장비는 강화(스타포스·잠재·에디·불꽃·재련·초월)를 하면 <b>거래 불가</b>로 바뀌어요. 거래소에 올릴 거면 강화 전에 올리세요.</p>`+body;
   open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":section==="baseStats"?"기본 수치":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"} · ${gearRollLabel(it)}</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"],["baseStats","기본 수치"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
   modal.classList.add("enhance-dialog");if(section==="potential")modal.classList.add("cube-dialog");
 }

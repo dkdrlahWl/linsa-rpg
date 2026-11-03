@@ -444,6 +444,10 @@ function gear(s, id) {
   check(!s.pendingRefine || s.pendingRefine.id !== id, "ITEM_CUBE_PENDING");
   return it;
 }
+// 2026-11-03 도현: 220제 이상 장비는 스타포스·잠재·에디·불꽃·재련·초월 등 강화를 하는 순간 거래 불가(bound)가 된다.
+// 거래소 등록은 SQL 쪽에서 bound 장비를 이미 막는다. 명령이 실패하면 상태 전체가 반영되지 않으므로 강화 시도가 성공했을 때만 남는다.
+export const TRADE_BIND_LEVEL=220;
+function bindEnhanced(it){if(Number(it?.level)>=TRADE_BIND_LEVEL)it.bound=true;}
 function writable(s, it) {
   check(!it.locked && !it.broken, "ITEM_PROTECTED");
   check(!s.battle, "BATTLE_IN_PROGRESS");
@@ -961,7 +965,7 @@ function executeCore(input, command, args = {}, ctx) {
  }
     case "transcend": {
       // 25성 220제 등급 보스장비 → 다음 등급. 스탯은 새 등급 범위에서 다시 랜덤, 스타포스만 0성으로. 잠재·추가옵션 유지.
-      const it=gear(s,args.id);writable(s,it);
+      const it=gear(s,args.id);writable(s,it);bindEnhanced(it);
       check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");
       check(canTranscendTier(it),"TRANSCEND_UNAVAILABLE");
       check(it.stars>=25,"TRANSCEND_STARS_REQUIRED");
@@ -974,7 +978,7 @@ function executeCore(input, command, args = {}, ctx) {
     }
     case "star": {
       const it = gear(s, args.id);
-      writable(s, it);
+      writable(s, it);bindEnhanced(it);
       check(it.stars < 25, "MAX_STARS");
       const cost = starCost(it),
         odds = starOdds(it.stars),
@@ -1025,14 +1029,14 @@ function executeCore(input, command, args = {}, ctx) {
       break;
     }
     case "potential": {
-      const it=gear(s,args.id);writable(s,it);check(!it.lines.length,"POTENTIAL_ALREADY_OPEN");
+      const it=gear(s,args.id);writable(s,it);bindEnhanced(it);check(!it.lines.length,"POTENTIAL_ALREADY_OPEN");
       check(!s.pendingCube,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
       const chance=it.level>=200?(it.boss?.1:.3):1,success=chance===1||ctx.random()<chance;
       if(success){it.potentialUnlocked=true;it.potentialVersion=5;fillPotentialLines(it,ctx.random);}
       events.push({type:"potential",id:it.id,success,chance});break;
     }
     case "cube": {
-      const it=gear(s,args.id);writable(s,it);
+      const it=gear(s,args.id);writable(s,it);bindEnhanced(it);
       check(it.lines.length>0,"POTENTIAL_REQUIRED");check(!s.pendingCube,"ITEM_CUBE_PENDING");
       const kind=args.kind??(args.high===true?"highCube":"cube");
       check(Object.hasOwn(CUBES,kind),"INVALID_CUBE");
@@ -1058,7 +1062,7 @@ function executeCore(input, command, args = {}, ctx) {
       events.push({type:"cube",id:it.id,kind,high:rule.choose,up:grade>previousGrade});break;
     }
     case "additionalUnlock": {
-      const it=gear(s,args.id);writable(s,it);
+      const it=gear(s,args.id);writable(s,it);bindEnhanced(it);
       check(it.lines.length>0,"POTENTIAL_REQUIRED");check(!hasAdditional(it),"POTENTIAL_ADDITIONAL_OPEN");
       check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");spend(s,"scroll",1);
       const success=ctx.random()<ADDITIONAL_UNLOCK_CHANCE;
@@ -1066,7 +1070,7 @@ function executeCore(input, command, args = {}, ctx) {
       events.push({type:"additionalUnlock",id:it.id,success,chance:ADDITIONAL_UNLOCK_CHANCE});break;
     }
     case "addCube": {
-      const it=gear(s,args.id);writable(s,it);
+      const it=gear(s,args.id);writable(s,it);bindEnhanced(it);
       check(hasAdditional(it),"POTENTIAL_ADDITIONAL_REQUIRED");check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");
       const roll=rerollAdditional(it,ctx.random);
       spend(s,ADD_CUBE.id,1);s.cubeUses=(s.cubeUses||0)+1;
@@ -1075,7 +1079,7 @@ function executeCore(input, command, args = {}, ctx) {
     }
     case "bonusRoll":
     case "statReroll": {
-      const it=gear(s,args.id);writable(s,it);
+      const it=gear(s,args.id);writable(s,it);bindEnhanced(it);
       check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");
       const bonus=command==="bonusRoll",material=bonus?BONUS_FLAME.id:REROLL_STONE.id;
       if(bonus){
