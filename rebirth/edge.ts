@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
         if(queueInput)validateCoopFrames(body.args.frames);
         const ctx={accountId:user.id,admin:user.app_metadata?.ringu_admin===true,accountCreatedAt:user.created_at,now:Number(snap.now),random:()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296,uuid:()=>crypto.randomUUID()};
         const computed=fastInput?null:execute(snap.state,'sync',{},ctx);
-        const base={queueInput,compact:fastInput&&body.args.compact===true,user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed?.state,power:computed?power(computed.state):undefined,args:body.args};
+        const base={queueInput,compact:fastInput&&body.args.compact===true,listOnly:action==='list',user:user.id,session:snap.session,epoch:snap.epoch,revision:snap.revision,request:body.requestId,fingerprint,state:computed?.state,power:computed?power(computed.state):undefined,args:body.args};
         try{
           const current=frameSnapshot?.current||await rpc('rebirth_coop_action',{p:{...base,action:'read'}},true);
           if(snap.receipt)return reply(current);

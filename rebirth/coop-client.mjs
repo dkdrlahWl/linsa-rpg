@@ -53,7 +53,8 @@ export function coopInputInterval(room,rtt=250){
  // and combat prediction still run at 10 Hz between authoritative snapshots.
  // 성채(성채 모드·탐험 4단계)는 방 하나에 DB 저장이 몰려 멈춤이 생겨 인원당 간격을 112ms로 늘린다(4인 ≈ 0.45초).
  const citadel=room.mode==='citadel'||(room.mode==='exploration'&&Number(room.tier)===3);
- return Math.max(250,Math.min(8,players)*(citadel?112:80),Math.min(800,rtt*.8));
+ // 2026-11-04: 작은 DB에서 4인 폴링이 초당 12회를 넘지 않도록 인원당 100ms(4인 ≈ 0.4초). 입력은 로컬 예측이 가려 체감 차이 없음.
+ return Math.max(300,Math.min(8,players)*(citadel?112:100),Math.min(800,rtt*.8));
 }
 export class CoopController{
  constructor(host,room,send,sound,admin=false){Object.assign(this,{host,room,send,sound,keys:new Set(),pointers:new Map(),stick:{x:0,y:0},abort:new AbortController(),busy:false,auto:false,autoSkills:false,disposed:false,motion:new CoopMotion(),lastDraw:0,pendingBits:0,frames:[],sampler:new TowerInput(100),predicted:structuredClone(room),hint:{attack:0,skill:0,dash:0}});this.renderer=new TowerRenderer(host.querySelector('canvas'),isCitadel(room)?{pixelRatio:2,maxWidth:1400}:['raid','exploration'].includes(room.mode)?{pixelRatio:1.25}:{});this.canvas=host.querySelector('canvas');const opt={signal:this.abort.signal};
@@ -272,7 +273,7 @@ export class CoopController{
   if(isDungeon(w)){(isCitadel(w)?citadelHud:explorationHud)(this.host,w);if(this.openingAt!==undefined)this.host.querySelector('#tower-status').textContent='상자를 여는 중…';}
   if(w.mode==='wave')waveHud(this.host,w);
   if(w.mode==='raid'){let roster=this.host.querySelector('.raid-roster');if(!roster){roster=document.createElement('div');roster.className='raid-roster';this.host.querySelector('.tower-hud').append(roster);}const rosterHtml=w.members.filter(m=>!m.left).map(m=>'<span class="'+(m.hp<=0?'fallen ': '')+(m.classId==='priest'?'healer':'')+'">'+esc(m.name)+' '+Math.ceil(m.hp/m.power.hp*100)+'%'+(m.shield?' <b class="shield">▣</b>':'')+'<em class="shield-fill" style="width:'+Math.min(100,(m.hp+(m.shield||0))/Math.max(m.power.hp,m.hp+(m.shield||0))*100)+'%"></em><i class="health-fill" style="width:'+Math.min(100,m.hp/Math.max(m.power.hp,m.hp+(m.shield||0))*100)+'%"></i></span>').join('');if(this.rosterHtml!==rosterHtml){roster.innerHTML=rosterHtml;this.rosterHtml=rosterHtml;}const danger=raidDanger(w,b.tick),status=this.host.querySelector('#tower-status');status.classList.toggle('raid-danger',!!danger);status.textContent=danger?danger.label+' · '+danger.seconds.toFixed(1)+'초':w.tick<(w.announcementUntil||0)?w.announcement:'붉은 평타·강력 공격 예고 회피 · 사제 근처에서 치유';this.host.querySelector('#tower-player-hp').textContent=fmt(me.hp)+' / '+fmt(me.power.hp)+(me.shield?' · 보호막 '+fmt(me.shield):'');}
-  const connection=this.host.querySelector('#tower-connection');connection.hidden=now-this.received<4500&&(this.failures||0)<2;connection.textContent='연결 지연 · 전투 재동기화 중';
+  const connection=this.host.querySelector('#tower-connection');connection.hidden=now-this.received<6000&&(this.failures||0)<3;connection.textContent='연결 지연 · 전투 재동기화 중';
   this.entryHud();
   }
   if(['wave','exploration','citadel'].includes(w.mode)){b.explorationMode=isDungeon(w);if(b.chest&&this.openingAt!==undefined)b.chest={...b.chest,openAt:this.openingAt};b.explorationFloor=w.floor;b.enemy={x:player.x,y:player.y};if(this.monsterSnapshot!==this.previousSim){this.monsterSnapshot=this.previousSim;this.monsterPoints=new Map((this.previousSim?.monsters||[]).map(e=>[e.id,e]));}const oldMonsters=this.monsterPoints;b.monsters=w.monsters.filter(e=>!b.explorationMode||dungeonSeen(w.dungeon,e.x,e.y)).map(e=>smooth(e,oldMonsters.get(e.id),'monster:'+e.id));b.graves=w.members.filter(m=>!m.left&&m.hp<=0);b.allies=b.allies.filter(m=>m.hp>0);b.waveMode=true;}

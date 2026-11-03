@@ -2256,7 +2256,7 @@ setInterval(() => {
   if(view==='game'&&tab==='event'&&eventPage==='fishing'&&(fishingUI.pending||state.fishing?.cast))return;
   // Keep reward settlement independent from successful market/lotto refreshes.
   if(state.hunting&&!state.battle&&!state.coopRoom&&!state.partyRoom&&Date.now()-lastHuntSettlement>=30000){command('sync',{},true).catch(()=>{});return;}
-  if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=3000){refreshCoopRooms().catch(()=>{});return;}
+  if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=5000){refreshCoopRooms().catch(()=>{});return;}
   if(regularAutoSkills&&state.battle&&state.battle.started===regularAutoBattle&&!modal.open){const slot=nextAutoSkill(state,Date.now());if(slot!==null){command('skill',{slot}).catch(()=>{});return;}}
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
   // Measure from dispatch so response latency does not lengthen each combat second.
