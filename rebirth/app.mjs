@@ -228,6 +228,9 @@ const errors = {
   FISHING_QUEST_CLAIMED: "이미 받은 일일 보상이에요.",
   FISHING_SUMMON_REMOVED: "루미 소환이 종료됐어요. 이벤트에서 낚시를 즐겨주세요.",
   INSUFFICIENT_POTENTIALLOCK: "잠재 잠금석이 부족해요.",
+  INSUFFICIENT_RINGUHAIR: "링구의 머리카락이 부족해요.",
+  HAIR_ALREADY_USED: "이 장비는 이미 링구의 머리카락을 썼어요.",
+  ITEM_NOT_BOUND: "거래 불가 장비에만 바를 수 있어요.",
   POTENTIAL_LOCK_EPIC_REQUIRED: "레어 장비를 블랙·프라임 큐브로 승급할 때는 줄을 잠글 수 없어요.",
   REBIRTH_MAINTENANCE:
     "새로운 여정을 준비하고 있어요. 서비스가 열리면 시작할 수 있습니다.",
@@ -1256,7 +1259,7 @@ function itemDetail(id, section=id===selected?itemSection:"info") {
   const p=power(state),next=power({...state,equipped:{...state.equipped,[it.slot]:it.id}}),equipped=Object.values(state.equipped).includes(id),o=D.starOdds(it.stars);
   const comparison=D.canEquipClass(it,state.classId)&&it.level<=state.level&&!it.broken?`장착 시 공격력 ${fmt(next.attack)} (${next.attack-p.attack>=0?"+":""}${next.attack-p.attack}) · HP ${fmt(next.hp)}`:!D.canEquipClass(it,state.classId)?`${D.CLASSES.find(c=>c.id===it.classId).name} 전용 장비입니다. 현재 직업으로는 착용할 수 없습니다. 장비 능력치는 직업에 관계없이 볼 수 있습니다.`:"착용 레벨과 장비 상태를 확인하세요.";
   let body="";
-  if(section==="info")body=`${gearStatsMarkup(it)}${gearRollDetails(it)}<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?"거래 불가":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):"잠재 미개방"}${it.addLines?.length?`<p class="additional-heading">에디셔널 잠재능력</p>`+it.addLines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):""}</div>`;
+  if(section==="info")body=`${gearStatsMarkup(it)}${gearRollDetails(it)}<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?(it.hairUsed?"거래 불가 · 머리카락 사용함":"거래 불가"):it.hairUnbound?"거래 1회 가능 (링구의 머리카락)":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}${it.bound&&Number(it.level)>1&&!it.hairUsed?disabledBtn(`링구의 머리카락 바르기 (보유 ${fmt(state.materials?.ringuHair||0)})`,"hairConfirm",id,!state.isAdmin&&!(state.materials?.ringuHair>0)):""}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):"잠재 미개방"}${it.addLines?.length?`<p class="additional-heading">에디셔널 잠재능력</p>`+it.addLines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):""}</div>`;
   if(section==="star")body=starPanel(it);
   if(section==="potential")body=cubePanel(it);
   if(section==="baseStats")body=baseStatsPanel(it);
@@ -1787,6 +1790,8 @@ document.addEventListener("click", async (e) => {
     if (action === "reconnect") return await command("sync",{},false,true);
     if (action === "recoverLogin"){location.href="recover.html?v=request-recovery-2";return;}
     if (action === "attendance") return attendance();
+    if(action==="hairConfirm"){const it=state.items.find(x=>x.id===arg);if(!it)return;return open("링구의 머리카락",`<div class="shop-confirm-item">${gearMarkup(it,"big-item")}<div><strong>${esc(D.gearName(it))}</strong><p class="note">링구의 머리카락 1개를 발라 이 장비를 <b>거래 가능</b>으로 바꿔요.<br>거래소에서 <b>한 번 팔리면</b> 산 사람에게는 다시 거래 불가로 바뀌어요.<br>220제 이상은 다시 강화하면 거래 불가로 돌아가요.<br><b>장비 하나당 1번만</b> 쓸 수 있어요.</p></div></div><div class="actions">${btn("바르기","hairApply",it.id,"gold",true)}${btn("취소","close")}</div>`);}
+    if(action==="hairApply"){modal.close();await command("hairApply",{id:arg});toast("링구의 머리카락을 발랐어요 · 이제 거래소에 1번 올릴 수 있어요");return itemDetail(arg,"info");}
     if (action === "systemInbox") {if(!busy)await command("sync",{},true);return systemInbox();}
     if (action === "claimSystemMail") {
       const chest=state.systemMailbox?.some(m=>m.id===arg&&["lumiBossChest","wheelBossChest"].includes(m.kind));

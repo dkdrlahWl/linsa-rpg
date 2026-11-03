@@ -200,6 +200,7 @@ export const MATERIALS = {
   bonusFlame: "추가옵션 불꽃",
   rerollStone: "기본수치 재련석",
   transcendStone: "초월석",
+  ringuHair: "링구의 머리카락",
 };
 // One claim per Korean calendar day. The cycle advances on a successful claim.
 // 2026-10-25 개편: fishDiamond = 낚시 다이아(state.fishing.diamonds).

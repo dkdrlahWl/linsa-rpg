@@ -447,7 +447,7 @@ function gear(s, id) {
 // 2026-11-03 도현: 220제 이상 장비는 스타포스·잠재·에디·불꽃·재련·초월 등 강화를 하는 순간 거래 불가(bound)가 된다.
 // 거래소 등록은 SQL 쪽에서 bound 장비를 이미 막는다. 명령이 실패하면 상태 전체가 반영되지 않으므로 강화 시도가 성공했을 때만 남는다.
 export const TRADE_BIND_LEVEL=220;
-function bindEnhanced(it){if(Number(it?.level)>=TRADE_BIND_LEVEL)it.bound=true;}
+function bindEnhanced(it){if(Number(it?.level)>=TRADE_BIND_LEVEL){it.bound=true;delete it.hairUnbound;}}
 function writable(s, it) {
   check(!it.locked && !it.broken, "ITEM_PROTECTED");
   check(!s.battle, "BATTLE_IN_PROGRESS");
@@ -919,6 +919,19 @@ function executeCore(input, command, args = {}, ctx) {
     case "unequip": {
       check(int(args.slot, 0, 8), "INVALID_SLOT");
       delete s.equipped[args.slot];
+      break;
+    }
+    // 2026-11-03 도현: 링구의 머리카락 — 거래 불가 장비에 바르면 거래 가능(1회). 거래소에서 한 번 팔리면 산 사람에게는 다시 거래 불가로 간다(market SQL).
+    case "hairApply": {
+      const it=gear(s,args.id);
+      check(!s.battle,"BATTLE_IN_PROGRESS");
+      check(it.bound===true,"ITEM_NOT_BOUND");
+      check(Number(it.level)>1,"ITEM_NOT_TRADABLE");
+      // 장비 하나당 평생 1번만(거래로 주인이 바뀌어도 hairUsed는 장비에 남는다).
+      check(!it.hairUsed,"HAIR_ALREADY_USED");
+      spend(s,"ringuHair",1);
+      it.bound=false;it.hairUnbound=true;it.hairUsed=true;
+      events.push({type:"hairApply",id:it.id});
       break;
     }
     case "lock": {

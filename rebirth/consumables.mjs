@@ -1,6 +1,8 @@
 import {BONUS_FLAME,REROLL_STONE} from './gear-refine.mjs?v=flame5m-20261025';
+// 2026-11-03 도현: 링구의 머리카락 — 상점 1억 G. 거래 불가 장비에 바르면 거래 1회 가능(장비당 1번).
+export const RINGU_HAIR = Object.freeze({id:'ringuHair',name:'링구의 머리카락',price:100000000,art:'currencies/ringuHair.svg',description:'거래 불가 장비를 거래 가능으로 · 1번 팔리면 다시 거래 불가 · 장비당 1번'});
 export const LUCK_POTION = Object.freeze({id:'luckPotion',name:'행운 물약',price:5000000,duration:300000,cooldown:0,bonus:.5,art:'consumables/luck-potion-v1.webp',description:'일일보스, 주간보스, 레이드 보상 적용됨'});
-export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'}), Object.freeze({id:'addCube',name:'에디셔널 큐브',price:1000000,art:'currencies/cube-additional-v1.webp',description:'에디셔널 잠재능력 재설정 · 이전 / 이후 선택'}), BONUS_FLAME, REROLL_STONE]);
+export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'}), Object.freeze({id:'addCube',name:'에디셔널 큐브',price:1000000,art:'currencies/cube-additional-v1.webp',description:'에디셔널 잠재능력 재설정 · 이전 / 이후 선택'}), BONUS_FLAME, REROLL_STONE, RINGU_HAIR]);
 // 2026-10-25: 상점 되팔기 (개당 판매가)
 export const SELL_PRICES=Object.freeze({cube:50000});
 export const shopSellLimit=(state,id)=>SELL_PRICES[id]?Math.max(0,Math.min(shopConsumableCount(state,id),Math.floor((Number.MAX_SAFE_INTEGER-(Number(state?.gold)||0))/SELL_PRICES[id]))):0;
