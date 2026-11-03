@@ -123,6 +123,8 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
 function grantBossVictory(s, boss, claimKey, ctx, reward, weeklyChest=false) {
     s.bossClaims ||= {};
     s.bossClaims[boss.id] = claimKey;
+    // 소탕 자격: 직접 잡은 보상 승리만 기록(sweep.mjs bossEverWon).
+    if (!reward.sweep) {s.bossWins ||= {};s.bossWins[boss.id] = ctx.now;}
     if (!s.cleared.includes(boss.id)) s.cleared.push(boss.id);
     s.gold += boss.gold;reward.gold=boss.gold;
     s.materials.cube += boss.cubes;reward.cube=boss.cubes;

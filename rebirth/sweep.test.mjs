@@ -6,20 +6,20 @@ import {BOSSES} from './data.mjs';
 import {sweepPlan} from './sweep.mjs';
 import {TOKEN_BOSS_STAGES} from './token-content.mjs';
 import {KEY_BOSS_STAGES} from './key-dungeon.mjs';
-const now=Date.UTC(2026,10,3,6),ctx=(t=now,random=()=>.999)=>({now:t,random,uuid:randomUUID});
+const now=Date.UTC(2026,10,3,12),ctx=(t=now,random=()=>.999)=>({now:t,random,uuid:randomUUID});
 const base=()=>{const s=initialState('warrior','소탕',ctx());s.hunting=false;return s;};
 // 깬 적 없으면 불가
 {const s=base();assert.throws(()=>execute(s,'sweep',{kind:'boss',id:30},ctx()),/SWEEP_NOT_ALLOWED/);assert.throws(()=>execute(s,'sweep',{kind:'all'},ctx()),/SWEEP_NOTHING/);}
 // 일보 개별 소탕: 보상 = 승리 보상, 하루 1회
 {
- let s=base();s.cleared=[30,33];const gold=s.gold;
+ let s=base();s.cleared=[30,33];s.bossWins={33:now};const gold=s.gold;
  let r=execute(s,'sweep',{kind:'boss',id:33},ctx());s=r.state;const e=r.events.find(x=>x.type==='sweep');
  assert.equal(e.count,1);assert.equal(e.gold,10_000_000);assert.equal(e.highCube,10);assert.equal(e.addCube,3);assert.equal(s.gold,gold+10_000_000);
  assert.equal(s.daily.boss,1);
  assert.throws(()=>execute(s,'sweep',{kind:'boss',id:33},ctx()),/SWEEP_NOT_ALLOWED/,'오늘 이미 받음');
  r=execute(s,'sweep',{kind:'boss',id:33},ctx(now+24*3600e3));assert.equal(r.events[0].count,1,'다음 날 다시');
  // 장비 확률(random 0 → 220제)
- const t=base();t.cleared=[33];const out=execute(t,'sweep',{kind:'boss',id:33},ctx(now,()=>0));assert.equal(out.events[0].items.length,1);assert.equal(out.state.items.find(i=>i.id===out.events[0].items[0]).level,220);
+ const t=base();t.cleared=[33];t.bossWins={33:now};const out=execute(t,'sweep',{kind:'boss',id:33},ctx(now,()=>0));assert.equal(out.events[0].items.length,1);assert.equal(out.state.items.find(i=>i.id===out.events[0].items[0]).level,220);
 }
 // 주보 소탕: 주 1회, 기본 블랙 2
 {
@@ -36,11 +36,22 @@ const base=()=>{const s=initialState('warrior','소탕',ctx());s.hunting=false;r
 }
 // 전체 소탕: 일보·주보만(토큰·열쇠 제외)
 {
- let s=base();s.cleared=[0,5,30,31,33];s.bossClaims={0:'2026-11-03'};s.keyBoss={best:4};s.tokenBoss={best:2};
+ let s=base();s.cleared=[0,5,30,31,33];s.bossWins={33:now};s.bossClaims={0:'2026-11-03'};s.keyBoss={best:4};s.tokenBoss={best:2};
  const r=execute(s,'sweep',{kind:'all'},ctx()),e=r.events[0];
  assert.equal(e.count,4,'0번은 오늘 이미 받음');assert.ok(e.entries.every(x=>x.kind==='boss'));assert.equal(e.keys,0);assert.equal(e.tokens,0);
  assert.equal(e.gold,[5,30,31,33].reduce((n,id)=>n+BOSSES[id].gold,0));
  assert.throws(()=>execute(r.state,'sweep',{kind:'all'},ctx()),/SWEEP_NOTHING/);
  assert.equal(execute(r.state,'sweep',{kind:'key',stage:4},ctx()).events[0].keys,KEY_BOSS_STAGES[3].keys,'열쇠는 개별 소탕');
+}
+// 예전에 같은 번호를 쓰던 보스 기록(cleared)으로는 새 보스(33·34) 소탕 불가 · 출시 전 기록도 불인정 · 직접 잡으면 열림
+{
+ for(const b of BOSSES)if(b.id>32)assert.ok(Number.isFinite(b.since),b.name+' 에 since(출시 시각) 필요');
+ let s=base();s.cleared=[33,34];assert.throws(()=>execute(s,'sweep',{kind:'boss',id:33},ctx()),/SWEEP_NOT_ALLOWED/);
+ s.bossWins={33:BOSSES[33].since-1};assert.throws(()=>execute(s,'sweep',{kind:'boss',id:33},ctx()),/SWEEP_NOT_ALLOWED/);
+ // 직접 처치 → bossWins 기록 → 다음 날 소탕 가능
+ let t=base();t=execute(t,'boss',{id:33},ctx()).state;t.battle.enemyHp=0;t.battle.won=true;t=execute(t,'sync',{},ctx(now+1000)).state;
+ assert.ok(t.bossWins[33]>=BOSSES[33].since);assert.equal(execute(t,'sweep',{kind:'boss',id:33},ctx(now+24*3600e3)).events.find(e=>e.type==='sweep').count,1);
+ // 소탕은 bossWins를 갱신하지 않음
+ const u=execute(t,'sweep',{kind:'boss',id:33},ctx(now+24*3600e3)).state;assert.equal(u.bossWins[33],t.bossWins[33]);
 }
 console.log('PASS sweep: cleared-only, daily/weekly limits, token/key best stage, all = bosses only');

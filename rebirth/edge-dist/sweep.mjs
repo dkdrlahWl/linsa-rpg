@@ -8,8 +8,17 @@ import {KEY_BOSS_STAGES,keyBossFinish,keyTriesLeft} from './key-dungeon.mjs';
 const check=(ok,code)=>{if(!ok)throw new Error(code);};
 const claimKeyOf=(boss,now)=>boss.weekly?weekKey(now):dayKey(now);
 
-// 보스: 보상 받고 깬 적이 있고(cleared), 이번 날/주 보상을 아직 안 받았으면 소탕 가능.
-export const bossSweepable=(s,boss,now)=>!!boss&&!boss.dungeon&&(s?.cleared||[]).includes(boss.id)&&(s.isAdmin||s.bossClaims?.[boss.id]!==claimKeyOf(boss,now));
+// 보스: 직접 잡은 기록이 있고, 이번 날/주 보상을 아직 안 받았으면 소탕 가능.
+// 2026-11-03 도현: 예전에 같은 번호를 쓰던 보스 기록(cleared)으로 새 보스가 소탕되던 버그 → 새 보스는 출시 후 직접 잡은 기록(bossWins)만 인정.
+// bossWins[id] = 마지막으로 직접(소탕 아님) 보상 받고 잡은 시각. 보스에 since(출시 시각)가 있으면 그 뒤 기록만 인정.
+// Lv.200 이하 기존 보스(id ≤ 32)는 예전처럼 cleared 기록도 인정. 앞으로 보스를 추가하거나 번호를 재사용하면 since를 꼭 넣는다.
+export const LEGACY_SWEEP_MAX_ID=32;
+export function bossEverWon(s,boss){
+ const at=Number(s?.bossWins?.[boss.id])||0;
+ if(at>0&&at>=(boss.since||0))return true;
+ return boss.id<=LEGACY_SWEEP_MAX_ID&&!boss.since&&(s?.cleared||[]).includes(boss.id);
+}
+export const bossSweepable=(s,boss,now)=>!!boss&&!boss.dungeon&&bossEverWon(s,boss)&&(s.isAdmin||s.bossClaims?.[boss.id]!==claimKeyOf(boss,now));
 // 토큰·열쇠: 최고 기록 이하 단계, 오늘 남은 횟수가 있으면 가능.
 export const tokenSweepable=(s,stage,now)=>tokenOpenFor(s)&&Number.isInteger(stage)&&stage>=1&&stage<=TOKEN_BOSS_STAGES.length&&stage<=(s?.tokenBoss?.best||0)&&tokenTriesLeft(s,now)>0;
 export const keySweepable=(s,stage,now)=>Number.isInteger(stage)&&stage>=1&&stage<=KEY_BOSS_STAGES.length&&stage<=(s?.keyBoss?.best||0)&&keyTriesLeft(s,now)>0;
