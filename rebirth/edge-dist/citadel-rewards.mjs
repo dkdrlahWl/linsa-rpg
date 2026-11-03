@@ -6,12 +6,12 @@ import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
 // gear chance is applied exactly as shown in the lobby (no BOSS_GEAR_RATE_SCALE);
 // gear level uniform over the 10-level tiers 100..max; weapon slot at half weight.
 export const CITADEL_BOSS_REWARDS=[
- {lock:.10,scroll:.10,highCube:.20,highCubeCount:3,fragment:10,gear:.04,max:110},
- {lock:.15,scroll:.15,highCube:.25,highCubeCount:3,fragment:10,gear:.05,max:130},
- {lock:.20,scroll:.20,highCube:.30,highCubeCount:4,fragment:10,gear:.05,max:140},
- {lock:.25,scroll:.25,highCube:.35,highCubeCount:4,fragment:10,gear:.05,max:160},
- {lock:.30,scroll:.30,highCube:.40,highCubeCount:5,fragment:10,gear:.05,max:170},
- {lock:.35,scroll:.35,highCube:.45,highCubeCount:5,fragment:10,gear:.05,max:190},
+ {lock:.10,scroll:.10,highCube:.20,highCubeCount:1,fragment:10,gear:.04,max:110},
+ {lock:.15,scroll:.15,highCube:.25,highCubeCount:1,fragment:10,gear:.05,max:130},
+ {lock:.20,scroll:.20,highCube:.30,highCubeCount:2,fragment:10,gear:.05,max:140},
+ {lock:.25,scroll:.25,highCube:.35,highCubeCount:2,fragment:10,gear:.05,max:160},
+ {lock:.30,scroll:.30,highCube:.40,highCubeCount:3,fragment:10,gear:.05,max:170},
+ {lock:.35,scroll:.35,highCube:.45,highCubeCount:3,fragment:10,gear:.05,max:190},
 ];
 export const citadelGearLevel=(max,random)=>100+10*Math.floor(random()*((max-100)/10+1));
 export function citadelPendingChests(state,room,userId){
@@ -28,7 +28,7 @@ export function grantCitadelChests(input,room,userId,ctx){
   const r=CITADEL_BOSS_REWARDS[boss-1];
   if(ctx.random()<r.lock)reward.potentialLock++;
   if(ctx.random()<r.scroll)reward.scroll++;
-  // 2026-11-03 도현: 성채 보스 상자 블랙 큐브(보스별 20~45% · 3~5개).
+  // 2026-11-03 도현: 성채 보스 상자 블랙 큐브(보스별 20~45% · 1~3개, 6보스 다 깨면 최대 12개).
   if(ctx.random()<r.highCube)reward.highCube+=r.highCubeCount;
   reward.fragment+=r.fragment;
   if(ctx.random()<r.gear){
