@@ -13,11 +13,11 @@ r=execute(s,'consumableSell',{id:'cube',quantity:4},ctx());s=r.state;assert.equa
 const w=makeItem(200,'warrior',0,true,ctx());s.items.push(w);
 r=execute(s,'shopSell',{id:w.id},ctx());s=r.state;assert.equal(r.events.find(e=>e.type==='shopSell').mileage,4000000);assert.equal(s.mileage,4022000);
 // 마일리지 상점 구매: 재료·동료 소환권·종족 주사위
-assert.throws(()=>execute(s,'mileageBuy',{id:'primeCube',quantity:1},ctx()),/INSUFFICIENT_MILEAGE/);
+assert.throws(()=>execute(s,'mileageBuy',{id:'ringuHair',quantity:1},ctx()),/INSUFFICIENT_MILEAGE/);
 let t;s.mileage=100_000_000;const before=s.materials.highCube||0;
 t=execute(s,'mileageBuy',{id:'highCube',quantity:10},ctx()).state;assert.equal(t.materials.highCube,before+10);assert.equal(t.mileage,97_500_000);
-t=execute(t,'mileageBuy',{id:'companionTicket'},ctx()).state;assert.equal(t.companions.tickets>=1,true);assert.equal(t.mileage,87_500_000);
-t=execute(t,'mileageBuy',{id:'tribeTicket'},ctx()).state;assert.equal(t.tribeGacha.tickets>=1,true);assert.equal(t.mileage,72_500_000);
+t=execute(t,'mileageBuy',{id:'companionTicket'},ctx()).state;assert.equal(t.companions.tickets>=1,true);assert.equal(t.mileage,93_500_000);
+t=execute(t,'mileageBuy',{id:'tribeTicket'},ctx()).state;assert.equal(t.tribeGacha.tickets>=1,true);assert.equal(t.mileage,78_500_000);
 assert.throws(()=>execute(t,'mileageBuy',{id:'gold'},ctx()),/INVALID_MILEAGE_ITEM/);
 assert.throws(()=>execute(t,'mileageBuy',{id:'cube',quantity:0},ctx()),/INVALID_MILEAGE_QUANTITY/);
 // 행운 물약 사용은 적립 없음(골드 거래 아님)

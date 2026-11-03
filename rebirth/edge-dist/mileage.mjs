@@ -1,7 +1,7 @@
 // 2026-11-03 도현: 셀리아 마일리지.
 // 셀리아에게 소모품을 사거나 팔 때, 보스장비를 팔 때 오간 골드의 1%(VIP 등급에 따라 최대 10%)가 마일리지로 쌓인다(1마일리지 = 1골드 기준 가치).
 // 마일리지 상점에서 마일리지로 재료·소환권 등을 산다. 가격은 마일리지 단위.
-// 2026-11-03 도현: 마일리지 상점 가격 전부 절반. 프라임 큐브는 마일리지 상점에서만 판매(암시장 제외).
+// 2026-11-03 도현: 마일리지 상점 가격 전부 절반. 이후 마일리지 1 ≈ 골드 2 기준으로 잠금석 100만·프라임 100만·동료 소환권 400만 조정. 프라임 큐브는 마일리지 상점에서만 판매(암시장 제외).
 export const MILEAGE_RATE=0.01;
 export const MILEAGE_MAX=9_000_000_000_000;
 export const MILEAGE_SHOP=Object.freeze([
@@ -9,10 +9,10 @@ export const MILEAGE_SHOP=Object.freeze([
  {id:'highCube',name:'블랙 큐브',key:'highCube',cost:250000},
  {id:'addCube',name:'에디셔널 큐브',key:'addCube',cost:500000},
  {id:'bonusFlame',name:'추가옵션 불꽃',key:'bonusFlame',cost:2500000},
- {id:'potentialLock',name:'잠재 잠금석',key:'potentialLock',cost:2500000},
- {id:'primeCube',name:'프라임 큐브',key:'primeCube',cost:5000000},
+ {id:'potentialLock',name:'잠재 잠금석',key:'potentialLock',cost:1000000},
+ {id:'primeCube',name:'프라임 큐브',key:'primeCube',cost:1000000},
  {id:'dungeonKey',name:'던전 열쇠',key:'dungeonKey',cost:5000000},
- {id:'companionTicket',name:'동료 소환권',key:'companionTicket',cost:10000000},
+ {id:'companionTicket',name:'동료 소환권',key:'companionTicket',cost:4000000},
  {id:'tribeTicket',name:'종족 주사위',key:'tribeTicket',cost:15000000},
  {id:'ringuHair',name:'링구의 머리카락',key:'ringuHair',cost:50000000},
 ].map(Object.freeze));
