@@ -4,5 +4,6 @@ export const TOKEN_ART=Object.freeze({
  exchange:'token/exchange-v1.webp',race:'token/race-v1.webp',horse:'token/horse-v1.webp',
 });
 export const tokenIcon=()=>`<img class="token-currency-art" src="${TOKEN_ART.token}" alt="" width="22" height="22" decoding="async">`;
-export const tokenEncounterArt=(battle,encounter)=>battle.tokenStage!==undefined&&battle.keyStage===undefined
+export const tokenEncounterArt=(battle,encounter)=>battle.keyStage!==undefined
+ ?{...encounter,art:'keykeeper-v1',artFrames:1,artSize:300}:battle.tokenStage!==undefined
  ?{...encounter,art:'token-mammon-v1',artFrames:1,artSize:265}:encounter;

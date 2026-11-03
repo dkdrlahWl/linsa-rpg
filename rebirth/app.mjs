@@ -56,6 +56,8 @@ import { renderRefinePanel, renderRefineChoice } from './refine-ui.mjs?v=transce
 import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
 import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-art-20261102';
 import * as D from "./data.mjs?v=transcend2-20261102";
+import {applyFieldArt} from './field-art.mjs?v=field-art-20261103';
+applyFieldArt(D);
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=bossatk-20261103";
@@ -1242,7 +1244,7 @@ function transcendCelebrate(e){
 function transcendBlock(it){
  const need=D.transcendCost(it),have=state.materials?.transcendStone||0,next={...it,bossTier:D.bossTier(it)+1},range=D.gearStatRanges(next),m=D.gearStatMultiplier(it);
  const blocked=enhancementBlock(it)||(!state.isAdmin&&have<need?`초월석이 부족합니다 (${fmt(have)}/${fmt(need)}개)`:"");
- return `<section class="transcend-box"><div class="transcend-head"><span>TRANSCEND</span><b>${esc(D.bossTierName(it))} <i>→</i> ${esc(D.bossTierName(next))}</b></div><p>25성 달성! 초월하면 <b>다음 등급 장비</b>로 바뀌어요.</p><ul><li>기본 수치는 새 등급 범위에서 다시 랜덤 · 공격력 ${fmt(Math.round(range.attack.min*m))}~${fmt(Math.round(range.attack.max*m))}</li><li><b>스타포스만 0성으로 초기화</b> · 잠재능력·추가옵션은 그대로</li><li>다시 25성을 찍으면 다음 등급으로 초월할 수 있어요</li></ul><p class="transcend-cost"><img src="${currencyIconURL('transcendStone')}" alt="">초월석 <b>${fmt(need)}개</b> 필요 · 보유 ${fmt(have)}개</p>${disabledBtn(`초월하기 (초월석 ${need}개)`,"transcend",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked?"short":""}">${blocked||"초월은 항상 성공해요."}</p></section>`;
+ return `<section class="transcend-box"><div class="transcend-head"><span>TRANSCEND</span><b>${esc(D.bossTierName(it))} <i>→</i> ${esc(D.bossTierName(next))}</b></div><p>25성 달성! 초월하면 <b>다음 등급 장비</b>로 바뀌어요.</p><ul><li>기본 수치는 새 등급 범위에서 다시 랜덤 · 공격력 ${fmt(Math.round(range.attack.min*m))}~${fmt(Math.round(range.attack.max*m))}</li><li><b>스타포스만 0성으로 초기화</b> · 잠재능력·추가옵션은 그대로</li><li>다시 25성을 찍으면 다음 등급으로 초월할 수 있어요</li></ul><p class="transcend-cost" data-currency-label="transcendStone"><img src="${currencyIconURL('transcendStone')}" alt="">초월석 <b>${fmt(need)}개</b> 필요 · 보유 ${fmt(have)}개</p>${disabledBtn(`초월하기 (초월석 ${need}개)`,"transcend",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked?"short":""}">${blocked||"초월은 항상 성공해요."}</p></section>`;
 }
 function baseStatsPanel(it){return gearRollDetails(it)+renderRefinePanel(it,state,enhancementBlock(it));}
 let lastUnlockResult=null;

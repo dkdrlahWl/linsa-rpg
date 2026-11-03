@@ -1,7 +1,8 @@
+const KEY_BOSS_IMAGE='tower/boss-keykeeper-v1.webp';
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {TOKEN_ART,tokenIcon} from './token-art.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
-import {KEY_BOSS_STAGES,KEY_DAILY_TRIES,KEY_BOSS_NAME,KEY_BOSS_IMAGE,keyTriesLeft,keyStageOpen,keyCount} from './key-dungeon.mjs?v=keydungeon-20261103';
+import {KEY_BOSS_STAGES,KEY_DAILY_TRIES,KEY_BOSS_NAME,keyTriesLeft,keyStageOpen,keyCount} from './key-dungeon.mjs?v=keydungeon-20261103';
 const keyIcon=()=>`<img class="token-currency-art" src="${currencyIconURL('dungeonKey')}" alt="" width="22" height="22" decoding="async">`;
 import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=bossatk-20261103';
 

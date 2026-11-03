@@ -1,0 +1,941 @@
+{
+  "version": "field-art-20261103",
+  "assets": [
+    {
+      "key": "field-1",
+      "dest": "rebirth/field-art/field-1-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 바람길, within 초록 들판. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-0",
+      "dest": "rebirth/field-art/field-0-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 새싹 언덕, within 초록 들판. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-2",
+      "dest": "rebirth/field-art/field-2-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 수호자의 뜰, within 초록 들판. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-9",
+      "dest": "rebirth/field-art/field-9-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 붉은 절벽, within 붉은 협곡. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-10",
+      "dest": "rebirth/field-art/field-10-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 재의 골짜기, within 붉은 협곡. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-3",
+      "dest": "rebirth/field-art/field-3-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 이끼 정원, within 달빛 숲. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-11",
+      "dest": "rebirth/field-art/field-11-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 용암 심장, within 붉은 협곡. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-12",
+      "dest": "rebirth/field-art/field-12-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 낡은 성문, within 망자의 성. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-5",
+      "dest": "rebirth/field-art/field-5-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 달의 연못, within 달빛 숲. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-13",
+      "dest": "rebirth/field-art/field-13-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 망령 회랑, within 망자의 성. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-14",
+      "dest": "rebirth/field-art/field-14-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 왕의 무덤, within 망자의 성. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-6",
+      "dest": "rebirth/field-art/field-6-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 입구 갱도, within 잊힌 광산. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-16",
+      "dest": "rebirth/field-art/field-16-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 얼음 동굴, within 서리 설원. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-15",
+      "dest": "rebirth/field-art/field-15-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 눈바람 길, within 서리 설원. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-17",
+      "dest": "rebirth/field-art/field-17-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 빙하 정상, within 서리 설원. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-18",
+      "dest": "rebirth/field-art/field-18-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 모래바람 길, within 검은 사막. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-4",
+      "dest": "rebirth/field-art/field-4-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 고목의 길, within 달빛 숲. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-23",
+      "dest": "rebirth/field-art/field-23-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 별빛 제단, within 하늘 신전. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-19",
+      "dest": "rebirth/field-art/field-19-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 매몰된 도시, within 검은 사막. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-7",
+      "dest": "rebirth/field-art/field-7-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 수정 굴, within 잊힌 광산. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-24",
+      "dest": "rebirth/field-art/field-24-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 멈춘 거리, within 시간의 균열. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-20",
+      "dest": "rebirth/field-art/field-20-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 태양 무덤, within 검은 사막. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-8",
+      "dest": "rebirth/field-art/field-8-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 폐광 심층, within 잊힌 광산. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-25",
+      "dest": "rebirth/field-art/field-25-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 뒤틀린 시계, within 시간의 균열. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-21",
+      "dest": "rebirth/field-art/field-21-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 구름 계단, within 하늘 신전. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-29",
+      "dest": "rebirth/field-art/field-29-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 멸신의 왕좌, within 심연 왕좌. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-30",
+      "dest": "rebirth/field-art/field-30-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 멸성의 관문, within 멸성의 황무지. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-22",
+      "dest": "rebirth/field-art/field-22-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 빛의 회랑, within 하늘 신전. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-26",
+      "dest": "rebirth/field-art/field-26-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 영원의 틈, within 시간의 균열. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-31",
+      "dest": "rebirth/field-art/field-31-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 포식자의 균열, within 멸성의 황무지. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-35",
+      "dest": "rebirth/field-art/field-35-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 별무덤의 안뜰, within 유성의 묘역. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-27",
+      "dest": "rebirth/field-art/field-27-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 검은 성문, within 심연 왕좌. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-36",
+      "dest": "rebirth/field-art/field-36-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 심연의 회랑, within 공허 관측소. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-32",
+      "dest": "rebirth/field-art/field-32-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 종말의 분화구, within 멸성의 황무지. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-37",
+      "dest": "rebirth/field-art/field-37-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 균열 포식지, within 공허 관측소. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-28",
+      "dest": "rebirth/field-art/field-28-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 공허의 길, within 심연 왕좌. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-33",
+      "dest": "rebirth/field-art/field-33-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 별무덤의 추적로, within 유성의 묘역. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-38",
+      "dest": "rebirth/field-art/field-38-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 종언의 관측실, within 공허 관측소. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-44",
+      "dest": "rebirth/field-art/field-44-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 영시의 궁전, within CH.2 · 멈춰버린 태엽정원. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-34",
+      "dest": "rebirth/field-art/field-34-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 충돌의 분지, within 유성의 묘역. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-39",
+      "dest": "rebirth/field-art/field-39-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 유리파도의 해안, within CH.1 · 유리바다의 노래. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-46",
+      "dest": "rebirth/field-art/field-46-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 천지학 성소, within CH.3 · 먹빛 선경. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-45",
+      "dest": "rebirth/field-art/field-45-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 먹안개 대숲, within CH.3 · 먹빛 선경. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-47",
+      "dest": "rebirth/field-art/field-47-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 만검의 누각, within CH.3 · 먹빛 선경. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-40",
+      "dest": "rebirth/field-art/field-40-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 진주 산호궁, within CH.1 · 유리바다의 노래. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-49",
+      "dest": "rebirth/field-art/field-49-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 성운의 화원, within CH.4 · 월식 황궁. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-41",
+      "dest": "rebirth/field-art/field-41-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 밀물의 왕좌, within CH.1 · 유리바다의 노래. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-50",
+      "dest": "rebirth/field-art/field-50-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 월식의 황정, within CH.4 · 월식 황궁. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-48",
+      "dest": "rebirth/field-art/field-48-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 극광의 계단, within CH.4 · 월식 황궁. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-53",
+      "dest": "rebirth/field-art/field-53-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 화룡의 용광로, within CH.5 · 불꽃 대장간 협곡. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-54",
+      "dest": "rebirth/field-art/field-54-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 얼어붙은 오로라 숲, within CH.6 · 서리왕의 빙하. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-42",
+      "dest": "rebirth/field-art/field-42-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 황동 열매의 과수원, within CH.2 · 멈춰버린 태엽정원. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-51",
+      "dest": "rebirth/field-art/field-51-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 용암 풀무의 길, within CH.5 · 불꽃 대장간 협곡. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-55",
+      "dest": "rebirth/field-art/field-55-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 빙결 거울 호수, within CH.6 · 서리왕의 빙하. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-52",
+      "dest": "rebirth/field-art/field-52-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 흑철 모루 광산, within CH.5 · 불꽃 대장간 협곡. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-60",
+      "dest": "rebirth/field-art/field-60-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 구름 다리 정원, within CH.8 · 천공의 부유섬. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-43",
+      "dest": "rebirth/field-art/field-43-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 추의 정원, within CH.2 · 멈춰버린 태엽정원. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-56",
+      "dest": "rebirth/field-art/field-56-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 서리왕의 성채, within CH.6 · 서리왕의 빙하. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-61",
+      "dest": "rebirth/field-art/field-61-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 태풍의 등대, within CH.8 · 천공의 부유섬. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-57",
+      "dest": "rebirth/field-art/field-57-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 황금 모래 언덕, within CH.7 · 모래시계 사막. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "field-62",
+      "dest": "rebirth/field-art/field-62-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 하늘왕의 옥좌, within CH.8 · 천공의 부유섬. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "monster-2",
+      "dest": "rebirth/field-art/monster-2-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 클로버 토끼. Habitat: 바람길, 초록 들판. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "field-58",
+      "dest": "rebirth/field-art/field-58-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 잊힌 태양 신전, within CH.7 · 모래시계 사막. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "monster-4",
+      "dest": "rebirth/field-art/monster-4-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 새싹 뿌리. Habitat: 수호자의 뜰, 초록 들판. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-0",
+      "dest": "rebirth/field-art/monster-0-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 씨앗 슬라임. Habitat: 새싹 언덕, 초록 들판. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "field-59",
+      "dest": "rebirth/field-art/field-59-v1.webp",
+      "transparent": false,
+      "prompt": "Create a single fantasy RPG hunting-ground background illustration. Location: 시간의 피라미드, within CH.7 · 모래시계 사막. Interpret the Korean location literally with distinctive terrain, architecture, vegetation, weather and lighting suited to it. Polished hand-painted Korean fantasy adventure game environment, rich colors and atmosphere, landscape 3:2 composition, layered scenic depth, open combat clearing across the lower half, no characters, no monsters, no text, no UI, no frames. Each named location has its own distinct composition."
+    },
+    {
+      "key": "monster-3",
+      "dest": "rebirth/field-art/monster-3-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 도토리 딱정벌레. Habitat: 바람길, 초록 들판. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-6",
+      "dest": "rebirth/field-art/monster-6-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 달빛 나방. Habitat: 이끼 정원, 달빛 숲. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-1",
+      "dest": "rebirth/field-art/monster-1-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 주황 버섯. Habitat: 새싹 언덕, 초록 들판. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-8",
+      "dest": "rebirth/field-art/monster-8-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 별무늬 버섯. Habitat: 고목의 길, 달빛 숲. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-5",
+      "dest": "rebirth/field-art/monster-5-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 이끼 골렘. Habitat: 수호자의 뜰, 초록 들판. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-10",
+      "dest": "rebirth/field-art/monster-10-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 은빛 아기사슴. Habitat: 달의 연못, 달빛 숲. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-7",
+      "dest": "rebirth/field-art/monster-7-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 푸른 등불. Habitat: 이끼 정원, 달빛 숲. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-9",
+      "dest": "rebirth/field-art/monster-9-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 졸린 부엉이. Habitat: 고목의 길, 달빛 숲. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-15",
+      "dest": "rebirth/field-art/monster-15-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 구리 거미. Habitat: 수정 굴, 잊힌 광산. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-11",
+      "dest": "rebirth/field-art/monster-11-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 초승달 그루터기. Habitat: 달의 연못, 달빛 숲. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-18",
+      "dest": "rebirth/field-art/monster-18-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 불씨 도마뱀. Habitat: 붉은 절벽, 붉은 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-16",
+      "dest": "rebirth/field-art/monster-16-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 보석 게. Habitat: 폐광 심층, 잊힌 광산. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-12",
+      "dest": "rebirth/field-art/monster-12-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 광석 두더지. Habitat: 입구 갱도, 잊힌 광산. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-20",
+      "dest": "rebirth/field-art/monster-20-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 잿빛 여우. Habitat: 재의 골짜기, 붉은 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-19",
+      "dest": "rebirth/field-art/monster-19-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 화산 달팽이. Habitat: 붉은 절벽, 붉은 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-17",
+      "dest": "rebirth/field-art/monster-17-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 탄광 로봇. Habitat: 폐광 심층, 잊힌 광산. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-13",
+      "dest": "rebirth/field-art/monster-13-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 수정 박쥐. Habitat: 입구 갱도, 잊힌 광산. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-23",
+      "dest": "rebirth/field-art/monster-23-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 불꽃 풍뎅이. Habitat: 용암 심장, 붉은 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-24",
+      "dest": "rebirth/field-art/monster-24-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 촛불 유령. Habitat: 낡은 성문, 망자의 성. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-21",
+      "dest": "rebirth/field-art/monster-21-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 용암 달걀. Habitat: 재의 골짜기, 붉은 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-26",
+      "dest": "rebirth/field-art/monster-26-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 보랏빛 박쥐. Habitat: 망령 회랑, 망자의 성. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-14",
+      "dest": "rebirth/field-art/monster-14-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 곡괭이 도깨비. Habitat: 수정 굴, 잊힌 광산. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-30",
+      "dest": "rebirth/field-art/monster-30-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 눈송이 여우. Habitat: 눈바람 길, 서리 설원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-25",
+      "dest": "rebirth/field-art/monster-25-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 녹슨 갑옷. Habitat: 낡은 성문, 망자의 성. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-29",
+      "dest": "rebirth/field-art/monster-29-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 장미 가고일. Habitat: 왕의 무덤, 망자의 성. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-27",
+      "dest": "rebirth/field-art/monster-27-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 유령 고양이. Habitat: 망령 회랑, 망자의 성. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-22",
+      "dest": "rebirth/field-art/monster-22-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 숯불 유령. Habitat: 용암 심장, 붉은 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-32",
+      "dest": "rebirth/field-art/monster-32-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 서리 슬라임. Habitat: 얼음 동굴, 서리 설원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-28",
+      "dest": "rebirth/field-art/monster-28-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 낡은 해골. Habitat: 왕의 무덤, 망자의 성. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-31",
+      "dest": "rebirth/field-art/monster-31-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 얼음 펭귄. Habitat: 눈바람 길, 서리 설원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-33",
+      "dest": "rebirth/field-art/monster-33-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 눈사람 기사. Habitat: 얼음 동굴, 서리 설원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-38",
+      "dest": "rebirth/field-art/monster-38-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 금빛 쇠똥구리. Habitat: 매몰된 도시, 검은 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-34",
+      "dest": "rebirth/field-art/monster-34-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 푸른 물개. Habitat: 빙하 정상, 서리 설원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-39",
+      "dest": "rebirth/field-art/monster-39-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 작은 미라. Habitat: 매몰된 도시, 검은 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-42",
+      "dest": "rebirth/field-art/monster-42-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 구름 양. Habitat: 구름 계단, 하늘 신전. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-35",
+      "dest": "rebirth/field-art/monster-35-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 고드름 거북. Habitat: 빙하 정상, 서리 설원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-43",
+      "dest": "rebirth/field-art/monster-43-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 별빛 참새. Habitat: 구름 계단, 하늘 신전. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-40",
+      "dest": "rebirth/field-art/monster-40-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 모래여우. Habitat: 태양 무덤, 검은 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-46",
+      "dest": "rebirth/field-art/monster-46-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 황금 사자. Habitat: 별빛 제단, 하늘 신전. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-45",
+      "dest": "rebirth/field-art/monster-45-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 날개 달린 성배. Habitat: 빛의 회랑, 하늘 신전. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-36",
+      "dest": "rebirth/field-art/monster-36-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 모래 전갈. Habitat: 모래바람 길, 검은 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-44",
+      "dest": "rebirth/field-art/monster-44-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 빛의 체스병. Habitat: 빛의 회랑, 하늘 신전. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-49",
+      "dest": "rebirth/field-art/monster-49-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 태엽 토끼. Habitat: 멈춘 거리, 시간의 균열. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-41",
+      "dest": "rebirth/field-art/monster-41-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 항아리 정령. Habitat: 태양 무덤, 검은 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-37",
+      "dest": "rebirth/field-art/monster-37-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 사막 선인장. Habitat: 모래바람 길, 검은 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-47",
+      "dest": "rebirth/field-art/monster-47-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 천공 해파리. Habitat: 별빛 제단, 하늘 신전. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-51",
+      "dest": "rebirth/field-art/monster-51-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 톱니 드론. Habitat: 뒤틀린 시계, 시간의 균열. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-50",
+      "dest": "rebirth/field-art/monster-50-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 모래시계 정령. Habitat: 뒤틀린 시계, 시간의 균열. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-52",
+      "dest": "rebirth/field-art/monster-52-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 별무리 고양이. Habitat: 영원의 틈, 시간의 균열. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-48",
+      "dest": "rebirth/field-art/monster-48-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 시계 쥐. Habitat: 멈춘 거리, 시간의 균열. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-53",
+      "dest": "rebirth/field-art/monster-53-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 균열 도마뱀. Habitat: 영원의 틈, 시간의 균열. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-59",
+      "dest": "rebirth/field-art/monster-59-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 일식 여우. Habitat: 멸신의 왕좌, 심연 왕좌. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-60",
+      "dest": "rebirth/field-art/monster-60-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 멸성 파수병. Habitat: 멸성의 관문, 멸성의 황무지. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-61",
+      "dest": "rebirth/field-art/monster-61-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 균열 포식수. Habitat: 포식자의 균열, 멸성의 황무지. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-54",
+      "dest": "rebirth/field-art/monster-54-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 공허 슬라임. Habitat: 검은 성문, 심연 왕좌. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-62",
+      "dest": "rebirth/field-art/monster-62-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 종말의 거신. Habitat: 종말의 분화구, 멸성의 황무지. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-63",
+      "dest": "rebirth/field-art/monster-63-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 운석 추적자. Habitat: 별무덤의 추적로, 유성의 묘역. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-55",
+      "dest": "rebirth/field-art/monster-55-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 심연 새끼용. Habitat: 검은 성문, 심연 왕좌. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-66",
+      "dest": "rebirth/field-art/monster-66-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 공허 순례자. Habitat: 심연의 회랑, 공허 관측소. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-64",
+      "dest": "rebirth/field-art/monster-64-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 운석 포식수. Habitat: 충돌의 분지, 유성의 묘역. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-56",
+      "dest": "rebirth/field-art/monster-56-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 검은 갑옷. Habitat: 공허의 길, 심연 왕좌. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-67",
+      "dest": "rebirth/field-art/monster-67-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 균열 잠복수. Habitat: 균열 포식지, 공허 관측소. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-70",
+      "dest": "rebirth/field-art/monster-70-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 진주갑 소라왕. Habitat: 진주 산호궁, CH.1 · 유리바다의 노래. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-57",
+      "dest": "rebirth/field-art/monster-57-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 보라 가오리. Habitat: 공허의 길, 심연 왕좌. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-65",
+      "dest": "rebirth/field-art/monster-65-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 묘역 수호거상. Habitat: 별무덤의 안뜰, 유성의 묘역. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-72",
+      "dest": "rebirth/field-art/monster-72-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 태엽 사과 정령. Habitat: 황동 열매의 과수원, CH.2 · 멈춰버린 태엽정원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-68",
+      "dest": "rebirth/field-art/monster-68-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 심연의 별왕. Habitat: 종언의 관측실, 공허 관측소. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-71",
+      "dest": "rebirth/field-art/monster-71-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 해류의 삼지창 수호자. Habitat: 밀물의 왕좌, CH.1 · 유리바다의 노래. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-73",
+      "dest": "rebirth/field-art/monster-73-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 청동 추 파수꾼. Habitat: 추의 정원, CH.2 · 멈춰버린 태엽정원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-74",
+      "dest": "rebirth/field-art/monster-74-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 영시의 황금 여왕. Habitat: 영시의 궁전, CH.2 · 멈춰버린 태엽정원. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-58",
+      "dest": "rebirth/field-art/monster-58-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 눈알 촉수. Habitat: 멸신의 왕좌, 심연 왕좌. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-69",
+      "dest": "rebirth/field-art/monster-69-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 유리등 해마. Habitat: 유리파도의 해안, CH.1 · 유리바다의 노래. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-75",
+      "dest": "rebirth/field-art/monster-75-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 먹빛 대나무 호랑이. Habitat: 먹안개 대숲, CH.3 · 먹빛 선경. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-77",
+      "dest": "rebirth/field-art/monster-77-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 흑련 검귀. Habitat: 만검의 누각, CH.3 · 먹빛 선경. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-76",
+      "dest": "rebirth/field-art/monster-76-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 두루마리 학선. Habitat: 천지학 성소, CH.3 · 먹빛 선경. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-83",
+      "dest": "rebirth/field-art/monster-83-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 용광로의 화룡 이그나르. Habitat: 화룡의 용광로, CH.5 · 불꽃 대장간 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-78",
+      "dest": "rebirth/field-art/monster-78-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 극광 수정 사슴. Habitat: 극광의 계단, CH.4 · 월식 황궁. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-84",
+      "dest": "rebirth/field-art/monster-84-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 서리뿔 순록. Habitat: 얼어붙은 오로라 숲, CH.6 · 서리왕의 빙하. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-85",
+      "dest": "rebirth/field-art/monster-85-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 빙경의 인어 기사. Habitat: 빙결 거울 호수, CH.6 · 서리왕의 빙하. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-79",
+      "dest": "rebirth/field-art/monster-79-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 은하 백합 여제. Habitat: 성운의 화원, CH.4 · 월식 황궁. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-86",
+      "dest": "rebirth/field-art/monster-86-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 서리왕 니블하임. Habitat: 서리왕의 성채, CH.6 · 서리왕의 빙하. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-89",
+      "dest": "rebirth/field-art/monster-89-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 모래시계 파라오 세티. Habitat: 시간의 피라미드, CH.7 · 모래시계 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-88",
+      "dest": "rebirth/field-art/monster-88-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 태양 가면 신관. Habitat: 잊힌 태양 신전, CH.7 · 모래시계 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-80",
+      "dest": "rebirth/field-art/monster-80-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 월식의 나비 군주. Habitat: 월식의 황정, CH.4 · 월식 황궁. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-91",
+      "dest": "rebirth/field-art/monster-91-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 폭풍 등불 정령. Habitat: 태풍의 등대, CH.8 · 천공의 부유섬. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-87",
+      "dest": "rebirth/field-art/monster-87-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 사구 전갈 기병. Habitat: 황금 모래 언덕, CH.7 · 모래시계 사막. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-90",
+      "dest": "rebirth/field-art/monster-90-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 구름갈기 그리핀. Habitat: 구름 다리 정원, CH.8 · 천공의 부유섬. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-81",
+      "dest": "rebirth/field-art/monster-81-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 풀무불 도롱뇽. Habitat: 용암 풀무의 길, CH.5 · 불꽃 대장간 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-92",
+      "dest": "rebirth/field-art/monster-92-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 천공왕 아스테르. Habitat: 하늘왕의 옥좌, CH.8 · 천공의 부유섬. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    },
+    {
+      "key": "monster-82",
+      "dest": "rebirth/field-art/monster-82-v1.webp",
+      "transparent": true,
+      "prompt": "Create a single full-body fantasy RPG monster game sprite illustration. Creature name: 흑철 모루 골렘. Habitat: 흑철 모루 광산, CH.5 · 불꽃 대장간 협곡. Interpret this Korean creature name literally and creatively, with distinctive anatomy and equipment matching its habitat. Charming but combat-ready, polished hand-painted Korean fantasy RPG art, clear silhouette readable at 180px, three-quarter view facing left, centered full body including every limb and weapon with 10 percent clear padding, transparent background, no text, no frame, no ground scenery. One character only."
+    }
+  ]
+}
