@@ -65,6 +65,7 @@ import {tokenView,keyView,tokenVisible,tokenBossResult,keyBossResult,raceUI} fro
 import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=tribe-glow-20261102";
 installNameFit();
 import {tokenShopBought} from "./token-content.mjs?v=bossatk-20261103";
+import {sweepPlan,bossSweepable} from "./sweep.mjs";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
@@ -228,6 +229,8 @@ const errors = {
   FISHING_QUEST_CLAIMED: "이미 받은 일일 보상이에요.",
   FISHING_SUMMON_REMOVED: "루미 소환이 종료됐어요. 이벤트에서 낚시를 즐겨주세요.",
   INSUFFICIENT_POTENTIALLOCK: "잠재 잠금석이 부족해요.",
+  SWEEP_NOTHING: "지금 소탕할 수 있는 게 없어요.",
+  SWEEP_NOT_ALLOWED: "한 번 깬 적이 있고 오늘(이번 주) 남은 횟수가 있어야 소탕할 수 있어요.",
   INSUFFICIENT_RINGUHAIR: "링구의 머리카락이 부족해요.",
   HAIR_ALREADY_USED: "이 장비는 이미 링구의 머리카락을 썼어요.",
   ITEM_NOT_BOUND: "거래 불가 장비에만 바를 수 있어요.",
@@ -699,7 +702,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     render();
     for (const event of result.result?.events || []) if(event.type === "combat") combatFrames.push(...event.frames);
     if (combatFrames.length > 6) combatFrames.splice(0, combatFrames.length - 6);
-    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial","citadelChest","tokenBoss","keyBoss"].includes(e.type))) showEvents(result.result?.events || []);
+    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial","citadelChest","tokenBoss","keyBoss","sweep"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
     if((requestSignal?.aborted&&!inputDeadline?.aborted)||baseSignal?.aborted||session?.user?.id!==accountAtSend){
@@ -1079,11 +1082,18 @@ function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 
 
 function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}
 function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨 · 5차 200레벨 · 6차 250레벨 · 7차 300레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 1~5차는 인원에 따른 난이도 변화 없음 · 6·7차는 2명이면 보스 체력 2배 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (1~5차 누적 61.05%) · 6차 공격력 +12%·보스 피해 +20%·HP +12% · 7차 공격력 +15%·보스 피해 +30%·치명타 +10%p·HP +15% (잠재처럼 더해짐) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss">'+advancementPortrait(t)+'<div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>'+(t.stage>=5?advancementBonusText(t.stage):'해금: '+(t.stage===4?D.FIFTH_SKILLS[state.classId].name:t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name))+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
+// 2026-11-03 도현: 소탕 — 보스 탭 최상단 전체 소탕(일보·주보·토큰·열쇠 한 번에).
+function sweepBar(){
+  const plan=sweepPlan(state,Date.now()),n=k=>plan.filter(p=>p.kind===k).length;
+  const daily=plan.filter(p=>p.kind==='boss'&&!D.BOSSES[p.id].weekly).length,weekly=plan.filter(p=>p.kind==='boss'&&D.BOSSES[p.id].weekly).length;
+  const parts=[daily&&'일보 '+daily,weekly&&'주보 '+weekly,n('token')&&'토큰 던전 '+n('token')+'회',n('key')&&'열쇠 던전 '+n('key')+'회'].filter(Boolean);
+  return `<section class="panel sweep-bar"><div><strong>전체 소탕</strong><small>${parts.length?parts.join(' · '):'소탕할 수 있는 게 없어요 · 한 번 깬 보스·단계만 소탕 가능'}</small></div>${disabledBtn(plan.length?'전체 소탕 '+plan.length+'건':'전체 소탕','sweep','all',!plan.length||!!state.battle,'gold')}</section>`;
+}
 function bosses() {
   const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["exploration","링구의 탐험"],["citadel","암흑성채"],["raid","레이드"],["daily","일일"],["weekly","주간"],["training","허수아비"],["tower","시련의 탑"],["advancement","전직 보스"],...(tokenVisible(state)?[["token","토큰 던전"]]:[]),["key","열쇠 던전"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>이미지 전사와 파수꾼 · 캐릭터를 따라가는 위쪽 시점 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
-  if(bossTab==="token"){if(!tokenVisible(state)){bossTab="daily";return bosses();}return menu+tokenView(state,tokenPage);}
-  if(bossTab==="key")return menu+keyView(state);
+  if(bossTab==="token"){if(!tokenVisible(state)){bossTab="daily";return bosses();}return sweepBar()+menu+tokenView(state,tokenPage);}
+  if(bossTab==="key")return sweepBar()+menu+keyView(state);
   if(bossTab==="exploration")return menu+explorationLobby(state,coopRoom,coopRooms);
   if(bossTab==="raid")return menu+raidLobby(state,coopRoom,coopRooms);
   if(bossTab==="wave"){bossTab="exploration";return menu+coopLobby(state,coopRoom,coopRooms,"exploration");}
@@ -1092,12 +1102,12 @@ function bosses() {
   if(bossTab==="tower")return menu+towerLobby(state);
   if(bossTab==="advancement")return menu+advancementLobby();
   if(bossTab==="training")return menu+header("허수아비 훈련장","DAMAGE TEST")+`<p class="note compact-note">실제 이동·공격·스킬로 60초 동안 측정합니다. 최근 5초 DPS와 전체 평균 DPS를 실시간으로 볼 수 있습니다. 입장 비용·보상·도전 횟수 차감은 없습니다.</p><div class="boss-list">${[["normal","일반몹 허수아비","일반 몬스터 대상 피해를 측정합니다."],["boss","보스용 허수아비","보스 피해 증가 효과를 포함해 측정합니다."]].map(([mode,name,description])=>`<section class="panel boss-card dummy-card"><div class="dummy-card-art ${mode}" aria-hidden="true"><i></i></div><div class="boss-card-body"><strong>${name}</strong><p>${description}</p><small>60초 · 직접 조작 · 무제한 재도전</small><div class="actions">${disabledBtn("측정 시작","dummyStart",mode,!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</div></div></section>`).join("")}</div>`;
-  return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">입장 조건 없음 · 주간 보스별 주 1회 보상 · 월요일 00시 갱신 · 일일 보스별 하루 1회 도전 · 매일 00시 갱신</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
+  return sweepBar()+header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">입장 조건 없음 · 주간 보스별 주 1회 보상 · 월요일 00시 갱신 · 일일 보스별 하루 1회 도전 · 매일 00시 갱신</p><div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
 }
 function bossCard(b) {
   const claimed=!state.isAdmin&&(b.weekly?state.bossClaims?.[b.id]===D.weekKey(Date.now()):state.bossClaims?.[b.id]===D.dayKey(Date.now()));
   const locked=false;
-  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${b.background||D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 보상 완료":"오늘 보상 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"보상 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}${b.exactHalfWeapon?" · 무기 비중은 다른 부위의 1/2":""}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.rewardMaterials?Object.entries(b.rewardMaterials).map(([k,n])=>" · "+D.MATERIALS[k]+" "+n).join(""):b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.guide?esc(b.guide)+"<br>":""}${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 보상 · 승리 시 차감 · 패배·포기 시 재도전 가능"} · 연습은 보상 없음</p></details></div></section>`;
+  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${b.background||D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 보상 완료":"오늘 보상 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"보상 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${state.cleared?.includes(b.id)?disabledBtn("소탕","sweep","boss:"+b.id,!bossSweepable(state,b,Date.now())||!!state.battle):""}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}${b.exactHalfWeapon?" · 무기 비중은 다른 부위의 1/2":""}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.rewardMaterials?Object.entries(b.rewardMaterials).map(([k,n])=>" · "+D.MATERIALS[k]+" "+n).join(""):b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.guide?esc(b.guide)+"<br>":""}${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 보상 · 승리 시 차감 · 패배·포기 시 재도전 가능"} · 연습은 보상 없음</p></details></div></section>`;
 }
 function partyPanel() {
  if(!partyRoom)return header('협동 토벌')+'<div class="panel pad">파티 정보를 불러오는 중…</div>';
@@ -1287,6 +1297,12 @@ function cubeChoice() {
  open((D.CUBES[p.kind]?.name||"큐브")+" · 결과 선택",`<div class="enhance-content"><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong></div></div>${renderCubeChoice(it,p,state,cubeKind)}</div>`,false);
  modal.classList.add("enhance-dialog","cube-dialog");
 }
+function sweepResult(e){
+  const line=(n,k)=>e[k]>0?`<li><span>${n}</span><b>${fmt(e[k])}</b></li>`:'';
+  const items=(e.items||[]).map(id=>state.items?.find(it=>it.id===id)).filter(Boolean);
+  const rows=e.entries.map(x=>`<li><span>${esc(x.name)}${x.weekly?' <small>주간</small>':''}</span><small>${[x.gold&&fmt(x.gold)+' G',x.highCube&&'블랙 '+x.highCube,x.addCube&&'에디 '+x.addCube,x.tokens&&'토큰 '+fmt(x.tokens),x.keys&&'열쇠 '+x.keys,x.items?.length&&'장비 '+x.items.length].filter(Boolean).join(' · ')}</small></li>`).join('');
+  open(e.all?'전체 소탕 완료 · '+e.count+'건':'소탕 완료',`<div class="sweep-result"><h4>받은 보상</h4><ul class="sweep-total">${line('골드','gold')}${line('레드 큐브','cube')}${line('블랙 큐브','highCube')}${line('에디셔널 큐브','addCube')}${line('잠재 잠금석','potentialLock')}${line('토큰','tokens')}${line('던전 열쇠','keys')}</ul>${items.length?`<h4>장비 ${items.length}개</h4>`+items.map(it=>`<div class="panel pad">${gearMarkup(it)}<strong>${esc(D.gearName(it))}</strong><p>Lv.${it.level} · ${D.SLOTS[it.slot]}</p></div>`).join(''):''}${e.entries.length>1?`<details><summary>소탕 내역 ${e.entries.length}건</summary><ul class="sweep-list">${rows}</ul></details>`:`<ul class="sweep-list">${rows}</ul>`}</div>`+btn('확인','ack','','gold',true),false);
+}
 function showEvents(events) {
   const earnedTitles=events.filter(e=>e.type==='titleEarned');
   if(earnedTitles.length)queueMicrotask(()=>{sounds.play('loot-rare');
@@ -1295,6 +1311,7 @@ function showEvents(events) {
   for (const e of events) {
     if(e.type==='titleEarned'||e.type==='titleEquip')continue;
     if(e.type==='citadelChest'){sounds.play(e.items?.length?'loot-rare':'loot-common');const parts=['장비 파편 '+fmt(e.fragment||0)+'개'];if(e.potentialLock)parts.push('잠재 잠금석 '+e.potentialLock+'개');if(e.scroll)parts.push('잠재 해금 주문서 '+e.scroll+'개');if(e.highCube)parts.push('블랙 큐브 '+e.highCube+'개');for(const it of e.items||[])parts.push('보스 장비 · '+D.gearName(it)+' Lv.'+it.level);toast('보스 상자 · '+parts.join(' · ')+(e.stored?' (가방이 가득 차 우편함으로)':''));continue;}
+    if(e.type==='sweep'){sounds.play(e.items?.length?'loot-rare':'loot-common');sweepResult(e);continue;}
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
     if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
     if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}
@@ -1761,6 +1778,7 @@ document.addEventListener("click", async (e) => {
     if(action==='towerOpen')return await command('towerOpen',{runId:state.battle?.runId});
     if(action==='tokenPage'){tokenPage=['shop','race'].includes(arg)?arg:'dungeon';render();if(tokenPage==='race'&&!state.race?.card)await command('raceCard',{},true);return;}
     if(action==='tokenBossStart'){modal.close();tab='boss';bossTab='token';view='game';return await command('tokenBossStart',{stage:Number(arg)});}
+    if(action==='sweep'){const [kind,v]=String(arg).split(':');modal.close();return await command('sweep',kind==='all'?{kind}:kind==='boss'?{kind,id:Number(v)}:{kind,stage:Number(v)});}
     if(action==='keyBossStart'){modal.close();tab='boss';bossTab='key';view='game';return await command('keyBossStart',{stage:Number(arg)});}
     if(action==='tokenShopBuy'){if(busy)return;const [id,q]=String(arg).split(':');await command('tokenShopBuy',{id,quantity:Number(q)||1});return;}
     if(action==='raceCard'){await command('raceCard',{},true);return;}

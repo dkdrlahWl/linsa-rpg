@@ -3,6 +3,7 @@ const KEY_BOSS_IMAGE='tower/boss-keykeeper-v1.webp';
 import {TOKEN_ART,tokenIcon} from './token-art.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
 import {KEY_BOSS_STAGES,KEY_DAILY_TRIES,KEY_BOSS_NAME,keyTriesLeft,keyStageOpen,keyCount} from './key-dungeon.mjs?v=keydungeon-20261103';
+import {tokenSweepable,keySweepable} from './sweep.mjs';
 const keyIcon=()=>`<img class="token-currency-art" src="${currencyIconURL('dungeonKey')}" alt="" width="22" height="22" decoding="async">`;
 import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=bossatk-20261103';
 
@@ -25,7 +26,7 @@ function dungeon(s,now){
  const left=tokenTriesLeft(s,now),best=s.tokenBoss?.best||0;
  const cards=TOKEN_BOSS_STAGES.map(t=>{
   const open=tokenStageOpen(s,t.stage),cleared=best>=t.stage;
-  return `<article class="token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>HP ${big(t.hp)}${cleared?' <em class="token-clear">클리어</em>':''}</strong><small>공격 ${big(t.attack)}</small></div><div class="token-stage-side"><b class="token-reward">${tokenIcon()} ${t.tokens}</b>${b(open?'도전':'🔒','tokenBossStart',t.stage,open?'gold':'',!open||!left||!!s.battle)}</div></article>`;
+  return `<article class="token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>HP ${big(t.hp)}${cleared?' <em class="token-clear">클리어</em>':''}</strong><small>공격 ${big(t.attack)}</small></div><div class="token-stage-side"><b class="token-reward">${tokenIcon()} ${t.tokens}</b>${b(open?'도전':'🔒','tokenBossStart',t.stage,open?'gold':'',!open||!left||!!s.battle)}${cleared?b('소탕','sweep','token:'+t.stage,'',!tokenSweepable(s,t.stage,now)||!!s.battle):''}</div></article>`;
  }).join('');
  return `<section class="token-boss-showcase"><img src="${TOKEN_ART.boss}" alt="황금 금고지기 마몬" decoding="async"><div><small>GOLDEN VAULT</small><h3>황금 금고지기 마몬</h3><p>황금 금고를 지키는 탐욕의 수호자</p></div></section><section class="token-dungeon-head"><div class="token-dungeon-boss"><strong>${esc(TOKEN_BOSS_STAGES[0].name)}</strong><small>제한 60초 · 처치하면 그 단계 토큰 지급</small></div><div class="token-tries"><small>남은 도전</small><b>${left}<i>/${TOKEN_DAILY_TRIES}</i></b></div></section><p class="token-subline">처치했을 때만 도전 1회 차감 · 실패하거나 나가면 차감 없음 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화 · 최고 클리어 <b>${best||0}단계</b></p><div class="token-stage-list">${cards}</div>`;
 }
@@ -95,7 +96,7 @@ function keyDungeon(s,now){
  const left=keyTriesLeft(s,now),best=s.keyBoss?.best||0;
  const cards=KEY_BOSS_STAGES.map(t=>{
   const open=keyStageOpen(s,t.stage),cleared=best>=t.stage;
-  return `<article class="token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>HP ${big(t.hp)}${cleared?' <em class="token-clear">클리어</em>':''}</strong><small>공격 ${big(t.attack)}</small></div><div class="token-stage-side"><b class="token-reward">${keyIcon()} ${t.keys}</b>${b(open?'도전':'🔒','keyBossStart',t.stage,open?'gold':'',!open||!left||!!s.battle)}</div></article>`;
+  return `<article class="token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>HP ${big(t.hp)}${cleared?' <em class="token-clear">클리어</em>':''}</strong><small>공격 ${big(t.attack)}</small></div><div class="token-stage-side"><b class="token-reward">${keyIcon()} ${t.keys}</b>${b(open?'도전':'🔒','keyBossStart',t.stage,open?'gold':'',!open||!left||!!s.battle)}${cleared?b('소탕','sweep','key:'+t.stage,'',!keySweepable(s,t.stage,now)||!!s.battle):''}</div></article>`;
  }).join('');
  return `<section class="token-boss-showcase"><img src="${KEY_BOSS_IMAGE}" alt="${esc(KEY_BOSS_NAME)}" decoding="async"><div><small>KEY VAULT</small><h3>${esc(KEY_BOSS_NAME)}</h3><p>던전 열쇠를 사슬로 묶어 지키는 집행관</p></div></section><section class="token-dungeon-head"><div class="token-dungeon-boss"><strong>${esc(KEY_BOSS_NAME)}</strong><small>제한 60초 · 처치하면 그 단계 던전 열쇠 지급 · 보유 ${fmt(keyCount(s))}개</small></div><div class="token-tries"><small>남은 도전</small><b>${left}<i>/${KEY_DAILY_TRIES}</i></b></div></section><p class="token-subline">토큰 던전과 도전 횟수 따로 · 처치했을 때만 1회 차감 · 실패하거나 나가면 차감 없음 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화 · 최고 클리어 <b>${best||0}단계</b></p><div class="token-stage-list">${cards}</div>`;
 }

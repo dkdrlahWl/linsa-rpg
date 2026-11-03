@@ -26,3 +26,12 @@ body .mileage-shop{padding:14px;background:linear-gradient(140deg,#1d2d2bf2,#171
 body .mileage-currency-art{display:inline-block;width:22px!important;height:22px!important;min-width:22px;object-fit:contain;vertical-align:middle;margin-right:4px;filter:drop-shadow(0 1px 3px #0008)}
 .mileage-price{display:inline-flex;align-items:center;justify-content:center}.mileage-wallet{gap:4px}.vip-title-preview{height:82px;width:270px}.vip-badge img{filter:drop-shadow(0 2px 5px #0007)}
 body .mileage-price .mileage-currency-art{width:16px!important;height:16px!important;min-width:16px;margin-right:3px}
+/* 2026-11-03 소탕 */
+.sweep-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-bottom:10px}
+.sweep-bar>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sweep-bar small{opacity:.75;font-size:12px}
+.sweep-bar button{flex:0 0 auto;white-space:nowrap}
+.sweep-result h4{margin:10px 0 6px}
+.sweep-total,.sweep-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.sweep-total li,.sweep-list li{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.05)}
+.sweep-list li small{opacity:.75;text-align:right}

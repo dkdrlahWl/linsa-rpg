@@ -27,6 +27,7 @@ import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=balance-2026110
 import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=bossatk-20261103';
 import {mileageEarn,mileageBuy} from './mileage.mjs?v=mileage-20261103';
 import {keyBossEnter,keyBossFinish} from './key-dungeon.mjs?v=keydungeon-20261103';
+import {sweepCommand} from './sweep.mjs';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';
@@ -117,6 +118,37 @@ export function makeItem(level, classId, slot, boss, ctx, variant) {
 }
 // Guaranteed/bonus boss gear (fragment exchange, citadel chests): weapon weight 0.5, other 8 slots 1 each,
 // so a weapon is exactly half as likely as any other single slot.
+// 보스 승리 보상(일일 승리·주간 상자·소탕 공용). claimKey로 이번 날/주 보상 처리, 장비는 보스 확률(행운 물약 포함).
+// weeklyChest: 운영자 지정 드롭 부위를 무기 제외(1~8)로만 받는 주간 상자 규칙.
+function grantBossVictory(s, boss, claimKey, ctx, reward, weeklyChest=false) {
+    s.bossClaims ||= {};
+    s.bossClaims[boss.id] = claimKey;
+    if (!s.cleared.includes(boss.id)) s.cleared.push(boss.id);
+    s.gold += boss.gold;reward.gold=boss.gold;
+    s.materials.cube += boss.cubes;reward.cube=boss.cubes;
+    if (boss.rewardMaterials) {
+      for (const [key,n] of Object.entries(boss.rewardMaterials)) {s.materials[key]=(s.materials[key]||0)+n;reward[key]=n;}
+    } else if (boss.weekly) {
+      s.materials.highCube+=2;reward.highCube=2;
+    }
+    // 운영자 지정 드롭(DB): adminNextBossGear={bossId,after,slot?}. after 이후 첫 보상 처치에 그 부위로 확정.
+    const forcedGear=s.adminNextBossGear,forceNow=!!forcedGear&&forcedGear.bossId===boss.id&&ctx.now>=(forcedGear.after||0);
+    if(forceNow)delete s.adminNextBossGear;
+    const minSlot=weeklyChest?1:0;
+    if (forceNow || ctx.random() < rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)) {
+        const it = makeLootItem(
+          boss.gearLevel,
+          forceNow?s.classId:pick(CLASSES, ctx).id,
+          forceNow?(Number.isInteger(forcedGear.slot)&&forcedGear.slot>=minSlot&&forcedGear.slot<=8?forcedGear.slot:1+Math.floor(ctx.random()*8)):boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random() * 9),
+          true,
+          ctx,
+          undefined,
+          forceNow||!!boss.exactHalfWeapon,
+        );
+        addItem(s, it);
+        reward.items.push(it.id);
+    }
+}
 export function halfWeaponSlot(random){const r=random()*8.5;return r<.5?0:Math.min(8,1+Math.floor(r-.5));}
 export function balanceBossGearSlot(slot,ctx){return slot===0&&ctx.random()<.5?1+Math.floor(ctx.random()*8):slot;}
 export function makeLootItem(base,classId,slot,boss,ctx,variant,slotBalanced=false){if(boss&&!slotBalanced)slot=balanceBossGearSlot(slot,ctx);const level=Math.max(10,rollEquipmentLevel(base,ctx.random)),design=selectDesign(level,classId,slot,boss,ctx.random);const item={...makeItem(level,classId,slot,boss,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);return item;}
@@ -527,33 +559,7 @@ function bossSettle(s, ctx, events) {
         addItem(s,it); reward.items.push(it.id); s.gold += 20000; s.materials.fragment += 60;reward.gold=20000;reward.fragment=60;
       } else {s.materials.fragment += 200;reward.fragment=200;}
     } else {
-    s.bossClaims[boss.id] = b.claimKey;
-    if (!s.cleared.includes(boss.id)) s.cleared.push(boss.id);
-
-    s.gold += boss.gold;reward.gold=boss.gold;
-    s.materials.cube += boss.cubes;reward.cube=boss.cubes;
-    if (boss.rewardMaterials) {
-      for (const [key,n] of Object.entries(boss.rewardMaterials)) {s.materials[key]=(s.materials[key]||0)+n;reward[key]=n;}
-    } else if (boss.weekly) {
-      s.materials.highCube+=2;
-
-    }
-    // 2026-11-03 운영자 지정 드롭(DB): adminNextBossGear={bossId,after,slot?} — 일일 보스도 지원. after 이후 첫 보상 처치에 그 부위로 확정.
-    const forcedGear=s.adminNextBossGear,forceNow=!!forcedGear&&forcedGear.bossId===boss.id&&ctx.now>=(forcedGear.after||0);
-    if(forceNow)delete s.adminNextBossGear;
-    if (forceNow || ctx.random() < rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)) {
-        const it = makeLootItem(
-          boss.gearLevel,
-          forceNow?s.classId:pick(CLASSES, ctx).id,
-          forceNow?(Number.isInteger(forcedGear.slot)&&forcedGear.slot>=0&&forcedGear.slot<=8?forcedGear.slot:1+Math.floor(ctx.random()*8)):boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random() * 9),
-          true,
-          ctx,
-          undefined,
-          forceNow||boss.exactHalfWeapon,
-        );
-        addItem(s, it);
-        reward.items.push(it.id);
-    }
+    grantBossVictory(s, boss, b.claimKey, ctx, reward);
     }
   }
   s.battle = null;
@@ -639,9 +645,7 @@ function executeCore(input, command, args = {}, ctx) {
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
-      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;Object.assign(reward,{gold:boss.gold,cube:boss.cubes});if(boss.rewardMaterials)for(const [key,n] of Object.entries(boss.rewardMaterials)){s.materials[key]=(s.materials[key]||0)+n;reward[key]=n;}else{s.materials.highCube+=2;reward.highCube=2;}const forcedGear=s.adminNextBossGear;const forceNow=forcedGear&&forcedGear.bossId===boss.id&&ctx.now>=(forcedGear.after||0);if(forceNow)delete s.adminNextBossGear;
-        // 운영자 지정 드롭(DB): adminNextBossGear={bossId,after,slot?}. 무기 제외 부위 중 하나로 확정 지급.
-        if(forceNow||ctx.random()<rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)){const level=boss.gearLevel;const slot=forceNow?(Number.isInteger(forcedGear.slot)&&forcedGear.slot>=1&&forcedGear.slot<=8?forcedGear.slot:1+Math.floor(ctx.random()*8)):boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random()*9);const item=makeLootItem(level,forceNow?s.classId:pick(CLASSES,ctx).id,slot,true,ctx,undefined,forceNow||!!boss.exactHalfWeapon);addItem(s,item);reward.items.push(item.id);}}
+      if(!reward.practice){s.daily.boss++;grantBossVictory(s,boss,claimKey,ctx,reward,true);}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};
     }
     else if(command==='towerInput'){
@@ -703,6 +707,7 @@ function executeCore(input, command, args = {}, ctx) {
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   if(command.startsWith("treasure")){events.push(treasureCommand(s,command,args,ctx,dayKey(ctx.now),level=>{const item=makeLootItem(level,s.classId,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);return item;}));return {state:s,events};}
   switch (command) {
+    case "sweep": {check(!s.pendingCube,"ITEM_CUBE_PENDING");events.push(sweepCommand(s,args,ctx,{grantBoss:(st,boss,claimKey,reward)=>grantBossVictory(st,boss,claimKey,ctx,reward,!!boss.weekly)}));break;}
     case "tokenBossStart": {
       check(!s.pendingCube,"ITEM_CUBE_PENDING");
       const fields=tokenBossEnter(s,args.stage,ctx.now);
