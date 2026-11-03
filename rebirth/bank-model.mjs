@@ -1,5 +1,6 @@
-export const BANK_DAY=3600000; // 2026-11-03 도현: 1시간마다 0.1%씩 복리 (24시간 약 2.4%). 이전 0.3%.
-export const BANK_RATE_PER_MILLE=1;
+export const BANK_DAY=3600000; // 2026-11-03 도현: 10억 기준 하루 약 1,000만(하루 1%) — 1시간마다 0.0415%씩 복리.
+// 정밀도를 위해 100만분율(ppm)로 계산. 9조 × 415 < Number.MAX_SAFE_INTEGER.
+export const BANK_RATE_PPM=415;
 export const BANK_LIMIT=9000000000000;
 export function bankTotal(bank){return (bank?.lots||[]).reduce((n,l)=>n+l.gold,0);}
 export function settleBank(s,now){
@@ -10,7 +11,7 @@ export function settleBank(s,now){
  for(const lot of b.lots){
   if(!Number.isSafeInteger(lot.gold)||lot.gold<0||!Number.isSafeInteger(lot.at))throw Error('INVALID_BANK_STATE');
   let days=Math.floor(Math.max(0,now-lot.at)/BANK_DAY);
-  while(days-->0){const gain=Math.min(Math.floor(lot.gold*BANK_RATE_PER_MILLE/1000),BANK_LIMIT-total);if(gain>0){lot.gold+=gain;total+=gain;b.interest=Math.min(Number.MAX_SAFE_INTEGER,b.interest+gain);}if(gain===0)break;}
+  while(days-->0){const gain=Math.min(Math.floor(lot.gold*BANK_RATE_PPM/1000000),BANK_LIMIT-total);if(gain>0){lot.gold+=gain;total+=gain;b.interest=Math.min(Number.MAX_SAFE_INTEGER,b.interest+gain);}if(gain===0)break;}
   lot.at+=Math.floor(Math.max(0,now-lot.at)/BANK_DAY)*BANK_DAY;
  }
  s.bank=b;return b;
