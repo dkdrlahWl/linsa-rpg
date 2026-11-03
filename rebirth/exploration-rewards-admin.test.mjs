@@ -18,7 +18,7 @@ for(let tier=0;tier<3;tier++){
   const rolls=[.999,.999,.999,.999];rolls[index]=rates[key]-.000001;const yes=grant(rolls);assert.equal(yes.reward[key],EXPLORATION_REWARD_COUNTS[key]);assert.equal(yes.state.materials[key],input.materials[key]+EXPLORATION_REWARD_COUNTS[key]);
   rolls[index]=rates[key];assert.equal(grant(rolls).reward[key],0);
  }
- const all=grant([0,0,0,0,.995,.999,.999]);assert.equal(all.reward.items[0].level,190);assert.equal(all.reward.items[0].boss,true);assert.equal(all.state.items.length,1);assert.deepEqual(['scroll','highCube','potentialLock'].map(k=>all.reward[k]),[3,5,2]);assert.equal(input.items.length,0);
+ const all=grant([0,0,0,0,.995,.999,.999]);assert.equal(all.reward.items[0].level,190);assert.equal(all.reward.items[0].boss,true);assert.equal(all.state.items.length,1);assert.deepEqual(['scroll','highCube','potentialLock'].map(k=>all.reward[k]),[3,10,2]);assert.equal(input.items.length,0);
  const jobs=new Set();for(const classRoll of [0,.2,.4,.6,.8,.999]){const gear=grant([.999,.999,.999,0,.5,classRoll,.5]);jobs.add(gear.reward.items[0].classId);}assert.equal(jobs.size,6);
  const full={...input,items:Array.from({length:300},(_,i)=>({id:String(i)}))};const overflow=grantExplorationChest(full,room,{random:()=>0,uuid:()=>crypto.randomUUID()});assert.equal(overflow.state.items.length,300);assert.equal(overflow.state.mailbox.length,1);assert.equal(overflow.reward.stored,1);
  assert.throws(()=>grantExplorationChest(input,{...room,status:'fighting'},{random:()=>0}),/NOT_READY/);

@@ -1,4 +1,4 @@
-import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumable,shopConsumableCount,potionCount,luckStatus,shopPurchaseLimit,SELL_PRICES,shopSellLimit} from './consumables.mjs?v=shop-cubes-185';
+import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumableList,shopConsumable,shopConsumableCount,potionCount,luckStatus,shopPurchaseLimit,SELL_PRICES,shopSellLimit} from './consumables.mjs?v=shop-cubes-185';
 export const potionTime=ms=>{const seconds=Math.ceil(Math.max(0,ms)/1000);return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');};
 export function consumableView(state,shop=false){
  if(shop)return consumableShopView(state);
@@ -37,7 +37,7 @@ export function updateConsumableSale(state,root=document){
  if(button)button.disabled=!valid||!!(state.battle||state.coopRoom||state.partyRoom);
 }
 export function consumableShopView(state){
- return `<section class="consumable-panel consumable-shop-panel"><header><h3>소모품 상점</h3></header><div class="consumable-shop-grid">${SHOP_CONSUMABLES.map(item=>consumableShopCard(state,item)).join('')}</div><p class="note">물약은 가방 → 소모품에서, 큐브는 장비 → 잠재에서 사용하세요.</p></section>`;
+ return `<section class="consumable-panel consumable-shop-panel"><header><h3>소모품 상점</h3></header><div class="consumable-shop-grid">${shopConsumableList().map(item=>consumableShopCard(state,item)).join('')}</div><p class="note">물약은 가방 → 소모품에서, 큐브는 장비 → 잠재에서 사용하세요.</p></section>`;
 }
 export function consumablePurchaseView(state,id){const item=shopConsumable(id);return item?consumableShopCard(state,item,true):'';}
 

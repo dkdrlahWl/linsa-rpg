@@ -6,6 +6,10 @@ export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'c
 // 2026-10-25: 상점 되팔기 (개당 판매가)
 export const SELL_PRICES=Object.freeze({cube:50000});
 export const shopSellLimit=(state,id)=>SELL_PRICES[id]?Math.max(0,Math.min(shopConsumableCount(state,id),Math.floor((Number.MAX_SAFE_INTEGER-(Number(state?.gold)||0))/SELL_PRICES[id]))):0;
+// 2026-11-03 도현: 21시(KST)부터 상점에서 블랙 큐브 구매 불가.
+export const HIGH_CUBE_SHOP_END=Date.UTC(2026,10,3,12);
+export const shopConsumableOpen=(id,now=Date.now())=>!(id==='highCube'&&now>=HIGH_CUBE_SHOP_END);
+export const shopConsumableList=(now=Date.now())=>SHOP_CONSUMABLES.filter(item=>shopConsumableOpen(item.id,now));
 export const shopConsumable=id=>SHOP_CONSUMABLES.find(item=>item.id===id);
 export function shopConsumableCount(state,id){return id===LUCK_POTION.id?potionCount(state):Math.max(0,Number.isSafeInteger(state?.materials?.[id])?state.materials[id]:0);}
 export function shopPurchaseLimit(state,id){
@@ -25,6 +29,7 @@ export function rewardChance(chance,state,now){return Math.min(1,Math.max(0,chan
 export function consumableCommand(state,command,id,now,quantity=1){
  const item=shopConsumable(id);
  if(!item)throw Error('INVALID_CONSUMABLE');
+ if(command==='consumableBuy'&&!shopConsumableOpen(id,now))throw Error('CONSUMABLE_NOT_SOLD');
  const count=shopConsumableCount(state,id);
  if(command==='consumableSell'){
   const price=SELL_PRICES[id];if(!price)throw Error('INVALID_CONSUMABLE');

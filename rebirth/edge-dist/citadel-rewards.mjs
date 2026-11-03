@@ -6,12 +6,12 @@ import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
 // gear chance is applied exactly as shown in the lobby (no BOSS_GEAR_RATE_SCALE);
 // gear level uniform over the 10-level tiers 100..max; weapon slot at half weight.
 export const CITADEL_BOSS_REWARDS=[
- {lock:.10,scroll:.10,fragment:10,gear:.04,max:110},
- {lock:.15,scroll:.15,fragment:10,gear:.05,max:130},
- {lock:.20,scroll:.20,fragment:10,gear:.05,max:140},
- {lock:.25,scroll:.25,fragment:10,gear:.05,max:160},
- {lock:.30,scroll:.30,fragment:10,gear:.05,max:170},
- {lock:.35,scroll:.35,fragment:10,gear:.05,max:190},
+ {lock:.10,scroll:.10,highCube:.20,highCubeCount:3,fragment:10,gear:.04,max:110},
+ {lock:.15,scroll:.15,highCube:.25,highCubeCount:3,fragment:10,gear:.05,max:130},
+ {lock:.20,scroll:.20,highCube:.30,highCubeCount:4,fragment:10,gear:.05,max:140},
+ {lock:.25,scroll:.25,highCube:.35,highCubeCount:4,fragment:10,gear:.05,max:160},
+ {lock:.30,scroll:.30,highCube:.40,highCubeCount:5,fragment:10,gear:.05,max:170},
+ {lock:.35,scroll:.35,highCube:.45,highCubeCount:5,fragment:10,gear:.05,max:190},
 ];
 export const citadelGearLevel=(max,random)=>100+10*Math.floor(random()*((max-100)/10+1));
 export function citadelPendingChests(state,room,userId){
@@ -23,11 +23,13 @@ export function grantCitadelChests(input,room,userId,ctx){
  if(!isCitadel(room))throw Error('COOP_CHEST_NOT_READY');
  const bosses=citadelPendingChests(input,room,userId);if(!bosses.length)throw Error('COOP_CHEST_NOT_READY');
  const state=structuredClone(input);state.materials??={};state.items??=[];state.collection??=[];
- const reward={type:'citadelChest',bosses,potentialLock:0,scroll:0,fragment:0,items:[]};
+ const reward={type:'citadelChest',bosses,potentialLock:0,scroll:0,highCube:0,fragment:0,items:[]};
  for(const boss of bosses){
   const r=CITADEL_BOSS_REWARDS[boss-1];
   if(ctx.random()<r.lock)reward.potentialLock++;
   if(ctx.random()<r.scroll)reward.scroll++;
+  // 2026-11-03 도현: 성채 보스 상자 블랙 큐브(보스별 20~45% · 3~5개).
+  if(ctx.random()<r.highCube)reward.highCube+=r.highCubeCount;
   reward.fragment+=r.fragment;
   if(ctx.random()<r.gear){
    const level=citadelGearLevel(r.max,ctx.random),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
@@ -35,7 +37,7 @@ export function grantCitadelChests(input,room,userId,ctx){
    if(state.items.length>=300)reward.stored=(reward.stored||0)+1;addItem(state,item);reward.items.push(item);
   }
  }
- for(const key of ['potentialLock','scroll','fragment'])state.materials[key]=(state.materials[key]||0)+reward[key];
+ for(const key of ['potentialLock','scroll','highCube','fragment'])state.materials[key]=(state.materials[key]||0)+reward[key];
  const prior=state.citadelClaims?.room===room.id?state.citadelClaims.bosses||[]:[];
  state.citadelClaims={room:room.id,bosses:[...prior,...bosses].sort((a,b)=>a-b)};
  state.citadelEver=[...new Set([...(state.citadelEver||[]),...bosses])].sort((a,b)=>a-b);state.citadelMaxFloor=Math.max(state.citadelMaxFloor||0,room.floor||0);
