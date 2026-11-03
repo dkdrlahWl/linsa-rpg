@@ -1,5 +1,5 @@
-export const BANK_DAY=3600000; // 2026-11-02: 이자 지급 주기 1시간 · 0.3%씩 복리 (24시간 약 7.5%)
-export const BANK_RATE_PER_MILLE=3;
+export const BANK_DAY=3600000; // 2026-11-03 도현: 1시간마다 0.1%씩 복리 (24시간 약 2.4%). 이전 0.3%.
+export const BANK_RATE_PER_MILLE=1;
 export const BANK_LIMIT=9000000000000;
 export function bankTotal(bank){return (bank?.lots||[]).reduce((n,l)=>n+l.gold,0);}
 export function settleBank(s,now){
