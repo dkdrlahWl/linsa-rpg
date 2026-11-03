@@ -1,6 +1,8 @@
 // 토큰 던전 · 교환소 · 경마 화면 (보스 탭 > 토큰 던전). 공개 전에는 관리자에게만 보인다.
 import {TOKEN_ART,tokenIcon} from './token-art.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
+import {KEY_BOSS_STAGES,KEY_DAILY_TRIES,KEY_BOSS_NAME,KEY_BOSS_IMAGE,keyTriesLeft,keyStageOpen,keyCount} from './key-dungeon.mjs?v=keydungeon-20261103';
+const keyIcon=()=>`<img class="token-currency-art" src="${currencyIconURL('dungeonKey')}" alt="" width="22" height="22" decoding="async">`;
 import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=bossatk-20261103';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
@@ -12,7 +14,7 @@ export const tokenVisible=s=>TOKEN_CONTENT_OPEN||s?.isAdmin===true;
 
 function sceneHero(key,title,subtitle){return `<section class="token-scene-hero"><img src="${TOKEN_ART[key]}" alt="${title}" decoding="async"><div><small>${subtitle}</small><h3>${title}</h3></div></section>`;}
 function tabs(page){
- return `<nav class="token-tabs">${[['dungeon','토큰 던전'],['shop','토큰 교환소'],['race','토큰 경마']].map(([k,l])=>`<button data-illustrated="1" class="tk ${page===k?'active':''}" data-action="tokenPage" data-arg="${k}">${l}</button>`).join('')}</nav>`;
+ return `<nav class="token-tabs">${[['dungeon','토큰 던전'],['key','열쇠 던전'],['shop','토큰 교환소'],['race','토큰 경마']].map(([k,l])=>`<button data-illustrated="1" class="tk ${page===k?'active':''}" data-action="tokenPage" data-arg="${k}">${l}</button>`).join('')}</nav>`;
 }
 function head(s){
  return `<header class="token-head"><div><p class="eyebrow">TOKEN</p><h2>토큰 콘텐츠</h2></div><div class="token-wallet">${tokenIcon()}<b>${fmt(tokenCount(s))}</b><small>토큰</small></div></header>${TOKEN_CONTENT_OPEN?'':'<p class="token-locked-note">🔒 공개 전 · 관리자만 시험할 수 있어요. 다른 유저에게는 보이지 않습니다.</p>'}`;
@@ -29,7 +31,7 @@ function dungeon(s,now){
 
 // 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
 const SHOP_GROUPS=[
- ['강화 재료',['cube','highCube','primeCube','addCube','scroll','potentialLock','bonusFlame']],
+ ['강화 재료',['cube','highCube','addCube','scroll','potentialLock','bonusFlame']],
  ['재화 · 소모품',['gold','luckPotion','dungeonKey']],
  ['한정 품목',['tribeTicket','treasureTicket','companionTicket','pickupTicket','rerollStone']],
 ];
@@ -88,8 +90,20 @@ function race(s,now){
  return `${sceneHero('race','왕실 경마장','여섯 마리의 질주, 승부의 순간')}<p class="token-subline">오늘 경주 <b>${played}/${RACE_DAILY}</b> · 한 판 ${tokenIcon()} ${RACE_MIN_BET}~${RACE_MAX_BET} · 말을 눌러 고르세요</p>${track}${table}${slip}<details class="token-rules"><summary>경마 규칙 · 배당</summary><p>말 6마리가 달려요. 말마다 컨디션(1~10)이 있고, 컨디션이 높을수록 1등 할 확률이 높아요. 순위는 컨디션에 비례한 확률로 1등부터 차례로 정해집니다.</p><p>배당 = ${Math.round(RACE_RTP*100)}% ÷ 실제 확률 (소수 첫째 자리 내림, 최소 1.1배). 예) 1등 확률 30%인 말의 단승 배당은 3.0배. 오래 하면 건 토큰의 약 ${Math.round(RACE_RTP*100)}%가 돌아오고 나머지는 사라져요.</p><p>단승: 고른 말이 1등이면 적중 · 연승: 고른 말이 2등 안에 들면 적중(배당 낮음). 경주표는 베팅 전에 정해지고, 순위는 출발하는 순간 서버가 정합니다. 하루 ${RACE_DAILY}판.</p></details>`;
 }
 
+function keyDungeon(s,now){
+ const left=keyTriesLeft(s,now),best=s.keyBoss?.best||0;
+ const cards=KEY_BOSS_STAGES.map(t=>{
+  const open=keyStageOpen(s,t.stage),cleared=best>=t.stage;
+  return `<article class="token-stage${open?'':' locked'}${cleared?' cleared':''}"><div class="token-stage-no">${t.stage}<small>단계</small></div><div class="token-stage-body"><strong>HP ${big(t.hp)}${cleared?' <em class="token-clear">클리어</em>':''}</strong><small>공격 ${big(t.attack)}</small></div><div class="token-stage-side"><b class="token-reward">${keyIcon()} ${t.keys}</b>${b(open?'도전':'🔒','keyBossStart',t.stage,open?'gold':'',!open||!left||!!s.battle)}</div></article>`;
+ }).join('');
+ return `<section class="token-boss-showcase"><img src="${KEY_BOSS_IMAGE}" alt="${esc(KEY_BOSS_NAME)}" decoding="async"><div><small>KEY VAULT</small><h3>${esc(KEY_BOSS_NAME)}</h3><p>던전 열쇠를 사슬로 묶어 지키는 집행관</p></div></section><section class="token-dungeon-head"><div class="token-dungeon-boss"><strong>${esc(KEY_BOSS_NAME)}</strong><small>제한 60초 · 처치하면 그 단계 던전 열쇠 지급 · 보유 ${fmt(keyCount(s))}개</small></div><div class="token-tries"><small>남은 도전</small><b>${left}<i>/${KEY_DAILY_TRIES}</i></b></div></section><p class="token-subline">토큰 던전과 도전 횟수 따로 · 처치했을 때만 1회 차감 · 실패하거나 나가면 차감 없음 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화 · 최고 클리어 <b>${best||0}단계</b></p><div class="token-stage-list">${cards}</div>`;
+}
 export function tokenView(s,page='dungeon',now=Date.now()){
- return `<section class="token-screen">${head(s)}${tabs(page)}${page==='shop'?shop(s,now):page==='race'?race(s,now):dungeon(s,now)}</section>`;
+ return `<section class="token-screen">${head(s)}${tabs(page)}${page==='shop'?shop(s,now):page==='race'?race(s,now):page==='key'?keyDungeon(s,now):dungeon(s,now)}</section>`;
+}
+export function keyBossResult(r){
+ const t=KEY_BOSS_STAGES[r.stage-1];
+ return `<div class="tower-result token-result"><img class="token-result-boss" src="${KEY_BOSS_IMAGE}" alt="${esc(t.name)}"><h3>${esc(t.name)} · ${r.stage}단계</h3><p>${r.won?'처치 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'60초가 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다.'}</p><p class="token-reward-big">${r.won?`${keyIcon()} 던전 열쇠 ${r.keys}개 획득`:'던전 열쇠 없음'}</p><p class="note">보유 던전 열쇠 ${fmt(r.total)}개</p></div>`;
 }
 export function tokenBossResult(r){
  const t=TOKEN_BOSS_STAGES[r.stage-1];

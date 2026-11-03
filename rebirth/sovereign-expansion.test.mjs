@@ -37,9 +37,9 @@ for(const f of SOVEREIGN_TOWER_FLOORS){
 }
 assert.equal(openings.size,20);assert.ok(peakHazards<35&&peakProjectiles<100);
 assert.throws(()=>execute(initialState('warrior','검수',ctx),'towerStart',{floor:51},ctx),/INVALID_TOWER_FLOOR/);
-assert.equal(REGIONS.length,17);assert.equal(STAGES.length,51);assert.equal(MONSTERS.length,81);
-const fields=STAGES.slice(39);assert.equal(fields.length,12);assert.equal(fields.at(-1).level,300);assert.equal(new Set(fields.map(s=>s.background)).size,12);
-for(const r of REGIONS.slice(13))assert.equal(fields.filter(s=>s.region===r.id).length,3);
+assert.equal(REGIONS.length,21);assert.equal(STAGES.length,63);assert.equal(MONSTERS.length,93);
+const fields=STAGES.slice(39,51);assert.equal(fields.length,12);assert.equal(fields.at(-1).level,300);assert.equal(new Set(fields.map(s=>s.background)).size,12);
+for(const r of REGIONS.slice(13,17))assert.equal(fields.filter(s=>s.region===r.id).length,3);
 for(const s of fields){
  assert.ok(s.hp>STAGES[s.id-1].hp&&s.attack>STAGES[s.id-1].attack&&s.gold>STAGES[s.id-1].gold&&s.xp>STAGES[s.id-1].xp);assert.equal(s.dropLevel,200);assert.equal(fieldMonster(s.id).stage,s.id);
  const p=initialState('warrior','사냥검수',ctx);assert.equal(execute(p,'stage',{id:s.id},ctx).state.stage,s.id);

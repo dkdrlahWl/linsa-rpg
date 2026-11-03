@@ -6,9 +6,10 @@ import {STAGES,REGIONS,MONSTERS,fieldMonster,fieldDropRates,xpNeeded} from './da
 function context(seed=17,now=0) {
   return {now,uuid:randomUUID,random:()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2**32;}};
 }
-assert.equal(REGIONS.length,17);
-assert.equal(STAGES.length,51);
-assert.equal(MONSTERS.length,81);
+// 2026-11-03: Lv.300 이후 4지역·12필드 추가
+assert.equal(REGIONS.length,21);
+assert.equal(STAGES.length,63);
+assert.equal(MONSTERS.length,93);
 for(let stage=0;stage<30;stage++)for(let kills=0;kills<4;kills++)
   assert.equal(fieldMonster(stage,kills).id,stage*2+kills%2,'existing two-monster rotation');
 
@@ -30,7 +31,7 @@ for(const [index,values] of expected.entries()) {
   for(let kills=0;kills<7;kills++)assert.equal(fieldMonster(id,kills).stage,id,'one dedicated monster per new field');
   const newPlayer=initialState('warrior','새지역시험',ctx);
   assert.equal(execute(newPlayer,'stage',{id},ctx).state.stage,id,'recommended level never blocks entry');
-  assert.throws(()=>execute(newPlayer,'stage',{id:51},ctx),/INVALID_STAGE/);
+  assert.throws(()=>execute(newPlayer,'stage',{id:STAGES.length},ctx),/INVALID_STAGE/);
   const player=initialState('warrior','정산시험',ctx);
   Object.assign(player,{level:200,stage:id,advancement:4,firstAdvancement:true,balanceVersion:'journey-20260925'});
   const weapon=makeItem(190,'warrior',0,false,ctx);

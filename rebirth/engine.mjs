@@ -25,6 +25,7 @@ import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
 import {tribeCommand,normalizeTribe} from './tribe-model.mjs?v=balance-20261102';
 import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=balance-20261102';
 import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=bossatk-20261103';
+import {keyBossEnter,keyBossFinish} from './key-dungeon.mjs?v=keydungeon-20261103';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';
@@ -557,6 +558,7 @@ function towerFinish(s,ctx,events) {
   if(b.won){b.chest||={x:b.enemy.x,y:b.enemy.y};clearVictoryEffects(b);return;}
   const reward={type:'boss',bossId:b.weeklyBossId,won:false,practice:b.practice,items:[],materials:0};s.lastReward=reward;s.battle=null;s.lastAt=ctx.now;s.hunting=true;events.push(reward);return;
  }
+ if(b.keyStage!==undefined){const reward=keyBossFinish(s,b,ctx.now);s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  if(b.tokenStage!==undefined){const reward=tokenBossFinish(s,b,ctx.now);s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  if(b.advancementStage!==undefined){const stage=b.advancementStage,won=b.won,practice=!!b.advancementPractice;if(won&&!practice){check(nextTrialStage(s)===stage,'ALREADY_ADVANCED');s.firstAdvancement=true;s.advancement=stage;s.advancementVictories||={};s.advancementVictories[stage]=ctx.now;}const reward={type:'advancementTrial',stage,won,practice,seconds:b.tick/10};s.lastReward=reward;s.battle=null;s.hunting=true;s.lastAt=ctx.now;events.push(reward);return;}
  const f=TOWER_FLOORS[b.floor-1];s.tower ||= {cleared:[],best:{}};
@@ -694,6 +696,12 @@ function executeCore(input, command, args = {}, ctx) {
     case "tokenBossStart": {
       check(!s.pendingCube,"ITEM_CUBE_PENDING");
       const fields=tokenBossEnter(s,args.stage,ctx.now);
+      s.battle=newTowerBattle(fields.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,fields);
+      s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
+    }
+    case "keyBossStart": {
+      check(!s.pendingCube,"ITEM_CUBE_PENDING");
+      const fields=keyBossEnter(s,args.stage,ctx.now);
       s.battle=newTowerBattle(fields.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);Object.assign(s.battle,fields);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }

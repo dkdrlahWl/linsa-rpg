@@ -59,7 +59,7 @@ import * as D from "./data.mjs?v=transcend2-20261102";
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=bossatk-20261103";
-import {tokenView,tokenVisible,tokenBossResult,raceUI} from "./token-ui.mjs?v=bossatk-20261103";
+import {tokenView,tokenVisible,tokenBossResult,keyBossResult,raceUI} from "./token-ui.mjs?v=bossatk-20261103";
 import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=tribe-glow-20261102";
 installNameFit();
 import {tokenShopBought} from "./token-content.mjs?v=bossatk-20261103";
@@ -1327,6 +1327,7 @@ function showEvents(events) {
 
     if(e.type==='advancementTrial'){tab='boss';bossTab='advancement';view='game';render();advancementResult(e);continue;}
     if(e.type==='tokenBoss'){tab='boss';bossTab='token';tokenPage='dungeon';view='game';render();tokenBossReward(e);continue;}
+    if(e.type==='keyBoss'){tab='boss';bossTab='token';tokenPage='key';view='game';render();keyBossReward(e);continue;}
     if(e.type==='tribeRoll'||e.type==='tribeChoose')continue;
     if(e.type==='tokenShopBuy'&&e.id==='tribeTicket'){continue;}
     if(e.type==='tokenShopBuy'){toast(e.name+' '+e.quantity+'개 교환 완료 · 남은 토큰 '+fmt(e.tokens));continue;}
@@ -1381,6 +1382,7 @@ function showEvents(events) {
 function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.practice?(r.won?'전직 보스 연습 성공':'전직 보스 연습 종료'):r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.practice?'연습 전투입니다. 전직·능력치·보상은 추가로 지급되지 않습니다.':r.won&&r.stage>=5?advancementBonusText(r.stage)+' 획득':r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===4?D.FIFTH_SKILLS[state.classId].name:r.stage===3?D.FOURTH_SKILLS[state.classId].name:r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
 // 6·7차 전직 보너스 문구 (advancement.mjs ADVANCEMENT_STAT_BONUS 기준).
 function advancementBonusText(stage){const b=D.ADVANCEMENT_STAT_BONUS[stage]||{},names={attack:'공격력',boss:'보스 피해',crit:'치명타 확률',hp:'최대 HP'};return Object.entries(b).map(([k,v])=>names[k]+' +'+v+(k==='crit'?'%p':'%')).join(' · ');}
+function keyBossReward(r){open(r.won?r.stage+'단계 처치!':'열쇠 던전 종료',keyBossResult(r)+'<div class="actions">'+btn('확인','ack','','gold',true)+'</div>',false);}
 function tokenBossReward(r){open(r.won?r.stage+'단계 처치!':'토큰 던전 종료',tokenBossResult(r)+'<div class="actions">'+btn('확인','ack','','gold',true)+'</div>',false);}
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait${f.artFrames===1?' single-boss-art':''}" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G'+['fragment','cube','highCube','primeCube','scroll'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+fmt(r[k])+'개').join(''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<TOWER_FLOORS.length?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
@@ -1395,6 +1397,7 @@ function reward() {
   if(r?.type==='coop')return open(r.won?'개인 상자 획득':'균열 도전 종료','<p>'+(r.won?fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join(''):'장비를 정비하고 다시 도전해 보세요.')+'</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · 잠재 3줄 잠금 (가방이 가득 차면 보관함)</p>').join('')+btn('확인','ack','','gold',true));
   if(r?.type==='advancementTrial')return advancementResult(r);
   if(r?.type==='tokenBoss')return tokenBossReward(r);
+  if(r?.type==='keyBoss')return keyBossReward(r);
   if(r?.type==='tower')return towerReward(r);
   const enemy = r && (r.type === "dungeon" ? D.DUNGEONS[r.dungeon] : r.type === "boss" ? D.BOSSES[r.bossId] : null);
   if (!r) return toast("새로 정산된 보상이 없습니다.");
@@ -1734,8 +1737,9 @@ document.addEventListener("click", async (e) => {
     if(action==="coopLeaveConfirm")return open(coopRoom?.mode==="citadel"?"암흑성채에서 나가기":coopRoom?.mode==="wave"?"웨이브에서 나가기":coopRoom?.mode==="advancement"?"전직 보스에서 나가기":"균열에서 나가기",'<p>'+(coopRoom?.mode==="citadel"?"현재 보상은 없습니다. 나가면 이번 원정이 종료됩니다.":coopRoom?.mode==="wave"?"완료한 마지막 10단위 구간에서 한 번 추첨하고, 미수령 최초 보상을 함께 받습니다. 진행 중인 웨이브는 제외되며 재도전은 1웨이브부터 시작합니다.":"진행 중인 도전에서 나가면 보상을 받을 수 없습니다.")+'</p>'+btn("나가기","coopLeave","","danger",true));
     if(action==='itemGroup')return itemGroup(arg);
     if(action==='towerOpen')return await command('towerOpen',{runId:state.battle?.runId});
-    if(action==='tokenPage'){tokenPage=['shop','race'].includes(arg)?arg:'dungeon';render();if(tokenPage==='race'&&!state.race?.card)await command('raceCard',{},true);return;}
+    if(action==='tokenPage'){tokenPage=['shop','race','key'].includes(arg)?arg:'dungeon';render();if(tokenPage==='race'&&!state.race?.card)await command('raceCard',{},true);return;}
     if(action==='tokenBossStart'){modal.close();tab='boss';bossTab='token';view='game';return await command('tokenBossStart',{stage:Number(arg)});}
+    if(action==='keyBossStart'){modal.close();tab='boss';bossTab='token';view='game';return await command('keyBossStart',{stage:Number(arg)});}
     if(action==='tokenShopBuy'){if(busy)return;const [id,q]=String(arg).split(':');await command('tokenShopBuy',{id,quantity:Number(q)||1});return;}
     if(action==='raceCard'){await command('raceCard',{},true);return;}
     if(action==='raceLane'){if(raceUI.anim)return;raceUI.lane=Number(arg)||1;render();return;}
