@@ -23,3 +23,16 @@ assert.throws(()=>execute(t,'mileageBuy',{id:'cube',quantity:0},ctx()),/INVALID_
 // 행운 물약 사용은 적립 없음(골드 거래 아님)
 assert.ok(MILEAGE_SHOP.every(o=>o.cost>0));
 console.log('PASS mileage: 1% on consumable buy/sell & boss gear sale, mileage shop purchases');
+// VIP: 누적 거래액으로 등급, 등급별 마일리지 적립률, 등급 칭호
+import {vipTier,mileageRate} from './mileage.mjs';
+import {newlyEarnedTitles,TITLE_BY_ID} from './titles-data.mjs';
+{
+ let v=initialState('warrior','브이아이피',ctx());v.hunting=false;v.gold=10_000_000_000;v.items=[];v.equipped={};
+ assert.equal(vipTier(v).level,0);
+ v=execute(v,'consumableBuy',{id:'rerollStone',quantity:5},ctx()).state;// 5억 거래
+ assert.equal(v.celiaVolume,500_000_000);assert.equal(vipTier(v).level,2);
+ assert.equal(mileageRate(v),.02);const m0=v.mileage;v=execute(v,'consumableBuy',{id:'rerollStone',quantity:1},ctx()).state;assert.equal(v.mileage-m0,2_000_000,'VIP 2 → 2% 적립');
+ const earned=newlyEarnedTitles({...v,titles:{}},()=>0);assert.ok(earned.includes('vip1')&&earned.includes('vip2')&&!earned.includes('vip3'));
+ for(const id of ['vip1','vip2','vip3','vip4','vip5','vip6'])assert.ok(TITLE_BY_ID[id]);
+ console.log('PASS VIP tiers, mileage rate, titles');
+}

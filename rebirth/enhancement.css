@@ -138,3 +138,14 @@ dialog.market-picker-dialog{width:min(96vw,940px);max-width:940px;max-height:92d
 .mileage-tile strong{font-size:13px;word-break:keep-all}
 .mileage-price{font-size:14px;color:#ffe08a}
 .mileage-buy{display:flex;gap:6px;width:100%}.mileage-buy button{flex:1;min-height:34px;padding:4px}
+/* 2026-11-03 셀리아 VIP */
+.vip-card{margin:10px 0;padding:14px;border-radius:14px;border:1px solid #f2c76e66;background:linear-gradient(135deg,#3a2a14e6,#1a1226ee);color:#f4ead6}
+.vip-card.vip-0{border-color:#ffffff33;background:linear-gradient(135deg,#232030e6,#14111cee)}
+.vip-card.vip-7,.vip-card.vip-8,.vip-card.vip-9,.vip-card.vip-10{border-color:#9fe3ff;box-shadow:0 0 18px #7fd6ff44}
+.vip-head{display:flex;gap:12px;align-items:center}
+.vip-badge{flex:0 0 56px;height:56px;border-radius:14px;display:grid;place-items:center;align-content:center;background:radial-gradient(circle at 35% 30%,#fff3c4,#f2c76e 55%,#9c6a24);color:#3a2408;font-weight:900;font-size:11px;line-height:1}.vip-badge b{font-size:24px}
+.vip-head small{color:#e8c98a;letter-spacing:.2em;font-size:11px}.vip-head h3{margin:2px 0;font-size:20px}.vip-head p{margin:0;font-size:12px;color:#d9ccb5}.vip-head p b{color:#ffe08a}
+.vip-bar{height:8px;border-radius:99px;background:#ffffff1a;margin:10px 0 4px;overflow:hidden}.vip-bar i{display:block;height:100%;background:linear-gradient(90deg,#f2c76e,#ffe9a8)}
+.vip-next,.vip-gift{margin:4px 0;font-size:12px;color:#d9ccb5}.vip-next b,.vip-gift b{color:#ffe08a}
+.vip-card details{margin-top:6px;font-size:12px}.vip-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:11px}.vip-table th,.vip-table td{padding:5px 4px;border-top:1px solid #ffffff1a;text-align:left;vertical-align:top}.vip-table tr.on td{color:#ffe08a;font-weight:700}
+.mileage-was{font-size:11px;color:#a8998a}

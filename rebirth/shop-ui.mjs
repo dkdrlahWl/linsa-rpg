@@ -3,7 +3,9 @@ import {skillLookShop} from './skill-look-ui.mjs';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-price-20261013b';
 import {consumableView} from './consumable-ui.mjs?v=shop-cubes-185';
 import {blackMarketShop,blackMarketMerchant} from './black-market-ui.mjs?v=bm8-20261018';
-import {MILEAGE_SHOP,MILEAGE_RATE,mileageCount} from './mileage.mjs?v=mileage-20261103';
+import {MILEAGE_SHOP,mileageCount,VIP_TIERS,vipTier,vipNext,celiaVolume,mileagePrice} from './mileage.mjs?v=mileage-20261103';
+import {TITLE_BY_ID} from './titles-data.mjs';
+const titleName=id=>id&&TITLE_BY_ID[id]?'「'+TITLE_BY_ID[id].name+'」':'없음';
 import {currencyIconURL} from './currency-icons.mjs';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('ko-KR');
@@ -22,8 +24,14 @@ function bossShop(s,D,art){
 
 // 2026-11-03 도현: 셀리아 마일리지 상점. 소모품 구매·판매, 보스장비 판매 금액의 1%가 쌓인다.
 const MILEAGE_ART={tribeTicket:'tribes/polished-v1/ticket-transparent-v2.webp'};
+const short=n=>n>=1e8?(n/1e8).toLocaleString('ko-KR',{maximumFractionDigits:1})+'억':fmt(n);
+function vipCard(s){
+ const t=vipTier(s),next=vipNext(s),v=celiaVolume(s),pct=next?Math.min(100,Math.floor((v-t.need)/(next.need-t.need)*100)):100;
+ const table=VIP_TIERS.filter(x=>x.level>0).map(x=>`<tr class="${x.level===t.level?'on':''}"><td>VIP ${x.level} · ${esc(x.name)}</td><td>${short(x.need)} G</td><td>${(x.rate*100).toFixed(1).replace(/\.0$/,'')}%</td><td>${esc(titleName(x.title))}</td></tr>`).join('');
+ return `<section class="vip-card vip-${t.level}"><div class="vip-head"><div class="vip-badge">VIP<b>${t.level}</b></div><div><small>셀리아 VIP</small><h3>${esc(t.name)}</h3><p>누적 거래 <b>${fmt(v)} G</b> · 마일리지 적립 <b>${(t.rate*100).toFixed(1).replace(/\.0$/,'')}%</b></p></div></div>${next?`<div class="vip-bar"><i style="width:${pct}%"></i></div><p class="vip-next">다음 등급 <b>VIP ${next.level} ${esc(next.name)}</b>까지 ${fmt(next.need-v)} G</p>`:'<p class="vip-next">최고 등급이에요!</p>'}<p class="vip-gift">등급 칭호: <b>${esc(titleName(t.title))}</b></p><details><summary>등급표 보기</summary><table class="vip-table"><tr><th>등급</th><th>누적 거래</th><th>적립률</th><th>칭호</th></tr>${table}</table><p class="note">누적 거래 = 셀리아에게 소모품 구매·판매, 보스장비 판매한 골드 합계. 등급에 오르면 칭호가 자동으로 생겨요(칭호 1개당 치명타 피해 +0.5%).</p></details></section>`;
+}
 function mileageShop(s){
- const have=mileageCount(s);
- const tiles=MILEAGE_SHOP.map(o=>{const can=have>=o.cost,ten=have>=o.cost*10;return `<article class="mileage-tile${can?'':' poor'}"><img src="${MILEAGE_ART[o.key]||currencyIconURL(o.key)}" alt=""><strong>${esc(o.name)}</strong><b class="mileage-price"><i class="mileage-coin">M</i>${fmt(o.cost)}</b><div class="mileage-buy"><button data-action="mileageBuy" data-arg="${o.id}:1" data-write class="gold"${can?'':' disabled data-unavailable'}>1개</button><button data-action="mileageBuy" data-arg="${o.id}:10" data-write${ten?'':' disabled data-unavailable'}>10개</button></div></article>`;}).join('');
- return `<section class="shop-sale-section mileage-shop"><header><div><small>셀리아 마일리지</small><h2>마일리지 상점</h2></div><span class="mileage-wallet"><i class="mileage-coin">M</i><b>${fmt(have)}</b></span></header><p class="shop-note">셀리아에게 <b>소모품을 사거나 팔 때</b>, <b>보스장비를 팔 때</b> 오간 골드의 ${Math.round(MILEAGE_RATE*100)}%가 마일리지로 쌓여요 (1억 G 거래 → 100만 마일리지).</p><div class="mileage-grid">${tiles}</div></section>`;
+ const have=mileageCount(s),t=vipTier(s);
+ const tiles=MILEAGE_SHOP.map(o=>{const price=mileagePrice(s,o),can=have>=price,ten=have>=mileagePrice(s,o,10);return `<article class="mileage-tile${can?'':' poor'}"><img src="${MILEAGE_ART[o.key]||currencyIconURL(o.key)}" alt=""><strong>${esc(o.name)}</strong><b class="mileage-price"><i class="mileage-coin">M</i>${fmt(price)}</b><div class="mileage-buy"><button data-action="mileageBuy" data-arg="${o.id}:1" data-write class="gold"${can?'':' disabled data-unavailable'}>1개</button><button data-action="mileageBuy" data-arg="${o.id}:10" data-write${ten?'':' disabled data-unavailable'}>10개</button></div></article>`;}).join('');
+ return `${vipCard(s)}<section class="shop-sale-section mileage-shop"><header><div><small>셀리아 마일리지</small><h2>마일리지 상점</h2></div><span class="mileage-wallet"><i class="mileage-coin">M</i><b>${fmt(have)}</b></span></header><p class="shop-note">셀리아에게 <b>소모품을 사거나 팔 때</b>, <b>보스장비를 팔 때</b> 오간 골드의 <b>${(t.rate*100).toFixed(1).replace(/\.0$/,'')}%</b>가 마일리지로 쌓여요. VIP 등급이 오를수록 적립률이 올라가요 (VIP 10 최대 10%).</p><div class="mileage-grid">${tiles}</div></section>`;
 }

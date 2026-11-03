@@ -8,6 +8,7 @@ import {ADVANCEMENT_BOSSES} from './advancement.mjs';
 import {FISH,ROD_MAX} from './fishing-data.mjs';
 import {COSTUMES} from './costumes.mjs';
 import {SKILL_LOOKS,ownedSkillLookCount} from './skill-looks.mjs';
+import {vipTier} from './mileage.mjs';
 
 export const TITLE_GRADES=[
  {id:'common',name:'일반'},{id:'rare',name:'희귀'},{id:'epic',name:'영웅'},{id:'legend',name:'전설'},{id:'myth',name:'신화'}
@@ -112,6 +113,17 @@ const ROWS=[
  ['investShort','하락의 예언자','투자','epic','숏 포지션으로 수익 실현 30회',s=>(st(s).investShortWins||0)>=30],
  ['investX2','한 방의 미학','투자','epic','한 번의 거래로 수익률 +100% 달성',s=>(st(s).investBestRate||0)>=1],
  ['invest1b','시장의 지배자','투자','myth','투자 누적 순수익 10억 G',s=>(st(s).investProfit||0)>=1e9],
+ // 2026-11-03 셀리아 VIP 등급 칭호 (누적 거래 = 셀리아에게 소모품 구매·판매 + 보스장비 판매 골드)
+ ['vip1','셀리아의 손님','셀리아','common','셀리아 VIP 1 · 누적 거래 1억 G',s=>vipTier(s).level>=1],
+ ['vip2','단골 손님','셀리아','common','셀리아 VIP 2 · 누적 거래 5억 G',s=>vipTier(s).level>=2],
+ ['vip3','황금 고객','셀리아','rare','셀리아 VIP 3 · 누적 거래 20억 G',s=>vipTier(s).level>=3],
+ ['vip4','백금의 귀빈','셀리아','rare','셀리아 VIP 4 · 누적 거래 50억 G',s=>vipTier(s).level>=4],
+ ['vip5','금강석 귀빈','셀리아','epic','셀리아 VIP 5 · 누적 거래 100억 G',s=>vipTier(s).level>=5],
+ ['vip6','상점가의 명사','셀리아','epic','셀리아 VIP 6 · 누적 거래 200억 G',s=>vipTier(s).level>=6],
+ ['vip7','큰손 중의 큰손','셀리아','legend','셀리아 VIP 7 · 누적 거래 300억 G',s=>vipTier(s).level>=7],
+ ['vip8','황금 저울의 주인','셀리아','legend','셀리아 VIP 8 · 누적 거래 500억 G',s=>vipTier(s).level>=8],
+ ['vip9','셀리아의 귀빈','셀리아','myth','셀리아 VIP 9 · 누적 거래 700억 G',s=>vipTier(s).level>=9],
+ ['vip10','셀리아의 단골','셀리아','myth','셀리아 VIP 10 · 누적 거래 1,000억 G',s=>vipTier(s).level>=10],
 ];
 // ALL_TITLES includes not-yet-released rows (art is pre-built); TITLES is what players can see/earn now.
 export const ALL_TITLES=ROWS.map(([id,name,category,grade,condition,check,when],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i,available:!when||!!when()}));
