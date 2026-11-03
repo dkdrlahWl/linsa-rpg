@@ -647,7 +647,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
       if(!quiet)toast("이전 요청을 먼저 복구합니다.");
     }
     if (!body) {
-      body = { command, args:command.startsWith('fish')||towerStreaming?{...args,_compact:true,_stateRevision:stateRevision}:args, requestId: crypto.randomUUID() };
+      // 2026-11-03 연결 지연 개선: 자주 오가는 sync도 바뀐 부분만 받는다(state 전체 40~140KB → 변경분).
+      body = { command, args:command.startsWith('fish')||towerStreaming||(command==='sync'&&state&&Number.isSafeInteger(stateRevision))?{...args,_compact:true,_stateRevision:stateRevision}:args, requestId: crypto.randomUUID() };
       if(!recoverySync&&!streaming)localStorage.setItem(requestKey, JSON.stringify(body));
     }
     const sentAt=performance.now();
@@ -670,7 +671,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
       }
     }
     if(Object.hasOwn(result,'state')&&(!Number.isSafeInteger(stateRevision)||!Number.isSafeInteger(result.revision)||result.revision>=stateRevision)){
-      state = result.statePatch?result.state:D.normalizePotentialState(result.state);
+      state = result.statePatch&&!result.statePatch.changes?.items?result.state:D.normalizePotentialState(result.state);
       stateRevision=Number.isSafeInteger(result.revision)?result.revision:null;
       if(state&&(body.command==='sync'||state.lastAt!==previousHuntAt))lastHuntSettlement=Date.now();
     }

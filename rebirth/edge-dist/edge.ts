@@ -273,10 +273,13 @@ Deno.serve(async (req) => {
           },
           true,
         );
-        const latest = await rpc("rebirth_snapshot", {
-          p_request: body.requestId,
-        });
-        return reply((body.command.startsWith('fish')||body.command==='towerInput')
+        // 2026-11-03 연결 지연 개선: commit이 우리가 계산한 결과를 그대로 저장했으면(재전송 영수증이 아님)
+        // 저장된 상태 = computed.state, 리비전 = snap.revision+1 이므로 상태 전체를 다시 읽지 않는다.
+        const own = JSON.stringify(result) === JSON.stringify({ events: computed.events });
+        const latest = own
+          ? { state: computed.state, revision: snap.revision + 1 }
+          : await rpc("rebirth_snapshot", { p_request: body.requestId });
+        return reply((body.command.startsWith('fish')||body.command==='towerInput'||body.command==='sync')
           ?fishingStateReply(snap,latest,result,body.args._stateRevision,body.args._compact)
           :{state:latest.state,revision:latest.revision,result});
       } catch (e) {
