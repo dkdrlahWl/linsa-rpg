@@ -1,6 +1,6 @@
 // 2026-11-03 도현: 소탕. 한 번이라도 깬 일일·주간 보스, 토큰 던전·열쇠 던전 단계는 전투 없이 보상을 바로 받는다.
 // 보상·횟수 차감은 직접 깼을 때와 똑같다(일보 하루 1회 · 주보 주 1회 · 토큰/열쇠 하루 2회).
-// 개별 소탕(kind=boss|token|key)과 전체 소탕(kind=all)을 같은 명령으로 처리하고, 결과는 한 번에 모아 보여준다.
+// 개별 소탕(kind=boss|token|key)과 전체 소탕(kind=all · 일보·주보만)을 같은 명령으로 처리하고, 결과는 한 번에 모아 보여준다.
 import {BOSSES,dayKey,weekKey} from './data.mjs';
 import {TOKEN_BOSS_STAGES,tokenBossFinish,tokenTriesLeft,tokenOpenFor} from './token-content.mjs';
 import {KEY_BOSS_STAGES,keyBossFinish,keyTriesLeft} from './key-dungeon.mjs';
@@ -14,13 +14,10 @@ export const bossSweepable=(s,boss,now)=>!!boss&&!boss.dungeon&&(s?.cleared||[])
 export const tokenSweepable=(s,stage,now)=>tokenOpenFor(s)&&Number.isInteger(stage)&&stage>=1&&stage<=TOKEN_BOSS_STAGES.length&&stage<=(s?.tokenBoss?.best||0)&&tokenTriesLeft(s,now)>0;
 export const keySweepable=(s,stage,now)=>Number.isInteger(stage)&&stage>=1&&stage<=KEY_BOSS_STAGES.length&&stage<=(s?.keyBoss?.best||0)&&keyTriesLeft(s,now)>0;
 
-// 전체 소탕으로 받을 수 있는 목록(토큰·열쇠는 최고 단계로 남은 횟수만큼).
+// 전체 소탕으로 받을 수 있는 목록: 일일·주간 보스만(2026-11-03 도현: 토큰·열쇠 던전은 전체 소탕에서 제외, 개별 소탕만).
 export function sweepPlan(s,now){
  const plan=[];
  for(const boss of BOSSES)if(bossSweepable(s,boss,now))plan.push({kind:'boss',id:boss.id});
- const tokenBest=s?.tokenBoss?.best||0,keyBest=s?.keyBoss?.best||0;
- if(tokenSweepable(s,tokenBest,now))for(let i=0;i<tokenTriesLeft(s,now);i++)plan.push({kind:'token',stage:tokenBest});
- if(keySweepable(s,keyBest,now))for(let i=0;i<keyTriesLeft(s,now);i++)plan.push({kind:'key',stage:keyBest});
  return plan;
 }
 

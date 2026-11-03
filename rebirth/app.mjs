@@ -1082,18 +1082,18 @@ function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 
 
 function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}
 function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨 · 5차 200레벨 · 6차 250레벨 · 7차 300레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 1~5차는 인원에 따른 난이도 변화 없음 · 6·7차는 2명이면 보스 체력 2배 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (1~5차 누적 61.05%) · 6차 공격력 +12%·보스 피해 +20%·HP +12% · 7차 공격력 +15%·보스 피해 +30%·치명타 +10%p·HP +15% (잠재처럼 더해짐) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss">'+advancementPortrait(t)+'<div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>'+(t.stage>=5?advancementBonusText(t.stage):'해금: '+(t.stage===4?D.FIFTH_SKILLS[state.classId].name:t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name))+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
-// 2026-11-03 도현: 소탕 — 보스 탭 최상단 전체 소탕(일보·주보·토큰·열쇠 한 번에).
+// 2026-11-03 도현: 소탕 — 일일·주간 탭 최상단 전체 소탕(일보·주보 한 번에). 토큰·열쇠 던전은 단계별 개별 소탕만.
 function sweepBar(){
-  const plan=sweepPlan(state,Date.now()),n=k=>plan.filter(p=>p.kind===k).length;
+  const plan=sweepPlan(state,Date.now());
   const daily=plan.filter(p=>p.kind==='boss'&&!D.BOSSES[p.id].weekly).length,weekly=plan.filter(p=>p.kind==='boss'&&D.BOSSES[p.id].weekly).length;
-  const parts=[daily&&'일보 '+daily,weekly&&'주보 '+weekly,n('token')&&'토큰 던전 '+n('token')+'회',n('key')&&'열쇠 던전 '+n('key')+'회'].filter(Boolean);
-  return `<section class="panel sweep-bar"><div><strong>전체 소탕</strong><small>${parts.length?parts.join(' · '):'소탕할 수 있는 게 없어요 · 한 번 깬 보스·단계만 소탕 가능'}</small></div>${disabledBtn(plan.length?'전체 소탕 '+plan.length+'건':'전체 소탕','sweep','all',!plan.length||!!state.battle,'gold')}</section>`;
+  const parts=[daily&&'일보 '+daily,weekly&&'주보 '+weekly].filter(Boolean);
+  return `<section class="panel sweep-bar"><div><strong>전체 소탕</strong><small>${parts.length?parts.join(' · '):'소탕할 수 있는 보스가 없어요 · 한 번 깬 일보·주보만 소탕 가능'}</small></div>${disabledBtn(plan.length?'전체 소탕 '+plan.length+'건':'전체 소탕','sweep','all',!plan.length||!!state.battle,'gold')}</section>`;
 }
 function bosses() {
   const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["exploration","링구의 탐험"],["citadel","암흑성채"],["raid","레이드"],["daily","일일"],["weekly","주간"],["training","허수아비"],["tower","시련의 탑"],["advancement","전직 보스"],...(tokenVisible(state)?[["token","토큰 던전"]]:[]),["key","열쇠 던전"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>이미지 전사와 파수꾼 · 캐릭터를 따라가는 위쪽 시점 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
-  if(bossTab==="token"){if(!tokenVisible(state)){bossTab="daily";return bosses();}return sweepBar()+menu+tokenView(state,tokenPage);}
-  if(bossTab==="key")return sweepBar()+menu+keyView(state);
+  if(bossTab==="token"){if(!tokenVisible(state)){bossTab="daily";return bosses();}return menu+tokenView(state,tokenPage);}
+  if(bossTab==="key")return menu+keyView(state);
   if(bossTab==="exploration")return menu+explorationLobby(state,coopRoom,coopRooms);
   if(bossTab==="raid")return menu+raidLobby(state,coopRoom,coopRooms);
   if(bossTab==="wave"){bossTab="exploration";return menu+coopLobby(state,coopRoom,coopRooms,"exploration");}

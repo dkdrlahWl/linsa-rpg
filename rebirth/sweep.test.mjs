@@ -34,15 +34,13 @@ const base=()=>{const s=initialState('warrior','소탕',ctx());s.hunting=false;r
  r=execute(r.state,'sweep',{kind:'key',stage:4},ctx());assert.throws(()=>execute(r.state,'sweep',{kind:'key',stage:1},ctx()),/SWEEP_NOT_ALLOWED/,'2회 다 씀');
  assert.equal(r.state.keyBoss.best,5,'최고 기록 유지');
 }
-// 전체 소탕: 남은 것 전부 한 번에
+// 전체 소탕: 일보·주보만(토큰·열쇠 제외)
 {
  let s=base();s.cleared=[0,5,30,31,33];s.bossClaims={0:'2026-11-03'};s.keyBoss={best:4};s.tokenBoss={best:2};
- const plan=sweepPlan(s,now);
  const r=execute(s,'sweep',{kind:'all'},ctx()),e=r.events[0];
- assert.equal(e.count,plan.length);assert.equal(e.entries.filter(x=>x.kind==='boss').length,4,'0번은 오늘 이미 받음');
- assert.equal(e.keys,KEY_BOSS_STAGES[3].keys*2);
- const tokenExpected=r.state.tokenBoss?.tries===2?TOKEN_BOSS_STAGES[1].tokens*2:0;assert.equal(e.tokens,tokenExpected);
+ assert.equal(e.count,4,'0번은 오늘 이미 받음');assert.ok(e.entries.every(x=>x.kind==='boss'));assert.equal(e.keys,0);assert.equal(e.tokens,0);
  assert.equal(e.gold,[5,30,31,33].reduce((n,id)=>n+BOSSES[id].gold,0));
  assert.throws(()=>execute(r.state,'sweep',{kind:'all'},ctx()),/SWEEP_NOTHING/);
+ assert.equal(execute(r.state,'sweep',{kind:'key',stage:4},ctx()).events[0].keys,KEY_BOSS_STAGES[3].keys,'열쇠는 개별 소탕');
 }
-console.log('PASS sweep: cleared-only, daily/weekly limits, token/key best stage, all-in-one');
+console.log('PASS sweep: cleared-only, daily/weekly limits, token/key best stage, all = bosses only');

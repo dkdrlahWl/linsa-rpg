@@ -14,7 +14,7 @@ try{for(const [width,height] of [[360,800],[1280,900]]){
  await page.route('https://*.supabase.co/**',async route=>{const req=route.request();if(req.url().includes('ringu-rebirth')){const b=req.postDataJSON();try{const r=execute(state,b.command,b.args,{...ctx,now:Date.now()});state=r.state;return route.fulfill({json:{state,revision:1,result:{events:r.events}}});}catch(e){return route.fulfill({status:400,json:{error:e.message}});}}return route.fulfill({status:401,json:{error:'QA_NO_REAL_NETWORK'}});});
  await page.goto('http://127.0.0.1:8773/rebirth/');await page.locator('.fantasy-dock').waitFor();
  await page.locator('.fantasy-dock [data-arg="boss"]').click();await page.locator('[data-action="bossSub"][data-arg="daily"]').click();
- const bar=page.locator('.sweep-bar');await bar.waitFor();assert.ok((await bar.innerText()).includes('전체 소탕 7건'),await bar.innerText());
+ const bar=page.locator('.sweep-bar');await bar.waitFor();assert.ok((await bar.innerText()).includes('전체 소탕 5건'),await bar.innerText());
  await page.screenshot({path:'/tmp/claude-0/-home-claude/b7264c13-99ba-5fbd-be84-de68875746f6/scratchpad/sweep-bar-'+width+'.png'});
  // 개별: 일보 33 카드 소탕
  await page.locator('[data-action="sweep"][data-arg="boss:33"]').click();await page.locator('.sweep-result').waitFor();
@@ -23,7 +23,7 @@ try{for(const [width,height] of [[360,800],[1280,900]]){
  await page.waitForFunction(()=>document.querySelector('[data-action="sweep"][data-arg="boss:33"]')?.disabled);
  // 전체
  await page.locator('.sweep-bar [data-action="sweep"]').click();await page.locator('.sweep-result').waitFor();
- const txt=await page.locator('.sweep-result').innerText();assert.ok(txt.includes('던전 열쇠'),txt);
+ const txt=await page.locator('.sweep-result').innerText();assert.ok(!txt.includes('던전 열쇠'),txt);
  await page.screenshot({path:'/tmp/claude-0/-home-claude/b7264c13-99ba-5fbd-be84-de68875746f6/scratchpad/sweep-result-'+width+'.png'});
  await page.locator('.modal [data-action="ack"], dialog [data-action="ack"]').first().click();
  assert.ok(await page.locator('.sweep-bar [data-action="sweep"]').isDisabled());
