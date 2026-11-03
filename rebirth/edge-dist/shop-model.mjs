@@ -1,6 +1,7 @@
 export function bossSalePrice(item){
  if(item?.boss!==true||!Number.isInteger(item.level)||item.level<10||item.level>200||!Number.isInteger(item.slot)||item.slot<0||item.slot>8)return 0;
- if(item.level===200)return item.slot===0?200000000:100000000;
+ // 2026-11-03 도현: 200제 보스장비 판매가 2배(무기 4억 · 나머지 2억).
+ if(item.level===200)return item.slot===0?400000000:200000000;
  const base=item.level<=100?Math.floor(item.level/10)*300000:item.level<=150?3000000+Math.floor((item.level-100)/10)*2000000:13000000+Math.floor((item.level-150)/10)*3000000;
  return base*(item.slot===0?2:1);
 }
