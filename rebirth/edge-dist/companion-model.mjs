@@ -41,7 +41,7 @@ export const COMPANION_BY_ID=Object.fromEntries([...COMPANIONS,PICKUP_COMPANION]
 // 패시브: 종류는 1/3씩, 수치는 등급 상관없이 같은 범위에서 랜덤(%).
 export const COMPANION_PASSIVES={
  gold:{name:'골드형',min:20,max:40,text:v=>`분당 골드 +${v}%`},
- growth:{name:'성장형',min:30,max:50,text:v=>`배치 1시간마다 +10%, 최대 +${v}%`},
+ growth:{name:'성장형',min:30,max:50,text:v=>`배치 1시간마다 +2.8%, 최대 +${v}%`},
  jackpot:{name:'대박형',min:20,max:40,text:v=>`수령 시 ${v}% 확률로 골드 2배`},
 };
 export const COMPANION_PASSIVE_KEYS=['gold','growth','jackpot'];
@@ -49,7 +49,7 @@ export const COMPANION_SLOTS=3;
 export const COMPANION_BAG=100;
 export const COMPANION_MAX_STAR=5;
 export const COMPANION_STAR_BONUS=.15;
-export const COMPANION_GROWTH_STEP=.10;
+export const COMPANION_GROWTH_STEP=.028; // 2026-11-03 도현: 누적 24시간에 맞춰 +10%→+2.8%/시간 (24시간 평균 +25.7%, 예전 8시간 기준과 같은 효율)
 export const COMPANION_CAP_MS=24*3600e3; // 2026-11-03 도현: 누적 한도 8시간 → 24시간
 export const COMPANION_SELL={SS:3000000,S:1000000,A:300000,B:100000,C:30000,D:10000,F:3000};
 const MIN=60e3;
