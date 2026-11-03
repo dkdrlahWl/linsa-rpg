@@ -121,8 +121,9 @@ export function raceOdds(power){
 }
 export function newRaceCard(random,serial=0){
  const names=[...HORSE_NAMES];for(let i=names.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[names[i],names[j]]=[names[j],names[i]];}
- // 힘 1~10: 인기마 1~2마리, 중간, 다크호스가 섞이도록 분포를 넓게.
- const power=Array.from({length:RACE_HORSES},()=>Math.round((1+9*random()**1.6)*10)/10);
+ // 힘 2~10: 인기마·중간·다크호스가 섞이되 2026-11-04 약간 어렵게 — 인기마가 덜 튀도록 분포를 좁힘
+ // (인기마 단승 평균 약 31%→26%, 연승 57%→49%; 배당은 실제 확률로 다시 계산되므로 환급률 90%는 그대로).
+ const power=Array.from({length:RACE_HORSES},()=>Math.round((2+8*random()**1.2)*10)/10);
  const odds=raceOdds(power);
  return {id:serial+1,horses:power.map((p,i)=>({lane:i+1,name:names[i],power:p,...odds[i]}))};
 }

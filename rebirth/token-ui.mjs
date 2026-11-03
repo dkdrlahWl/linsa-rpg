@@ -89,7 +89,7 @@ function race(s,now){
    ${b(limit?'오늘 경주 끝':`${tokenIcon()} ${bet} 걸고 출발`,'raceBet','','gold token-go',bet<RACE_MIN_BET||limit)}
   </div>`;
  }
- return `${sceneHero('race','왕실 경마장','여섯 마리의 질주, 승부의 순간')}<p class="token-subline">오늘 경주 <b>${played}/${RACE_DAILY}</b> · 한 판 ${tokenIcon()} ${RACE_MIN_BET}~${RACE_MAX_BET} · 말을 눌러 고르세요</p>${track}${table}${slip}<details class="token-rules"><summary>경마 규칙 · 배당</summary><p>말 6마리가 달려요. 말마다 컨디션(1~10)이 있고, 컨디션이 높을수록 1등 할 확률이 높아요. 순위는 컨디션에 비례한 확률로 1등부터 차례로 정해집니다.</p><p>배당 = ${Math.round(RACE_RTP*100)}% ÷ 실제 확률 (소수 첫째 자리 내림, 최소 1.1배). 예) 1등 확률 30%인 말의 단승 배당은 3.0배. 오래 하면 건 토큰의 약 ${Math.round(RACE_RTP*100)}%가 돌아오고 나머지는 사라져요.</p><p>단승: 고른 말이 1등이면 적중 · 연승: 고른 말이 2등 안에 들면 적중(배당 낮음). 경주표는 베팅 전에 정해지고, 순위는 출발하는 순간 서버가 정합니다. 하루 ${RACE_DAILY}판.</p></details>`;
+ return `${sceneHero('race','왕실 경마장','여섯 마리의 질주, 승부의 순간')}<p class="token-subline">오늘 경주 <b>${played}/${RACE_DAILY}</b> · 한 판 ${tokenIcon()} ${RACE_MIN_BET}~${RACE_MAX_BET} · 말을 눌러 고르세요</p>${track}${table}${slip}<details class="token-rules"><summary>경마 규칙 · 배당</summary><p>말 6마리가 달려요. 말마다 컨디션(2~10)이 있고, 컨디션이 높을수록 1등 할 확률이 높아요. 순위는 컨디션에 비례한 확률로 1등부터 차례로 정해집니다.</p><p>배당 = ${Math.round(RACE_RTP*100)}% ÷ 실제 확률 (소수 첫째 자리 내림, 최소 1.1배). 예) 1등 확률 30%인 말의 단승 배당은 3.0배. 오래 하면 건 토큰의 약 ${Math.round(RACE_RTP*100)}%가 돌아오고 나머지는 사라져요.</p><p>단승: 고른 말이 1등이면 적중 · 연승: 고른 말이 2등 안에 들면 적중(배당 낮음). 경주표는 베팅 전에 정해지고, 순위는 출발하는 순간 서버가 정합니다. 하루 ${RACE_DAILY}판.</p></details>`;
 }
 
 function keyDungeon(s,now){
