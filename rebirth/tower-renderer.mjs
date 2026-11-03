@@ -341,7 +341,7 @@ export class TowerRenderer {
     // for the rest of the session. Blur is the most expensive state on weaker GPUs/CPUs and long frames
     // also cause visible prediction catch-up snaps.
     if(!this.lowDetail&&this.last){const ft=now-this.last;if(ft<400){this.frameEma=(this.frameEma??ft)*.94+ft*.06;this.slowFrames=this.frameEma>1450/this.maxFps?(this.slowFrames||0)+1:0;if(this.slowFrames>40)this.setLowDetail();}}
-    const g=this.g,f=tokenEncounterArt(b,towerEncounter(b)),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
+    const g=this.g,f=tokenEncounterArt(b,b.weeklyBossId===34?{...towerEncounter(b),art:"orserion-v1",artFrames:1,artSize:340,background:"ui/weekly-orserion-arena-v1.webp"}:towerEncounter(b)),c=TOWER_CLASSES[b.classId],time=b.tick+fraction;
     const drawShield=(actor,x,y)=>{
       const e={kind:'priest',classId:'priest',slot:3,owner:actor.shieldOwner,x,y,size:260,start:time-6,end:time+6,opacity:.35},look=skillLookForEffect(b,e);
       drawPriestSkillArt(skillLookContext(g,look,e),e,time,{scale:.38,opacity:.3,frame:2});
