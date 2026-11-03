@@ -14,7 +14,7 @@ export const tokenVisible=s=>TOKEN_CONTENT_OPEN||s?.isAdmin===true;
 
 function sceneHero(key,title,subtitle){return `<section class="token-scene-hero"><img src="${TOKEN_ART[key]}" alt="${title}" decoding="async"><div><small>${subtitle}</small><h3>${title}</h3></div></section>`;}
 function tabs(page){
- return `<nav class="token-tabs">${[['dungeon','토큰 던전'],['key','열쇠 던전'],['shop','토큰 교환소'],['race','토큰 경마']].map(([k,l])=>`<button data-illustrated="1" class="tk ${page===k?'active':''}" data-action="tokenPage" data-arg="${k}">${l}</button>`).join('')}</nav>`;
+ return `<nav class="token-tabs">${[['dungeon','토큰 던전'],['shop','토큰 교환소'],['race','토큰 경마']].map(([k,l])=>`<button data-illustrated="1" class="tk ${page===k?'active':''}" data-action="tokenPage" data-arg="${k}">${l}</button>`).join('')}</nav>`;
 }
 function head(s){
  return `<header class="token-head"><div><p class="eyebrow">TOKEN</p><h2>토큰 콘텐츠</h2></div><div class="token-wallet">${tokenIcon()}<b>${fmt(tokenCount(s))}</b><small>토큰</small></div></header>${TOKEN_CONTENT_OPEN?'':'<p class="token-locked-note">🔒 공개 전 · 관리자만 시험할 수 있어요. 다른 유저에게는 보이지 않습니다.</p>'}`;
@@ -99,7 +99,11 @@ function keyDungeon(s,now){
  return `<section class="token-boss-showcase"><img src="${KEY_BOSS_IMAGE}" alt="${esc(KEY_BOSS_NAME)}" decoding="async"><div><small>KEY VAULT</small><h3>${esc(KEY_BOSS_NAME)}</h3><p>던전 열쇠를 사슬로 묶어 지키는 집행관</p></div></section><section class="token-dungeon-head"><div class="token-dungeon-boss"><strong>${esc(KEY_BOSS_NAME)}</strong><small>제한 60초 · 처치하면 그 단계 던전 열쇠 지급 · 보유 ${fmt(keyCount(s))}개</small></div><div class="token-tries"><small>남은 도전</small><b>${left}<i>/${KEY_DAILY_TRIES}</i></b></div></section><p class="token-subline">토큰 던전과 도전 횟수 따로 · 처치했을 때만 1회 차감 · 실패하거나 나가면 차감 없음 · 한 단계를 깨면 다음 단계가 열려요 · 매일 00시 초기화 · 최고 클리어 <b>${best||0}단계</b></p><div class="token-stage-list">${cards}</div>`;
 }
 export function tokenView(s,page='dungeon',now=Date.now()){
- return `<section class="token-screen">${head(s)}${tabs(page)}${page==='shop'?shop(s,now):page==='race'?race(s,now):page==='key'?keyDungeon(s,now):dungeon(s,now)}</section>`;
+ return `<section class="token-screen">${head(s)}${tabs(page)}${page==='shop'?shop(s,now):page==='race'?race(s,now):dungeon(s,now)}</section>`;
+}
+// 2026-11-03 도현: 열쇠 던전은 토큰 콘텐츠 밖, 보스 메뉴의 별도 탭.
+export function keyView(s,now=Date.now()){
+ return `<section class="token-screen"><header class="token-head"><div><p class="eyebrow">KEY</p><h2>열쇠 던전</h2></div><div class="token-wallet">${keyIcon()}<b>${fmt(keyCount(s))}</b><small>던전 열쇠</small></div></header>${keyDungeon(s,now)}</section>`;
 }
 export function keyBossResult(r){
  const t=KEY_BOSS_STAGES[r.stage-1];
