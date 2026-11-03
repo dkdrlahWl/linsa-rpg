@@ -18,6 +18,9 @@ const EXTRA=[
  // 180·190제는 남은 비중을 6단계 비율(50:33)로 나눈다.
  [7,{gold:7000000,scroll:.36,highCube:.42,potentialLock:.075,addCube:.55,bonusFlame:.09,bossGear:.14,counts:{scroll:3,highCube:18,potentialLock:2,addCube:9,bonusFlame:1},gear:[[180,4268],[190,2818],[200,2914]]}],
  [8,{gold:8600000,scroll:.38,highCube:.45,potentialLock:.08,addCube:.60,bonusFlame:.10,bossGear:.16,counts:{scroll:3,highCube:20,potentialLock:2,addCube:10,bonusFlame:1},gear:[[180,2575],[190,1700],[200,5100],[220,625]]}],
+ // 2026-11-03 도현: 9·10단계 — 확률·개수 계속 증가. 220제 판당 확률 8단계 1% → 9단계 2% → 10단계 4%(두 배씩), 180제 제외.
+ [9,{gold:10400000,scroll:.40,highCube:.48,potentialLock:.085,addCube:.65,bonusFlame:.11,bossGear:.18,counts:{scroll:3,highCube:22,potentialLock:2,addCube:11,bonusFlame:1},gear:[[190,26],[200,54],[220,10]]}],
+ [10,{gold:12500000,scroll:.42,highCube:.50,potentialLock:.09,addCube:.70,bonusFlame:.12,bossGear:.20,counts:{scroll:3,highCube:24,potentialLock:2,addCube:12,bonusFlame:1},gear:[[190,2000],[200,6000],[220,2000]]}],
  [6,{gold:4400000,scroll:.35,highCube:.40,potentialLock:.07,addCube:.50,bonusFlame:.08,bossGear:.12,counts:{scroll:3,highCube:16,potentialLock:2,addCube:8,bonusFlame:1},gear:[[180,50],[190,33],[200,17]]}],
 ];
 for(const [id,r] of EXTRA)EXPLORATION_REWARDS[id]=r;

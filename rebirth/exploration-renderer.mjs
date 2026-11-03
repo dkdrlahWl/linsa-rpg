@@ -5,6 +5,8 @@ const moods=[{base:'#242a25',fog:'#101c25',glow:'#70eeb0'},{base:'#2b211e',fog:'
 // Dedicated palettes for the new crystal abyss and fallen-star arenas.
 moods[7]={base:'#182338',fog:'#090c20',glow:'#80e9ff'};
 moods[8]={base:'#242039',fog:'#0b1027',glow:'#ffe6b5'};
+// 9·10단계는 임시 그림(7·8단계 복사)에 맞춘 색.
+moods[9]=moods[7];moods[10]=moods[8];
 
 function cell(g,im,index,x,y,width,height=width,flip=false){
  const sw=im.naturalWidth/3,sh=im.naturalHeight/2;

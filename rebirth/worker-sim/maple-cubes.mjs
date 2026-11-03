@@ -1,15 +1,21 @@
-import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=priest93-20261103';
+import {UNIVERSAL_POOLS} from './universal-cube-pools.mjs?v=expl910-20261103';
 const rule=(name,table,maxGrade,up,same,extra={})=>({name,table,maxGrade,up:[0,0,...up,0],same,pity:[],choose:false,gold:0,...extra});
 export const CUBES={
  cube:rule('레드 큐브','red',4,[.060000002444,.018,0],[1,1,1],{pity:[0,0,25,83,0]}),
  highCube:rule('블랙 큐브','black',5,[1,.07,.028],[1,1,1],{choose:true,pity:[0,0,0,42,107]}),
  primeCube:rule('프라임 큐브','black',5,[1,.105,.042],[1,1,1],{prime:true,choose:true,pity:[0,0,0,42,107]}),
 };
+// 2026-11-03 프라임 큐브 버프(도현): 보공·공격력·크리 옵션 가중치만 1.5배. 블랙 큐브는 그대로.
+export const PRIME_GOOD_KEYS=Object.freeze(['boss','attack','crit']),PRIME_GOOD_WEIGHT=1.5;
+const PRIME_POOLS={};
+// 실제 출현 확률이 정확히 1.5배가 되도록, 나머지 옵션 가중치를 같은 비율로 줄인다.
+const primePool=grade=>PRIME_POOLS[grade]??=(()=>{const pool=UNIVERSAL_POOLS[grade]||[],total=pool.reduce((n,r)=>n+r.weight,0),good=pool.filter(r=>PRIME_GOOD_KEYS.includes(r.key)).reduce((n,r)=>n+r.weight,0)/total;if(!good)return pool;const rest=(1-good*PRIME_GOOD_WEIGHT)/(1-good);return Object.freeze(pool.map(r=>Object.freeze({...r,weight:r.weight*(PRIME_GOOD_KEYS.includes(r.key)?PRIME_GOOD_WEIGHT:rest)})));})();
+const cubePool=(kind,grade)=>CUBES[kind]?.prime?primePool(grade):UNIVERSAL_POOLS[grade];
 export const cubeLineRates=(kind,grade)=>Array.isArray(CUBES[kind].same)?CUBES[kind].same:CUBES[kind].same[grade];
 export function cubeCost(){return 0;}
 export function cubeTable(kind,item,grade=item.grade){
  const rule=CUBES[kind];if(!rule||grade<2||grade>rule.maxGrade)throw Error('INVALID_CUBE_GRADE');
- return {level:null,universal:true,rows:Array.from({length:3},(_,i)=>({current:UNIVERSAL_POOLS[grade],...(i?{lower:UNIVERSAL_POOLS[grade-1]}:{})}))};
+ return {level:null,universal:true,rows:Array.from({length:3},(_,i)=>({current:cubePool(kind,grade),...(i?{lower:cubePool(kind,grade-1)}:{})}))};
 }
 function weighted(pool,random){
  let r=random()*pool.reduce((n,x)=>n+x.weight,0);
