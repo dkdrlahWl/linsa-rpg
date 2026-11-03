@@ -532,7 +532,9 @@ function bossSettle(s, ctx, events) {
 
     s.gold += boss.gold;reward.gold=boss.gold;
     s.materials.cube += boss.cubes;reward.cube=boss.cubes;
-    if (boss.weekly) {
+    if (boss.rewardMaterials) {
+      for (const [key,n] of Object.entries(boss.rewardMaterials)) {s.materials[key]=(s.materials[key]||0)+n;reward[key]=n;}
+    } else if (boss.weekly) {
       s.materials.highCube+=2;
 
     }
@@ -637,7 +639,7 @@ function executeCore(input, command, args = {}, ctx) {
       const boss=BOSSES[b.weeklyBossId],reward={type:'boss',bossId:boss.id,won:true,practice:!!b.practice,items:[],materials:0,gold:0,cube:0,highCube:0};
       const claimKey=b.claimKey||weekKey(ctx.now);s.bossClaims||={};
       if(!s.isAdmin&&!b.practice&&s.bossClaims[boss.id]===claimKey)reward.practice=true;
-      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;s.materials.highCube+=2;Object.assign(reward,{gold:boss.gold,cube:boss.cubes,highCube:2});const forcedGear=s.adminNextBossGear;const forceNow=forcedGear&&forcedGear.bossId===boss.id&&ctx.now>=(forcedGear.after||0);if(forceNow)delete s.adminNextBossGear;
+      if(!reward.practice){s.bossClaims[boss.id]=claimKey;s.daily.boss++;if(!s.cleared.includes(boss.id))s.cleared.push(boss.id);s.gold+=boss.gold;s.materials.cube+=boss.cubes;Object.assign(reward,{gold:boss.gold,cube:boss.cubes});if(boss.rewardMaterials)for(const [key,n] of Object.entries(boss.rewardMaterials)){s.materials[key]=(s.materials[key]||0)+n;reward[key]=n;}else{s.materials.highCube+=2;reward.highCube=2;}const forcedGear=s.adminNextBossGear;const forceNow=forcedGear&&forcedGear.bossId===boss.id&&ctx.now>=(forcedGear.after||0);if(forceNow)delete s.adminNextBossGear;
         // 운영자 지정 드롭(DB): adminNextBossGear={bossId,after,slot?}. 무기 제외 부위 중 하나로 확정 지급.
         if(forceNow||ctx.random()<rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)){const level=boss.gearLevel;const slot=forceNow?(Number.isInteger(forcedGear.slot)&&forcedGear.slot>=1&&forcedGear.slot<=8?forcedGear.slot:1+Math.floor(ctx.random()*8)):boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random()*9);const item=makeLootItem(level,forceNow?s.classId:pick(CLASSES,ctx).id,slot,true,ctx,undefined,forceNow||!!boss.exactHalfWeapon);addItem(s,item);reward.items.push(item.id);}}
       s.battle=null;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;events.push(reward);return {state:s,events};

@@ -490,3 +490,7 @@ BOSSES.push({id:31,name:'성식의 군주 네크라시온',region:9,level:200,hp
 // 2026-10-25: 유리등 해마 returns alone as a daily boss — HP 160,000,000, drops Lv.200 boss gear
 // (same 1.5% drop and weapon weighting as the Lv.200 daily boss). Keeps its former id 32.
 {const chapter=[...BOSSES];extendChapterBosses(chapter);const seahorse=chapter.find(b=>b.chapter&&b.name==='유리등 해마');BOSSES.push({...seahorse,id:BOSSES.length,hp:160000000});}
+// 2026-11-03 도현: Lv.220 일일·주간 보스. 체력 일보 10억 · 주보 15억. 보스장비는 220제 확정(일보 1.5% · 주보 5%, 무기 비중은 다른 부위의 1/2).
+// rewardMaterials가 있으면 주간 보스 기본 블랙 큐브 2개 대신 이 재료를 준다. 이름·그림은 임시(모르가리온·네크라시온 그림 재사용).
+BOSSES.push({...BOSSES[30],id:33,name:'파멸의 처형자 아즈라칸',level:220,hp:1000000000,attack:6000,gearLevel:220,dropChance:.015,gold:10000000,cubes:8,rewardMaterials:{highCube:10,addCube:3},recommended:{slots:9,stars:25,gear:220,boss:true,pot:true}});
+BOSSES.push({...BOSSES[31],id:34,name:'천멸의 군주 오르세리온',level:220,hp:1500000000,attack:8000,gearLevel:220,dropChance:.05,gold:50000000,cubes:24,rewardMaterials:{highCube:30,addCube:10,potentialLock:2},recommended:{slots:9,stars:25,gear:220,boss:true,pot:true}});
