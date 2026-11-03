@@ -10,3 +10,14 @@ body .vip-badge{position:relative;flex:0 0 90px;height:76px;background:none;bord
 body .mileage-shop{padding:14px;background:linear-gradient(140deg,#1d2d2bf2,#171b22f5)!important}.mileage-shop>header{gap:8px;flex-wrap:wrap}.mileage-shop .mileage-wallet{font-size:16px;color:#ffe0a0;padding:8px 11px;border:1px solid #b49c6055;border-radius:9px;background:#080f14aa}.mileage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.mileage-tile{display:grid;grid-template-rows:66px minmax(34px,auto) 25px auto;justify-items:center;align-items:center;gap:6px;min-width:0;padding:12px 8px;border:1px solid #a68e5755;border-radius:12px;background:linear-gradient(155deg,#36433a99,#141b22)!important;opacity:1!important;box-shadow:inset 0 1px #ffffff0d}.mileage-tile img{width:64px;height:64px;filter:drop-shadow(0 4px 7px #0008)}.mileage-tile strong{font-size:13px;line-height:1.4;align-self:center;word-break:keep-all}.mileage-price{font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}.mileage-buy{align-self:end;width:100%;gap:5px}.mileage-buy button{font-size:11px!important;min-width:0;min-height:38px;padding:6px 2px!important;border-radius:7px!important}.mileage-buy button:disabled{opacity:.5!important}.shop-note{line-height:1.8}
 @media(min-width:620px){.mileage-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.shop-category-art{width:48px;height:50px}body .boss-shop .shop-categories>button{font-size:15px}}
 @media(max-width:360px){body .boss-shop .shop-categories>button{font-size:11px;gap:1px}.shop-category-art{width:30px}.vip-head{gap:7px}body .vip-badge{flex-basis:72px}.vip-head h3{font-size:20px}.mileage-price{font-size:12px}}
+/* 2026-11-03 도현: 마일리지 상점 — 한눈에 여러 상품 보이게 촘촘한 그리드(폰 3열 · 넓은 화면 5열) */
+.mileage-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+@media(min-width:620px){.mileage-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.mileage-tile{grid-template-rows:40px minmax(28px,auto) 18px auto;gap:3px;padding:7px 4px}
+.mileage-tile img{width:38px;height:38px}
+.mileage-tile strong{font-size:11.5px;line-height:1.25}
+.mileage-price{font-size:11.5px}
+.mileage-buy{gap:3px}
+.mileage-buy button{min-height:28px;padding:3px 1px!important;font-size:11px!important}
+.mileage-buy button .menu-art{display:none}
+.mileage-buy button{white-space:nowrap}
