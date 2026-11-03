@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
           if(action==="start"&&!room)throw new Error("PARTY_NOT_FOUND");
           // Coalesce exploration and citadel writes across participants. The authenticated
           // snapshot already queued input; the next writer consumes it within 300ms.
-          if(deferCoopWrite(room,current.now,queueInput))return reply(current);
+          if(deferCoopWrite(room,current.now,queueInput,user.id))return reply(current);
           const world=action==='sync'&&body.args.explorationFloor!==undefined?adminExplorationFloor(room,user.id,body.args.explorationFloor,ctx.admin||user.app_metadata?.ringu_tester===true):action==='sync'&&body.args.waveSpeed!==undefined?setWaveSpeed(room,user.id,body.args.waveSpeed,Number(current.now)):action==='start'?startCoop(room,Number(current.now)):room?advanceCoop(room,user.id,action==='input'?(body.args.frames?{frames:body.args.frames}:body.args.input):room?.status==='fighting'?{frames:[]}:null,Number(current.now)):null;
           if(action==='input'&&world===room)return reply(current);
           let claim=null;
