@@ -127,3 +127,14 @@ dialog.market-picker-dialog{width:min(96vw,940px);max-width:940px;max-height:92d
 .stage-row.current-stage{box-shadow:inset 3px 0 0 #f2c76e;background:linear-gradient(90deg,#f2c76e1f,transparent 70%);border-radius:8px}
 .trade-bind-warn{margin:6px 0 8px;padding:8px 10px;border-radius:10px;background:#ff7a4524;border:1px solid #ff9a6a66;color:#ffd9c7;font-size:12px;line-height:1.45}.trade-bind-warn b{color:#ffb38f}
 .hair-btn-art{width:28px;height:28px;object-fit:contain;flex:0 0 28px;margin-right:6px;vertical-align:middle;filter:drop-shadow(0 0 6px #f2c76e88)}
+/* 2026-11-03 셀리아 마일리지 상점 */
+.mileage-coin{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,#f2c76e 55%,#b07a2c);color:#3a2408;font-style:normal;font-weight:900;font-size:11px;margin-right:4px;vertical-align:-3px;box-shadow:0 0 6px #f2c76e66}
+.mileage-wallet{display:inline-flex;align-items:center;font-size:16px;color:#ffe08a}
+.mileage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+@media(min-width:620px){.mileage-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.mileage-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:1px solid #f2c76e44;border-radius:12px;background:linear-gradient(180deg,#2a2236cc,#151020cc);text-align:center}
+.mileage-tile.poor{opacity:.72}
+.mileage-tile img{width:48px;height:48px;object-fit:contain}
+.mileage-tile strong{font-size:13px;word-break:keep-all}
+.mileage-price{font-size:14px;color:#ffe08a}
+.mileage-buy{display:flex;gap:6px;width:100%}.mileage-buy button{flex:1;min-height:34px;padding:4px}

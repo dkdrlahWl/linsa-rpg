@@ -25,6 +25,7 @@ import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
 import {tribeCommand,normalizeTribe} from './tribe-model.mjs?v=balance-20261102';
 import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=balance-20261102';
 import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=bossatk-20261103';
+import {mileageEarn,mileageBuy} from './mileage.mjs?v=mileage-20261103';
 import {keyBossEnter,keyBossFinish} from './key-dungeon.mjs?v=keydungeon-20261103';
 import {companionCommand,normalizeCompanions} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
@@ -623,7 +624,7 @@ function executeCore(input, command, args = {}, ctx) {
   normalizeFishing(s,ctx.now);
   const events = [];
   if(command==='bankDeposit'||command==='bankWithdraw'){events.push(bankCommand(s,command,args,ctx.now));return {state:s,events};}
-  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableSell","consumableUse","blackMarketBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
+  if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableSell","consumableUse","blackMarketBuy","mileageBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);
     if(b.advanced===undefined)b.advanced=s.advancement>=1;
@@ -724,7 +725,8 @@ function executeCore(input, command, args = {}, ctx) {
     }
     case "consumableBuy":
     case "consumableSell":
-    case "consumableUse": {events.push(consumableCommand(s,command,args.id,ctx.now,args.quantity));break;}
+    case "consumableUse": {const e=consumableCommand(s,command,args.id,ctx.now,args.quantity);if(command!=="consumableUse"&&e.gold)e.mileage=mileageEarn(s,e.gold);events.push(e);break;}
+    case "mileageBuy": {events.push(mileageBuy(s,args,{normalizeCompanions,normalizeTribe}));break;}
     case "costumeBuy":
     case "costumeEquip":
     case "costumeUnequip": {events.push(costumeCommand(s,command,args.id));break;}
@@ -949,7 +951,7 @@ function executeCore(input, command, args = {}, ctx) {
       check(gold>0,"INVALID_SHOP_ITEM");
       check(Number.isSafeInteger(s.gold+gold),"INVALID_SHOP_GOLD_RANGE");
       removeItem(s,it);s.gold+=gold;
-      events.push({type:"shopSell",item:it,gold});
+      events.push({type:"shopSell",item:it,gold,mileage:mileageEarn(s,gold)});
       break;
     }
     case "salvage": {

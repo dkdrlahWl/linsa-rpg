@@ -1342,7 +1342,8 @@ function showEvents(events) {
     if(e.type==='skillLookUnequip')toast('기본 스킬 외형으로 변경했어요.');
     if(e.type==="costumeEquip")toast("코스튬을 장착했어요.");
     if(e.type==="costumeUnequip")toast("기본 의상으로 변경했어요.");
-    if(e.type==="shopSell")toast(`셀리아: 고마워! ${fmt(e.gold)} G를 지급했어.`);
+    if(e.type==="shopSell")toast(`셀리아: 고마워! ${fmt(e.gold)} G를 지급했어.${e.mileage?` · 마일리지 +${fmt(e.mileage)}`:""}`);
+    if(e.type==="mileageBuy")toast(`${e.name} ${fmt(e.quantity)}개 구매 · 남은 마일리지 ${fmt(e.mileage)}`);
     if(e.type=="salvage")open("장비 분해 완료",`<p>장비 ${e.count}개를 분해했습니다.</p><p class="salvage-reward"><strong>장비 파편 ${fmt(e.fragments)}개 획득</strong></p><p class="note">현재 보유 ${fmt(state.materials.fragment)}개</p>${btn("확인","close","","gold")}`);
 
     if(e.type==='advancementTrial'){tab='boss';bossTab='advancement';view='game';render();advancementResult(e);continue;}
@@ -1671,7 +1672,8 @@ document.addEventListener("click", async (e) => {
     if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
     if(action==='lottoAuto'){autoLotto(lottoData);return render();}
     if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
-    if(action==='shopCategory'){shopCategory=['boss','costume','skilllook','consumable','blackmarket'].includes(arg)?arg:'boss';return render();}
+    if(action==='shopCategory'){shopCategory=['boss','costume','skilllook','consumable','mileage','blackmarket'].includes(arg)?arg:'boss';return render();}
+    if(action==='mileageBuy'){if(busy)return;const [id,q]=String(arg).split(':');await command('mileageBuy',{id,quantity:Number(q)||1});return;}
     if(action==='skillLookClass'){skillLookClass=arg;return render();}
     if(action==='skillLookTier'){
       const [id,tier]=arg.split(':'),c=skillLookById(id),canvas=modal.querySelector('[data-skill-look-preview]');if(!c||!canvas)return;
@@ -1713,7 +1715,7 @@ document.addEventListener("click", async (e) => {
       if(!Number.isSafeInteger(quantity)||quantity<1||quantity>shopPurchaseLimit(state,arg)){updateConsumablePurchase(state,modal);return;}
       const result=await command('consumableBuy',{id:arg,quantity});
       const bought=result?.result?.events?.find(e=>e.type==='consumableBuy'&&e.id===arg);
-      if(bought){modal.close();toast(item.name+' '+fmt(bought.quantity)+'개를 구매했어요.');}return;
+      if(bought){modal.close();toast(item.name+' '+fmt(bought.quantity)+'개를 구매했어요.'+(bought.mileage?' · 마일리지 +'+fmt(bought.mileage):''));}return;
     }
     if(action==='consumableSellPick'){const item=shopConsumable(arg);if(!item||!SELL_PRICES[arg])return;open(item.name+' 판매',consumableSellView(state,arg));updateConsumableSale(state,modal);return;}
     if(action==='consumableSellMax'){const input=modal.querySelector('#shop-sell-quantity');if(input){input.value=String(shopSellLimit(state,arg));updateConsumableSale(state,modal);}return;}
@@ -1723,7 +1725,7 @@ document.addEventListener("click", async (e) => {
       if(!Number.isSafeInteger(quantity)||quantity<1||quantity>shopSellLimit(state,arg)){updateConsumableSale(state,modal);return;}
       const result=await command('consumableSell',{id:arg,quantity});
       const sold=result?.result?.events?.find(e=>e.type==='consumableSell'&&e.id===arg);
-      if(sold){modal.close();toast(item.name+' '+fmt(sold.quantity)+'개를 '+fmt(sold.gold)+' G에 판매했어요.');}return;
+      if(sold){modal.close();toast(item.name+' '+fmt(sold.quantity)+'개를 '+fmt(sold.gold)+' G에 판매했어요.'+(sold.mileage?' · 마일리지 +'+fmt(sold.mileage):''));}return;
     }
     if(action==='consumableUse'){if(busy)return;const result=await command('consumableUse',{id:arg});if(result)toast('행운 물약 시간 +5분 · 행운 +50% 효과가 유지됩니다.');return;}
     if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
