@@ -67,15 +67,15 @@ export function companionView(s){
  const byId=id=>d.cards.find(x=>x.i===id);
  const placed=d.slots.filter(Boolean).length;
  return `<section class="cp-screen">
-  <div class="cp-title"><h1>동료 카드</h1><span>배치한 동료가 골드를 모아요 · 최대 8시간</span></div>
+  <div class="cp-title"><h1>동료 카드</h1><span>배치한 동료가 골드를 모아요 · 최대 24시간</span></div>
   <section class="cp-panel cp-slots-panel">
-   <div class="cp-head"><h2>배치 동료 <b>${placed} / ${COMPANION_SLOTS}</b></h2><small>최대 8시간 누적</small></div>
+   <div class="cp-head"><h2>배치 동료 <b>${placed} / ${COMPANION_SLOTS}</b></h2><small>최대 24시간 누적</small></div>
    <div class="cp-slots">${d.slots.map((slot,i)=>slotView(d,slot&&byId(slot.card),slot,i,now)).join('')}</div>
   </section>
   <section class="cp-panel cp-summon">
    <button data-illustrated="1" class="cp-ticket cp-help-button" data-action="companionHelp" aria-label="효과·확률 안내"><span>효과·확률 안내</span><b>소환권 ${fmt(d.tickets)}장</b></button>
    <button data-illustrated="1" class="cp-summon-btn cp-open-summon" data-action="companionSummonOpen"><b>소환</b><small>일반 · 픽업 소환</small></button>
-   <button data-illustrated="1" class="cp-summon-btn cp-auto-equip" data-action="companionAutoEquip" ${d.cards.length?'':'disabled'} title="별·패시브와 현재 성장 상태를 반영한 8시간 기대 골드 기준"><b>최적 장착</b><small>패시브 반영</small></button>
+   <button data-illustrated="1" class="cp-summon-btn cp-auto-equip" data-action="companionAutoEquip" ${d.cards.length?'':'disabled'} title="별·패시브와 현재 성장 상태를 반영한 24시간 기대 골드 기준"><b>최적 장착</b><small>패시브 반영</small></button>
   </section>
   <section class="cp-panel cp-bag">
    <div class="cp-head"><h2>동료 가방 <b>${d.cards.length} / ${COMPANION_BAG}</b></h2>
@@ -194,8 +194,8 @@ function companionHelp(){
  <dt>✤ ${p.jackpot.name} · 발동 확률 ${p.jackpot.min}~${p.jackpot.max}%</dt><dd>그 카드의 골드를 수령할 때 표시된 확률로 수령 골드가 2배가 돼요. 배치 해제로 자동 수령할 때도 판정해요. 카드마다 따로 판정하며, 분당 골드 표기에는 대박 기대값을 더하지 않아요.</dd></dl>
  <p>패시브 종류는 각 1/3로 같지만, <b>종류 안에서는 높은 수치일수록 드물어요.</b> 최저 수치의 추첨 가중치는 21, 다음은 20으로 줄어 최고 수치는 1이에요. 기존 카드의 수치는 유지돼요.</p>
  <table><thead><tr><th>골드 / 대박</th><th>성장 최대</th><th>종류 내 확률</th><th>전체 소환</th></tr></thead><tbody>${Array.from({length:21},(_,i)=>`<tr><td>${20+i}%</td><td>+${30+i}%</td><td>${percent(companionPassiveValueChance('gold',20+i))}</td><td>${percent(companionPassiveValueChance('gold',20+i)/3)}</td></tr>`).join('')}</tbody></table><p>전체 소환 열은 <b>특정 패시브 1종과 해당 수치</b>가 함께 나올 확률이에요. 예: 골드형 +40%는 약 0.1443%예요. 기본 분당 골드의 범위 내 정수는 동일 확률이에요.</p>
- <h3>세 패시브 효율 비교</h3><p>같은 기본 골드·별 기준, 새로 뽑아 8시간 배치했을 때 평균 보너스는 골드형 <b>+26.67%</b>, 대박형 기대값 <b>+26.67%</b>, 성장형 <b>+25.71%</b>예요. 성장형은 초반에 낮지만 계속 배치하면 최대치에 도달해 장기적으로 유리해져요. 골드를 수령해도 성장 단계는 유지돼요.</p>
- <h3>골드 계산 · 최적 장착</h3><p>분당 골드 = 기본 골드 × (1 + 별 보너스) × (1 + 현재 패시브 증가율). ★마다 +15%, ★5는 +60%예요. 성장형은 시간에 따라 달라지고, 대박형은 수령할 때 별도로 판정해요.</p><p>슬롯마다 최대 8시간 누적돼요. 최적 장착은 <b>앞으로 8시간의 기대 골드</b>를 비교해 3명을 골라요. 별·성장 단계·대박 확률을 반영하며 유지된 카드의 성장 시간은 보존돼요. 대박형 기대 보너스는 발동 확률과 같고, 실제 결과는 달라질 수 있어요.</p>
+ <h3>세 패시브 효율 비교</h3><p>같은 기본 골드·별 기준, 새로 뽑아 24시간 배치했을 때 평균 보너스는 골드형 <b>+26.67%</b>, 대박형 기대값 <b>+26.67%</b>, 성장형 <b>+33.02%</b>예요. 성장형은 초반에 낮지만 배치 3~5시간이면 최대치에 도달해 오래 둘수록 유리해요. 골드를 수령해도 성장 단계는 유지돼요.</p>
+ <h3>골드 계산 · 최적 장착</h3><p>분당 골드 = 기본 골드 × (1 + 별 보너스) × (1 + 현재 패시브 증가율). ★마다 +15%, ★5는 +60%예요. 성장형은 시간에 따라 달라지고, 대박형은 수령할 때 별도로 판정해요.</p><p>슬롯마다 최대 24시간 누적돼요. 최적 장착은 <b>앞으로 24시간의 기대 골드</b>를 비교해 3명을 골라요. 별·성장 단계·대박 확률을 반영하며 유지된 카드의 성장 시간은 보존돼요. 대박형 기대 보너스는 발동 확률과 같고, 실제 결과는 달라질 수 있어요.</p>
  <h3>등급별 소환 확률</h3><table><thead><tr><th>등급</th><th>확률</th></tr></thead><tbody>${COMPANION_GRADES.map(g=>`<tr><td>${g}</td><td>${percent(COMPANION_GRADE_RATES[g])}</td></tr>`).join('')}</tbody></table>
  <h3>캐릭터별 확률 · 기본 골드</h3><p>아래 확률은 전체 소환 기준이에요. 같은 등급에서도 기본 수입이 높은 캐릭터일수록 드물게 나와요. 기본 골드는 각 범위의 정수 중 동일 확률로 결정돼요.</p><table><thead><tr><th>등급 · 이름</th><th>기본 G/분</th><th>확률</th></tr></thead><tbody>${COMPANIONS.map(c=>`<tr><td>${c.grade} · ${esc(c.name)}</td><td>${fmt(c.min)}~${fmt(c.max)}</td><td>${percent(companionSummonChance(c.id))}</td></tr>`).join('')}</tbody></table>
  <h3>소환권 얻는 곳</h3><p>링구의 탐험 클리어(개인 상자) 시 <b>25%</b> 확률로 소환권 1장 · 모든 테마 동일</p><p>소환권 1장당 카드 1장, 5회 소환은 소환권 5장이 필요해요. 1회·5회 모두 카드마다 같은 확률로 독립 추첨하며, 확정 등급 보장·천장은 없어요. 동료 효과는 전투·아레나에 적용되지 않아요.</p>

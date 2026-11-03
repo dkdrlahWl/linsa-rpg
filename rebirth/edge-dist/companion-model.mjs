@@ -1,5 +1,5 @@
 // 동료 카드 (서버 판정).
-// 소환권으로 카드를 뽑고, 3칸에 배치하면 칸마다 분당 골드가 최대 8시간 쌓인다.
+// 소환권으로 카드를 뽑고, 3칸에 배치하면 칸마다 분당 골드가 최대 24시간 쌓인다.
 // 같은 캐릭터 카드끼리 합성하면 별이 오른다. 전투·아레나에는 영향 없음.
 // 2026-11-02 도현: 동료 버프 — SS급 신설(픽업 전용), 아스트리아는 일반 소환 S급으로 이동, 더 좋은 S급 5종 추가.
 export const COMPANION_GRADES=['SS','S','A','B','C','D','F'];
@@ -50,7 +50,7 @@ export const COMPANION_BAG=100;
 export const COMPANION_MAX_STAR=5;
 export const COMPANION_STAR_BONUS=.15;
 export const COMPANION_GROWTH_STEP=.10;
-export const COMPANION_CAP_MS=8*3600e3;
+export const COMPANION_CAP_MS=24*3600e3; // 2026-11-03 도현: 누적 한도 8시간 → 24시간
 export const COMPANION_SELL={SS:3000000,S:1000000,A:300000,B:100000,C:30000,D:10000,F:3000};
 const MIN=60e3;
 const fail=m=>{throw new Error(m);};
@@ -142,7 +142,7 @@ export function slotAccrued(card,slot,now){
  while(t<to){const placed=t-slot.placedAt,next=Math.min(to,slot.placedAt+(Math.floor(placed/3600e3)+1)*3600e3);sum+=companionRate(card,placed)*(next-t)/MIN;t=next;}
  return Math.floor(sum);
 }
-// Compare production over the next full 8h window, including stepped growth
+// Compare production over the next full 24h window, including stepped growth
 // and jackpot expected value. Keep the age of an already-placed growth card.
 export function companionExpectedGold(card,placedMs=0){
  const gold=slotAccrued(card,{placedAt:-Math.max(0,placedMs),claimedAt:0},COMPANION_CAP_MS);
