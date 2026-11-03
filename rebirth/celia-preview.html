@@ -1,7 +1,7 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>셀리아 상점 · VIP 디자인</title>
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="fantasy-theme.css"><link rel="stylesheet" href="shop.css"><link rel="stylesheet" href="enhancement.css"><link rel="stylesheet" href="obsidian-glass.css"><link rel="stylesheet" href="celia-premium.css?v=celia-premium-1">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="fantasy-theme.css"><link rel="stylesheet" href="shop.css"><link rel="stylesheet" href="enhancement.css"><link rel="stylesheet" href="obsidian-glass.css"><link rel="stylesheet" href="celia-premium.css?v=celia-title-style-v2">
 <main style="max-width:760px;margin:auto;padding:12px" id="preview"></main><script type="module">
-import {shopView} from './shop-ui.mjs?v=celia-premium-1';
+import {shopView} from './shop-ui.mjs?v=celia-title-style-v2';
 const state={classId:'warrior',items:[],mileage:127000000,celiaVolume:127000000};
 const main=document.querySelector('main');
 function render(){main.innerHTML=shopView(state,{},()=>'', 'mileage');main.querySelectorAll('button[data-write]').forEach(b=>b.disabled=true);}
