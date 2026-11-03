@@ -2,7 +2,7 @@
 import {TITLES,TITLE_BY_ID,TITLE_GRADES,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const newTitleArt=new Set(['look3','look6jobs','look9','look18']);
-export const titleArt=id=>'titles/'+id+'.svg?v='+(/^vip\d+$/.test(id)?'celia-premium-1':newTitleArt.has(id)?'skill-collection-20261025':'tower30-20261013');
+export const titleArt=id=>'titles/'+id+'.svg?v='+(/^vip\d+$/.test(id)?'celia-title-style-v2':newTitleArt.has(id)?'skill-collection-20261025':'tower30-20261013');
 const gradeName=g=>TITLE_GRADES.find(x=>x.id===g)?.name||'';
 
 // Compact badge for ranking rows, lobbies and the player strip.
