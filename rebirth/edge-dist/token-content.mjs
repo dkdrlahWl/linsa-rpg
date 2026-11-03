@@ -13,12 +13,14 @@ import {TOWER_FLOORS} from './tower-model.mjs';
 // 토큰 보상 (2026-11-02 도현): 1·2단계 20·40개 그대로, 3단계 80개부터 단계마다 약 1.5배(10단계 1,200개).
 export const TOKEN_BOSS_REWARDS=Object.freeze([20,40,80,120,180,270,400,600,900,1200]);
 export const TOKEN_BOSS_FLOORS=Object.freeze([25,27,30,33,36,39,42,45,48,50]);
+// 2026-11-03 도현: 토큰·열쇠 던전 보스 체력 전 단계 2배(열쇠 던전은 이 체력을 그대로 씀).
+export const TOKEN_BOSS_HP_MULTIPLIER=2;
 export const TOKEN_BOSS_NAME='황금 금고지기 마몬';
 export const TOKEN_BOSS_STAGES=Object.freeze(TOKEN_BOSS_FLOORS.map((floor,i)=>{const f=TOWER_FLOORS[floor-1];return Object.freeze({
  stage:i+1,floor,name:TOKEN_BOSS_NAME,art:'hourglass-colossus',level:f.level,
- hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds),attack:Math.max(1,Math.round(f.attack/3)),seconds:TOKEN_BOSS_SECONDS,tokens:TOKEN_BOSS_REWARDS[i],pattern:f.pattern,
+ hp:Math.round(f.hp*TOKEN_BOSS_SECONDS/f.seconds)*TOKEN_BOSS_HP_MULTIPLIER,attack:Math.max(1,Math.round(f.attack/3)),seconds:TOKEN_BOSS_SECONDS,tokens:TOKEN_BOSS_REWARDS[i],pattern:f.pattern,
  guide:f.guide||'바닥 경고 문양과 돌진 경로를 피하면서 60초 안에 쓰러뜨리세요.',
- target:'시련의 탑 '+floor+'층급 (패턴·공격력 동일, 60초 기준 체력)',
+ target:'시련의 탑 '+floor+'층급 (패턴 동일, 60초 기준 체력의 2배)',
 });}));
 
 const dayKey=now=>new Date(now+9*3600e3).toISOString().slice(0,10);
