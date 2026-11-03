@@ -126,3 +126,4 @@ dialog.market-picker-dialog{width:min(96vw,940px);max-width:940px;max-height:92d
 @media (prefers-reduced-motion:reduce){.tc-rays,.tc-spark,.tc-core img{animation:none}.tc-spark{display:none}}
 .stage-row.current-stage{box-shadow:inset 3px 0 0 #f2c76e;background:linear-gradient(90deg,#f2c76e1f,transparent 70%);border-radius:8px}
 .trade-bind-warn{margin:6px 0 8px;padding:8px 10px;border-radius:10px;background:#ff7a4524;border:1px solid #ff9a6a66;color:#ffd9c7;font-size:12px;line-height:1.45}.trade-bind-warn b{color:#ffb38f}
+.hair-btn-art{width:28px;height:28px;object-fit:contain;flex:0 0 28px;margin-right:6px;vertical-align:middle;filter:drop-shadow(0 0 6px #f2c76e88)}
