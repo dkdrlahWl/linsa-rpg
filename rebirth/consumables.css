@@ -7,9 +7,9 @@
 .consumable-shop-panel .consumable-shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .consumable-shop-grid .consumable-shop-card{display:grid;grid-template-columns:40px minmax(0,1fr);grid-template-areas:"art name" "art owned" "desc desc" "price price" "buy buy";column-gap:8px;row-gap:2px;align-items:center;padding:8px;text-align:left}
 .consumable-shop-grid .consumable-shop-art{grid-area:art;width:40px;height:40px;margin:0}
-.consumable-shop-grid .consumable-shop-card h3{grid-area:name;font-size:14px;line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.consumable-shop-grid .consumable-shop-card h3{grid-area:name;font-size:14px;line-height:1.2;margin:0;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
 .consumable-shop-grid .consumable-owned{grid-area:owned;font-size:12px;margin:0}
-.consumable-shop-grid .consumable-shop-card>p{grid-area:desc;font-size:11.5px;line-height:1.35;margin:4px 0 0;color:#bfd2bd;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.consumable-shop-grid .consumable-shop-card>p{grid-area:desc;font-size:11.5px;line-height:1.35;margin:4px 0 0;color:#bfd2bd;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
 .consumable-shop-grid .consumable-shop-card details{display:none}
 .consumable-shop-grid .consumable-shop-card .consumable-price{grid-area:price;font-size:14px;margin:4px 0 0;padding:0}
 .consumable-shop-grid .consumable-shop-card .consumable-price small{font-size:11px}
