@@ -698,7 +698,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     render();
     for (const event of result.result?.events || []) if(event.type === "combat") combatFrames.push(...event.frames);
     if (combatFrames.length > 6) combatFrames.splice(0, combatFrames.length - 6);
-    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial","citadelChest"].includes(e.type))) showEvents(result.result?.events || []);
+    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial","citadelChest","tokenBoss","keyBoss"].includes(e.type))) showEvents(result.result?.events || []);
     return result;
   } catch (e) {
     if((requestSignal?.aborted&&!inputDeadline?.aborted)||baseSignal?.aborted||session?.user?.id!==accountAtSend){
@@ -1402,7 +1402,7 @@ function showEvents(events) {
 function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.practice?(r.won?'전직 보스 연습 성공':'전직 보스 연습 종료'):r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.practice?'연습 전투입니다. 전직·능력치·보상은 추가로 지급되지 않습니다.':r.won&&r.stage>=5?advancementBonusText(r.stage)+' 획득':r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===4?D.FIFTH_SKILLS[state.classId].name:r.stage===3?D.FOURTH_SKILLS[state.classId].name:r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
 // 6·7차 전직 보너스 문구 (advancement.mjs ADVANCEMENT_STAT_BONUS 기준).
 function advancementBonusText(stage){const b=D.ADVANCEMENT_STAT_BONUS[stage]||{},names={attack:'공격력',boss:'보스 피해',crit:'치명타 확률',hp:'최대 HP'};return Object.entries(b).map(([k,v])=>names[k]+' +'+v+(k==='crit'?'%p':'%')).join(' · ');}
-function keyBossReward(r){open(r.won?r.stage+'단계 처치!':'열쇠 던전 종료',keyBossResult(r)+'<div class="actions">'+btn('확인','ack','','gold',true)+'</div>',false);}
+function keyBossReward(r){if(r.won)sounds.play('loot-rare');open(r.won?`${r.stage}단계 처치! · 던전 열쇠 ${r.keys}개 획득`:'열쇠 던전 종료',keyBossResult(r)+'<div class="actions">'+btn('확인','ack','','gold',true)+'</div>',false);}
 function tokenBossReward(r){open(r.won?r.stage+'단계 처치!':'토큰 던전 종료',tokenBossResult(r)+'<div class="actions">'+btn('확인','ack','','gold',true)+'</div>',false);}
 function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait${f.artFrames===1?' single-boss-art':''}" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G'+['fragment','cube','highCube','primeCube','scroll'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+fmt(r[k])+'개').join(''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<TOWER_FLOORS.length?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
 function reward() {
