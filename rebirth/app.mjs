@@ -915,7 +915,7 @@ function regions() {
       )
         .map(
           (s) =>
-            `<div class="stage-row"><div><strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 입장 제한 없음<br>경험치 ${fmt(s.xp)} · ${fmt(s.gold)} G / 처치<br>${gearLevelRange(Math.max(10,s.dropLevel))} 일반 장비${state.stage===s.id?" · 현재 사냥터":""}</small></div>${disabledBtn("입장", "enterStage", s.id, false)}</div>`,
+            `<div class="stage-row${state.stage===s.id?" current-stage":""}" data-stage="${s.id}"><div><strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 입장 제한 없음<br>경험치 ${fmt(s.xp)} · ${fmt(s.gold)} G / 처치<br>${gearLevelRange(Math.max(10,s.dropLevel))} 일반 장비${state.stage===s.id?" · 현재 사냥터":""}</small></div>${disabledBtn("입장", "enterStage", s.id, false)}</div>`,
         )
         .join("")}</section>`,
   ).join("")}</div>`;
@@ -1951,7 +1951,10 @@ document.addEventListener("click", async (e) => {
       });
     if (action === "regions") {
       view = "regions";
-      return render();
+      render();
+      // 2026-11-03 도현: 사냥터 선택을 열면 지금 사냥 중인 사냥터로 바로 이동.
+      requestAnimationFrame(()=>document.querySelector('.stage-row.current-stage')?.scrollIntoView({block:"center"}));
+      return;
     }
     if (action === "back") {
       view = "game";
