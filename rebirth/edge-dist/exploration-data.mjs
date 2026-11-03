@@ -17,9 +17,9 @@ export const EXPLORATIONS=[
  // 사제 제외 평균 120초 풀딜 약 17.9억(에디셔널 제외). 26.3158 × 9,500만 × 0.7 ≈ 17.5억. 그림은 임시로 6단계 것을 복사해 사용.
  {id:8,name:'별이 무너진 천공 신전',floors:5,multiplier:26.3158,attackMultiplier:3.2,linearHp:true,keys:5,level:230,art:'exploration-8',map:'exploration/arena-8-original-v1.webp',arena:'exploration/arena-8-original-v1.webp',boss:'천공의 붕괴자 아스트라뮤트',monsters:['성운 파편 골렘','별빛 칼날 수호자','공허 예언자'],seconds:2880,gold:280000},
  // 2026-11-03 도현: 9·10단계(5·6·7처럼 보상 확률·개수 증가, 보스 체력 증가). 보스 1인 체력 9단계 25억 · 10단계 35억(8단계 17.5억에서 ×1.43 · ×1.4).
- // 25억 ÷ (9,500만 × 0.7) = 37.594 · 35억 ÷ 6,650만 = 52.632. 열쇠 6·7개. 그림은 임시로 9단계=7단계, 10단계=8단계 것을 복사.
- {id:9,name:'영겁의 서리 왕좌',floors:5,multiplier:37.594,attackMultiplier:3.5,linearHp:true,keys:6,level:233,art:'exploration-9',map:'exploration/arena-9-original-v1.webp',arena:'exploration/arena-9-original-v1.webp',boss:'영겁의 군주 네펠리온',monsters:['서리 결정 거인','영겁의 망령 기사','얼어붙은 시간술사'],seconds:2970,gold:310000},
- {id:10,name:'종말의 별무덤',floors:5,multiplier:52.632,attackMultiplier:3.8,linearHp:true,keys:7,level:236,art:'exploration-10',map:'exploration/arena-10-original-v1.webp',arena:'exploration/arena-10-original-v1.webp',boss:'종말의 별 포식자 녹타리스',monsters:['별무덤 수호석상','붕괴한 성운 정령','검은 별 사도'],seconds:3060,gold:340000},
+ // 25억 ÷ (9,500만 × 0.7) = 37.594 · 35억 ÷ 6,650만 = 52.632. 열쇠는 8단계와 같은 5개 고정(도현). 그림은 임시로 9단계=7단계, 10단계=8단계 것을 복사.
+ {id:9,name:'영겁의 서리 왕좌',floors:5,multiplier:37.594,attackMultiplier:3.5,linearHp:true,keys:5,level:233,art:'exploration-9',map:'exploration/arena-9-original-v1.webp',arena:'exploration/arena-9-original-v1.webp',boss:'영겁의 군주 네펠리온',monsters:['서리 결정 거인','영겁의 망령 기사','얼어붙은 시간술사'],seconds:2970,gold:310000},
+ {id:10,name:'종말의 별무덤',floors:5,multiplier:52.632,attackMultiplier:3.8,linearHp:true,keys:5,level:236,art:'exploration-10',map:'exploration/arena-10-original-v1.webp',arena:'exploration/arena-10-original-v1.webp',boss:'종말의 별 포식자 녹타리스',monsters:['별무덤 수호석상','붕괴한 성운 정령','검은 별 사도'],seconds:3060,gold:340000},
 ];
 // 이전 단계(암흑성채 id 3은 건너뜀). 0단계는 null.
 export const explorationPrevious=tier=>{for(let i=tier-1;i>=0;i--)if(EXPLORATIONS[i])return i;return null;};

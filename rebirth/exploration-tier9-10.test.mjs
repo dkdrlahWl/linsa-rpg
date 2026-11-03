@@ -4,7 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {EXPLORATIONS,explorationStats,explorationKeys,explorationPrevious,initializeExploration,explorationArt} from './exploration-data.mjs';
 import {EXPLORATION_REWARDS,explorationGearTable} from './exploration-reward-data.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
-for(const [tier,solo,keys] of [[9,25e8,6],[10,35e8,7]]){
+for(const [tier,solo,keys] of [[9,25e8,5],[10,35e8,5]]){
  for(const n of [1,2,4]){const hp=explorationStats(tier,5,n,true).hp;assert.ok(Math.abs(hp-solo*n)/(solo*n)<.001,tier+' '+n+' '+hp);}
  assert.equal(explorationKeys(tier),keys);assert.equal(explorationPrevious(tier),tier-1);
  assert.ok(explorationStats(tier,5,1,true).attack>explorationStats(tier-1,5,1,true).attack);
@@ -19,4 +19,4 @@ for(const [tier,solo,keys] of [[9,25e8,6],[10,35e8,7]]){
  const w=initializeExploration({tier,started:12345,members:[{id:'a',power:{hp:1000,attack:10,defense:1},hp:1000}],tick:0});
  assert.equal(w.monsters.find(m=>m.boss).maxHp,explorationStats(tier,5,1,true).hp);
 }
-console.log('PASS exploration 9·10: 25억/35억 · keys 6/7 · rewards up · 220 2%/4%');
+console.log('PASS exploration 9·10: 25억/35억 · keys 5 · rewards up · 220 2%/4%');

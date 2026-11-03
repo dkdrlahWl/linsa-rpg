@@ -1,7 +1,7 @@
--- 2026-11-03 도현: 링구의 탐험 9·10단계 허용 · 열쇠 9단계 6개 · 10단계 7개 · 이전 단계: 9←8, 10←9
+-- 2026-11-03 도현: 링구의 탐험 9·10단계 허용 · 열쇠 9·10단계 5개(8단계와 같음) · 이전 단계: 9←8, 10←9
 CREATE OR REPLACE FUNCTION rebirth_private.exploration_key_cost(t integer)
  RETURNS integer LANGUAGE sql IMMUTABLE SET search_path TO ''
-AS $function$select case when t=5 then 2 when t=6 then 3 when t=7 then 4 when t=8 then 5 when t=9 then 6 when t=10 then 7 else 1 end$function$;
+AS $function$select case when t=5 then 2 when t=6 then 3 when t=7 then 4 when t=8 then 5 when t=9 then 5 when t=10 then 5 else 1 end$function$;
 DO $migration$
 DECLARE src text;
 BEGIN
