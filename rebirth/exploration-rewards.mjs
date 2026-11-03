@@ -12,7 +12,14 @@ export function grantExplorationChest(input,room,ctx){
  for(const key of EXPLORATION_REWARD_KEYS){if(!rates[key])continue;reward[key]=ctx.random()<rates[key]?explorationRewardCount(rates,key):0;state.materials[key]=(state.materials[key]||0)+reward[key];}
  // Admin one-shot override (set in DB): next clear drops this exact boss item instead of the random roll.
  // slot is the SLOTS index (0 = weapon); 'weapon' is accepted as an alias.
- const forced=state.adminNextExplorationGear;delete state.adminNextExplorationGear;
+ let forced=state.adminNextExplorationGear;delete state.adminNextExplorationGear;
+ // 2026-11-03 운영자 지정 순서(DB): adminExplorationQueue=[{tier,skip,item:{level,classId,slot}}]. 맨 앞 항목만 본다.
+ // 같은 단계를 클리어할 때마다 skip을 1씩 줄이고, 0이면 그 판에 item을 확정 지급한 뒤 다음 항목으로 넘어간다.
+ if(!forced&&Array.isArray(state.adminExplorationQueue)){
+  const q=state.adminExplorationQueue,head=q[0];
+  if(head&&(head.tier===undefined||head.tier===room.tier)){if((head.skip||0)>0)head.skip--;else{forced=head.item;q.shift();}}
+  if(!q.length)delete state.adminExplorationQueue;
+ }
  if(forced||ctx.random()<rates.bossGear){
   const level=forced?.level??explorationGearLevelFor(rates,ctx.random),classId=forced?.classId??CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=forced?Number(forced.slot==='weapon'?0:forced.slot)||0:halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);

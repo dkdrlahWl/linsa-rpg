@@ -531,15 +531,18 @@ function bossSettle(s, ctx, events) {
       s.materials.highCube+=2;
 
     }
-    if (ctx.random() < rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)) {
+    // 2026-11-03 운영자 지정 드롭(DB): adminNextBossGear={bossId,after,slot?} — 일일 보스도 지원. after 이후 첫 보상 처치에 그 부위로 확정.
+    const forcedGear=s.adminNextBossGear,forceNow=!!forcedGear&&forcedGear.bossId===boss.id&&ctx.now>=(forcedGear.after||0);
+    if(forceNow)delete s.adminNextBossGear;
+    if (forceNow || ctx.random() < rewardChance(bossGearChance(boss,ctx.now),s,ctx.now)) {
         const it = makeLootItem(
           boss.gearLevel,
-          pick(CLASSES, ctx).id,
-          boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random() * 9),
+          forceNow?s.classId:pick(CLASSES, ctx).id,
+          forceNow?(Number.isInteger(forcedGear.slot)&&forcedGear.slot>=0&&forcedGear.slot<=8?forcedGear.slot:1+Math.floor(ctx.random()*8)):boss.exactHalfWeapon?halfWeaponSlot(ctx.random):Math.floor(ctx.random() * 9),
           true,
           ctx,
           undefined,
-          boss.exactHalfWeapon,
+          forceNow||boss.exactHalfWeapon,
         );
         addItem(s, it);
         reward.items.push(it.id);
