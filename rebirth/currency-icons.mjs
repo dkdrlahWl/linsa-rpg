@@ -1,5 +1,6 @@
 // Generated raster artwork is embedded in the SVG asset containers.
 const currencyKeys = {
+  '링구의 머리카락':'ringuHair',
   '초월석':'transcendStone', '골드': 'gold', G: 'gold', '장비 파편': 'fragment', '파편': 'fragment',
   '잠재 해금 주문서': 'scroll', '잠재 부여 주문서': 'scroll', '주문서': 'scroll',
   '잠재 확장석': 'expand', '확장석': 'expand',
@@ -9,9 +10,9 @@ const currencyKeys = {
   '일반 큐브': 'cube', '큐브': 'cube', '상급 큐브': 'highCube',
   '지역 재료': 'boss', '보스 재료': 'boss',
 };
-const labels = /초월석|에디셔널 큐브|추가옵션 불꽃|기본수치 재련석|잠재 해금 주문서|레드 큐브|블랙 큐브|프라임 큐브|레드큐브|블랙큐브|프라임큐브|상급 큐브|일반 큐브|잠재 부여 주문서|잠재 확장석|장비 파편|지역 재료|보스 재료|확장석|주문서|파편|큐브/g;
+const labels = /링구의 머리카락|초월석|에디셔널 큐브|추가옵션 불꽃|기본수치 재련석|잠재 해금 주문서|레드 큐브|블랙 큐브|프라임 큐브|레드큐브|블랙큐브|프라임큐브|상급 큐브|일반 큐브|잠재 부여 주문서|잠재 확장석|장비 파편|지역 재료|보스 재료|확장석|주문서|파편|큐브/g;
 const ignored = 'script,style,textarea,select,option,[data-currency-label],[data-no-currency-art],.damage';
-const cubeArt={transcendStone:"transcend-stone-v1.webp",bonusFlame:"bonus-flame-v1.webp",rerollStone:"reroll-stone-v1.webp",scroll:"potential-scroll.webp",cube:"cube-red-v2.webp",highCube:"cube-black-v2.webp",primeCube:"cube-prime-v2.webp",addCube:"cube-additional-v1.webp"};
+const cubeArt={ringuHair:'ringu-hair-v1.webp',transcendStone:"transcend-stone-v1.webp",bonusFlame:"bonus-flame-v1.webp",rerollStone:"reroll-stone-v1.webp",scroll:"potential-scroll.webp",cube:"cube-red-v2.webp",highCube:"cube-black-v2.webp",primeCube:"cube-prime-v2.webp",addCube:"cube-additional-v1.webp"};
 export const currencyIconURL = key => new URL(key==='pickupTicket'?'./companions/pickup-ticket-v1.webp':key==='companionTicket'?'./companions/summon-ticket-v1.webp':['potentialLock','dungeonKey','diamond','diamondChest'].includes(key)?'./fishing/'+key+'.webp':"./currencies/"+(cubeArt[key]||key+".svg"),import.meta.url).href;
 const iconURL=currencyIconURL;
 // Gold artwork is opt-in for purchase prices; tier names, balances and rewards stay text-only.
