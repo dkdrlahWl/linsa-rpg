@@ -18,11 +18,11 @@ assert.ok(c220/c200>4&&c220/c200<4.6,'220 cost ≈ 4x (+레벨 차이)');
 const g=st=>gearAttributes({...weapon,stars:st}).attack;const r25=g(25)/g(0),r20=g(20)/g(0);assert.ok(r25>2.95&&r25<3.1,'25성 약 3.0배');assert.ok(r20<2,'20성까지 완만');
 {const steps=[];for(let st=20;st<25;st++)steps.push(g(st+1)-g(st));const early=g(10)-g(9);assert.ok(steps.every((d,i)=>d>early*2&&(i===0||d>steps[i-1])),'21~25성 크게·점점 크게');}
 // 4) 초월 흐름
-let s=structuredClone(s0);s.materials.transcendStone=20;addItem(s,structuredClone(weapon));addItem(s,structuredClone(armor));
+let s=structuredClone(s0);s.materials.transcendStone=40;addItem(s,structuredClone(weapon));addItem(s,structuredClone(armor));
 const wid=s.items.at(-2).id,aid=s.items.at(-1).id,W=()=>s.items.find(i=>i.id===wid),A=()=>s.items.find(i=>i.id===aid);
 assert.throws(()=>execute(s,'transcend',{id:wid},ctx()),/TRANSCEND_STARS_REQUIRED/);
 assert.throws(()=>execute(s,'statReroll',{id:wid},ctx()),/REROLL_STONE_200_ONLY/);
-const costs=[];let stones=20;
+const costs=[];let stones=40;
 for(let t=0;t<bossTierCount(W());t++){
  if(!canTranscendTier(W())){assert.throws(()=>{W().stars=25;execute(s,'transcend',{id:wid},ctx());},/TRANSCEND_UNAVAILABLE/);break;}
  W().bonusPct=7;s=execute(s,'sync',{},ctx()).state;W().stars=25;const linesBefore=JSON.stringify(W().lines);
@@ -31,9 +31,9 @@ for(let t=0;t<bossTierCount(W());t++){
  assert.equal(bossTier(W()),t+1);assert.equal(W().stars,0);assert.equal(JSON.stringify(W().lines),linesBefore);assert.equal(W().bonusPct,7);
  const rg=gearStatRanges(W());for(const [k,v] of Object.entries(W().baseStats))assert.ok(v>=rg[k].min&&v<=rg[k].max,'new tier range '+k);
 }
-assert.deepEqual(costs,[1,2,3,4],'무기 초월석 1·2·3·4');assert.equal(bossTier(W()),4);
+assert.deepEqual(costs,[2,4,6,8],'무기 초월석 2·4·6·8');assert.equal(bossTier(W()),4);
 const acosts=[];for(;canTranscendTier(A());){A().stars=25;const r=execute(s,'transcend',{id:aid},ctx());s=r.state;acosts.push(r.events.find(e=>e.type==='transcend').cost);}
-assert.deepEqual(acosts,[1,2],'방어구 초월석 1·2');assert.equal(bossTier(A()),2);
+assert.deepEqual(acosts,[2,4],'방어구 초월석 2·4');assert.equal(bossTier(A()),2);
 // 초월석 부족
 let p=structuredClone(s0);p.materials.transcendStone=0;addItem(p,structuredClone(weapon));p.items.at(-1).stars=25;
 assert.throws(()=>execute(p,'transcend',{id:p.items.at(-1).id},ctx()),/INSUFFICIENT_TRANSCENDSTONE/);

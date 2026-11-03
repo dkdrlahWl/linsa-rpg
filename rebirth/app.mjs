@@ -1227,6 +1227,18 @@ function starPanel(it) {
 }
 
 // 2026-11-02 초월: 220제 등급 보스장비 25성 → 초월석으로 다음 등급 (스탯은 새 등급 범위에서 랜덤, 스타포스만 0성)
+// 2026-11-03 도현: 초월 성공 연출 — 화면 전체에 빛 + "초월 성공!" 크게, 2.8초 뒤 자동으로 닫힘(누르면 바로 닫힘).
+function transcendCelebrate(e){
+ try{
+  document.querySelector('.transcend-celebrate')?.remove();
+  const it=state.items?.find(x=>x.id===e.id),art=it?D.equipmentIdentity(it):null;
+  const el=document.createElement('div');el.className='transcend-celebrate';el.setAttribute('role','status');
+  el.innerHTML=`<div class="tc-rays"></div><div class="tc-core">${art?.art?`<img src="${art.art}" alt="">`:''}<small>TRANSCEND</small><strong>초월 성공!</strong><p>${esc(e.fromName)} <i>→</i> <b>${esc(e.toName)}</b></p><span>${art?.name?esc(art.name)+' · ':''}스타포스 0성부터 다시</span></div>${'<i class="tc-spark"></i>'.repeat(14)}`;
+  const close=()=>{el.classList.add('out');setTimeout(()=>el.remove(),350);};
+  el.addEventListener('click',close);document.body.append(el);setTimeout(close,2800);
+  sounds?.play?.('loot-rare');
+ }catch{toast(`초월 성공! ${e.fromName} → ${e.toName} 등급`);}
+}
 function transcendBlock(it){
  const need=D.transcendCost(it),have=state.materials?.transcendStone||0,next={...it,bossTier:D.bossTier(it)+1},range=D.gearStatRanges(next),m=D.gearStatMultiplier(it);
  const blocked=enhancementBlock(it)||(!state.isAdmin&&have<need?`초월석이 부족합니다 (${fmt(have)}/${fmt(need)}개)`:"");
@@ -1351,8 +1363,7 @@ function showEvents(events) {
       }
     }
     if (e.type === "transcend") {
-      lastStarResult=null;toast(`초월 성공! ${e.fromName} → ${e.toName} 등급 · 스타포스 0성부터 다시`);
-      itemDetail(e.id,"star");
+      lastStarResult=null;itemDetail(e.id,"star");transcendCelebrate(e);
     } else if (e.type === "star") {
       lastStarResult=e;
       itemDetail(e.id,"star");

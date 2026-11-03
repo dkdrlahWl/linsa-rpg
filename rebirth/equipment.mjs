@@ -54,10 +54,12 @@ export const isTieredBossGear=item=>!!item?.boss&&Number(item.level)>=TIERED_BOS
 export const isCommonBossGear=item=>isTieredBossGear(item)&&Number(item.slot)!==0;
 export const bossTierCount=item=>Number(item?.slot)===0?5:3;
 export const bossTier=item=>Math.max(0,Math.min(bossTierCount(item)-1,Number.isInteger(item?.bossTier)?item.bossTier:0));
-// 초월: 220제 등급 보스장비를 25성에서 초월석으로 다음 등급으로. n번째 초월에 초월석 n개(무기 1·2·3·4, 방어구 1·2).
+// 초월: 220제 등급 보스장비를 25성에서 초월석으로 다음 등급으로. n번째 초월에 초월석 2n개(무기 2·4·6·8, 방어구 2·4).
 export const TRANSCEND_LEVEL=220;
 export const canTranscendTier=item=>!!item?.boss&&Number(item.level)>=TRANSCEND_LEVEL&&bossTier(item)<bossTierCount(item)-1;
-export const transcendCost=item=>bossTier(item)+1;
+// 2026-11-03 도현: 초월석 2배 — n번째 초월에 2n개(무기 2·4·6·8, 방어구 2·4).
+export const TRANSCEND_COST_MULTIPLIER=2;
+export const transcendCost=item=>(bossTier(item)+1)*TRANSCEND_COST_MULTIPLIER;
 export const bossTierName=item=>(Number(item?.slot)===0?BOSS_WEAPON_TIER_NAMES:BOSS_ARMOR_TIER_NAMES)[bossTier(item)];
 // 2026-11-02 도현: 220제부터는 얻을 때 무조건 가장 낮은 등급. 높은 등급은 초월로만 올린다.
 export function rollBossTier(item,random=Math.random){if(Number(item?.level)>=220)return 0;const weights=Number(item.slot)===0?BOSS_WEAPON_TIER_WEIGHTS:BOSS_ARMOR_TIER_WEIGHTS,total=weights.reduce((a,b)=>a+b,0);let r=random()*total;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<0)return i;}return weights.length-1;}
