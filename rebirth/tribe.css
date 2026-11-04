@@ -214,7 +214,4 @@ dialog.tribe-dialog .tribe-screen:has(.tribe-choose) :is(.tribe-sanctum,.tribe-n
 .tribe-name-line .tribe-tag .tribe-name{color:#b8c7db!important}
 .tribe-name-line .tribe-tag .tribe-name.tribe-g-legend,.tribe-name-line .tribe-tag .tribe-name.tribe-g-myth{color:transparent!important}
 .tribe-name-line .tribe-tag .tribe-name.tribe-g-legend,.tribe-name-line .tribe-tag .tribe-name.tribe-g-myth{text-shadow:none!important}
-/* 2026-11-04 직업 버튼 추가로 상단 줄이 넘쳐 토큰 지갑이 가려짐 → 모바일에서 엔트리 6개를 33px로, 지갑은 줄어들 수 있게 */
-@media(max-width:700px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:33px!important;width:33px!important;min-width:33px!important;padding:2px!important}.fantasy-bank-entry img,.fantasy-wheel-entry img,.fantasy-arena-entry img,.fantasy-title-entry svg{width:22px!important;height:22px!important}.fantasy-tribe-entry .tribe-entry-glyph,.fantasy-prof-entry .prof-entry-glyph{font-size:15px}.fantasy-currencies{flex:0 0 auto!important;margin-left:auto!important}}
-@media(max-width:360px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:30px!important;width:30px!important;min-width:30px!important}}
-@media(max-width:400px){.fantasy-brand-row{gap:2px!important;padding-inline:3px!important}.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:31px!important;width:31px!important;min-width:31px!important}.fantasy-currencies{gap:2px!important}.fantasy-currencies .fantasy-wallet,.fantasy-diamond-wallet,.fantasy-token-wallet{padding:2px 3px!important}}
+/* 2026-11-04 도현: 직업 버튼 추가 → 상단 토큰 지갑 제거(토큰은 교환소에서 확인), 버튼 크기는 원래대로 */
