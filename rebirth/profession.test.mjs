@@ -15,10 +15,10 @@ if(!PROFESSION_OPEN)assert.throws(()=>professionCommand({gold:1,materials:{}},'p
 const s={gold:100000000,isAdmin:true,materials:{fragment:100,cube:50,highCube:20,essence:30,mapPiece:5,ore:9},fishing:{diamonds:30},companions:{tickets:0,pickupTickets:0},treasure:{tickets:0}};
 assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'primeCube',count:1},t0,Math.random),/PROFESSION_REQUIRED/);
 professionCommand(s,'professionChoose',{id:'alchemist'},t0,Math.random);assert.equal(s.gold,100000000,'first choice free');
-assert.equal(professionCostMultiplier(1),1);assert.equal(professionCostMultiplier(10),1);assert.equal(professionBonusChance(10),.2);
+assert.equal(professionCostMultiplier(1),1);assert.equal(professionCostMultiplier(10),1);assert.equal(professionBonusChance(10),0);
 const r=PROFESSIONS[0].recipes[0];assert.deepEqual(recipeCost(r,1,2,'alchemist'),{materials:{essence:2,highCube:2,cube:4},gold:1500000});
 let e=professionCommand(s,'professionCraft',{recipe:'primeCube',count:2},t0,seq(0.5,0.01));
-assert.equal(e.bonus,1);assert.equal(s.materials.primeCube,3);assert.equal(s.materials.highCube,18);assert.equal(s.gold,98500000);assert.equal(s.materials.essence,28,'직업 재료 1개/회, 추가 제작엔 미소모');
+assert.equal(e.bonus,0);assert.equal(s.materials.primeCube,2);assert.equal(s.materials.highCube,18);assert.equal(s.gold,98500000);assert.equal(s.materials.essence,28,'직업 재료 1개/회');
 assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'dungeonKey',count:1},t0,Math.random),/INVALID_RECIPE/);
 // 숙련도: Lv.1→2 는 10회
 for(let i=0;i<8;i++)professionCommand(s,'professionCraft',{recipe:'addCube',count:1},t0,()=>.9);

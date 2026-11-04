@@ -2,18 +2,18 @@
 // 제작은 횟수 제한 없음(하위 재료 + 골드만 소모). 제작자는 "가공업자": 남의 원재료를 사서 가공해 되파는 구조라 레시피가 싸고 서버 수요 전체를 감당한다.
 // 2026-11-04 도현: 모든 레시피 원가(재료 기준가 + 골드) = 기준가의 90%. 기준가 = 토큰 교환소(레드 10만·블랙 40만·파편 2만·다이아 20만), 프라임 150만·초월석 1,000만은 시장 추정.
 // 2026-11-04 도현: 채집 보너스는 직업당 1개 — 연금술사 레드 큐브, 탐험가 링탐 블랙 큐브, 어부 다이아, 광부 장비 파편.
-// 숙련도 = 제작 횟수(+추가 제작 포함 안 함). Lv.n→n+1에 n×10. 레벨이 오르면 ① 추가 제작 확률 2%p/레벨(Lv.10 20%) ② 채집 보너스 50%→100%. 제작 비용은 전 구간 동일.
+// 숙련도 = 제작 횟수. Lv.n→n+1에 n×10. 레벨이 오르면 채집 보너스 50%→100%. 제작 비용은 전 구간 동일. (추가 제작 확률은 2026-11-04 삭제)
 // 2026-11-04 도현: 아직 잠금 — 일반 유저는 선택·제작 불가(관리자만 시험). 열 때 true로.
 export const PROFESSION_OPEN=false;
 export const professionOpenFor=s=>PROFESSION_OPEN||s?.isAdmin===true;
-// 직업 재료: 사냥터에서 직업과 무관하게 랜덤 드랍, 제작 1회당 1개 소모(추가 제작엔 미소모), 거래 가능.
+// 직업 재료: 사냥터에서 직업과 무관하게 랜덤 드랍, 제작 1회당 1개 소모, 거래 가능.
 export const JOB_MATERIAL_DROP=0.006; // 처치당 — 하루 9,000마리 기준 약 54개(4종 합계)
 export const JOB_MATERIALS=Object.freeze({alchemist:'essence',explorer:'mapPiece',fisher:'pearl',miner:'ore'});
 export const JOB_MATERIAL_KEYS=Object.freeze(Object.values(JOB_MATERIALS));
 export const PROFESSION_MAX_LEVEL=10;
 export const PROFESSION_CHANGE_COOLDOWN=7*86400000;
 export const PROFESSION_CHANGE_COST=100000000;
-export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0.02; // Lv.1 2% … Lv.10 20%
+export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0; // 2026-11-04 도현: 추가 제작 확률 삭제
 export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
   gather:{cube:1},
@@ -59,7 +59,7 @@ export const professionLevel=s=>normalizeProfession(s)?.level||0;
 export const professionOf=s=>{const p=normalizeProfession(s);return p?professionById(p.id):null;};
 // 2026-11-04 도현: 제작 비용은 숙련도와 무관하게 전 구간 동일. 숙련도는 추가 제작 확률만 올린다.
 export const professionCostMultiplier=()=>1;
-export const professionBonusChance=level=>PROFESSION_BONUS_CRAFT_PER_LEVEL*Math.max(1,Math.min(PROFESSION_MAX_LEVEL,level));
+export const professionBonusChance=()=>0;
 // 채집 보너스 실효 배율: Lv.1 50% → Lv.10 100% of the listed bonus. Returns the multiplier (1 + bonus×scale), or 1 when not that profession.
 export function professionGather(s,key){
  const p=normalizeProfession(s);if(!p)return 1;
@@ -120,10 +120,9 @@ export function professionCommand(s,command,args,now,random){
   if((Number(s.gold)||0)<cost.gold)fail('INSUFFICIENT_GOLD');
   for(const [k,v] of Object.entries(cost.materials))resourceAdd(s,k,-v);
   s.gold-=cost.gold;
-  let bonus=0;const chance=professionBonusChance(p.level);
-  for(let i=0;i<count;i++)if(random()<chance)bonus++;
+  const bonus=0;
   const made={};for(const [k,v] of Object.entries(recipe.out)){made[k]=v*(count+bonus);resourceAdd(s,k,made[k]);}
-  // 숙련도: 제작 1회 = 1 (추가 제작은 숙련에 안 들어감)
+  // 숙련도: 제작 1회 = 1
   p.crafted+=count;p.bonus+=bonus;p.xp+=count;
   let ups=0;while(p.level<PROFESSION_MAX_LEVEL&&p.xp>=professionXpNeeded(p.level)){p.xp-=professionXpNeeded(p.level);p.level++;ups++;}
   if(p.level>=PROFESSION_MAX_LEVEL)p.xp=0;
