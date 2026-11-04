@@ -24,9 +24,9 @@ begin
  a:=$x$where not coalesce((mm->>'left')::boolean,false) and coalesce((pl.state->'materials'->>'dungeonKey')::bigint,0)<rebirth_private.exploration_key_cost((w->>'tier')::int))$x$;
  if position(a in def)=0 then raise exception 'BUS2';end if;
  def:=replace(def,a,$x$where not coalesce((mm->>'left')::boolean,false) and (not coalesce((w->>'bus')::boolean,false) or mm->>'id'=w->>'owner') and coalesce((pl.state->'materials'->>'dungeonKey')::bigint,0)<rebirth_private.exploration_key_cost((w->>'tier')::int))$x$);
- a:=$x$    if reward is null or st is null or reward->>'type'<>'coop' then raise exception 'COOP_INVALID_REWARD';end if;$x$;
+ a:=$x$if reward is null or st is null or reward->>'type'<>'coop' then raise exception 'COOP_INVALID_REWARD';end if;$x$;
  if position(a in def)=0 then raise exception 'BUS3';end if;
- def:=replace(def,a,a||E'\n'||$x$    if w->>'mode'='exploration' and coalesce((w->>'bus')::boolean,false) and w->>'owner'<>u::text then reward:=jsonb_build_object('type','coop','mode','exploration','bus',true,'won',true,'tier',(w->>'tier')::int,'name','버스 참여 (보상 없음)','gold',0,'cube',0,'highCube',0,'scroll',0,'potentialLock',0,'items','[]'::jsonb,'seconds',coalesce((w->>'tick')::numeric/10,0));st:=actor.state;end if;$x$);
+ def:=replace(def,a,a||$x$ if w->>'mode'='exploration' and coalesce((w->>'bus')::boolean,false) and w->>'owner'<>u::text then reward:=jsonb_build_object('type','coop','mode','exploration','bus',true,'won',true,'tier',(w->>'tier')::int,'name','버스 참여 (보상 없음)','gold',0,'cube',0,'highCube',0,'scroll',0,'potentialLock',0,'items','[]'::jsonb,'seconds',coalesce((w->>'tick')::numeric/10,0));st:=actor.state;end if;$x$);
  a:=$x$if w->>'mode'='exploration' then st:=jsonb_set(st,'{materials,dungeonKey}',to_jsonb(greatest(0,coalesce((actor.state->'materials'->>'dungeonKey')::bigint,0)-case when (w->>'tier')::int<>3 then$x$;
  if position(a in def)=0 then raise exception 'BUS4';end if;
  def:=replace(def,a,$x$if w->>'mode'='exploration' then st:=jsonb_set(st,'{materials,dungeonKey}',to_jsonb(greatest(0,coalesce((actor.state->'materials'->>'dungeonKey')::bigint,0)-case when (w->>'tier')::int<>3 and not (coalesce((w->>'bus')::boolean,false) and w->>'owner'<>u::text) then$x$);
