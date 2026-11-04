@@ -7,7 +7,7 @@ import {citadelLobby,citadelHud} from './citadel-ui.mjs';
 import {EXPLORATION_MOVE_SPEED,dungeonMoveSpeed} from './exploration-data.mjs';
 import {dungeonMove,dungeonSeen} from './exploration-dungeon.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
-import {explorationLobby,explorationHud,prepareExplorationArt} from './exploration-ui.mjs?v=bus-20261105';
+import {explorationLobby,explorationHud,prepareExplorationArt} from './exploration-ui.mjs?v=nobc-20261105';
 import {CoopPredictor} from './coop-prediction.mjs?v=coop-steady-143';
 import {CoopEffectMemory} from './coop-effect-memory.mjs?v=worker-138';
 import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';

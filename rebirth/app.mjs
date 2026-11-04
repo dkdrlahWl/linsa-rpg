@@ -3,7 +3,7 @@ import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
 import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
 import {citadelLobby} from './citadel-ui.mjs';
-import {explorationLobby} from './exploration-ui.mjs?v=bus-20261105';
+import {explorationLobby} from './exploration-ui.mjs?v=nobc-20261105';
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance-153';
 import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
