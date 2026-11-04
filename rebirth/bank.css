@@ -27,3 +27,19 @@
 
 @media(min-width:361px) and (max-width:700px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:44.4px!important;width:44.4px!important}.fantasy-brand-row{gap:2px!important;padding-inline:3px!important}.fantasy-brand>span{font-size:14px!important}.fantasy-currencies{gap:2px!important}.fantasy-currencies .fantasy-wallet,.fantasy-diamond-wallet{padding-inline:3px!important}}
 @media(max-width:360px){.fantasy-arena-entry,.fantasy-wheel-entry,.fantasy-title-entry,.fantasy-bank-entry{flex-basis:38.4px!important;width:38.4px!important}.fantasy-brand>span{font-size:12px!important}.fantasy-currencies strong{font-size:9px!important}}
+/* 2026-11-04 정기예금 */
+.bank-terms{margin-top:18px;padding-top:14px;border-top:1px solid #b99a5866;text-align:left}
+.bank-terms h3{margin:0 0 4px;text-align:center;color:#ffe3a0;font-size:17px}
+.bank-terms h4{margin:14px 0 6px;font-size:13px;color:#f6e9c5}
+.bank-term-lead{font-size:12px;line-height:1.55;color:#d6e0ea;margin:0 0 6px}
+.bank-term-card,.bank-term-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:10px 11px;border:1px solid #b99a5899;border-radius:9px;background:#071b2c}
+.bank-term-card>div:first-child,.bank-term-row>div{min-width:0;display:flex;flex-direction:column;gap:3px}
+.bank-term-card b,.bank-term-row b{font-size:14px;color:#ffe9b6}
+.bank-term-card small,.bank-term-row small{font-size:11px;color:#bbcbdc;overflow-wrap:anywhere}
+.bank-term-card em,.bank-term-row em{font-style:normal;color:#8ff0a4;font-weight:bold}
+.bank-term-buttons{display:flex;gap:6px;flex:0 0 auto}
+.bank-terms button{padding:9px 12px;border:1px solid #bfa061;border-radius:7px;background:linear-gradient(#214970,#10273d);color:#ffedbd;font-weight:bold;white-space:nowrap}
+.bank-terms button:disabled{opacity:.45}
+.bank-terms button.danger{background:linear-gradient(#7a2424,#3d1010);border-color:#e07a6a}
+.bank-term-row button{flex:0 0 auto;font-size:12px}
+.bank-term-empty{font-size:12px;color:#9fb0c2;margin:6px 0}

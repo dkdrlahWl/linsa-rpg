@@ -633,7 +633,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   normalizeFishing(s,ctx.now);
   const events = [];
-  if(command==='bankDeposit'||command==='bankWithdraw'){events.push(bankCommand(s,command,args,ctx.now));return {state:s,events};}
+  if(['bankDeposit','bankWithdraw','bankTermOpen','bankTermCancel'].includes(command)){events.push(bankCommand(s,command,args,ctx.now));return {state:s,events};}
   if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableSell","consumableUse","blackMarketBuy","mileageBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
     const b=upgradeTowerBattle(s.battle);b.power.firstJob=firstJobUnlocked(s);

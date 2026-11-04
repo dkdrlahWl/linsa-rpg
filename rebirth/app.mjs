@@ -108,6 +108,7 @@ async function refreshCoopRooms(){
   })();
   try{return await coopListPending;}finally{coopListPending=null;}
 }
+let bankCancelArm=null;
 let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
@@ -253,6 +254,10 @@ const errors = {
   COSTUME_CLASS_MISMATCH: "현재 직업의 코스튬만 장착할 수 있습니다.",
   COMPANION_INVALID_SUMMON_COUNT: "1회 또는 5회 소환을 선택해 주세요. 새로고침 후 다시 시도해 주세요.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
+  INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
+  INVALID_BANK_TERM_AMOUNT: "가입 금액을 1골드 이상 입력해 주세요.",
+  INVALID_BANK_TERM_LIMIT: "이 상품의 가입 한도를 넘어요. 남은 한도 안에서 가입해 주세요.",
+  INVALID_BANK_TERM_GOLD_LIMIT: "보유 골드 한도를 넘어서 해지할 수 없어요.",
   BLACK_MARKET_EXPIRED: "암시장 진열이 바뀌었어요. 새 상품을 확인해 주세요.",
   BLACK_MARKET_SOLD_OUT: "남은 수량이 부족해요.",
   INVALID_BLACK_MARKET_ITEM: "암시장 상품을 찾을 수 없어요.",
@@ -1835,6 +1840,8 @@ document.addEventListener("click", async (e) => {
     }
     if(action==="tribeChoose"){if(busy||tribeSpinning)return;let r;try{r=await command('tribeChoose',{take:arg==='take'},true);}catch{openTribe();return;}const e=r?.result?.events?.find(x=>x.type==='tribeChoose');if(e)toast(e.took?'종족이 바뀌었어요.':'지금 종족을 유지했어요.');openTribe();return;}
     if(action==="bankOpen"){await command('sync',{},true);open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
+    if(action==="bankTermOpen"){if(busy)return;const [product,all]=String(arg).split(':');const raw=document.querySelector('#bank-term-amount')?.value?.trim().replace(/,/g,'')||'';if(all!=='all'&&!/^\d+$/.test(raw))return toast('가입 금액을 숫자로 입력해 주세요.');const result=await command(action,{product,amount:all==='all'?'all':Number(raw)});bankCancelArm=null;open('황금 은행',bankView(state,Date.now(),bankCancelArm));modal.classList.add('bank-dialog');const e=result?.result?.events?.find(x=>x.type==="bankTermOpen");if(e)toast(`정기예금 가입 완료 · 만기 ${e.payout.toLocaleString('ko-KR')} G`);return;}
+    if(action==="bankTermCancel"){if(busy)return;if(bankCancelArm!==arg){bankCancelArm=arg;open('황금 은행',bankView(state,Date.now(),bankCancelArm));modal.classList.add('bank-dialog');return;}const result=await command(action,{id:arg});bankCancelArm=null;open('황금 은행',bankView(state,Date.now(),bankCancelArm));modal.classList.add('bank-dialog');const e=result?.result?.events?.find(x=>x.type==="bankTermCancel");if(e)toast(`정기예금 해지 · ${e.refund.toLocaleString('ko-KR')} G 지급`);return;}
     if(action==="bankDeposit"||action==="bankWithdraw"){if(busy)return;const raw=document.querySelector('#bank-amount')?.value?.trim()||'';if(arg!=='all'&&!/^\d+$/.test(raw))return toast('골드 금액을 숫자로 입력해 주세요.');const amount=arg==='all'?'all':Number(raw);await command(action,{amount});open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
     if(action==="titleOpen"){setTitleFilter('all');open("칭호",titlePanelView(state));modal.classList.add("title-dialog");await command('titleSync',{},true).catch(()=>{});if(modal.open&&modal.classList.contains('title-dialog'))open("칭호",titlePanelView(state)),modal.classList.add("title-dialog");return;}
     if(action==="titleDetail"){setTitleDetail(arg);open("칭호",titlePanelView(state));modal.classList.add("title-dialog");return;}
