@@ -73,3 +73,7 @@
 .prof-cost .pc-row b{text-align:right;color:#ffe3a0;font-size:13.5px}.prof-cost .pc-row em{font-style:normal;text-align:right;color:#9fd8b0;font-size:13px;border:0;padding:0;margin:0}
 .prof-cost .pc-row.short em{color:#ff9f8f}.prof-cost .pc-row.short span{color:#ffc3b8}
 .prof-recipe .prof-cost .pc-row>span,.prof-recipe .prof-cost .pc-head>span{display:block;background:none!important;border:0!important;padding:0!important;min-width:0;font-size:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.prof-cost .pc-head>span:nth-child(n+3){text-align:right}
+.prof-cost .pc-head,.prof-cost .pc-row{grid-template-columns:24px 1fr 76px}
+.prof-recipe .prof-cost .pc-row>.pc-need{display:flex!important;align-items:center;justify-content:space-between;gap:8px;background:#00000059!important;border:1px solid #ffffff14!important;border-radius:7px;padding:6px 10px!important}
+.prof-cost .pc-need b{color:#ffe3a0;font-size:13.5px;font-weight:900}
+.prof-cost .pc-row.short .pc-need{border-color:#ff9f8f55!important}

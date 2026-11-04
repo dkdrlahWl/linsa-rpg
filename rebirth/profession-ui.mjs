@@ -3,7 +3,9 @@ import {currencyIconURL} from './currency-icons.mjs';
 import {PROFESSION_SLOTS,professionOpenFor,JOB_MATERIALS,PROFESSIONS,RESOURCE_NAMES,PROFESSION_MAX_LEVEL,PROFESSION_CHANGE_COOLDOWN,PROFESSION_CHANGE_COST,professionById,normalizeProfession,professionXpNeeded,professionCostMultiplier,professionBonusChance,professionGather,recipeCost,recipeMaxCount,resourceCount} from './profession-model.mjs';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const bigGold=g=>{g=Math.floor(g||0);return g>=1e8?(g/1e8).toFixed(g>=1e10?0:1).replace(/\.0$/,'')+'억':g>=1e4?fmt(Math.floor(g/1e4))+'만':fmt(g);};
+// 보유량 표기: 1만 이상은 만·억·조로 줄여서 (예: 12.3만, 4.5억, 1조)
+const short=n=>{n=Math.floor(n||0);const u=[[1e12,'조'],[1e8,'억'],[1e4,'만']];for(const [v,k] of u)if(n>=v){const x=n/v;return (x>=100?Math.floor(x).toLocaleString('ko-KR'):(Math.floor(x*10)/10).toString())+k;}return fmt(n);};
+const bigGold=short;
 const pct=x=>Math.round(x*100)+'%';
 const GATHER_LABELS={cube:'사냥 레드 큐브',highCube:'링탐 블랙 큐브',diamond:'낚시 다이아',fragment:'사냥 장비 파편'};
 // 효과 표기: 드랍률형은 실제 확률, 개수형은 +%
@@ -36,13 +38,13 @@ function card(d,s,disabled=false,counts={}){
 function wallet(s,def){
  const outs=def.recipes.map(r=>Object.keys(r.out)[0]);
  const keys=[JOB_MATERIALS[def.id]];for(const r of def.recipes)for(const k of Object.keys(r.cost))if(!keys.includes(k))keys.push(k);
- return `<div class="prof-wallet"><small>보유 완성품</small><div class="prof-made">${outs.map(k=>`<span>${icon(k)}<i>${RESOURCE_NAMES[k]||k}</i><b>${fmt(resourceCount(s,k))}</b></span>`).join('')}</div><small>내 제작 재료</small><div>${keys.map(k=>`<span>${icon(k)}<i>${RESOURCE_NAMES[k]||k}</i><b>${fmt(resourceCount(s,k))}</b></span>`).join('')}<span>${icon('gold')}<i>골드</i><b>${bigGold(s.gold)}</b></span></div></div>`;
+ return `<div class="prof-wallet"><small>보유 완성품</small><div class="prof-made">${outs.map(k=>`<span>${icon(k)}<i>${RESOURCE_NAMES[k]||k}</i><b>${short(resourceCount(s,k))}</b></span>`).join('')}</div><small>내 제작 재료</small><div>${keys.map(k=>`<span>${icon(k)}<i>${RESOURCE_NAMES[k]||k}</i><b>${short(resourceCount(s,k))}</b></span>`).join('')}<span>${icon('gold')}<i>골드</i><b>${bigGold(s.gold)}</b></span></div></div>`;
 }
 function recipeCard(s,p,r){
  const unit=recipeCost(r,p.level,1,p.id),max=recipeMaxCount(s,professionById(p.id),r);
  const outKey=Object.keys(r.out)[0];
  const count=1,ref=REF_PRICE[outKey];
- return `<article class="prof-recipe"><div class="prof-recipe-head">${icon(outKey)}<strong>${r.name}</strong><small>보유 ${fmt(resourceCount(s,outKey))}개</small></div><div class="prof-cost"><div class="pc-head"><span></span><span>재료</span><span>필요</span><span>보유</span></div>${Object.entries(unit.materials).map(([k,v])=>{const have=resourceCount(s,k);return `<div class="pc-row ${have>=v?'':'short'}">${icon(k)}<span>${RESOURCE_NAMES[k]||k}</span><b>${fmt(v)}</b><em>${fmt(have)}</em></div>`;}).join('')}${unit.gold?`<div class="pc-row ${(s.gold||0)>=unit.gold?'':'short'}">${icon('gold')}<span>골드</span><b>${bigGold(unit.gold)}</b><em>${bigGold(s.gold)}</em></div>`:''}</div><div class="prof-actions"><input type="number" inputmode="numeric" min="1" max="1000" step="1" value="${count}" data-recipe-count="${r.id}" aria-label="제작 수량"><button data-action="professionCraft" data-arg="${r.id}" ${max?'':'disabled'}>제작</button><button data-action="professionCraftMax" data-arg="${r.id}" ${max?'':'disabled'}>최대 ${fmt(max)}</button></div><p class="prof-sum" data-recipe-sum="${r.id}">${craftSummary(s,p,r,count)}</p></article>`;
+ return `<article class="prof-recipe"><div class="prof-recipe-head">${icon(outKey)}<strong>${r.name}</strong><small>보유 ${short(resourceCount(s,outKey))}개</small></div><div class="prof-cost"><div class="pc-head"><span></span><span>재료 · 필요</span><span>보유</span></div>${Object.entries(unit.materials).map(([k,v])=>{const have=resourceCount(s,k);return `<div class="pc-row ${have>=v?'':'short'}">${icon(k)}<span class="pc-need">${RESOURCE_NAMES[k]||k}<b>×${fmt(v)}</b></span><em>${short(have)}</em></div>`;}).join('')}${unit.gold?`<div class="pc-row ${(s.gold||0)>=unit.gold?'':'short'}">${icon('gold')}<span class="pc-need">골드<b>${bigGold(unit.gold)}</b></span><em>${bigGold(s.gold)}</em></div>`:''}</div><div class="prof-actions"><input type="number" inputmode="numeric" min="1" max="1000" step="1" value="${count}" data-recipe-count="${r.id}" aria-label="제작 수량"><button data-action="professionCraft" data-arg="${r.id}" ${max?'':'disabled'}>제작</button><button data-action="professionCraftMax" data-arg="${r.id}" ${max?'':'disabled'}>최대 ${fmt(max)}</button></div><p class="prof-sum" data-recipe-sum="${r.id}">${craftSummary(s,p,r,count)}</p></article>`;
 }
 export function craftSummary(s,p,r,count){
  const c=recipeCost(r,p.level,Math.max(1,count||1),p.id);
