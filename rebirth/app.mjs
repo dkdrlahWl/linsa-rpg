@@ -109,6 +109,9 @@ async function refreshCoopRooms(){
   try{return await coopListPending;}finally{coopListPending=null;}
 }
 let bankCancelArm=null;
+// 2026-11-04 거래소 구매 요청(소모품만): 필요한 사람이 골드를 걸어두면 가진 사람이 바로 판다.
+let buyOrderMode=false,buyOrders=null,buyOrderRequest=0;
+const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket'];
 let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
@@ -255,6 +258,13 @@ const errors = {
   COMPANION_INVALID_SUMMON_COUNT: "1회 또는 5회 소환을 선택해 주세요. 새로고침 후 다시 시도해 주세요.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
+  BUY_ORDER_LIMIT: "구매 요청은 최대 10건까지 등록할 수 있어요.",
+  BUY_ORDER_UNAVAILABLE: "이미 끝났거나 만료된 구매 요청이에요.",
+  BUY_ORDER_OWN: "내 구매 요청에는 팔 수 없어요.",
+  INVALID_MATERIAL: "거래할 수 없는 소모품이에요.",
+  NOT_OWNER: "내 등록 건만 취소할 수 있어요.",
+  INVALID_BALANCE: "보유 골드 한도(9조 G)를 넘어서 거래할 수 없어요.",
+  INVALID_PRICE: "가격 범위를 확인해 주세요.",
   INVALID_BANK_TERM_LOCKED: "정기예금은 아직 준비 중이에요.",
   INVALID_BANK_TERM_AMOUNT: "가입 금액을 1골드 이상 입력해 주세요.",
   INVALID_BANK_TERM_LIMIT: "이 상품의 가입 한도를 넘어요. 남은 한도 안에서 가입해 주세요.",
@@ -1194,13 +1204,13 @@ function marketGearDetails(it) {
 }
 function market() {
   if(state?.isTester)return header("거래소","MARKET")+`<section class="panel pad"><h3>거래소 이용 불가</h3><p class="note">테스트 계정은 거래소를 사용할 수 없어요.</p></section>`;
-  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div><div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(5)}부터 · 판매 수수료 없음 · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
+  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine&&!buyOrderMode ? "active" : "")}${btn("구매 요청", "marketMode", "orders", buyOrderMode ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine&&!buyOrderMode ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div>${buyOrderMode?buyOrdersView():`<div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(5)}부터 · 판매 수수료 없음 · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
     marketRows
       .slice(0, 20)
       .map(marketTile)
       .join("") ||
     '<div class="empty">등록된 상품이 없습니다. 장비와 소모품을 판매할 수 있어요.</div>'
-  }</div><div class="actions">${marketPage ? btn("이전", "page", marketPage - 1) : ""}${marketRows.length > 20 ? btn("다음", "page", marketPage + 1) : ""}${btn("새로고침", "marketRefresh")}</div>`;
+  }</div><div class="actions">${marketPage ? btn("이전", "page", marketPage - 1) : ""}${marketRows.length > 20 ? btn("다음", "page", marketPage + 1) : ""}${btn("새로고침", "marketRefresh")}</div>`}`;
 }
 async function marketLoad() {
   const version = ++marketRequest;
@@ -1213,6 +1223,51 @@ async function marketLoad() {
   if(version !== marketRequest || tab !== "market") return;
   marketRows = rows.filter(row=>row.status!=="cancelled").map(row => ({...row, item: row.item.kind==="consumable"?row.item:D.normalizePotentialItem(row.item)}));
   render();
+}
+async function buyOrdersLoad(){
+  const version=++buyOrderRequest;await ensureToken();
+  const data=await request("/rest/v1/rpc/rebirth_buy_order",{p_action:"list",p_args:{},p_request:crypto.randomUUID()});
+  if(version!==buyOrderRequest||tab!=="market"||!buyOrderMode)return;buyOrders=data||{orders:[],mine:[]};render();
+}
+function buyOrderCard(o){
+  return `<button class="market-compact-card buy-order-card ${o.own?"own":""}" data-action="buyOrderPick" data-arg="${esc(o.id)}" aria-label="${esc(materialName(o.key))} 구매 요청"><span class="market-card-meta">${o.own?"내 요청":esc(o.buyer_name)}<b>${fmt(o.quantity)}개</b></span><img class="material-tile-image" src="${currencyIconURL(o.key)}" alt=""><strong class="market-card-name">${esc(materialName(o.key))}</strong><small>개당 <b>${fmt(o.price)} G</b></small><small>${o.own?"누르면 취소":marketHave(o.key)>0?"보유 "+fmt(marketHave(o.key))+"개 · 판매 가능":"보유 없음"}</small></button>`;
+}
+function buyOrdersView(){
+  if(!buyOrders)return '<p class="note">구매 요청을 불러오는 중…</p>';
+  const status={open:"진행 중",filled:"완료",cancelled:"취소",expired:"만료 · 환불"};
+  const mineRows=(buyOrders.mine||[]).map(o=>`<div class="buy-order-mine"><img src="${currencyIconURL(o.key)}" alt=""><span><b>${esc(materialName(o.key))}</b><small>개당 ${fmt(o.price)} G · ${fmt(o.original-o.quantity)}/${fmt(o.original)}개 받음 · ${status[o.status]||o.status}</small></span>${o.status==="open"?btn("취소","buyOrderPick",o.id):""}</div>`).join("");
+  return `<p class="note">필요한 소모품을 골드로 걸어두면, 가진 사람이 바로 팔 수 있어요. 등록하는 순간 골드가 묶이고, 팔리는 만큼 소모품이 바로 들어와요.<br>${requiredLevel(5)}부터 · 수수료 없음 · 7일 지나면 남은 골드 자동 환불 · 최대 10건</p><div class="actions">${btn("구매 요청 등록","buyOrderNew","","primary")}${btn("새로고침","buyOrderRefresh")}</div><div class="market-compact-grid">${(buyOrders.orders||[]).map(buyOrderCard).join("")||'<div class="empty">아직 구매 요청이 없어요. 필요한 소모품을 먼저 요청해 보세요.</div>'}</div>${mineRows?`<h3 class="buy-order-mine-title">내 구매 요청</h3><div class="buy-order-mine-list">${mineRows}</div>`:""}`;
+}
+function buyOrderNewDialog(key=null){
+  if(!key)return open("구매 요청할 소모품",`<p class="note">사고 싶은 소모품을 고르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${BUY_ORDER_KEYS.map(k=>`<button class="market-compact-card" data-action="buyOrderNewPick" data-arg="${k}">${marketMaterialIcon(k,'material-tile-image')}<strong>${esc(materialName(k))}</strong><small>보유 ${fmt(marketHave(k))}개</small></button>`).join("")}</div>`);
+  if(!BUY_ORDER_KEYS.includes(key))return;
+  const best=(buyOrders?.orders||[]).filter(o=>o.key===key).reduce((m,o)=>Math.max(m,o.price),0);
+  open("구매 요청 등록",`${btn("← 소모품 목록","buyOrderNew")}<div class="material-picked" data-currency-label>${marketMaterialIcon(key)}<div><strong>${esc(materialName(key))}</strong><p>보유 ${fmt(marketHave(key))}개${best?` · 현재 최고 요청가 ${fmt(best)} G`:""}</p></div></div><input id="bo-key" type="hidden" value="${key}"><label>사고 싶은 수량<input id="bo-count" type="number" inputmode="numeric" min="1" max="1000000" step="1" value="1"></label><label>개당 가격 (G)<input id="bo-price" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="${best||1000}"></label><p id="bo-total" class="note"></p>${btn("골드 걸고 요청하기","buyOrderCreate","","primary",true)}`);
+  updateBuyOrderForm();
+}
+function updateBuyOrderForm(){
+  const out=$('#bo-total');if(out){const count=Number($('#bo-count').value),price=Number($('#bo-price').value),total=count*price,valid=Number.isSafeInteger(count)&&count>=1&&count<=1e6&&Number.isSafeInteger(price)&&price>=1&&price<=1e9&&total<=1e12;
+    out.textContent=!valid?'수량 1~1,000,000개, 개당 1~10억 G, 합계 1조 G 이하로 입력해 주세요.':total>state.gold?`묶일 골드 ${fmt(total)} G · 보유 골드가 부족해요.`:`묶일 골드 ${fmt(total)} G (보유 ${fmt(state.gold)} G)`;
+    const b=modal.querySelector('[data-action="buyOrderCreate"]');if(b)b.disabled=!valid||total>state.gold;}
+  const fill=$('#bo-fill-count');if(fill){const o=(buyOrders?.orders||[]).find(x=>x.id===fill.dataset.order),count=Number(fill.value),valid=o&&Number.isSafeInteger(count)&&count>=1&&count<=Math.min(o.quantity,marketHave(o.key));
+    $('#bo-fill-total').textContent=valid?`받을 골드 ${fmt(count*o.price)} G`:'보유 수량과 남은 요청 수량 안에서 입력해 주세요.';const b=modal.querySelector('[data-action="buyOrderFill"]');if(b)b.disabled=!valid;}
+}
+function buyOrderPickDialog(id){
+  const o=(buyOrders?.orders||[]).find(x=>x.id===id)||(buyOrders?.mine||[]).find(x=>x.id===id&&x.status==="open");if(!o)return toast("이미 끝난 요청이에요.");
+  const own=o.own||(buyOrders?.mine||[]).some(x=>x.id===id);
+  if(own)return open("구매 요청 취소",`<div class="material-picked" data-currency-label>${marketMaterialIcon(o.key)}<div><strong>${esc(materialName(o.key))}</strong><p>개당 ${fmt(o.price)} G · 남은 ${fmt(o.quantity)}개</p></div></div><p>취소하면 묶어둔 골드 <b>${fmt(o.price*o.quantity)} G</b>를 바로 돌려받아요. 이미 받은 소모품은 그대로예요.</p>${btn("요청 취소하기","buyOrderCancel",o.id,"danger",true)}`);
+  const have=marketHave(o.key),max=Math.min(have,o.quantity);
+  open("구매 요청에 판매",`<div class="material-picked" data-currency-label>${marketMaterialIcon(o.key)}<div><strong>${esc(materialName(o.key))}</strong><p>${esc(o.buyer_name)}님 요청 · 개당 <b>${fmt(o.price)} G</b> · 남은 ${fmt(o.quantity)}개</p><p>내 보유 ${fmt(have)}개</p></div></div>${max>0?`<label>판매 수량<input id="bo-fill-count" data-order="${esc(o.id)}" type="number" inputmode="numeric" min="1" max="${max}" step="1" value="${max}"></label><p id="bo-fill-total" class="note"></p>${btn("팔고 골드 받기","buyOrderFill",o.id,"primary",true)}`:'<p class="note">이 소모품을 가지고 있지 않아요.</p>'}`);
+  updateBuyOrderForm();
+}
+async function buyOrderWrite(action,args){
+  if(busy)return;await command("sync",{},true);if(busy)return;busy=true;const key=pendingKey()+"_buyorder";
+  try{await ensureToken();let p=JSON.parse(localStorage.getItem(key)||"null");
+    if(!p){p={p_action:action,p_args:args,p_request:crypto.randomUUID()};localStorage.setItem(key,JSON.stringify(p));}
+    else if(p.p_action!==action||JSON.stringify(p.p_args)!==JSON.stringify(args))toast("이전 거래 요청을 복구합니다.");
+    const result=await request("/rest/v1/rpc/rebirth_buy_order",p);localStorage.removeItem(key);
+    busy=false;await command("sync",{},true);await buyOrdersLoad();return result;
+  }catch(e){if(e.status===400)localStorage.removeItem(key);throw e;}finally{busy=false;}
 }
 function open(title, html, closable = true) {
   stopSkillLookPreview?.();stopSkillLookPreview=null;
@@ -1464,7 +1519,7 @@ function clearAccountView() {
   clearDisclosureState();
   if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
   state=null;stateRevision=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
-  marketKind="all";marketRows=[];marketRequest++;marketPage=0;mine=false;selected=null;view="game";tab="hunt";sub="bag";
+  marketKind="all";marketRows=[];marketRequest++;marketPage=0;mine=false;buyOrderMode=false;buyOrders=null;buyOrderRequest++;selected=null;view="game";tab="hunt";sub="bag";
   chosenClass="warrior";characterName="";combatFrames.length=0;connectionLost=false;retryAt=0;retryFailures=0;lastHuntSettlement=0;
 }
 function authFailureMessage(err,register) {
@@ -1890,7 +1945,7 @@ document.addEventListener("click", async (e) => {
       window.scrollTo({top:0,behavior:"instant"});
       if(enteringHunt)requestAutoHunt();
       if(tab==='boss'&&['citadel','exploration','raid','advancement'].includes(bossTab))await refreshCoopRooms();
-      if (tab === "market") await marketLoad();
+      if (tab === "market") {if(buyOrderMode)await buyOrdersLoad();else await marketLoad();}
       if(tab==='investment')await command('investList',{},true);
       if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
       return;
@@ -2181,10 +2236,19 @@ document.addEventListener("click", async (e) => {
     if (action === "abandonConfirm") return open("전투 포기", `<p class="note">보상과 도전 횟수는 차감되지 않습니다.</p>${btn("포기하기","abandon","","danger",true)}`);
     if (action === "abandon") { await command("abandon"); modal.close(); return render(); }
     if (action === "marketMode") {
+      buyOrderMode = arg === "orders";
       mine = arg === "mine";
       marketPage = 0;
+      if(buyOrderMode){render();return await buyOrdersLoad();}
       return await marketLoad();
     }
+    if(action==="buyOrderRefresh")return await buyOrdersLoad();
+    if(action==="buyOrderNew")return buyOrderNewDialog();
+    if(action==="buyOrderNewPick")return buyOrderNewDialog(arg);
+    if(action==="buyOrderPick")return buyOrderPickDialog(arg);
+    if(action==="buyOrderCreate"){const key=$('#bo-key').value,quantity=Number($('#bo-count').value),price=Number($('#bo-price').value);if(!BUY_ORDER_KEYS.includes(key)||!Number.isSafeInteger(quantity)||quantity<1||quantity>1e6||!Number.isSafeInteger(price)||price<1||price>1e9||quantity*price>1e12)return toast('수량과 개당 가격을 확인해 주세요.');if(quantity*price>state.gold)return toast('보유 골드가 부족해요.');const r=await buyOrderWrite('create',{key,quantity:String(quantity),price:String(price)});if(r){modal.close();toast(`구매 요청 등록 · ${fmt(r.escrow)} G 묶음`);}return;}
+    if(action==="buyOrderCancel"){const r=await buyOrderWrite('cancel',{id:arg});if(r){modal.close();toast(`구매 요청 취소 · ${fmt(r.refund)} G 환불`);}return;}
+    if(action==="buyOrderFill"){const count=Number($('#bo-fill-count').value);if(!Number.isSafeInteger(count)||count<1)return toast('판매 수량을 확인해 주세요.');const r=await buyOrderWrite('fill',{id:arg,quantity:String(count)});if(r){modal.close();toast(`${fmt(r.quantity)}개 판매 · ${fmt(r.total)} G 받음`);}return;}
     if (action === "page") {
       marketPage = Number(arg);
       return await marketLoad();
@@ -2230,6 +2294,7 @@ document.addEventListener("change", async (e) => {
   if(e.target.id==="exchange-class"){exchangeClass=e.target.value;render();return;}
   if(e.target.id==="exchange-level"){exchangeLevel=Number(e.target.value);render();return;}
   if(e.target.id==="material-sell-key"){updateMaterialSale();return;}
+  if(/^bo-/.test(e.target.id||"")){updateBuyOrderForm();return;}
   if(e.target.id==="market-sell-slot"||e.target.id==="market-sell-class") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;if(e.target.id==="market-sell-slot")marketSellSlot=e.target.value;else marketSellClass=e.target.value;marketSellId=null;marketSellPicker();return;}
 
   if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.raidBoss(partyBossId));return;}
