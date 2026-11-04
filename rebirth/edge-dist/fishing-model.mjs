@@ -54,7 +54,8 @@ function rollCatch(c,ctx,s=null){
  // 어부: 대어(큰 개체) 확률 보너스 — 크기 지수를 낮춰 무거운 쪽으로 기울임
  const species=available[index],size=ctx.random()**(1.65/professionGather(s,'bigFish')),weight=Math.round(species.min+(species.max-species.min)*size);
  // 탐험가: 던전 열쇠 드랍 보너스 (2026-11-04 기본 드랍은 0.25%로 반토막)
- let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance*(r.id==='dungeonKey'?professionGather(s,'dungeonKey'):1);if(roll<0){reward=r.id;break;}}
+ // 희귀 보상부터 판정하고 남는 확률은 물고기 — 보너스로 늘어난 열쇠 확률만큼 물고기가 줄어든다.
+ let reward='fish';roll=ctx.random();for(const r of [...REWARD_RATES].reverse()){if(r.id==='fish')continue;roll-=r.chance*(r.id==='dungeonKey'?professionGather(s,'dungeonKey'):1);if(roll<0){reward=r.id;break;}}
  return {species:species.id,weight,reward};
 }
 // 주간 대어 대회: 이번 주 대상 물고기 중 가장 무거운 한 마리만 남긴다 (최근 몇 주만 보관).
