@@ -1,5 +1,5 @@
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
@@ -93,7 +93,8 @@ export function fishingCommand(s,command,args,ctx){
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
   require((f.bait[bait.id]||0)>0,'FISHING_BAIT_REQUIRED');
   // The catch is rolled on the server when the fish bites, so a visible cast reveals nothing to reroll.
-  const biteAt=ctx.now+BITE_MIN_MS+Math.floor(ctx.random()*BITE_RANGE_MS);
+  // 2026-11-04 도현: 어부는 입질 3~5초 (일반 5~9초)
+  const fisher=s.profession?.id==='fisher',biteAt=ctx.now+(fisher?FISHER_BITE_MIN_MS:BITE_MIN_MS)+Math.floor(ctx.random()*(fisher?FISHER_BITE_RANGE_MS:BITE_RANGE_MS));
   f.bait[bait.id]--;f.daily.casts=(f.daily.casts||0)+1;
   f.cast={protocol:FISHING_PROTOCOL,id:ctx.uuid(),spot:spot.id,bait:bait.id,rod:f.rod,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+CAST_EXPIRE_MS,hookAt:null,expires:biteAt+CAST_EXPIRE_MS};
   return {type:'fishCast',castId:f.cast.id};

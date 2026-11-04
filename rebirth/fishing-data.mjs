@@ -43,6 +43,7 @@ export const baitGradeWeight=(fish,bait)=>(1+bait.luck)**Math.min(2,fish.rarity-
 export const spotGradeWeight=fish=>(SPOTS.find(x=>x.id===fish.spot)?.luck||1)**fish.rarity;
 // Bite wait is the only cast delay. Every bite is caught.
 export const BITE_MIN_MS=5000,BITE_RANGE_MS=4000,CAST_EXPIRE_MS=60000;
+export const FISHER_BITE_MIN_MS=3000,FISHER_BITE_RANGE_MS=2000; // 2026-11-04 도현: 어부 입질 3~5초
 // Lv.1→30 grows 16%/level; Lv.30+ only 7%/level. Lv.1→50 totals about 17M gold.
 // 2026-10-25 Lv.50+: gold grows 15%/level, diamonds 20 + 2/level (Lv.50→70 ≈ 1.46억 G + 780 다이아).
 export const rodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,Math.min(level,50)-30)*1.15**Math.max(0,level-50)/100)*100;
