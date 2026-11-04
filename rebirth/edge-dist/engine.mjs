@@ -1,4 +1,5 @@
 import {settleBank,bankCommand} from './bank-model.mjs';
+import {normalizeProfession,professionCommand,professionGather} from './profession-model.mjs';
 import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
@@ -51,7 +52,7 @@ import {
   STAR_SUCCESS,
   rollBaseStats,
   canTranscendTier,
-  transcendCost,
+  transcendCost,transcendChance,TRANSCEND_PITY,
   bossTier,
   bossTierName,
   selectDesign,
@@ -415,6 +416,7 @@ export function settle(s, ctx) {
   s.huntKills = (s.huntKills || 0) + kills;
   if(kills>0)s.bestStage=Math.max(s.bestStage??-1,s.stage);
   if(s.daily)s.daily.hunt+=kills;
+  earnedGold*=professionGather(s,'huntGold'); // 광부: 사냥 골드 보너스
   const goldExact = earnedGold + (s.goldRemainder || 0),
     gold = Math.floor(goldExact + 1e-9);
   s.goldRemainder = Math.max(0,goldExact - gold);
@@ -433,9 +435,10 @@ export function settle(s, ctx) {
     addItem(s, item);
     drops.push(item.id);loot.push({kind:"gear",item:{...item},quantity:1});
   }
+  // 전문 직업 채집 보너스: 광부 파편, 연금술사 레드 큐브 (드랍률 배율)
   const fragments =
-      rollCount(kills, rates.fragment, ctx),
-    cubes = rollCount(kills, rates.cube, ctx),
+      rollCount(kills, rates.fragment*professionGather(s,'fragment'), ctx),
+    cubes = rollCount(kills, rates.cube*professionGather(s,'cube'), ctx),
     scrolls = rollCount(kills, rates.scroll, ctx);
   s.materials.fragment += fragments;
   s.materials.cube += cubes;
@@ -625,6 +628,7 @@ function executeCore(input, command, args = {}, ctx) {
   deliverSystemMail(s,ctx);
   normalizeCompanions(s);
   normalizeTribe(s);
+  normalizeProfession(s);
   settleBank(s,ctx.now);
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
   const dailyDay=dayKey(ctx.now);
@@ -633,6 +637,7 @@ function executeCore(input, command, args = {}, ctx) {
   check(!s.partyRoom || ["sync","ack"].includes(command), "PARTY_IN_PROGRESS");
   normalizeFishing(s,ctx.now);
   const events = [];
+  if(command==='professionChoose'||command==='professionCraft'){check(!s.battle,'BATTLE_IN_PROGRESS');events.push(professionCommand(s,command,args,ctx.now,ctx.random));return {state:s,events};}
   if(['bankDeposit','bankWithdraw','bankTermOpen','bankTermCancel'].includes(command)){events.push(bankCommand(s,command,args,ctx.now));return {state:s,events};}
   if(["shopSell","costumeBuy","costumeEquip","costumeUnequip","skillLookBuy","skillLookEquip","skillLookUnequip","consumableBuy","consumableSell","consumableUse","blackMarketBuy","mileageBuy"].includes(command))check(!s.battle,"BATTLE_IN_PROGRESS");
   if(s.battle?.kind==='tower'){
@@ -994,9 +999,15 @@ function executeCore(input, command, args = {}, ctx) {
       check(it.stars>=25,"TRANSCEND_STARS_REQUIRED");
       const cost=transcendCost(it),from=bossTier(it),fromName=bossTierName(it);
       spend(s,"transcendStone",cost);
-      it.bossTier=from+1;it.baseStats=rollBaseStats(it,ctx.random);it.stars=0;
-      s.collection??=[];const key=equipmentKey(it);if(!s.collection.includes(key))s.collection.push(key);
-      events.push({type:"transcend",id:it.id,from,to:it.bossTier,fromName,toName:bossTierName(it),cost});
+      // 2026-11-04 도현: 초월 확률 — 무기 100/70/50/30%, 방어구 100/60%. 실패 시 초월석만 소모(장비·스타포스·잠재 유지).
+      // 천장: 같은 단계 3회 연속 실패 시 다음은 확정 성공.
+      const chance=transcendChance(it),fails=Number.isInteger(it.transcendFails)?it.transcendFails:0;
+      const success=fails>=TRANSCEND_PITY||ctx.random()<chance;
+      if(success){
+        it.bossTier=from+1;it.baseStats=rollBaseStats(it,ctx.random);it.stars=0;delete it.transcendFails;
+        s.collection??=[];const key=equipmentKey(it);if(!s.collection.includes(key))s.collection.push(key);
+      } else it.transcendFails=fails+1;
+      events.push({type:"transcend",id:it.id,success,chance,pity:fails>=TRANSCEND_PITY,fails:success?0:fails+1,from,to:bossTier(it),fromName,toName:bossTierName(it),cost});
       break;
     }
     case "star": {

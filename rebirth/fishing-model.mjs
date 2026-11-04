@@ -1,3 +1,4 @@
+import {professionGather} from './profession-model.mjs';
 import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=4;
@@ -40,7 +41,7 @@ export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,fail
 // Base grade weights per grade (2026-10-12).
 // 2026-10-25: 전설·신화 확률 절반, 태고 3배.
 export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.000585,.000189,.000018];
-function rollCatch(c,ctx){
+function rollCatch(c,ctx,s=null){
  const spot=SPOTS.find(x=>x.id===c.spot)||SPOTS[0],bait=BAITS.find(x=>x.id===c.bait)||BAITS[0],rod=c.rod||1;
  const available=FISH.filter(x=>x.spot===spot.id&&x.level<=rod);
  // Higher-grade bait improves rarity weights but never bypasses rod gates.
@@ -50,8 +51,10 @@ function rollCatch(c,ctx){
  const weights=available.map(x=>FISH_GRADE_WEIGHTS[x.rarity]*baitGradeWeight(x,bait)*spotGradeWeight(x)*(1+.012*Math.max(0,rod-RARITIES[x.rarity].gate)*x.rarity)/perGrade[x.rarity]);
  let roll=ctx.random()*weights.reduce((n,x)=>n+x,0),index=weights.length-1;
  for(let i=0;i<weights.length;i++){roll-=weights[i];if(roll<0){index=i;break;}}
- const species=available[index],size=ctx.random()**1.65,weight=Math.round(species.min+(species.max-species.min)*size);
- let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance;if(roll<0){reward=r.id;break;}}
+ // 어부: 대어(큰 개체) 확률 보너스 — 크기 지수를 낮춰 무거운 쪽으로 기울임
+ const species=available[index],size=ctx.random()**(1.65/professionGather(s,'bigFish')),weight=Math.round(species.min+(species.max-species.min)*size);
+ // 탐험가: 던전 열쇠 드랍 보너스 (2026-11-04 기본 드랍은 0.25%로 반토막)
+ let reward=REWARD_RATES.at(-1).id;roll=ctx.random();for(const r of REWARD_RATES){roll-=r.chance*(r.id==='dungeonKey'?professionGather(s,'dungeonKey'):1);if(roll<0){reward=r.id;break;}}
  return {species:species.id,weight,reward};
 }
 // 주간 대어 대회: 이번 주 대상 물고기 중 가장 무거운 한 마리만 남긴다 (최근 몇 주만 보관).
@@ -64,7 +67,7 @@ function recordContest(f,item){
 }
 function landCatch(s,f,c,ctx){
  f.cast=null;
- if(!c.species)Object.assign(c,rollCatch(c,ctx));
+ if(!c.species)Object.assign(c,rollCatch(c,ctx,s));
  const reward=REWARD_RATES.some(r=>r.id===c.reward)?c.reward:'fish';
  const result={type:'fishCatch',at:ctx.now,won:true,species:c.species,weight:c.weight,reward};
  if(reward==='fish'){
@@ -73,7 +76,7 @@ function landCatch(s,f,c,ctx){
   if(FISH.find(x=>x.id===c.species).rarity>=1)f.daily.rare++;
   recordContest(f,item);
   result.fish=item;result.gold=fishPrice(item);
- }else if(reward==='diamondChest'){const diamonds=3+Math.floor(ctx.random()*6);f.diamonds+=diamonds;result.diamonds=diamonds;}
+ }else if(reward==='diamondChest'){const diamonds=Math.round((3+Math.floor(ctx.random()*6))*professionGather(s,'diamond'));f.diamonds+=diamonds;result.diamonds=diamonds;}
  else{s.materials[reward]=(s.materials[reward]||0)+1;result.amount=1;}
  if(treasureTicketDrop(s,ctx.now,ctx.random))result.treasureTicket=1;
  f.lastCatch=result;return result;
@@ -84,7 +87,7 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishCast'){
   require(args.protocol===FISHING_PROTOCOL,'FISHING_REFRESH_REQUIRED');
   require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<150,'FISHING_BAG_FULL');
-  require((f.daily.casts||0)<FISHING_DAILY_CASTS,'FISHING_DAILY_LIMIT');
+  require((f.daily.casts||0)<Math.round(FISHING_DAILY_CASTS*professionGather(s,'fishingCasts')),'FISHING_DAILY_LIMIT');
   const spot=SPOTS.find(x=>x.id===args.spot),bait=BAITS.find(x=>x.id===args.bait);
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
   require((f.bait[bait.id]||0)>0,'FISHING_BAIT_REQUIRED');
@@ -144,7 +147,7 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishQuestClaim'){
   const q=FISHING_QUESTS.find(x=>x.id===args.id);require(q,'INVALID_FISHING_QUEST');
   require(!f.daily.claimed.includes(q.id),'FISHING_QUEST_CLAIMED');require(f.daily[q.id]>=q.goal,'FISHING_QUEST_REQUIRED');
-  f.daily.claimed.push(q.id);f.diamonds+=q.diamonds;return {type:'fishQuestClaim',diamonds:q.diamonds};
+  const diamonds=Math.round(q.diamonds*professionGather(s,'diamond'));f.daily.claimed.push(q.id);f.diamonds+=diamonds;return {type:'fishQuestClaim',diamonds};
  }
  if(command==='fishExchange'){
   const item=DIAMOND_EXCHANGE.find(x=>x.id===args.item);require(item&&integer(args.count,1,DIAMOND_EXCHANGE_DAILY),'INVALID_FISHING_EXCHANGE');

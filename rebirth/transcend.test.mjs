@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {initialState,execute,makeItem,addItem} from './engine.mjs';
 import {starCost,gearAttributes,gearStatRanges,rollBaseStats,bossTier,bossTierCount,rollBossTier,transcendCost,canTranscendTier} from './data.mjs';
 import {rerollStoneAllowed} from './gear-refine.mjs';
-let n=0;const ctx=(now=Date.UTC(2026,10,2,7),admin=false)=>({now,random:Math.random,uuid:()=>'t'+(++n),admin});
+// 2026-11-04: 초월 확률 도입 — 이 테스트는 비용·등급 흐름만 보므로 항상 성공(random=0)으로 고정. 확률·천장은 profession.test.mjs / transcend-odds 아래에서 검사.
+let n=0;const ctx=(now=Date.UTC(2026,10,2,7),admin=false)=>({now,random:()=>0,uuid:()=>'t'+(++n),admin});
 const s0=initialState('warrior','초월',ctx());s0.level=250;
-const mk=(lv,slot,boss=true)=>{const it=makeItem(lv,'warrior',slot,boss,ctx());it.baseStats=rollBaseStats(it,Math.random);return it;};
+const mk=(lv,slot,boss=true)=>{const it=makeItem(lv,'warrior',slot,boss,{...ctx(),random:Math.random});it.baseStats=rollBaseStats(it,Math.random);return it;};
 const weapon=mk(220,0),armor=mk(220,2),old200=mk(200,0);
 // 1) 220제는 얻을 때 무조건 가장 낮은 등급, 스탯은 그 등급 범위 안
 for(let i=0;i<200;i++){assert.equal(rollBossTier({level:220,slot:i%9,boss:true},Math.random),0);}

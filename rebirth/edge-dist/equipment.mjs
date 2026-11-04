@@ -60,6 +60,10 @@ export const canTranscendTier=item=>!!item?.boss&&Number(item.level)>=TRANSCEND_
 // 2026-11-03 도현: 초월석 2배 — n번째 초월에 2n개(무기 2·4·6·8, 방어구 2·4).
 export const TRANSCEND_COST_MULTIPLIER=2;
 export const transcendCost=item=>(bossTier(item)+1)*TRANSCEND_COST_MULTIPLIER;
+// 2026-11-04 초월 성공률(단계별): 무기 1차 100% · 2차 70% · 3차 50% · 4차 30%, 방어구 1차 100% · 2차 60%. 3회 연속 실패 시 다음 확정.
+export const TRANSCEND_CHANCES={weapon:[1,.7,.5,.3],armor:[1,.6]};
+export const TRANSCEND_PITY=3;
+export const transcendChance=item=>{const t=Number(item?.slot)===0?TRANSCEND_CHANCES.weapon:TRANSCEND_CHANCES.armor;return t[Math.min(t.length-1,bossTier(item))];};
 export const bossTierName=item=>(Number(item?.slot)===0?BOSS_WEAPON_TIER_NAMES:BOSS_ARMOR_TIER_NAMES)[bossTier(item)];
 // 2026-11-02 도현: 220제부터는 얻을 때 무조건 가장 낮은 등급. 높은 등급은 초월로만 올린다.
 export function rollBossTier(item,random=Math.random){if(Number(item?.level)>=220)return 0;const weights=Number(item.slot)===0?BOSS_WEAPON_TIER_WEIGHTS:BOSS_ARMOR_TIER_WEIGHTS,total=weights.reduce((a,b)=>a+b,0);let r=random()*total;for(let i=0;i<weights.length;i++){r-=weights[i];if(r<0)return i;}return weights.length-1;}

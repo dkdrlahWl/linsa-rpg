@@ -1,0 +1,122 @@
+// 2026-11-04 도현: 전문 직업 — 연금술사·탐험가·어부·광부. 계정당 1개, 처음 선택 무료, 변경은 7일 쿨타임 + 1억 G + 숙련도 초기화.
+// 제작은 횟수 제한 없음(하위 재료 + 골드만 소모). 제작자는 "가공업자": 남의 원재료를 사서 가공해 되파는 구조라 레시피가 싸고 서버 수요 전체를 감당한다.
+// 2026-11-04 도현: 모든 레시피 원가(재료 기준가 + 골드) = 기준가의 90%. 기준가 = 토큰 교환소(레드 10만·블랙 40만·파편 2만·다이아 20만), 프라임 150만·초월석 1,000만은 시장 추정.
+// 숙련도 = 제작 횟수(+추가 제작 포함 안 함). Lv.n→n+1에 n×10. 레벨이 오르면 ① 추가 제작 확률 2%p/레벨(Lv.10 20%) ② 채집 보너스 50%→100%. 제작 비용은 전 구간 동일.
+export const PROFESSION_MAX_LEVEL=10;
+export const PROFESSION_CHANGE_COOLDOWN=7*86400000;
+export const PROFESSION_CHANGE_COST=100000000;
+export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0.02; // Lv.1 2% … Lv.10 20%
+export const PROFESSIONS=Object.freeze([
+ Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공 · 프라임·에디셔널 큐브',
+  gather:{cube:1,highCube:.5},
+  recipes:[
+   {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:750000},
+   {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:700000},
+  ]}),
+ Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공 · 던전 열쇠·보물찾기 티켓·추가옵션 불꽃',
+  gather:{dungeonKey:.5,companionTicket:.3},
+  recipes:[
+   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:50},gold:6200000},
+   {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:10},gold:1600000},
+   {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:10,cube:3},gold:4000000},
+  ]}),
+ Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공 · 동료·픽업 소환권',
+  gather:{diamond:1,fishingCasts:.5,bigFish:.3},
+  recipes:[
+   {id:'companionTicket',name:'동료 소환권',out:{companionTicket:1},cost:{diamond:3,cube:2},gold:2800000},
+   {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:3800000},
+  ]}),
+ Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공 · 잠금석·초월석',
+  gather:{fragment:1,huntGold:.1},
+  recipes:[
+   {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:2,cube:1},gold:1660000},
+   {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:20,highCube:3},gold:7400000},
+  ]}),
+].map(p=>Object.freeze({...p,recipes:Object.freeze(p.recipes.map(Object.freeze))})));
+export const RESOURCE_NAMES=Object.freeze({fragment:'장비 파편',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',addCube:'에디셔널 큐브',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',bonusFlame:'추가옵션 불꽃',transcendStone:'초월석',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'});
+export const professionById=id=>PROFESSIONS.find(p=>p.id===id)||null;
+const fail=code=>{throw new Error(code);};
+export function normalizeProfession(s){
+ const p=s.profession&&typeof s.profession==='object'&&professionById(s.profession.id)?s.profession:null;
+ if(!p){if(s.profession!==undefined&&s.profession!==null)delete s.profession;return null;}
+ p.level=Number.isInteger(p.level)&&p.level>=1?Math.min(PROFESSION_MAX_LEVEL,p.level):1;
+ p.xp=Number.isInteger(p.xp)&&p.xp>=0?p.xp:0;
+ p.crafted=Number.isInteger(p.crafted)&&p.crafted>=0?p.crafted:0;
+ p.bonus=Number.isInteger(p.bonus)&&p.bonus>=0?p.bonus:0;
+ p.chosenAt=Number.isSafeInteger(p.chosenAt)?p.chosenAt:0;
+ return p;
+}
+export const professionXpNeeded=level=>level*10;
+export const professionLevel=s=>normalizeProfession(s)?.level||0;
+export const professionOf=s=>{const p=normalizeProfession(s);return p?professionById(p.id):null;};
+// 2026-11-04 도현: 제작 비용은 숙련도와 무관하게 전 구간 동일. 숙련도는 추가 제작 확률만 올린다.
+export const professionCostMultiplier=()=>1;
+export const professionBonusChance=level=>PROFESSION_BONUS_CRAFT_PER_LEVEL*Math.max(1,Math.min(PROFESSION_MAX_LEVEL,level));
+// 채집 보너스 실효 배율: Lv.1 50% → Lv.10 100% of the listed bonus. Returns the multiplier (1 + bonus×scale), or 1 when not that profession.
+export function professionGather(s,key){
+ const p=normalizeProfession(s);if(!p)return 1;
+ const def=professionById(p.id),bonus=def?.gather?.[key];if(!bonus)return 1;
+ const scale=0.5+0.5*(p.level-1)/(PROFESSION_MAX_LEVEL-1);
+ return 1+bonus*scale;
+}
+// 재료 보관 위치(거래소와 같은 규칙)
+export function resourcePath(key){
+ if(key==='diamond')return ['fishing','diamonds'];
+ if(key==='companionTicket')return ['companions','tickets'];
+ if(key==='pickupTicket')return ['companions','pickupTickets'];
+ if(key==='treasureTicket')return ['treasure','tickets'];
+ return ['materials',key];
+}
+export function resourceCount(s,key){const [a,b]=resourcePath(key);const v=s?.[a]?.[b];return Number.isSafeInteger(v)&&v>=0?v:0;}
+export function resourceAdd(s,key,n){
+ const [a,b]=resourcePath(key);
+ if(!s[a]||typeof s[a]!=='object'||Array.isArray(s[a]))s[a]={};
+ s[a][b]=resourceCount(s,key)+n;
+ return s[a][b];
+}
+export function recipeCost(recipe,level,count=1){
+ const m=professionCostMultiplier(level);
+ const cost={};for(const [k,v] of Object.entries(recipe.cost))cost[k]=Math.ceil(v*m)*count;
+ return {materials:cost,gold:Math.ceil(recipe.gold*m)*count};
+}
+export function recipeMaxCount(s,profession,recipe){
+ const level=professionLevel(s),unit=recipeCost(recipe,level,1);
+ let max=1000;
+ for(const [k,v] of Object.entries(unit.materials))if(v>0)max=Math.min(max,Math.floor(resourceCount(s,k)/v));
+ if(unit.gold>0)max=Math.min(max,Math.floor((Number(s.gold)||0)/unit.gold));
+ return Math.max(0,max);
+}
+export function professionCommand(s,command,args,now,random){
+ if(command==='professionChoose'){
+  const def=professionById(args?.id)||fail('INVALID_PROFESSION');
+  const cur=normalizeProfession(s);
+  if(cur){
+   if(cur.id===def.id)fail('PROFESSION_SAME');
+   if(now-cur.chosenAt<PROFESSION_CHANGE_COOLDOWN)fail('PROFESSION_COOLDOWN');
+   if((Number(s.gold)||0)<PROFESSION_CHANGE_COST)fail('INSUFFICIENT_GOLD');
+   s.gold-=PROFESSION_CHANGE_COST;
+  }
+  s.profession={id:def.id,level:1,xp:0,crafted:0,bonus:0,chosenAt:now};
+  return {type:command,id:def.id,name:def.name,changed:!!cur,gold:cur?PROFESSION_CHANGE_COST:0};
+ }
+ if(command==='professionCraft'){
+  const p=normalizeProfession(s)||fail('PROFESSION_REQUIRED');
+  const def=professionById(p.id),recipe=def.recipes.find(r=>r.id===args?.recipe)||fail('INVALID_RECIPE');
+  const count=args?.count==='max'?recipeMaxCount(s,def,recipe):args?.count;
+  if(!Number.isInteger(count)||count<1||count>1000)fail('INVALID_CRAFT_COUNT');
+  const cost=recipeCost(recipe,p.level,count);
+  for(const [k,v] of Object.entries(cost.materials))if(resourceCount(s,k)<v)fail('INSUFFICIENT_MATERIAL');
+  if((Number(s.gold)||0)<cost.gold)fail('INSUFFICIENT_GOLD');
+  for(const [k,v] of Object.entries(cost.materials))resourceAdd(s,k,-v);
+  s.gold-=cost.gold;
+  let bonus=0;const chance=professionBonusChance(p.level);
+  for(let i=0;i<count;i++)if(random()<chance)bonus++;
+  const made={};for(const [k,v] of Object.entries(recipe.out)){made[k]=v*(count+bonus);resourceAdd(s,k,made[k]);}
+  // 숙련도: 제작 1회 = 1 (추가 제작은 숙련에 안 들어감)
+  p.crafted+=count;p.bonus+=bonus;p.xp+=count;
+  let ups=0;while(p.level<PROFESSION_MAX_LEVEL&&p.xp>=professionXpNeeded(p.level)){p.xp-=professionXpNeeded(p.level);p.level++;ups++;}
+  if(p.level>=PROFESSION_MAX_LEVEL)p.xp=0;
+  return {type:command,recipe:recipe.id,name:recipe.name,count,bonus,made,cost,level:p.level,levelUps:ups,xp:p.xp,xpNeeded:p.level>=PROFESSION_MAX_LEVEL?0:professionXpNeeded(p.level)};
+ }
+ fail('UNKNOWN_COMMAND');
+}

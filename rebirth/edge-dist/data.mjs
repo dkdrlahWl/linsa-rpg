@@ -10,7 +10,7 @@ export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs';
 import { CUBES, rollCubeLine } from './maple-cubes.mjs';
 export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs';
 import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs";
-export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, canTranscendTier, transcendCost, TRANSCEND_LEVEL, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, canTranscendTier, transcendCost, transcendChance, TRANSCEND_PITY, TRANSCEND_LEVEL, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs";
 export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";

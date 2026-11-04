@@ -30,6 +30,8 @@ import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clear
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=companion-ss2-20261102';
+import {professionView,craftSummary} from './profession-ui.mjs';
+import {PROFESSIONS as D_PROFESSIONS} from './profession-model.mjs';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fishing-perf-188-lv300b';
@@ -111,7 +113,7 @@ async function refreshCoopRooms(){
 let bankCancelArm=null;
 // 2026-11-04 거래소 구매 요청(소모품만): 필요한 사람이 골드를 걸어두면 가진 사람이 바로 판다.
 let buyOrderMode=false,buyOrders=null,buyOrderRequest=0;
-const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket'];
+const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket'];
 let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
@@ -258,6 +260,15 @@ const errors = {
   COMPANION_INVALID_SUMMON_COUNT: "1회 또는 5회 소환을 선택해 주세요. 새로고침 후 다시 시도해 주세요.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
+  INVALID_PROFESSION: "없는 직업이에요.",
+  PROFESSION_SAME: "이미 그 직업이에요.",
+  PROFESSION_COOLDOWN: "직업 변경은 7일에 한 번만 할 수 있어요.",
+  PROFESSION_REQUIRED: "먼저 전문 직업을 선택해 주세요.",
+  INVALID_RECIPE: "이 직업이 만들 수 없는 품목이에요.",
+  INVALID_CRAFT_COUNT: "제작 수량은 1~1,000 사이로 입력해 주세요.",
+  SHOP_DAILY_LIMIT: "오늘 상점 구매 한도를 넘었어요. 내일 다시 구매할 수 있어요.",
+  TRANSCEND_UNAVAILABLE: "초월할 수 없는 장비예요.",
+  TRANSCEND_STARS_REQUIRED: "25성이어야 초월할 수 있어요.",
   BUY_ORDER_LIMIT: "구매 요청은 최대 10건까지 등록할 수 있어요.",
   BUY_ORDER_UNAVAILABLE: "이미 끝났거나 만료된 구매 요청이에요.",
   BUY_ORDER_OWN: "내 구매 요청에는 팔 수 없어요.",
@@ -982,7 +993,7 @@ function characterMetrics(p,c,summaryOnly=false) {
 function gearLevelRange(base){const r=D.equipmentLevelRange(base);return r.min===r.max?requiredLevel(r.min):requiredLevel(r.min)+" / "+requiredLevel(r.max);}
 function gearRollLabel(it){return "기본 공격력 "+D.gearAttributes(it,0).attack.toFixed(1);}
 function itemMarkup(it) {
-  if(it.kind==="consumable")return `<div class="consumable-market-icon">${['treasureTicket','companionTicket'].includes(it.key)?`<img src="${currencyIconURL(it.key)}" alt="" style="width:80%;height:80%;object-fit:contain">`:'◆'}</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
+  if(it.kind==="consumable")return `<div class="consumable-market-icon">${['treasureTicket','companionTicket','pickupTicket'].includes(it.key)?`<img src="${currencyIconURL(it.key)}" alt="" style="width:80%;height:80%;object-fit:contain">`:'◆'}</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
   return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">${gearRollLabel(it)}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? D.RARITIES[it.grade] : "잠재 미개방"}</span></div>`;
 }
 function bagGroupsMarkup(groups){
@@ -1319,7 +1330,7 @@ function transcendCelebrate(e){
 function transcendBlock(it){
  const need=D.transcendCost(it),have=state.materials?.transcendStone||0,next={...it,bossTier:D.bossTier(it)+1},range=D.gearStatRanges(next),m=D.gearStatMultiplier(it);
  const blocked=enhancementBlock(it)||(!state.isAdmin&&have<need?`초월석이 부족합니다 (${fmt(have)}/${fmt(need)}개)`:"");
- return `<section class="transcend-box"><div class="transcend-head"><span>TRANSCEND</span><b>${esc(D.bossTierName(it))} <i>→</i> ${esc(D.bossTierName(next))}</b></div><p>25성 달성! 초월하면 <b>다음 등급 장비</b>로 바뀌어요.</p><ul><li>기본 수치는 새 등급 범위에서 다시 랜덤 · 공격력 ${fmt(Math.round(range.attack.min*m))}~${fmt(Math.round(range.attack.max*m))}</li><li><b>스타포스만 0성으로 초기화</b> · 잠재능력·추가옵션은 그대로</li><li>다시 25성을 찍으면 다음 등급으로 초월할 수 있어요</li></ul><p class="transcend-cost" data-currency-label="transcendStone"><img src="${currencyIconURL('transcendStone')}" alt="">초월석 <b>${fmt(need)}개</b> 필요 · 보유 ${fmt(have)}개</p>${disabledBtn(`초월하기 (초월석 ${need}개)`,"transcend",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked?"short":""}">${blocked||"초월은 항상 성공해요."}</p></section>`;
+ return `<section class="transcend-box"><div class="transcend-head"><span>TRANSCEND</span><b>${esc(D.bossTierName(it))} <i>→</i> ${esc(D.bossTierName(next))}</b></div><p>25성 달성! 초월하면 <b>다음 등급 장비</b>로 바뀌어요.</p><ul><li>기본 수치는 새 등급 범위에서 다시 랜덤 · 공격력 ${fmt(Math.round(range.attack.min*m))}~${fmt(Math.round(range.attack.max*m))}</li><li><b>스타포스만 0성으로 초기화</b> · 잠재능력·추가옵션은 그대로</li><li>다시 25성을 찍으면 다음 등급으로 초월할 수 있어요</li></ul><p class="transcend-cost" data-currency-label="transcendStone"><img src="${currencyIconURL('transcendStone')}" alt="">초월석 <b>${fmt(need)}개</b> 필요 · 보유 ${fmt(have)}개</p>${disabledBtn(`초월하기 (초월석 ${need}개)`,"transcend",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked?"short":""}">${blocked||`성공률 <b>${Math.round(D.transcendChance(it)*100)}%</b>${(it.transcendFails||0)>=D.TRANSCEND_PITY?" · 이번엔 확정 성공!":(it.transcendFails||0)?` · 연속 실패 ${it.transcendFails}회 (${D.TRANSCEND_PITY}회 실패 시 다음 확정)`:""} · 실패해도 장비·스타포스·잠재는 그대로, 초월석만 소모`}</p></section>`;
 }
 function baseStatsPanel(it){return gearRollDetails(it)+renderRefinePanel(it,state,enhancementBlock(it));}
 let lastUnlockResult=null;
@@ -1450,7 +1461,7 @@ function showEvents(events) {
       }
     }
     if (e.type === "transcend") {
-      lastStarResult=null;itemDetail(e.id,"star");transcendCelebrate(e);
+      lastStarResult=null;itemDetail(e.id,"star");if(e.success===false)toast(`초월 실패 · 초월석 ${e.cost}개 소모${e.fails>=D.TRANSCEND_PITY?" · 다음 초월은 확정 성공!":` (연속 ${e.fails}회)`}`);else transcendCelebrate(e);
     } else if (e.type === "star") {
       lastStarResult=e;
       itemDetail(e.id,"star");
@@ -1619,9 +1630,11 @@ function updateSellPrice() {
   const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
 }
 // Market materials: regular materials plus 다이아 (fishing record), 동료 소환권 (companions), 보물찾기 티켓 (treasure).
-const MARKET_EXTRA={diamond:'다이아',companionTicket:'동료 소환권',treasureTicket:'보물찾기 티켓'};
-const MARKET_MATERIALS=()=>({...D.MATERIALS,...MARKET_EXTRA});
-const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
+const MARKET_EXTRA={diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'};
+// 2026-11-04 전문 직업: 거래 가능 소모품 확장
+const MARKET_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket'];
+const MARKET_MATERIALS=()=>Object.fromEntries(MARKET_KEYS.map(k=>[k,MARKET_EXTRA[k]||D.MATERIALS[k]||k]));
+const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='pickupTicket'?(state.companions?.pickupTickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
 const materialName=k=>MARKET_EXTRA[k]||D.MATERIALS[k]||k;
 const marketMaterialIcon=(k,cls='')=>`<img${cls?` class="${cls}"`:''} src="${currencyIconURL(k)}" alt="">`;
 function consumableSellDialog(key=null){
@@ -1883,6 +1896,9 @@ document.addEventListener("click", async (e) => {
       if(result&&!chest)systemInbox();
       return;
     }
+    if(action==="professionOpen"){await command('sync',{},true);open('전문 직업',professionView(state));modal.classList.add('prof-dialog');return;}
+    if(action==="professionChoose"){if(busy)return;const cur=state.profession?.id;if(cur&&!confirm('직업을 변경하면 1억 G가 소모되고 숙련도가 Lv.1로 초기화돼요. 변경할까요?'))return;const r=await command('professionChoose',{id:arg});open('전문 직업',professionView(state));modal.classList.add('prof-dialog');const e=r?.result?.events?.find(x=>x.type==='professionChoose');if(e)toast(e.changed?`${e.name}(으)로 변경했어요`:`${e.name} 선택 완료`);return;}
+    if(action==="professionCraft"||action==="professionCraftMax"){if(busy)return;const input=modal.querySelector(`[data-recipe-count="${arg}"]`);const count=action==="professionCraftMax"?'max':Number(input?.value);if(count!=='max'&&(!Number.isInteger(count)||count<1||count>1000))return toast('제작 수량은 1~1,000 사이로 입력해 주세요.');const r=await command('professionCraft',{recipe:arg,count});const scroll=modal.scrollTop;open('전문 직업',professionView(state));modal.classList.add('prof-dialog');modal.scrollTop=scroll;const e=r?.result?.events?.find(x=>x.type==='professionCraft');if(e){const made=Object.values(e.made)[0];toast(`${e.name} ${made.toLocaleString('ko-KR')}개 제작${e.bonus?` (추가 제작 +${e.bonus})`:''}${e.levelUps?` · 숙련도 Lv.${e.level} 달성!`:''}`);}return;}
     if(action==="tribeOpen"){await command('sync',{},true);openTribe();return;}
     if(action==="tribeBuy"){if(busy||tribeSpinning)return;try{await command('tokenShopBuy',{id:'tribeTicket',quantity:1},true);toast('종족 주사위 1개 구매');}catch{}openTribe();return;}
     if(action==="tribeRoll"){
@@ -2295,6 +2311,7 @@ document.addEventListener("change", async (e) => {
   if(e.target.id==="exchange-level"){exchangeLevel=Number(e.target.value);render();return;}
   if(e.target.id==="material-sell-key"){updateMaterialSale();return;}
   if(/^bo-/.test(e.target.id||"")){updateBuyOrderForm();return;}
+  if(e.target.dataset?.recipeCount){const id=e.target.dataset.recipeCount,p=state?.profession,def=p&&D_PROFESSIONS.find(x=>x.id===p.id),r=def?.recipes.find(x=>x.id===id),out=modal.querySelector(`[data-recipe-sum="${id}"]`);if(r&&out)out.textContent=craftSummary(state,p,r,Number(e.target.value));return;}
   if(e.target.id==="market-sell-slot"||e.target.id==="market-sell-class") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;if(e.target.id==="market-sell-slot")marketSellSlot=e.target.value;else marketSellClass=e.target.value;marketSellId=null;marketSellPicker();return;}
 
   if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.raidBoss(partyBossId));return;}
