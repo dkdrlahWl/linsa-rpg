@@ -61,3 +61,5 @@
 .fantasy-brand-row .fantasy-prof-entry .prof-entry-art{display:none!important}
 .fantasy-brand-row .fantasy-prof-entry>span{display:block!important;position:static;font-size:13px;line-height:1.2;font-weight:800;white-space:nowrap;color:#ffe8ae;text-shadow:0 1px 3px #000}
 .fantasy-brand-row .fantasy-prof-entry>b{pointer-events:none}
+
+.prof-cost span{display:inline-flex;align-items:center;gap:4px}.prof-cost em{font-style:normal;font-size:10.5px;color:#9fb3a6;margin-left:2px;padding-left:6px;border-left:1px solid #ffffff1f}.prof-cost .short em{color:#ffb4a7}

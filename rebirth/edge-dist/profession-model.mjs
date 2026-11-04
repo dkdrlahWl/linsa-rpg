@@ -59,7 +59,9 @@ export function normalizeProfession(s){
  p.chosenAt=Number.isSafeInteger(p.chosenAt)?p.chosenAt:0;
  return p;
 }
-export const professionXpNeeded=level=>level*10;
+// 2026-11-04 도현: Lv.10까지 총 10,000회 제작. Lv.n→n+1 필요 = 10000×n/45 (222, 444, … 2,000).
+export const PROFESSION_TOTAL_CRAFTS=10000;
+export const professionXpNeeded=level=>Math.round(PROFESSION_TOTAL_CRAFTS*level/45);
 export const professionLevel=s=>normalizeProfession(s)?.level||0;
 export const professionOf=s=>{const p=normalizeProfession(s);return p?professionById(p.id):null;};
 // 2026-11-04 도현: 제작 비용은 숙련도와 무관하게 전 구간 동일. 숙련도는 추가 제작 확률만 올린다.

@@ -3,6 +3,7 @@ import {currencyIconURL} from './currency-icons.mjs';
 import {PROFESSION_SLOTS,professionOpenFor,JOB_MATERIALS,PROFESSIONS,RESOURCE_NAMES,PROFESSION_MAX_LEVEL,PROFESSION_CHANGE_COOLDOWN,PROFESSION_CHANGE_COST,professionById,normalizeProfession,professionXpNeeded,professionCostMultiplier,professionBonusChance,professionGather,recipeCost,recipeMaxCount,resourceCount} from './profession-model.mjs';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const bigGold=g=>{g=Math.floor(g||0);return g>=1e8?(g/1e8).toFixed(g>=1e10?0:1).replace(/\.0$/,'')+'억':g>=1e4?fmt(Math.floor(g/1e4))+'만':fmt(g);};
 const pct=x=>Math.round(x*100)+'%';
 const GATHER_LABELS={cube:'사냥 레드 큐브',highCube:'링탐 블랙 큐브',diamond:'낚시 다이아',fragment:'사냥 장비 파편'};
 // 효과 표기: 드랍률형은 실제 확률, 개수형은 +%
@@ -20,7 +21,7 @@ export function professionView(s,now=Date.now(),counts={}){
  if(!professionOpenFor(s))return `<div class="prof-panel" data-currency-label>${hero()}<p class="prof-lead">전문 직업은 <b>준비 중</b>이에요. 곧 열려요!</p><p class="note">사냥터에서 나오는 직업 재료(마력 정수·고대 지도 조각·심해 진주·원석)는 지금도 모을 수 있고 거래소에서 거래할 수 있어요.</p></div>`;
  if(!p)return `<div class="prof-panel" data-currency-label>${hero()}<p class="prof-lead">네 가지 전문 직업 중 하나를 선택하세요. 재료를 모아 전용 소모품을 <b>횟수 제한 없이</b> 제작하고, 숙련도를 높일 수 있어요.</p><p class="note">직업당 최대 ${PROFESSION_SLOTS}명 · 처음 선택은 무료 · 변경은 7일 쿨타임 + ${fmt(PROFESSION_CHANGE_COST)} G + 숙련도 초기화 · 직업이 없어도 기존 획득은 그대로</p><div class="prof-choose">${PROFESSIONS.map(d=>card(d,s,false,counts)).join('')}</div></div>`;
  const def=professionById(p.id),need=p.level>=PROFESSION_MAX_LEVEL?0:professionXpNeeded(p.level),cool=Math.max(0,p.chosenAt+PROFESSION_CHANGE_COOLDOWN-now);
- return `<div class="prof-panel" data-profession="${def.id}" data-currency-label>${hero(def.id)}<div class="prof-head"><img class="prof-icon" src="${art(def.id)}" alt=""><div><h3>${def.name} <small>Lv.${p.level}</small></h3><p>${esc(def.blurb)}</p><div class="prof-xp"><i style="width:${need?Math.min(100,Math.round(p.xp/need*100)):100}%"></i></div><small>${need?`숙련 ${p.xp}/${need} · 제작 1회 = 숙련 1`:'최고 숙련도'} · 누적 제작 ${fmt(p.crafted)}회</small></div></div>
+ return `<div class="prof-panel" data-profession="${def.id}" data-currency-label>${hero(def.id)}<div class="prof-head"><img class="prof-icon" src="${art(def.id)}" alt=""><div><h3>${def.name} <small>Lv.${p.level}</small></h3><p>${esc(def.blurb)}</p><div class="prof-xp"><i style="width:${need?Math.min(100,Math.round(p.xp/need*100)):100}%"></i></div><small>${need?`숙련 ${fmt(p.xp)}/${fmt(need)} · 제작 1회 = 숙련 1 · Lv.10까지 총 1만 회`:'최고 숙련도'} · 누적 제작 ${fmt(p.crafted)}회</small></div></div>
  <div class="prof-perks">${Object.keys(def.gather).map(k=>`<span>${GATHER_LABELS[k]||k} ${gatherText(k,professionGather(s,k))}</span>`).join('')}</div>
  <p class="note">숙련도가 오를수록 채집 보너스 증가 (Lv.10에서 Lv.1의 2배) · 제작 비용은 레벨과 무관하게 동일</p>
  <div class="prof-recipes">${def.recipes.map(r=>recipeCard(s,p,r)).join('')}</div>
@@ -33,8 +34,8 @@ function card(d,s,disabled=false,counts={}){
 function recipeCard(s,p,r){
  const unit=recipeCost(r,p.level,1,p.id),max=recipeMaxCount(s,professionById(p.id),r);
  const outKey=Object.keys(r.out)[0];
- const count=Math.max(1,Math.min(10,max)),ref=REF_PRICE[outKey];
- return `<article class="prof-recipe"><div class="prof-recipe-head">${icon(outKey)}<strong>${r.name}</strong><small>${ref?`기준가 ${fmt(ref/10000)}만 G`:''}</small></div><div class="prof-cost">${Object.entries(unit.materials).map(([k,v])=>`<span class="${resourceCount(s,k)>=v?'':'short'}">${icon(k)}${RESOURCE_NAMES[k]||k} ${v}</span>`).join('')}${unit.gold?`<span class="${(s.gold||0)>=unit.gold?'':'short'}">${fmt(unit.gold)} G</span>`:''}</div><div class="prof-actions"><input type="number" inputmode="numeric" min="1" max="1000" step="1" value="${count}" data-recipe-count="${r.id}" aria-label="제작 수량"><button data-action="professionCraft" data-arg="${r.id}" ${max?'':'disabled'}>제작</button><button data-action="professionCraftMax" data-arg="${r.id}" ${max?'':'disabled'}>최대 ${fmt(max)}</button></div><p class="prof-sum" data-recipe-sum="${r.id}">${craftSummary(s,p,r,count)}</p></article>`;
+ const count=1,ref=REF_PRICE[outKey];
+ return `<article class="prof-recipe"><div class="prof-recipe-head">${icon(outKey)}<strong>${r.name}</strong><small>${ref?`기준가 ${fmt(ref/10000)}만 G`:''}</small></div><div class="prof-cost">${Object.entries(unit.materials).map(([k,v])=>`<span class="${resourceCount(s,k)>=v?'':'short'}">${icon(k)}${RESOURCE_NAMES[k]||k} ${v}<em>보유 ${fmt(resourceCount(s,k))}</em></span>`).join('')}${unit.gold?`<span class="${(s.gold||0)>=unit.gold?'':'short'}">${fmt(unit.gold)} G<em>보유 ${bigGold(s.gold)}</em></span>`:''}</div><div class="prof-actions"><input type="number" inputmode="numeric" min="1" max="1000" step="1" value="${count}" data-recipe-count="${r.id}" aria-label="제작 수량"><button data-action="professionCraft" data-arg="${r.id}" ${max?'':'disabled'}>제작</button><button data-action="professionCraftMax" data-arg="${r.id}" ${max?'':'disabled'}>최대 ${fmt(max)}</button></div><p class="prof-sum" data-recipe-sum="${r.id}">${craftSummary(s,p,r,count)}</p></article>`;
 }
 export function craftSummary(s,p,r,count){
  const c=recipeCost(r,p.level,Math.max(1,count||1),p.id);

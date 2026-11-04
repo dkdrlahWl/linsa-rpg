@@ -20,8 +20,8 @@ const r=PROFESSIONS[0].recipes[0];assert.deepEqual(recipeCost(r,1,2,'alchemist')
 let e=professionCommand(s,'professionCraft',{recipe:'primeCube',count:2},t0,seq(0.5,0.01));
 assert.equal(e.bonus,0);assert.equal(s.materials.primeCube,2);assert.equal(s.materials.highCube,18);assert.equal(s.gold,98600000);assert.equal(s.materials.essence,28,'직업 재료 1개/회');
 assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'dungeonKey',count:1},t0,Math.random),/INVALID_RECIPE/);
-// 숙련도: Lv.1→2 는 10회
-for(let i=0;i<8;i++)professionCommand(s,'professionCraft',{recipe:'addCube',count:1},t0,()=>.9);
+// 숙련도: Lv.1→2 는 222회 (Lv.10까지 총 10,000회)
+normalizeProfession(s).xp=214;for(let i=0;i<8;i++)professionCommand(s,'professionCraft',{recipe:'addCube',count:1},t0,()=>.9);
 assert.equal(normalizeProfession(s).level,2);assert.equal(s.materials.essence,20);
 // max count (레드 큐브 또는 정수 중 먼저 바닥나는 쪽)
 e=professionCommand(s,'professionCraft',{recipe:'addCube',count:'max'},t0,()=>.9);assert.ok(e.count>=1&&(s.materials.cube<2||s.materials.essence<1));
