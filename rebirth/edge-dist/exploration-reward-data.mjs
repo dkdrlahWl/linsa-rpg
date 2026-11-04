@@ -25,6 +25,8 @@ const EXTRA=[
  [6,{gold:4400000,scroll:.35,highCube:.40,potentialLock:.07,addCube:.50,bonusFlame:.08,bossGear:.12,counts:{scroll:3,highCube:8,potentialLock:2,addCube:4,bonusFlame:1},gear:[[180,50],[190,33],[200,17]]}],
 ];
 for(const [id,r] of EXTRA)EXPLORATION_REWARDS[id]=r;
+// 2026-11-04 도현: 링탐 보상에서 에디셔널 큐브·잠재 잠금석·추가옵션 불꽃 삭제 (전 단계).
+for(const r of EXPLORATION_REWARDS){r.potentialLock=0;if('addCube' in r)r.addCube=0;if('bonusFlame' in r)r.bonusFlame=0;}
 export const EXPLORATION_REWARD_KEYS=['scroll','highCube','potentialLock','addCube','bonusFlame'];
 export const explorationRewardCount=(rates,key)=>rates.counts?.[key]??EXPLORATION_REWARD_COUNTS[key]??1;
 export function explorationGearLevelFor(rates,random){if(!rates.gear)return explorationGearLevel(random);const total=rates.gear.reduce((n,[,w])=>n+w,0);let roll=random()*total;for(const [level,w] of rates.gear){roll-=w;if(roll<0)return level;}return rates.gear.at(-1)[0];}
