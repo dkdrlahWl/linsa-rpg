@@ -1,4 +1,4 @@
-import {fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,fishingQuestsReady,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,fishWeight,rodGoldCost,rodDiamondCost,resourceName,aquariumExpandCost,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,fishingQuestsReady,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,fishWeight,rodGoldCost,rodDiamondCost,resourceName,aquariumExpandCost,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {mountFishingScene} from './fishing-motion.mjs?v=fishing-line-180';
 import {normalizeFishing,aquariumBank} from './fishing-model.mjs';
 import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs';
@@ -42,7 +42,7 @@ function exchangePanel(f){
 function panelBody(s,f){
  if(fishingUI.panel==='contest')return contestPanel(f);
  // 2026-11-04 도현: 다이아 교환소 삭제
- if(fishingUI.panel==='fish')return `<div class="fishing-panel-title"><div><h2>오늘의 물고기</h2><small>같은 종도 무거울수록 비싸요 · ${f.fish.length}/150마리</small></div><div class="fishing-title-actions">${button('수족관 최적 배치','fishAquariumAuto','',!f.fish.length)}${button('가방 전부 판매','fishSellAll','',!f.fish.length)}</div></div><div class="fish-grid">${f.fish.length?f.fish.slice().reverse().map(x=>fishCard(x)).join(''):'<div class="fishing-empty"><strong>첫 물고기를 만나볼까요?</strong><p>미끼를 고르고 낚싯대를 던져 주세요.<br>기본 미끼 20개가 준비되어 있어요.</p></div>'}</div>`;
+ if(fishingUI.panel==='fish')return `<div class="fishing-panel-title"><div><h2>오늘의 물고기</h2><small>같은 종도 무거울수록 비싸요 · ${f.fish.length}/${fishBagSize(s)}마리</small></div><div class="fishing-title-actions">${button('수족관 최적 배치','fishAquariumAuto','',!f.fish.length)}${button('가방 전부 판매','fishSellAll','',!f.fish.length)}</div></div><div class="fish-grid">${f.fish.length?f.fish.slice().reverse().map(x=>fishCard(x)).join(''):'<div class="fishing-empty"><strong>첫 물고기를 만나볼까요?</strong><p>미끼를 고르고 낚싯대를 던져 주세요.<br>기본 미끼 20개가 준비되어 있어요.</p></div>'}</div>`;
  if(fishingUI.panel==='tank')return `<div class="fishing-panel-title"><div><h2>나의 작은 수족관</h2><small>${f.aquarium.length}/${f.slots}마리 · 시간당 ${fmt(f.aquarium.reduce((n,x)=>n+fishYield(x),0))} G</small></div>${button('최적 배치','fishAquariumAuto','',!f.fish.length)}</div><div class="fishing-bank">${image('diamondChest')}<div><small>쌓인 골드 · 최대 12시간</small><strong>${fmt(aquariumBank(f,Date.now()))} G</strong><span>수족관에 넣은 물고기는 꺼낸 뒤 판매할 수 있어요.</span></div>${button('골드 받기','fishAquariumClaim','',aquariumBank(f,Date.now())<1,'fishing-gold')}</div><div class="fish-grid">${f.aquarium.length?f.aquarium.map(x=>fishCard(x,'tank')).join(''):'<div class="fishing-empty"><strong>물고기를 넣어 나만의 수족관을 꾸며요</strong><p>물고기 가방에서 ‘수족관’을 눌러주세요.</p></div>'}</div>${f.slots<10?button('수족관 확장 · '+fmt(aquariumExpandCost(f.slots))+' G','fishAquariumExpand','',s.gold<aquariumExpandCost(f.slots)):'<p class="fishing-note">최대 10칸 수족관이에요.</p>'}`;
  if(fishingUI.panel==='rod'){
   const max=f.rod>=ROD_MAX,cost=rodGoldCost(f.rod),remaining=Math.max(0,cost-f.xp);
@@ -116,7 +116,7 @@ function autoBlocker(s){
  const spot=SPOTS.find(x=>x.id===fishingUI.spot),bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;
  if(!spot||(f.rod||1)<spot.level)return '이 낚시터는 낚싯대 레벨이 부족해요.';
  if(!((f.bait?.[bait]||0)>0))return '미끼가 떨어져서 오토 낚시를 멈췄어요.';
- if((f.fish?.length||0)>=150)return '가방이 가득 차서 오토 낚시를 멈췄어요.';
+ if((f.fish?.length||0)>=fishBagSize(s))return '가방이 가득 차서 오토 낚시를 멈췄어요.';
  if((f.daily?.casts||0)>=fishingDailyCasts(s))return '오늘 낚시 횟수를 다 써서 오토 낚시를 멈췄어요.';
  return '';
 }

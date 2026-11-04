@@ -1,5 +1,5 @@
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
@@ -87,7 +87,7 @@ export function fishingCommand(s,command,args,ctx){
  s.materials??={};
  if(command==='fishCast'){
   require(args.protocol===FISHING_PROTOCOL,'FISHING_REFRESH_REQUIRED');
-  require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<150,'FISHING_BAG_FULL');
+  require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<fishBagSize(s),'FISHING_BAG_FULL');
   require((f.daily.casts||0)<fishingDailyCasts(s),'FISHING_DAILY_LIMIT');
   const spot=SPOTS.find(x=>x.id===args.spot),bait=BAITS.find(x=>x.id===args.bait);
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
@@ -131,7 +131,7 @@ export function fishingCommand(s,command,args,ctx){
  }
  if(command==='fishAquariumAdd'||command==='fishAquariumRemove'){
   const add=command==='fishAquariumAdd',from=add?f.fish:f.aquarium,to=add?f.aquarium:f.fish,index=from.findIndex(x=>x.id===args.id);
-  require(index>=0,'FISHING_FISH_MISSING');require(add?to.length<f.slots:to.length<150,add?'FISHING_AQUARIUM_FULL':'FISHING_BAG_FULL');
+  require(index>=0,'FISHING_FISH_MISSING');require(add?to.length<f.slots:to.length<fishBagSize(s),add?'FISHING_AQUARIUM_FULL':'FISHING_BAG_FULL');
   to.push(from.splice(index,1)[0]);return {type:command};
  }
  if(command==='fishAquariumAuto'){
@@ -140,7 +140,7 @@ export function fishingCommand(s,command,args,ctx){
   const best=all.slice(0,f.slots),keep=new Set(best.map(x=>x.id)),inTank=new Set(f.aquarium.map(x=>x.id));
   const moved=best.filter(x=>!inTank.has(x.id)).length;require(moved>0,'FISHING_AQUARIUM_OPTIMAL');
   const before=f.aquarium.reduce((n,x)=>n+yieldOf(x),0),bag=[...f.fish.filter(x=>!keep.has(x.id)),...f.aquarium.filter(x=>!keep.has(x.id))];
-  require(bag.length<=150,'FISHING_BAG_FULL');
+  require(bag.length<=fishBagSize(s),'FISHING_BAG_FULL');
   f.aquarium=best;f.fish=bag;
   return {type:'fishAquariumAuto',moved,before,after:best.reduce((n,x)=>n+yieldOf(x),0)};
  }

@@ -6,6 +6,8 @@ export const ROD_MAX=70;
 export const FISHING_DAILY_CASTS=600;
 // 2026-11-05 도현: 어부는 하루 1,000회
 export const FISHER_DAILY_CASTS=1000;
+// 2026-11-05 도현: 물고기 가방 150칸, 어부는 300칸
+export const fishBagSize=s=>s?.profession?.id==='fisher'?300:150;
 export const fishingDailyCasts=s=>s?.profession?.id==='fisher'?FISHER_DAILY_CASTS:FISHING_DAILY_CASTS;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
 export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240},{name:'태고',color:'#7ff6ff',gate:70,value:600}];
