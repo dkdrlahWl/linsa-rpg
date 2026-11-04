@@ -17,7 +17,7 @@ export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
 export const FIELD_XP_MULTIPLIER = 2.5;
 // 레벨 상한: 레벨 확장 시 여기만 바꾸면 경험치·칭호 등이 따라감.
-export const MAX_LEVEL = 300;
+export const MAX_LEVEL = 400; // 2026-11-04 도현: 300 → 400 확장
 // 2026-10-20: 레벨당 스탯 포인트 1~250은 5, 251부터는 10배(50).
 export const statPointsForLevel=level=>level>250?50:5;
 export const totalStatPoints=level=>(Math.min(level,250)-1)*5+Math.max(0,level-250)*50;
@@ -272,6 +272,8 @@ export function xpNeeded(level) {
  // 2026-10-14: 230레벨부터 필요 경험치 2배 (200~229는 3배, 230 이상은 6배).
  // 2026-10-20: 최대 레벨 300. 250부터는 하루 1레벨 정도(상위 유저 하루 사냥량 기준).
  // 필요량은 레벨이 오를수록 늘어난다(250: 2,800만 → 299: 약 4,000만).
+ // 2026-11-04: 최대 레벨 400. 300부터는 같은 곡선의 2배(300: 약 8,060만 → 399: 약 1억 4,260만).
+ if(level>=300)return Math.round(28000000*(level/250)**2*2);
  if(level>=250)return Math.round(28000000*(level/250)**2);
  const endgame=level>=230?6:level>=200?3:1;
  return Math.round(journeyXP(level)*endgame);

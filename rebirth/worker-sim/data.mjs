@@ -1,23 +1,23 @@
-import {extendChapters300,extendChapterBosses} from './chapters-300.mjs?v=expl910c-20261103';
-export {ADD_CUBE} from './additional-potential.mjs?v=expl910c-20261103';
-export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=expl910c-20261103';
-export {PRIEST_SKILLS} from './priest.mjs?v=expl910c-20261103';
-export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=expl910c-20261103';
-export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,ADVANCEMENT_STAT_BONUS} from './advancement.mjs?v=expl910c-20261103';
-import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=expl910c-20261103';
-import {extendEndgameFields} from './endgame-field.mjs?v=expl910c-20261103';
-export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=expl910c-20261103';
-import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=expl910c-20261103';
-export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=expl910c-20261103';
-import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=expl910c-20261103";
-export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, canTranscendTier, transcendCost, TRANSCEND_LEVEL, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=expl910c-20261103";
-export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=expl910c-20261103";
+import {extendChapters300,extendChapterBosses} from './chapters-300.mjs?v=citadel-short-20261101';
+export {ADD_CUBE} from './additional-potential.mjs?v=citadel-short-20261101';
+export {FIFTH_SKILLS,FIFTH_NAMES,fifthUnlocked} from './fifth-job.mjs?v=citadel-short-20261101';
+export {PRIEST_SKILLS} from './priest.mjs?v=citadel-short-20261101';
+export {FOURTH_SKILLS,FOURTH_NAMES} from './fourth-job.mjs?v=citadel-short-20261101';
+export {THIRD_SKILLS,THIRD_NAMES,ADVANCEMENT_BOSSES,firstJobUnlocked,jobStage,nextTrialStage,ADVANCEMENT_STAT_BONUS} from './advancement.mjs?v=citadel-short-20261101';
+import {balanceWorld,journeyXP,dropEquipmentLevel} from './journey-balance.mjs?v=citadel-short-20261101';
+import {extendEndgameFields} from './endgame-field.mjs?v=citadel-short-20261101';
+export {BALANCE_VERSION,levelHours,DAILY_TASKS} from './journey-balance.mjs?v=citadel-short-20261101';
+import { CUBES, rollCubeLine } from './maple-cubes.mjs?v=citadel-short-20261101';
+export { CUBES, cubeLineRates, cubeCost, cubeTable } from './maple-cubes.mjs?v=citadel-short-20261101';
+import { equipmentIdentity, equipmentKey, normalizeEquipment, equipmentFromKey, isTieredBossGear, bossTier, bossTierCount, rollBossTier } from "./equipment.mjs?v=citadel-short-20261101";
+export { isTieredBossGear, isCommonBossGear, canEquipClass, bossTier, bossTierCount, bossTierName, rollBossTier, canTranscendTier, transcendCost, TRANSCEND_LEVEL, BOSS_WEAPON_TIER_NAMES, BOSS_ARMOR_TIER_NAMES, BOSS_WEAPON_TIER_WEIGHTS, BOSS_ARMOR_TIER_WEIGHTS } from "./equipment.mjs?v=citadel-short-20261101";
+export { normalizeEquipment, equipmentTierLevel, WEAPON_TYPES, weaponVariant, equipmentKey, equipmentFromKey, equipmentType, equipmentIdentity, EQUIPMENT_CATALOG, designCount, designWeights, selectDesign, designItem } from "./equipment.mjs?v=citadel-short-20261101";
 // Shared public balance data. The server is authoritative for RNG and ownership.
 export const VERSION = "rebirth-1";
 export const OFFLINE_SECONDS = 21600;
 export const FIELD_XP_MULTIPLIER = 2.5;
 // 레벨 상한: 레벨 확장 시 여기만 바꾸면 경험치·칭호 등이 따라감.
-export const MAX_LEVEL = 300;
+export const MAX_LEVEL = 400; // 2026-11-04 도현: 300 → 400 확장
 // 2026-10-20: 레벨당 스탯 포인트 1~250은 5, 251부터는 10배(50).
 export const statPointsForLevel=level=>level>250?50:5;
 export const totalStatPoints=level=>(Math.min(level,250)-1)*5+Math.max(0,level-250)*50;
@@ -75,7 +75,7 @@ export const SLOTS = [
   "귀걸이",
   "펜던트",
 ];
-export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=expl910c-20261103';
+export {CLASS_SKILLS,SECOND_SKILLS} from './combat-skills.mjs?v=citadel-short-20261101';
 export const RAID_BOSSES = [
  {id:100,name:'녹왕 그란디어',raid:true,region:2,hp:350000,attack:90,seconds:180,patternEvery:15,patternMultiplier:2.5,pattern:'수정 뿌리 폭발',art:'ui/raid-stag.webp',fullArt:true,gold:10000,fragment:40,cube:6,highCubeChance:0,gearLevel:60,dropChance:.10,recommended:'입문 · 4인 기준 / Lv.60 일반 9부위 5성 권장'},
  {id:101,name:'용광군주 카르가스',raid:true,region:6,hp:2400000,attack:180,seconds:240,patternEvery:18,patternMultiplier:3,pattern:'용광로 대분출',art:'ui/raid-crab.webp',fullArt:true,gold:40000,fragment:100,cube:12,highCubeChance:.25,gearLevel:140,dropChance:.10,recommended:'심화 · 4인 기준 / Lv.140 일반 9부위 10성 권장'},
@@ -272,6 +272,8 @@ export function xpNeeded(level) {
  // 2026-10-14: 230레벨부터 필요 경험치 2배 (200~229는 3배, 230 이상은 6배).
  // 2026-10-20: 최대 레벨 300. 250부터는 하루 1레벨 정도(상위 유저 하루 사냥량 기준).
  // 필요량은 레벨이 오를수록 늘어난다(250: 2,800만 → 299: 약 4,000만).
+ // 2026-11-04: 최대 레벨 400. 300부터는 같은 곡선의 2배(300: 약 8,060만 → 399: 약 1억 4,260만).
+ if(level>=300)return Math.round(28000000*(level/250)**2*2);
  if(level>=250)return Math.round(28000000*(level/250)**2);
  const endgame=level>=230?6:level>=200?3:1;
  return Math.round(journeyXP(level)*endgame);
