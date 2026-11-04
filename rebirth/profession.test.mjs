@@ -42,7 +42,7 @@ assert.deepEqual([0,1].map(t=>transcendChance({slot:3,bossTier:t,level:220,boss:
 // 공급 조정
 assert.equal(TOKEN_SHOP.find(o=>o.id==='companionTicket').weekly,20);assert.equal(TOKEN_SHOP.find(o=>o.id==='pickupTicket').weekly,10);assert.equal(TOKEN_SHOP.find(o=>o.id==='dungeonKey'),undefined);
 assert.equal(REWARD_RATES.find(r=>r.id==='dungeonKey').chance,.0025);assert.ok(Math.abs(REWARD_RATES.reduce((n,r)=>n+r.chance,0)-1)<1e-9);
-assert.deepEqual(SHOP_DAILY_LIMITS,{cube:50,addCube:20});
+assert.deepEqual(SHOP_DAILY_LIMITS,{cube:50});
 const sh={gold:1e12,materials:{cube:0,addCube:0}};consumableCommand(sh,'consumableBuy','cube',t0,50);
 assert.throws(()=>consumableCommand(sh,'consumableBuy','cube',t0,1),/SHOP_DAILY_LIMIT/);
 consumableCommand(sh,'consumableBuy','cube',t0+86400000,1);assert.equal(sh.materials.cube,51);

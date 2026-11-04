@@ -1,4 +1,4 @@
-import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumableList,shopConsumable,shopConsumableCount,potionCount,luckStatus,shopPurchaseLimit,SELL_PRICES,shopSellLimit,SHOP_DAILY_LIMITS,shopDailyLeft} from './consumables.mjs?v=shop-cubes-185';
+import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumableList,shopConsumable,shopConsumableCount,potionCount,luckStatus,shopPurchaseLimit,SELL_PRICES,shopSellLimit,SHOP_DAILY_LIMITS,shopDailyLeft} from './consumables.mjs?v=noaddcube-20261104';
 export const potionTime=ms=>{const seconds=Math.ceil(Math.max(0,ms)/1000);return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');};
 export function consumableView(state,shop=false){
  if(shop)return consumableShopView(state);

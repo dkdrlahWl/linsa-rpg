@@ -2,11 +2,11 @@ import {BONUS_FLAME,REROLL_STONE} from './gear-refine.mjs?v=flame5m-20261025';
 // 2026-11-03 도현: 링구의 머리카락 — 상점 1억 G. 거래 불가 장비에 바르면 거래 1회 가능(횟수 제한 없음).
 export const RINGU_HAIR = Object.freeze({id:'ringuHair',name:'링구의 머리카락',price:100000000,art:'currencies/ringu-hair-v1.webp',description:'거래 불가 장비를 1회 거래 가능하게'});
 export const LUCK_POTION = Object.freeze({id:'luckPotion',name:'행운 물약',price:5000000,duration:300000,cooldown:0,bonus:.5,art:'consumables/luck-potion-v1.webp',description:'일일보스, 주간보스, 레이드 보상 적용됨'});
-export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'}), Object.freeze({id:'addCube',name:'에디셔널 큐브',price:1000000,art:'currencies/cube-additional-v1.webp',description:'에디셔널 잠재능력 재설정 · 이전 / 이후 선택'}),  REROLL_STONE, RINGU_HAIR]); // 2026-11-04 도현: 추가옵션 불꽃 상점 판매 중단 (탐험가 제작·교환소·마일리지로 공급)
+export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'}),  REROLL_STONE, RINGU_HAIR]); // 2026-11-04 도현: 추가옵션 불꽃·에디셔널 큐브 상점 판매 중단 (탐험가 제작·교환소·마일리지로 공급)
 // 2026-10-25: 상점 되팔기 (개당 판매가)
 export const SELL_PRICES=Object.freeze({cube:50000});
 // 2026-11-04 도현: 상점 하루 구매 한도 (연금술사 제작이 주 공급원이 되도록)
-export const SHOP_DAILY_LIMITS=Object.freeze({cube:50,addCube:20});
+export const SHOP_DAILY_LIMITS=Object.freeze({cube:50});
 const shopDay=now=>new Date(now+9*3600e3).toISOString().slice(0,10);
 export function shopBoughtToday(state,id,now=Date.now()){const d=shopDay(now);return state?.shopDaily?.day===d?(state.shopDaily.bought?.[id]||0):0;}
 export const shopDailyLeft=(state,id,now=Date.now())=>SHOP_DAILY_LIMITS[id]?Math.max(0,SHOP_DAILY_LIMITS[id]-shopBoughtToday(state,id,now)):Infinity;

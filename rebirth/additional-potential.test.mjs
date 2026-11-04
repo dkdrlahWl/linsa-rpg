@@ -18,7 +18,7 @@ assert.equal(leg.attack,1.2);assert.equal(leg.boss,3.5);assert.equal(leg.STR,1.2
 assert.equal(Object.fromEntries(additionalPool(2).map(r=>[r.key,r.value])).flatSTR,1);
 assert.deepEqual({...ADD_CUBE.up},{2:.03,3:.01,4:.005});
 assert.equal(MATERIALS.addCube,'에디셔널 큐브');
-assert.equal(shopConsumable('addCube').price,1000000);
+assert.equal(shopConsumable('addCube'),undefined);
 
 const seq=values=>{let i=0;return ()=>values[i++%values.length];};
 const ctx=(random=Math.random)=>({now:Date.now(),uuid:randomUUID,random,accountId:'t'});
@@ -34,7 +34,7 @@ const opened=s.items.find(x=>x.id===it.id);assert.equal(opened.addGrade,2);asser
 assert.throws(()=>execute(s,'additionalUnlock',{id:it.id},ctx()),/POTENTIAL_ADDITIONAL_OPEN/);
 
 // Shop: buy cubes for 1,000,000 G each.
-s=execute(s,'consumableBuy',{id:'addCube',quantity:3},ctx()).state;assert.equal(s.materials.addCube,3);assert.equal(s.gold,2_000_000);
+assert.throws(()=>execute(s,'consumableBuy',{id:'addCube',quantity:3},ctx()),/INVALID_CONSUMABLE/);s.materials.addCube=3;s.gold=2_000_000;
 
 // Cube: rolls into a pending choice; keep or apply. Grade-up at exactly the boundary.
 const before=JSON.stringify(opened.addLines);
