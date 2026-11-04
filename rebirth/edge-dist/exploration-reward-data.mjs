@@ -27,10 +27,10 @@ const EXTRA=[
 for(const [id,r] of EXTRA)EXPLORATION_REWARDS[id]=r;
 // 2026-11-04 도현: 링탐 보상에서 에디셔널 큐브·잠재 잠금석·추가옵션 불꽃 삭제 (전 단계).
 for(const r of EXPLORATION_REWARDS){r.potentialLock=0;if('addCube' in r)r.addCube=0;if('bonusFlame' in r)r.bonusFlame=0;}
-// 2026-11-04 도현: 5~7단계는 200제, 8~10단계는 220제(각 단계 최고 레벨) 보스장비 확률 2배. 나머지 레벨은 같은 비율로 줄여 보스장비 확률 자체는 유지.
-for(const id of [5,6,7,8,9,10]){const r=EXPLORATION_REWARDS[id];if(!r?.gear)continue;
- const total=r.gear.reduce((n,[,w])=>n+w,0),top=Math.max(...r.gear.map(([l])=>l)),tw=r.gear.find(([l])=>l===top)[1],share=tw/total,ns=Math.min(1,share*2),scale=(1-ns)/(1-share);
- r.gear=r.gear.map(([l,w])=>[l,l===top?ns*total:w*scale]);}
+// 2026-11-04 도현: 최고 레벨 보장 상향 + 단계 안에서는 레벨이 높을수록 확률이 낮게(단조 감소). 보스장비 확률 자체는 그대로.
+// 5단계 200제 2배(10→20%), 8단계 220제 2배(6.25→12.5%), 9단계 220제 2배(11.1→22.2%). 6·7·10단계는 2배면 최고 레벨이 더 흔해져서 감소 순서를 지키는 선까지만 올림.
+const GEAR_OVERRIDE={5:[[170,31.1],[180,26.7],[190,22.2],[200,20]],6:[[180,40],[190,31],[200,29]],7:[[180,36],[190,33],[200,31]],8:[[180,33],[190,29.5],[200,25],[220,12.5]],9:[[190,40],[200,37.8],[220,22.2]],10:[[190,36],[200,34],[220,30]]};
+for(const [id,g] of Object.entries(GEAR_OVERRIDE))if(EXPLORATION_REWARDS[id])EXPLORATION_REWARDS[id].gear=g;
 export const EXPLORATION_REWARD_KEYS=['scroll','highCube','potentialLock','addCube','bonusFlame'];
 export const explorationRewardCount=(rates,key)=>rates.counts?.[key]??EXPLORATION_REWARD_COUNTS[key]??1;
 export function explorationGearLevelFor(rates,random){if(!rates.gear)return explorationGearLevel(random);const total=rates.gear.reduce((n,[,w])=>n+w,0);let roll=random()*total;for(const [level,w] of rates.gear){roll-=w;if(roll<0)return level;}return rates.gear.at(-1)[0];}
