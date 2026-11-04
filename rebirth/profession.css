@@ -84,3 +84,5 @@
 .rank-prof-alchemist{--pc:#8cd7b9}.rank-prof-explorer{--pc:#7ed7df}.rank-prof-fisher{--pc:#90bfff}.rank-prof-miner{--pc:#e7be7d}
 span.rank-prof{color:var(--pc);font-weight:700}
 @media(max-width:480px){.rank-prof-board{grid-template-columns:repeat(2,1fr)}}
+/* 새 구매 요청 알림 배지 (거래소 하위 메뉴) */
+.subnav .bo-alert{position:static;display:inline-block;margin-left:5px;vertical-align:1px;font-size:10px;line-height:14px}

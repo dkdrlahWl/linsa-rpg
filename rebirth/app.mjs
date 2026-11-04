@@ -36,7 +36,7 @@ import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleA
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=key05-20261104';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
-import {fantasyHeader,fantasyFooter,fantasyMenu} from './fantasy-ui.mjs?v=tribe-glow-20261102';
+import {fantasyHeader,fantasyFooter,fantasyMenu,setBuyOrderAlert} from './fantasy-ui.mjs?v=boalert-20261104';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
 import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
 import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
@@ -1222,7 +1222,7 @@ function marketGearDetails(it) {
 }
 function market() {
   if(state?.isTester)return header("거래소","MARKET")+`<section class="panel pad"><h3>거래소 이용 불가</h3><p class="note">테스트 계정은 거래소를 사용할 수 없어요.</p></section>`;
-  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine&&!buyOrderMode ? "active" : "")}${btn("구매 요청", "marketMode", "orders", buyOrderMode ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine&&!buyOrderMode ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div>${buyOrderMode?buyOrdersView():`<div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(5)}부터 · 판매 수수료 없음 · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
+  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine&&!buyOrderMode ? "active" : "")}${btn(`구매 요청${buyOrderAlert?`<b class="fantasy-mail-count bo-alert">${buyOrderAlert}</b>`:""}`, "marketMode", "orders", buyOrderMode ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine&&!buyOrderMode ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div>${buyOrderMode?buyOrdersView():`<div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(5)}부터 · 판매 수수료 없음 · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
     marketRows
       .slice(0, 20)
       .map(marketTile)
@@ -1242,10 +1242,26 @@ async function marketLoad() {
   marketRows = rows.filter(row=>row.status!=="cancelled").map(row => ({...row, item: row.item.kind==="consumable"?row.item:D.normalizePotentialItem(row.item)}));
   render();
 }
+// 2026-11-04 도현: 새 구매 요청 알림 — 남이 올린 열린 요청 중 아직 안 본 것 개수를 거래소·구매 요청 버튼에 표시.
+const BO_SEEN_KEY='ringu_buy_order_seen';
+const boSeen=()=>{try{return new Set(JSON.parse(localStorage.getItem(BO_SEEN_KEY)||'[]'));}catch{return new Set();}};
+let buyOrderAlert=0;
+function buyOrderAlertUpdate(data,markSeen=false){
+  const open=(data?.orders||[]).filter(o=>!o.own);let seen=boSeen();
+  if(markSeen){seen=new Set(open.map(o=>o.id));try{localStorage.setItem(BO_SEEN_KEY,JSON.stringify([...seen]));}catch{}}
+  const n=open.filter(o=>!seen.has(o.id)).length;
+  if(n!==buyOrderAlert){buyOrderAlert=n;setBuyOrderAlert(n);return true;}return false;
+}
+async function buyOrderAlertPoll(){
+  if(!state||state.isTester||document.visibilityState!=='visible')return;
+  try{await ensureToken();const data=await request("/rest/v1/rpc/rebirth_buy_order",{p_action:"list",p_args:{},p_request:crypto.randomUUID()},true);
+   if(buyOrderAlertUpdate(data,tab==="market"&&buyOrderMode))render();}catch{}
+}
+setTimeout(buyOrderAlertPoll,5000);setInterval(buyOrderAlertPoll,60000);
 async function buyOrdersLoad(){
   const version=++buyOrderRequest;await ensureToken();
   const data=await request("/rest/v1/rpc/rebirth_buy_order",{p_action:"list",p_args:{},p_request:crypto.randomUUID()});
-  if(version!==buyOrderRequest||tab!=="market"||!buyOrderMode)return;buyOrders=data||{orders:[],mine:[]};render();
+  if(version!==buyOrderRequest||tab!=="market"||!buyOrderMode)return;buyOrders=data||{orders:[],mine:[]};buyOrderAlertUpdate(buyOrders,true);render();
 }
 function buyOrderCard(o){
   return `<button class="market-compact-card buy-order-card ${o.own?"own":""}" data-action="buyOrderPick" data-arg="${esc(o.id)}" aria-label="${esc(materialName(o.key))} 구매 요청"><span class="market-card-meta">${o.own?"내 요청":esc(o.buyer_name)}<b>${fmt(o.quantity)}개</b></span><img class="material-tile-image" src="${currencyIconURL(o.key)}" alt=""><strong class="market-card-name">${esc(materialName(o.key))}</strong><small>개당 <b>${fmt(o.price)} G</b></small><small>${o.own?"누르면 취소":marketHave(o.key)>0?"보유 "+fmt(marketHave(o.key))+"개 · 판매 가능":"보유 없음"}</small></button>`;
