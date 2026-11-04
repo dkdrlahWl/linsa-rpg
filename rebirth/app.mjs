@@ -1269,7 +1269,7 @@ async function buyOrdersLoad(){
   if(version!==buyOrderRequest||tab!=="market"||!buyOrderMode)return;buyOrders=data||{orders:[],mine:[]};buyOrderAlertUpdate(buyOrders,true);render();
 }
 function buyOrderCard(o){
-  return `<button class="market-compact-card buy-order-card ${o.own?"own":""}" data-action="buyOrderPick" data-arg="${esc(o.id)}" aria-label="${esc(materialName(o.key))} 구매 요청"><span class="market-card-meta">${o.own?"내 요청":esc(o.buyer_name)}<b>${fmt(o.quantity)}개</b></span><img class="material-tile-image" src="${currencyIconURL(o.key)}" alt=""><strong class="market-card-name">${esc(materialName(o.key))}</strong><small>개당 <b>${fmt(o.price)} G</b></small><small>${o.own?"누르면 취소":marketHave(o.key)>0?"보유 "+fmt(marketHave(o.key))+"개 · 판매 가능":"보유 없음"}</small></button>`;
+  return `<button class="market-compact-card buy-order-card ${o.own?"own":""}" data-action="buyOrderPick" data-arg="${esc(o.id)}" aria-label="${esc(materialName(o.key))} 구매 요청"><span class="market-card-meta">${o.own?"내 요청":"구매 요청"}<b>${fmt(o.quantity)}개</b></span><img class="material-tile-image" src="${currencyIconURL(o.key)}" alt=""><strong class="market-card-name">${esc(materialName(o.key))}</strong><small>개당 <b>${fmt(o.price)} G</b></small><small>${o.own?"누르면 취소":marketHave(o.key)>0?"보유 "+fmt(marketHave(o.key))+"개 · 판매 가능":"보유 없음"}</small></button>`;
 }
 function buyOrdersView(){
   if(!buyOrders)return '<p class="note">구매 요청을 불러오는 중…</p>';
@@ -1296,7 +1296,7 @@ function buyOrderPickDialog(id){
   const own=o.own||(buyOrders?.mine||[]).some(x=>x.id===id);
   if(own)return open("구매 요청 취소",`<div class="material-picked" data-currency-label>${marketMaterialIcon(o.key)}<div><strong>${esc(materialName(o.key))}</strong><p>개당 ${fmt(o.price)} G · 남은 ${fmt(o.quantity)}개</p></div></div><p>취소하면 묶어둔 골드 <b>${fmt(o.price*o.quantity)} G</b>를 바로 돌려받아요. 이미 받은 소모품은 그대로예요.</p>${btn("요청 취소하기","buyOrderCancel",o.id,"danger",true)}`);
   const have=marketHave(o.key),max=Math.min(have,o.quantity);
-  open("구매 요청에 판매",`<div class="material-picked" data-currency-label>${marketMaterialIcon(o.key)}<div><strong>${esc(materialName(o.key))}</strong><p>${esc(o.buyer_name)}님 요청 · 개당 <b>${fmt(o.price)} G</b> · 남은 ${fmt(o.quantity)}개</p><p>내 보유 ${fmt(have)}개</p></div></div>${max>0?`<label>판매 수량<input id="bo-fill-count" data-order="${esc(o.id)}" type="number" inputmode="numeric" min="1" max="${max}" step="1" value="${max}"></label><p id="bo-fill-total" class="note"></p>${btn("팔고 골드 받기","buyOrderFill",o.id,"primary",true)}`:'<p class="note">이 소모품을 가지고 있지 않아요.</p>'}`);
+  open("구매 요청에 판매",`<div class="material-picked" data-currency-label>${marketMaterialIcon(o.key)}<div><strong>${esc(materialName(o.key))}</strong><p>구매 요청 · 개당 <b>${fmt(o.price)} G</b> · 남은 ${fmt(o.quantity)}개</p><p>내 보유 ${fmt(have)}개</p></div></div>${max>0?`<label>판매 수량<input id="bo-fill-count" data-order="${esc(o.id)}" type="number" inputmode="numeric" min="1" max="${max}" step="1" value="${max}"></label><p id="bo-fill-total" class="note"></p>${btn("팔고 골드 받기","buyOrderFill",o.id,"primary",true)}`:'<p class="note">이 소모품을 가지고 있지 않아요.</p>'}`);
   updateBuyOrderForm();
 }
 async function buyOrderWrite(action,args){
