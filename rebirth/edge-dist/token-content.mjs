@@ -62,15 +62,9 @@ export function tokenBossFinish(s,b,now){
 // 2026-11-02 도현: 동료·픽업 소환권 빼고 전부 가격 2배.
 export const TOKEN_SHOP=Object.freeze([
  // 2026-11-04 도현: 교환소 전 품목 주간 구매 한도 (월요일 00시 KST 초기화). 큐브·재료는 직업 제작이 주 공급원이 되도록.
+ // 2026-11-04 도현: 강화 재료(레드·블랙·에디 큐브, 주문서, 잠금석, 불꽃)는 교환소에서 전부 제외.
  {id:'gold',name:'골드 100만',kind:'gold',amount:1000000,cost:10,weekly:500},
- {id:'cube',name:'레드 큐브',kind:'material',key:'cube',amount:1,cost:1,weekly:500},
- {id:'highCube',name:'블랙 큐브',kind:'material',key:'highCube',amount:1,cost:4,weekly:150},
- // 2026-11-03 도현: 프라임 큐브는 교환소에서 제외.
- {id:'addCube',name:'에디셔널 큐브',kind:'material',key:'addCube',amount:1,cost:10,weekly:100},
- {id:'scroll',name:'잠재 해금 주문서',kind:'material',key:'scroll',amount:1,cost:10,weekly:50},
- {id:'potentialLock',name:'잠재 잠금석',kind:'material',key:'potentialLock',amount:1,cost:20,weekly:50},
  {id:'luckPotion',name:'행운 물약',kind:'potion',amount:1,cost:40,weekly:20},
- {id:'bonusFlame',name:'추가옵션 불꽃',kind:'material',key:'bonusFlame',amount:1,cost:50,weekly:3}, // 2026-11-04 도현: 주 15 → 3
  // 2026-11-04 도현: 던전 열쇠는 교환소에서 제외 (탐험가 제작이 공급)
  {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:20,weekly:100},
  // 2026-11-04 도현: 동료·픽업 소환권은 하루 한도 → 주간 한도 (어부 제작이 주 공급원)
