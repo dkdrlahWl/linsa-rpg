@@ -13,7 +13,7 @@ assert.ok(Math.abs(TRIBES.reduce((a,t)=>a+tribeChance(t),0)-1)<1e-12);
 let s=execute(base,'sync',{},ctx(t0)).state;assert.equal(s.tribe,'human');
 assert.throws(()=>execute(s,'tribeRoll',{},ctx(t0)),/TRIBE_TICKET_REQUIRED/);
 // 교환소에서 뽑기권 구매(150토큰, 2026-11-04부터 주 15장)
-s.tokens=3000;s=execute(s,'tokenShopBuy',{id:'tribeTicket',quantity:15},ctx(t0)).state;assert.equal(s.tribeGacha.tickets,15);assert.equal(s.tokens,750);
+s.tokens=3000;s=execute(s,'tokenShopBuy',{id:'tribeTicket',quantity:5},ctx(t0)).state;assert.equal(s.tribeGacha.tickets,5);assert.equal(s.tokens,1500);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'tribeTicket'},ctx(t0)),/TOKEN_WEEKLY_LIMIT/);
 s.tribeGacha.tickets=3;s.tokens=1000;
 // 뽑기 → 보류 → 다시 뽑기 불가 → 이후 선택하면 바뀜, 이전 선택하면 그대로

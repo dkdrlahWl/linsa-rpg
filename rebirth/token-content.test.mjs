@@ -75,8 +75,8 @@ const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);asse
  tokenBossFinish(u,{...b3,won:true,tick:300},t0);assert.equal(tokenTriesLeft(u,t0),0);}
 
 // 교환소: 토큰 차감·지급·일일 한도
-s=r.state;s.tokens=1000;
-s=run(s,'tokenShopBuy',{id:'gold',quantity:5},ctx(t0,true));assert.equal(s.tokens,950);
+s=r.state;s.tokens=3000;
+s=run(s,'tokenShopBuy',{id:'gold',quantity:5},ctx(t0,true));assert.equal(s.tokens,2950);
 // 2026-11-04: 동료 소환권은 주 20장 한도 (일일 → 주간)
 s=run(s,'tokenShopBuy',{id:'companionTicket',quantity:20},ctx(t0,true));assert.equal(s.companions.tickets>=20,true);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0,true)),/TOKEN_WEEKLY_LIMIT/);
