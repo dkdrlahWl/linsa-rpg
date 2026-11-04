@@ -1,7 +1,7 @@
 import {partyRoomView} from './party-room.mjs';
 import {citadelPopulation,citadelStage,citadelAsset,CITADEL_BOSSES} from './citadel-zero.mjs';
 import {EXPLORATIONS,explorationArt,explorationPopulation,explorationScale,explorationPrevious,explorationKeys} from './exploration-data.mjs';
-import {EXPLORATION_REWARDS,explorationRewardCount,explorationGearRange,explorationGearTable} from './exploration-reward-data.mjs?v=geartable-20261102';
+import {EXPLORATION_REWARDS,explorationRewardCount,explorationGearRange,explorationGearTable} from './exploration-reward-data.mjs?v=halfcube-20261104';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const artURL=src=>/^exploration\/(?:boss-[456]|map-[456])\.webp$/.test(src)?src+'?v=exploration-art456-20261025':src;
 const fmt=n=>new Intl.NumberFormat('ko-KR').format(n);

@@ -10,7 +10,7 @@ import {REWARD_RATES} from './fishing-data.mjs';
 
 // Tiers 4~6 skip id 3 (Dark Citadel) and scale boss HP linearly with party size.
 assert.deepEqual(EXPLORATIONS.map(t=>t.id).filter(x=>x!==undefined),[0,1,2,4,5,6,7,8,9,10]);assert.equal(EXPLORATIONS[3],undefined);
-assert.deepEqual([9,10].map(explorationPrevious),[8,9]);assert.deepEqual([9,10].map(explorationKeys),[5,5]);
+assert.deepEqual([9,10].map(explorationPrevious),[8,9]);assert.deepEqual([9,10].map(explorationKeys),[6,7]);
 assert.deepEqual([4,5,6].map(explorationPrevious),[2,4,5]);assert.deepEqual([0,2,4,5,6].map(explorationKeys),[1,1,1,2,3]);
 for(const [tier,solo] of [[4,2.5e8],[5,3.5e8],[6,5e8]]){
  for(const n of [1,2,3,4]){const hp=explorationStats(tier,5,n,true).hp;assert.ok(Math.abs(hp-solo*n)/(solo*n)<.01,tier+' '+n+' '+hp);}
