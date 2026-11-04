@@ -1,5 +1,5 @@
 import {settleBank,bankCommand} from './bank-model.mjs';
-import {normalizeProfession,professionCommand,professionGather,JOB_MATERIAL_DROP,rollJobMaterials} from './profession-model.mjs';
+import {normalizeProfession,professionCommand,professionGather,JOB_MATERIAL_DROP,rollJobMaterials,resourceAdd} from './profession-model.mjs';
 import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
@@ -605,6 +605,27 @@ function applyTowerFrames(b,args,ctx){
       }
 }
 // 칭호: every command re-checks titles; titleEquip / titleSync are handled around the core command.
+// 2026-11-04 도현: 거래 우편(kind='trade') 수령 — 골드·소모품·장비. 장비는 가방 300칸 안에서만.
+function claimTradeMail(s,m,ctx){
+  s.claimedSystemMail||=[];
+  if(s.claimedSystemMail.includes(m.id))throw new Error('MAIL_ALREADY_CLAIMED');
+  const items=Array.isArray(m.items)?m.items:[];
+  if((s.items?.length||0)+items.length>300)throw new Error('INVENTORY_FULL');
+  const r=m.rewards||{};
+  if(r.gold){const g=Number(r.gold);if(!Number.isSafeInteger(g)||g<0||(Number(s.gold)||0)+g>9e12)throw new Error('INVALID_BALANCE');}
+  for(const [k,v] of Object.entries(r)){const n=Number(v);if(!Number.isSafeInteger(n)||n<=0)continue;
+    if(k==='gold')s.gold=(Number(s.gold)||0)+n;
+    else if(k==='diamond'){normalizeFishing(s,ctx.now);s.fishing.diamonds=(Number(s.fishing.diamonds)||0)+n;}
+    else if(k==='luckPotion')s.consumables={...(s.consumables||{}),luckPotion:(Number(s.consumables?.luckPotion)||0)+n};
+    else if(k==='tribeTicket')normalizeTribe(s).tickets+=n;
+    else if(k==='companionTicket'||k==='pickupTicket'){const c=normalizeCompanions(s);if(k==='companionTicket')c.tickets+=n;else c.pickupTickets+=n;}
+    else resourceAdd(s,k,n);}
+  s.items??=[];s.collection??=[];
+  for(const it of items){s.items.push({...it,id:s.items.some(x=>x.id===it.id)?ctx.uuid():it.id});const key=equipmentKey(it);if(!s.collection.includes(key))s.collection.push(key);}
+  // 거래 우편 id는 일회성이라 claimedSystemMail에 쌓지 않음 (우편함에서 제거만)
+  s.rewardMailbox=(s.rewardMailbox||[]).filter(x=>x.id!==m.id);s.systemMailbox=(s.systemMailbox||[]).filter(x=>x.id!==m.id);
+  return {type:'tradeMail',id:m.id,rewards:{...r},items:items.length};
+}
 export function execute(input, command, args = {}, ctx) {
   const title=command==='titleEquip'||command==='titleSync';
   const r=executeCore(input,title?'sync':command,title?{}:args,ctx),s=r.state;
@@ -862,7 +883,15 @@ function executeCore(input, command, args = {}, ctx) {
       s.battle=newTowerBattle(args.floor,s.classId,power(s),ctx.now,ctx.uuid(),Math.floor(ctx.random()*4294967296),s.advancement>=1);
       s.hunting=false;s.lastAt=ctx.now;s.lastReward=null;break;
     }
+    case "claimTradeMailAll": {
+      const list=(s.rewardMailbox||[]).filter(m=>m.kind==='trade'&&!(s.claimedSystemMail||[]).includes(m.id));
+      check(list.length,"MAIL_NOT_FOUND");
+      let got=0;for(const m of list){try{claimTradeMail(s,m,ctx);got++;}catch(e){if(e.message==='INVENTORY_FULL')break;throw e;}}
+      check(got>0,"INVENTORY_FULL");events.push({type:'tradeMailAll',count:got,left:list.length-got});
+      break;
+    }
     case "claimSystemMail": {
+      {const tm=(s.rewardMailbox||[]).find(m=>m.id===args.id&&m.kind==='trade');if(tm){events.push(claimTradeMail(s,tm,ctx));break;}}
       events.push(claimSystemMail(s,args.id,chest=>{if(chest?.kind===WHEEL_CHEST.kind){const lo=chest.minLevel??WHEEL_CHEST.minLevel,hi=chest.maxLevel??WHEEL_CHEST.maxLevel,tiers=(hi-lo)/10+1,level=lo+10*Math.floor(ctx.random()*tiers),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
       break;
     }

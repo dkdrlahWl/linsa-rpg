@@ -807,8 +807,9 @@ function header(title, kicker = "새로운 여정") {
 }
 function systemInbox() {
   const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
-  const labels={tokens:"토큰",bossChest200:"200제 보스 장비 상자 (직업·부위 랜덤)",tribeTicket:"종족 주사위",pickupTicket:"픽업 소환권",companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
-  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p><div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${Object.entries(mail.rewards).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${key==='tribeTicket'?'tribes/polished-v1/ticket-transparent-v2.webp':key==='tokens'?'token/token-v1.webp':key==='bossChest200'?'ui/lucky-wheel-chest.svg':currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}</strong></span></div>`).join("")}</div><p class="note">계정당 1회 수령 · 수령 기한 없음</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
+  const labels={diamond:"다이아",luckPotion:"행운 물약",treasureTicket:"보물찾기 티켓",tokens:"토큰",bossChest200:"200제 보스 장비 상자 (직업·부위 랜덤)",tribeTicket:"종족 주사위",pickupTicket:"픽업 소환권",companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
+  const tradeN=mails.filter(m=>m.kind==="trade").length;
+  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p>${tradeN>1?`<div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":`거래소 우편 ${tradeN}통 모두 받기`,"claimTradeMailAll","",blocked,"gold")}</div>`:""}<div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${(mail.items||[]).map(it=>`<div class="mail-reward mail-gear">${gearMarkup(it)}<span>${esc(D.gearName(it))}<strong>${requiredLevel(it.level)} · ${it.stars||0}★</strong></span></div>`).join("")}${Object.entries(mail.rewards||{}).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${key==='tribeTicket'?'tribes/polished-v1/ticket-transparent-v2.webp':key==='tokens'?'token/token-v1.webp':key==='bossChest200'?'ui/lucky-wheel-chest.svg':currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}</strong></span></div>`).join("")}</div><p class="note">${mail.kind==="trade"?"거래소 거래 · 수령 기한 없음":"계정당 1회 수령 · 수령 기한 없음"}</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
 }
 function systemMailButton() {
   const count=state.systemMailbox?.length||0;
@@ -1710,7 +1711,7 @@ async function marketWrite(action, args) {
   await marketLoad();
   modal.close();
   sounds.play("purchase-complete");
-  toast("거래가 완료되었습니다.");
+  toast(action==="buy"?"구매 완료 · 우편함에서 받아 주세요.":"거래가 완료되었습니다.");
 }
 // Percent buttons size the order by margin (gold × leverage); re-applied when leverage changes afterwards.
 let investPercentPick=0;
@@ -1914,6 +1915,7 @@ document.addEventListener("click", async (e) => {
     if(action==="hairConfirm"){const it=state.items.find(x=>x.id===arg);if(!it)return;return open("링구의 머리카락",`<div class="shop-confirm-item">${gearMarkup(it,"big-item")}<div><strong>${esc(D.gearName(it))}</strong><p class="note">링구의 머리카락 1개를 발라 이 장비를 <b>거래 가능</b>으로 바꿔요.<br>거래소에서 <b>한 번 팔리면</b> 산 사람에게는 다시 거래 불가로 바뀌어요.<br>220제 이상은 다시 강화하면 거래 불가로 돌아가요.<br>다시 거래 불가가 되면 또 바를 수 있어요.</p></div></div><div class="actions">${btn("바르기","hairApply",it.id,"gold",true)}${btn("취소","close")}</div>`);}
     if(action==="hairApply"){modal.close();await command("hairApply",{id:arg});toast("링구의 머리카락을 발랐어요 · 이제 거래소에 1번 올릴 수 있어요");return itemDetail(arg,"info");}
     if (action === "systemInbox") {if(!busy)await command("sync",{},true);return systemInbox();}
+    if (action === "claimTradeMailAll") {const r=await command("claimTradeMailAll",{});const e=r?.result?.events?.find(x=>x.type==="tradeMailAll");if(e)toast(`거래소 우편 ${e.count}통 받기 완료${e.left?` · 가방이 가득 차서 ${e.left}통 남음`:""}`);systemInbox();return;}
     if (action === "claimSystemMail") {
       const chest=state.systemMailbox?.some(m=>m.id===arg&&["lumiBossChest","wheelBossChest"].includes(m.kind));
       const playerGold=state.systemMailbox?.some(m=>m.id===arg&&m.kind==="playerGold");
@@ -2290,7 +2292,7 @@ document.addEventListener("click", async (e) => {
     if(action==="buyOrderPick")return buyOrderPickDialog(arg);
     if(action==="buyOrderCreate"){const key=$('#bo-key').value,quantity=Number($('#bo-count').value),price=Number($('#bo-price').value);if(!BUY_ORDER_KEYS.includes(key)||!Number.isSafeInteger(quantity)||quantity<1||quantity>1e6||!Number.isSafeInteger(price)||price<1||price>1e9||quantity*price>1e12)return toast('수량과 개당 가격을 확인해 주세요.');if(quantity*price>state.gold)return toast('보유 골드가 부족해요.');const r=await buyOrderWrite('create',{key,quantity:String(quantity),price:String(price)});if(r){modal.close();toast(`구매 요청 등록 · ${fmt(r.escrow)} G 묶음`);}return;}
     if(action==="buyOrderCancel"){const r=await buyOrderWrite('cancel',{id:arg});if(r){modal.close();toast(`구매 요청 취소 · ${fmt(r.refund)} G 환불`);}return;}
-    if(action==="buyOrderFill"){const count=Number($('#bo-fill-count').value);if(!Number.isSafeInteger(count)||count<1)return toast('판매 수량을 확인해 주세요.');const r=await buyOrderWrite('fill',{id:arg,quantity:String(count)});if(r){modal.close();toast(`${fmt(r.quantity)}개 판매 · ${fmt(r.total)} G 받음`);}return;}
+    if(action==="buyOrderFill"){const count=Number($('#bo-fill-count').value);if(!Number.isSafeInteger(count)||count<1)return toast('판매 수량을 확인해 주세요.');const r=await buyOrderWrite('fill',{id:arg,quantity:String(count)});if(r){modal.close();toast(`${fmt(r.quantity)}개 판매 · ${fmt(r.total)} G는 우편함으로 보냈어요`);}return;}
     if (action === "page") {
       marketPage = Number(arg);
       return await marketLoad();
