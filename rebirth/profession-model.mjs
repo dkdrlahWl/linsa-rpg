@@ -35,7 +35,7 @@ export const PROFESSIONS=Object.freeze([
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:50},gold:800000},
    {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:100,cube:3},gold:2500000},
   ]}),
- Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공',
+ Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공 · 낚시 입질 3~5초',
   gather:{diamond:.5},
   recipes:[
    {id:'companionTicket',name:'동료 소환권',out:{companionTicket:1},cost:{diamond:3,cube:2},gold:3000000},
