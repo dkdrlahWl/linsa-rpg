@@ -4,7 +4,8 @@ export const RINGU_HAIR = Object.freeze({id:'ringuHair',name:'링구의 머리�
 export const LUCK_POTION = Object.freeze({id:'luckPotion',name:'행운 물약',price:5000000,duration:300000,cooldown:0,bonus:.5,art:'consumables/luck-potion-v1.webp',description:'일일보스, 주간보스, 레이드 보상 적용됨'});
 export const SHOP_CONSUMABLES = Object.freeze([LUCK_POTION, Object.freeze({id:'cube',name:'레드 큐브',price:200000,art:'currencies/cube-red-v2.webp',description:'장비 잠재능력 재설정'}), Object.freeze({id:'highCube',name:'블랙 큐브',price:500000,art:'currencies/cube-black-v2.webp',description:'장비 잠재능력 재설정 · 이전 / 이후 선택'}), BONUS_FLAME,  REROLL_STONE, RINGU_HAIR]); // 2026-11-04 도현: 에디셔널 큐브 상점 판매 중단 · 추가옵션 불꽃은 500만 G, 주 3개 (탐험가 제작·교환소·마일리지로 공급)
 // 2026-10-25: 상점 되팔기 (개당 판매가)
-export const SELL_PRICES=Object.freeze({cube:50000});
+// 2026-11-05 도현: 상점 되팔기 삭제
+export const SELL_PRICES=Object.freeze({});
 // 2026-11-04 도현: 상점 하루 구매 한도 (연금술사 제작이 주 공급원이 되도록)
 export const SHOP_DAILY_LIMITS=Object.freeze({cube:50});
 const shopDay=now=>new Date(now+9*3600e3).toISOString().slice(0,10);

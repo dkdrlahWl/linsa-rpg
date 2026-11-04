@@ -1,6 +1,6 @@
 import {BLACK_MARKET_NPC,BLACK_MARKET_GOODS,BLACK_MARKET_BOSS_LEVELS,BLACK_MARKET_BOSS_CHANCE,blackMarketBossPrice,blackMarketRotation,blackMarketOffersFor,blackMarketRemaining,blackMarketLimit,blackMarketOwned} from './black-market.mjs?v=lock20-20261105';
 import {currencyIconURL} from './currency-icons.mjs?v=allmarket-20261104';
-import {LUCK_POTION} from './consumables.mjs?v=nored-20261105';
+import {LUCK_POTION} from './consumables.mjs?v=nosell-20261105';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('ko-KR');
 // Portrait cutout is contained within the merchant slot at every viewport.
