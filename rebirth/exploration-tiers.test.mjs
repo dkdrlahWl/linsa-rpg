@@ -44,5 +44,5 @@ for(const k of ['potentialLock','highCube','dungeonKey','addCube','scroll','bonu
 assert.equal((s.companions.tickets||0)-(before.companions?.tickets||0),30);assert.equal((s.companions.pickupTickets||0)-(before.companions?.pickupTickets||0),10);
 assert.equal(s.tribeGacha.tickets-(before.tribeGacha?.tickets||0),3);assert.equal((s.tokens||0)-(before.tokens||0),300);
 // Fishing loot halved.
-assert.deepEqual(REWARD_RATES.map(r=>r.chance),[.9875,.01,.0025]); // 2026-11-04 열쇠 0.5%→0.25%
+assert.deepEqual(REWARD_RATES.map(r=>r.chance),[.985,.01,.005]); // 2026-11-04 열쇠 0.5%
 console.log('PASS exploration tiers 4~6 (linear HP, keys 1/2/3, rewards), attendance table, fishing chest/key odds');
