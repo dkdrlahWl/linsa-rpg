@@ -15,6 +15,7 @@ export const PROFESSION_MAX_LEVEL=10;
 export const PROFESSION_CHANGE_COOLDOWN=7*86400000;
 export const PROFESSION_CHANGE_COST=100000000;
 export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0; // 2026-11-04 도현: 추가 제작 확률 삭제
+// 2026-11-04 도현: 열쇠 파편 50+620만 → 파편 120+480만, 잠금석 파편 2+레드 1+166만 → 파편 10+블랙 1+레드 2+100만 (원가 90% 유지, 골드 비중↓)
 export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
   gather:{cube:7.5},
@@ -25,7 +26,7 @@ export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
   gather:{highCube:.2},
   recipes:[
-   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:50},gold:6200000},
+   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:120},gold:4800000},
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:10},gold:1600000},
    {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:10,cube:3},gold:4000000},
   ]}),
@@ -38,7 +39,7 @@ export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공',
   gather:{fragment:2.5},
   recipes:[
-   {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:2,cube:1},gold:1660000},
+   {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:10,highCube:1,cube:2},gold:1000000},
    {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:20,highCube:3},gold:7400000},
   ]}),
 ].map(p=>Object.freeze({...p,recipes:Object.freeze(p.recipes.map(Object.freeze))})));
