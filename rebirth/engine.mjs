@@ -25,7 +25,7 @@ import {incomingDamage,DAILY_TASKS,BALANCE_VERSION,FIELD_ATTACK_SECONDS,FIELD_MO
 import {treasureCommand,normalizeTreasure} from './treasure-model.mjs';
 import {tribeCommand,normalizeTribe} from './tribe-model.mjs?v=balance-20261102';
 import {tribeStatBonus,tribeCritDamage} from './tribe-data.mjs?v=balance-20261102';
-import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=treasure10-20261104';
+import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenFor} from './token-content.mjs?v=noticket-20261105';
 import {mileageEarn,mileageBuy} from './mileage.mjs?v=lock450-20261104';
 import {keyBossEnter,keyBossFinish} from './key-dungeon.mjs?v=keydungeon-20261103';
 import {sweepCommand} from './sweep.mjs';

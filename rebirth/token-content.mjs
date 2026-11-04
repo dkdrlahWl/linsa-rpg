@@ -67,9 +67,7 @@ export const TOKEN_SHOP=Object.freeze([
  // 2026-11-04 도현: 던전 열쇠는 교환소에서 제외 (탐험가 제작이 공급)
  // 2026-11-04 도현: 한정 품목(재련석 제외) 가격 2배, 종족 주사위 주 15 → 5, 보물찾기 티켓 주 100 → 10
  {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:40,weekly:10},
- // 2026-11-04 도현: 동료·픽업 소환권은 하루 한도 → 주간 한도 (어부 제작이 주 공급원)
- {id:'companionTicket',name:'동료 소환권',kind:'companionTicket',amount:1,cost:80,weekly:20},
- {id:'pickupTicket',name:'픽업 소환권',kind:'pickupTicket',amount:1,cost:120,weekly:10},
+ // 2026-11-05 도현: 동료·픽업 소환권은 교환소에서 제외 (어부 제작이 공급)
  {id:'tribeTicket',name:'종족 주사위',kind:'tribeTicket',amount:1,cost:300,weekly:5},
  {id:'rerollStone',name:'기본수치 재련석',kind:'material',key:'rerollStone',amount:1,cost:800,weekly:3},
 ].map(Object.freeze));

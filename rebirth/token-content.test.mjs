@@ -77,16 +77,12 @@ const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);asse
 // 교환소: 토큰 차감·지급·일일 한도
 s=r.state;s.tokens=3000;
 s=run(s,'tokenShopBuy',{id:'luckPotion',quantity:5},ctx(t0,true));assert.equal(s.tokens,2800);
-// 2026-11-04: 동료 소환권은 주 20장 한도 (일일 → 주간)
-s=run(s,'tokenShopBuy',{id:'companionTicket',quantity:20},ctx(t0,true));assert.equal(s.companions.tickets>=20,true);
-assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0,true)),/TOKEN_WEEKLY_LIMIT/);
-assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0+24*3600e3,true)),/TOKEN_WEEKLY_LIMIT/);
-// 다음 주 월요일 00시(한국)가 지나면 한도가 초기화된다
-s=run(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0+8*24*3600e3,true));
+// 2026-11-05: 동료·픽업 소환권 교환소 제외
+assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0,true)),/INVALID_TOKEN_ITEM/);assert.throws(()=>execute(s,'tokenShopBuy',{id:'pickupTicket'},ctx(t0,true)),/INVALID_TOKEN_ITEM/);
 s=run(s,'tokenShopBuy',{id:'treasureTicket',quantity:2},ctx(t0,true));assert.equal(s.treasure.tickets>=2,true);
 s=run(s,'tokenShopBuy',{id:'luckPotion'},ctx(t0,true));assert.equal(s.consumables.luckPotion>=1,true);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'diamond'},ctx(t0,true)),/INVALID_TOKEN_ITEM/);
-assert.ok(TOKEN_SHOP.length>=6);assert.ok(!TOKEN_SHOP.some(o=>o.id==='gold'));assert.ok(!TOKEN_SHOP.some(o=>['cube','highCube','addCube','scroll','potentialLock','bonusFlame'].includes(o.id)));assert.ok(!TOKEN_SHOP.some(o=>o.id==='fragment'));
+assert.ok(TOKEN_SHOP.length>=4);assert.ok(!TOKEN_SHOP.some(o=>o.id==='gold'));assert.ok(!TOKEN_SHOP.some(o=>['cube','highCube','addCube','scroll','potentialLock','bonusFlame'].includes(o.id)));assert.ok(!TOKEN_SHOP.some(o=>o.id==='fragment'));
 
 // 경마: 배당 = 0.9 / 실제확률(소수 첫째 자리 내림) → 환급률 ≤ 90%
 for(let k=0;k<200;k++){const c=newRaceCard(Math.random);const pw=c.horses.map(h=>h.power),o=raceOdds(pw);

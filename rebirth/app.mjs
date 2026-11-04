@@ -63,10 +63,10 @@ applyFieldArt(D);
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=allmarket-20261104";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=bossatk-20261103";
-import {tokenView,keyView,tokenVisible,tokenBossResult,keyBossResult,raceUI} from "./token-ui.mjs?v=bossatk-20261103";
+import {tokenView,keyView,tokenVisible,tokenBossResult,keyBossResult,raceUI} from "./token-ui.mjs?v=noticket-20261105";
 import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=price300-20261104";
 installNameFit();
-import {tokenShopBought} from "./token-content.mjs?v=treasure10-20261104";
+import {tokenShopBought} from "./token-content.mjs?v=noticket-20261105";
 import {sweepPlan,bossSweepable} from "./sweep.mjs";
 import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
 const $ = (s) => document.querySelector(s),

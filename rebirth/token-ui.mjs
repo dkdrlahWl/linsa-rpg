@@ -5,7 +5,7 @@ import {currencyIconURL} from './currency-icons.mjs';
 import {KEY_BOSS_STAGES,KEY_DAILY_TRIES,KEY_BOSS_NAME,keyTriesLeft,keyStageOpen,keyCount} from './key-dungeon.mjs?v=keydungeon-20261103';
 import {tokenSweepable,keySweepable} from './sweep.mjs';
 const keyIcon=()=>`<img class="token-currency-art" src="${currencyIconURL('dungeonKey')}" alt="" width="22" height="22" decoding="async">`;
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=treasure10-20261104';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=noticket-20261105';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -34,7 +34,7 @@ function dungeon(s,now){
 // 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
 const SHOP_GROUPS=[
  ['소모품',['luckPotion']],
- ['한정 품목',['tribeTicket','treasureTicket','companionTicket','pickupTicket','rerollStone']],
+ ['한정 품목',['tribeTicket','treasureTicket','rerollStone']],
 ];
 const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp',tribeTicket:'tribes/polished-v1/ticket-transparent-v2.webp'};
 const offerIcon=o=>`<img src="${SHOP_ART[o.id]||currencyIconURL(o.key||o.id)}" alt="" loading="lazy">`;

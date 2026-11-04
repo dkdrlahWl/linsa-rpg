@@ -40,7 +40,7 @@ professionCommand(f,'professionCraft',{recipe:'pickupTicket',count:1},t0,()=>.9)
 assert.deepEqual([0,1,2,3].map(t=>transcendChance({slot:0,bossTier:t,level:220,boss:true})),[1,.7,.5,.3]);
 assert.deepEqual([0,1].map(t=>transcendChance({slot:3,bossTier:t,level:220,boss:true})),[1,.6]);assert.equal(TRANSCEND_PITY,3);
 // 공급 조정
-assert.equal(TOKEN_SHOP.find(o=>o.id==='companionTicket').weekly,20);assert.equal(TOKEN_SHOP.find(o=>o.id==='pickupTicket').weekly,10);assert.equal(TOKEN_SHOP.find(o=>o.id==='dungeonKey'),undefined);
+assert.equal(TOKEN_SHOP.find(o=>o.id==='companionTicket'),undefined);assert.equal(TOKEN_SHOP.find(o=>o.id==='pickupTicket'),undefined);assert.equal(TOKEN_SHOP.find(o=>o.id==='dungeonKey'),undefined);
 assert.equal(REWARD_RATES.find(r=>r.id==='dungeonKey').chance,.0025);assert.ok(Math.abs(REWARD_RATES.reduce((n,r)=>n+r.chance,0)-1)<1e-9);
 assert.deepEqual(SHOP_DAILY_LIMITS,{cube:50});
 const sh={gold:1e12,materials:{cube:0}};assert.throws(()=>consumableCommand(sh,'consumableBuy','cube',t0,1),/CONSUMABLE_NOT_SOLD/); // 2026-11-05 레드 큐브 상점 판매 중단
