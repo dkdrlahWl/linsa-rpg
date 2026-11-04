@@ -20,7 +20,7 @@ export const PROFESSION_CHANGE_COST=100000000;
 export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0; // 2026-11-04 도현: 추가 제작 확률 삭제
 // 2026-11-04 도현: 열쇠 파편 50+620만 → 파편 120+480만, 잠금석 기준가 200만 → 450만, 레시피 파편 20+블랙 2+레드 4+245만 (원가 405만 = 90%)
 // 2026-11-04 도현: 파편 소모처 강화 — 파편 레시피의 파편 개수를 크게 늘리고 그만큼 골드를 줄임(1회 이익 20만 유지, 파편 2만 기준).
-// 열쇠 파편 100 + 580만(골드 비중↑, 18:48), 보물찾기 10→50, 불꽃 10→100, 잠금석 20→60, 초월석 20→150.
+// 열쇠 파편 300 + 180만, 보물찾기 10→50, 불꽃 10→100, 잠금석 20→60, 초월석 20→150.
 export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
   gather:{cube:7.5},
@@ -31,7 +31,7 @@ export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
   gather:{highCube:.2},
   recipes:[
-   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:100},gold:5800000},
+   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:300},gold:1800000},
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:50},gold:800000},
    {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:100,cube:3},gold:2500000},
   ]}),
