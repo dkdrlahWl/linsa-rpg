@@ -3,7 +3,7 @@ import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
 import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
 import {citadelLobby} from './citadel-ui.mjs';
-import {explorationLobby} from './exploration-ui.mjs?v=noticket-20261104';
+import {explorationLobby} from './exploration-ui.mjs?v=memberkeys-20261104';
 import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
 import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance-153';
 import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
@@ -244,7 +244,7 @@ const errors = {
   REBIRTH_MAINTENANCE:
     "새로운 여정을 준비하고 있어요. 서비스가 열리면 시작할 수 있습니다.",
   LOGIN_REQUIRED: "다시 로그인해 주세요.",
-  EXPLORATION_KEY_REQUIRED: "방장에게 던전 열쇠가 부족해요. (1~4단계 1개 · 5단계 2개 · 6단계 3개, 다른 대기 방 몫 포함)",
+  EXPLORATION_KEY_REQUIRED: "던전 열쇠가 부족해요. (4단계 1 · 5단계 2 · 6단계 3 · 7단계 4 · 8단계 5 · 9단계 6 · 10단계 7개, 대기 중인 다른 방 몫 포함)",
   EXPLORATION_PREVIOUS_REQUIRED: "이전 단계 탐험을 먼저 클리어해야 해요.",
   EXPLORATION_KEY_RESERVED: "진행 중인 탐험에 필요한 던전 열쇠 1개는 판매할 수 없습니다.",
   SESSION_ENDED: "종료된 로그인입니다. 다시 로그인해 주세요.",
@@ -262,6 +262,7 @@ const errors = {
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
   INVALID_PROFESSION: "없는 직업이에요.",
   SHOP_WEEKLY_LIMIT: "이번 주 구매 한도를 다 썼어요. 월요일 00시에 초기화돼요.",
+  EXPLORATION_MEMBER_KEY_REQUIRED: "던전 열쇠가 부족한 파티원이 있어요. 파티원 모두 각자 열쇠가 필요해요.",
   PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
   PROFESSION_FULL: "이 직업은 정원(2명)이 다 찼어요. 다른 직업을 골라 주세요.",
   PROFESSION_SAME: "이미 그 직업이에요.",
@@ -360,6 +361,7 @@ function message(e) {
   if(e.message==='INVALID_TRANSFER_AMOUNT')return '송금액은 1~999,999,999,999 G 사이의 정수로 입력해 주세요.';
   if(e.message==='INVALID_TRANSFER_SELF')return '자신에게는 송금할 수 없습니다.';
   if(e.message==='MAILBOX_FULL')return '받는 사람의 우편함이 가득 찼습니다.';
+  if(String(e.message||'').startsWith('EXPLORATION_MEMBER_KEY_REQUIRED:'))return `던전 열쇠가 부족한 파티원: ${e.message.slice(32)} (보유/필요) · 파티원 모두 각자 열쇠가 필요해요.`;
   if(e.message==='RAID_PRIEST_REQUIRED')return '사제 1명 이상이 있어야 레이드를 출발할 수 있습니다.';
   return (
     errors[e.message] ||
