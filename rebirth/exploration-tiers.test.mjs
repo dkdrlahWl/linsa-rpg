@@ -27,7 +27,7 @@ for(const tier of [4,5,6]){
  const r=EXPLORATION_REWARDS[tier],room={tier,status:'won',cleared:5,tick:900};
  const out=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},room,{random:()=>0,uuid:randomUUID,now:1});
  assert.equal(out.reward.gold,r.gold);assert.equal(out.state.materials.addCube||0,0);assert.equal(out.state.materials.bonusFlame||0,0);assert.equal(out.state.materials.potentialLock||0,0);
- assert.equal(out.state.materials.highCube||0,0);assert.equal(out.reward.items.length,1);assert.equal(out.reward.items[0].level,r.gear[0][0]);
+ assert.equal(out.state.materials.highCube,r.counts.highCube);assert.equal(out.reward.items.length,1);assert.equal(out.reward.items[0].level,r.gear[0][0]);
  const none=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},room,{random:()=>.999,uuid:randomUUID,now:1});
  assert.equal(none.reward.addCube||0,0);assert.equal(none.reward.items.length,0);
  const levels=new Set();for(let i=0;i<400;i++){const x=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},room,{random:(()=>{let k=0;return()=>(k++===2?0:Math.random());})(),uuid:randomUUID,now:1});for(const it of x.reward.items)levels.add(it.level);}

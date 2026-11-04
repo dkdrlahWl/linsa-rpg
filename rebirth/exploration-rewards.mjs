@@ -1,7 +1,7 @@
 import {isCitadel} from './citadel-zero.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {EXPLORATION_REWARDS,EXPLORATION_REWARD_KEYS,explorationRewardCount,explorationGearLevelFor} from './exploration-reward-data.mjs?v=nobc-20261105';
+import {EXPLORATION_REWARDS,EXPLORATION_REWARD_KEYS,explorationRewardCount,explorationGearLevelFor} from './exploration-reward-data.mjs?v=bchalf-20261105';
 import {CLASSES,selectDesign,rollBaseStats} from './data.mjs';
 import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
 export const EXPLORATION_COMPANION_TICKET_CHANCE=0; // 2026-11-04 도현: 링탐 동료 소환권 드랍 삭제 (이전 25%)

@@ -7,7 +7,7 @@ assert.deepEqual(EXPLORATION_REWARDS.slice(0,3).map(x=>x.bossGear),[.05,.06,.07]
 const slots=Array(9).fill(0);for(let i=0;i<1700;i++)slots[halfWeaponSlot(()=>(i+.5)/1700)]++;
 assert.deepEqual(slots,[100,200,200,200,200,200,200,200,200]);
 for(const tier of [0,1,2])for(const [roll,expected] of [[EXPLORATION_REWARDS[tier].bossGear-.000001,1],[EXPLORATION_REWARDS[tier].bossGear,0]]){
- let n=0;const ctx={now:0,uuid:()=> 'test-item',random:()=>++n===2?roll:.999};
+ let n=0;const ctx={now:0,uuid:()=> 'test-item',random:()=>++n===3?roll:.999};
  const {reward}=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},{tier,status:'won',cleared:EXPLORATIONS[tier].floors,tick:100},ctx);
  assert.equal(reward.items.length,expected);
 }
