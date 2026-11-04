@@ -3,7 +3,7 @@ import {CITADEL_CONTENT,CITADEL_BIOMES,CITADEL_BOSSES,citadelStage,citadelPopula
 import {CITADEL_BOSS_REWARDS} from './citadel-rewards.mjs';
 // 2026-11-04: 보상 안내는 실제 보상표에서 만든다 (수치 바뀌어도 자동 반영).
 const pct=x=>+(x*100).toFixed(1)+'%',span=(k,f=pct)=>{const v=CITADEL_BOSS_REWARDS.map(r=>r[k]),a=Math.min(...v),b=Math.max(...v);return a===b?f(a):f(a)+'~'+f(b);};
-const citadelRewardNote=()=>{const R=CITADEL_BOSS_REWARDS,frag=span('fragment',x=>x+'');return `상자(보스별): 장비 파편 ${frag}개 확정 · 잠재 잠금석 ${span('lock')} · 해금 주문서 ${span('scroll')} · 블랙 큐브 ${span('highCubeCount',x=>x+'')}개 ${span('highCube')} · 보스 장비 ${span('gear')} (Lv.100~${Math.max(...R.map(r=>r.max))}, 무기 확률 절반)`;};
+const citadelRewardNote=()=>{const R=CITADEL_BOSS_REWARDS,frag=span('fragment',x=>x+'');return `상자(보스별): 장비 파편 ${frag}개 확정${R.some(r=>r.lock>0)?` · 잠재 잠금석 ${span('lock')}`:''} · 해금 주문서 ${span('scroll')} · 블랙 큐브 ${span('highCubeCount',x=>x+'')}개 ${span('highCube')} · 보스 장비 ${span('gear')} (Lv.100~${Math.max(...R.map(r=>r.max))}, 무기 확률 절반)`;};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,action,arg='',off=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${off?'disabled data-unavailable':''}>${label}</button>`;
 export function citadelLobby(state,room,rooms=[]){
