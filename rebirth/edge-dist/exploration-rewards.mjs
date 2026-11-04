@@ -1,6 +1,6 @@
 import {isCitadel} from './citadel-zero.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
-import {professionGather} from './profession-model.mjs';
+import {professionGather,gatherAmount} from './profession-model.mjs';
 import {EXPLORATION_REWARDS,EXPLORATION_REWARD_KEYS,explorationRewardCount,explorationGearLevelFor} from './exploration-reward-data.mjs';
 import {CLASSES,selectDesign,rollBaseStats} from './data.mjs';
 import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
@@ -10,7 +10,7 @@ export function grantExplorationChest(input,room,ctx){
  const theme=EXPLORATIONS[room.tier],rates=EXPLORATION_REWARDS[room.tier];if(!theme||!rates||room.status!=='won'||room.cleared!==theme.floors)throw Error('COOP_CHEST_NOT_READY');
  const state=structuredClone(input),reward={type:'coop',mode:'exploration',tier:room.tier,name:theme.name,won:true,cleared:room.cleared,gold:rates.gold,cube:0,highCube:0,scroll:0,potentialLock:0,items:[],seconds:room.tick/10};
  state.gold+=reward.gold;state.materials??={};
- for(const key of EXPLORATION_REWARD_KEYS){if(!rates[key])continue;reward[key]=ctx.random()<rates[key]?explorationRewardCount(rates,key):0;if(key==='highCube'&&reward[key])reward[key]=Math.round(reward[key]*professionGather(state,'highCube'));state.materials[key]=(state.materials[key]||0)+reward[key];}
+ for(const key of EXPLORATION_REWARD_KEYS){if(!rates[key])continue;reward[key]=ctx.random()<rates[key]?explorationRewardCount(rates,key):0;if(key==='highCube'&&reward[key])reward[key]=gatherAmount(state,'highCube',reward[key],ctx.random);state.materials[key]=(state.materials[key]||0)+reward[key];}
  // Admin one-shot override (set in DB): next clear drops this exact boss item instead of the random roll.
  // slot is the SLOTS index (0 = weapon); 'weapon' is accepted as an alias.
  let forced=state.adminNextExplorationGear;delete state.adminNextExplorationGear;

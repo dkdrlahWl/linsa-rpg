@@ -1,7 +1,8 @@
 // 2026-11-04 도현: 전문 직업 — 연금술사·탐험가·어부·광부. 계정당 1개, 처음 선택 무료, 변경은 7일 쿨타임 + 1억 G + 숙련도 초기화.
 // 제작은 횟수 제한 없음(하위 재료 + 골드만 소모). 제작자는 "가공업자": 남의 원재료를 사서 가공해 되파는 구조라 레시피가 싸고 서버 수요 전체를 감당한다.
 // 2026-11-04 도현: 모든 레시피 원가(재료 기준가 + 골드) = 기준가의 90%. 기준가 = 토큰 교환소(레드 10만·블랙 40만·파편 2만·다이아 20만), 프라임 150만·초월석 1,000만은 시장 추정.
-// 2026-11-04 도현: 채집 보너스는 직업당 1개 — 연금술사 레드 큐브, 탐험가 링탐 블랙 큐브, 어부 다이아, 광부 장비 파편.
+// 2026-11-04 도현: 채집 보너스는 직업당 1개, Lv.10 기준 하루 약 300만 G 가치로 맞춤 (Lv.1은 절반, 숙련도 따라 선형 증가).
+// 연금술사 사냥 레드 큐브 드랍률 ×8.5, 광부 사냥 파편 드랍률 ×3.5 (엔드 사냥터 0.04%·0.6% 기준), 탐험가 링탐 블랙 큐브 개수 +10%, 어부 낚시 다이아 +50%.
 // 숙련도 = 제작 횟수. Lv.n→n+1에 n×10. 레벨이 오르면 채집 보너스 50%→100%. 제작 비용은 전 구간 동일. (추가 제작 확률은 2026-11-04 삭제)
 // 2026-11-04 도현: 아직 잠금 — 일반 유저는 선택·제작 불가(관리자만 시험). 열 때 true로.
 export const PROFESSION_OPEN=false;
@@ -16,26 +17,26 @@ export const PROFESSION_CHANGE_COST=100000000;
 export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0; // 2026-11-04 도현: 추가 제작 확률 삭제
 export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
-  gather:{cube:1},
+  gather:{cube:7.5},
   recipes:[
    {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:750000},
    {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:700000},
   ]}),
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
-  gather:{highCube:.5},
+  gather:{highCube:.1},
   recipes:[
    {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:50},gold:6200000},
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:10},gold:1600000},
    {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:10,cube:3},gold:4000000},
   ]}),
  Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공',
-  gather:{diamond:1},
+  gather:{diamond:.5},
   recipes:[
    {id:'companionTicket',name:'동료 소환권',out:{companionTicket:1},cost:{diamond:3,cube:2},gold:2800000},
    {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:3800000},
   ]}),
  Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공',
-  gather:{fragment:1},
+  gather:{fragment:2.5},
   recipes:[
    {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:2,cube:1},gold:1660000},
    {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:20,highCube:3},gold:7400000},
@@ -68,6 +69,8 @@ export function professionGather(s,key){
  return 1+bonus*scale;
 }
 // 재료 보관 위치(거래소와 같은 규칙)
+// 소수 배율 개수: 기대값이 정확히 맞도록 확률적 반올림
+export const gatherAmount=(s,key,n,random)=>{const x=n*professionGather(s,key),f=Math.floor(x);return x>f?f+(random()<x-f?1:0):f;}; // 보너스 없으면 난수 안 씀(판정 순서 유지)
 export function resourcePath(key){
  if(key==='diamond')return ['fishing','diamonds'];
  if(key==='companionTicket')return ['companions','tickets'];

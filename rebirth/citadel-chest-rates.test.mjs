@@ -10,7 +10,7 @@ for(let b=1;b<=6;b++){
   const {reward}=grantCitadelChests({items:[],materials:{}},room,'u',{random,now:Date.now(),uuid:()=>String(seed)});
   lock+=reward.potentialLock;scroll+=reward.scroll;gear+=reward.items.length;frag+=reward.fragment;
  }
- assert.equal(frag,N*10);
+ assert.equal(frag,N*r.fragment);
  for(const [name,got,want] of [['lock',lock/N,r.lock],['scroll',scroll/N,r.scroll],['gear',gear/N,r.gear]])
   assert.ok(Math.abs(got-want)<Math.max(.006,want*.15),`boss ${b} ${name}: ${got} vs ${want}`);
  console.log(`boss ${b}: lock ${(lock/N*100).toFixed(1)}% scroll ${(scroll/N*100).toFixed(1)}% gear ${(gear/N*100).toFixed(2)}% (shown ${r.gear*100}%)`);

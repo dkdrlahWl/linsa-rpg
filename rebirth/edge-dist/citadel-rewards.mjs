@@ -5,13 +5,14 @@ import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
 // lock = 잠재 잠금석, scroll = 잠재 해금 주문서 (1 each on success); fragment guaranteed; gear = boss gear chance,
 // gear chance is applied exactly as shown in the lobby (no BOSS_GEAR_RATE_SCALE);
 // gear level uniform over the 10-level tiers 100..max; weapon slot at half weight.
+// 2026-11-04 도현: 성채 보상 축소 — 파편 10→3, 잠재 잠금석·블랙 큐브 확률 1/3 (주문서·장비는 그대로).
 export const CITADEL_BOSS_REWARDS=[
- {lock:.10,scroll:.10,highCube:.20,highCubeCount:1,fragment:10,gear:.04,max:110},
- {lock:.15,scroll:.15,highCube:.25,highCubeCount:1,fragment:10,gear:.05,max:130},
- {lock:.20,scroll:.20,highCube:.30,highCubeCount:2,fragment:10,gear:.05,max:140},
- {lock:.25,scroll:.25,highCube:.35,highCubeCount:2,fragment:10,gear:.05,max:160},
- {lock:.30,scroll:.30,highCube:.40,highCubeCount:3,fragment:10,gear:.05,max:170},
- {lock:.35,scroll:.35,highCube:.45,highCubeCount:3,fragment:10,gear:.05,max:190},
+ {lock:.0333,scroll:.1,highCube:.0667,highCubeCount:1,fragment:3,gear:.04,max:110},
+ {lock:.05,scroll:.15,highCube:.0833,highCubeCount:1,fragment:3,gear:.05,max:130},
+ {lock:.0667,scroll:.2,highCube:.1,highCubeCount:2,fragment:3,gear:.05,max:140},
+ {lock:.0833,scroll:.25,highCube:.1167,highCubeCount:2,fragment:3,gear:.05,max:160},
+ {lock:.1,scroll:.3,highCube:.1333,highCubeCount:3,fragment:3,gear:.05,max:170},
+ {lock:.1167,scroll:.35,highCube:.15,highCubeCount:3,fragment:3,gear:.05,max:190},
 ];
 export const citadelGearLevel=(max,random)=>100+10*Math.floor(random()*((max-100)/10+1));
 export function citadelPendingChests(state,room,userId){
