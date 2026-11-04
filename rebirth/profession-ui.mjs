@@ -4,7 +4,7 @@ import {professionOpenFor,JOB_MATERIALS,PROFESSIONS,RESOURCE_NAMES,PROFESSION_MA
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pct=x=>Math.round(x*100)+'%';
-const GATHER_LABELS={cube:'레드 큐브 획득',highCube:'블랙 큐브 획득(링탐)',dungeonKey:'낚시 던전 열쇠 드랍',companionTicket:'링탐 동료 소환권 확률',diamond:'낚시 다이아 획득',fishingCasts:'하루 낚시 횟수',bigFish:'대어 확률',fragment:'장비 파편 획득',huntGold:'사냥 골드'};
+const GATHER_LABELS={cube:'사냥 레드 큐브',highCube:'링탐 블랙 큐브',dungeonKey:'낚시 던전 열쇠 드랍',companionTicket:'링탐 동료 소환권 확률',diamond:'낚시 다이아',fishingCasts:'하루 낚시 횟수',bigFish:'대어 확률',fragment:'사냥 장비 파편',huntGold:'사냥 골드'};
 const REF_PRICE={primeCube:1500000,addCube:1000000,dungeonKey:8000000,treasureTicket:2000000,bonusFlame:5000000,companionTicket:4000000,pickupTicket:6000000,potentialLock:2000000,transcendStone:10000000};
 const icon=k=>`<img class="prof-ic" src="${currencyIconURL(k)}" alt="" title="${RESOURCE_NAMES[k]||k}">`;
 const chip=(k,v)=>`<span class="prof-chip" title="${RESOURCE_NAMES[k]||k} ${v}">${icon(k)}${v}</span>`;

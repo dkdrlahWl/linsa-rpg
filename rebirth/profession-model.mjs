@@ -1,6 +1,7 @@
 // 2026-11-04 도현: 전문 직업 — 연금술사·탐험가·어부·광부. 계정당 1개, 처음 선택 무료, 변경은 7일 쿨타임 + 1억 G + 숙련도 초기화.
 // 제작은 횟수 제한 없음(하위 재료 + 골드만 소모). 제작자는 "가공업자": 남의 원재료를 사서 가공해 되파는 구조라 레시피가 싸고 서버 수요 전체를 감당한다.
 // 2026-11-04 도현: 모든 레시피 원가(재료 기준가 + 골드) = 기준가의 90%. 기준가 = 토큰 교환소(레드 10만·블랙 40만·파편 2만·다이아 20만), 프라임 150만·초월석 1,000만은 시장 추정.
+// 2026-11-04 도현: 채집 보너스는 직업당 1개 — 연금술사 레드 큐브, 탐험가 링탐 블랙 큐브, 어부 다이아, 광부 장비 파편.
 // 숙련도 = 제작 횟수(+추가 제작 포함 안 함). Lv.n→n+1에 n×10. 레벨이 오르면 ① 추가 제작 확률 2%p/레벨(Lv.10 20%) ② 채집 보너스 50%→100%. 제작 비용은 전 구간 동일.
 // 2026-11-04 도현: 아직 잠금 — 일반 유저는 선택·제작 불가(관리자만 시험). 열 때 true로.
 export const PROFESSION_OPEN=false;
@@ -15,26 +16,26 @@ export const PROFESSION_CHANGE_COST=100000000;
 export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0.02; // Lv.1 2% … Lv.10 20%
 export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
-  gather:{cube:1,highCube:.5},
+  gather:{cube:1},
   recipes:[
    {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:750000},
    {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:700000},
   ]}),
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
-  gather:{dungeonKey:.5,companionTicket:.3},
+  gather:{highCube:.5},
   recipes:[
    {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:50},gold:6200000},
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:10},gold:1600000},
    {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:10,cube:3},gold:4000000},
   ]}),
  Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공',
-  gather:{diamond:1,fishingCasts:.5,bigFish:.3},
+  gather:{diamond:1},
   recipes:[
    {id:'companionTicket',name:'동료 소환권',out:{companionTicket:1},cost:{diamond:3,cube:2},gold:2800000},
    {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:3800000},
   ]}),
  Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공',
-  gather:{fragment:1,huntGold:.1},
+  gather:{fragment:1},
   recipes:[
    {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:2,cube:1},gold:1660000},
    {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:20,highCube:3},gold:7400000},
