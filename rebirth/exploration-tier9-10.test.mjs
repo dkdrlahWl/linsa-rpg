@@ -13,7 +13,7 @@ for(const [tier,solo,keys] of [[9,25e8,6],[10,35e8,7]]){
  const r=EXPLORATION_REWARDS[tier],prev=EXPLORATION_REWARDS[tier-1];
  for(const k of ['gold','scroll','highCube','bossGear'])assert.ok(r[k]>prev[k],tier+' '+k);
  for(const k of ['highCube','addCube'])assert.ok(r.counts[k]>=prev.counts[k],tier+' count '+k);
- const table=explorationGearTable(r),p220=table.find(([l])=>l===220)[2];assert.ok(Math.abs(p220-(tier===9?.02:.04))<1e-12,"220 per run "+p220);
+ const table=explorationGearTable(r),p220=table.find(([l])=>l===220)[2];assert.ok(Math.abs(p220-(tier===9?.04:.08))<1e-12,"220 per run "+p220);
  const out=grantExplorationChest({gold:0,materials:{},items:[],collection:[]},{tier,status:'won',cleared:5,tick:900},{random:()=>0,uuid:randomUUID,now:1});
  assert.equal(out.state.materials.highCube,r.counts.highCube);assert.equal(out.reward.items[0].level,190);
  const w=initializeExploration({tier,started:12345,members:[{id:'a',power:{hp:1000,attack:10,defense:1},hp:1000}],tick:0});

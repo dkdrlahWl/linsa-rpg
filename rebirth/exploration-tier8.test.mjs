@@ -15,12 +15,12 @@ for(const f of [t.map,'exploration/arena-8-196.webp','exploration/terrain-8-193.
 const r=EXPLORATION_REWARDS[8];assert.equal(r.bossGear,.16);assert.equal(EXPLORATION_REWARDS[7].bossGear,.14);
 // 판당 200제 확률이 단계마다 두 배(5단계 1.0% → 6 2.04% → 7 4.08% → 8 8.16%), 8단계 220제 판당 1%
 const per=(tier,lv)=>{const R=EXPLORATION_REWARDS[tier],tot=R.gear.reduce((n,[,w])=>n+w,0);return R.bossGear*(R.gear.find(g=>g[0]===lv)?.[1]||0)/tot;};
-for(const tier of [6,7,8])assert.ok(Math.abs(per(tier,200)/per(tier-1,200)-2)<.05,'200제 두 배 '+tier);
-assert.ok(Math.abs(per(8,220)-per(5,200))<1e-4,'220제 = 5단계 200제');
+// 2026-11-04: 각 단계 최고 레벨 2배 — 5·6·7단계 200제 판당 2% · 4.08% · 8.16%, 8단계 220제 2%
+for(const [tier,lv,p] of [[5,200,.02],[6,200,.0408],[7,200,.0816],[8,220,.02]])assert.ok(Math.abs(per(tier,lv)-p)<2e-4,tier+'단계 '+lv+'제 '+per(tier,lv));
 const counts={};let rnd=1;const R=()=>{rnd=(rnd*1103515245+12345)%2147483648;return rnd/2147483648;};
 for(let i=0;i<100000;i++){const lv=explorationGearLevelFor(r,Math.random);counts[lv]=(counts[lv]||0)+1;}
 assert.ok(Object.keys(counts).every(l=>Number(l)>=180),'180제 이상만');
-assert.ok(Math.abs(counts[220]/1e5-.0625)<.01&&Math.abs(counts[200]/1e5-.51)<.01,JSON.stringify(counts));
+assert.ok(Math.abs(counts[220]/1e5-.125)<.01&&Math.abs(counts[200]/1e5-.476)<.01,JSON.stringify(counts));
 // 강제 드롭으로 220제 생성: 최하 등급
 let n=0;const ctx={now:Date.UTC(2026,10,2),random:Math.random,uuid:()=>'e'+(++n)};
 const s=initialState('warrior','팔단계',ctx);s.adminNextExplorationGear={level:220,classId:'warrior',slot:0};

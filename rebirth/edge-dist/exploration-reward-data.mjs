@@ -27,6 +27,10 @@ const EXTRA=[
 for(const [id,r] of EXTRA)EXPLORATION_REWARDS[id]=r;
 // 2026-11-04 도현: 링탐 보상에서 에디셔널 큐브·잠재 잠금석·추가옵션 불꽃 삭제 (전 단계).
 for(const r of EXPLORATION_REWARDS){r.potentialLock=0;if('addCube' in r)r.addCube=0;if('bonusFlame' in r)r.bonusFlame=0;}
+// 2026-11-04 도현: 5~7단계는 200제, 8~10단계는 220제(각 단계 최고 레벨) 보스장비 확률 2배. 나머지 레벨은 같은 비율로 줄여 보스장비 확률 자체는 유지.
+for(const id of [5,6,7,8,9,10]){const r=EXPLORATION_REWARDS[id];if(!r?.gear)continue;
+ const total=r.gear.reduce((n,[,w])=>n+w,0),top=Math.max(...r.gear.map(([l])=>l)),tw=r.gear.find(([l])=>l===top)[1],share=tw/total,ns=Math.min(1,share*2),scale=(1-ns)/(1-share);
+ r.gear=r.gear.map(([l,w])=>[l,l===top?ns*total:w*scale]);}
 export const EXPLORATION_REWARD_KEYS=['scroll','highCube','potentialLock','addCube','bonusFlame'];
 export const explorationRewardCount=(rates,key)=>rates.counts?.[key]??EXPLORATION_REWARD_COUNTS[key]??1;
 export function explorationGearLevelFor(rates,random){if(!rates.gear)return explorationGearLevel(random);const total=rates.gear.reduce((n,[,w])=>n+w,0);let roll=random()*total;for(const [level,w] of rates.gear){roll-=w;if(roll<0)return level;}return rates.gear.at(-1)[0];}
