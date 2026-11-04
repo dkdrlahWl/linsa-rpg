@@ -48,6 +48,6 @@ ${status}
 <div class="treasure-board${digging?' live':''}" data-no-currency-art>${cells}</div>
 ${actions}
 ${digging||ended?`<section class="treasure-bag"><h2>${digging?'모은 보상':run.status==='boom'?'잃은 보상':'받은 보상'}${digging&&safeLeft?` <small>안전한 칸 ${safeLeft}개 남음</small>`:''}</h2>${bagSummary(run)}</section>`:''}
-<details class="treasure-rules"><summary>규칙 · 보상 확률</summary><p>티켓은 낚시로 얻어요. 한 번 낚을 때마다 ${+(TREASURE_TICKET_CHANCE*100).toFixed(2)}% 확률이라 하루 600번 낚으면 평균 5~6장 나와요. 매일 ${TREASURE_DAILY}판은 무료이고, 그 뒤로는 티켓 1장으로 한 판씩 횟수 제한 없이 할 수 있어요.</p><p>칸을 열 때마다 보상이 하나씩 쌓여요. 지뢰를 밟으면 이번 판에 모은 보상을 <b>전부</b> 잃어요. 언제든 "그만하고 받기"로 챙길 수 있어요.</p><p>지뢰 ${TREASURE_MINES}개 · 연속 생존 확률 3칸 67% · 5칸 50% · 7칸 35% · 10칸 20%</p><ul class="treasure-odds">${odds}</ul></details>
+<details class="treasure-rules"><summary>규칙 · 보상 확률</summary><p>티켓은 낚시로 얻어요. 한 번 낚을 때마다 ${+(TREASURE_TICKET_CHANCE*100).toFixed(2)}% 확률이라 하루 600번 낚으면 평균 2~3장 나와요. 매일 ${TREASURE_DAILY}판은 무료이고, 그 뒤로는 티켓 1장으로 한 판씩 횟수 제한 없이 할 수 있어요.</p><p>칸을 열 때마다 보상이 하나씩 쌓여요. 지뢰를 밟으면 이번 판에 모은 보상을 <b>전부</b> 잃어요. 언제든 "그만하고 받기"로 챙길 수 있어요.</p><p>지뢰 ${TREASURE_MINES}개 · 연속 생존 확률 3칸 67% · 5칸 50% · 7칸 35% · 10칸 20%</p><ul class="treasure-odds">${odds}</ul></details>
 </main></div>${fantasyFooter('event')}</section>`;
 }
