@@ -1251,9 +1251,8 @@ let buyOrderAlert=0;const boToasted=new Set();
 function buyOrderAlertUpdate(data,markSeen=false){
   const open=(data?.orders||[]).filter(o=>!o.own);let seen=boSeen();
   if(markSeen){seen=new Set(open.map(o=>o.id));try{localStorage.setItem(BO_SEEN_KEY,JSON.stringify([...seen]));}catch{}}
-  const fresh=open.filter(o=>!seen.has(o.id)),n=fresh.length;
-  // 새로 올라온 요청은 상단 토스트로 한 번 알림 (구매 요청 탭을 보고 있을 땐 생략)
-  if(!markSeen)for(const o of fresh)if(!boToasted.has(o.id)){boToasted.add(o.id);toast(`📢 새 구매 요청 · ${o.buyer_name}: ${materialName(o.key)} ${fmt(o.quantity)}개 (개당 ${fmt(o.price)} G)`);}
+  // 2026-11-04 도현: 배지 = 남이 올린 열린 구매 요청 수 (체결·취소될 때까지 계속 표시, 토스트 없음)
+  const n=open.length;
   if(n!==buyOrderAlert){buyOrderAlert=n;setBuyOrderAlert(n);return true;}return false;
 }
 async function buyOrderAlertPoll(){
