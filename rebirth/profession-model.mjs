@@ -13,6 +13,8 @@ export const JOB_MATERIAL_DROP=0.0222; // 2026-11-04 도현: 처치당 2.22% —
 export const JOB_MATERIALS=Object.freeze({alchemist:'essence',explorer:'mapPiece',fisher:'pearl',miner:'ore'});
 export const JOB_MATERIAL_KEYS=Object.freeze(Object.values(JOB_MATERIALS));
 export const PROFESSION_MAX_LEVEL=10;
+// 2026-11-04 도현: 직업당 최대 3명 (8명 서버). 인원은 서버(edge)가 DB에서 세어 args.taken으로 넣는다(관리자·테스터 제외).
+export const PROFESSION_SLOTS=3;
 export const PROFESSION_CHANGE_COOLDOWN=7*86400000;
 export const PROFESSION_CHANGE_COST=100000000;
 export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0; // 2026-11-04 도현: 추가 제작 확률 삭제
@@ -106,6 +108,8 @@ export function professionCommand(s,command,args,now,random){
  if(command==='professionChoose'){
   const def=professionById(args?.id)||fail('INVALID_PROFESSION');
   const cur=normalizeProfession(s);
+  const taken=Number(args?.taken?.[def.id])||0;
+  if(!s.isAdmin&&!s.isTester&&cur?.id!==def.id&&taken>=PROFESSION_SLOTS)fail('PROFESSION_FULL');
   if(cur){
    if(cur.id===def.id)fail('PROFESSION_SAME');
    if(now-cur.chosenAt<PROFESSION_CHANGE_COOLDOWN)fail('PROFESSION_COOLDOWN');

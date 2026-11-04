@@ -100,6 +100,9 @@ Deno.serve(async (req) => {
       if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
       user=await auth.json();
     }
+    // 2026-11-04 전문 직업 인원 제한: 서버가 DB에서 직업별 인원을 세서 넣는다(클라이언트 값은 덮어씀).
+    if(body.command==='professionCounts')return reply({professionCounts:await rpc('rebirth_profession_counts',{},true)});
+    if(body.command==='professionChoose')body.args={...(body.args||{}),taken:await rpc('rebirth_profession_counts',{},true)};
     if(body.command==='rankingProfile'){
       const id=body.args.id;
       if(typeof id!=='string'||!/^[0-9a-f-]{36}$/i.test(id))throw new Error('INVALID_PROFILE');

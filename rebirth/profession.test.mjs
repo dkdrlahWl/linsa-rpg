@@ -46,6 +46,8 @@ assert.deepEqual(SHOP_DAILY_LIMITS,{cube:50,addCube:20});
 const sh={gold:1e12,materials:{cube:0,addCube:0}};consumableCommand(sh,'consumableBuy','cube',t0,50);
 assert.throws(()=>consumableCommand(sh,'consumableBuy','cube',t0,1),/SHOP_DAILY_LIMIT/);
 consumableCommand(sh,'consumableBuy','cube',t0+86400000,1);assert.equal(sh.materials.cube,51);
+// 직업당 3명 정원 (관리자·테스터 예외, 이미 그 직업이면 통과)
+{const base=()=>({gold:2e8,materials:{},isAdmin:true});const a=base();professionCommand(a,'professionChoose',{id:'miner',taken:{miner:3}},0,Math.random);assert.equal(a.profession.id,'miner','admin bypasses slots');}
 console.log('PASS profession: choose/craft/bonus/xp/change, gather, transcend odds, supply changes');
 // 초월 확률·천장·실패 처리 (engine)
 {const {initialState,makeItem,execute,addItem}=await import('./engine.mjs');const {rollBaseStats,bossTier}=await import('./data.mjs');

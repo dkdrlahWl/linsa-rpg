@@ -262,6 +262,7 @@ const errors = {
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
   INVALID_PROFESSION: "없는 직업이에요.",
   PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
+  PROFESSION_FULL: "이 직업은 정원(3명)이 다 찼어요. 다른 직업을 골라 주세요.",
   PROFESSION_SAME: "이미 그 직업이에요.",
   PROFESSION_COOLDOWN: "직업 변경은 7일에 한 번만 할 수 있어요.",
   PROFESSION_REQUIRED: "먼저 전문 직업을 선택해 주세요.",
@@ -615,6 +616,7 @@ async function companionCommandRequest(action,args={}){
  if(!state||session?.user?.id!==account)return;
  return command(action,args);
 }
+let professionCounts={};
 async function command(command, args = {}, quiet = false, freshSnapshot = false, signal = null) {
   const claimOnly=command==='coopOpen'&&args.citadelClaim===true;
   const requestKey=pendingKey()+(claimOnly?'_citadel_claim':'');
@@ -709,6 +711,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(result.fishingContest){fishingUI.contest=result.fishingContest;fishingUI.contestLoadedAt=Date.now();}
+    if(result.professionCounts)professionCounts=result.professionCounts;
     if(result.arena){arenaData=result.arena;arenaError='';}
     if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
     // A fishing daily that just became claimable gets a one-time toast (badges stay until it is claimed).
@@ -1897,9 +1900,9 @@ document.addEventListener("click", async (e) => {
       if(result&&!chest)systemInbox();
       return;
     }
-    if(action==="professionOpen"){await command('sync',{},true);open('전문 직업',professionView(state));modal.classList.add('prof-dialog');return;}
-    if(action==="professionChoose"){if(busy)return;const cur=state.profession?.id;if(cur&&!confirm('직업을 변경하면 1억 G가 소모되고 숙련도가 Lv.1로 초기화돼요. 변경할까요?'))return;const r=await command('professionChoose',{id:arg});open('전문 직업',professionView(state));modal.classList.add('prof-dialog');const e=r?.result?.events?.find(x=>x.type==='professionChoose');if(e)toast(e.changed?`${e.name}(으)로 변경했어요`:`${e.name} 선택 완료`);return;}
-    if(action==="professionCraft"||action==="professionCraftMax"){if(busy)return;const input=modal.querySelector(`[data-recipe-count="${arg}"]`);const count=action==="professionCraftMax"?'max':Number(input?.value);if(count!=='max'&&(!Number.isInteger(count)||count<1||count>1000))return toast('제작 수량은 1~1,000 사이로 입력해 주세요.');const r=await command('professionCraft',{recipe:arg,count});const scroll=modal.scrollTop;open('전문 직업',professionView(state));modal.classList.add('prof-dialog');modal.scrollTop=scroll;const e=r?.result?.events?.find(x=>x.type==='professionCraft');if(e){const made=Object.values(e.made)[0];toast(`${e.name} ${made.toLocaleString('ko-KR')}개 제작${e.levelUps?` · 숙련도 Lv.${e.level} 달성!`:''}`);}return;}
+    if(action==="professionOpen"){await command('sync',{},true);await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
+    if(action==="professionChoose"){if(busy)return;const cur=state.profession?.id;if(cur&&!confirm('직업을 변경하면 1억 G가 소모되고 숙련도가 Lv.1로 초기화돼요. 변경할까요?'))return;const r=await command('professionChoose',{id:arg});await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');const e=r?.result?.events?.find(x=>x.type==='professionChoose');if(e)toast(e.changed?`${e.name}(으)로 변경했어요`:`${e.name} 선택 완료`);return;}
+    if(action==="professionCraft"||action==="professionCraftMax"){if(busy)return;const input=modal.querySelector(`[data-recipe-count="${arg}"]`);const count=action==="professionCraftMax"?'max':Number(input?.value);if(count!=='max'&&(!Number.isInteger(count)||count<1||count>1000))return toast('제작 수량은 1~1,000 사이로 입력해 주세요.');const r=await command('professionCraft',{recipe:arg,count});const scroll=modal.scrollTop;open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');modal.scrollTop=scroll;const e=r?.result?.events?.find(x=>x.type==='professionCraft');if(e){const made=Object.values(e.made)[0];toast(`${e.name} ${made.toLocaleString('ko-KR')}개 제작${e.levelUps?` · 숙련도 Lv.${e.level} 달성!`:''}`);}return;}
     if(action==="tribeOpen"){await command('sync',{},true);openTribe();return;}
     if(action==="tribeBuy"){if(busy||tribeSpinning)return;try{await command('tokenShopBuy',{id:'tribeTicket',quantity:1},true);toast('종족 주사위 1개 구매');}catch{}openTribe();return;}
     if(action==="tribeRoll"){
