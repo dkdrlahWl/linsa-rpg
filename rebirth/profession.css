@@ -55,3 +55,9 @@
 .prof-card small{display:flex;flex-direction:column;gap:2px;line-height:1.5}.prof-card small>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.prof-card small b{color:#9ff0a8}
 .prof-card-body>p:first-child{min-height:0;font-size:11.5px;line-height:1.4}
 @media(max-width:480px){.prof-card-body>p:first-child{font-size:11px}.prof-jobmat{font-size:11px}.prof-card li b{font-size:12px}.prof-chip{padding:2px 4px 2px 2px;font-size:10.5px}.prof-card small{font-size:10.5px}}
+
+/* The header uses a compact label; full profession portraits belong in the dialog. */
+.fantasy-brand-row .fantasy-prof-entry{display:flex;align-items:center;justify-content:center;padding:1px!important;overflow:visible}
+.fantasy-brand-row .fantasy-prof-entry .prof-entry-art{display:none!important}
+.fantasy-brand-row .fantasy-prof-entry>span{display:block!important;position:static;font-size:13px;line-height:1.2;font-weight:800;white-space:nowrap;color:#ffe8ae;text-shadow:0 1px 3px #000}
+.fantasy-brand-row .fantasy-prof-entry>b{pointer-events:none}
