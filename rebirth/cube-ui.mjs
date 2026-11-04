@@ -1,4 +1,4 @@
-import {currencyIconURL} from './currency-icons.mjs?v=priest-potential-83';
+import {currencyIconURL} from './currency-icons.mjs?v=allmarket-20261104';
 import * as D from './data.mjs?v=prime-choice-158-lv300b';
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
 const pct=n=>(n*100).toFixed(6).replace(/\.?0+$/,'')+'%';

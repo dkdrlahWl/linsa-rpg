@@ -1,6 +1,6 @@
 import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs?v=tribe-glow-20261102';
 import {PET_ID,PET_NAME,PET_EVENT,petProgress,petRates} from './pet-event.mjs?v=priest-potential-83';
-import {currencyIconURL,goldPurchaseIcon} from './currency-icons.mjs?v=priest-potential-83';
+import {currencyIconURL,goldPurchaseIcon} from './currency-icons.mjs?v=allmarket-20261104';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 const art=key=>key==='pet'?'pets/lumi.webp':key==='gear'?'tower/reward-chest.webp':currencyIconURL(key);
 const rewardImage=key=>key==='gold'?'':key==='gear'?'<span class="pet-chest" role="img" aria-label="보스 장비"></span>':`<img src="${art(key)}" alt="">`;

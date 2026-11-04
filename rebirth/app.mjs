@@ -60,7 +60,7 @@ import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-
 import * as D from "./data.mjs?v=transcend2-20261102";
 import {applyFieldArt} from './field-art.mjs?v=field-art-20261103';
 applyFieldArt(D);
-import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=shop-clean-105";
+import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=allmarket-20261104";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
 import { power, huntingRate, battleEnemy } from "./engine.mjs?v=bossatk-20261103";
 import {tokenView,keyView,tokenVisible,tokenBossResult,keyBossResult,raceUI} from "./token-ui.mjs?v=bossatk-20261103";
@@ -113,7 +113,7 @@ async function refreshCoopRooms(){
 let bankCancelArm=null;
 // 2026-11-04 거래소 구매 요청(소모품만): 필요한 사람이 골드를 걸어두면 가진 사람이 바로 판다.
 let buyOrderMode=false,buyOrders=null,buyOrderRequest=0;
-const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore'];
+const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
 let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
@@ -1634,11 +1634,11 @@ function updateSellPrice() {
   const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
 }
 // Market materials: regular materials plus 다이아 (fishing record), 동료 소환권 (companions), 보물찾기 티켓 (treasure).
-const MARKET_EXTRA={diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'};
+const MARKET_EXTRA={luckPotion:'행운 물약',tribeTicket:'종족 주사위',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'};
 // 2026-11-04 전문 직업: 거래 가능 소모품 확장
-const MARKET_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore'];
+const MARKET_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
 const MARKET_MATERIALS=()=>Object.fromEntries(MARKET_KEYS.map(k=>[k,MARKET_EXTRA[k]||D.MATERIALS[k]||k]));
-const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='pickupTicket'?(state.companions?.pickupTickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
+const marketHave=k=>k==='luckPotion'?(state.consumables?.luckPotion||0):k==='tribeTicket'?(state.tribeGacha?.tickets||0):k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='pickupTicket'?(state.companions?.pickupTickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
 const materialName=k=>MARKET_EXTRA[k]||D.MATERIALS[k]||k;
 const marketMaterialIcon=(k,cls='')=>`<img${cls?` class="${cls}"`:''} src="${currencyIconURL(k)}" alt="">`;
 function consumableSellDialog(key=null){
