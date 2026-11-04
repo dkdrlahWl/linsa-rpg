@@ -8,12 +8,13 @@ export const TREASURE_TICKET_MAX=99;
 export const TREASURE_GEAR_LEVELS=[150,160,170,180,190];
 // 안전한 칸을 열 때마다 하나씩 나온다. chance 합계 = 1.
 export const TREASURE_REWARDS=Object.freeze([
- {id:'gold',name:'골드',amount:300000,chance:.295},
+ // 2026-11-04 도현: 던전 열쇠 4% → 2%, 줄어든 2%는 골드로 (29.5% → 31.5%)
+ {id:'gold',name:'골드',amount:300000,chance:.315},
  {id:'cube',name:'레드 큐브',amount:5,chance:.25},
  {id:'highCube',name:'블랙 큐브',amount:1,chance:.20},
  {id:'addCube',name:'에디셔널 큐브',amount:1,chance:.10},
  {id:'scroll',name:'잠재 해금 주문서',amount:1,chance:.06},
- {id:'dungeonKey',name:'던전 열쇠',amount:1,chance:.04},
+ {id:'dungeonKey',name:'던전 열쇠',amount:1,chance:.02},
  {id:'potentialLock',name:'잠재 잠금석',amount:1,chance:.025},
  {id:'bonusFlame',name:'추가옵션 불꽃',amount:1,chance:.02},
  {id:'bossGear',name:'150~190제 보스장비 상자',amount:1,chance:.005},
