@@ -1251,8 +1251,8 @@ let buyOrderAlert=0;const boToasted=new Set();
 function buyOrderAlertUpdate(data,markSeen=false){
   const open=(data?.orders||[]).filter(o=>!o.own);let seen=boSeen();
   if(markSeen){seen=new Set(open.map(o=>o.id));try{localStorage.setItem(BO_SEEN_KEY,JSON.stringify([...seen]));}catch{}}
-  // 2026-11-04 도현: 배지 = 남이 올린 열린 구매 요청 수 (체결·취소될 때까지 계속 표시, 토스트 없음)
-  const n=open.length;
+  // 2026-11-04 도현: 배지 = 남이 올린 열린 요청 중 아직 안 본 것. 거래소 › 구매 요청을 열면 읽음 처리돼 사라짐.
+  const n=open.filter(o=>!seen.has(o.id)).length;
   if(n!==buyOrderAlert){buyOrderAlert=n;setBuyOrderAlert(n);return true;}return false;
 }
 async function buyOrderAlertPoll(){
