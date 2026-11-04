@@ -1,7 +1,7 @@
 import {TOP_BUTTON_ART,topNavArt} from './top-button-art.mjs';
 import {professionById} from './profession-model.mjs';
 // 2026-11-04 전문 직업 상단 버튼 (종족 옆). 직업이 있으면 그 직업 아이콘, 없으면 '職'.
-const professionHeaderButton=s=>{const d=s?.profession?.id?professionById(s.profession.id):null;return `<button class="fantasy-bank-entry fantasy-prof-entry ${d?'':'is-empty'}" data-action="professionOpen" aria-label="전문 직업${d?' · '+d.name+' Lv.'+(s.profession.level||1):''}"><i class="prof-entry-glyph" aria-hidden="true">${d?d.icon:'職'}</i><span>직업</span>${d?`<b class="fantasy-mail-count prof-entry-lv">${s.profession.level||1}</b>`:'<b class="fantasy-mail-count">!</b>'}</button>`;};
+const professionHeaderButton=s=>{const d=s?.profession?.id?professionById(s.profession.id):null;return `<button class="fantasy-bank-entry fantasy-prof-entry ${d?'':'is-empty'}" data-action="professionOpen" aria-label="전문 직업${d?' · '+d.name+' Lv.'+(s.profession.level||1):''}"><img class="prof-entry-art" src="professions/${d?.id||'alchemist'}-v1.webp" alt=""><span>직업</span>${d?`<b class="fantasy-mail-count prof-entry-lv">${s.profession.level||1}</b>`:'<b class="fantasy-mail-count">!</b>'}</button>`;};
 import {tribeHeaderButton} from './tribe-ui.mjs?v=tribe-glow-20261102';
 import {TOKEN_ART} from './token-art.mjs';
 import {newsUnreadBadge} from './investment-notifications.mjs?v=invest-unread-6';
