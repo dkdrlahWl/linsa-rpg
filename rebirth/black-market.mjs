@@ -13,7 +13,7 @@ export const BLACK_MARKET_GOODS=Object.freeze([
  {id:'cube',kind:'material',name:'레드 큐브',price:100000,stock:10,weight:14},
  {id:'highCube',kind:'material',name:'블랙 큐브',price:400000,stock:10,weight:12},
  {id:'scroll',kind:'material',name:'잠재 해금 주문서',price:1000000,stock:2,weight:12},
- {id:'potentialLock',kind:'material',name:'잠재 잠금석',price:4500000,stock:5,weight:10},
+ {id:'potentialLock',kind:'material',name:'잠재 잠금석',price:4500000,stock:5,weight:4}, // 2026-11-05 도현: 진열 확률 41% → 약 20%
  {id:'dungeonKey',kind:'material',name:'던전 열쇠',price:5000000,stock:1,weight:8},
  // 2026-11-04 도현: 장비 파편은 암시장에서 제외 (사냥·분해·성채로만 공급, 탐험가 열쇠 재료).
  {id:'luckPotion',kind:'potion',name:'행운 물약',price:4000000,stock:1,weight:9},
