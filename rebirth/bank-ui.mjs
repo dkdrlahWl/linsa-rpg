@@ -1,4 +1,4 @@
-import {BANK_DAY,BANK_RATE_PPM,BANK_TERMS,BANK_DAY_MS,BANK_TERM_CANCEL_KEEP,bankTerm,bankTermPayout,bankTermUsed} from './bank-model.mjs';
+import {bankTermsOpenFor,BANK_DAY,BANK_RATE_PPM,BANK_TERMS,BANK_DAY_MS,BANK_TERM_CANCEL_KEEP,bankTerm,bankTermPayout,bankTermUsed} from './bank-model.mjs';
 const fmt=n=>Math.floor(n||0).toLocaleString('ko-KR');
 // 2026-11-04 다음 이자 표시를 실제 이율(BANK_RATE_PPM)로 계산 — 예전엔 0.3%로 고정돼 약 7배 크게 보였음.
 const BANK_MIN_GOLD=Math.ceil(1000000/BANK_RATE_PPM);
@@ -13,6 +13,7 @@ const when=t=>new Date(t).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'n
 const left=ms=>{const m=Math.max(0,Math.ceil(ms/60000)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;return d?`${d}일 ${h}시간`:h?`${h}시간 ${mm}분`:`${mm}분`;};
 // 2026-11-04 정기예금: 하루 복리, 만기에 원금+이자가 보유 골드로 자동 지급, 중도 해지는 이자 없이 원금의 95%.
 function termView(s,now,cancelArm){
+ if(!bankTermsOpenFor(s)&&!(s.bank?.terms||[]).length)return '';
  const b=s.bank||{},terms=(b.terms||[]).filter(t=>bankTerm(t.product)).sort((a,c)=>a.at+bankTerm(a.product).days*BANK_DAY_MS-(c.at+bankTerm(c.product).days*BANK_DAY_MS));
  const cards=BANK_TERMS.map(p=>{const used=bankTermUsed(b,p.id),room=Math.max(0,p.limit-used),gain=bankTermPayout(1000000000,p)/1000000000-1;
   return `<div class="bank-term-card"><div><b>${p.name}</b><small>하루 ${pct(p.ratePpm)}% 복리 · 만기 <em>+${(gain*100).toFixed(1)}%</em></small><small>남은 한도 ${fmt(room)} / ${fmt(p.limit)} G</small></div><div class="bank-term-buttons"><button data-action="bankTermOpen" data-arg="${p.id}" ${room?'':'disabled'}>가입</button><button data-action="bankTermOpen" data-arg="${p.id}:all" ${room&&s.gold?'':'disabled'}>최대</button></div></div>`;}).join('');

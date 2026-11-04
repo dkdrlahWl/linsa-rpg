@@ -5,6 +5,9 @@ export const BANK_LIMIT=9000000000000;
 export function bankTotal(bank){return (bank?.lots||[]).reduce((n,l)=>n+l.gold,0);}
 // 2026-11-04 도현: 정기예금(하루 복리). 만기 때 원금+이자가 보유 골드로 자동 지급. 중도 해지는 이자 없이 원금의 95%.
 export const BANK_DAY_MS=86400000,BANK_TERM_CANCEL_KEEP=0.95;
+// 2026-11-04 도현: 일단 잠금 — 일반 유저는 가입 불가(관리자만 시험 가능). 열 때 true로.
+export const BANK_TERMS_OPEN=false;
+export const bankTermsOpenFor=s=>BANK_TERMS_OPEN||s?.isAdmin===true;
 export const BANK_TERMS=Object.freeze([
  Object.freeze({id:'d3',name:'3일 정기예금',days:3,ratePpm:30000,limit:50000000000}),
  Object.freeze({id:'d7',name:'7일 정기예금',days:7,ratePpm:36000,limit:30000000000}),
@@ -55,6 +58,7 @@ export function bankCommand(s,command,args,now){
 function bankTermCommand(s,command,args,now){
  const b=settleBank(s,now);
  if(command==='bankTermOpen'){
+  if(!bankTermsOpenFor(s))throw Error('INVALID_BANK_TERM_LOCKED');
   const product=bankTerm(args?.product);if(!product)throw Error('INVALID_BANK_TERM');
   const room=product.limit-bankTermUsed(b,product.id);
   const amount=args.amount==='all'?Math.min(s.gold,room):args.amount;

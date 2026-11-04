@@ -255,6 +255,7 @@ const errors = {
   COMPANION_INVALID_SUMMON_COUNT: "1회 또는 5회 소환을 선택해 주세요. 새로고침 후 다시 시도해 주세요.",
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
+  INVALID_BANK_TERM_LOCKED: "정기예금은 아직 준비 중이에요.",
   INVALID_BANK_TERM_AMOUNT: "가입 금액을 1골드 이상 입력해 주세요.",
   INVALID_BANK_TERM_LIMIT: "이 상품의 가입 한도를 넘어요. 남은 한도 안에서 가입해 주세요.",
   INVALID_BANK_TERM_GOLD_LIMIT: "보유 골드 한도를 넘어서 해지할 수 없어요.",
