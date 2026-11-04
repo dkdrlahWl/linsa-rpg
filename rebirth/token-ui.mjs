@@ -5,7 +5,7 @@ import {currencyIconURL} from './currency-icons.mjs';
 import {KEY_BOSS_STAGES,KEY_DAILY_TRIES,KEY_BOSS_NAME,keyTriesLeft,keyStageOpen,keyCount} from './key-dungeon.mjs?v=keydungeon-20261103';
 import {tokenSweepable,keySweepable} from './sweep.mjs';
 const keyIcon=()=>`<img class="token-currency-art" src="${currencyIconURL('dungeonKey')}" alt="" width="22" height="22" decoding="async">`;
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=bossatk-20261103';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=treasure10-20261104';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
