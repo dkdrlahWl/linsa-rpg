@@ -19,8 +19,8 @@ import {showAdminPositions} from './admin-positions.mjs?v=fee1-20261102';
 import {shopView} from './shop-ui.mjs?v=preset-e-20261028';
 import {blackMarketPurchaseView,updateBlackMarketPurchase} from './black-market-ui.mjs?v=lock5-20261103';
 import {blackMarketRotation,blackMarketLimit,blackMarketOffersFor} from './black-market.mjs?v=lock450-20261104';
-import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase,consumableSellView,updateConsumableSale} from './consumable-ui.mjs?v=shop-cubes-185';
-import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=noaddcube-20261104';
+import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase,consumableSellView,updateConsumableSale} from './consumable-ui.mjs?v=flamew3-20261104';
+import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=flamew3-20261104';
 import {bossSalePrice,bossSaleBlock,gearPresetSlots} from './shop-model.mjs?v=shop-price-20261013b';
 import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
 import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=fee1-20261102';
@@ -261,6 +261,7 @@ const errors = {
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
   INVALID_PROFESSION: "없는 직업이에요.",
+  SHOP_WEEKLY_LIMIT: "이번 주 구매 한도를 다 썼어요. 월요일 00시에 초기화돼요.",
   PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
   PROFESSION_FULL: "이 직업은 정원(2명)이 다 찼어요. 다른 직업을 골라 주세요.",
   PROFESSION_SAME: "이미 그 직업이에요.",
