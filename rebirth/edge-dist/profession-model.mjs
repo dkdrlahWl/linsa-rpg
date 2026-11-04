@@ -14,26 +14,26 @@ export const PROFESSION_CHANGE_COOLDOWN=7*86400000;
 export const PROFESSION_CHANGE_COST=100000000;
 export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0.02; // Lv.1 2% … Lv.10 20%
 export const PROFESSIONS=Object.freeze([
- Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공 · 프라임·에디셔널 큐브',
+ Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
   gather:{cube:1,highCube:.5},
   recipes:[
    {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:750000},
    {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:700000},
   ]}),
- Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공 · 던전 열쇠·보물찾기 티켓·추가옵션 불꽃',
+ Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
   gather:{dungeonKey:.5,companionTicket:.3},
   recipes:[
    {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:50},gold:6200000},
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:10},gold:1600000},
    {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:10,cube:3},gold:4000000},
   ]}),
- Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공 · 동료·픽업 소환권',
+ Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공',
   gather:{diamond:1,fishingCasts:.5,bigFish:.3},
   recipes:[
    {id:'companionTicket',name:'동료 소환권',out:{companionTicket:1},cost:{diamond:3,cube:2},gold:2800000},
    {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:3800000},
   ]}),
- Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공 · 잠금석·초월석',
+ Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공',
   gather:{fragment:1,huntGold:.1},
   recipes:[
    {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:2,cube:1},gold:1660000},
