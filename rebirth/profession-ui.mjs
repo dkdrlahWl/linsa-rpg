@@ -8,7 +8,7 @@ const GATHER_LABELS={cube:'사냥 레드 큐브',highCube:'링탐 블랙 큐브'
 // 효과 표기: 드랍률형은 실제 확률, 개수형은 +%
 const DROP_RATE={cube:1,fragment:1};
 const gatherText=(k,mult)=>DROP_RATE[k]?`드랍률 <b>×${+mult.toFixed(2)}</b>`:`<b>+${Math.round((mult-1)*100)}%</b>`;
-const REF_PRICE={primeCube:1500000,addCube:1000000,dungeonKey:8000000,treasureTicket:2000000,bonusFlame:5000000,companionTicket:4000000,pickupTicket:6000000,potentialLock:2000000,transcendStone:10000000};
+const REF_PRICE={primeCube:1500000,addCube:1000000,dungeonKey:8000000,treasureTicket:2000000,bonusFlame:5000000,companionTicket:4000000,pickupTicket:6000000,potentialLock:4500000,transcendStone:10000000};
 const icon=k=>`<img class="prof-ic" src="${currencyIconURL(k)}" alt="" title="${RESOURCE_NAMES[k]||k}">`;
 const chip=(k,v)=>`<span class="prof-chip" title="${RESOURCE_NAMES[k]||k} ${v}">${icon(k)}${v}</span>`;
 const goldChip=g=>g?`<span class="prof-chip prof-gold">${g>=10000&&g%10000===0?fmt(g/10000)+'만':fmt(g)} G</span>`:'';

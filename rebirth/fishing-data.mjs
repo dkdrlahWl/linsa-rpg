@@ -62,7 +62,7 @@ export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+'
 export const resourceName=id=>({addCube:'에디셔널 큐브',diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
 
 // 2026-10-25 다이아 교환소: 하루 30개(한국 시간 자정 초기화)까지 교환.
-export const DIAMOND_EXCHANGE=[{id:'addCube',name:'에디셔널 큐브',diamonds:5},{id:'highCube',name:'블랙 큐브',diamonds:3},{id:'potentialLock',name:'잠재 잠금석',diamonds:5}];
+export const DIAMOND_EXCHANGE=[{id:'addCube',name:'에디셔널 큐브',diamonds:5},{id:'highCube',name:'블랙 큐브',diamonds:3},{id:'potentialLock',name:'잠재 잠금석',diamonds:20}];
 export const DIAMOND_EXCHANGE_DAILY=30;
 // 2026-10-25 주간 대어 대회: 한 주(월요일 0시 KST)마다 낚시터 하나 · 대상 물고기 한 종. 가장 무거운 한 마리로 순위.
 export const CONTEST_REWARDS=[{rank:1,diamonds:100,addCube:50},{rank:2,diamonds:50,addCube:30},{rank:3,diamonds:50,addCube:30}];

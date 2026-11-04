@@ -3,7 +3,7 @@ import {skillLookShop} from './skill-look-ui.mjs';
 import {bossSalePrice,bossSaleBlock} from './shop-model.mjs?v=shop-price-20261013b';
 import {consumableView} from './consumable-ui.mjs?v=shop-cubes-185';
 import {blackMarketShop,blackMarketMerchant} from './black-market-ui.mjs?v=bm8-20261018';
-import {MILEAGE_SHOP,mileageCount,VIP_TIERS,vipTier,vipNext,celiaVolume,mileagePrice} from './mileage.mjs?v=mileage-20261103';
+import {MILEAGE_SHOP,mileageCount,VIP_TIERS,vipTier,vipNext,celiaVolume,mileagePrice} from './mileage.mjs?v=lock450-20261104';
 import {TITLE_BY_ID} from './titles-data.mjs';
 const titleName=id=>id&&TITLE_BY_ID[id]?'「'+TITLE_BY_ID[id].name+'」':'없음';
 import {currencyIconURL} from './currency-icons.mjs';

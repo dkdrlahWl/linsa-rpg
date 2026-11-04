@@ -9,7 +9,7 @@ export const MILEAGE_SHOP=Object.freeze([
  {id:'highCube',name:'블랙 큐브',key:'highCube',cost:250000},
  {id:'addCube',name:'에디셔널 큐브',key:'addCube',cost:500000},
  {id:'bonusFlame',name:'추가옵션 불꽃',key:'bonusFlame',cost:2500000},
- {id:'potentialLock',name:'잠재 잠금석',key:'potentialLock',cost:1000000},
+ {id:'potentialLock',name:'잠재 잠금석',key:'potentialLock',cost:2250000},
  {id:'dungeonKey',name:'던전 열쇠',key:'dungeonKey',cost:5000000},
  {id:'companionTicket',name:'동료 소환권',key:'companionTicket',cost:4000000},
  {id:'tribeTicket',name:'종족 주사위',key:'tribeTicket',cost:15000000},
