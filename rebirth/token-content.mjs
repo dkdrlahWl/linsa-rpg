@@ -70,7 +70,7 @@ export const TOKEN_SHOP=Object.freeze([
  {id:'scroll',name:'잠재 해금 주문서',kind:'material',key:'scroll',amount:1,cost:10,weekly:50},
  {id:'potentialLock',name:'잠재 잠금석',kind:'material',key:'potentialLock',amount:1,cost:20,weekly:50},
  {id:'luckPotion',name:'행운 물약',kind:'potion',amount:1,cost:40,weekly:20},
- {id:'bonusFlame',name:'추가옵션 불꽃',kind:'material',key:'bonusFlame',amount:1,cost:50,weekly:15},
+ {id:'bonusFlame',name:'추가옵션 불꽃',kind:'material',key:'bonusFlame',amount:1,cost:50,weekly:3}, // 2026-11-04 도현: 주 15 → 3
  // 2026-11-04 도현: 던전 열쇠는 교환소에서 제외 (탐험가 제작이 공급)
  {id:'treasureTicket',name:'보물찾기 티켓',kind:'treasureTicket',amount:1,cost:20,weekly:100},
  // 2026-11-04 도현: 동료·픽업 소환권은 하루 한도 → 주간 한도 (어부 제작이 주 공급원)
