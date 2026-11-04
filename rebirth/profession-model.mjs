@@ -1,6 +1,7 @@
 // 2026-11-04 도현: 전문 직업 — 연금술사·탐험가·어부·광부. 계정당 1개, 처음 선택 무료, 변경은 7일 쿨타임 + 1억 G + 숙련도 초기화.
 // 제작은 횟수 제한 없음(하위 재료 + 골드만 소모). 제작자는 "가공업자": 남의 원재료를 사서 가공해 되파는 구조라 레시피가 싸고 서버 수요 전체를 감당한다.
-// 2026-11-04 도현: 모든 레시피 원가(재료 기준가 + 골드) = 기준가의 90%. 기준가 = 토큰 교환소(레드 10만·블랙 40만·파편 2만·다이아 20만), 프라임 150만·초월석 1,000만은 시장 추정.
+// 2026-11-04 도현: 모든 레시피 1회 이익(기준가 − 재료 기준가 − 골드) = 20만으로 통일 → 직업 재료 4종 시세가 같은 수준(약 20만)으로 수렴.
+// (이전: 원가 = 기준가의 90%) 기준가 = 토큰 교환소(레드 10만·블랙 40만·파편 2만·다이아 20만), 프라임 150만·초월석 1,000만은 시장 추정.
 // 2026-11-04 도현: 채집 보너스는 직업당 1개, Lv.10 기준 하루 약 300만 G 가치로 맞춤 (Lv.1은 절반, 숙련도 따라 선형 증가).
 // 연금술사 사냥 레드 큐브 드랍률 ×8.5, 광부 사냥 파편 드랍률 ×3.5 (엔드 사냥터 0.04%·0.6% 기준), 탐험가 링탐 블랙 큐브 개수 +20%(링탐 블랙 큐브 반토막에 맞춰 10→20%), 어부 낚시 다이아 +50%.
 // 숙련도 = 제작 횟수. Lv.n→n+1에 n×10. 레벨이 오르면 채집 보너스 50%→100%. 제작 비용은 전 구간 동일. (추가 제작 확률은 2026-11-04 삭제)
@@ -20,27 +21,27 @@ export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
   gather:{cube:7.5},
   recipes:[
-   {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:750000},
-   {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:700000},
+   {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:700000},
+   {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:600000},
   ]}),
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
   gather:{highCube:.2},
   recipes:[
-   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:120},gold:4800000},
+   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:120},gold:5400000},
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:10},gold:1600000},
-   {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:10,cube:3},gold:4000000},
+   {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:10,cube:3},gold:4300000},
   ]}),
  Object.freeze({id:'fisher',name:'어부',icon:'🎣',blurb:'소환권 가공',
   gather:{diamond:.5},
   recipes:[
-   {id:'companionTicket',name:'동료 소환권',out:{companionTicket:1},cost:{diamond:3,cube:2},gold:2800000},
-   {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:3800000},
+   {id:'companionTicket',name:'동료 소환권',out:{companionTicket:1},cost:{diamond:3,cube:2},gold:3000000},
+   {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:4200000},
   ]}),
  Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공',
   gather:{fragment:2.5},
   recipes:[
-   {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:20,highCube:2,cube:4},gold:2450000},
-   {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:20,highCube:3},gold:7400000},
+   {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:20,highCube:2,cube:4},gold:2700000},
+   {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:20,highCube:3},gold:8200000},
   ]}),
 ].map(p=>Object.freeze({...p,recipes:Object.freeze(p.recipes.map(Object.freeze))})));
 export const RESOURCE_NAMES=Object.freeze({essence:'마력 정수',mapPiece:'고대 지도 조각',pearl:'심해 진주',ore:'원석',fragment:'장비 파편',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',addCube:'에디셔널 큐브',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',bonusFlame:'추가옵션 불꽃',transcendStone:'초월석',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'});

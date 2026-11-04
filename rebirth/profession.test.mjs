@@ -16,9 +16,9 @@ const s={gold:100000000,isAdmin:true,materials:{fragment:100,cube:50,highCube:20
 assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'primeCube',count:1},t0,Math.random),/PROFESSION_REQUIRED/);
 professionCommand(s,'professionChoose',{id:'alchemist'},t0,Math.random);assert.equal(s.gold,100000000,'first choice free');
 assert.equal(professionCostMultiplier(1),1);assert.equal(professionCostMultiplier(10),1);assert.equal(professionBonusChance(10),0);
-const r=PROFESSIONS[0].recipes[0];assert.deepEqual(recipeCost(r,1,2,'alchemist'),{materials:{essence:2,highCube:2,cube:4},gold:1500000});
+const r=PROFESSIONS[0].recipes[0];assert.deepEqual(recipeCost(r,1,2,'alchemist'),{materials:{essence:2,highCube:2,cube:4},gold:1400000});
 let e=professionCommand(s,'professionCraft',{recipe:'primeCube',count:2},t0,seq(0.5,0.01));
-assert.equal(e.bonus,0);assert.equal(s.materials.primeCube,2);assert.equal(s.materials.highCube,18);assert.equal(s.gold,98500000);assert.equal(s.materials.essence,28,'직업 재료 1개/회');
+assert.equal(e.bonus,0);assert.equal(s.materials.primeCube,2);assert.equal(s.materials.highCube,18);assert.equal(s.gold,98600000);assert.equal(s.materials.essence,28,'직업 재료 1개/회');
 assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'dungeonKey',count:1},t0,Math.random),/INVALID_RECIPE/);
 // 숙련도: Lv.1→2 는 10회
 for(let i=0;i<8;i++)professionCommand(s,'professionCraft',{recipe:'addCube',count:1},t0,()=>.9);
@@ -33,7 +33,7 @@ assert.equal(s.gold,5);assert.equal(normalizeProfession(s).level,1);assert.equal
 // 채집 보너스: Lv.1 50% of listed, 비직업 1
 assert.equal(professionGather(s,'fragment'),2.25);assert.equal(professionGather(s,'cube'),1);assert.equal(professionGather({},'fragment'),1);
 // 어부 다이아 경로 · 픽업 경로
-const f={gold:3800000,isAdmin:true,materials:{cube:10,pearl:2},fishing:{diamonds:20},companions:{tickets:0,pickupTickets:0}};
+const f={gold:4200000,isAdmin:true,materials:{cube:10,pearl:2},fishing:{diamonds:20},companions:{tickets:0,pickupTickets:0}};
 professionCommand(f,'professionChoose',{id:'fisher'},t0,Math.random);
 professionCommand(f,'professionCraft',{recipe:'pickupTicket',count:1},t0,()=>.9);assert.equal(f.companions.pickupTickets,1);assert.equal(f.fishing.diamonds,12);assert.equal(f.gold,0);assert.equal(f.materials.pearl,1);
 // 초월 확률 · 천장
