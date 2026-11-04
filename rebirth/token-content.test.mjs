@@ -18,7 +18,7 @@ assert.equal(TOKEN_CONTENT_OPEN,true);
  // 시간 초과 실패: 토큰 0, 횟수 그대로
  u=run(u,'tokenBossStart',{stage:1},ctx(t0));assert.equal(u.battle.tokenStage,1);assert.equal(u.battle.enemyHp,TOKEN_BOSS_STAGES[0].hp);
  assert.throws(()=>execute(u,'tokenBossStart',{stage:1},ctx(t0)),/BATTLE_IN_PROGRESS/);
- assert.throws(()=>execute(u,'tokenShopBuy',{id:'gold'},ctx(t0)),/BATTLE_IN_PROGRESS/);
+ assert.throws(()=>execute(u,'tokenShopBuy',{id:'luckPotion'},ctx(t0)),/BATTLE_IN_PROGRESS/);
  let r=execute(u,'sync',{},ctx(t0+61000));u=r.state;
  assert.equal(u.battle,null);assert.equal(r.events.find(e=>e.type==='tokenBoss').tokens,0);assert.equal(tokenTriesLeft(u,t0),2);
  // 나가기: 토큰 0, 횟수 그대로
@@ -40,9 +40,9 @@ assert.equal(TOKEN_CONTENT_OPEN,true);
  const tomorrow=t0+24*3600e3;assert.equal(tokenTriesLeft(u,tomorrow),2);
  u=run(u,'tokenBossStart',{stage:3},ctx(tomorrow));assert.equal(u.battle.tokenStage,3);u=run(u,'towerLeave',{},ctx(tomorrow+1000));
  // 교환소·경마도 일반 유저 사용 가능, 토큰 부족 검사
- u=run(u,'tokenShopBuy',{id:'gold',quantity:1},ctx(tomorrow));
+ u=run(u,'tokenShopBuy',{id:'luckPotion',quantity:1},ctx(tomorrow));
  assert.throws(()=>execute(u,'tokenShopBuy',{id:'rerollStone'},ctx(tomorrow)),/NOT_ENOUGH_TOKENS/);
- assert.throws(()=>execute(u,'tokenShopBuy',{id:'gold',quantity:0},ctx(tomorrow)),/INVALID_QUANTITY/);
+ assert.throws(()=>execute(u,'tokenShopBuy',{id:'luckPotion',quantity:0},ctx(tomorrow)),/INVALID_QUANTITY/);
  u=run(u,'raceCard',{},ctx(tomorrow));const card=u.race.card;
  assert.throws(()=>execute(u,'raceBet',{cardId:card.id,lane:1,type:'win',bet:101},ctx(tomorrow)),/INVALID_RACE_AMOUNT/);
  assert.throws(()=>execute(u,'raceBet',{cardId:card.id+1,lane:1,type:'win',bet:1},ctx(tomorrow)),/RACE_CARD_CHANGED/);
@@ -76,7 +76,7 @@ const win=r.events.find(e=>e.type==='tokenBoss');assert.equal(win.won,true);asse
 
 // 교환소: 토큰 차감·지급·일일 한도
 s=r.state;s.tokens=3000;
-s=run(s,'tokenShopBuy',{id:'gold',quantity:5},ctx(t0,true));assert.equal(s.tokens,2950);
+s=run(s,'tokenShopBuy',{id:'luckPotion',quantity:5},ctx(t0,true));assert.equal(s.tokens,2800);
 // 2026-11-04: 동료 소환권은 주 20장 한도 (일일 → 주간)
 s=run(s,'tokenShopBuy',{id:'companionTicket',quantity:20},ctx(t0,true));assert.equal(s.companions.tickets>=20,true);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0,true)),/TOKEN_WEEKLY_LIMIT/);
@@ -86,7 +86,7 @@ s=run(s,'tokenShopBuy',{id:'companionTicket'},ctx(t0+8*24*3600e3,true));
 s=run(s,'tokenShopBuy',{id:'treasureTicket',quantity:2},ctx(t0,true));assert.equal(s.treasure.tickets>=2,true);
 s=run(s,'tokenShopBuy',{id:'luckPotion'},ctx(t0,true));assert.equal(s.consumables.luckPotion>=1,true);
 assert.throws(()=>execute(s,'tokenShopBuy',{id:'diamond'},ctx(t0,true)),/INVALID_TOKEN_ITEM/);
-assert.ok(TOKEN_SHOP.length>=7);assert.ok(!TOKEN_SHOP.some(o=>['cube','highCube','addCube','scroll','potentialLock','bonusFlame'].includes(o.id)));assert.ok(!TOKEN_SHOP.some(o=>o.id==='fragment'));
+assert.ok(TOKEN_SHOP.length>=6);assert.ok(!TOKEN_SHOP.some(o=>o.id==='gold'));assert.ok(!TOKEN_SHOP.some(o=>['cube','highCube','addCube','scroll','potentialLock','bonusFlame'].includes(o.id)));assert.ok(!TOKEN_SHOP.some(o=>o.id==='fragment'));
 
 // 경마: 배당 = 0.9 / 실제확률(소수 첫째 자리 내림) → 환급률 ≤ 90%
 for(let k=0;k<200;k++){const c=newRaceCard(Math.random);const pw=c.horses.map(h=>h.power),o=raceOdds(pw);

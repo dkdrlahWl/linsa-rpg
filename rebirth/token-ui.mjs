@@ -33,7 +33,7 @@ function dungeon(s,now){
 
 // 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
 const SHOP_GROUPS=[
- ['재화 · 소모품',['gold','luckPotion','dungeonKey']],
+ ['소모품',['luckPotion']],
  ['한정 품목',['tribeTicket','treasureTicket','companionTicket','pickupTicket','rerollStone']],
 ];
 const SHOP_ART={luckPotion:'consumables/luck-potion-v1.webp',tribeTicket:'tribes/polished-v1/ticket-transparent-v2.webp'};
