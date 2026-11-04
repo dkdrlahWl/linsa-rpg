@@ -35,14 +35,14 @@ for(const tier of [4,5,6]){
 }
 
 // Attendance: new 7-day table, every key lands (fishing diamonds into state.fishing).
-assert.equal(ATTENDANCE_REWARDS.length,7);assert.equal(ATTENDANCE_REWARDS[6].tokens,300);
+assert.equal(ATTENDANCE_REWARDS.length,7);assert.equal(ATTENDANCE_REWARDS[6].tokens,150);
 let now=Date.parse('2026-10-26T01:00:00Z');let s=initialState('warrior','출석',{now,random:Math.random,uuid:randomUUID});s.attendance={day:0,lastClaim:null};s.hunting=false;
 const before=structuredClone(s);
 for(let d=0;d<7;d++){s=execute(s,'attendanceClaim',{},{now,random:Math.random,uuid:randomUUID}).state;now+=86400000;}
 const total={};for(const r of ATTENDANCE_REWARDS)for(const [k,v] of Object.entries(r))total[k]=(total[k]||0)+v;
 for(const k of ['potentialLock','highCube','dungeonKey','addCube','scroll','bonusFlame'])assert.equal((s.materials[k]||0)-(before.materials[k]||0),total[k],k);
-assert.equal((s.companions.tickets||0)-(before.companions?.tickets||0),30);assert.equal((s.companions.pickupTickets||0)-(before.companions?.pickupTickets||0),10);
-assert.equal(s.tribeGacha.tickets-(before.tribeGacha?.tickets||0),3);assert.equal((s.tokens||0)-(before.tokens||0),300);
+assert.equal((s.companions.tickets||0)-(before.companions?.tickets||0),15);assert.equal((s.companions.pickupTickets||0)-(before.companions?.pickupTickets||0),5);
+assert.equal(s.tribeGacha.tickets-(before.tribeGacha?.tickets||0),2);assert.equal((s.tokens||0)-(before.tokens||0),150);
 // Fishing loot halved.
 assert.deepEqual(REWARD_RATES.map(r=>r.chance),[.985,.01,.005]); // 2026-11-04 열쇠 0.5%
 console.log('PASS exploration tiers 4~6 (linear HP, keys 1/2/3, rewards), attendance table, fishing chest/key odds');

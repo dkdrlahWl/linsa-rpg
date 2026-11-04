@@ -210,13 +210,14 @@ export const MATERIALS = {
 // 2026-10-25 개편: fishDiamond = 낚시 다이아(state.fishing.diamonds).
 export const ATTENDANCE_REWARDS = [
   // 2026-11-03 개편(도현): 출석 보상 대폭 상향.
-  {potentialLock:20},
-  {highCube:100},
-  {dungeonKey:15},
-  {addCube:50},
-  {scroll:10,bonusFlame:10},
-  {companionTicket:30,pickupTicket:10},
-  {tribeTicket:3,tokens:300},
+  // 2026-11-04 도현: 출석 보상 전부 절반 (홀수는 올림: 열쇠 15→8, 종족 주사위 3→2)
+  {potentialLock:10},
+  {highCube:50},
+  {dungeonKey:8},
+  {addCube:25},
+  {scroll:5,bonusFlame:5},
+  {companionTicket:15,pickupTicket:5},
+  {tribeTicket:2,tokens:150},
 ];
 export const OPTIONS = {
   STR: "STR",
