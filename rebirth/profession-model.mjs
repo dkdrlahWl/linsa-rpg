@@ -22,11 +22,13 @@ export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0; // 2026-11-04 도현: 추가 �
 // 2026-11-04 도현: 파편 소모처 강화 — 파편 레시피의 파편 개수를 크게 늘리고 그만큼 골드를 줄임(1회 이익 20만 유지, 파편 2만 기준).
 // 열쇠 파편 300 + 180만, 보물찾기 10→50, 불꽃 10→100, 잠금석 20→60, 초월석 20→150.
 export const PROFESSIONS=Object.freeze([
- Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공',
+ Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공 · 프라임·에디셔널·블랙 큐브',
   gather:{cube:7.5},
   recipes:[
    {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:700000},
    {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:600000},
+   // 2026-11-04 도현: 연금술사 블랙 큐브 제작 (기준가 40만, 이익 20만 규칙: 레드 1(10만) + 10만 G)
+   {id:'highCube',name:'블랙 큐브',out:{highCube:1},cost:{cube:1},gold:100000},
   ]}),
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
   gather:{highCube:.2},
