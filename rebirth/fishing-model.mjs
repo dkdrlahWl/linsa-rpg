@@ -152,6 +152,7 @@ export function fishingCommand(s,command,args,ctx){
   const diamonds=gatherAmount(s,'diamond',q.diamonds,ctx?.random||Math.random);f.daily.claimed.push(q.id);f.diamonds+=diamonds;return {type:'fishQuestClaim',diamonds};
  }
  if(command==='fishExchange'){
+  require(false,'FISHING_EXCHANGE_REMOVED'); // 2026-11-04 도현: 다이아 교환소 삭제
   const item=DIAMOND_EXCHANGE.find(x=>x.id===args.item);require(item&&integer(args.count,1,DIAMOND_EXCHANGE_DAILY),'INVALID_FISHING_EXCHANGE');
   require((f.daily.exchanged||0)+args.count<=DIAMOND_EXCHANGE_DAILY,'FISHING_EXCHANGE_LIMIT');
   const cost=item.diamonds*args.count;require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');

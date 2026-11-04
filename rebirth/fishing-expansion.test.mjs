@@ -15,13 +15,8 @@ const ctx=(extra={})=>({now,random:Math.random,uuid:randomUUID,accountId:'a',...
 let s=initialState('warrior','낚시',ctx());s.level=200;s.fishing={version:1,rod:70,xp:0,diamonds:500,bait:{worm:100},fish:[],aquarium:[],slots:3,bank:0,bankAt:now,collection:{},daily:{},cast:null,lastCatch:null};
 
 // Diamond exchange: 5 → 에디셔널 큐브, 3 → 블랙 큐브, 20 → 잠재 잠금석, 30 per day.
-s=execute(s,'fishExchange',{item:'addCube',count:10},ctx()).state;assert.equal(s.materials.addCube,10);assert.equal(s.fishing.diamonds,450);
-s=execute(s,'fishExchange',{item:'highCube',count:15},ctx()).state;assert.equal(s.fishing.diamonds,405);
-s=execute(s,'fishExchange',{item:'potentialLock',count:5},ctx()).state;assert.equal(s.fishing.diamonds,305);assert.equal(s.fishing.daily.exchanged,30);
-assert.throws(()=>execute(s,'fishExchange',{item:'addCube',count:1},ctx()),/FISHING_EXCHANGE_LIMIT/);
-assert.throws(()=>execute(s,'fishExchange',{item:'gold',count:1},ctx()),/INVALID_FISHING_EXCHANGE/);
-now+=86400000;s=execute(s,'fishExchange',{item:'addCube',count:1},ctx()).state;assert.equal(s.fishing.daily.exchanged,1,'resets at midnight');
-s.fishing.diamonds=4;assert.throws(()=>execute(s,'fishExchange',{item:'addCube',count:1},ctx()),/FISHING_DIAMONDS_REQUIRED/);
+// 2026-11-04: 다이아 교환소 삭제
+assert.throws(()=>execute(s,'fishExchange',{item:'addCube',count:1},ctx()),/FISHING_EXCHANGE_REMOVED/);
 
 // Contest: weeks start Monday 00:00 KST; only the target species counts; heaviest kept.
 assert.equal(contestWeek(Date.parse('2026-10-25T14:59:00Z')),'2026-10-19');assert.equal(contestWeek(Date.parse('2026-10-25T15:00:00Z')),'2026-10-26');

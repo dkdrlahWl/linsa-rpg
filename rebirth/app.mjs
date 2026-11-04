@@ -32,7 +32,7 @@ import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
 import {PROFESSIONS as D_PROFESSIONS} from './profession-model.mjs';
-import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fisherbite-20261104';
+import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=noexchange-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=fisherbite-20261104';
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
@@ -263,6 +263,7 @@ const errors = {
   INVALID_PROFESSION: "없는 직업이에요.",
   SHOP_WEEKLY_LIMIT: "이번 주 구매 한도를 다 썼어요. 월요일 00시에 초기화돼요.",
   EXPLORATION_MEMBER_KEY_REQUIRED: "던전 열쇠가 부족한 파티원이 있어요. 파티원 모두 각자 열쇠가 필요해요.",
+  FISHING_EXCHANGE_REMOVED: "다이아 교환소는 종료됐어요.",
   PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
   PROFESSION_FULL: "이 직업은 정원(2명)이 다 찼어요. 다른 직업을 골라 주세요.",
   PROFESSION_SAME: "이미 그 직업이에요.",
