@@ -13,8 +13,8 @@ export const JOB_MATERIAL_DROP=0.011; // 2026-11-04 도현: 처치당 1.1% — 2
 export const JOB_MATERIALS=Object.freeze({alchemist:'essence',explorer:'mapPiece',fisher:'pearl',miner:'ore'});
 export const JOB_MATERIAL_KEYS=Object.freeze(Object.values(JOB_MATERIALS));
 export const PROFESSION_MAX_LEVEL=10;
-// 2026-11-04 도현: 직업당 최대 3명 (8명 서버). 인원은 서버(edge)가 DB에서 세어 args.taken으로 넣는다(관리자·테스터 제외).
-export const PROFESSION_SLOTS=3;
+// 2026-11-04 도현: 직업당 최대 2명 (8명 서버, 3명 → 2명). 인원은 서버(edge)가 DB에서 세어 args.taken으로 넣는다(관리자·테스터 제외).
+export const PROFESSION_SLOTS=2;
 export const PROFESSION_CHANGE_COOLDOWN=7*86400000;
 export const PROFESSION_CHANGE_COST=100000000;
 export const PROFESSION_BONUS_CRAFT_PER_LEVEL=0; // 2026-11-04 도현: 추가 제작 확률 삭제

@@ -262,7 +262,7 @@ const errors = {
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
   INVALID_PROFESSION: "없는 직업이에요.",
   PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
-  PROFESSION_FULL: "이 직업은 정원(3명)이 다 찼어요. 다른 직업을 골라 주세요.",
+  PROFESSION_FULL: "이 직업은 정원(2명)이 다 찼어요. 다른 직업을 골라 주세요.",
   PROFESSION_SAME: "이미 그 직업이에요.",
   PROFESSION_COOLDOWN: "직업 변경은 7일에 한 번만 할 수 있어요.",
   PROFESSION_REQUIRED: "먼저 전문 직업을 선택해 주세요.",
