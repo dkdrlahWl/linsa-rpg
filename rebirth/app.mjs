@@ -1247,11 +1247,13 @@ async function marketLoad() {
 // 2026-11-04 도현: 새 구매 요청 알림 — 남이 올린 열린 요청 중 아직 안 본 것 개수를 거래소·구매 요청 버튼에 표시.
 const BO_SEEN_KEY='ringu_buy_order_seen';
 const boSeen=()=>{try{return new Set(JSON.parse(localStorage.getItem(BO_SEEN_KEY)||'[]'));}catch{return new Set();}};
-let buyOrderAlert=0;
+let buyOrderAlert=0;const boToasted=new Set();
 function buyOrderAlertUpdate(data,markSeen=false){
   const open=(data?.orders||[]).filter(o=>!o.own);let seen=boSeen();
   if(markSeen){seen=new Set(open.map(o=>o.id));try{localStorage.setItem(BO_SEEN_KEY,JSON.stringify([...seen]));}catch{}}
-  const n=open.filter(o=>!seen.has(o.id)).length;
+  const fresh=open.filter(o=>!seen.has(o.id)),n=fresh.length;
+  // 새로 올라온 요청은 상단 토스트로 한 번 알림 (구매 요청 탭을 보고 있을 땐 생략)
+  if(!markSeen)for(const o of fresh)if(!boToasted.has(o.id)){boToasted.add(o.id);toast(`📢 새 구매 요청 · ${o.buyer_name}: ${materialName(o.key)} ${fmt(o.quantity)}개 (개당 ${fmt(o.price)} G)`);}
   if(n!==buyOrderAlert){buyOrderAlert=n;setBuyOrderAlert(n);return true;}return false;
 }
 async function buyOrderAlertPoll(){
@@ -1259,7 +1261,7 @@ async function buyOrderAlertPoll(){
   try{await ensureToken();const data=await request("/rest/v1/rpc/rebirth_buy_order",{p_action:"list",p_args:{},p_request:crypto.randomUUID()},true);
    if(buyOrderAlertUpdate(data,tab==="market"&&buyOrderMode))render();}catch{}
 }
-setTimeout(buyOrderAlertPoll,5000);setInterval(buyOrderAlertPoll,60000);
+setTimeout(buyOrderAlertPoll,5000);setInterval(buyOrderAlertPoll,30000);
 async function buyOrdersLoad(){
   const version=++buyOrderRequest;await ensureToken();
   const data=await request("/rest/v1/rpc/rebirth_buy_order",{p_action:"list",p_args:{},p_request:crypto.randomUUID()});
