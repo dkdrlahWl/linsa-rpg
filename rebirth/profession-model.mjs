@@ -2,6 +2,13 @@
 // 제작은 횟수 제한 없음(하위 재료 + 골드만 소모). 제작자는 "가공업자": 남의 원재료를 사서 가공해 되파는 구조라 레시피가 싸고 서버 수요 전체를 감당한다.
 // 2026-11-04 도현: 모든 레시피 원가(재료 기준가 + 골드) = 기준가의 90%. 기준가 = 토큰 교환소(레드 10만·블랙 40만·파편 2만·다이아 20만), 프라임 150만·초월석 1,000만은 시장 추정.
 // 숙련도 = 제작 횟수(+추가 제작 포함 안 함). Lv.n→n+1에 n×10. 레벨이 오르면 ① 추가 제작 확률 2%p/레벨(Lv.10 20%) ② 채집 보너스 50%→100%. 제작 비용은 전 구간 동일.
+// 2026-11-04 도현: 아직 잠금 — 일반 유저는 선택·제작 불가(관리자만 시험). 열 때 true로.
+export const PROFESSION_OPEN=false;
+export const professionOpenFor=s=>PROFESSION_OPEN||s?.isAdmin===true;
+// 직업 재료: 사냥터에서 직업과 무관하게 랜덤 드랍, 제작 1회당 1개 소모(추가 제작엔 미소모), 거래 가능.
+export const JOB_MATERIAL_DROP=0.006; // 처치당 — 하루 9,000마리 기준 약 54개(4종 합계)
+export const JOB_MATERIALS=Object.freeze({alchemist:'essence',explorer:'mapPiece',fisher:'pearl',miner:'ore'});
+export const JOB_MATERIAL_KEYS=Object.freeze(Object.values(JOB_MATERIALS));
 export const PROFESSION_MAX_LEVEL=10;
 export const PROFESSION_CHANGE_COOLDOWN=7*86400000;
 export const PROFESSION_CHANGE_COST=100000000;
@@ -33,7 +40,7 @@ export const PROFESSIONS=Object.freeze([
    {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:20,highCube:3},gold:7400000},
   ]}),
 ].map(p=>Object.freeze({...p,recipes:Object.freeze(p.recipes.map(Object.freeze))})));
-export const RESOURCE_NAMES=Object.freeze({fragment:'장비 파편',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',addCube:'에디셔널 큐브',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',bonusFlame:'추가옵션 불꽃',transcendStone:'초월석',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'});
+export const RESOURCE_NAMES=Object.freeze({essence:'마력 정수',mapPiece:'고대 지도 조각',pearl:'심해 진주',ore:'원석',fragment:'장비 파편',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',addCube:'에디셔널 큐브',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',bonusFlame:'추가옵션 불꽃',transcendStone:'초월석',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'});
 export const professionById=id=>PROFESSIONS.find(p=>p.id===id)||null;
 const fail=code=>{throw new Error(code);};
 export function normalizeProfession(s){
@@ -74,19 +81,22 @@ export function resourceAdd(s,key,n){
  s[a][b]=resourceCount(s,key)+n;
  return s[a][b];
 }
-export function recipeCost(recipe,level,count=1){
+export function recipeCost(recipe,level,count=1,professionId=null){
  const m=professionCostMultiplier(level);
- const cost={};for(const [k,v] of Object.entries(recipe.cost))cost[k]=Math.ceil(v*m)*count;
+ const cost={};
+ const jm=professionId?JOB_MATERIALS[professionId]:null;if(jm)cost[jm]=count;
+ for(const [k,v] of Object.entries(recipe.cost))cost[k]=(cost[k]||0)+Math.ceil(v*m)*count;
  return {materials:cost,gold:Math.ceil(recipe.gold*m)*count};
 }
 export function recipeMaxCount(s,profession,recipe){
- const level=professionLevel(s),unit=recipeCost(recipe,level,1);
+ const level=professionLevel(s),unit=recipeCost(recipe,level,1,profession?.id);
  let max=1000;
  for(const [k,v] of Object.entries(unit.materials))if(v>0)max=Math.min(max,Math.floor(resourceCount(s,k)/v));
  if(unit.gold>0)max=Math.min(max,Math.floor((Number(s.gold)||0)/unit.gold));
  return Math.max(0,max);
 }
 export function professionCommand(s,command,args,now,random){
+ if(!professionOpenFor(s))fail('PROFESSION_LOCKED');
  if(command==='professionChoose'){
   const def=professionById(args?.id)||fail('INVALID_PROFESSION');
   const cur=normalizeProfession(s);
@@ -104,7 +114,7 @@ export function professionCommand(s,command,args,now,random){
   const def=professionById(p.id),recipe=def.recipes.find(r=>r.id===args?.recipe)||fail('INVALID_RECIPE');
   const count=args?.count==='max'?recipeMaxCount(s,def,recipe):args?.count;
   if(!Number.isInteger(count)||count<1||count>1000)fail('INVALID_CRAFT_COUNT');
-  const cost=recipeCost(recipe,p.level,count);
+  const cost=recipeCost(recipe,p.level,count,def.id);
   for(const [k,v] of Object.entries(cost.materials))if(resourceCount(s,k)<v)fail('INSUFFICIENT_MATERIAL');
   if((Number(s.gold)||0)<cost.gold)fail('INSUFFICIENT_GOLD');
   for(const [k,v] of Object.entries(cost.materials))resourceAdd(s,k,-v);
@@ -119,4 +129,9 @@ export function professionCommand(s,command,args,now,random){
   return {type:command,recipe:recipe.id,name:recipe.name,count,bonus,made,cost,level:p.level,levelUps:ups,xp:p.xp,xpNeeded:p.level>=PROFESSION_MAX_LEVEL?0:professionXpNeeded(p.level)};
  }
  fail('UNKNOWN_COMMAND');
+}
+// 사냥 정산: 직업 재료 드랍 (총 개수는 호출부에서 굴리고, 종류는 4종 중 랜덤).
+export function rollJobMaterials(count,random){
+ const out={};for(let i=0;i<count;i++){const k=JOB_MATERIAL_KEYS[Math.floor(random()*JOB_MATERIAL_KEYS.length)];out[k]=(out[k]||0)+1;}
+ return out;
 }

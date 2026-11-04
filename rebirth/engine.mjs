@@ -1,5 +1,5 @@
 import {settleBank,bankCommand} from './bank-model.mjs';
-import {normalizeProfession,professionCommand,professionGather} from './profession-model.mjs';
+import {normalizeProfession,professionCommand,professionGather,JOB_MATERIAL_DROP,rollJobMaterials} from './profession-model.mjs';
 import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs?v=rogue-archer-20261019';
@@ -442,6 +442,9 @@ export function settle(s, ctx) {
     scrolls = rollCount(kills, rates.scroll, ctx);
   s.materials.fragment += fragments;
   s.materials.cube += cubes;
+  // 2026-11-04 직업 재료: 직업과 무관하게 4종 중 랜덤 드랍 (거래 가능)
+  const jobMats=s.isTester?{}:rollJobMaterials(rollCount(kills,JOB_MATERIAL_DROP,ctx),ctx.random);
+  for(const [key,quantity] of Object.entries(jobMats)){s.materials[key]=(s.materials[key]||0)+quantity;loot.push({kind:"material",key,quantity});}
 
   for(const [key,quantity] of [["fragment",fragments],["cube",cubes],["scroll",scrolls]])if(quantity)loot.push({kind:"material",key,quantity});
   if(loot.length)s.recentLoot=[...loot.reverse().map(x=>({...x,at:ctx.now,stage:s.stage})),...(s.recentLoot||[])].slice(0,5);

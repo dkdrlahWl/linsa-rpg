@@ -113,7 +113,7 @@ async function refreshCoopRooms(){
 let bankCancelArm=null;
 // 2026-11-04 거래소 구매 요청(소모품만): 필요한 사람이 골드를 걸어두면 가진 사람이 바로 판다.
 let buyOrderMode=false,buyOrders=null,buyOrderRequest=0;
-const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket'];
+const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore'];
 let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
@@ -261,6 +261,7 @@ const errors = {
   INSUFFICIENT_GOLD: "골드가 부족합니다.",
   INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
   INVALID_PROFESSION: "없는 직업이에요.",
+  PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
   PROFESSION_SAME: "이미 그 직업이에요.",
   PROFESSION_COOLDOWN: "직업 변경은 7일에 한 번만 할 수 있어요.",
   PROFESSION_REQUIRED: "먼저 전문 직업을 선택해 주세요.",
@@ -1632,7 +1633,7 @@ function updateSellPrice() {
 // Market materials: regular materials plus 다이아 (fishing record), 동료 소환권 (companions), 보물찾기 티켓 (treasure).
 const MARKET_EXTRA={diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'};
 // 2026-11-04 전문 직업: 거래 가능 소모품 확장
-const MARKET_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket'];
+const MARKET_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore'];
 const MARKET_MATERIALS=()=>Object.fromEntries(MARKET_KEYS.map(k=>[k,MARKET_EXTRA[k]||D.MATERIALS[k]||k]));
 const marketHave=k=>k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='pickupTicket'?(state.companions?.pickupTickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
 const materialName=k=>MARKET_EXTRA[k]||D.MATERIALS[k]||k;
