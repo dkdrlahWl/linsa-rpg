@@ -35,7 +35,7 @@ export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
   gather:{highCube:.2},
   recipes:[
-   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:300},gold:1800000},
+   {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:150},gold:900000}, // 2026-11-05 도현: 제작비 반토막
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:50},gold:800000},
    {id:'bonusFlame',name:'추가옵션 불꽃',out:{bonusFlame:1},cost:{fragment:100,cube:3},gold:2500000},
   ]}),
