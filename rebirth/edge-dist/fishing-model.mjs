@@ -124,7 +124,7 @@ export function fishingCommand(s,command,args,ctx){
   require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');f.diamonds-=cost;f.rod++;f.xp=0;return {type:'fishUpgrade',level:f.rod};
  }
  if(command==='fishSell'){
-  require(Array.isArray(args.ids)&&args.ids.length>0&&args.ids.length<=150&&new Set(args.ids).size===args.ids.length,'INVALID_FISHING_ITEMS');
+  require(Array.isArray(args.ids)&&args.ids.length>0&&args.ids.length<=Math.max(fishBagSize(s),f.fish.length)&&new Set(args.ids).size===args.ids.length,'INVALID_FISHING_ITEMS');
   const fish=args.ids.map(id=>f.fish.find(x=>x.id===id));require(fish.every(Boolean),'FISHING_FISH_MISSING');
   const gold=fish.reduce((n,x)=>n+fishPrice(x),0);s.gold+=gold;f.fish=f.fish.filter(x=>!args.ids.includes(x.id));f.daily.sell+=fish.length;
   return {type:'fishSell',gold,count:fish.length};
