@@ -18,7 +18,8 @@ export const shopDailyLeft=(state,id,now=Date.now())=>SHOP_DAILY_LIMITS[id]?Math
 export const shopSellLimit=(state,id)=>SELL_PRICES[id]?Math.max(0,Math.min(shopConsumableCount(state,id),Math.floor((Number.MAX_SAFE_INTEGER-(Number(state?.gold)||0))/SELL_PRICES[id]))):0;
 // 2026-11-03 도현: 21시(KST)부터 상점에서 블랙 큐브 구매 불가.
 export const HIGH_CUBE_SHOP_END=Date.UTC(2026,10,3,12);
-export const shopConsumableOpen=(id,now=Date.now())=>!(id==='highCube'&&now>=HIGH_CUBE_SHOP_END);
+// 2026-11-05 도현: 레드 큐브도 상점 판매 중단 (블랙 큐브는 11/3부터 중단)
+export const shopConsumableOpen=(id,now=Date.now())=>!(id==='cube'||(id==='highCube'&&now>=HIGH_CUBE_SHOP_END));
 export const shopConsumableList=(now=Date.now())=>SHOP_CONSUMABLES.filter(item=>shopConsumableOpen(item.id,now));
 export const shopConsumable=id=>SHOP_CONSUMABLES.find(item=>item.id===id);
 export function shopConsumableCount(state,id){return id===LUCK_POTION.id?potionCount(state):Math.max(0,Number.isSafeInteger(state?.materials?.[id])?state.materials[id]:0);}

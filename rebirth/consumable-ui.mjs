@@ -1,4 +1,4 @@
-import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumableList,shopConsumable,shopConsumableCount,potionCount,luckStatus,shopPurchaseLimit,SELL_PRICES,shopSellLimit,SHOP_DAILY_LIMITS,shopDailyLeft,SHOP_WEEKLY_LIMITS,shopWeeklyLeft} from './consumables.mjs?v=flamew3-20261104';
+import {LUCK_POTION,SHOP_CONSUMABLES,shopConsumableList,shopConsumable,shopConsumableCount,potionCount,luckStatus,shopPurchaseLimit,SELL_PRICES,shopSellLimit,SHOP_DAILY_LIMITS,shopDailyLeft,SHOP_WEEKLY_LIMITS,shopWeeklyLeft} from './consumables.mjs?v=nored-20261105';
 export const potionTime=ms=>{const seconds=Math.ceil(Math.max(0,ms)/1000);return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');};
 export function consumableView(state,shop=false){
  if(shop)return consumableShopView(state);
@@ -37,7 +37,7 @@ export function updateConsumableSale(state,root=document){
  if(button)button.disabled=!valid||!!(state.battle||state.coopRoom||state.partyRoom);
 }
 export function consumableShopView(state){
- return `<section class="consumable-panel consumable-shop-panel"><header><h3>소모품 상점</h3></header><div class="consumable-shop-grid">${shopConsumableList().map(item=>consumableShopCard(state,item)).join('')}</div><p class="note">물약은 가방 → 소모품에서, 큐브는 장비 → 잠재에서 사용하세요.</p></section>`;
+ return `<section class="consumable-panel consumable-shop-panel"><header><h3>소모품 상점</h3></header><div class="consumable-shop-grid">${shopConsumableList().map(item=>consumableShopCard(state,item)).join('')}${Object.keys(SELL_PRICES).filter(id=>!shopConsumableList().some(i=>i.id===id)).map(id=>{const item=shopConsumable(id);if(!item)return '';const blocked=!!(state.battle||state.coopRoom||state.partyRoom);return `<article class="consumable-shop-card" data-no-currency-art><img class="consumable-shop-art" src="${item.art}" alt="${item.name}"><h3>${item.name} 판매</h3><span class="consumable-owned">보유 ${shopConsumableCount(state,id).toLocaleString('ko-KR')}개 · 구매는 종료</span><p>개당 ${SELL_PRICES[id].toLocaleString('ko-KR')} G에 상점에 팔 수 있어요.</p><div class="consumable-actions"><button class="consumable-sell" data-action="consumableSellPick" data-arg="${id}" ${blocked||!shopSellLimit(state,id)?'disabled':''}>판매</button></div></article>`;}).join('')}</div><p class="note">물약은 가방 → 소모품에서, 큐브는 장비 → 잠재에서 사용하세요.</p></section>`;
 }
 export function consumablePurchaseView(state,id){const item=shopConsumable(id);return item?consumableShopCard(state,item,true):'';}
 

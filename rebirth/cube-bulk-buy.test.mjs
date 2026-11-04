@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {consumableCommand,shopPurchaseLimit} from './consumables.mjs';
 import {consumablePurchaseView,consumableShopView,updateConsumablePurchase} from './consumable-ui.mjs';
 import {initialState,execute} from './engine.mjs';
-for(const [id,price] of [['cube',200000],['highCube',500000]]){
+for(const [id,price] of [['highCube',500000]]){ // 2026-11-05 레드 큐브 상점 판매 중단
  const s={gold:price*25,materials:{[id]:5}};
  assert.equal(shopPurchaseLimit(s,id),25);
  const reward=consumableCommand(s,'consumableBuy',id,0,25);
@@ -26,6 +26,6 @@ for(const [id,price] of [['cube',200000],['highCube',500000]]){
  state.gold=0;input.value='1';updateConsumablePurchase(state,root);assert.equal(button.disabled,true);assert.equal(input.max,'0');
 }
 const ctx={now:100000,random:()=>.5,uuid:()=>crypto.randomUUID()},state=initialState('warrior','대량구매',ctx);state.hunting=false;state.gold=2000000;
-const buy=execute(state,'consumableBuy',{id:'cube',quantity:10,price:1},ctx);assert.equal(buy.state.gold,0);assert.equal(buy.state.materials.cube,(state.materials.cube||0)+10);assert.equal(buy.events.find(e=>e.type==='consumableBuy').gold,2000000);
+assert.throws(()=>execute(state,'consumableBuy',{id:'cube',quantity:10,price:1},ctx),/CONSUMABLE_NOT_SOLD/); // 2026-11-05 레드 큐브 판매 중단
 assert.throws(()=>consumableCommand({gold:10000000},'consumableBuy','luckPotion',0,2),/INVALID_CONSUMABLE_QUANTITY/);
 console.log('PASS red/black bulk totals and caps, malformed/decimal/excess quantities, live total/button validation and engine integration with authoritative prices');

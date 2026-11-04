@@ -5,8 +5,7 @@ import {MILEAGE_SHOP} from './mileage.mjs';
 let n=0;const ctx=()=>({now:Date.UTC(2026,10,3,7),random:Math.random,uuid:()=>'m'+(++n)});
 let s=initialState('warrior','마일리지',ctx());s.hunting=false;s.gold=1_000_000_000;s.items=[];s.equipped={};
 // 소모품 구매 1% 적립
-let r=execute(s,'consumableBuy',{id:'cube',quantity:10},ctx());s=r.state;
-assert.equal(r.events[0].mileage,20000);assert.equal(s.mileage,20000);
+s.materials.cube=10;s.mileage=20000;let r; // 2026-11-05 레드 큐브 상점 구매 중단 → 적립 시작값만 맞춤
 // 소모품 판매 1% 적립 (레드 큐브 개당 5만)
 r=execute(s,'consumableSell',{id:'cube',quantity:4},ctx());s=r.state;assert.equal(r.events[0].mileage,2000);assert.equal(s.mileage,22000);
 // 보스장비 판매 1% 적립 (200제 무기 4억 → 400만)
