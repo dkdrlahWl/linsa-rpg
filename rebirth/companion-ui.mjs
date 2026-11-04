@@ -26,7 +26,7 @@ function slotView(d,card,slot,i,now){
   <small class="cp-label">누적 골드</small>
   <strong class="cp-accrued" data-cp-gold="${i}">${fmt(gold)} G</strong>
   <span class="cp-bar"><i data-cp-bar="${i}" style="width:${elapsed/COMPANION_CAP_MS*100}%"></i></span>
-  <small class="cp-time ${full?'full':''}" data-cp-time="${i}">${hhmm(elapsed)} / 08:00</small>
+  <small class="cp-time ${full?'full':''}" data-cp-time="${i}">${hhmm(elapsed)} / ${hhmm(COMPANION_CAP_MS)}</small>
   <button data-illustrated="1" class="cp-claim" data-action="companionClaim" data-arg="${i}" ${gold>0?'':'disabled'}>수령</button>
  </div>`;
 }
@@ -125,7 +125,7 @@ export function updateCompanionTimers(s,root){
    const card=slot&&d.cards.find(x=>x.i===slot.card);if(!card)return;
    const elapsed=Math.min(COMPANION_CAP_MS,now-slot.claimedAt),gold=slotAccrued(card,slot,now);
    const set=(k,v)=>{const el=root.querySelector(`[data-cp-${k}="${i}"]`);if(el)el.textContent=v;};
-   set('gold',fmt(gold)+' G');set('time',hhmm(elapsed)+' / 08:00');set('rate',fmt(companionRate(card,now-slot.placedAt)));
+   set('gold',fmt(gold)+' G');set('time',hhmm(elapsed)+' / '+hhmm(COMPANION_CAP_MS));set('rate',fmt(companionRate(card,now-slot.placedAt)));
    const bar=root.querySelector(`[data-cp-bar="${i}"]`);if(bar)bar.style.width=elapsed/COMPANION_CAP_MS*100+'%';
    const btn=root.querySelector(`[data-action="companionClaim"][data-arg="${i}"]`);if(btn)btn.disabled=!(gold>0);
   });

@@ -29,7 +29,7 @@ import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-1
 import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
 let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
-import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=companion-ss2-20261102';
+import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
 import {PROFESSIONS as D_PROFESSIONS} from './profession-model.mjs';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fishing-perf-188';
