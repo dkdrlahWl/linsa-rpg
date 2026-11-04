@@ -29,3 +29,9 @@
 .prof-cost span{display:inline-flex;align-items:center;gap:4px;background:#061120;border-radius:7px;padding:4px 7px}.prof-cost em{margin-left:2px}
 .prof-sum{margin:7px 0 0;font-size:11.5px;color:#9fb0c4;line-height:1.45}
 @media(max-width:480px){.prof-choose{grid-template-columns:1fr}.prof-actions input{width:72px}}
+
+/* 상단 버튼 */
+.fantasy-prof-entry{position:relative;background:linear-gradient(#2d5a3a,#0f2a1c)!important;border-color:#9fe0a8!important;box-shadow:inset 0 0 12px #8ff0a455,0 2px 8px #0008!important}
+.fantasy-prof-entry .prof-entry-glyph{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:17px;color:#e9ffe0;text-shadow:0 0 6px #8ff0a4,0 0 12px #3fbf6a}
+.fantasy-prof-entry.is-empty .prof-entry-glyph{color:#ffe9a8}
+.fantasy-prof-entry .prof-entry-lv{background:#2d8a4a}
