@@ -1,5 +1,5 @@
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=4;
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
@@ -88,7 +88,7 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishCast'){
   require(args.protocol===FISHING_PROTOCOL,'FISHING_REFRESH_REQUIRED');
   require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<150,'FISHING_BAG_FULL');
-  require((f.daily.casts||0)<Math.round(FISHING_DAILY_CASTS*professionGather(s,'fishingCasts')),'FISHING_DAILY_LIMIT');
+  require((f.daily.casts||0)<fishingDailyCasts(s),'FISHING_DAILY_LIMIT');
   const spot=SPOTS.find(x=>x.id===args.spot),bait=BAITS.find(x=>x.id===args.bait);
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
   require((f.bait[bait.id]||0)>0,'FISHING_BAIT_REQUIRED');
