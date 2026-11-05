@@ -28,6 +28,10 @@ export class BattleAudioTracker{
     old.won=old.won||!!b.won;old.ended=old.ended||!!b.ended;
   }
 }
+// 배경음 파일 (audio/*.mp3)
+export const BGM_FILES={'lobby-bgm':'lobby-green-road','battle-bgm':'battle-wild-oath','fishing-1':'bgm-fishing-1','fishing-2':'bgm-fishing-2','fishing-3':'bgm-fishing-3'};
+// 낚시터 구역: 1~3번째 · 4~6번째 · 7~8번째 낚시터
+export const FISHING_BGM_ZONE={brook:1,moon:1,canyon:1,coral:2,abyss:2,palace:2,volcano:3,origin:3};
 export class GameAudio{
   constructor(settings,state=()=>null){this.settings=settings;this.state=state;this.ctx=null;this.buffers=new Map();this.active=new Set();this.last=new Map();this.combat=false;this.musicEpoch=0;this.tracker=new BattleAudioTracker(id=>this.play(id));}
   start(){
@@ -74,24 +78,25 @@ export class GameAudio{
   event(e){if(e.type==='star')for(const v of this.active)if(v.id==='enhance-charge')v.source.stop();const list=eventAudio(e,this.state()?.classId);list.forEach((id,i)=>{if(['battle-victory','battle-defeat'].includes(id)&&performance.now()-(this.last.get(id)??-Infinity)<2000)return;if(i)setTimeout(()=>this.play(id),1100);else this.play(id);});}
   battle(b){this.tracker.observe(b);}
   setCombat(on){this.combat=on;this.warmClass();this.music();}
+  // 2026-11-05 도현: 배경음은 화면별(장면) — 낚시터는 구역별 곡. 긴 곡도 메모리를 안 먹게 <audio>로 스트리밍한다.
+  setScene(scene){if(scene===this.scene)return;this.scene=scene;this.music();}
+  musicUrl(id){return new URL('./audio/'+(BGM_FILES[id]||id)+'.mp3',import.meta.url).href;}
   stopMusic(){
-    const source=this.musicSource,gain=this.musicGain;this.musicSource=null;this.musicGain=null;
-    if(source){const at=this.ctx.currentTime;gain.gain.cancelScheduledValues(at);gain.gain.setValueAtTime(gain.gain.value,at);gain.gain.linearRampToValueAtTime(0,at+.3);source.stop(at+.32);}
+    const el=this.musicEl,gain=this.musicGain,node=this.musicNode;this.musicEl=null;this.musicGain=null;this.musicNode=null;
+    if(!el)return;const at=this.ctx.currentTime;gain.gain.cancelScheduledValues(at);gain.gain.setValueAtTime(gain.gain.value,at);gain.gain.linearRampToValueAtTime(0,at+.35);
+    setTimeout(()=>{el.pause();el.removeAttribute('src');el.load();try{node.disconnect();gain.disconnect();}catch{}},400);
   }
   music(){
     if(!this.ctx)return;this.volume();
-    const target=!this.settings().music||document.hidden?null:this.combat?'battle-bgm':'lobby-bgm';
-    if(target===this.musicTarget&&(this.musicSource||this.musicLoading||!target))return;
-    this.musicTarget=target;const epoch=++this.musicEpoch;this.stopMusic();this.musicLoading=!!target;
+    const target=!this.settings().music||document.hidden?null:this.combat?'battle-bgm':(this.scene||'lobby-bgm');
+    if(target===this.musicTarget&&(this.musicEl||!target))return;
+    this.musicTarget=target;this.musicEpoch++;this.stopMusic();
     if(!target)return;
-    void this.load(target).then(buffer=>{
-      if(epoch!==this.musicEpoch)return;this.musicLoading=false;
-      if(!buffer){this.musicTarget=null;return;}
-      if(document.hidden||!this.settings().music)return;
-      const source=this.ctx.createBufferSource(),gain=this.ctx.createGain();source.buffer=buffer;source.loop=true;source.loopEnd=buffer.duration;
-      gain.gain.setValueAtTime(0,this.ctx.currentTime);gain.gain.linearRampToValueAtTime(1,this.ctx.currentTime+.4);source.connect(gain).connect(this.bg);
-      source.onended=()=>{source.disconnect();gain.disconnect();};source.start();this.musicSource=source;this.musicGain=gain;
-    });
+    const el=new Audio();el.loop=true;el.preload='auto';el.src=this.musicUrl(target);
+    const node=this.ctx.createMediaElementSource(el),gain=this.ctx.createGain(),at=this.ctx.currentTime;
+    gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(1,at+.6);node.connect(gain).connect(this.bg);
+    this.musicEl=el;this.musicGain=gain;this.musicNode=node;
+    el.play().catch(()=>{if(this.musicEl===el)this.musicTarget=null;});
   }
-  pause(){this.musicEpoch++;this.musicTarget=null;this.musicLoading=false;this.musicSource?.stop();this.musicSource=null;this.musicGain=null;for(const v of this.active)v.source.stop();this.ctx?.suspend().catch(()=>{});}
+  pause(){this.musicEpoch++;this.musicTarget=null;this.musicEl?.pause();this.musicEl=null;try{this.musicNode?.disconnect();this.musicGain?.disconnect();}catch{}this.musicNode=null;this.musicGain=null;for(const v of this.active)v.source.stop();this.ctx?.suspend().catch(()=>{});}
 }
