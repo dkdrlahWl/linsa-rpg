@@ -29,7 +29,8 @@ export class BattleAudioTracker{
   }
 }
 // 배경음 파일 (audio/*.mp3)
-export const BGM_FILES={'lobby-bgm':'lobby-green-road','battle-bgm':'battle-wild-oath','fishing-1':'bgm-fishing-1','fishing-2':'bgm-fishing-2','fishing-3':'bgm-fishing-3'};
+// 2026-11-05 도현: 메인 배경음 · 던전들(전투) · 가방칸 · 거래소 · 상점 · 낚시터1~3
+export const BGM_FILES={'lobby-bgm':'bgm-main','battle-bgm':'bgm-dungeon','bag-bgm':'bgm-bag','market-bgm':'bgm-market','shop-bgm':'bgm-shop','fishing-1':'bgm-fishing-1','fishing-2':'bgm-fishing-2','fishing-3':'bgm-fishing-3'};
 // 낚시터 구역: 1~3번째 · 4~6번째 · 7~8번째 낚시터
 export const FISHING_BGM_ZONE={brook:1,moon:1,canyon:1,coral:2,abyss:2,palace:2,volcano:3,origin:3};
 export class GameAudio{

@@ -872,8 +872,8 @@ function render() {
   if(!(session&&state&&view==='game'&&tab==='event'&&eventPage==='fishing'&&!state.coopRoom&&!state.partyRoom&&!dummyBattle&&state.battle?.kind!=='tower')){stopFishing();fishingUI.entered=false;if(fishingUI.auto)stopAutoFishing();}
   if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
   sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
-  // 2026-11-05 도현: 낚시터는 구역별 배경음(1~3·4~6·7~8번째 낚시터), 나머지 화면은 메인 배경음.
-  sounds.setScene(view==='game'&&tab==='event'&&eventPage==='fishing'?'fishing-'+(FISHING_BGM_ZONE[fishingUI.spot]||1):'lobby-bgm');
+  // 2026-11-05 도현: 배경음 — 낚시터 구역별(1~3·4~6·7~8), 가방·거래소·상점은 각자 곡, 전투(던전들)는 setCombat, 나머지는 메인 배경음.
+  sounds.setScene(view!=='game'?'lobby-bgm':tab==='event'&&eventPage==='fishing'?'fishing-'+(FISHING_BGM_ZONE[fishingUI.spot]||1):tab==='gear'?'bag-bgm':tab==='market'?'market-bgm':tab==='shop'?'shop-bgm':'lobby-bgm');
   const preservedScroll=window.scrollY;
   const preservedLottoScroll=app.querySelector('.lotto-scroll')?.scrollTop;
   const towerBattle=dummyBattle||(state?.battle?.kind==='tower'?state.battle:null);
