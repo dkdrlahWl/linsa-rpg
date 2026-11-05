@@ -1,0 +1,38 @@
+[
+  {
+    "id": "royal-sapphire-knight",
+    "classId": "warrior",
+    "name": "로열 사파이어 기사",
+    "concept": "Royal sapphire knight, pearl white and royal blue polished armor, a blue velvet cape, small golden crown ornament, silver blond hair, ornate sword and compact shield. Elegant heroic prince."
+  },
+  {
+    "id": "strawberry-parfait-witch",
+    "classId": "mage",
+    "name": "딸기 파르페 마녀",
+    "concept": "Strawberry parfait witch, cream and strawberry pink patisserie inspired ruffled magical dress, cute wide witch hat with strawberry ornament, caramel brown hair, a dessert crystal staff. Beautiful sweet magical girl."
+  },
+  {
+    "id": "blooming-garden-elf",
+    "classId": "archer",
+    "name": "꽃정원 엘프 궁수",
+    "concept": "Blooming garden elf archer, emerald mint and ivory leaf dress, peach flowers in golden hair, delicate pointed elf ears, wooden bow decorated with blossoms. Fresh spring forest fantasy."
+  },
+  {
+    "id": "midnight-masquerade-rogue",
+    "classId": "rogue",
+    "name": "미드나잇 가면 괴도",
+    "concept": "Midnight masquerade phantom thief, elegant black and lavender tuxedo coat with silver trims, small domino eye mask, silvery purple hair, compact twin daggers and a short flowing cape. Charming mysterious fantasy thief."
+  },
+  {
+    "id": "summer-marina-captain",
+    "classId": "pirate",
+    "name": "마리나 여름 선장",
+    "concept": "Summer marina captain, navy white sailor outfit with turquoise ribbon and golden anchor buttons, cute white captain hat, aqua blue ponytail, ornate compact flintlock pistol. Cheerful nautical summer adventurer."
+  },
+  {
+    "id": "lily-bridal-saint",
+    "classId": "priest",
+    "name": "백합 웨딩 성녀",
+    "concept": "Lily bridal saint, elegant ivory wedding inspired priestess dress, warm gold embroidery, short translucent veil, pearl ornaments and lily flowers in long pale pink hair, graceful lily topped holy staff. Romantic luminous fantasy healer."
+  }
+]
