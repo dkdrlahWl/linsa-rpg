@@ -1434,11 +1434,11 @@ function showEvents(events) {
     if(e.type==='fishCatch'&&e.won&&e.records?.length){const r=e.records.at(-1);if(fishingUI.auto)toast('🏆 '+RARITIES_V3[r.rarity]+' 최고 기록 갱신! '+(r.weight>=1000?(r.weight/1000).toFixed(2)+' kg':r.weight+' g'));if(fishingUI.sheet==='records'||Date.now()-(fishingUI.recordsLoadedAt||0)>15000)command('fishRecordList',{},true).catch(()=>{});}
     if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
     if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}
-    if(e.type==='fishSell'){toast('🎟 낚시 토큰 '+fmt(e.tokens)+'개 받았어요.');continue;}
+    if(e.type==='fishSell'){toast('낚시 토큰 '+fmt(e.tokens)+'개 받았어요.');continue;}
     if(e.type==='fishAquariumClaim'){toast(fmt(e.gold)+' G 받았어요.');continue;}
     if(e.type==='fishEnhance'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🔨 강화 성공! 낚싯대 +'+e.level:'강화 실패… 단계는 그대로예요 (+'+e.level+')');continue;}
     if(e.type==='fishEnchant'){toast('✨ 인챈트를 새로 뽑았어요.');continue;}
-    if(e.type==='fishAutoBuy'){toast('🤖 자동 낚시권 구매 완료 · 오토 버튼을 눌러 시작하세요.');continue;}
+    if(e.type==='fishAutoBuy'){toast('🤖 자동 낚시 시간 추가 완료 · 총 남은 시간 '+Math.max(0,Math.ceil((e.until-Date.now())/60000)).toLocaleString('ko-KR')+'분');continue;}
     if(e.type==='fishFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🧬 합성 성공!':'합성 실패… 1마리만 남았어요.');continue;}
     if(e.type==='fishGoldFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🌈 무지개 개체 탄생!':'황금 합성 실패… 황금 1마리가 남았어요.');continue;}
     if(e.type==='fishAwaken'){toast('★ 각성! ★'+e.star+' (같은 종 '+e.used+'마리 사용)');continue;}

@@ -110,3 +110,13 @@ console.log('PASS fishing v3: data, refund+reset, tokens, 16 rods, enchant locks
  for(let i=0;i<60;i++){const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'origin',bait:'worm'},{now,random:Math.random,uuid});now=s.fishing.cast.biteAt;const r=fishingCommand(s,'fishHook',{id:castId,auto:true},{now,random:Math.random,uuid});if(r.records)records++;s.fishing.fish=[];now+=1000;s.fishing.daily.casts=0;}
  assert.ok(records>0);for(const [k,b] of Object.entries(s.fishing.best)){assert.equal(FISH.find(x=>x.id===b.species).rarity,Number(k));assert.ok(b.weight<=fishMaxWeight(FISH.find(x=>x.id===b.species)));}
 }
+// Staff can fish, but cannot update public or personal record entries.
+for(const role of ['isAdmin','isTester']){
+ const s=fresh();s[role]=true;s.fishing.best={0:{species:'fish-01',weight:1}};const before=structuredClone(s.fishing.best);let now=now0,caught=0;const random=seq(19);
+ for(let i=0;i<40;i++){
+  const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'brook',bait:'worm'},{now,random,uuid});now=s.fishing.cast.biteAt;
+  const result=fishingCommand(s,'fishHook',{id:castId,auto:true},{now,random,uuid});if(result.fish)caught++;now+=10000;
+ }
+ assert.ok(caught>0);assert.deepEqual(s.fishing.best,before);assert.equal(s.fishing.contest,undefined);
+}
+console.log('PASS administrator/tester catches preserve old data without updating records');
