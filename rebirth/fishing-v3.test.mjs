@@ -46,7 +46,7 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rodScheme:16,rod:16,x
  s.fishing.rod=5;s.fishing.enchants=[];
  fishingCommand(s,'fishEnchant',{},{now,random,uuid});assert.equal(s.fishing.enchants.length,1);
  assert.throws(()=>fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid}),/INVALID_FISHING_ENCHANT/,'cannot lock every open slot');
- s.fishing.rod=16;const t0=s.fishing.tokens;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(t0-s.fishing.tokens,60000);
+ s.fishing.rod=16;const t0=s.fishing.tokens;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(t0-s.fishing.tokens,2400000);
  {const b0=s.fishing.bait.star||0;fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'tokens'},{now,random,uuid});assert.equal(s.fishing.bait.star,b0+10);}
  assert.throws(()=>fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'diamonds'},{now,random,uuid}),/FISHING_REFRESH_REQUIRED/);
  const t1=s.fishing.tokens;fishingCommand(s,'fishAquariumExpand',{},{now,random,uuid});assert.equal(t1-s.fishing.tokens,aquariumExpandCost(3));assert.equal(s.fishing.slots,4);
@@ -98,4 +98,15 @@ console.log('PASS fishing v3: data, refund+reset, tokens, 16 rods, enchant locks
  const s={gold:0,materials:{},fishing:{version:3,rod:4,enhance:3,diamonds:5,bait:{worm:1},fish:[],aquarium:[],slots:3,bank:0,bankAt:now0,collection:{},daily:{},tokens:0,enchants:[]}};
  fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'coral',bait:'worm'},{now:now0,random:Math.random,uuid});
  assert.equal(s.fishing.rod,7);assert.equal(s.fishing.diamonds,5+15+20+30);assert.equal(s.fishing.enhance,undefined);assert.equal(s.fishing.rodScheme,16);
+}
+// 등급별 무게 상한 · 대어 기록
+{
+ const {RARITY_SIZE_CAP,fishMaxWeight,fishSizeWeight,FISH_SIZES:Z}=await import('./fishing-data.mjs');
+ const rec=Z.find(x=>x.id==='record');
+ for(const d of FISH){const top=fishSizeWeight(d,rec,1);assert.ok(Math.abs(top-fishMaxWeight(d))<=1,d.id);assert.ok(fishSizeWeight(d,Z.find(x=>x.id==='big'),0)>=d.max);}
+ assert.ok(RARITY_SIZE_CAP.every((x,i)=>!i||x>RARITY_SIZE_CAP[i-1]));
+ const s={gold:0,materials:{},fishing:{version:3,rodScheme:16,rod:16,bait:{worm:1},fish:[],aquarium:[],slots:3,bank:0,bankAt:now0,collection:{},daily:{},tokens:0,enchants:[],autoUntil:now0+864e5}};
+ let now=now0,records=0;
+ for(let i=0;i<60;i++){const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'origin',bait:'worm'},{now,random:Math.random,uuid});now=s.fishing.cast.biteAt;const r=fishingCommand(s,'fishHook',{id:castId,auto:true},{now,random:Math.random,uuid});if(r.records)records++;s.fishing.fish=[];now+=1000;s.fishing.daily.casts=0;}
+ assert.ok(records>0);for(const [k,b] of Object.entries(s.fishing.best)){assert.equal(FISH.find(x=>x.id===b.species).rarity,Number(k));assert.ok(b.weight<=fishMaxWeight(FISH.find(x=>x.id===b.species)));}
 }

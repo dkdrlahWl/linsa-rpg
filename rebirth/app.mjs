@@ -35,6 +35,7 @@ import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost} from 
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
+const RARITIES_V3=['일반','희귀','레어','에픽','전설','신화','태고'];
 const D_FISH_RARITY=id=>D_FISH_LIST.find(x=>x.id===id)?.rarity||0;
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
 import {fantasyHeader,fantasyFooter,fantasyMenu,setBuyOrderAlert} from './fantasy-ui.mjs?v=boalert-20261104';
@@ -729,6 +730,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(result.fishingContest){fishingUI.contest=result.fishingContest;fishingUI.contestLoadedAt=Date.now();}
+    if(result.fishingRecords){fishingUI.records=result.fishingRecords;fishingUI.recordsLoadedAt=Date.now();}
     if(result.professionCounts)professionCounts=result.professionCounts;
     if(result.arena){arenaData=result.arena;arenaError='';}
     if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
@@ -1428,6 +1430,7 @@ function showEvents(events) {
     if(e.type==='sweep'){sounds.play(e.items?.length?'loot-rare':'loot-common');sweepResult(e);continue;}
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
     if(e.type==='fishCatch'&&!e.won){sounds.play('ui-error');toast(e.reason==='snap'?'줄이 끊어졌어요… 낚싯대 힘이 모자라요.':'물고기를 놓쳤어요…');continue;}
+    if(e.type==='fishCatch'&&e.won&&e.records?.length){const r=e.records.at(-1);toast('🏆 '+RARITIES_V3[r.rarity]+' 최고 기록 갱신! '+(r.weight>=1000?(r.weight/1000).toFixed(2)+' kg':r.weight+' g'));if(fishingUI.panel==='records'||Date.now()-(fishingUI.recordsLoadedAt||0)>15000)command('fishRecordList',{},true).catch(()=>{});}
     if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
     if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}
     if(e.type==='fishSell'){toast('🎟 낚시 토큰 '+fmt(e.tokens)+'개 받았어요.');continue;}
@@ -1799,7 +1802,8 @@ document.addEventListener("click", async (e) => {
     if(action==='treasureStart'||action==='treasureCash'){if(busy)return;const result=await command(action,{});const e=result?.result?.events?.find(x=>x.type==='treasureCash');if(e){const gear=e.got?.bossGear;toast((e.cleared?'전부 찾았어요! ':'')+'보상 획득'+(gear?' · 보스장비 상자 '+gear+'개':''));}return;}
     if(action==='treasureDig'){if(busy)return;const result=await command('treasureDig',{cell:Number(arg)});const e=result?.result?.events?.[0];if(e?.type==='treasureBoom')toast('💥 지뢰! 모은 보상을 잃었어요.');else if(e?.type==='treasureCash')toast('🎉 안전한 칸을 전부 찾아서 보상을 받았어요!');return;}
     if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':arg==='treasure'?'treasure':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
-    if(action==='fishPanel'){fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);return;}
+    if(action==='fishPanel'){fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);if(arg==='records')await command('fishRecordList',{},true);return;}
+    if(action==='fishRecordTab'){fishingUI.recordTab=arg;render();return;}
     if(action==='fishExchange'){const [item,count]=String(arg).split(':');return await fishingCommandRequest('fishExchange',{item,count:Number(count)});}
     if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
@@ -2411,6 +2415,7 @@ setInterval(() => {
   if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=5000){refreshCoopRooms().catch(()=>{});return;}
   if(regularAutoSkills&&state.battle&&state.battle.started===regularAutoBattle&&!modal.open){const slot=nextAutoSkill(state,Date.now());if(slot!==null){command('skill',{slot}).catch(()=>{});return;}}
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
+  if(view==='game'&&tab==='event'&&eventPage==='fishing'&&fishingUI.panel==='records'&&!modal.open&&Date.now()-(fishingUI.recordsLoadedAt||0)>=20000){fishingUI.recordsLoadedAt=Date.now();command('fishRecordList',{},true).catch(()=>{});return;}
   // Measure from dispatch so response latency does not lengthen each combat second.
   if(state.battle?.kind==='boss'){
     if(Date.now()-lastBattleRequestAt>=1000)command("sync",{},true).catch(()=>{});

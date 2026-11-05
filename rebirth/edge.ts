@@ -117,6 +117,8 @@ Deno.serve(async (req) => {
     if(['investList','investBuy','investSell'].includes(body.command)){
       return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
     }
+    // 2026-11-05 도현: 대어 랭킹(등급별·전체 역대 최고 무게).
+    if(body.command==='fishRecordList')return reply({fishingRecords:await rpc('rebirth_fishing_records',{})});
     if(body.command==='fishContestList'){
       return reply({fishingContest:await rpc('rebirth_fishing_contest',{p_week:CONTEST_CLOSED?CONTEST_LAST:contestWeek(Date.now())})});
     }

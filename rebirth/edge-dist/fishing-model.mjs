@@ -38,7 +38,7 @@ export function normalizeFishing(s,now){
  if(f.rodScheme!==16){f.rod=Math.min(8,f.rod)*2-1;const e=Math.max(0,Math.min(LEGACY_ENHANCE_DIAMONDS.length,Number(f.enhance)||0));f.diamonds=(Number(f.diamonds)||0)+LEGACY_ENHANCE_DIAMONDS.slice(0,e).reduce((n,x)=>n+x,0);f.rodScheme=16;}
  delete f.enhance;if(f.rod>ROD_MAX)f.rod=ROD_MAX;
  f.tokens=Number.isSafeInteger(f.tokens)&&f.tokens>=0?f.tokens:0;f.enchants=Array.isArray(f.enchants)?f.enchants.slice(0,3):[];
- f.collection??={};f.daily??={};f.bait??={worm:0};
+ f.collection??={};f.daily??={};if(f.best&&typeof f.best!=='object')delete f.best;f.bait??={worm:0};
  if(f.daily.day!==koreanDay(now))f.daily={day:koreanDay(now),catch:0,rare:0,sell:0,exchanged:0,claimed:[]};
  if(f.cast&&now>f.cast.expires)f.cast=null;
  return f;
@@ -138,7 +138,10 @@ function recordContest(f,item){
 function addCaughtFish(s,f,c,fish,ctx){
  const item={id:ctx.uuid(),species:fish.species,weight:fish.weight,size:fish.size,...(fish.mut?{mut:fish.mut}:{}),caughtAt:ctx.now};f.fish.push(item);
  f.collection[item.species]=Math.max(f.collection[item.species]||0,item.weight);f.daily.catch=(f.daily.catch||0)+1;f.totalCatch=(f.totalCatch||0)+1;
- if(FISH.find(x=>x.id===item.species).rarity>=1)f.daily.rare=(f.daily.rare||0)+1;
+ const rarity=FISH.find(x=>x.id===item.species).rarity;if(rarity>=1)f.daily.rare=(f.daily.rare||0)+1;
+ // 2026-11-05 도현: 대어 랭킹 — 등급별 가장 무거운 한 마리(역대 최고)를 남긴다. 서버 랭킹은 이 값으로 매긴다.
+ f.best??={};const best=f.best[rarity];
+ if(!best||item.weight>best.weight){f.best[rarity]={species:item.species,weight:item.weight,size:item.size,...(item.mut?{mut:item.mut}:{}),at:item.caughtAt};c.records=[...(c.records||[]),{rarity,weight:item.weight,previous:best?.weight||0}];}
  recordContest(f,item);return item;
 }
 function landCatch(s,f,c,ctx){
@@ -147,13 +150,14 @@ function landCatch(s,f,c,ctx){
  const reward=REWARD_RATES.some(r=>r.id===c.reward)?c.reward:'fish';
  const result={type:'fishCatch',at:ctx.now,won:true,species:c.species,weight:c.weight,size:c.size,mut:c.mut,reward};
  if(reward==='fish'){
-  const item=addCaughtFish(s,f,c,c,ctx);result.fish=item;result.tokens=fishPrice(item);
+  c.records=[];const item=addCaughtFish(s,f,c,c,ctx);result.fish=item;result.tokens=fishPrice(item);
   // 두 마리 동시 낚기: 가방에 자리가 있을 때만.
   if(c.extra&&f.fish.length<fishBagSize(s)&&c.extraOk!==false){const extra=addCaughtFish(s,f,c,c.extra,ctx);result.extra=extra;}
  }else if(reward==='diamondChest'){const diamonds=gatherAmount(s,'diamond',3+Math.floor(ctx.random()*6),ctx.random);f.diamonds+=diamonds;result.diamonds=diamonds;}
  else{s.materials[reward]=(s.materials[reward]||0)+1;result.amount=1;}
  const spot=SPOTS.find(x=>x.id===c.spot),tickets=spot?.special?.ticket||1;
  for(let i=0;i<tickets;i++)if(treasureTicketDrop(s,ctx.now,ctx.random)){result.treasureTicket=(result.treasureTicket||0)+1;}
+ if(c.records?.length){result.records=c.records;}delete c.records;
  f.lastCatch=result;return result;
 }
 function escapeCatch(f,c,ctx,reason){
@@ -265,7 +269,7 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishEnchant'){
   const slots=enchantSlotCount(f.rod),locks=Array.isArray(args.locks)?[...new Set(args.locks)]:[];
   require(locks.every(i=>Number.isInteger(i)&&i>=0&&i<slots&&f.enchants[i]),'INVALID_FISHING_ENCHANT');require(locks.length<slots,'INVALID_FISHING_ENCHANT');
-  const cost=enchantCost(locks.length);spendTokens(f,cost);
+  const cost=enchantCost(locks.length,f.rod);spendTokens(f,cost);
   const rollTier=()=>{let r=ctx.random();for(let i=ENCHANT_TIERS.length-1;i>0;i--){r-=ENCHANT_TIERS[i].p;if(r<0)return i;}return 0;};
   const next=[];for(let i=0;i<slots;i++)next[i]=locks.includes(i)?f.enchants[i]:{id:ENCHANTS[Math.floor(ctx.random()*ENCHANTS.length)].id,tier:rollTier()};
   f.enchants=next;return {type:'fishEnchant',enchants:next,tokens:cost};
