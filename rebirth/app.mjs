@@ -2431,8 +2431,8 @@ setInterval(() => {
   if(view==='game'&&tab==='event'&&eventPage==='lotto'&&Date.now()-lottoLoadedAt>30000){command('lottoList',{},true).catch(()=>{});return;}
   if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
 }, 250);
-function strike(arena, frame = null) {
-  sounds.play(state.classId+"-attack");
+function strike(arena, frame = null, silent = false) {
+  if(!silent)sounds.play(state.classId+"-attack");
   if (settings.low || arena.querySelectorAll(".slash").length > 2) return;
   const slash = document.createElement("i");
   slash.className = "slash strike-" + state.classId;
@@ -2500,7 +2500,7 @@ setInterval(() => {
     if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":defeated?"처치 완료 · 다음 전투 준비":"공격 1초 · 피격 1.5초 · HP가 0이면 패배";
     const label=$("#battle-info");
     if(label)label.textContent="몬스터 HP "+fmt(enemyHp)+" / "+fmt(st.hp);
-    if (!recovering && !defeated && Date.now()-lastVisualHit>=rate.attackInterval*1000) { lastVisualHit=Date.now(); strike(arena); }
+    if (!recovering && !defeated && Date.now()-lastVisualHit>=rate.attackInterval*1000) { lastVisualHit=Date.now(); strike(arena,null,true); } // 2026-11-05 도현: 사냥터 타격음 없음
 
   }
   if(state.battle) {
