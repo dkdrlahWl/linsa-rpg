@@ -32,7 +32,7 @@ import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
 import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost,professionOf as profOf,recipeMaxCount as profMax,recipeCost as profCost,RESOURCE_NAMES as PROF_NAMES} from './profession-model.mjs';
-import {FISHING_PROTOCOL as FISH_PROTOCOL,fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
+import {FISHING_PROTOCOL as FISH_PROTOCOL,fishFailText,fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
 const RARITIES_V3=['일반','희귀','레어','에픽','전설','신화','태고'];
@@ -1432,7 +1432,7 @@ function showEvents(events) {
     if(e.type==='citadelChest'){sounds.play(e.items?.length?'loot-rare':'loot-common');const parts=['장비 파편 '+fmt(e.fragment||0)+'개'];if(e.potentialLock)parts.push('잠재 잠금석 '+e.potentialLock+'개');if(e.scroll)parts.push('잠재 해금 주문서 '+e.scroll+'개');if(e.highCube)parts.push('블랙 큐브 '+e.highCube+'개');for(const it of e.items||[])parts.push('보스 장비 · '+D.gearName(it)+' Lv.'+it.level);toast('보스 상자 · '+parts.join(' · ')+(e.stored?' (가방이 가득 차 우편함으로)':''));continue;}
     if(e.type==='sweep'){sounds.play(e.items?.length?'loot-rare':'loot-common');sweepResult(e);continue;}
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
-    if(e.type==='fishCatch'&&!e.won){sounds.play('ui-error');toast(e.reason==='snap'?'줄이 끊어졌어요… 낚싯대 힘이 모자라요.':'물고기를 놓쳤어요…');continue;}
+    if(e.type==='fishCatch'&&!e.won){sounds.play('ui-error');toast((e.reason==='snap'||e.reason==='weak'?'💥 ':'🐟 ')+fishFailText(e));continue;}
     if(e.type==='fishCatch'&&e.won&&e.records?.length){const r=e.records.at(-1);if(fishingUI.auto)toast('🏆 '+RARITIES_V3[r.rarity]+' 최고 기록 갱신! '+(r.weight>=1000?(r.weight/1000).toFixed(2)+' kg':r.weight+' g'));if(fishingUI.sheet==='records'||Date.now()-(fishingUI.recordsLoadedAt||0)>15000)command('fishRecordList',{},true).catch(()=>{});}
     if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
     if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}

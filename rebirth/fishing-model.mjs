@@ -166,8 +166,9 @@ function landCatch(s,f,c,ctx){
  if(c.records?.length){result.records=c.records;}delete c.records;
  f.lastCatch=result;return result;
 }
-function escapeCatch(f,c,ctx,reason){
- f.cast=null;const result={type:'fishCatch',at:ctx.now,won:false,reason,species:c.species,size:c.size,mut:c.mut,reward:'fish'};f.lastCatch=result;return result;
+// 2026-11-05 도현: 실패 안내 — weak(힘이 15 넘게 모자라 바로 끊김) · snap(막대 밖에 오래 있어 끊김) · escape(막대 안 비율 부족) · timeout
+function escapeCatch(f,c,ctx,reason,info={}){
+ f.cast=null;const result={type:'fishCatch',at:ctx.now,won:false,reason,species:c.species,size:c.size,mut:c.mut,reward:'fish',...info};f.lastCatch=result;return result;
 }
 const sameFish=(a,b)=>a.species===b.species&&fishSizeOf(a).id===fishSizeOf(b).id;
 export function fishingCommand(s,command,args,ctx){
@@ -205,9 +206,9 @@ export function fishingCommand(s,command,args,ctx){
   if(args.auto){
    require((f.autoUntil||0)>ctx.now,'FISHING_AUTO_REQUIRED');
    if(ctx.random()<autoCatchChance(dif))return landCatch(s,f,c,ctx);
-   return escapeCatch(f,c,ctx,dif.snap?'snap':'escape');
+   return escapeCatch(f,c,ctx,dif.snap?'weak':'escape',{need:dif.need,power:dif.power,auto:true});
   }
-  if(dif.snap)return escapeCatch(f,c,ctx,'snap');
+  if(dif.snap)return escapeCatch(f,c,ctx,'weak',{need:dif.need,power:dif.power});
   require(!c.hookAt,'FISHING_ALREADY_HOOKED');
   c.hookAt=ctx.now;c.challenge=dif;c.reelDeadline=ctx.now+dif.ticks*FISHING_TICK_MS+20000;
   return {type:'fishBite',castId:c.id,challenge:dif,seed:c.seed};
@@ -219,7 +220,7 @@ export function fishingCommand(s,command,args,ctx){
   // 서버가 같은 규칙으로 다시 계산해서 판정 (조작 방지). 입력이 짧으면 남은 칸은 손을 뗀 것으로 본다.
   const m=fishingMeter();for(let i=0;i<c.challenge.ticks&&!m.finished;i++)fishingStep(c,Number(inputs[i]||0),m);
   if(fishingMeterWon(c,m))return landCatch(s,f,c,ctx);
-  return escapeCatch(f,c,ctx,m.failed?'snap':'escape');
+  return escapeCatch(f,c,ctx,m.failed?'snap':'escape',{need:c.challenge.need,power:c.challenge.power,hit:Math.round(m.hits/c.challenge.ticks*100),required:Math.round(c.challenge.required*100)});
  }
  // 자동 낚시권 (골드): 남은 시간에 더한다.
  if(command==='fishAutoBuy'){
