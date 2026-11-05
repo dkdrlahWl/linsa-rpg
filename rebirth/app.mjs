@@ -31,7 +31,7 @@ let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
-import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost} from './profession-model.mjs';
+import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost,professionOf as profOf,recipeMaxCount as profMax,recipeCost as profCost,RESOURCE_NAMES as PROF_NAMES} from './profession-model.mjs';
 import {FISHING_PROTOCOL as FISH_PROTOCOL,fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
@@ -1971,7 +1971,16 @@ document.addEventListener("click", async (e) => {
     }
     if(action==="professionOpen"){await command('sync',{},true);await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
     if(action==="professionChoose"){if(busy)return;const cur=state.profession?.id,pname=D_PROFESSIONS.find(p=>p.id===arg)?.name||arg;if(cur&&!confirm(`${pname}(으)로 변경할까요?\n1억 G가 소모되고 숙련도가 Lv.1로 초기화되며, 7일 동안 다시 바꿀 수 없어요.`))return;if(!cur&&!confirm(`${pname}을(를) 선택할까요?\n첫 선택은 무료지만, 바꾸려면 7일 쿨타임 + 1억 G가 필요해요.`))return;const r=await command('professionChoose',{id:arg});await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');const e=r?.result?.events?.find(x=>x.type==='professionChoose');if(e)toast(e.changed?`${e.name}(으)로 변경했어요`:`${e.name} 선택 완료`);return;}
-    if(action==="professionCraft"||action==="professionCraftMax"){if(busy)return;const input=modal.querySelector(`[data-recipe-count="${arg}"]`);const count=action==="professionCraftMax"?'max':Number(input?.value);if(count!=='max'&&(!Number.isInteger(count)||count<1||count>1000))return toast('제작 수량은 1~1,000 사이로 입력해 주세요.');const r=await command('professionCraft',{recipe:arg,count});const scroll=modal.scrollTop;open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');modal.scrollTop=scroll;const e=r?.result?.events?.find(x=>x.type==='professionCraft');if(e){const made=Object.values(e.made)[0];toast(`${e.name} ${made.toLocaleString('ko-KR')}개 제작${e.levelUps?` · 숙련도 Lv.${e.level} 달성!`:''}`);}return;}
+    // 2026-11-05 도현: 제작 전 "제작하시겠습니까?" 확인 → 제작 후 "N개 제작 완료" 창.
+    if(action==="professionCraft"||action==="professionCraftMax"){if(busy)return;const input=modal.querySelector(`[data-recipe-count="${arg}"]`);let count=action==="professionCraftMax"?'max':Number(input?.value);if(count!=='max'&&(!Number.isInteger(count)||count<1||count>1000))return toast('제작 수량은 1~1,000 사이로 입력해 주세요.');
+      const def=profOf(state),recipe=def?.recipes.find(r=>r.id===arg);if(!def||!recipe)return;const n=count==='max'?profMax(state,def,recipe):count;if(!n||n<1)return toast('재료가 부족해요.');
+      const lv=state.profession?.level||1,cost=profCost(recipe,lv,n,def.id),parts=[...Object.entries(cost.materials).map(([k,v])=>`${esc(PROF_NAMES[k]||k)} ${v.toLocaleString('ko-KR')}개`),...(cost.gold?[`${cost.gold.toLocaleString('ko-KR')} G`]:[])];
+      open('제작 확인',`<div class="stack"><p><b>${esc(recipe.name)}</b> <b>${n.toLocaleString('ko-KR')}개</b>를 제작하시겠습니까?</p><p class="note">소모: ${parts.join(' · ')||'없음'}</p><div class="actions">${btn('제작하기','professionCraftConfirm',arg+'|'+n,'gold')}${btn('취소','professionCraftBack')}</div></div>`);modal.classList.add('prof-dialog');return;}
+    if(action==="professionCraftBack"){open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
+    if(action==="professionCraftConfirm"){if(busy)return;const [recipe,c]=String(arg).split('|');const r=await command('professionCraft',{recipe,count:Number(c)});const e=r?.result?.events?.find(x=>x.type==='professionCraft');
+      if(!e){open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
+      sounds.play('purchase-complete');const made=Object.entries(e.made).map(([k,v])=>`${esc(PROF_NAMES[k]||k)} ${v.toLocaleString('ko-KR')}개`).join(' · ');
+      open('제작 완료',`<div class="stack"><p>✅ <b>${esc(e.name)}</b> <b>${e.count.toLocaleString('ko-KR')}개</b> 제작 완료!</p><p class="note">획득: ${made}${e.levelUps?` · 🎉 숙련도 Lv.${e.level} 달성!`:''}</p><div class="actions">${btn('확인','professionCraftBack','','gold')}</div></div>`);modal.classList.add('prof-dialog');return;}
     if(action==="tribeOpen"){await command('sync',{},true);openTribe();return;}
     if(action==="tribeBuy"){if(busy||tribeSpinning)return;try{await command('tokenShopBuy',{id:'tribeTicket',quantity:1},true);toast('종족 주사위 1개 구매');}catch{}openTribe();return;}
     if(action==="tribeRoll"){
