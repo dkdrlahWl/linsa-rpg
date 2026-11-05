@@ -93,12 +93,12 @@ export function fishingBonuses(s,f,spot,bait){
  const sp=spot?.special||{},power=rodPower(f),star=f?.enhance||0;
  return {
   rare:(sp.rare||1)*(1+ENHANCE_RARE_BONUS*star)*(1+fishingEnchant(f,'rare')),
-  legend:bait?.legend||1,
-  big:(sp.big||1)*(bait?.big||1)*(1+fishingEnchant(f,'big'))*professionGather(s,'bigFish'),
-  chest:(sp.chest||1)*(bait?.chest||1)*(1+fishingEnchant(f,'chest')),
-  key:(sp.key||1)*(bait?.key||1)*(1+fishingEnchant(f,'key'))*professionGather(s,'dungeonKey'),
-  double:(sp.double||0)+(bait?.double||0)+fishingEnchant(f,'double'),
-  mut:(sp.mut||1)*(bait?.mut||1),
+  legend:1,
+  big:(sp.big||1)*(1+fishingEnchant(f,'big'))*professionGather(s,'bigFish'),
+  chest:(sp.chest||1)*(1+fishingEnchant(f,'chest')),
+  key:(sp.key||1)*(1+fishingEnchant(f,'key'))*professionGather(s,'dungeonKey'),
+  double:(sp.double||0)+fishingEnchant(f,'double'),
+  mut:sp.mut||1,
   bite:(sp.bite||1)*(1-.004*Math.max(0,power-8))*(1-fishingEnchant(f,'bite')),
   token:1+ENHANCE_TOKEN_BONUS*star+fishingEnchant(f,'token'),
   rodRare:r=>1+.007*Math.max(0,power-8)*r,
@@ -271,33 +271,8 @@ export function fishingCommand(s,command,args,ctx){
   const next=[];for(let i=0;i<slots;i++)next[i]=locks.includes(i)?f.enchants[i]:{id:ENCHANTS[Math.floor(ctx.random()*ENCHANTS.length)].id,tier:rollTier()};
   f.enchants=next;return {type:'fishEnchant',enchants:next,tokens:cost};
  }
- // ── v3 합성: 같은 종·같은 크기 3마리 → 다음 크기 ──
- if(command==='fishFuse'){
-  const ids=Array.isArray(args.ids)?[...new Set(args.ids)]:[];require(ids.length===FUSE_COUNT,'INVALID_FISHING_FUSE');
-  const list=ids.map(id=>f.fish.find(x=>x.id===id));require(list.every(Boolean),'FISHING_FISH_MISSING');
-  require(list.every(x=>sameFish(x,list[0])),'FISHING_FUSE_MISMATCH');
-  const sizeIndex=FISH_SIZES.findIndex(x=>x.id===fishSizeOf(list[0]).id);require(sizeIndex>=0&&sizeIndex<FISH_SIZES.length-1,'FISHING_FUSE_MAX');
-  // 돌연변이: 셋 다 같은 돌연변이면 유지, 아니면 가장 좋은 돌연변이를 30% 확률로 유지.
-  const muts=list.map(x=>x.mut||null),bestMut=[...MUTATIONS].reverse().find(m=>muts.includes(m.id))?.id||null;
-  const keepMut=muts.every(m=>m===muts[0])?muts[0]:bestMut&&ctx.random()<.3?bestMut:null;
-  f.fish=f.fish.filter(x=>!ids.includes(x.id));
-  const d=FISH.find(x=>x.id===list[0].species),success=ctx.random()<FUSE_CHANCE[sizeIndex];
-  const jump=success&&sizeIndex+2<FISH_SIZES.length&&ctx.random()<FUSE_JACKPOT?2:success?1:0,size=FISH_SIZES[sizeIndex+jump];
-  // 새 돌연변이: 더 좋은 게 나오면 바꾼다.
-  const rolled=rollMutation(ctx.random,FUSE_MUT_BOOST),rank=id=>MUTATIONS.findIndex(m=>m.id===id),mut=rolled&&rank(rolled.id)>rank(keepMut)?rolled.id:keepMut;
-  const item=success||mut!==(list[0].mut||null)?{id:ctx.uuid(),species:d.id,weight:fishSizeWeight(d,size,ctx.random()),size:size.id,...(mut?{mut}:{}),caughtAt:ctx.now}:{...list[0]};
-  f.fish.push(item);if(success){f.collection[d.id]=Math.max(f.collection[d.id]||0,item.weight);recordContest(f,{...item,caughtAt:ctx.now});}
-  return {type:'fishFuse',success,jump,mutated:!!mut&&mut!==(list[0].mut||null),fish:item};
- }
- // 황금 개체 5마리 → 20% 무지개 (가장 높은 등급 물고기가 무지개가 된다)
- if(command==='fishGoldFuse'){
-  const ids=Array.isArray(args.ids)?[...new Set(args.ids)]:[];require(ids.length===GOLD_FUSE_COUNT,'INVALID_FISHING_FUSE');
-  const list=ids.map(id=>f.fish.find(x=>x.id===id));require(list.every(Boolean),'FISHING_FISH_MISSING');require(list.every(x=>x.mut==='gold'),'FISHING_FUSE_MISMATCH');
-  const best=list.slice().sort((a,b)=>FISH.find(x=>x.id===b.species).rarity-FISH.find(x=>x.id===a.species).rarity||fishPrice(b)-fishPrice(a))[0];
-  f.fish=f.fish.filter(x=>!ids.includes(x.id));const success=ctx.random()<GOLD_FUSE_CHANCE;
-  const item={...best,id:success?ctx.uuid():best.id,mut:success?'rainbow':'gold'};f.fish.push(item);
-  return {type:'fishGoldFuse',success,fish:item};
- }
+ // 2026-11-05 도현: 합성 삭제.
+ if(command==='fishFuse'||command==='fishGoldFuse')require(false,'FISHING_FUSE_REMOVED');
  // 각성: 수족관 물고기에 같은 종을 먹여 ★1~5 (★당 수족관 골드 +20%, 필요 마리 = 다음 ★ 숫자)
  if(command==='fishAwaken'){
   const target=f.aquarium.find(x=>x.id===args.id);require(target,'FISHING_FISH_MISSING');const star=target.star||0;require(star<AWAKEN_MAX,'FISHING_AWAKEN_MAX');
