@@ -1,7 +1,7 @@
 import {professionGather,gatherAmount} from './profession-model.mjs';
 import {FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
-export const FISHING_PROTOCOL=5; // v3 낚시 개편
+export const FISHING_PROTOCOL=6; // v3 낚시 개편
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
 const koreanDay=now=>new Date(now+9*3600000).toISOString().slice(0,10);
@@ -59,7 +59,7 @@ export function fishingDifficulty(fish,power){
  const d=FISH.find(x=>x.id===fish.species),size=Math.max(0,FISH_SIZES.findIndex(x=>x.id===fishSizeOf(fish).id)),deficit=fishNeed(fish)-power;
  const over=Math.max(0,deficit),spare=Math.min(10,Math.max(0,-deficit)),ch=Math.max(0,d.rarity*.5+size*.42+over*.38-spare*.06);
  return {need:fishNeed(fish),power,deficit,snap:deficit>FISHING_SNAP_DEFICIT,species:d.id,rarity:d.rarity,size:fishSizeOf(fish).id,
-  band:clamp(.16-ch*.012,.06,.16),speed:clamp(.8+ch*.11,.8,1.6),drift:.033+ch*.001,tap:.042,
+  band:clamp(.16-ch*.012,.06,.16),speed:clamp(.8+ch*.11,.8,1.6),drift:.014+ch*.0015,tap:.06,
   strainLimit:Math.round(clamp(46-d.rarity*2-size*1.5-over*2.2,8,46)),required:clamp(.45+d.rarity*.025+size*.02,.45,.72),ticks:80+d.rarity*16+size*12};
 }
 // 오토(자동 낚시권): 손맛 없이 낚싯대 힘만으로 판정 — 충분하면 95%, 1 모자랄 때마다 -8%.
@@ -73,8 +73,10 @@ export function fishingStep(cast,input,meter){
  const target=fishingTarget(cast,meter.tick);
  // v3 클릭 낚시: input = 이 틱(50ms)에 누른 횟수(0~3). 한 번 누를 때마다 오른쪽으로, 가만히 두면 왼쪽으로 밀린다.
  // 한 번 누르면 막대가 쭉 미끄러지듯 크게 움직인다(속도 = 누른 힘, 매 틱 30%씩 줄어듦).
- meter.vel=(meter.vel||0)*.7+Math.min(3,Math.max(0,Number(input)||0))*c.tap;
- meter.cursor=clamp(meter.cursor+meter.vel-c.drift,.02,.98);if(meter.cursor<=.02||meter.cursor>=.98)meter.vel*=.3;
+ // 2026-11-05 도현: 누르면 바로 반응 — 한 번에 절반은 즉시 이동, 나머지는 미끄러지듯(총 약 12%), 제자리 유지 초당 약 2.3번. 가만히 두면 천천히 왼쪽으로.
+ const n=Math.min(3,Math.max(0,Number(input)||0));
+ meter.vel=(meter.vel||0)*.75+n*c.tap*.25;
+ meter.cursor=clamp(meter.cursor+n*c.tap+meter.vel-c.drift,.02,.98);if(meter.cursor<=.02||meter.cursor>=.98)meter.vel*=.3;
  const inside=Math.abs(meter.cursor-target)<=c.band;
  if(inside)meter.hits++;
  // 처음 1초(20틱)는 장력이 오르지 않는다 — 막대를 물고기 쪽으로 옮길 시간.
