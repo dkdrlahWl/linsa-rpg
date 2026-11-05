@@ -9,7 +9,7 @@
 export const PROFESSION_OPEN=true;
 export const professionOpenFor=s=>PROFESSION_OPEN||s?.isAdmin===true;
 // 직업 재료: 사냥터에서 직업과 무관하게 랜덤 드랍, 제작 1회당 1개 소모, 거래 가능.
-export const JOB_MATERIAL_DROP=0.0055; // 2026-11-05 도현: 정수만 두배 → 합계 0.55%
+export const JOB_MATERIAL_DROP=0.011; // 2026-11-05 도현: 정수만 두배(0.55%) → 다시 전부 두배 합계 1.1%
 // // 2026-11-05 도현: 처치당 1% — 20시간(9,000마리) 사냥 시 4종 합계 약 90개
 export const JOB_MATERIALS=Object.freeze({alchemist:'essence',explorer:'mapPiece',fisher:'pearl',miner:'ore'});
 export const JOB_MATERIAL_KEYS=Object.freeze(Object.values(JOB_MATERIALS));
@@ -149,7 +149,7 @@ export function professionCommand(s,command,args,now,random){
 }
 // 사냥 정산: 직업 재료 드랍 (총 개수는 호출부에서 굴리고, 종류는 4종 중 랜덤).
 // 2026-11-05 도현: 수요 비례 가중 — 마력 정수 40% · 지도 25% · 진주 20% · 원석 15%
-export const JOB_MATERIAL_WEIGHTS=Object.freeze({essence:80,mapPiece:12.5,pearl:10,ore:7.5}); // 처치당 정수 0.4% · 지도 0.0625% · 진주 0.05% · 원석 0.0375%
+export const JOB_MATERIAL_WEIGHTS=Object.freeze({essence:80,mapPiece:12.5,pearl:10,ore:7.5}); // 처치당 정수 0.8% · 지도 0.125% · 진주 0.1% · 원석 0.075%
 export function rollJobMaterials(count,random){
  const total=JOB_MATERIAL_KEYS.reduce((a,k)=>a+JOB_MATERIAL_WEIGHTS[k],0);
  const out={};for(let i=0;i<count;i++){let r=random()*total,k=JOB_MATERIAL_KEYS[JOB_MATERIAL_KEYS.length-1];for(const key of JOB_MATERIAL_KEYS){r-=JOB_MATERIAL_WEIGHTS[key];if(r<0){k=key;break;}}out[k]=(out[k]||0)+1;}
