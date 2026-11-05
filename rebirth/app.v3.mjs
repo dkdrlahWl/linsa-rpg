@@ -32,7 +32,7 @@ import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
 import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost} from './profession-model.mjs';
-import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
+import {FISHING_PROTOCOL as FISH_PROTOCOL,fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
 const RARITIES_V3=['일반','희귀','레어','에픽','전설','신화','태고'];
@@ -1810,7 +1810,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast(spot.level+'단계 낚싯대부터 입장할 수 있어요. 낚싯대 메뉴에서 구매해 주세요.');fishingUI.spot=arg;render();return;}
     if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}if(!((state.fishing?.autoUntil||0)>Date.now())){fishingUI.panel='shop';render();return toast('🤖 자동 낚시권이 있어야 오토 낚시를 할 수 있어요. 상점에서 구매해 주세요.');}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
     if(action==='fishCancel'&&fishingUI.auto)stopAutoFishing();
-    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:5});}
+    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:FISH_PROTOCOL});}
     // v3 낚시: 강화·인챈트·합성·각성
     if(action==='fishRodBuy')return await fishingCommandRequest('fishRodBuy',{tier:Number(arg)});
     if(action==='fishAutoBuy')return await fishingCommandRequest('fishAutoBuy',{plan:arg});
