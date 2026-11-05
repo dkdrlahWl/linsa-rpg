@@ -9,7 +9,7 @@
 export const PROFESSION_OPEN=true;
 export const professionOpenFor=s=>PROFESSION_OPEN||s?.isAdmin===true;
 // 직업 재료: 사냥터에서 직업과 무관하게 랜덤 드랍, 제작 1회당 1개 소모, 거래 가능.
-export const JOB_MATERIAL_DROP=0.011; // 2026-11-05 도현: 정수만 두배(0.55%) → 다시 전부 두배 합계 1.1%
+export const JOB_MATERIAL_DROP=0.022; // 2026-11-06 도현: 전부 두배 → 합계 2.2% (정수 1.6% · 지도 0.25% · 진주 0.2% · 원석 0.15%)
 // // 2026-11-05 도현: 처치당 1% — 20시간(9,000마리) 사냥 시 4종 합계 약 90개
 export const JOB_MATERIALS=Object.freeze({alchemist:'essence',explorer:'mapPiece',fisher:'pearl',miner:'ore'});
 export const JOB_MATERIAL_KEYS=Object.freeze(Object.values(JOB_MATERIALS));
