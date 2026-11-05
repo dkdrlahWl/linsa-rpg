@@ -271,7 +271,7 @@ body #app .fishing-screen .fishing-bigcatch-actions .fishing-gold{background:lin
 .fishing-stage-layout .fishing-play:has(.fishing-bigcatch) .fishing-hud-spot,.fishing-stage-layout .fishing-play:has(.fishing-bigcatch) .fishing-hud-wallet{pointer-events:none}
 .fishing-screen[data-sheet="map"] .fishing-sites button.locked img{filter:grayscale(1) brightness(.45)}
 /* 2026-11-05 v2: 아래에는 큰 던지기 버튼만 — 미끼·오토는 위쪽 작은 칩 */
-body #app .fishing-screen.fishing-stage-layout .fishing-play .fishing-console{position:static}
+body #app .fishing-screen.fishing-stage-layout .fishing-play .fishing-console{position:static;left:auto;right:auto;width:auto;transform:none}
 body #app .fishing-screen.fishing-stage-layout .fishing-controls{position:static;display:block;height:auto}
 body #app .fishing-screen.fishing-stage-layout .fishing-controls>button:not(.fishing-auto):not(.fishing-cancel),body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-pull{position:absolute;z-index:6;left:14px;right:14px;bottom:74px;height:60px;min-height:60px;width:auto;display:flex;align-items:center;justify-content:center;gap:8px;font-size:19px;white-space:nowrap;overflow:hidden;padding:0 16px}
 body #app .fishing-screen.fishing-stage-layout .fishing-controls:has(.fishing-cancel) .fishing-pull{right:84px}
