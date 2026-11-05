@@ -31,7 +31,7 @@ assert.ok(Math.abs(first/N-.12)<.01,first/N);assert.ok(Math.abs(survive5/N-.4957
 {const f={treasure:{}};let n=0;for(let i=0;i<20;i++)if(treasureTicketDrop(f,now,()=>0))n++;assert.equal(n,20);
  assert.equal(treasureTicketDrop({treasure:{}},now,()=>.0046),false);assert.equal(treasureTicketDrop({treasure:{}},now,()=>.0045),true);
  let total=0;const R=2000;for(let d=0;d<R;d++){const g={treasure:{}};for(let i=0;i<600;i++)if(treasureTicketDrop(g,now,Math.random))total++;}assert.ok(Math.abs(total/R-2.76)<.15,String(total/R));}
-{let t=initialState('rogue','낚시티켓',ctx());t.hunting=false;t.level=200;t.fishing={version:1,rod:70,xp:0,diamonds:0,bait:{worm:5000},fish:[],aquarium:[],slots:3,bank:0,bankAt:now,collection:{},daily:{},cast:null,lastCatch:null};
- let got=0;for(let i=0;i<400;i++){t=execute(t,'fishCast',{spot:'brook',bait:'worm',protocol:4},ctx()).state;const c=t.fishing.cast;now=c.biteAt;t=execute(t,'fishHook',{id:c.id},ctx()).state;if(t.fishing.lastCatch.treasureTicket)got++;if(t.fishing.fish.length>100)t.fishing.fish=[];}
+{let t=initialState('rogue','낚시티켓',ctx());t.hunting=false;t.level=200;t.fishing={version:3,rodScheme:16,rod:1,xp:0,diamonds:0,tokens:0,enchants:[],bait:{worm:5000},fish:[],aquarium:[],slots:3,bank:0,bankAt:now,collection:{},daily:{},cast:null,lastCatch:null,autoUntil:now+864e7};
+ let got=0;for(let i=0;i<400;i++){t=execute(t,'fishCast',{spot:'brook',bait:'worm',protocol:6},ctx()).state;const c=t.fishing.cast;now=c.biteAt;t=execute(t,'fishHook',{id:c.id,auto:true},ctx()).state;t.fishing.daily.casts=0;if(t.fishing.lastCatch?.treasureTicket)got++;if(t.fishing.fish.length>100)t.fishing.fish=[];}
  assert.equal(got,t.treasure.ticketsToday);assert.equal(got,t.treasure.tickets);}
 console.log('PASS treasure: tickets from fishing (0.92%/catch, ~5.5 per 600), 3 free runs/day then 1 ticket per run (no cap), no restart mid-run, 3 mines (12% first cell, 50% survive 5), cash grants bag, boss gear box 150~190');

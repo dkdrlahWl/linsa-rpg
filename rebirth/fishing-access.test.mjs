@@ -25,22 +25,22 @@ try{
  for(const command of commands){
   for(const flag of [false,undefined,'true',1,true]){
    user={id:'test',app_metadata:{ringu_admin:flag}};calls=[];
-   fingerprint={command,args:{protocol:4}};
+   fingerprint={command,args:{protocol:5}};
    const response=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer local'},body:JSON.stringify({...fingerprint,requestId:randomUUID()})}));
-   assert.equal(response.status,200);assert.equal(calls.length,2);
+   if(flag===true){assert.equal(response.status,200);assert.equal(calls.length,2);}else{assert.equal(response.status,403);assert.deepEqual(await response.json(),{error:'FISHING_LOCKED'});}
   }
  }
- user={id:'test',app_metadata:{ringu_admin:false}};
+ user={id:'test',app_metadata:{ringu_admin:true}};
  freshState=initialState('warrior','낚시',{now:Date.now(),uuid:randomUUID,random:()=>.5});freshState.hunting=false;
- const before=structuredClone(freshState),body={command:'fishCast',args:{spot:'brook',bait:'worm',protocol:4,_compact:true,_stateRevision:7},requestId:randomUUID()};
+ const before=structuredClone(freshState),body={command:'fishCast',args:{spot:'brook',bait:'worm',protocol:6,_compact:true,_stateRevision:7},requestId:randomUUID()};
  const compactResponse=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer local'},body:JSON.stringify(body)}));
  assert.equal(compactResponse.status,200);const compact=await compactResponse.json();
  assert.deepEqual(applyFishingPatch(before,7,compact.statePatch),committed.p_state);assert.equal(compact.revision,8);assert.equal(compact.result.events[0].type,'fishCast');
  freshState=null;committed=null;
  user=null;calls=[];
- const denied=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer invalid'},body:JSON.stringify({command:'fishCast',args:{protocol:4},requestId:randomUUID()})}));
+ const denied=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer invalid'},body:JSON.stringify({command:'fishCast',args:{protocol:5},requestId:randomUUID()})}));
  assert.equal(denied.status,401);assert.deepEqual(await denied.json(),{error:'LOGIN_REQUIRED'});assert.equal(calls.length,1);
- const open=fishingView({isAdmin:false,gold:0});assert.doesNotMatch(open,/관리자 전용 낚시/);assert.match(open,/data-action="fishCast"/);assert.match(open,/fishing-scene-art/);
+ const locked=fishingView({isAdmin:false,gold:0});assert.match(locked,/새 낚시 준비 중/);assert.doesNotMatch(locked,/data-action="fishCast"/);const open=fishingView({isAdmin:true,gold:0});assert.match(open,/data-action="fishCast"/);assert.match(open,/fishing-scene-art/);assert.match(fishingView({isTester:true,gold:0}),/data-action="fishCast"/);
  assert.match(lottoView({isAdmin:false,gold:0},null),/data-arg="fishing"/);
- console.log('PASS HTTP access: regular and admin accounts allowed, invalid login rejected before snapshot, fishing and lottery navigation open');
+ console.log('PASS HTTP access: fishing locked except admin/tester, invalid login rejected before snapshot, fishing and lottery navigation open');
 }finally{globalThis.fetch=originalFetch;delete globalThis.Deno;}

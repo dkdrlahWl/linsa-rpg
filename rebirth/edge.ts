@@ -1,11 +1,12 @@
 import {coopInputWire,deferCoopWrite} from './coop-transport-policy.mjs';
 import {rankingProfile} from './ranking-profile.mjs';
+const FISHING_LOCKED=true;
 import {isCitadel,packCitadelWorld,unpackCitadelWorld} from './citadel-zero.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
 import {grantCitadelChests} from './citadel-rewards.mjs';
 import {fishingStateReply} from './fishing-sync.mjs';
-import {contestWeek} from './fishing-data.mjs';
+import {contestWeek,CONTEST_CLOSED,CONTEST_LAST} from './fishing-data.mjs';
 import {startCoop,advanceCoop,setWaveSpeed,coopClientView,validateCoopFrames} from './coop-model.mjs';
 import {encodeCoopView} from './coop-wire.mjs';
 import { BOSSES, CLASS_SKILLS, SECOND_SKILLS, raidBoss } from "./data.mjs";
@@ -100,6 +101,10 @@ Deno.serve(async (req) => {
       if (!auth.ok) return reply({ error: "LOGIN_REQUIRED" }, 401);
       user=await auth.json();
     }
+    // 2026-11-05 낚시 v3 시험판: ringu-rebirth-v3 함수는 관리자·테스터 계정만.
+    // 2026-11-05 도현: 낚시 v3 정식 반영 — 오픈 전까지 관리자·테스터만 낚시 가능.
+    if(FISHING_LOCKED&&typeof body.command==='string'&&/^fish/.test(body.command)&&user?.app_metadata?.ringu_admin!==true&&user?.app_metadata?.ringu_tester!==true)return reply({error:'FISHING_LOCKED'},403);
+    if(new URL(req.url).pathname.includes('ringu-rebirth-v3')&&user?.app_metadata?.ringu_admin!==true&&user?.app_metadata?.ringu_tester!==true)return reply({error:'BETA_DISABLED'},403);
     // 2026-11-04 전문 직업 인원 제한: 서버가 DB에서 직업별 인원을 세서 넣는다(클라이언트 값은 덮어씀).
     if(body.command==='professionCounts')return reply({professionCounts:await rpc('rebirth_profession_counts',{},true)});
     if(body.command==='professionChoose')body.args={...(body.args||{}),taken:await rpc('rebirth_profession_counts',{},true)};
@@ -115,8 +120,10 @@ Deno.serve(async (req) => {
     if(['investList','investBuy','investSell'].includes(body.command)){
       return reply(await rpc('rebirth_investment',{p_action:body.command==='investBuy'?'buy':body.command==='investSell'?'sell':'list',p_args:body.args,p_request:body.requestId}));
     }
+    // 2026-11-05 도현: 대어 랭킹(등급별·전체 역대 최고 무게).
+    if(body.command==='fishRecordList')return reply({fishingRecords:await rpc('rebirth_fishing_records',{})});
     if(body.command==='fishContestList'){
-      return reply({fishingContest:await rpc('rebirth_fishing_contest',{p_week:contestWeek(Date.now())})});
+      return reply({fishingContest:await rpc('rebirth_fishing_contest',{p_week:CONTEST_CLOSED?CONTEST_LAST:contestWeek(Date.now())})});
     }
     if(['lottoList','lottoBuy'].includes(body.command)){
       return reply(await rpc('rebirth_lotto',{p_action:body.command==='lottoBuy'?'buy':'list',p_args:body.args,p_request:body.requestId}));
