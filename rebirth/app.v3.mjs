@@ -1,0 +1,2546 @@
+import {bankView} from './bank-ui.mjs?v=bank03-20261102';
+import "./abort-polyfill.mjs";
+import {advancementPortrait} from './advancement-art.mjs';
+import {showAdminInventory} from './admin-inventory.mjs?v=admin-gear-level2-20261018';
+import {citadelLobby} from './citadel-ui.mjs';
+import {explorationLobby} from './exploration-ui.mjs?v=bchalf-20261105';
+import equipmentBounds from "./equipment-bounds.mjs?v=priest-potential-83";
+import {installPortraitIsolation} from './portrait-isolation.mjs?v=arena-balance-153';
+import {abortable} from './request-lifecycle.mjs?v=coop-repeat-176';
+import {costumeWardrobe,portraitStyle} from './costume-ui.mjs?v=shop-tabs-122';
+import {skillLookById,equippedSkillLook} from './skill-looks.mjs';
+import {skillLookPreviewView} from './skill-look-ui.mjs';
+import {playSkillLookPreview,playSkillLookOverlay} from './skill-look-effects.mjs';
+import {getSkillAlpha,setSkillAlpha,skillAlpha} from './skill-alpha.mjs';
+// 사냥 화면 DOM 스킬 연출도 설정 > 스킬 투명도를 따른다.
+function fadeSkillOverlay(arena,slot){const a=skillAlpha(slot);if(!(a<.999))return;const before=new Set(arena.children),mark=()=>{for(const el of arena.children)if(!before.has(el)&&!el.dataset.skillAlpha){el.dataset.skillAlpha='1';const f=getComputedStyle(el).filter;el.style.filter=(f&&f!=='none'?f+' ':'')+`opacity(${a})`;}};const mo=new MutationObserver(mark);mo.observe(arena,{childList:true});setTimeout(()=>{mark();mo.disconnect();},2500);}
+import {costumeById,equippedCostume} from './costumes.mjs?v=costume-motion-111';
+import {showAdminPositions} from './admin-positions.mjs?v=fee1-20261102';
+import {shopView} from './shop-ui.mjs?v=preset-e-20261028';
+import {blackMarketPurchaseView,updateBlackMarketPurchase} from './black-market-ui.mjs?v=lock5-20261103';
+import {blackMarketRotation,blackMarketLimit,blackMarketOffersFor} from './black-market.mjs?v=lock20-20261105';
+import {consumableView,consumablePurchaseView,updateLuckTimers,updateConsumablePurchase,consumableSellView,updateConsumableSale} from './consumable-ui.mjs?v=nosell-20261105';
+import {LUCK_POTION,shopConsumable,shopPurchaseLimit,shopSellLimit,SELL_PRICES} from './consumables.mjs?v=nosell-20261105';
+import {bossSalePrice,bossSaleBlock,gearPresetSlots} from './shop-model.mjs?v=shop-price-20261013b';
+import {investmentNewsSummary,setNewsNotifications,resetNewsNotifications} from './investment-notifications.mjs?v=invest-unread-6';
+import {investmentHistoryView,investmentTradeItem,investmentNewsItem,investmentNewsView,investmentView,selectCoin,selectedCoin,setInvestmentAmount,investmentAmount,setInvestmentLeverage,investmentLeverage,setInvestmentPercent,investmentPercent,investmentMargin,investmentOrderHelp,resetInvestment,updateInvestmentClock} from './investment-ui.mjs?v=testerpos-20261105';
+let investmentData=null,investmentLoadedAt=0;
+import {openWarriorLab,closeWarriorLab} from './warrior-lab.mjs?v=fifth-impact-121';
+import {lottoView,lottoSelection,selectLottoNumber,setLottoPanel,autoLotto,clearLotto} from './lotto-ui.mjs?v=short-18';
+let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
+import {treasureView} from './treasure-ui.mjs';
+import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
+import {professionView,craftSummary} from './profession-ui.mjs';
+import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost} from './profession-model.mjs';
+import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
+import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
+import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
+const D_FISH_RARITY=id=>D_FISH_LIST.find(x=>x.id===id)?.rarity||0;
+import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
+import {fantasyHeader,fantasyFooter,fantasyMenu,setBuyOrderAlert} from './fantasy-ui.mjs?v=boalert-20261104';
+import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
+import {fieldPetHP} from './pet-event.mjs?v=priest-potential-83';
+import {fieldPetVisual} from './field-pet-visual.mjs?v=priest-potential-83';
+import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiReveal,playSummonReveal,playBossChestReveal} from './pet-ui.mjs?v=short-18';
+import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
+import {waveRewardBody} from './wave-ui.mjs?v=wave-fifth-cd-124';
+import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
+import {raidLobby} from './raid-ui.mjs?v=fifth-impact-121';
+import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
+import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
+import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
+import {GameAudio} from './game-audio.mjs?v=priest-potential-83';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=geartable-20261102';
+import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
+import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
+import {installMenuIcons} from './menu-icons.mjs?v=top-icons-20261102';
+import { renderCubePanel, renderCubeChoice, potentialPanel, cubeGuide, renderAdditionalSection, renderAddCubeChoice } from './cube-ui.mjs?v=prime-choice-158';
+import { renderRefinePanel, renderRefineChoice } from './refine-ui.mjs?v=transcend-20261102';
+import {TOWER_FLOORS,newTrainingBattle,towerStep} from './tower-model.mjs?v=fifth-impact-121';
+import {towerLobby,towerArena,TowerController} from './tower-client.mjs?v=token-art-20261102';
+import * as D from "./data.mjs?v=transcend2-20261102";
+import {applyFieldArt} from './field-art.mjs?v=field-art-20261103';
+applyFieldArt(D);
+import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=allmarket-20261104";
+import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=frag400-20261105";
+import {tokenView,keyView,tokenVisible,tokenBossResult,keyBossResult,raceUI} from "./token-ui.mjs?v=gold500-20261105";
+import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=price300-20261104";
+installNameFit();
+import {tokenShopBought} from "./token-content.mjs?v=gold500-20261105";
+import {sweepPlan,bossSweepable} from "./sweep.mjs";
+import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
+const $ = (s) => document.querySelector(s),
+  app = $("#app"),
+  modal = $("#modal"),
+  config = window.RinguCloudConfig;
+const esc = (v) =>
+  String(v ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+const fmt = (n) => Math.floor(n || 0).toLocaleString("ko-KR");
+const pct = (n) => (n * 100).toLocaleString("ko-KR", {maximumFractionDigits: 4}) + "%";
+installPortraitIsolation();
+const portraitPosition = (id) => Math.max(0, ["warrior", "mage", "archer", "rogue", "pirate"].indexOf(id)) * 25;
+function requiredLevel(level, label = "Lv." + level) {
+  return `<span data-required-level="${level}" class="required-level ${state&&state.level<level?"level-unmet":""}">${esc(label)}</span>`;
+}
+function refreshLevelRequirements() {
+  if(!state)return;
+  document.querySelectorAll('[data-required-level]').forEach(node=>{
+    const level=Number(node.dataset.requiredLevel),unmet=state.level<level;
+    node.classList.toggle("level-unmet",unmet);
+    node.title=unmet?`필요 레벨 ${level} · 현재 레벨 ${state.level}`:`필요 레벨 ${level} 충족`;
+  });
+}
+const combatFrames = [];
+let towerController=null,dummyBattle=null,bagPage=0,coopController=null,coopRoom=null,coopRooms=[],dialogScroll=new Map();
+let coopListAttempt=0,coopListPending=null;
+function coopLobbyVisible(){return view==="game"&&tab==="boss"&&["citadel","advancement","raid","exploration"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
+async function refreshCoopRooms(){
+  if(coopListPending)return coopListPending;
+  coopListPending=(async()=>{
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    if(!session||!state||!coopLobbyVisible()||document.hidden||!navigator.onLine)return;
+    coopListAttempt=Date.now();
+    return command("coopList",{},true);
+  })();
+  try{return await coopListPending;}finally{coopListPending=null;}
+}
+let bankCancelArm=null;
+// 2026-11-04 거래소 구매 요청(소모품만): 필요한 사람이 골드를 걸어두면 가진 사람이 바로 판다.
+let buyOrderMode=false,buyOrders=null,buyOrderRequest=0;
+const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
+let marketKind="all",exchangeClass="",exchangeLevel=10;
+let salvageMode=false;
+const salvageSelection=new Set();
+const canSalvage=it=>!it.locked&&!it.broken&&!Object.values(state.equipped).includes(it.id)&&state.pendingCube?.id!==it.id&&state.pendingAddCube?.id!==it.id&&state.pendingRefine?.id!==it.id;
+let partyBossId=null, partyPractice=false;
+let arenaData=null,arenaPage='home',arenaBattle=null,arenaPlayback=null,arenaError='';
+let shopCategory="boss";
+let skillLookClass=null,stopSkillLookPreview=null;
+modal.addEventListener('close',()=>{stopSkillLookPreview?.();stopSkillLookPreview=null;});
+function openTribe(){open('종족 강림',tribeView(state,{spinning:tribeSpinning,shop:{bought:tokenShopBought(state,'tribeTicket',Date.now())}}),!tribeSpinning);modal.classList.add('tribe-dialog');}
+let tribeSpinning=false,tribesAt=0;
+// 멀티 방 대기실: 참가자 종족은 랭킹 조회 결과에서 가져온다(1분마다 갱신).
+function ensureRoomTribes(){if(coopRoom?.me&&state)rememberTribe(coopRoom.me,state.tribe);if(Date.now()-tribesAt<60000||rankingLoading)return;tribesAt=Date.now();loadRankings(true).then(()=>{if(state?.coopRoom&&coopRoom?.status!=='fighting')render();}).catch(()=>{});}
+let tokenPage="dungeon",raceTimer=0;
+let bossTab="daily", partyRoom=null, partyRooms=[], rankingRows=[], rankingMode="level", rankingLoading=false, rankingError="", rankingUpdated=0, rankingRequest=0, itemSection="info";
+let connectionLost = false, marketRequest = 0, lastVisualHit = 0, lastBattleRequestAt = 0;
+let retryAt = 0, retryFailures = 0, characterName = "";
+// Market and lotto responses do not settle field rewards.
+let lastHuntSettlement = 0;
+let session,
+  settings = { sound: 0.3, music: 0.18, low: false },
+  state = null,
+  stateRevision = null,
+  tab = "hunt",
+  sub = "bag",
+  busy = false,
+  view = "game",
+  chosenClass = "warrior",
+  selected = null,
+  marketPage = 0,
+  mine = false,
+  filterSlot = "",
+  filterClass = "",
+  marketRows = [],
+  lastSync = 0;
+try {
+  session = JSON.parse(localStorage.getItem("ringu_rebirth_session"));
+  settings = {
+    ...settings,
+    ...JSON.parse(localStorage.getItem("ringu_rebirth_settings") || "{}"),
+  };
+} catch {}
+document.body.classList.toggle("low", settings.low);
+const pendingKey = () => `ringu_rebirth_pending_${session?.user?.id || "none"}`;
+const sounds = new GameAudio(()=>settings,()=>state);
+document.addEventListener(
+  "pointerdown",
+  () => {
+    sounds.start();
+    sounds.music();
+  },
+  { once: true },
+);
+function toast(text) {
+  $("#toast").textContent = text;
+  $("#toast").classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => $("#toast").classList.remove("show"), 3500);
+}
+const errors = {
+  INVESTMENT_HALF_TOO_SMALL: "수량이 2개 이상이어야 절반 판매할 수 있어요.",
+  COPY_TRADING_ACTIVE: "카피 트레이딩 중에는 직접 매수할 수 없어요. 카피를 먼저 종료해 주세요.",
+  COPY_ALREADY_ACTIVE: "이미 다른 유저를 카피 중이에요. 먼저 카피를 종료해 주세요.",
+  COPY_HAS_FOLLOWERS: "나를 카피 중인 유저가 있어서 카피를 신청할 수 없어요.",
+  COPY_LEADER_IS_COPYING: "그 유저는 다른 사람을 카피 중이라 신청할 수 없어요.",
+  COPY_GOLD_REQUIRED: "카피 트레이딩은 1,000만 골드 이상 보유해야 신청할 수 있어요.",
+  COPY_OPEN_POSITIONS: "보유 중인 포지션을 모두 정리해야 카피를 신청할 수 있어요.",
+  INVALID_COPY_LEADER: "카피할 수 없는 유저예요.",
+  COPY_LEADER_MIN_GOLD: "그 유저가 정한 최소 자본보다 보유 골드가 적어서 신청할 수 없어요.",
+  COPY_REWARD_EMPTY: "받을 카피 보상이 없어요.",
+  INVALID_COPY_ACTION: "카피 해산은 서버 준비 중이에요. 잠시 후 다시 시도해 주세요.",
+  COPY_NO_FOLLOWERS: "나를 카피 중인 유저가 없어요.",
+  COPY_DISBAND_OPEN_POSITIONS: "보유 포지션을 먼저 모두 판매해야 카피를 해산할 수 있어요.",
+  COPY_WALLET_NOT_COPYING: "카피 계좌는 다른 유저를 카피 중일 때만 쓸 수 있어요.",
+  COPY_WALLET_INVALID_AMOUNT: "금액을 1골드 이상 숫자로 입력해 주세요.",
+  COPY_WALLET_INSUFFICIENT: "카피 계좌 잔액이 부족해요.",
+  COPY_INTRO_TOO_LONG: "한 줄 소개는 60자까지 쓸 수 있어요.",
+  COPY_MIN_INVALID: "최소 자본은 1,000만~1조 골드 사이 숫자로 입력해 주세요.",
+  COPY_LEADER_FULL: "그 유저는 이미 5명이 카피 중이라 신청할 수 없어요.",
+  COMPANION_NO_TICKET: "소환권이 부족해요.",
+  COMPANION_BAG_FULL: "동료 가방이 가득 찼어요. 카드를 판매하거나 합성해 주세요.",
+  COMPANION_NOT_FOUND: "동료 카드를 찾을 수 없어요. 새로고침 후 다시 시도해 주세요.",
+  COMPANION_ALREADY_PLACED: "이미 배치된 동료예요.",
+  COMPANION_PLACED: "배치 중인 동료는 판매하거나 재료로 쓸 수 없어요.",
+  COMPANION_INVALID_SLOT: "배치 자리가 올바르지 않아요.",
+  COMPANION_MAX_STAR: "이미 최대 ★5예요.",
+  COMPANION_MERGE_COUNT: "합성 재료 수가 맞지 않아요.",
+  COMPANION_MERGE_MISMATCH: "같은 캐릭터끼리만 합성할 수 있어요.",
+  COMPANION_UNKNOWN: "새로고침 후 다시 시도해 주세요.",
+  FISHING_REFRESH_REQUIRED: "낚시가 업데이트됐어요. 새로고침 후 다시 시도해 주세요.",
+  INVALID_FISHING_BAIT: "미끼 구매 수량이 올바르지 않아요. 새로고침 후 다시 구매해 주세요.",
+  FISHING_HOOK_REQUIRED: "입질이 오면 먼저 챔질해 주세요.",
+  FISHING_BITE_MISSED: "입질을 놓쳤어요. 다시 던져주세요.",
+  FISHING_ALREADY_HOOKED: "이미 챔질했어요.",
+  FISHING_CAST_ACTIVE: "이미 찌를 던졌어요. 포획을 마치거나 그만두기를 눌러주세요.",
+  FISHING_CAST_MISSING: "입질이 끝났어요. 다시 낚싯대를 던져주세요.",
+  FISHING_ROD_REQUIRED: "낚싯대 레벨이 부족해요.",
+  FISHING_BAIT_REQUIRED: "미끼가 없어요. 낚시 상점에서 구매해 주세요.",
+  FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
+  FISHING_DAILY_LIMIT: "오늘 낚시 횟수를 다 썼어요. 한국 시간 자정에 초기화돼요.",
+  FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
+  TREASURE_DAILY_LIMIT: "오늘 보물 찾기 3판을 모두 했어요. 자정에 초기화돼요.",
+  TREASURE_TICKET_REQUIRED: "오늘 무료 3판을 다 했어요. 더 하려면 티켓이 필요해요 (낚시에서 획득).",
+  TREASURE_RUN_ACTIVE: "진행 중인 판을 먼저 끝내 주세요.",
+  TREASURE_NO_RUN: "진행 중인 보물 찾기가 없어요.",
+  TREASURE_EMPTY_BAG: "칸을 하나 이상 열어야 받을 수 있어요.",
+  TREASURE_CELL_OPEN: "이미 연 칸이에요.",
+  FISHING_AQUARIUM_OPTIMAL: "이미 시간당 수익이 가장 높은 물고기들이 수족관에 있어요.",
+  TESTER_BLOCKED: "테스트 계정은 사용할 수 없는 기능이에요.",
+  FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시 상자와 일일퀘스트에서 얻을 수 있어요.",
+  FISHING_EXCHANGE_LIMIT: "오늘 교환 한도(30개)를 다 썼어요. 자정에 초기화돼요.",
+  INVALID_FISHING_EXCHANGE: "교환할 수 없는 항목이에요.",
+  FISHING_CONTEST_CLOSED: "받을 수 있는 대회 기간이 아니에요.",
+  FISHING_CONTEST_CLAIMED: "이미 받은 대회 보상이에요.",
+  FISHING_CONTEST_NO_REWARD: "해당 주 대어 대회 입상 기록이 없어요.",
+  FISHING_XP_REQUIRED: "골드로 낚싯대 경험치를 먼저 채워주세요.",
+  FISHING_XP_FULL: "경험치가 가득 찼어요. 다이아로 레벨업해 주세요.",
+  FISHING_NO_INCOME: "아직 받을 골드가 없어요.",
+  FISHING_QUEST_CLAIMED: "이미 받은 일일 보상이에요.",
+  FISHING_SUMMON_REMOVED: "루미 소환이 종료됐어요. 이벤트에서 낚시를 즐겨주세요.",
+  INSUFFICIENT_POTENTIALLOCK: "잠재 잠금석이 부족해요.",
+  SWEEP_NOTHING: "지금 소탕할 수 있는 게 없어요.",
+  SWEEP_NOT_ALLOWED: "한 번 깬 적이 있고 오늘(이번 주) 남은 횟수가 있어야 소탕할 수 있어요.",
+  INSUFFICIENT_RINGUHAIR: "링구의 머리카락이 부족해요.",
+  HAIR_ALREADY_USED: "이 장비는 이미 링구의 머리카락을 썼어요.",
+  ITEM_NOT_BOUND: "거래 불가 장비에만 바를 수 있어요.",
+  POTENTIAL_LOCK_EPIC_REQUIRED: "레어 장비를 블랙·프라임 큐브로 승급할 때는 줄을 잠글 수 없어요.",
+  REBIRTH_MAINTENANCE:
+    "새로운 여정을 준비하고 있어요. 서비스가 열리면 시작할 수 있습니다.",
+  LOGIN_REQUIRED: "다시 로그인해 주세요.",
+  EXPLORATION_KEY_REQUIRED: "던전 열쇠가 부족해요. (4단계 1 · 5단계 2 · 6단계 3 · 7단계 4 · 8단계 5 · 9단계 6 · 10단계 7개, 대기 중인 다른 방 몫 포함)",
+  EXPLORATION_PREVIOUS_REQUIRED: "이전 단계 탐험을 먼저 클리어해야 해요.",
+  CITADEL_PREVIOUS_REQUIRED: "암흑성채 이전 보스를 먼저 처치해야 해요.",
+  EXPLORATION_KEY_RESERVED: "진행 중인 탐험에 필요한 던전 열쇠 1개는 판매할 수 없습니다.",
+  SESSION_ENDED: "종료된 로그인입니다. 다시 로그인해 주세요.",
+  SESSION_REPLACED: "다른 기기에서 로그인했어요.",
+  INVALID_COSTUME: "코스튬을 찾을 수 없습니다.",
+  INVALID_SKILL_LOOK: "스킬 외형을 찾을 수 없습니다.",
+  SKILL_LOOK_OWNED: "이미 보유한 스킬 외형입니다.",
+  SKILL_LOOK_NOT_OWNED: "먼저 스킬 외형을 구매해 주세요.",
+  SKILL_LOOK_CLASS_MISMATCH: "현재 직업의 스킬 외형만 장착할 수 있습니다.",
+  COSTUME_OWNED: "이미 보유한 코스튬입니다.",
+  COSTUME_NOT_OWNED: "먼저 코스튬을 구매해 주세요.",
+  COSTUME_CLASS_MISMATCH: "현재 직업의 코스튬만 장착할 수 있습니다.",
+  COMPANION_INVALID_SUMMON_COUNT: "1회 또는 5회 소환을 선택해 주세요. 새로고침 후 다시 시도해 주세요.",
+  INSUFFICIENT_GOLD: "골드가 부족합니다.",
+  INVALID_BANK_TERM: "정기예금 상품을 찾을 수 없어요.",
+  INVALID_PROFESSION: "없는 직업이에요.",
+  SHOP_WEEKLY_LIMIT: "이번 주 구매 한도를 다 썼어요. 월요일 00시에 초기화돼요.",
+  EXPLORATION_MEMBER_KEY_REQUIRED: "던전 열쇠가 부족한 파티원이 있어요. 파티원 모두 각자 열쇠가 필요해요.",
+  FISHING_EXCHANGE_REMOVED: "다이아 교환소는 종료됐어요.",
+  FISHING_AUTO_REQUIRED: "자동 낚시권이 끝났어요. 상점에서 구매하면 오토 낚시를 할 수 있어요.",
+  INVALID_FISHING_INPUT: "손맛 낚시 기록이 올바르지 않아요. 다시 던져 주세요.",
+  INVALID_FISHING_AUTO: "구매할 수 없는 자동 낚시권이에요.",
+  FISHING_TOKENS_REQUIRED: "낚시 토큰이 부족해요. 물고기를 팔면 토큰을 받아요.",
+  FISHING_ENHANCE_MAX: "이미 최고 강화 단계예요.",
+  INVALID_FISHING_ENCHANT: "인챈트 잠금이 올바르지 않아요. 열린 칸 중 하나는 남겨 두세요.",
+  INVALID_FISHING_FUSE: "합성할 물고기를 다시 골라 주세요.",
+  FISHING_FUSE_MISMATCH: "같은 종·같은 크기(황금 합성은 황금 개체)만 합성할 수 있어요.",
+  FISHING_FUSE_MAX: "기록급은 더 합성할 수 없어요.",
+  FISHING_AWAKEN_MAX: "이미 최고 각성(★5)이에요.",
+  FISHING_AWAKEN_REQUIRED: "가방에 같은 종 물고기가 부족해요.",
+  PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
+  PROFESSION_FULL: "이 직업은 정원(2명)이 다 찼어요. 다른 직업을 골라 주세요.",
+  PROFESSION_SAME: "이미 그 직업이에요.",
+  PROFESSION_COOLDOWN: "직업 변경은 7일에 한 번만 할 수 있어요.",
+  PROFESSION_REQUIRED: "먼저 전문 직업을 선택해 주세요.",
+  INVALID_RECIPE: "이 직업이 만들 수 없는 품목이에요.",
+  INVALID_CRAFT_COUNT: "제작 수량은 1~1,000 사이로 입력해 주세요.",
+  SHOP_DAILY_LIMIT: "오늘 상점 구매 한도를 넘었어요. 내일 다시 구매할 수 있어요.",
+  TRANSCEND_UNAVAILABLE: "초월할 수 없는 장비예요.",
+  TRANSCEND_STARS_REQUIRED: "25성이어야 초월할 수 있어요.",
+  BUY_ORDER_LIMIT: "구매 요청은 최대 10건까지 등록할 수 있어요.",
+  BUY_ORDER_UNAVAILABLE: "이미 끝났거나 만료된 구매 요청이에요.",
+  BUY_ORDER_OWN: "내 구매 요청에는 팔 수 없어요.",
+  INVALID_MATERIAL: "거래할 수 없는 소모품이에요.",
+  NOT_OWNER: "내 등록 건만 취소할 수 있어요.",
+  INVALID_BALANCE: "보유 골드 한도(9조 G)를 넘어서 거래할 수 없어요.",
+  INVALID_PRICE: "가격 범위를 확인해 주세요.",
+  INVALID_BANK_TERM_LOCKED: "정기예금은 아직 준비 중이에요.",
+  INVALID_BANK_TERM_AMOUNT: "가입 금액을 1골드 이상 입력해 주세요.",
+  INVALID_BANK_TERM_LIMIT: "이 상품의 가입 한도를 넘어요. 남은 한도 안에서 가입해 주세요.",
+  INVALID_BANK_TERM_GOLD_LIMIT: "보유 골드 한도를 넘어서 해지할 수 없어요.",
+  BLACK_MARKET_EXPIRED: "암시장 진열이 바뀌었어요. 새 상품을 확인해 주세요.",
+  BLACK_MARKET_SOLD_OUT: "남은 수량이 부족해요.",
+  INVALID_BLACK_MARKET_ITEM: "암시장 상품을 찾을 수 없어요.",
+  INVALID_BLACK_MARKET_QUANTITY: "구매 수량을 확인해 주세요.",
+  INVALID_CONSUMABLE_QUANTITY: "구매 수량은 1개 이상의 정수로 입력해 주세요.",
+  INSUFFICIENT_CONSUMABLE: "행운 물약이 없습니다. 상점 → 소모품에서 구매하세요.",
+  ITEM_CONSUMABLE_COOLDOWN: "행운 물약의 재사용 대기시간이 남아 있습니다.",
+  INSUFFICIENT_CUBE: "레드 큐브가 부족합니다.",
+  INSUFFICIENT_HIGHCUBE: "블랙 큐브가 부족합니다.",
+  INSUFFICIENT_ADDCUBE: "에디셔널 큐브가 부족합니다.",
+  INSUFFICIENT_BONUSFLAME: "추가옵션 불꽃이 부족합니다.",
+  INSUFFICIENT_REROLLSTONE: "기본수치 재련석이 부족합니다.",
+  POTENTIAL_ADDITIONAL_OPEN: "이미 에디셔널 잠재능력이 열려 있습니다.",
+  POTENTIAL_ADDITIONAL_REQUIRED: "에디셔널 잠재능력을 먼저 해금해 주세요.",
+  COOP_CHEST_TOO_FAR: "개인 상자 가까이 이동한 뒤 공격 버튼을 눌러주세요.",
+  COOP_DAMAGE_REQUIRED: "보스에게 직접 피해를 줘야 개인 상자를 받을 수 있습니다.",
+  COOP_CHEST_NOT_READY: "보스 처치 후 개인 상자를 열 수 있습니다.",
+  COOP_CHEST_CLAIMED: "이미 받은 상자입니다.",
+  COOP_NOT_READY:"참가자 접속 준비가 끝나면 출발할 수 있습니다.",
+  POTENTIAL_ALREADY_OPEN: "이미 잠재가 해금된 장비입니다.",
+  INSUFFICIENT_SCROLL: "잠재 해금 주문서가 부족합니다.",
+  INSUFFICIENT_EXPAND: "잠재 확장석이 부족합니다.",
+  INSUFFICIENT_MATERIAL: "판매할 소모품 수량이 부족합니다.",
+  INVALID_QUANTITY: "남은 수량 안에서 정수로 입력해 주세요.",
+  BASE_STATS_FIXED: "이 장비의 기본 수치는 획득 시 확정됩니다.",
+
+  INSUFFICIENT_FRAGMENT: "장비 파편이 부족합니다.",
+  RIFT_CONTENT_REMOVED: "협동 균열은 종료된 콘텐츠입니다.",
+  INSUFFICIENT_BOSS_MATERIAL: "보스 재료가 부족합니다.",
+  ITEM_PROTECTED: "잠금·파괴·장착 상태를 확인해 주세요.",
+  ITEM_REQUIREMENT: "장비의 직업 또는 착용 레벨이 맞지 않습니다.",
+  ITEM_CHEST_TOO_FAR: "상자 가까이 이동한 뒤 열어 주세요.",
+  PREVIOUS_BOSS_REQUIRED: "이전 보스를 먼저 처치해 주세요.",
+  PREVIOUS_FLOOR_REQUIRED: "이전 층을 먼저 클리어해 주세요.",
+  LEVEL_REQUIRED: "레벨이 부족합니다.",
+  STARS_REQUIRED: "장착 장비의 스타포스가 부족합니다.",
+  BOSS_LIMIT: "오늘 도전 또는 이번 주 보상을 이미 사용했습니다. 연습 도전은 가능합니다.",
+  DUNGEON_LIMIT: "오늘 보상을 이미 받았습니다.",
+  ITEM_CUBE_PENDING: "먼저 블랙 큐브 결과를 선택해 주세요.",
+  ITEM_IN_PRESET: "장비 슬롯에 등록된 장비는 판매할 수 없어요. 해당 슬롯에서 장착 해제한 뒤 판매해 주세요.",
+  INVENTORY_FULL: "가방이 가득 찼습니다. 장비를 정리해 주세요.",
+  MAIL_NOT_FOUND: "받을 수 있는 우편이 없습니다.",
+  MAIL_ALREADY_CLAIMED: "이미 받은 우편입니다.",
+  TRADE_LEVEL_REQUIRED: "거래소 구매·등록은 5레벨부터 이용할 수 있습니다.",
+  SAVE_CONFLICT: "상태가 변경됐어요. 다시 시도해 주세요.",
+  PRIME_LEGENDARY_REQUIRED: "프라임 큐브 사용 조건을 충족하지 않습니다.",
+  PRIME_EPIC_REQUIRED: "프라임 큐브에는 잠재 3줄이 개방된 장비가 필요합니다.",
+  SERVER_RETRY_REQUIRED: "연결을 확인하고 같은 요청을 다시 시도해 주세요.",
+  LISTING_UNAVAILABLE: "이미 거래됐거나 만료된 매물입니다.",
+  BATTLE_IN_PROGRESS: "보스전이 끝난 뒤 이용해 주세요.",
+  PARTY_IN_PROGRESS: "협동 보스에서 나온 뒤 이용할 수 있어요.",
+  PARTY_FULL: "4명이 모두 찬 파티입니다.",
+  PARTY_MEMBERS_REQUIRED: "2명 이상 모이면 출발할 수 있어요.",
+  PARTY_HOST_REQUIRED: "파티장만 출발할 수 있어요.",
+  PARTY_NOT_JOINABLE: "이미 출발했거나 종료된 파티입니다.",
+  PARTY_DEFEATED: "쓰러진 상태입니다. 부활 가능 여부를 확인해 주세요.",
+  PARTY_REVIVE_UNAVAILABLE: "부활은 쓰러졌을 때 전투당 한 번 사용할 수 있어요.",
+  RAID_LIMIT:"이 협동 보스는 오늘 2회 클리어했습니다. 연습으로 도전할 수 있어요.",
+  ADVANCEMENT_REQUIRED:"이전 단계 전직을 먼저 완료해야 합니다.",
+  ALREADY_ADVANCED: "이미 전직을 완료했어요.",
+  ALREADY_CLASS: "이미 선택한 직업이에요.",
+  SKILL_COOLDOWN: "스킬 재사용 대기 중입니다.",
+};
+function message(e) {
+  const arenaErrors={ARENA_OFFERS_EXPIRED:'상대 목록이 갱신됐어요. 새 상대를 확인해 주세요.',ARENA_OPPONENT_UNAVAILABLE:'이미 도전한 상대예요. 다른 상대를 골라 주세요.',INVALID_ARENA_OPPONENT:'상대를 다시 선택해 주세요.',ARENA_OPPONENT_MISSING:'상대 정보를 불러올 수 없어요. 잠시 후 다시 시도해 주세요.'};
+  if(arenaErrors[e.message])return arenaErrors[e.message];
+  if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED')return '정각에 가격이 갱신됐어요. 새 가격을 확인하고 다시 거래해 주세요.';
+  if(e.message==='INVALID_INVESTMENT_POSITION')return '이미 판매 또는 청산된 투자입니다. 투자 화면을 다시 열어 주세요.';
+  const lotteryErrors={LOTTO_DUPLICATE:'이번 주에 이미 구매한 번호입니다.',LOTTO_DAILY_LIMIT:'오늘은 3장을 모두 구매했습니다.',LOTTO_ROUND_CHANGED:'추첨 회차가 바뀌었습니다. 로또 화면을 다시 열어주세요.',INVALID_LOTTO_NUMBERS:'1~18 중 서로 다른 번호 2개를 선택하세요.'};
+  if(lotteryErrors[e.message])return lotteryErrors[e.message];
+  if(e.message==='BETA_DISABLED')return '관리자만 사용할 수 있습니다.';
+  if(e.message==='SHOP_BOSS_ONLY')return '보스장비만 판매할 수 있어요.';
+  if(e.message==='INVALID_TRANSFER_LIMIT')return '받는 계정의 보유 한도(9조)를 초과합니다. 수량을 줄여 주세요.';
+  if(e.message==='INVALID_TRANSFER_RECIPIENT')return '받는 계정을 찾을 수 없습니다. 랭킹을 새로고침해 주세요.';
+  if(e.message==='INVALID_TRANSFER_AMOUNT')return '송금액은 1~999,999,999,999 G 사이의 정수로 입력해 주세요.';
+  if(e.message==='INVALID_TRANSFER_SELF')return '자신에게는 송금할 수 없습니다.';
+  if(e.message==='MAILBOX_FULL')return '받는 사람의 우편함이 가득 찼습니다.';
+  if(String(e.message||'').startsWith('EXPLORATION_MEMBER_KEY_REQUIRED:'))return `던전 열쇠가 부족한 파티원: ${e.message.slice(32)} (보유/필요) · 파티원 모두 각자 열쇠가 필요해요.`;
+  if(e.message==='RAID_PRIEST_REQUIRED')return '사제 1명 이상이 있어야 레이드를 출발할 수 있습니다.';
+  return (
+    errors[e.message] ||
+    (/^INVALID/.test(e.message)
+      ? "선택한 조건을 다시 확인해 주세요."
+      : e.status === 429
+        ? "요청이 많습니다. 잠시 후 다시 시도해 주세요."
+        : "요청을 완료하지 못했습니다. " + e.message)
+  );
+}
+function persist() {
+  if (session)
+    localStorage.setItem("ringu_rebirth_session", JSON.stringify(session));
+  else localStorage.removeItem("ringu_rebirth_session");
+}
+async function request(path, body, auth = true, signal = null) {
+  if (auth && !session?.access_token) throw endSession();
+  const r = await fetch(config.url + path, {
+    method: "POST",
+    headers: {
+      apikey: config.publishableKey,
+      "Content-Type": "application/json",
+      ...(auth ? { Authorization: "Bearer " + session.access_token } : {}),
+    },
+    body: JSON.stringify(body),
+    signal: signal?AbortSignal.any([signal,AbortSignal.timeout(['coopInput','towerInput','towerOpen'].includes(body?.command)?6000:20000)]):AbortSignal.timeout(['coopInput','towerInput','towerOpen'].includes(body?.command)?6000:20000),
+  });
+  const data = await r.json().catch(() => ({error: "SERVER_RETRY_REQUIRED"}));
+  if (!r.ok) {
+    const e = new Error(
+      data.error_description || data.message || data.msg || data.error || "SERVER_RETRY_REQUIRED",
+    );
+    e.status = r.status;
+    e.code = data.error_code || data.code || "";
+    if (["refresh_token_not_found", "refresh_token_already_used", "session_not_found"].includes(e.code) || /invalid refresh token|refresh token.*(not found|already used)/i.test(e.message)) throw endSession();
+    const retry = r.headers.get("Retry-After");
+    e.retryAfter = retry ? Math.max(0, /^\d+$/.test(retry) ? Number(retry) : Math.ceil((Date.parse(retry)-Date.now())/1000)) : 0;
+    throw e;
+  }
+  return data;
+}
+let tokenRefresh = null;
+function endSession() {
+  if (session) {
+    session = null;
+    persist();
+    clearAccountView();
+    if (modal.open) modal.close();
+    sounds.pause();
+    login();
+    $("#auth-error").textContent = "로그인 정보가 만료됐습니다. 기존 아이디와 비밀번호로 다시 로그인해 주세요. 저장된 캐릭터는 유지됩니다.";
+  }
+  const error = new Error("SESSION_ENDED");
+  error.status = 401;
+  return error;
+}
+async function ensureToken() {
+  if (!session?.access_token || !session?.refresh_token) throw endSession();
+  if (tokenRefresh) return tokenRefresh;
+  if (!session.expires_at || session.expires_at * 1000 < Date.now() + 60000) {
+    const original = session;
+    tokenRefresh = (async () => {
+    try {
+    const next = await request(
+      "/auth/v1/token?grant_type=refresh_token",
+      { refresh_token: original.refresh_token },
+      false,
+    );
+    if (session !== original) throw new Error("LOGIN_REQUIRED");
+    session = next;
+    session.expires_at =
+      session.expires_at || Date.now() / 1000 + session.expires_in;
+    persist();
+    } catch (error) {
+      if (["refresh_token_not_found", "refresh_token_already_used", "session_not_found"].includes(error.code) || /invalid refresh token|refresh token.*(not found|already used)/i.test(error.message)) {
+        error.message = "SESSION_ENDED";
+        error.status = 401;
+      }
+      throw error;
+    }
+    })();
+    try { await tokenRefresh; } finally { tokenRefresh = null; }
+  }
+}
+let newsPollAt=0,newsPollPending=null;
+async function refreshNewsNotifications(force=false,seen=[]){
+ if(newsPollPending){if(!force)return;await newsPollPending;}
+ if(!session||!state||(!force&&Date.now()-newsPollAt<30000))return;
+ newsPollAt=Date.now();const account=session.user?.id;
+ newsPollPending=(async()=>{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_coin_news_notifications',{p_seen:seen});if(session?.user?.id!==account)return;const known=new Set(investmentNewsSummary().news.map(n=>n.id)),arrived=result.news.some(n=>!known.has(n.id));setNewsNotifications(result);if(arrived&&view==='game'&&tab==='investment'&&!busy)await command('investList',{},true);return result;})();
+ try{return await newsPollPending;}finally{newsPollPending=null;}
+}
+setInterval(()=>{if(session&&state&&!coopController&&!document.hidden&&navigator.onLine&&Date.now()>=retryAt)refreshNewsNotifications().catch(()=>{});},1000);
+let activityVersion=0;
+async function openCoinActivity(kind){
+ const version=++activityVersion,account=session?.user?.id;await ensureToken();
+ const fetchPage=(before=null,id=null)=>request('/rest/v1/rpc/rebirth_coin_activity',{p_kind:kind,p_before:before,p_before_id:id});
+ const first=await fetchPage();if(version!==activityVersion||session?.user?.id!==account)return;
+ let rows=first.items.slice(0,14),more=first.items.length>14,last=rows.at(-1),loading=false;
+ open(kind==='news'?'코인 속보':'코인 거래내역',kind==='news'?investmentNewsView({news:rows,serverNow:first.serverNow}):investmentHistoryView(rows,first.totals));modal.classList.add('invest-activity-dialog');if(kind==='trades')modal.classList.add('invest-trade-dialog');
+ const list=modal.querySelector('.invest-activity-list'),end=list.querySelector('.invest-activity-more');
+ const updateEnd=()=>{end.textContent=loading?'이전 기록 불러오는 중…':more?'아래로 내려 이전 기록 보기':rows.length?'마지막 기록입니다':'';};updateEnd();
+ const acknowledge=ids=>refreshNewsNotifications(true,ids).catch(()=>{});
+ if(kind==='news')acknowledge(rows.map(n=>n.id));
+ list.addEventListener('scroll',async()=>{
+  if(loading||!more||list.scrollTop+list.clientHeight<list.scrollHeight-90)return;
+  loading=true;updateEnd();try{const page=await fetchPage(last[kind==='news'?'publishedAt':'closedAt'],last.id);if(!modal.open||version!==activityVersion||session?.user?.id!==account)return;const next=page.items.slice(0,14);end.insertAdjacentHTML('beforebegin',next.map(n=>kind==='news'?investmentNewsItem(n,Date.parse(page.serverNow)):investmentTradeItem(n)).join(''));rows.push(...next);last=next.at(-1)||last;more=page.items.length>14;if(kind==='news')await acknowledge(next.map(n=>n.id));}catch{end.textContent='불러오지 못했습니다. 다시 내려 주세요.';}finally{loading=false;updateEnd();}
+ });
+}
+function copyTradingMarkup(data){
+ copyData=data;
+ const rate=(w,l)=>{w=Number(w)||0;l=Number(l)||0;return w+l?`카피 승률 <b>${Math.round(w/(w+l)*100)}%</b> · 카피 ${w+l}회`:'카피 기록 없음';};
+ const following=data.following,followers=data.followers||[];
+ const head=following?`<p class="note"><b>${esc(following.name)}</b> 카피 중 · 상대가 산 종목을 <b>카피 계좌</b> 잔액 비율만큼 따라 사고, 상대가 팔면 같이 팔아 카피 계좌로 돌려받아요. 직접 매수는 막히고, 직접 매도하면 카피가 끝나요.</p><div class="invest-copy-wallet"><div class="invest-copy-wallet-head"><span><small>카피 계좌</small><b>${fmt(data.copyWallet||0)} G</b></span><small>보유 골드 ${fmt(state?.gold||0)} G</small></div><div class="invest-copy-wallet-row"><input id="copy-wallet-amount" inputmode="numeric" autocomplete="off" placeholder="금액" aria-label="카피 계좌 입출금 금액"><button type="button" data-action="investCopyWalletMax" data-arg="deposit" data-illustrated="1">입금 최대</button><button type="button" data-action="investCopyWalletMax" data-arg="withdraw" data-illustrated="1">출금 최대</button></div><div class="invest-copy-wallet-row"><button data-action="investCopyWallet" data-arg="deposit" data-write data-illustrated="1">입금</button><button data-action="investCopyWallet" data-arg="withdraw" data-write data-illustrated="1">출금</button></div>${data.copyHold?`<small class="invest-copy-hold">최소 유지 <b>${fmt(copyHold(data))} G</b> · 출금 후 잔액이 이보다 적으면 카피가 해제돼요 (매매 손실로 줄어든 건 괜찮아요)</small>`:''}<small>카피는 이 계좌에 넣은 돈으로만 해요 · 포지션에 들어간 돈은 팔린 뒤에 출금할 수 있어요 · 카피를 끝내면 남은 잔액은 자동으로 보유 골드로 돌아가요</small></div><button data-action="investCopyStop" data-write data-illustrated="1">카피 종료</button>`:`<p class="note">상대가 매수할 때 쓴 보유 골드 비율만큼 같은 종목·방향·레버리지로 자동 매수하고, 상대가 팔면 같이 팔아요.<br>신청 조건: ${fmt(data.minGold||10000000)} 골드 이상 보유 · 보유 포지션 없음 · 한 유저당 최대 ${data.maxCopiers||2}명${data.copyHold?'<br>신청하면 리더의 <b>최소 자본만큼 카피 계좌로 자동 입금</b>되고, 그 금액 아래로 직접 출금하면 카피가 해제돼요.':''}</p>`;
+ const mine=(followers.length?`<div class="invest-copy-followers"><p class="note">나를 카피 중 <b>${followers.length}명</b> · 카피 계좌 합계 <b>${fmt(followers.reduce((n,f)=>n+Number(f.wallet||0),0))} G</b></p>${followers.map(f=>`<div class="invest-copy-follower"><b>${esc(f.name)}</b><span>카피 계좌 <em class="${Number(f.wallet)>0?'positive':'negative'}">${fmt(f.wallet||0)} G</em>${Number(f.margin)>0?` · 포지션 ${fmt(f.margin)} G`:''}</span></div>`).join('')}<button class="invest-copy-disband" data-action="investCopyDisband" data-write data-illustrated="1">카피 해산</button><small class="note">해산하면 나를 카피 중인 유저가 모두 해제되고, 각자 카피 계좌 잔액은 보유 골드로 돌아가요 · 내 포지션을 모두 판 뒤에 할 수 있어요</small></div>`:'<p class="note">나를 카피 중인 유저가 없어요.</p>')+`<p class="note">내 ${rate(data.myStats?.wins,data.myStats?.losses)}</p>`+`<div class="invest-copy-reward-box"><span><small>쌓인 카피 보상</small><b>${fmt(data.rewardPending||0)} G</b><small>지금까지 받은 보상 ${fmt(data.rewardClaimed||0)} G</small></span><button data-action="investCopyClaim" data-write data-illustrated="1" ${Number(data.rewardPending)>0?'':'disabled'}>수령</button></div>`+`<div class="invest-copy-min invest-copy-intro-edit"><label for="copy-intro">내 한 줄 소개 <small>(다른 유저가 카피할 때 참고해요)</small></label><div><input id="copy-intro" maxlength="60" autocomplete="off" placeholder="예: 3배 롱 위주 · 손절 빠름 · 하루 10회 이상" value="${esc(data.myIntro||'')}" aria-label="카피 한 줄 소개"><button data-action="investCopyIntro" data-write data-illustrated="1">저장</button></div><small>최대 60자</small></div>`+`<div class="invest-copy-min"><label for="copy-min-gold">나를 카피하려면 보유 골드</label><div><input id="copy-min-gold" inputmode="numeric" autocomplete="off" value="${fmt(data.myMinGold||10000000)}" aria-label="카피 신청 최소 자본"><span>G 이상</span><button data-action="investCopyMin" data-write data-illustrated="1">저장</button></div><small>새 카피 신청에만 적용돼요 · 1,000만~1조 골드</small></div>`;
+ const list=(data.candidates||[]).map(u=>{const isLeader=following?.id===u.id;if(u.self)return `<article class="invest-copy-row is-self"><span><b>${esc(u.name)} (나)</b>${u.intro?`<small class="invest-copy-intro">“${esc(u.intro)}”</small>`:''}<small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span><em>나</em></article>`;const maxC=data.maxCopiers||2,full=u.copiers>=maxC,min=Number(u.minGold)||10000000,poor=Number(state?.gold||0)<min;const blocked=!!following||u.copying||followers.length>0||full||poor;return `<article class="invest-copy-row"><span><b>${esc(u.name)}</b>${u.intro?`<small class="invest-copy-intro">“${esc(u.intro)}”</small>`:''}<small>포지션 ${u.open}개 · 카피 ${u.copiers}/${data.maxCopiers||2}명${u.copying?' · 다른 유저 카피 중':''}</small><small class="invest-copy-min-need ${poor?'negative':'positive'}">최소 자본 ${fmt(min)} G${poor?' · 골드 부족':' · 신청 가능'}</small><small class="invest-copy-rate">${rate(u.wins,u.losses)}</small></span>${isLeader?'<em>카피 중</em>':full?'<em>인원 마감</em>':`<button data-action="investCopyStart" data-arg="${esc(u.id)}" data-write data-illustrated="1" ${blocked?'disabled':''}>카피 신청</button>`}</article>`;}).join('');
+ return `<section class="invest-copy-feed">${head}<p class="note invest-copy-reward">💰 카피로 같이 판 거래가 <b>수익</b>이면, 카피한 유저 순수익의 <b>10%</b>를 리더 보상함에 쌓아줘요. 카피한 유저 돈에서 빠지는 게 아니라 <b>따로 지급</b>돼요. 손실·청산이면 보상 없어요.</p>${mine}<div class="invest-copy-list">${list}</div></section>`;
+}
+async function openCopyTrading(){
+ const account=session?.user?.id;await ensureToken();
+ const data=await request('/rest/v1/rpc/rebirth_coin_copy',{p_action:'status'});
+ if(session?.user?.id!==account)return;
+ open('카피 트레이딩',copyTradingMarkup(data));
+}
+async function copyTradingClaim(){
+ const account=session?.user?.id;
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy_claim',{});
+  if(session?.user?.id!==account)return;
+  toast(`카피 보상 ${fmt(data.claimed||0)} G를 받았어요.`);
+  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+  await command('investList',{},true);
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
+}
+function copyTradingDisbandAsk(){
+ open('카피 해산',`<div class="stack"><p>나를 카피 중인 유저를 <b>모두 해제</b>할까요?</p><p class="note">각자 카피 계좌에 남은 돈은 보유 골드로 자동으로 돌아가요. 되돌릴 수 없어요.</p><div class="invest-copy-wallet-row"><button data-action="investCopy" data-illustrated="1">취소</button><button class="invest-copy-disband" data-action="investCopyDisbandConfirm" data-illustrated="1">확인</button></div></div>`);
+}
+let copyDisbandPending=false;
+async function copyTradingDisband(){
+ const account=session?.user?.id;
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy',{p_action:'disband'});
+  if(session?.user?.id!==account)return;
+  toast('카피를 해산했어요. 카피 중이던 유저가 모두 해제됐어요.');
+  if(modal.open)open('카피 트레이딩',copyTradingMarkup(data));
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
+}
+let copyData=null;
+const copyHold=d=>Math.max(10000000,Number(d?.following?.minGold)||0);
+function copyTradingWalletAsk(amount){
+ const bal=Number(copyData?.copyWallet)||0,hold=copyHold(copyData);
+ open('카피 해제 경고',`<div class="stack"><p><b>${fmt(amount)} G</b>를 빼면 카피 계좌가 <b>${fmt(Math.max(0,bal-amount))} G</b>가 돼서 최소 유지 금액 <b>${fmt(hold)} G</b>보다 적어져요.</p><p class="note"><b>${esc(copyData?.following?.name||'')}</b> 카피가 <b class="negative">해제</b>되고, 카피 계좌 잔액 <b>${fmt(bal)} G</b>는 전부 보유 골드로 돌아가요. 되돌릴 수 없어요.</p><div class="invest-copy-wallet-row"><button data-action="investCopy" data-illustrated="1">취소</button><button class="invest-copy-disband" data-action="investCopyWalletForce" data-arg="${amount}" data-write data-illustrated="1">출금하고 카피 해제</button></div></div>`);
+}
+async function copyTradingWallet(kind,forced=null){
+ const account=session?.user?.id,amount=forced??Number(String(modal.querySelector('#copy-wallet-amount')?.value||'').replace(/[^0-9]/g,''));
+ if(!Number.isSafeInteger(amount)||amount<1){toast(errors.COPY_WALLET_INVALID_AMOUNT);return;}
+ if(kind==='withdraw'&&forced===null&&copyData?.copyHold&&copyData?.following&&amount<=(Number(copyData.copyWallet)||0)&&(Number(copyData.copyWallet)||0)-amount<copyHold(copyData)){copyTradingWalletAsk(amount);return;}
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy_wallet',{p_action:kind,p_amount:amount});
+  if(session?.user?.id!==account)return;
+  await command('investList',{},true);
+  toast(data.copyEnded?'카피가 해제됐어요. 카피 계좌 잔액은 전부 보유 골드로 돌아갔어요.':kind==='deposit'?`카피 계좌에 ${fmt(amount)} G를 넣었어요.`:`카피 계좌에서 ${fmt(amount)} G를 뺐어요.`);
+  if(data.copyEnded||modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
+}
+async function copyTradingIntro(){
+ const account=session?.user?.id,intro=String(modal.querySelector('#copy-intro')?.value||'').trim();
+ if(intro.length>60){toast(errors.COPY_INTRO_TOO_LONG);return;}
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy_intro',{p_intro:intro});
+  if(session?.user?.id!==account)return;
+  toast(intro?'한 줄 소개를 저장했어요.':'한 줄 소개를 지웠어요.');
+  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
+}
+async function copyTradingMin(){
+ const account=session?.user?.id,raw=String(modal.querySelector('#copy-min-gold')?.value||'').replace(/[^0-9]/g,''),min=Number(raw);
+ if(!raw||!Number.isSafeInteger(min)||min<10000000||min>1000000000000){toast(errors.COPY_MIN_INVALID);return;}
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy_min',{p_min:min});
+  if(session?.user?.id!==account)return;
+  toast(`카피 최소 자본을 ${fmt(min)} G로 정했어요.`);
+  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
+}
+async function copyTradingAction(kind,leader){
+ const account=session?.user?.id;
+ try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_copy',kind==='start'?{p_action:'start',p_leader:leader}:{p_action:'stop'});
+  if(session?.user?.id!==account)return;
+  toast(kind==='start'?`${data.following?.name||''} 카피를 시작했어요.${data.copyHold?` 카피 계좌에 ${fmt(Number(data.copyWallet)||0)} G가 들어갔어요.`:''}`:'카피 트레이딩을 종료했어요.');
+  if(modal.open&&modal.querySelector('.invest-copy-feed'))open('카피 트레이딩',copyTradingMarkup(data));
+  await command('investList',{},true);
+ }catch(e){toast(errors[e.message]||e.message||'잠시 후 다시 시도해 주세요.');}
+}
+async function openCoinRankings(){
+ const account=session?.user?.id;await ensureToken();
+ const first=await request('/rest/v1/rpc/rebirth_coin_rankings',{});
+ if(session?.user?.id!==account)return;
+ open('투자 수익률 순위','<section class="invest-rank-feed"><p>청산 포함 · 종료된 거래 원금 대비 수익률</p><div class="invest-rank-list"></div><small class="invest-rank-updated"></small></section>');
+ modal.classList.add('invest-rank-dialog');
+ const list=modal.querySelector('.invest-rank-list'),stamp=modal.querySelector('.invest-rank-updated');
+ const paint=data=>{list.innerHTML=data.users.map((u,i)=>{const value=Number(u.percent)||0;return `<article><b>${i+1}</b><span>${esc(u.name)}</span><strong class="${value<0?'negative':'positive'}">${value>0?'+':''}${value.toFixed(2)}%</strong></article>`;}).join('');stamp.textContent=`10초마다 자동 갱신 · ${new Date(data.serverNow).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;};
+ paint(first);let pending=false;
+ const timer=setInterval(async()=>{if(!modal.open||!list.isConnected||session?.user?.id!==account){clearInterval(timer);return;}if(pending||document.hidden||!navigator.onLine)return;pending=true;try{await ensureToken();const data=await request('/rest/v1/rpc/rebirth_coin_rankings',{});if(modal.open&&list.isConnected&&session?.user?.id===account)paint(data);}catch{if(stamp.isConnected)stamp.textContent='갱신 지연 · 자동 재시도 중';}finally{pending=false;}},10000);
+ modal.addEventListener('close',()=>clearInterval(timer),{once:true});
+}
+let autoHuntPending=false;
+function requestAutoHunt(){autoHuntPending=true;flushAutoHunt();}
+function flushAutoHunt(){
+  if(!autoHuntPending||busy)return;
+  autoHuntPending=false;
+  if(!session||!state||view!=="game"||tab!=="hunt"||state.hunting||state.battle||state.coopRoom||state.partyRoom||connectionLost)return;
+  command("hunt",{enabled:true},true).catch(()=>{});
+}
+const dungeonExitActions=new Set(['coopLeave','towerLeave','partyLeave','abandon']);
+let pendingDungeonExit=null;
+const commandIdleWaiters=[];
+async function exitDungeon(action){
+  if(pendingDungeonExit)return pendingDungeonExit;
+  pendingDungeonExit=(async()=>{
+    // Leaving must never be starved by the room's own request loop: stop it first (render() recreates it
+    // if the leave fails and the player is still in the room).
+    if(action==='coopLeave'){if(coopController){coopController.dispose();coopController=null;}activeCoopInput?.abort();}
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    return command(action);
+  })();
+  try{return await pendingDungeonExit;}finally{pendingDungeonExit=null;}
+}
+function sendCoopReady(){command('coopReady',{},true).catch(()=>{});}
+let activeCoopInput=null,activeBackgroundSync=null,citadelClaimBusy=false;
+let fishingRequest=null;
+async function fishingCommandRequest(action,args={}){
+ if(fishingRequest||!state)return;
+ const account=session?.user?.id,root=app.querySelector('.fishing-screen');
+ fishingUI.pending=action;showFishingPending(root,action);
+ const work=(async()=>{
+  activeBackgroundSync?.abort();
+  while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+  if(session?.user?.id!==account||!state)return;
+  for(let attempt=0;attempt<3;attempt++){
+   const result=await command(action,args);
+   if(result?.result?.events?.some(e=>e.type===action||((action==='fishFinish'||action==='fishHook')&&e.type==='fishCatch')||(action==='fishHook'&&e.type==='fishBite')))return result;
+   if(!result)return;
+  }
+  throw Error('SERVER_RETRY_REQUIRED');
+ })();fishingRequest=work;
+ try{return await work;}catch(error){render();throw error;}finally{
+  fishingRequest=null;fishingUI.pending=null;
+  const current=app.querySelector('.fishing-screen');current?.removeAttribute('aria-busy');
+  current?.querySelectorAll('.fishing-sites button').forEach(b=>{b.disabled=!!state?.fishing?.cast;});
+  current?.querySelectorAll('[data-fish-write]').forEach(b=>{b.disabled=b.hasAttribute('data-unavailable');b.classList.remove('fishing-pending');});
+  const text=current?.querySelector('[data-fish-transaction]');if(text)text.textContent='';
+ }
+}
+// Companion clicks queue behind existing writes instead of being silently dropped.
+async function companionCommandRequest(action,args={}){
+ const account=session?.user?.id;
+ activeBackgroundSync?.abort();
+ while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+ if(!state||session?.user?.id!==account)return;
+ return command(action,args);
+}
+let professionCounts={};
+async function command(command, args = {}, quiet = false, freshSnapshot = false, signal = null) {
+  const claimOnly=command==='coopOpen'&&args.citadelClaim===true;
+  const requestKey=pendingKey()+(claimOnly?'_citadel_claim':'');
+  // A short input request must not swallow leave/chest/speed button presses.
+  if(!claimOnly&&busy&&['coopLeave','coopOpen','coopSync'].includes(command)){
+    const roomAtClick=state?.coopRoom;
+    activeCoopInput?.abort();
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    if(state?.coopRoom!==roomAtClick)return;
+  }
+  if(busy&&command==='towerInput'&&activeBackgroundSync){
+    activeBackgroundSync.abort();
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    if(state?.battle?.runId!==args.runId)return;
+  }
+  if(busy&&command==='towerOpen'){
+    const runAtClick=args.runId;
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    if(state?.battle?.runId!==runAtClick)return;
+  }
+  if ((claimOnly?citadelClaimBusy:busy) || (pendingDungeonExit&&!dungeonExitActions.has(command))) return;
+  if(claimOnly)citadelClaimBusy=true;else busy=true;
+  const towerStreaming=command==="towerInput";
+  const streaming=command==="coopInput"||towerStreaming;
+  const accountAtSend=session?.user?.id;
+  let storedRequest=null;try{storedRequest=JSON.parse(localStorage.getItem(requestKey)||'null');}catch{}
+  const background=command==='sync'&&quiet&&state&&(!storedRequest||storedRequest.command==='sync');
+  const inputAbort=streaming||background?new AbortController():null;
+  if(command==='coopInput')activeCoopInput=inputAbort;
+  if(background)activeBackgroundSync=inputAbort;
+  // The input slot includes token refresh, not just fetch. A stuck refresh used
+  // to hold busy forever and stop every subsequent multiplayer packet.
+  const inputDeadline=AbortSignal.timeout(streaming||command==='coopOpen'||command==='towerOpen'?6000:20000);
+  const baseSignal=inputAbort?(signal?AbortSignal.any([signal,inputAbort.signal]):inputAbort.signal):signal;
+  const requestSignal=inputDeadline?AbortSignal.any([inputDeadline,...(baseSignal?[baseSignal]:[])]):baseSignal;
+  if(!streaming&&!background&&!claimOnly)document
+    .querySelectorAll("button[data-write]")
+    .forEach((b) => {if(!dungeonExitActions.has(b.dataset.action))b.disabled=true;});
+  let body, recoverCharacter = false;
+  const recoverySync=command==="sync"&&(!state||freshSnapshot);
+  try {
+    await abortable(ensureToken(),requestSignal);
+    if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
+    if(towerStreaming){
+      // Movement is replayed by runId/from. Do not let a stale movement receipt
+      // block the current packet; preserve pending reward/other durable writes.
+      try{const old=JSON.parse(localStorage.getItem(requestKey)||'null');if(old?.command==='towerInput')localStorage.removeItem(requestKey);}catch{}
+      const durable=localStorage.getItem(requestKey);
+      if(durable){try{const saved=JSON.parse(durable);if(typeof saved?.command==='string'&&saved.args&&saved.requestId)body=saved;}catch{}}
+    }
+    if(!recoverySync&&!streaming){
+      try{body=JSON.parse(localStorage.getItem(requestKey)||"null");}catch{body=null;}
+      if(body?.command==="coopInput"){localStorage.removeItem(requestKey);body=null;}
+      if(body&&(typeof body.command!=="string"||!body.args||typeof body.args!=="object"||!body.requestId))body=null;
+    }
+    if (
+      body &&
+      (body.command !== command ||
+        JSON.stringify(body.args) !== JSON.stringify(args))
+    ) {
+      if(!quiet)toast("이전 요청을 먼저 복구합니다.");
+    }
+    if (!body) {
+      // 2026-11-03 연결 지연 개선: 자주 오가는 sync도 바뀐 부분만 받는다(state 전체 40~140KB → 변경분).
+      body = { command, args:command.startsWith('fish')||towerStreaming||(command==='sync'&&state&&Number.isSafeInteger(stateRevision))?{...args,_compact:true,_stateRevision:stateRevision}:args, requestId: crypto.randomUUID() };
+      if(!recoverySync&&!streaming)localStorage.setItem(requestKey, JSON.stringify(body));
+    }
+    const sentAt=performance.now();
+    if(state?.battle?.kind==='boss'||body.command==='boss')lastBattleRequestAt=Date.now();
+    const result = await request("/functions/v1/ringu-rebirth-v3", body,true,requestSignal);
+    if(requestSignal?.aborted||session?.user?.id!==accountAtSend)return;
+    // Compact multiplayer replies (coop-wire.mjs); a snapshot that cannot be decoded is skipped.
+    if(result.coop){try{result.coop=decodeCoopReply(result.coop);}catch{delete result.coop;}}
+    if(result.coop)result.coop._rtt=performance.now()-sentAt;
+    if(recoverySync){const abandoned=localStorage.getItem(requestKey);if(abandoned)localStorage.setItem(requestKey+"_recovered",abandoned);}
+    // Movement must not discard a reward receipt that is waiting for retry.
+    try{if(recoverySync||JSON.parse(localStorage.getItem(requestKey)||'null')?.requestId===body.requestId)localStorage.removeItem(requestKey);}catch{}
+    const audioPrevious=state;
+    const previousHuntAt = state?.lastAt;
+    if(result.statePatch){
+      if(result.statePatch.baseRevision===stateRevision)result.state=applyFishingPatch(state,stateRevision,result.statePatch);
+      else{
+        const snapshot=await request('/functions/v1/ringu-rebirth-v3',{command:'sync',args:{},requestId:crypto.randomUUID()},true,requestSignal);
+        result.state=snapshot.state;result.revision=snapshot.revision;delete result.statePatch;
+      }
+    }
+    if(Object.hasOwn(result,'state')&&(!Number.isSafeInteger(stateRevision)||!Number.isSafeInteger(result.revision)||result.revision>=stateRevision)){
+      state = result.statePatch&&!result.statePatch.changes?.items?result.state:D.normalizePotentialState(result.state);
+      stateRevision=Number.isSafeInteger(result.revision)?result.revision:null;
+      if(state&&(body.command==='sync'||state.lastAt!==previousHuntAt))lastHuntSettlement=Date.now();
+    }
+    if(result.investment){investmentData=result.investment;investmentLoadedAt=Date.now();}
+    if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
+    if(result.fishingContest){fishingUI.contest=result.fishingContest;fishingUI.contestLoadedAt=Date.now();}
+    if(result.professionCounts)professionCounts=result.professionCounts;
+    if(result.arena){arenaData=result.arena;arenaError='';}
+    if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
+    // A fishing daily that just became claimable gets a one-time toast (badges stay until it is claimed).
+    if(state){const ready=fishingQuestsReady(state);if(audioPrevious&&ready>fishingQuestsReady(audioPrevious))toast('낚시 일일퀘스트 완료! 이벤트 › 낚시 여행 › 일일퀘스트에서 다이아를 받으세요.');}
+    if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
+    if("coop" in result){
+      if(!state?.coopRoom)coopRoom=null;
+      else if(result.coop?.id===state.coopRoom&&(!coopRoom||coopRoom.id!==result.coop.id||(result.coop.revision??0)>=(coopRoom.revision??0)))coopRoom=result.coop;
+    }else if(!state?.coopRoom)coopRoom=null;
+    if(result.coopRooms)coopRooms=result.coopRooms;
+    if(!streaming){rankingRevision++;rankingUpdated=0;}
+    if ("room" in result) partyRoom=result.room; else if (!state?.partyRoom) partyRoom=null;
+    if (result.rooms) partyRooms=result.rooms;
+    lastSync = Date.now();
+    connectionLost = false;
+    const recoveredBanner=$("#connection-status");if(recoveredBanner)recoveredBanner.hidden=true;
+    retryAt = 0;
+    retryFailures = 0;
+    render();
+    for (const event of result.result?.events || []) if(event.type === "combat") combatFrames.push(...event.frames);
+    if (combatFrames.length > 6) combatFrames.splice(0, combatFrames.length - 6);
+    if (!quiet || result.result?.events?.some(e=>["boss","dungeon","party","tower","coop","advancementTrial","citadelChest","tokenBoss","keyBoss","sweep"].includes(e.type))) showEvents(result.result?.events || []);
+    return result;
+  } catch (e) {
+    if((requestSignal?.aborted&&!inputDeadline?.aborted)||baseSignal?.aborted||session?.user?.id!==accountAtSend){
+      if(background&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(requestKey)||'null')?.requestId===body.requestId)localStorage.removeItem(requestKey);}catch{}}
+      return;
+    }
+  if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
+    if (e.status === 400) {localStorage.removeItem(requestKey);recoverCharacter=!state&&!!session&&body?.command!=="sync";}
+    if (e.status === 401) {
+      endSession();
+    }
+    if ((!e.status || e.status >= 500)&&e.message!=="SAVE_CONFLICT") {
+      connectionLost = true;
+      retryFailures++;
+      retryAt = Date.now() + (towerStreaming?500:Math.min(60000, 5000 * 2 ** Math.min(retryFailures - 1, 4)));
+      const banner = $("#connection-status");
+      if (banner) banner.hidden = false;
+      if (!state && session) unavailable();
+    }
+    if (!quiet || !state) toast(message(e));
+    throw e;
+  } finally {
+    if(activeCoopInput===inputAbort)activeCoopInput=null;
+    if(background&&requestSignal?.aborted&&body?.command==='sync'){try{if(JSON.parse(localStorage.getItem(requestKey)||'null')?.requestId===body.requestId)localStorage.removeItem(requestKey);}catch{}}
+    if(activeBackgroundSync===inputAbort)activeBackgroundSync=null;
+    if(claimOnly)citadelClaimBusy=false;else{
+      busy=false;commandIdleWaiters.splice(0).forEach(resolve=>resolve());
+    }
+    if(command!=='coopReady'&&coopRoom?.status==='waiting'&&coopRoom.members.some(m=>m.id===coopRoom.me&&!m.ready))
+      queueMicrotask(sendCoopReady);
+    if(autoHuntPending)queueMicrotask(flushAutoHunt);
+    if(recoverCharacter)queueMicrotask(()=>command("sync",{},true).catch(()=>{}));
+    if(view==="ranking"&&state&&!rankingLoading&&rankingUpdated===0&&!connectionLost)loadRankings(true);
+    if(!streaming&&!claimOnly)document
+      .querySelectorAll("button[data-write]")
+      .forEach((b) => (b.disabled = b.hasAttribute("data-unavailable")));
+  }
+}
+async function loadArena(){
+  arenaError='';
+  for(let attempt=0;attempt<2;attempt++){
+    while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+    try{
+      const result=await command('arenaList',{},true);
+      if(result?.arena)return result.arena;
+    }catch(e){arenaError=message(e);render();return null;}
+  }
+  arenaError='아레나 정보를 불러오지 못했어요. 다시 시도해 주세요.';
+  render();
+  return null;
+}
+const icon = (name) => {
+  const paths = {
+    event: "M4 10h16v11H4zM2 6h20v4H2zM12 6v15M12 6C3 6 5 0 9 3l3 3c9 0 7-6 3-3z",
+    hunt: "M4 3l16 18M20 3L4 21M3 6l4-3M17 21l4-4",
+    character: "M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M4 21v-3a8 6 0 0 1 16 0v3",
+    gear: "M8 3l4 3 4-3 6 5-4 4v9H6v-9L2 8z",
+    boss: "M5 4l3 4h8l3-4v9l-3 7H8l-3-7zM8 12h2m4 0h2M10 17h4",
+    exchange: "M3 7h17l-4-4M21 17H4l4 4",
+    market: "M12 3v18M4 7h16M5 7L2 15h6L5 7m14 0-3 8h6l-3-8M8 21h8",
+  };
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]}"/></svg>`;
+};
+const btn = (label, action, args = "", cls = "", write = false) =>
+  `<button class="${cls}" data-action="${action}" data-arg="${esc(args)}" ${write ? "data-write" : ""}>${label}</button>`;
+function header(title, kicker = "새로운 여정") {
+  return `<div class="page-head"><div><p class="eyebrow">${kicker}</p><h2>${title}</h2></div>${tab === "hunt" ? '<span class="pill">오프라인 최대 6시간</span>' : ""}</div>`;
+}
+function systemInbox() {
+  const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
+  const labels={diamond:"다이아",luckPotion:"행운 물약",treasureTicket:"보물찾기 티켓",tokens:"토큰",bossChest200:"200제 보스 장비 상자 (직업·부위 랜덤)",tribeTicket:"종족 주사위",pickupTicket:"픽업 소환권",companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
+  const tradeN=mails.filter(m=>m.kind==="trade").length;
+  open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p>${tradeN>1?`<div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":`거래소 우편 ${tradeN}통 모두 받기`,"claimTradeMailAll","",blocked,"gold")}</div>`:""}<div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${(mail.items||[]).map(it=>`<div class="mail-reward mail-gear">${gearMarkup(it)}<span>${esc(D.gearName(it))}<strong>${requiredLevel(it.level)} · ${it.stars||0}★</strong></span></div>`).join("")}${Object.entries(mail.rewards||{}).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${key==='tribeTicket'?'tribes/polished-v1/ticket-transparent-v2.webp':key==='tokens'?'token/token-v1.webp':key==='bossChest200'?'ui/lucky-wheel-chest.svg':currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}</strong></span></div>`).join("")}</div><p class="note">${mail.kind==="trade"?"거래소 거래 · 수령 기한 없음":"계정당 1회 수령 · 수령 기한 없음"}</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
+}
+function systemMailButton() {
+  const count=state.systemMailbox?.length||0;
+  const label=count?`우편함 · 받지 않은 우편 ${count}통`:'우편함 · 받은 우편 없음';
+  return `<button class="mail-icon-button ${count?'mail-alert':''}" data-action="systemInbox" aria-label="${esc(label)}" title="${esc(label)}"><img class="mail-envelope-icon" src="ui/mail-envelope-v1.png" width="38" height="38" alt="" aria-hidden="true">${count?`<span class="mail-count" aria-hidden="true">${count}</span>`:''}</button>`;
+}
+function attendanceReady() { return state?.attendance?.lastClaim !== D.dayKey(Date.now()); }
+function attendanceReward(reward) {
+  return Object.entries(reward).map(([key,amount]) => `${key==="gold"?"골드":key==="fishDiamond"?"낚시 다이아":key==="tribeTicket"?"종족 주사위":key==="tokens"?"토큰":key==="companionTicket"?"동료 소환권":key==="pickupTicket"?"픽업 소환권":D.MATERIALS[key]} ${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}`).join(" · ");
+}
+function attendance() {
+  const claimed = !attendanceReady(), day = ((state.attendance?.day || 0) % 7) + 1;
+  const completed = claimed && state.attendance?.day===7 ? 7 : claimed ? state.attendance?.day||0 : day-1;
+  open("7일 출석 보상", `<p class="attendance-lead">${claimed?"오늘 출석 완료! 내일 "+day+"일차 보상을 받을 수 있어요.":"오늘은 "+day+"일차 보상을 받을 수 있어요."}</p><div class="attendance-grid">${D.ATTENDANCE_REWARDS.map((reward,i)=>`<div class="attendance-day ${i===6?"attendance-grand":""} ${i+1===day&&!claimed?"attendance-next":""} ${i+1<=completed?"attendance-done":""}"><strong>${i+1}일차 ${i===6?"★ 특별 보상":""}</strong><span>${attendanceReward(reward)}</span>${i+1===day&&!claimed?"<small>오늘 수령 가능</small>":""}</div>`).join("")}</div><p class="note">매일 오전 0시(한국 시간)에 다음 보상을 받을 수 있어요. 하루를 놓쳐도 진행일은 유지되며 7일차를 받은 뒤 다시 1일차부터 반복됩니다.</p><div class="actions">${claimed?btn("내일 다시 받기","close","","",false):state.battle||state.partyRoom?'<button disabled>전투 종료 후 받기</button>':btn(day+"일차 보상 받기","attendanceClaim","","gold",true)}</div>`);
+  modal.classList.add("attendance-dialog");
+}
+// 테스터 계정 전용: 직업별 보스용 종결 세트로 한 번에 전환(직업 변경 + 그 직업 장비 프리셋 자동 장착).
+function testerSetBar(){
+  if(state?.name!=="테스터")return "";
+  // 프리셋 1 = 200제 종결, 프리셋 2 = 220제 종결. 지금 직업·프리셋과 같은 버튼은 비활성.
+  const row=(label,preset)=>`<div class="subnav tester-set-bar" aria-label="테스터 ${label} 세트"><small style="align-self:center;opacity:.7">${label}</small>${D.CLASSES.map(c=>{const on=c.id===state.classId&&(state.gearPresets?.[c.id]?.active??0)===preset;return `<button data-action="testerSet" data-arg="${c.id}:${preset}" ${on?"disabled class=\"active\"":""}>${c.name}</button>`;}).join("")}</div>`;
+  return row("200제",0)+row("220제",1);
+}
+function changeClassDialog() {
+  const current = D.CLASSES.find(c=>c.id===state.classId);
+  open("직업 변경", `<p class="note">현재 ${current.name} · 변경하면 장착 장비가 모두 가방으로 돌아가고 자동사냥이 멈춥니다. 전직·레벨·보스 기록은 유지돼요.</p><div class="change-class-grid">${D.CLASSES.map((c,i)=>`<button class="change-class-card ${c.id===state.classId?"current":""}" data-action="changeClassPick" data-arg="${c.id}" ${c.id===state.classId?"disabled":""}><span class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(c.id)}% 0" aria-hidden="true"></span><strong>${c.name}</strong><small>${c.stat} · ${c.weapon}</small><span>1차 ${D.CLASS_SKILLS[c.id].name}<br>2차 ${D.SECOND_SKILLS[c.id].name}</span>${c.id===state.classId?"<em>현재 직업</em>":""}</button>`).join("")}</div><p class="note">직업별 스탯 배분은 따로 저장됩니다. 처음 바꾸는 직업의 기본 무기는 가방 또는 보관함에 한 번 지급됩니다.</p>`);
+  modal.classList.add("change-class-dialog");
+}
+function confirmClassChange(classId) {
+  const next=D.CLASSES.find(c=>c.id===classId),current=D.CLASSES.find(c=>c.id===state.classId);
+  if(!next||next.id===current.id)return;
+  open("직업 변경 확인",`<p class="change-class-summary"><strong>${current.name}</strong> → <strong>${next.name}</strong></p><p class="note">현재 장착 장비 ${Object.keys(state.equipped).length}개를 해제하고 자동사냥을 중지합니다. 새 직업의 전용 장비를 장착한 뒤 사냥을 다시 시작하세요.</p><p class="note">레벨·전직·출석·보스 기록은 유지되고, 직업별 스탯 배분과 스킬·랭킹 직업 표시는 새 직업으로 바뀝니다.</p><div class="actions">${btn("다시 고르기","changeClass","","")}${disabledBtn(next.name+"으로 변경","changeClassConfirm",next.id,!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}</div>`);
+  modal.classList.add("change-class-dialog");
+}
+function shell(content) {
+  if(document.body.classList.contains("tower-mode"))return `<div class="shell">${content}</div>`;
+  const c = D.CLASSES.find(c=>c.id===state.classId);
+  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':arenaDock():fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady(),fishingQuestsReady(state));
+  return `<div class="shell fantasy-shell">${fantasyHeader(state,view==="arena"?"arena":view==="game"?tab:"")}<div class="fantasy-player-strip"><span><strong>${esc(state.name)}</strong> · Lv.${state.level} ${c.name}</span><span>전투력 <b>${fmt(power(state).combatPower)}</b></span></div><div id="connection-status" class="connection-status" role="status" ${connectionLost?"":"hidden"}>연결이 지연되고 있어요. ${btn("다시 연결","reconnect")}</div><main class="fantasy-content" data-screen="${esc(view==="game"?tab:view)}">${content}</main>${footer}</div>`;
+}
+
+function render() {
+  if(!(session&&state&&view==='game'&&tab==='event'&&eventPage==='fishing'&&!state.coopRoom&&!state.partyRoom&&!dummyBattle&&state.battle?.kind!=='tower')){stopFishing();fishingUI.entered=false;if(fishingUI.auto)stopAutoFishing();}
+  if(dummyBattle&&(state?.battle||state?.coopRoom||state?.partyRoom))dummyBattle=null;
+  sounds.setCombat(!!dummyBattle||state?.battle?.kind==='tower'||['fighting','won'].includes(coopRoom?.status));
+  const preservedScroll=window.scrollY;
+  const preservedLottoScroll=app.querySelector('.lotto-scroll')?.scrollTop;
+  const towerBattle=dummyBattle||(state?.battle?.kind==='tower'?state.battle:null);
+  const coopFight=state?.coopRoom&&['fighting','won'].includes(coopRoom?.status);
+  document.body.classList.toggle('tower-mode',!!towerBattle||!!coopFight);
+  if(coopFight&&coopController?.room.id===coopRoom.id){coopController.accept(coopRoom);return;}
+  if(coopController){coopController.dispose();coopController=null;}
+  if(towerBattle&&towerController?.b.runId===towerBattle.runId){if(!dummyBattle)towerController.accept(towerBattle);return;}
+  if(towerController){towerController.dispose();towerController=null;}
+  if (!session) return login();
+  if (!state) return createScreen();
+  let content;
+  if(coopFight)content=coopArena(coopRoom);
+  else if(state.coopRoom){ensureRoomTribes();content=coopLobby(state,coopRoom,coopRooms);}
+  else if (towerBattle) content=towerArena(towerBattle);
+  else if (view === "arena") content=arenaView({data:arenaData,page:arenaPage,self:state,battle:arenaBattle,error:arenaError});
+  else if (view === "ranking") content = rankings();
+  else if (state.partyRoom) content = partyPanel();
+  else if (view === "journal") content = journal();
+  else if (view === "regions") content = regions();
+  else
+    content = {
+      event:()=>eventPage==='lotto'?lottoView(state,lottoData):eventPage==='treasure'?treasureView(state):fishingView(state),
+      hunt: hunt,
+      character: character,
+      gear: inventory,
+      companion:()=>companionView(state),
+      boss: bosses,
+      market: market,
+      shop:()=>shopView(state,D,gearMarkup,shopCategory,skillLookClass||state.classId),
+      investment:()=>investmentView(state,investmentData),
+    }[tab]();
+  document.body.classList.toggle('investment-mode',tab==='investment'&&view==='game'&&!state.battle&&!state.coopRoom&&!state.partyRoom);
+  const eventScreen=tab==="event"&&view==="game"&&!state.coopRoom&&!towerBattle&&!state.partyRoom;
+  document.body.classList.toggle("pet-event-mode",false);
+  document.body.classList.toggle("fishing-mode",eventScreen&&eventPage==="fishing");
+  document.body.classList.toggle("lotto-mode",eventScreen&&eventPage!=="fishing");
+  if(eventScreen&&eventPage==='fishing')updateFishingView(app,content,state.fishing?.cast?.id);
+  else replacePreservingDetails(app, ["page",view,tab,tab==="boss"?bossTab:""].join("|"), eventScreen?content:shell(content));
+  if(view==='arena'&&arenaPage==='battle'&&arenaBattle&&!arenaPlayback){arenaPlayback=startArenaReplay(arenaBattle,()=>{arenaPlayback=null;arenaPage='result';render();});}
+  window.scrollTo({top:view==='arena'&&['opponents','battle'].includes(arenaPage)?0:preservedScroll,behavior:"instant"});
+  if(eventScreen&&eventPage==='lotto'&&preservedLottoScroll!==undefined){
+    const lottoScroll=app.querySelector('.lotto-scroll');
+    if(lottoScroll)lottoScroll.scrollTop=preservedLottoScroll;
+  }
+  updateCompanionTimers(state,view==='game'&&tab==='companion'?app:null);
+  updatePetCountdown();
+  updateLuckTimers(state);
+  updateInvestmentClock(investmentData,investmentLoadedAt);
+  refreshLevelRequirements();
+  if(eventScreen&&eventPage==='fishing'){
+    const fishingRoot=app.querySelector('.fishing-screen');mountFishing(fishingRoot,state,fishingCommandRequest);
+    if(fishingUI.pending)showFishingPending(fishingRoot,fishingUI.pending,{animate:false});
+    let banner=fishingRoot.querySelector('#connection-status');
+    if(!banner){banner=document.createElement('div');banner.id='connection-status';banner.className='connection-status';banner.setAttribute('role','status');banner.innerHTML='연결이 지연되고 있어요. <button data-action="reconnect">다시 연결</button>';fishingRoot.querySelector('.fishing-scroll').prepend(banner);}
+    banner.hidden=!connectionLost;
+  }
+  if(coopFight){coopController=new CoopController(app.querySelector('.tower-play'),coopRoom,command,b=>sounds.battle(b),state?.isAdmin===true||state?.isTester===true);return;}
+  if(towerBattle){
+    const send=dummyBattle?async(_action,args)=>{
+      if(!dummyBattle||dummyBattle.runId!==args.runId)return null;
+      const skip=Math.max(0,dummyBattle.tick-args.from);
+      for(const frame of args.frames.slice(skip))towerStep(dummyBattle,frame);
+      return {state:{battle:structuredClone(dummyBattle)}};
+    }:command;
+    towerController=new TowerController(app.querySelector('.tower-play'),towerBattle,send,kind=>sounds.play(kind),{audio:b=>sounds.battle(b),preview:!!dummyBattle});return;
+  }
+  if(state?.battle||state?.partyRoom)updateCombatClock();
+  if (state.pendingCube && !modal.open) cubeChoice();
+  else if (state.pendingAddCube && !modal.open) addCubeChoice();
+  else if (state.pendingRefine && !modal.open) refineChoice();
+  else if(["coop","advancementTrial"].includes(state.lastReward?.type)&&!modal.open)reward();
+}
+function dailyRewardLines(task){
+  return [['gold','골드'],['fragment','장비 파편'],['cube','레드 큐브'],['highCube','블랙 큐브']]
+    .filter(([key])=>task[key]>0).map(([key,label])=>label+' '+fmt(task[key])+(key==='gold'?' G':'개'));
+}
+function dailyCard(){return '<section class="panel pad daily-card"><h3>오늘의 모험</h3><p class="note">매일 한국 시간 0시 갱신 · 목표마다 현재 레벨 경험치 5%</p>'+Object.entries(D.DAILY_TASKS).map(([key,t])=>'<div class="daily-row"><div style="min-width:0"><strong>'+t.name+'</strong><small>진행 '+fmt(Math.min(t.goal,state.daily?.[key]||0))+' / '+fmt(t.goal)+'</small><small>'+dailyRewardLines(t).join('<br>')+'</small></div>'+disabledBtn(state.daily?.claimed?.includes(key)?'완료':'받기','dailyClaim',key,(state.daily?.[key]||0)<t.goal||state.daily?.claimed?.includes(key))+'</div>').join('')+'</section>';}
+function hunt() {
+  const st = D.STAGES[state.stage],
+    region = state.battle?.dungeon === "relic" ? D.EXPEDITION : D.REGIONS[state.battle ? battleEnemy(state.battle).region : st.region],
+    p = power(state),
+    r = huntingRate(state),
+    b = state.battle,
+    boss = b && battleEnemy(b);
+  return `${header(boss ? boss.name : st.name, boss?.arenaName||region.name)}<div class="main-grid"><div><section class="panel"><div class="arena" data-class="${state.classId}" style="background-image:url('${boss?.background||st.background||region.background}')"><div class="battle-head"><small>${boss ? "BOSS · " + (b.kind === "dungeon" ? "수련" : boss.weekly ? "주간" : "일일") : "권장 Lv." + st.level + " · 일반 사냥"}</small><h3>${boss ? boss.name : D.fieldMonster(st.id,state.huntKills||0).name}</h3><div class="hp"><i id="enemy-hp" style="width:${boss ? Math.max(0, (b.enemyHp / boss.hp) * 100) : 100}%"></i></div><small id="battle-info">${boss ? fmt(b.enemyHp) + " / " + fmt(boss.hp) : state.hunting ? "전투 중" : "사냥 시작을 눌러 도전하세요"}</small></div>${equippedCostume(state)?`<img class="field-costume" src="${equippedCostume(state).portrait}" alt="${equippedCostume(state).name}">`:""}<div class="field-pet-home">${state.equippedPet==='moonfox-lumi'?'<img src="pets/lumi.webp" alt="동행 중인 루미">':''}</div><div class="monster">${boss ? bossMarkup(boss) : monsterMarkup(D.fieldMonster(st.id,state.huntKills||0))}</div><div class="combat-status"><span class="pill" id="hunt-status">${boss ? "보스 전투 중" : state.hunting ? "자동사냥 중" : "휴식 중"}</span>${boss ? `<p id="player-hp">내 HP ${fmt(b.hp)} / ${fmt(b.power.hp)}</p><div class="hp player-health"><i style="width:${Math.max(0, b.hp/b.power.hp*100)}%"></i></div><small id="pattern-info">${boss.pattern} · ${boss.patternEvery - b.tick % boss.patternEvery}초 후</small>` : `<p id="field-player-hp">내 HP ${fmt(power(state).hp)} / ${fmt(power(state).hp)}</p><div class="hp player-health"><i id="field-player-bar" style="width:100%"></i></div><small id="field-combat-result">${state.hunting?"몬스터와 전투 중":"사냥을 시작하면 자동으로 전투합니다."}</small><small class="field-pet-status">${power(state).pet?"루미 장착 중 · 체력 8% 감소 시 회복 · 처치 시 쿨타임 초기화":"루미 미장착 · 가방 → 펫에서 장착"}</small>`}</div></div><div class="pad"><div class="row spread"><small>Lv.${state.level} 경험치</small><small>${fmt(state.xp)} / ${fmt(D.xpNeeded(state.level))}</small></div><div class="exp"><i style="width:${Math.min(100, (state.xp / D.xpNeeded(state.level)) * 100)}%"></i></div><div class="metrics"><div><small>예상 시간당 경험치</small><b>${fmt((r.xp * 3600) / r.seconds)}</b></div><div><small>예상 시간당 골드</small><b>${fmt((r.gold * 3600) / r.seconds)}</b></div><div><small>드롭 장비</small><b>${gearLevelRange(Math.max(10,st.dropLevel))}</b></div></div><div class="actions">${boss ? combatSkillButtons()+disabledBtn("회복 "+(3-(b.potions||0))+"/3","battlePotion","",(b.potions||0)>=3||Date.now()<(b.potionReady||0)) : btn(state.hunting ? "사냥 중지" : "사냥 시작", "toggleHunt", "", "gold", true)}${btn("사냥터 변경", "regions")}${btn("보상 확인", "reward")}${boss ? btn("전투 포기", "abandonConfirm") : ""}</div>${boss ? `<p class="note">전투 제한 ${boss.seconds}초 · <strong id="battle-timer">남은 ${boss.seconds-b.tick}초</strong></p>`+skillGuide() : recentLoot()}</div></section></div><aside>${dailyCard()}<div class="panel pad"><p class="eyebrow">오늘의 성장</p><h3>장비는 모험에서 얻습니다</h3><p class="note">권장레벨에 맞는 장비를 강화해야 안정적으로 사냥할 수 있습니다. 패배하면 10초 후 부활해 재도전합니다. 반복해서 패배한다면 장비를 강화하거나 하위 사냥터에서 재화를 모으세요. 상위 사냥터로 이동하며 성장하세요. 자신의 레벨보다 15레벨 이상 낮은 사냥터에서는 경험치와 골드가 함께 줄어듭니다.</p><div class="row wrap">${Object.entries(
+    D.MATERIALS,
+  )
+    .map(
+      ([k, v]) =>
+        `<span class="currency">${v} <b>${fmt(state.materials[k])}</b></span>`,
+    )
+    .join(
+      "",
+    )}</div></div><div class="panel pad"><h3>다음 목표</h3><p class="note">${state.cleared.length < D.BOSSES.length ? D.BOSSES.find((b) => !state.cleared.includes(b.id))?.name + " 처치" : "최종 장비와 잠재옵션 완성"}</p>${btn("보스 확인", "tab", "boss")}${btn("모험 수첩", "journal")}</div>${state.tutorial < 6 ? `<div class="quest"><strong>모험 안내 ${state.tutorial + 1}/6</strong><p class="note">${["시작 무기는 장착되어 있어요. 캐릭터 탭에서 확인하세요.", "레벨업 포인트는 내 직업 주스탯에 분배하세요.", "모든 사냥터에 입장할 수 있어요. 권장 레벨과 생존 가능 여부를 확인하세요.", "보스 장비는 보스를 처치해서만 얻을 수 있어요.", "장비는 잠재 3줄로 시작해요. 큐브로 원하는 옵션을 찾으세요.", "강화 실패 시 별은 유지됩니다. 비용을 확인하고 도전하세요."][state.tutorial]}</p>${btn("확인", "tutorial", "", "", true)}</div>` : ""}</aside></div>`;
+}
+function regions() {
+  return `${header("사냥터 선택", "WORLD MAP")}${btn("사냥으로 돌아가기", "back")}<section class="panel pad relic-card"><strong>여명의 폐허 · ${requiredLevel(200)}</strong><p class="note">멸신왕 벨제리온 이후 열리는 유적 · 일반 ${requiredLevel(200,"200레벨")} 장비</p>${disabledBtn("유적 탐사","dungeon","relic",state.level<200||!state.cleared.includes(29),"gold")}</section><div class="region-list" style="margin-top:12px">${D.REGIONS.map(
+    (r) =>
+      `<section class="panel"><div class="region-banner" style="background-image:url('${r.background}')"><h3>${r.name} <small>권장 Lv.${r.level}</small></h3></div>${D.STAGES.filter(
+        (s) => s.region === r.id,
+      )
+        .map(
+          (s) =>
+            `<div class="stage-row${state.stage===s.id?" current-stage":""}" data-stage="${s.id}"><div><strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 입장 제한 없음<br>경험치 ${fmt(s.xp)} · ${fmt(s.gold)} G / 처치<br>${gearLevelRange(Math.max(10,s.dropLevel))} 일반 장비${state.stage===s.id?" · 현재 사냥터":""}</small></div>${disabledBtn("입장", "enterStage", s.id, false)}</div>`,
+        )
+        .join("")}</section>`,
+  ).join("")}</div>`;
+}
+function character() {
+  const c = D.CLASSES.find((x) => x.id === state.classId),
+    p = power(state);
+  return `${header("캐릭터", (state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name) + " · " + c.stat + " 주스탯")}<div class="subnav">${btn("모험 수첩","journal")}${btn("직업 변경","changeClass")}${btn("코스튬","costumeWardrobe")}</div>${testerSetBar()}<section class="panel pad">${skillGuide()}</section><section class="panel pad advancement-card"><div><strong>${D.jobStage(state)?D.jobStage(state)+"차 직업":"견습 모험가"} · ${state.advancement>=4?D.FIFTH_NAMES[c.id]:state.advancement>=3?D.FOURTH_NAMES[c.id]:state.advancement>=2?D.THIRD_NAMES[c.id]:state.advancement?D.ADVANCEMENTS[c.id]:c.name}</strong><p class="note">1차 Lv.30 / 2차 Lv.60 / 3차 Lv.100 / 4차 Lv.150 / 5차 Lv.200 / 6차 Lv.250 / 7차 Lv.300 · 전용 보스 처치 · 1~5차 공격력·HP +10%, 6·7차 잠재형 능력치</p></div>${btn("전직 보스","advance","","gold")}</section><div class="main-grid"><section class="panel"><div class="hero"><div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="${portraitStyle(c.id,equippedCostume(state)?.id,portraitPosition(c.id))}" role="img" aria-label="${c.name}"></div><div class="hero-label"><h2>${esc(state.name)}</h2><span class="pill">${c.name}</span></div></div><div class="pad"><div class="stat-grid">${Object.keys(
+    state.stats,
+  )
+    .map(
+      (k) =>
+        `<div class="${k === c.stat ? "primary" : ""}"><small>${k}${k===c.stat?" · 주스탯":""}</small><b>${fmt(p.stats[k].total)}</b></div>`,
+    )
+    .join(
+      "",
+    )}</div><p class="note">장비·잠재를 합산한 최종 스탯 · 남은 포인트 ${state.points}</p><div class="actions">${btn("직접 분배", "stats")}${btn("주스탯 자동 분배", "autoStats", "", "gold", true)}${btn("초기화", "resetStats")}</div></div></section><div>${characterMetrics(p,c)}<section class="panel pad"><h3>장착 장비</h3><div class="gear-grid" style="margin-top:12px">${D.SLOTS.map(
+    (name, slot) => {
+      const it = state.items.find((x) => x.id === state.equipped[slot]);
+      return btn(
+        it
+          ? `${gearMarkup(it)}<strong>${name}</strong><span class="stars">${it.stars}성</span>`
+          : `<strong>${name}</strong><small>미장착</small>`,
+        "item",
+        it?.id || "",
+        "gear-cell"+(it?.boss?" boss-gear":""),
+      );
+    },
+  ).join(
+    "",
+  )}</div></section></div></div>`;
+}
+function characterMetrics(p,c,summaryOnly=false) {
+  const bonus = v => "+" + pct(v / 100);
+  const rows = [["최종 공격력",fmt(p.attack)],["공격력 보너스",bonus(p.bonuses.attack)],["보스 피해",bonus(p.bonuses.boss)],["치명타 확률",pct(p.crit)],["치명타 피해",pct(p.critDamage)],["최대 HP",fmt(p.hp)],["HP 보너스",bonus(p.bonuses.hp)],["방어력",fmt(p.defense)],["방어력 보너스",bonus(p.bonuses.defense)],["골드 획득",bonus(p.goldGain)],["경험치 획득",bonus(p.xpGain)],["스타포스",p.stars+"성"]];
+  if(summaryOnly)return `<section class="panel pad character-summary"><div class="combat-power"><span>종합 전투력</span><strong>${fmt(p.combatPower)}</strong><small>현재 장착 장비 · 스타포스 · 잠재 반영</small></div><div class="character-metrics">${rows.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join("")}</div><p class="note">공격력·HP·방어력은 직업과 전직 효과까지 적용한 최종 수치입니다. 보너스 %는 잠재 옵션의 합계입니다.</p></section>`;
+  return `<section class="panel pad character-summary"><div class="combat-power"><span>종합 전투력</span><strong>${fmt(p.combatPower)}</strong><small>현재 장착 장비 · 스타포스 · 잠재 반영</small></div><div class="character-metrics">${rows.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join("")}</div><p class="note">공격력·HP·방어력은 직업과 전직 효과까지 적용한 최종 수치입니다. 보너스 %는 잠재 옵션의 합계입니다.</p><details class="combat-formula"><summary>전투력 계산 기준</summary><p>⌊평균 초당 피해 × 보스 피해 배율 + HP × (1 + 방어력 ÷ 2,600) × 0.1⌋</p><p>평균 초당 피해는 공격력 × [1 + 치명타 확률 × (치명타 피해 배율 − 1)] × 공격 속도입니다. 해적 공격 속도는 1.08배, 나머지는 1배입니다.</p><p>고정 주스탯과 주스탯 %는 최종 공격력에 이미 반영됩니다. 골드·경험치 획득은 전투력에 포함하지 않습니다. 생존 점수는 일반 피해에 대한 유효 체력 기준이며 방어력을 무시하는 체력 비례 피해와 일시적인 전투 스킬은 제외한 비교용 수치입니다.</p></details></section><section class="panel pad stat-breakdown"><h3>스탯 상세</h3><p class="note">(기본 + 성장·장비 + 고정 잠재) × (1 + 스탯 %)<br>현재 직업은 ${c.stat}이 공격력에 반영됩니다.</p><div class="stat-detail-grid">${Object.entries(p.stats).map(([key,v])=>`<div class="stat-detail ${key===c.stat?"primary":""}"><div><strong>${key}</strong><b>${fmt(v.total)}</b></div><dl><dt>기본</dt><dd>${fmt(v.base)}</dd><dt>성장·장비</dt><dd>+${fmt(v.growth)}</dd><dt>고정 잠재</dt><dd>+${fmt(v.fixed)}</dd><dt>스탯 보너스</dt><dd>${bonus(v.percent)}</dd></dl></div>`).join("")}</div></section>`;
+}
+function gearLevelRange(base){const r=D.equipmentLevelRange(base);return r.min===r.max?requiredLevel(r.min):requiredLevel(r.min)+" / "+requiredLevel(r.max);}
+function gearRollLabel(it){return "기본 공격력 "+D.gearAttributes(it,0).attack.toFixed(1);}
+function itemMarkup(it) {
+  if(it.kind==="consumable")return `<div class="consumable-market-icon">${['treasureTicket','companionTicket','pickupTicket','essence','mapPiece','pearl','ore'].includes(it.key)?`<img src="${currencyIconURL(it.key)}" alt="" style="width:80%;height:80%;object-fit:contain">`:'◆'}</div><div class="item-info"><strong>${esc(materialName(it.key))}</strong><p>남은 ${fmt(it.quantity)}개 · 소모품</p></div>`;
+  return `${gearMarkup(it)}<div class="item-info"><strong>${esc(D.gearName(it))} ${it.locked ? "[잠금]" : ""}</strong><p>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find((c) => c.id === it.classId).name} · ${D.equipmentType(it)} ${Object.values(state.equipped).includes(it.id) ? "· 장착 중" : ""}</p><span class="stars">${it.broken ? "파괴된 장비 흔적" : it.stars + "성"}</span> <span class="quality-badge">${gearRollLabel(it)}</span> <span class="potential-grade grade-color-${it.grade}">${it.lines.length ? D.RARITIES[it.grade] : "잠재 미개방"}</span></div>`;
+}
+function bagGroupsMarkup(groups){
+ const items=groups.flatMap(g=>g.slots.flatMap(v=>v.items)),stackMap=new Map();for(const item of items){const key=salvageMode?item.id:D.equipmentKey(item);if(!stackMap.has(key))stackMap.set(key,[]);stackMap.get(key).push(item);}
+ const stacks=[...stackMap.values()],pageSize=window.matchMedia('(max-width:700px)').matches?12:24,pages=Math.max(1,Math.ceil(stacks.length/pageSize));bagPage=Math.min(bagPage,pages-1);
+ return '<div class="bag-pager">'+disabledBtn('이전','bagPage',bagPage-1,bagPage===0)+'<strong>'+(bagPage+1)+' / '+pages+' · '+stacks.length+'종 / '+items.length+'개</strong>'+disabledBtn('다음','bagPage',bagPage+1,bagPage>=pages-1)+'</div>'+(salvageMode?'':gearPresetBar())+'<div class="inventory-grid bag-grid">'+(stacks.slice(bagPage*pageSize,(bagPage+1)*pageSize).map(stack=>{let tile=bagTile(stack[0]);const presetNums=[...new Set(stack.flatMap(x=>gearPresetSlots(state,x.id)))].sort();tile=tile.replace(/data-preset="[^"]*"/,'data-preset="'+presetNums.map(n=>'E'+n).join('&#10;')+'"').replace(' in-preset','');if(presetNums.length)tile=tile.replace('class="bag-slot ','class="bag-slot in-preset ');if(!salvageMode)tile=tile.replace('data-action="item"','data-action="itemGroup"').replace('</button>','<b class="bag-stack-count">보유 '+stack.length+'개</b></button>');if(!salvageMode&&stack.length>1){const stars=stack.map(x=>x.stars),lo=Math.min(...stars),hi=Math.max(...stars);tile=tile.replace(/<span class="tile-star">[^<]*<\/span>/,'<span class="tile-star">'+(lo===hi?lo:lo+'~'+hi)+'★</span>');}return tile;}).join('')||'<div class="empty">장비가 없습니다.</div>')+'</div>';
+}
+function gearPresetBar(){const active=state.gearPresets?.[state.classId]?.active??0,blocked=!!state.battle||!!state.partyRoom||!!state.pendingCube;return '<div class="gear-preset-bar"><span>장비 슬롯</span>'+[0,1,2].map(i=>disabledBtn(String(i+1),'gearPreset',i,blocked,'gear-preset-btn'+(i===active?' active':''))).join('')+'</div>';}
+function itemGroup(id){const first=state.items.find(x=>x.id===id);if(!first)return;const equipped=new Set(Object.values(state.equipped));const items=state.items.filter(x=>D.equipmentKey(x)===D.equipmentKey(first)).sort((a,b)=>Number(equipped.has(b.id))-Number(equipped.has(a.id)));if(items.length===1)return itemDetail(id);open(D.gearName(first)+' · '+items.length+'개','<p class="note">강화·잠재는 각각 유지됩니다. 사용할 장비를 고르세요.</p><div class="stack">'+items.map(it=>'<button data-action="item" data-arg="'+it.id+'" class="stack-equipment">'+itemMarkup(it)+'<small>'+it.lines.map(l=>D.OPTIONS[l.key]+' +'+l.value+D.optionUnit(l.key)).join(' · ')+'</small></button>').join('')+'</div>');}
+
+function bagTile(item) {
+  const otherClass=!D.canEquipClass(item,state.classId);
+  return btn(gearMarkup(item)+`<span class="tile-meta"><span class="tile-level">${requiredLevel(item.level,"Lv."+item.level)}</span><span class="tile-star">${item.stars}★</span></span><span class="tile-name ${otherClass?"other-class":""}">${esc(D.gearName(item))}</span><span class="tile-class ${otherClass?"other-class":""}">${D.isCommonBossGear(item)?"전 직업 공통":esc(D.CLASSES.find(c=>c.id===item.classId)?.name||item.classId)+" 전용"}</span><span class="tile-quality">${gearRollLabel(item)}</span><span class="sr-only">${D.equipmentType(item)} ${item.locked?"잠금":""}</span>`, salvageMode?"salvagePick":"item", item.id, `bag-slot ${item.boss?"boss-gear":""} ${salvageMode?(salvageSelection.has(item.id)?"salvage-selected":!canSalvage(item)?"salvage-unavailable":""):""} ${Object.values(state.equipped).includes(item.id)?"equipped":""}${gearPresetSlots(state,item.id).length?" in-preset":""} ${item.locked?"locked":""}`).replace("<button ",'<button data-preset="'+gearPresetSlots(state,item.id).map(n=>"E"+n).join("&#10;")+'" ');
+}
+function inventory() {
+  for(const id of salvageSelection)if(!state.items.some(it=>it.id===id&&canSalvage(it)))salvageSelection.delete(id);
+  const groups = inventoryGroups(state.items, D.CLASSES, state.classId, Object.values(state.equipped), filterClass, filterSlot, state.gearPresets);
+  return `${header("가방", "INVENTORY")}<div class="subnav">${[
+    ["bag", "가방"],
+    ["consumables", "소모품"],
+    ["pets", "펫"],
+    ["exchange", "교환소"],
+    ["mail", "보관함"],
+    ["odds", "확률표"],
+  ]
+    .map(([k, l]) => btn(l, "gearSub", k, sub === k ? "active" : ""))
+    .join(
+      "",
+    )}</div>${sub === "consumables" ? consumableView(state) : sub === "pets" ? petInventory(state) : sub === "exchange" ? gearExchange() : sub === "odds" ? odds() : sub === "mail" ? mailbox() : `${supplies()}<section class="auto-equip-card"><div><strong>전투력 기준 최적 장착</strong><small>현재 전투력 ${fmt(power(state).combatPower)} · 장비·잠재 합산</small></div>${disabledBtn("최적 장착","autoEquip","",!!state.battle||!!state.partyRoom||!!state.pendingCube,"gold")}<p>${state.pendingCube?"큐브 옵션 선택을 먼저 완료해 주세요.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 사용할 수 있습니다.":"가방 전체에서 착용 가능한 장비를 비교합니다. 잠금 장비도 포함됩니다."}</p></section><div class="filters"><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><p class="note">9부위 장착 · 직업별 무기 ${D.WEAPON_TYPES[state.classId].join("·")}<br>가방 ${state.items.length}/300 · 장착 장비 먼저 → 내 직업 → 부위별 정렬</p><div class="actions">${btn(salvageMode?"선택 분해 종료":"선택 분해","salvageMode")}${salvageMode?btn("필터 장비 선택 (최대 50개)","salvageSelectVisible")+btn("선택 해제","salvageClear")+disabledBtn("선택 "+salvageSelection.size+"개 분해","salvageBatchConfirm","",!salvageSelection.size||!!state.battle||!!state.partyRoom,"danger"):""}</div>${salvageMode?`<p class="note">장비를 눌러 선택하세요. 장착·잠금·파괴·큐브 선택 중인 장비는 제외됩니다.</p>`:""}<div class="bag-groups">${bagGroupsMarkup(groups)}</div>`}`;
+}
+function gearExchange(){
+ const classId=exchangeClass||state.classId;
+ return `<section class="panel pad gear-exchange"><h3>장비 파편 교환소</h3><p class="note">직업과 레벨을 선택하면 장비 1개를 받습니다. <strong>1% 확률로 같은 레벨의 보스 장비</strong>가 나오며, 이때 직업과 부위는 무작위입니다.</p><label for="exchange-class">장비 직업</label><select id="exchange-class">${D.CLASSES.map(c=>`<option value="${c.id}" ${c.id===classId?'selected':''}>${c.name}</option>`).join('')}</select><label for="exchange-level">장비 레벨 · 파편 비용</label><select id="exchange-level">${Array.from({length:19},(_,i)=>(i+1)*10).map(level=>`<option value="${level}" ${level===exchangeLevel?'selected':''}>Lv.${level} 장비 · 파편 ${level}개</option>`).join('')}</select><p>보유 장비 파편 <strong>${fmt(state.materials.fragment)}개</strong></p>${disabledBtn(gearMarkup({level:exchangeLevel,classId,slot:0,boss:false,design:0,weaponVariant:0})+`<strong>Lv.${exchangeLevel} 랜덤 장비 교환</strong><small>파편 ${exchangeLevel}개 사용 · 장비 1개 획득</small>`,"exchangeGear",exchangeLevel,state.materials.fragment<exchangeLevel||!!state.battle||!!state.coopRoom,"exchange-card")}<p class="note">이미지는 무기 예시입니다. 일반 장비 99%: 선택한 직업, 9부위 각 1/9, 디자인 2종 각 50%. 보스 장비 1%: 5직업 각 20%, 9부위 각 1/9. 기본 능력치는 무작위이며 잠재는 잠긴 상태로 지급됩니다. 가방이 가득 차면 보관함으로 받습니다.</p></section>`;
+}
+function atlasIcon(tier, n, label, size="") {
+  const atlas=[
+    {w:1278,h:1230,x:[0,335,643,972,1278],y:[0,360,654,930,1230]},
+    {w:1278,h:1230,x:[0,335,643,972,1278],y:[0,353,646,912,1230]},
+    {w:1448,h:1086,x:[0,365,733,1095,1448],y:[0,293,548,810,1086]},
+  ][tier];
+  const col=n%4,row=Math.floor(n/4),x=atlas.x[col],y=atlas.y[row],w=atlas.x[col+1]-x,h=atlas.y[row+1]-y;
+  return `<svg class="gear-icon ${size}" role="img" aria-label="${esc(label)}" viewBox="${x} ${y} ${w} ${h}"><image href="gear-${tier}.svg" width="${atlas.w}" height="${atlas.h}" preserveAspectRatio="none"/></svg>`;
+}
+let gearClipId=0;
+function gearMarkup(it, size="") {
+  if(!it) return "";
+  const art = D.equipmentIdentity(it);
+  const tier = D.equipmentTierLevel(it);
+  const frameClass = `gear-frame ${size} ${it.boss ? "boss-gear" : ""} ${it.boss && tier >= 160 ? "boss-relic relic-" + tier : ""}`;
+  if(!art.standalone) {
+    const label=esc(it.boss ? "보스 장비 " + art.name : art.name);
+    if(art.grid)return `<span class="${frameClass}"><span class="gear-icon" role="img" aria-label="${label}" style="display:block;width:100%;height:100%;background-image:url('${art.art}');background-size:${art.columns*100}% ${art.rows*100}%;background-position:${art.column/(art.columns-1)*100}% ${art.row/(art.rows-1)*100}%;background-repeat:no-repeat"></span></span>`;
+    const bounds=equipmentBounds[art.art.split('/').pop()];
+    const ys=bounds.cellY[art.column],cell=bounds.cells?.[art.column]?.[art.row];
+    const [x,y,w,h]=cell||[bounds.x[art.column],ys[art.row],bounds.x[art.column+1]-bounds.x[art.column],ys[art.row+1]-ys[art.row]];
+    const clipId='gear-clip-'+(++gearClipId),clip=cell?.[4]?`<defs><clipPath id="${clipId}"><polygon points="${cell[4]}"/></clipPath></defs>`:'';
+    return `<span class="${frameClass}"><svg class="gear-icon" role="img" aria-label="${label}" viewBox="${[x,y,w,h].join(' ')}" overflow="hidden" preserveAspectRatio="xMidYMid meet"><svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${[x,y,w,h].join(' ')}" overflow="hidden"><image href="${art.art}" width="${bounds.width}" height="${bounds.height}" preserveAspectRatio="none" ${clip?'clip-path="url(#'+clipId+')"':''}/>${clip}</svg></svg></span>`;
+  }
+  return `<span class="${frameClass}"><img class="gear-icon" src="${esc(art.art)}" alt="${esc(it.boss ? "보스 장비 " + art.name : art.name)}" width="256" height="256" decoding="async" draggable="false"></span>`;
+}
+function bossMarkup(b, size="") {
+  if(b.fullArt) return `<img class="boss-sprite ${size}" src="${b.art}" alt="${esc(b.name)}" style="object-fit:contain">`;
+  if(b.weekly)return `<div class="boss-sprite ${size}" style="background-image:url(tower/boss-${TOWER_FLOORS[b.region].art}.webp);background-size:300% 100%;background-position:left center" role="img" aria-label="${esc(b.name)}"></div>`;
+  return '<div class="boss-sprite '+size+'" role="img" aria-label="'+esc(b.name)+'" style="background-image:url('+b.art+');background-position:'+b.spriteX+'% '+b.spriteY+'%"></div>';
+}
+function monsterMarkup(m) {
+  return '<img class="monster-sprite" src="'+m.art+'" alt="'+esc(m.name)+'" draggable="false">';
+}
+function mailbox() {
+  return '<p class="note">가방이 가득 찼을 때 얻은 장비를 보관합니다. 보관 기한은 없으며 한 번에 최대 50개를 꺼낼 수 있어요.</p><div class="stack">'+((state.mailbox||[]).map(m=>'<div class="panel pad"><div class="item">'+itemMarkup(m.item)+'</div><p>'+m.quantity+'개 보관</p>'+btn('가방으로 받기','claimMail',m.key,'gold',true)+'</div>').join('')||'<div class="empty">보관 중인 장비가 없습니다.</div>')+'</div>';
+}
+function collection() {
+  const keys = state.collection||[];
+  return '<p class="note">발견한 장비 '+keys.length+' / '+D.EQUIPMENT_CATALOG.length+'종 · 획득 기록은 장비를 판매하거나 분해해도 유지됩니다.</p><div class="inventory-grid stack">'+keys.map(key=>{const entry=D.equipmentFromKey(key);return '<div class="panel pad item">'+itemMarkup({...entry,stars:0,lines:[],grade:0})+'</div>';}).join('')+'</div>';
+}
+const bossMaterialNames = ["생명의 나무 심장", "월광의 뿔", "고대 수정 광석", "용암의 핵", "망령 왕가의 인장", "빙룡의 비늘", "태양의 풍뎅이", "천공의 깃털", "시간의 톱니", "심연의 왕관 파편"];
+function materialMarkup(region) {
+  return `<span class="material-icon" role="img" aria-label="${bossMaterialNames[region]}" style="background-position:${region%5*25}% ${Math.floor(region/5)*100}%"></span>`;
+}
+function odds() {
+  return `<div class="panel pad"><h3>스타포스 · 최대 25성</h3><p class="note">실패해도 현재 별을 유지합니다. 하락·파괴 확률은 0%입니다.</p><table><tr><th>목표</th><th>성공</th><th>유지</th><th>하락</th><th>파괴</th></tr>${D.STAR_SUCCESS.map(
+    (_, n) => {
+      const o = D.starOdds(n);
+      return `<tr><td>${n + 1}성</td><td>${pct(o.success)}</td><td>${pct(o.keep)}</td><td>${pct(o.down)}</td><td>${pct(o.destroy)}</td></tr>`;
+    },
+  ).join(
+    "",
+  )}</table></div>${cubeGuide()}<div class="panel pad"><h3>일반 사냥 드롭 · 온라인/오프라인 동일</h3><p class="note">처치마다 독립 추첨: 일반 장비 ${pct(D.EQUIP_DROP)}, 보스 장비 ${pct(D.FIELD_BOSS_DROP)}, 레드 큐브 ${pct(D.CUBE_DROP)}, 잠재 주문서 ${pct(D.SCROLL_DROP)}, 파편 ${pct(D.FRAGMENT_DROP)}. 멸성의 황무지: 일반 장비 0.26%, 레드 큐브 0.04%, 파편 0.6%, 보스 장비·잠재 주문서 0%.<br>장비 직업은 6개 직업 중 각각 1/6 (약 16.67%) 확률로 무작위 추첨합니다. 부위는 9종 균등입니다. 모든 직업은 일반 2종 각 50%, 보스 1종 100%입니다. 무기 종류의 구성은 레벨마다 달라집니다. 보스 드롭은 보스 탭에 표시합니다.</p><table><tr><th>사냥터 · 몬스터 레벨</th><th>장비 레벨<br>일반 / 보스</th><th>일반 / 보스 확률</th></tr>${D.STAGES.map(r=>`<tr><td>${r.name} · Lv.${r.level}</td><td>${gearLevelRange(r.dropLevel)} / ${gearLevelRange(r.dropLevel)}</td><td>${pct(D.fieldDropRates(r).equipment)} / ${pct(D.fieldDropRates(r).bossEquipment)}</td></tr>`).join('')}</table><p class="note">지역 안의 몬스터별 확률은 같습니다. 장비는 1·10·20·30…200레벨만 새로 생성됩니다. 멸성의 황무지(Lv.195·200·205)는 세 사냥터 모두 190제 일반 장비가 드롭됩니다. 그 외 드롭 장비는 몬스터·보스 레벨을 10단위로 반올림합니다(최소 10, 최대 200). 60→60 · 66→70 · 80→80 · 85→90레벨입니다. 상위 레벨 장비는 상위 콘텐츠에서 획득합니다. 기존 장비도 1·10·20…200레벨로 보정하며 강화·잠재·잠금은 유지합니다. 오프라인 최대 6시간 동안 실제 처치 수에 동일 확률로 추첨하며, 가방 초과 장비는 기본 수치별로 보관합니다.</p><h3>신규 장비 기본 수치</h3><p class="note">각 개별 장비에는 고유 이름과 수치 범위가 있습니다.  장비 종류에 따라 정해진 범위에서 공격력·주스탯·HP·방어력을 각각 추첨합니다. 범위 하위 50% 구간 75%, 다음 40% 구간 24%, 최상위 10% 구간 1%로 추첨한 뒤 정수로 확정합니다. 범위가 좁으면 반올림으로 구간의 수치가 겹칠 수 있습니다. 보스 장비는 더 높은 별도 범위를 사용합니다.</p></div>`;
+}
+function disabledBtn(label,action,arg,blocked=false,cls="") {
+  const html=btn(label,action,arg,cls,true);
+  return blocked ? html.replace("<button ","<button disabled data-unavailable ") : html;
+}
+let regularAutoSkills=false,regularAutoBattle=null;
+function combatSkillState(slot,party=false,tick){
+ const r=party?partyRoom:state.battle,me=party?r.members.find(m=>m.mine):r;
+ const seconds=party?r.seconds:battleEnemy(r).seconds;
+ tick??=Math.min(seconds,r.tick+Math.max(0,Math.floor((Date.now()-lastSync)/1000)));
+ const sk=slot===5?D.FIFTH_SKILLS[state.classId]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];
+ const ready=slot===5?r.fifthReadyAt:slot===4?r.fourthReadyAt:slot===3?r.thirdReadyAt:slot===1?me?.skillReady:me?.secondReady;
+ const remain=party?Math.max(0,Math.ceil((ready||0)-tick)):Math.max(0,Math.ceil(((ready||0)-r.started-tick*1000)/1000));
+ const locked=slot===5?!D.fifthUnlocked(state):slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1;
+ return {sk,disabled:locked||remain>0||(party&&me?.hp<=0)||tick>=seconds,status:locked?'전직 필요':remain?remain+'초':slot===5?'사용 가능 · '+sk.cooldown+'초':'사용 가능'};
+}
+function combatSkillButtons(party=false) {
+ const key=state.battle?.started;if(regularAutoBattle!==key){regularAutoBattle=key;regularAutoSkills=false;}
+ return '<div class="regular-combat-skills">'+[1,2,3,4,5].map(slot=>{
+ const {sk,disabled,status}=combatSkillState(slot,party);
+ return '<button class="gold skill-button" data-illustrated="1" data-action="'+(party?'partySkill':'skill')+'" data-arg="'+slot+'" data-skill-slot="'+slot+'" '+(disabled?'disabled':'')+' title="'+esc(sk.description)+'"><span class="combat-skill-name">'+slot+'차 · '+esc(sk.name)+'</span><small data-skill-status>'+status+'</small></button>';}).join('')+(party?'':'<button data-illustrated="1" data-action="autoSkills" aria-pressed="'+regularAutoSkills+'"><span class="combat-skill-name">스킬 자동</span><small>'+(regularAutoSkills?'켜짐':'꺼짐')+'</small></button>')+'</div>';
+}
+function skillGuide(){return (state.classId==='priest'?'<p class="note">사제는 최대 HP가 평타와 모든 공격 스킬을 강화합니다. HP%는 최대 체력을 높이고 표기 수치의 70%가 추가 공격력%로 반영됩니다(예: HP 10% → 공격력 7%, 공격력% 잠재와 합산). 주스탯 LUK%와 장비 공격력도 피해량에 반영됩니다. 공격력%·크리티컬%·보스 피해% 잠재는 표기 수치 그대로 적용됩니다.</p>':'')+'<div class="skill-guide">'+[1,2,3,4,5].map(slot=>{const sk=slot===5?D.FIFTH_SKILLS[state.classId]:slot===4?D.FOURTH_SKILLS[state.classId]:slot===1?D.CLASS_SKILLS[state.classId]:slot===2?D.SECOND_SKILLS[state.classId]:D.THIRD_SKILLS[state.classId];return '<p><b>'+slot+'차 · '+sk.name+'</b> · 쿨타임 '+sk.cooldown+'초<br><small>'+sk.description+((slot===5?!D.fifthUnlocked(state):slot===1?!D.firstJobUnlocked(state):(state.advancement||0)<slot-1)?' · '+(slot===5?200:slot===1?30:slot===2?60:slot===3?100:150)+'레벨 전직 보스 처치 후 해금':'')+'</small></p>';}).join('')+'</div>';}
+function recentLoot(){return '<section class="panel pad recent-loot"><h3>최근 사냥 획득 · 최신 5개</h3><p class="note">아이템 획득 시 갱신 · 같은 정산의 재료는 수량 합산</p>'+((state.recentLoot||[]).map(x=>'<div class="loot-row"'+(['essence','mapPiece','pearl','ore'].includes(x.key)?' data-currency-label':'')+'>'+(x.kind==='gear'?gearMarkup(x.item):'<span class="loot-icon">'+(['essence','mapPiece','pearl','ore'].includes(x.key)?'<img src="'+currencyIconURL(x.key)+'" alt="" width="32" height="32" style="object-fit:contain">':'◆')+'</span>')+'<span>'+(x.kind==='gear'?esc(D.gearName(x.item)):esc(D.MATERIALS[x.key]))+' <b>×'+x.quantity+'</b><small>'+new Date(x.at).toLocaleTimeString('ko-KR')+' · '+esc(D.STAGES[x.stage]?.name||'사냥')+'</small></span></div>').join('')||'<p class="note">아직 획득한 아이템이 없습니다.</p>')+'</section>';}
+
+function advancementRooms(){const rooms=coopRooms.filter(r=>r.mode==='advancement');return '<section class="panel pad"><h3>전직 보스 모집 중</h3><p class="note">3초마다 자동 갱신 · 방장이 출발하기 전에 참가하세요.</p>'+btn('목록 새로고침','coopList')+(rooms.length?rooms.map(r=>{const t=D.ADVANCEMENT_BOSSES[r.tier];if(!t)return '';const locked=state.level<t.level||D.jobStage(state)<t.stage;return '<div class="daily-row"><span>'+esc(r.name)+' · '+t.name+'<small>Lv.'+t.level+' · '+r.count+' / 2명</small></span>'+disabledBtn(locked?'레벨·이전 전직 필요':'참가','coopJoin',r.id,locked||r.count>=2)+'</div>';}).join(''):'<p class="note">모집 중인 방이 없습니다.</p>')+'</section>';}
+function advancementLobby(){const done=D.jobStage(state);return header('전직의 시련','CLASS ASCENSION')+advancementRooms()+'<section class="panel pad"><p>1차 30레벨 · 2차 60레벨 · 3차 100레벨 · 4차 150레벨 · 5차 200레벨 · 6차 250레벨 · 7차 300레벨. 방을 만들어 혼자 또는 2명이 함께 처치하면 전직합니다.</p><p class="note">120초 제한 · 최대 2명 · 1~5차는 인원에 따른 난이도 변화 없음 · 6·7차는 2명이면 보스 체력 2배 · 완료한 전직도 도움 참가 가능 · 도움·연습은 추가 보상 없음 · 전직마다 공격력·최대 체력 10% 증가 (1~5차 누적 61.05%) · 6차 공격력 +12%·보스 피해 +20%·HP +12% · 7차 공격력 +15%·보스 피해 +30%·치명타 +10%p·HP +15% (잠재처럼 더해짐) · 기존 2차 전직 유지</p></section><div class="advancement-boss-list">'+D.ADVANCEMENT_BOSSES.map(t=>{const cleared=done>t.stage,locked=done<t.stage||state.level<t.level;return '<article class="panel pad advancement-boss">'+advancementPortrait(t)+'<div><small>'+(t.stage+1)+'차 전직 · Lv.'+t.level+'</small><h3>'+t.name+'</h3><p>HP '+fmt(t.hp)+' · 제한 '+t.seconds+'초</p><p class="note">'+t.guide+'</p><strong>'+(t.stage>=5?advancementBonusText(t.stage):'해금: '+(t.stage===4?D.FIFTH_SKILLS[state.classId].name:t.stage===3?D.FOURTH_SKILLS[state.classId].name:t.stage===2?D.THIRD_SKILLS[state.classId].name:t.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name))+'</strong><div class="actions">'+disabledBtn(cleared?'도움·연습 방 만들기':locked?'레벨·이전 전직 필요':'전직 방 만들기','advancementStart',t.stage,locked,'gold')+'</div></div></article>';}).join('')+'</div>';}
+// 2026-11-03 도현: 소탕 — 일일·주간 탭 보스 목록 바로 위 전체 소탕(일보·주보 한 번에). 토큰·열쇠 던전은 단계별 개별 소탕만.
+function sweepBar(){
+  const plan=sweepPlan(state,Date.now());
+  const daily=plan.filter(p=>p.kind==='boss'&&!D.BOSSES[p.id].weekly).length,weekly=plan.filter(p=>p.kind==='boss'&&D.BOSSES[p.id].weekly).length;
+  const parts=[daily&&'일보 '+daily,weekly&&'주보 '+weekly].filter(Boolean);
+  return `<section class="panel sweep-bar"><div><strong>전체 소탕</strong><small>${parts.length?parts.join(' · '):'소탕할 수 있는 보스가 없어요 · 한 번 깬 일보·주보만 소탕 가능'}</small></div>${disabledBtn(plan.length?'전체 소탕 '+plan.length+'건':'전체 소탕','sweep','all',!plan.length||!!state.battle,'gold')}</section>`;
+}
+function bosses() {
+  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["exploration","링구의 탐험"],["citadel","암흑성채"],["raid","레이드"],["daily","일일"],["weekly","주간"],["training","허수아비"],["tower","시련의 탑"],["advancement","전직 보스"],...(tokenVisible(state)?[["token","토큰 던전"]]:[]),["key","열쇠 던전"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>이미지 전사와 파수꾼 · 캐릭터를 따라가는 위쪽 시점 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
+  if(bossTab==="token"){if(!tokenVisible(state)){bossTab="daily";return bosses();}return menu+tokenView(state,tokenPage);}
+  if(bossTab==="key")return menu+keyView(state);
+  if(bossTab==="exploration")return menu+explorationLobby(state,coopRoom,coopRooms);
+  if(bossTab==="raid")return menu+raidLobby(state,coopRoom,coopRooms);
+  if(bossTab==="wave"){bossTab="exploration";return menu+coopLobby(state,coopRoom,coopRooms,"exploration");}
+  if(bossTab==="citadel")return menu+citadelLobby(state,null,coopRooms);
+  if(bossTab==="coop"){bossTab="exploration";return menu+explorationLobby(state,coopRoom,coopRooms);}
+  if(bossTab==="tower")return menu+towerLobby(state);
+  if(bossTab==="advancement")return menu+advancementLobby();
+  if(bossTab==="training")return menu+header("허수아비 훈련장","DAMAGE TEST")+`<p class="note compact-note">실제 이동·공격·스킬로 60초 동안 측정합니다. 최근 5초 DPS와 전체 평균 DPS를 실시간으로 볼 수 있습니다. 입장 비용·보상·도전 횟수 차감은 없습니다.</p><div class="boss-list">${[["normal","일반몹 허수아비","일반 몬스터 대상 피해를 측정합니다."],["boss","보스용 허수아비","보스 피해 증가 효과를 포함해 측정합니다."]].map(([mode,name,description])=>`<section class="panel boss-card dummy-card"><div class="dummy-card-art ${mode}" aria-hidden="true"><i></i></div><div class="boss-card-body"><strong>${name}</strong><p>${description}</p><small>60초 · 직접 조작 · 무제한 재도전</small><div class="actions">${disabledBtn("측정 시작","dummyStart",mode,!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</div></div></section>`).join("")}</div>`;
+  return header("보스 토벌","BOSS CHALLENGE")+menu+`<p class="note compact-note">입장 조건 없음 · 주간 보스별 주 1회 보상 · 월요일 00시 갱신 · 일일 보스별 하루 1회 도전 · 매일 00시 갱신</p>${sweepBar()}<div class="boss-list">${D.BOSSES.filter(b=>b.weekly===(bossTab==="weekly")).map(b=>bossCard(b)).join("")}</div>`;
+}
+function bossCard(b) {
+  const claimed=!state.isAdmin&&(b.weekly?state.bossClaims?.[b.id]===D.weekKey(Date.now()):state.bossClaims?.[b.id]===D.dayKey(Date.now()));
+  const locked=false;
+  return `<section class="panel boss-card"><div class="boss-thumb" style="background-image:url('${b.background||D.REGIONS[b.region].background}')">${bossMarkup(b)}</div><div class="boss-card-body"><div class="row spread"><strong>${b.name}</strong><span class="count-badge ${claimed?"used":""}">${b.weekly?(claimed?"이번 주 보상 완료":"이번 주 보상 1회 남음"):(claimed?"오늘 보상 완료":"오늘 보상 1회 남음")}</span></div><small>권장 Lv.${b.level} · HP ${fmt(b.hp)} · ${b.seconds/60}분</small><div class="actions">${disabledBtn(claimed?(b.weekly?"보상 완료":"보상 완료"):locked?"입장 조건":"보상 도전","bossStart",b.id,claimed||locked,"gold")}${state.cleared?.includes(b.id)?disabledBtn("소탕","sweep","boss:"+b.id,!bossSweepable(state,b,Date.now())||!!state.battle):""}${disabledBtn("연습 ∞","bossPractice",b.id,locked)}</div><details><summary>보상 · 권장 장비</summary><p class="note">레벨·스타포스·선행 보스 제한 없음<br>${gearLevelRange(b.gearLevel)} 보스 장비 ${pct(b.dropChance)}${b.exactHalfWeapon?" · 무기 비중은 다른 부위의 1/2":""}<br>${fmt(b.gold)} G · 레드 큐브 ${b.cubes}${b.rewardMaterials?Object.entries(b.rewardMaterials).map(([k,n])=>" · "+D.MATERIALS[k]+" "+n).join(""):b.weekly?" · 블랙 큐브 2":""}<br>권장: ${b.recommended.slots}부위 ${b.recommended.stars}성 ${b.recommended.boss?"보스":"일반"} 장비${b.recommended.pot?" · 일반 주스탯 잠재 합계 18%":""}<br>${b.guide?esc(b.guide)+"<br>":""}${b.weekly?"직접 이동 전투 · 처치 후 바닥 상자 개봉":"하루 1회 보상 · 승리 시 차감 · 패배·포기 시 재도전 가능"} · 연습은 보상 없음</p></details></div></section>`;
+}
+function partyPanel() {
+ if(!partyRoom)return header('협동 토벌')+'<div class="panel pad">파티 정보를 불러오는 중…</div>';
+ const r=partyRoom,b=D.raidBoss(r.bossId)||D.BOSSES[r.bossId],me=r.members.find(m=>m.mine),total=r.members.reduce((n,m)=>n+Number(m.damage),0),fighting=r.status==='fighting';
+ return `${header(b.name,'CO-OP RAID · '+(r.practice?'연습':'보상 도전'))}<section class="panel"><div class="arena party-arena" data-class="${state.classId}" style="background-image:url('ui/dawn-ruins.svg')"><div class="battle-head"><small>전투 제한 ${b.seconds}초 · <b id="battle-timer">${fighting?'남은 '+Math.max(0,r.seconds-r.tick)+'초':'파티원 모집 중'}</b></small><h3>${b.name}</h3>${fighting?`<div class="hp"><i style="width:${r.hp/r.maxHp*100}%"></i></div><small>${fmt(r.hp)} / ${fmt(r.maxHp)}</small>`:''}</div><div class="monster">${bossMarkup(b)}</div><div class="combat-status"><span class="pill">${fighting?b.pattern:'1명부터 출발 가능 · 4인 기준 난이도'}</span></div></div><div class="pad"><div class="party-members">${r.members.map(m=>`<div class="party-member ${m.hp<=0?'fallen':''}"><div class="row spread"><strong>${esc(m.name)}${m.mine?' · 나':''}</strong><small>${m.departed?'이탈':m.hp<=0?'쓰러짐':D.CLASSES.find(c=>c.id===m.classId)?.name}</small></div><div class="hp"><i style="width:${Math.max(0,m.hp/m.maxHp*100)}%"></i></div><small>${fmt(m.hp)}/${fmt(m.maxHp)} · 기여 ${total?(Number(m.damage)/total*100).toFixed(1):'0.0'}%</small></div>`).join('')}</div><div class="actions">${fighting?(me?.hp<=0?disabledBtn(me.revived?'부활 사용 완료':'부활 · HP 30%','partyRevive','',me.revived,'gold'):combatSkillButtons(true)):r.isHost?btn('출발 · '+r.members.filter(m=>!m.departed).length+'명','partyStart','','gold'):''}${btn('파티 나가기','partyLeaveConfirm','','danger')}</div>${skillGuide()}<p class="note">전투 중 일반 사냥 중지 · 종료 후 자동사냥 재개</p></div></section>`;
+}
+const bigCount=n=>{n=Math.floor(n||0);return n>=1e8?Math.floor(n/1e8).toLocaleString('ko-KR')+'억':fmt(n);};
+function supplies(){return '<div class="bag-supplies" data-currency-label>'+Object.entries(D.MATERIALS).map(([key,name])=>'<div><img src="'+currencyIconURL(key)+'" alt=""><span>'+name+'<b title="'+fmt(state.materials[key]||0)+'개">'+bigCount(state.materials[key]||0)+'개</b></span></div>').join('')+'</div><p class="note"><a href="probability-guide.html" target="_blank" rel="noopener">전체 확률표</a> · <a href="boss-equipment.html" target="_blank" rel="noopener">보스 장비 목록</a></p>';}
+
+let rankingAttempt=0, rankingRevision=0;
+async function loadRankings(quiet=false) {
+  if (rankingLoading) return;
+  if(busy){if(view==="ranking")render();return;}
+  rankingAttempt=Date.now();
+  const requestId=++rankingRequest;
+  rankingLoading=true;rankingError="";if(!quiet)render();
+  try {
+    if(!quiet)await command("sync",{},true);
+    await ensureToken();
+    const revision=rankingRevision;
+    const rows=await request("/rest/v1/rpc/rebirth_rankings",{});
+    if(requestId!==rankingRequest)return;
+    if(revision!==rankingRevision){rankingAttempt=0;return;}
+    rankingRows=rows;rankingUpdated=Date.now();rememberTribes(rows);tribesAt=Date.now();
+  } catch(err) { rankingError=message(err); }
+  finally { if(requestId===rankingRequest){rankingLoading=false;if(view==="ranking")render();} }
+}
+function adminTransferDialog(id) {
+  if(!state?.isAdmin)return;
+  const target=rankingRows.find(r=>r.id===id);if(!target)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
+  open("관리자 송금",`<div class="stack"><p><strong>${esc(target.name)}</strong> · Lv.${target.level} · ${esc(D.CLASSES.find(c=>c.id===target.classId)?.name||"")}</p><label>재화 · 소비템<select id="transfer-resource">${Object.entries({gold:"골드",diamond:"다이아",...D.MATERIALS}).map(([key,name])=>`<option value="${key}">${esc(name)}</option>`).join("")}</select></label><label>보낼 수량<input id="transfer-amount" type="number" inputmode="numeric" min="1" max="999999999999" step="1" value="1"></label><p class="note">수수료 없이 입력한 수량 전부가 상대방 보유량에 추가됩니다. 관리자 재화는 999,999,999,999로 유지됩니다.</p>${btn("송금하기","adminTransferSend",id,"gold",true)}</div>`);
+}
+function goldTransferDialog(id) {
+  const target=rankingRows.find(r=>r.id===id&&!r.isMe);
+  if(!target)return toast('랭킹을 새로고침한 뒤 선택해 주세요.');
+  open('골드 송금',`<div class="stack"><p><strong>${esc(target.name)}</strong>님에게 골드를 보냅니다.</p><p class="note">내 보유 골드 ${fmt(state.gold)} G · 수수료 없음</p><label>송금할 골드<input id="gold-transfer-amount" type="number" inputmode="numeric" min="1" max="999999999999" step="1" value="1"></label><p class="note">송금 즉시 내 골드가 차감되며 상대방은 우편함에서 직접 수령합니다.</p>${btn('송금 확인','goldTransferConfirm',id,'gold',true)}</div>`);
+}
+let rankingProfileRequest=0;
+async function showRankingProfile(id){
+ const row=rankingRows.find(r=>r.id===id);if(!row)return;
+ const version=++rankingProfileRequest;
+ open('모험가 정보',`<p class="note" id="rank-profile-loading-${version}">불러오는 중…</p>`);
+ const content=document.getElementById('rank-profile-loading-'+version);
+ try{
+  await ensureToken();
+  const data=await request('/functions/v1/ringu-rebirth-v3',{command:'rankingProfile',args:{id},requestId:crypto.randomUUID()},true);
+  if(version!==rankingProfileRequest||!modal.open||!content.isConnected)return;
+  const p=data.profile,c=D.CLASSES.find(c=>c.id===p.classId);
+  const summary=characterMetrics(p.metrics,c,true);
+  open('모험가 정보',`<div class="rank-profile"><div class="rank-profile-look"><div class="portrait ${p.classId==='priest'?'priest-portrait':''}" style="${portraitStyle(p.classId,p.costumeId,portraitPosition(p.classId))}"></div><strong>${esc(p.name)}</strong></div><div class="rank-profile-arena"><span>아레나 순위</span><strong>${p.arenaRank?fmt(p.arenaRank)+'위':'언랭크'}</strong></div>${summary}</div>`);
+ }catch(error){if(version===rankingProfileRequest&&modal.open&&content?.isConnected)open('모험가 정보',`<p class="note">정보를 불러오지 못했어요. ${esc(message(error))}</p>`);}
+}
+function rankings() {
+  const combat=rankingMode==="combat",rankKey=combat?"combatRank":"levelRank",label=combat?"전투력":"레벨";
+  const rows=rankingRows.filter(r=>r[rankKey]<=100).sort((a,b)=>a[rankKey]-b[rankKey]),me=rankingRows.find(r=>r.isMe);
+  const PROF_NAME={alchemist:"연금술사",explorer:"탐험가",fisher:"어부",miner:"광부"},profTag=r=>r.profession&&PROF_NAME[r.profession]?` · <span class="rank-prof rank-prof-${r.profession}">${PROF_NAME[r.profession]}</span>`:"";
+  const profBoard=()=>{const by={};for(const r of rankingRows)if(PROF_NAME[r.profession])(by[r.profession]??=[]).push(r.name);return `<div class="rank-prof-board">${Object.entries(PROF_NAME).map(([k,n])=>`<div class="rank-prof-${k}"><b>${n}</b><span>${(by[k]||[]).map(esc).join(", ")||"-"}</span></div>`).join("")}</div>`;};
+  const className=r=>r.advancement>=4?D.FIFTH_NAMES[r.classId]:r.advancement>=3?D.FOURTH_NAMES[r.classId]:r.advancement>=2?D.THIRD_NAMES[r.classId]:r.advancement?D.ADVANCEMENTS[r.classId]:D.CLASSES.find(c=>c.id===r.classId)?.name||"모험가";
+  const score=r=>combat?fmt(r.combatPower):"Lv. "+r.level;
+  const portrait=r=>`<div class="rank-portrait portrait ${r.classId==='priest'?'priest-portrait':''}" style="${portraitStyle(r.classId,r.costumeId,portraitPosition(r.classId))}" aria-hidden="true"></div>`;
+  const podium=rows.slice(0,3).map(r=>`<article role="button" tabindex="0" data-action="rankingProfile" data-arg="${esc(r.id)}" class="rank-podium rank-place-${r[rankKey]} ${r.isMe?"is-me":""}"><span class="podium-place">${r[rankKey]===1?"♛":"◆"} ${r[rankKey]}위</span>${portrait(r)}<strong title="${esc(r.name)}"><span class="tribe-name-line" data-fit>${tribeTag(r.tribe)}<span class="rank-name-text">${esc(r.name)}</span></span>${arenaTierIcon(r.arenaScore,r.arenaRank)}</strong>${r.title?`<div class="podium-title">${titleBadge(r.title)}</div>`:""}<small>${className(r)}${profTag(r)}${r.isMe?" · 나":""}</small><b>${score(r)}</b><span class="podium-secondary">${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</span></article>`).join("");
+  return header("모험가 랭킹","HALL OF ADVENTURERS")+`<section class="ranking-view"><div class="ranking-toolbar">${btn("← 캐릭터","back")}${btn(rankingLoading?"불러오는 중…":"↻ 새로고침","rankingRefresh","",rankingLoading?"rank-refresh loading":"rank-refresh")}</div><div class="ranking-tabs" role="group" aria-label="랭킹 기준">${[ ["level","레벨 순위","모험의 깊이"],["combat","전투력 순위","성장의 힘"] ].map(([key,name,desc])=>`<button data-action="rankingMode" data-arg="${key}" aria-pressed="${rankingMode===key}" class="${rankingMode===key?"active":""}"><strong>${name}</strong><small>${desc}</small></button>`).join("")}</div>${profBoard()}<div class="ranking-meta"><span>전체 ${fmt(rankingRows[0]?.total||0)}명 · TOP 100</span><span>${rankingUpdated?new Date(rankingUpdated).toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})+" 조회 · 10초 자동 갱신":"서버 기록 기준 · 10초 자동 갱신"}</span></div>${rankingError?`<div class="panel pad rank-error" role="alert">순위를 불러오지 못했습니다. ${esc(rankingError)}${btn("다시 시도","rankingRefresh")}</div>`:""}${rankingLoading&&!rankingRows.length?'<div class="panel pad rank-empty" role="status">모험가들의 기록을 모으고 있어요…</div>':rows.length?`<div class="rank-podium-grid">${podium}</div>`:!rankingError?'<div class="panel pad rank-empty">아직 등록된 모험가가 없습니다.</div>':""}<section class="rank-my-card"><span class="rank-my-label">MY RANK</span><div><strong>${state.isAdmin?"랭킹 제외":me?me[rankKey]+"위":"집계 대기"}</strong><span><span class="tribe-name-line" data-fit>${tribeTag(state.tribe)}<span class="rank-name-text">${esc(state.name)}</span></span>${state.title?titleBadge(state.title):""}${arenaTierIcon(me?.arenaScore,me?.arenaRank)}<small>${label} ${me?score(me):"—"}</small></span></div><p>${me?`레벨 ${me.levelRank}위 · 전투력 ${me.combatRank}위`:state.isAdmin?"관리자 계정은 순위에 포함되지 않습니다.":"캐릭터 기록이 저장되면 순위에 표시됩니다."}</p></section>${rows.length?`<section class="rank-list"><div class="rank-list-head"><span>순위 · 모험가</span><span>${label}</span></div>${rows.map(r=>`<div role="button" tabindex="0" data-action="rankingProfile" data-arg="${esc(r.id)}" class="rank-list-row ${r.isMe?"is-me":""}"><span class="rank-number ${r[rankKey]<=3?"medal":""}">${r[rankKey]}</span>${portrait(r)}<div class="rank-person"><strong><span class="tribe-name-line" data-fit>${tribeTag(r.tribe)}<span class="rank-name-text">${esc(r.name)}</span></span>${r.isMe?'<i>나</i>':""}</strong><div class="rank-identity-badges">${r.title?titleBadge(r.title):""}${arenaTierIcon(r.arenaScore,r.arenaRank)}</div><small>${className(r)}${profTag(r)} · ${combat?"Lv. "+r.level:"전투력 "+fmt(r.combatPower)}</small></div><div class="rank-score"><b>${score(r)}</b>${!r.isMe&&r.id&&!state.isTester?(state.isAdmin?`<button type="button" class="rank-transfer-button" data-illustrated="none" data-action="adminTransferOpen" data-arg="${esc(r.id)}">관리자 송금</button>`:`<button type="button" class="rank-transfer-button" data-illustrated="none" data-action="goldTransferOpen" data-arg="${esc(r.id)}">골드 송금</button>`):""}</div></div>`).join("")}</section>`:""}<details class="rank-rules"><summary>순위 집계 기준</summary><p>레벨 순위: 레벨 → 현재 경험치 순.<br>전투력 순위: 전투력 → 레벨 → 현재 경험치 순.<br>모두 같으면 고정된 계정 순서로 표시합니다.</p><p>마지막 서버 저장 기록을 기준으로 조회합니다. 전투력은 캐릭터 창과 같은 계산식을 사용하며, 일시적인 스킬 효과와 골드·경험치 획득 보너스는 제외합니다.</p></details></section>`;
+}
+function journal() {
+  const goals=[["첫 토벌",state.cleared.length,1,"보스 첫 처치"],["장비 수집가",state.collection.length,50,"서로 다른 장비 50종 발견"],["직업의 길",D.firstJobUnlocked(state)?1:0,1,requiredLevel(30)+" · 수정 문지기 처치 후 전직"],["숙련 모험가",state.level,100,requiredLevel(100,"100레벨 달성")],["왕좌를 넘어",state.cleared.length,30,"멸신왕 벨제리온 처치"],["새벽의 탐험가",state.dungeonClaims.relic?1:0,1,"여명의 폐허 클리어"]];
+  return header("모험 수첩","나의 성장 기록")+btn("돌아가기","back")+`<div class="journal-banner"><h2>다음 이야기는<br>네 모험으로 채워져.</h2></div><div class="goal-grid">${goals.map(([name,value,max,desc])=>`<section class="panel pad"><div class="row spread"><strong>${name}</strong><span class="pill">${value>=max?"달성":Math.min(value,max)+"/"+max}</span></div><p class="note">${desc}</p><div class="exp"><i style="width:${Math.min(100,value/max*100)}%"></i></div></section>`).join("")}</div>`;
+}
+function marketTile(l) {
+  const it=l.item,consumable=it.kind==="consumable";
+  const name=consumable?materialName(it.key):D.gearName(it);
+  return `<button class="market-compact-card ${!consumable&&it.boss?"boss-gear":""}" data-action="marketConfirm" data-arg="${l.id}" aria-label="${esc(name)} 상세 보기"><span class="market-card-meta">${consumable?"소모품":requiredLevel(it.level)}<b>${consumable?fmt(it.quantity)+"개":it.stars+"★"}</b></span>${consumable?'<img class="material-tile-image" src="'+currencyIconURL(it.key)+'" alt="">':gearMarkup(it)}<strong class="market-card-name">${esc(name)}</strong><small>${consumable?"남은 "+fmt(it.quantity)+"개":(D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find(c=>c.id===it.classId).name)+" · "+gearRollLabel(it)}</small><b class="market-card-price">${!l.own&&l.status==="open"?goldPurchaseIcon():""}${fmt(l.price)} G${consumable?" / 개":""}</b><span class="market-card-status">${l.status==="open"?(l.own?"판매 중 · 상세":"상세 보기"):l.status==="sold"?"판매 완료":"회수 완료"}</span></button>`;
+}
+function gearRollDetails(it){if(!it.baseStats)return "";const ranges=D.gearStatFullRanges(it),multiplier=D.gearStatMultiplier(it),scale=(key,value)=>value*multiplier*(key==='hp'?D.gearHPMultiplier(it):1);return `<section class="panel pad"><h4>획득 시 확정된 기본 수치</h4>${Object.entries({attack:"공격력",stat:"주스탯",hp:"HP",defense:"방어력"}).map(([key,label])=>`<p>${label} <strong>${fmt(scale(key,it.baseStats[key]))}</strong> ${it.legacyBaseStats?"":`<small>(${D.isTieredBossGear(it)?"200제 전체 범위":"가능 범위"} ${fmt(scale(key,ranges[key].min))}~${fmt(scale(key,ranges[key].max))})</small>`}</p>`).join("")}<p class="note">강화 전 수치입니다. ${it.legacyBaseStats?"기존 장비 성능을 보존한 수치입니다.":"각 능력치는 따로 추첨되며 높은 구간일수록 희귀합니다."} 큐브 재감정으로 기본 수치는 바뀌지 않습니다.</p></section>`;}
+function gearStatsMarkup(it) {
+  const a=D.gearAttributes(it),cl=D.CLASSES.find(c=>c.id===(D.isCommonBossGear(it)?state.classId:it.classId));
+  return `<div class="market-picked-stats gear-base-stats">${[["공격력",a.attack.toFixed(1)],[cl.stat,fmt(a.stat)],["최대 HP",fmt(a.hp)],["방어력",fmt(a.defense)]].map(([k,v])=>`<div><span>${k}</span><b>+${v}</b></div>`).join("")}</div><p class="note">장비 자체 능력치입니다. 기본 수치·스타포스 반영, 잠재는 아래 별도 표시.${it.broken?" 파괴된 장비는 장착 효과가 없습니다.":""}</p>`;
+}
+function marketGearDetails(it) {
+  return `<div class="item">${itemMarkup(it)}</div>${gearStatsMarkup(it)}${gearRollDetails(it)}<div class="market-picked-options"><h4>잠재능력</h4>${it.lines.length?it.lines.map(l=>`<div class="grade-color-${l.grade}"><small>${D.RARITIES[l.grade]}</small><span>${D.OPTIONS[l.key]}</span><b>+${l.value}${D.optionUnit(l.key)}</b></div>`).join(""):'<p class="note">잠재 미개방</p>'}</div>`;
+}
+function market() {
+  if(state?.isTester)return header("거래소","MARKET")+`<section class="panel pad"><h3>거래소 이용 불가</h3><p class="note">테스트 계정은 거래소를 사용할 수 없어요.</p></section>`;
+  return `${header("거래소", "MARKET")}<div class="subnav">${btn("구매", "marketMode", "buy", !mine&&!buyOrderMode ? "active" : "")}${btn(`구매 요청${buyOrderAlert?`<b class="fantasy-mail-count bo-alert">${buyOrderAlert}</b>`:""}`, "marketMode", "orders", buyOrderMode ? "active" : "")}${btn("내 판매", "marketMode", "mine", mine&&!buyOrderMode ? "active" : "")}${btn("장비 등록", "marketSell")}${btn("소모품 등록", "marketSellConsumables")}</div>${buyOrderMode?buyOrdersView():`<div class="subnav">${[["all","전체"],["gear","장비"],["consumable","소모품"]].map(([key,label])=>btn(label,"marketKind",key,marketKind===key?"active":"")).join("")}</div><p class="note">구매·등록 ${requiredLevel(5)}부터 · 판매 수수료 없음 · 등록 7일 · 최대 20건<br>만료 상품은 내 판매에서 남은 수량을 회수할 수 있습니다.</p><div class="filters" ${marketKind==="consumable"?'style="display:none"':""}><select data-filter="slot"><option value="">모든 부위</option>${D.SLOTS.map((v, i) => `<option value="${i}" ${String(i) === filterSlot ? "selected" : ""}>${v}</option>`).join("")}</select><select data-filter="class"><option value="">모든 직업</option>${D.CLASSES.map((c) => `<option value="${c.id}" ${c.id === filterClass ? "selected" : ""}>${c.name}</option>`).join("")}</select></div><div class="market-compact-grid">${
+    marketRows
+      .slice(0, 20)
+      .map(marketTile)
+      .join("") ||
+    '<div class="empty">등록된 상품이 없습니다. 장비와 소모품을 판매할 수 있어요.</div>'
+  }</div><div class="actions">${marketPage ? btn("이전", "page", marketPage - 1) : ""}${marketRows.length > 20 ? btn("다음", "page", marketPage + 1) : ""}${btn("새로고침", "marketRefresh")}</div>`}`;
+}
+async function marketLoad() {
+  const version = ++marketRequest;
+  await ensureToken();
+  const rows = await request("/rest/v1/rpc/rebirth_market", {
+    p_action: "list",
+    p_args: { page: marketPage, mine, kind:marketKind, slot: filterSlot, classId: filterClass },
+    p_request: crypto.randomUUID(),
+  });
+  if(version !== marketRequest || tab !== "market") return;
+  marketRows = rows.filter(row=>row.status!=="cancelled").map(row => ({...row, item: row.item.kind==="consumable"?row.item:D.normalizePotentialItem(row.item)}));
+  render();
+}
+// 2026-11-04 도현: 새 구매 요청 알림 — 남이 올린 열린 요청 중 아직 안 본 것 개수를 거래소·구매 요청 버튼에 표시.
+const BO_SEEN_KEY='ringu_buy_order_seen';
+const boSeen=()=>{try{return new Set(JSON.parse(localStorage.getItem(BO_SEEN_KEY)||'[]'));}catch{return new Set();}};
+let buyOrderAlert=0;const boToasted=new Set();
+function buyOrderAlertUpdate(data,markSeen=false){
+  const open=(data?.orders||[]).filter(o=>!o.own);let seen=boSeen();
+  if(markSeen){seen=new Set(open.map(o=>o.id));try{localStorage.setItem(BO_SEEN_KEY,JSON.stringify([...seen]));}catch{}}
+  // 2026-11-04 도현: 배지 = 남이 올린 열린 요청 중 아직 안 본 것. 거래소 › 구매 요청을 열면 읽음 처리돼 사라짐.
+  const n=open.filter(o=>!seen.has(o.id)).length;
+  if(n!==buyOrderAlert){buyOrderAlert=n;setBuyOrderAlert(n);return true;}return false;
+}
+async function buyOrderAlertPoll(){
+  if(!state||state.isTester||document.visibilityState!=='visible')return;
+  try{await ensureToken();const data=await request("/rest/v1/rpc/rebirth_buy_order",{p_action:"list",p_args:{},p_request:crypto.randomUUID()},true);
+   if(buyOrderAlertUpdate(data,tab==="market"&&buyOrderMode))render();}catch{}
+}
+setTimeout(buyOrderAlertPoll,5000);setInterval(buyOrderAlertPoll,30000);
+async function buyOrdersLoad(){
+  const version=++buyOrderRequest;await ensureToken();
+  const data=await request("/rest/v1/rpc/rebirth_buy_order",{p_action:"list",p_args:{},p_request:crypto.randomUUID()});
+  if(version!==buyOrderRequest||tab!=="market"||!buyOrderMode)return;buyOrders=data||{orders:[],mine:[]};buyOrderAlertUpdate(buyOrders,true);render();
+}
+function buyOrderCard(o){
+  return `<button class="market-compact-card buy-order-card ${o.own?"own":""}" data-action="buyOrderPick" data-arg="${esc(o.id)}" aria-label="${esc(materialName(o.key))} 구매 요청"><span class="market-card-meta">${o.own?"내 요청":"구매 요청"}<b>${fmt(o.quantity)}개</b></span><img class="material-tile-image" src="${currencyIconURL(o.key)}" alt=""><strong class="market-card-name">${esc(materialName(o.key))}</strong><small>개당 <b>${fmt(o.price)} G</b></small><small>${o.own?"누르면 취소":marketHave(o.key)>0?"보유 "+fmt(marketHave(o.key))+"개 · 판매 가능":"보유 없음"}</small></button>`;
+}
+function buyOrdersView(){
+  if(!buyOrders)return '<p class="note">구매 요청을 불러오는 중…</p>';
+  const status={open:"진행 중",filled:"완료",cancelled:"취소",expired:"만료 · 환불"};
+  const mineRows=(buyOrders.mine||[]).map(o=>`<div class="buy-order-mine"><img src="${currencyIconURL(o.key)}" alt=""><span><b>${esc(materialName(o.key))}</b><small>개당 ${fmt(o.price)} G · ${fmt(o.original-o.quantity)}/${fmt(o.original)}개 받음 · ${status[o.status]||o.status}</small></span>${o.status==="open"?btn("취소","buyOrderPick",o.id):""}</div>`).join("");
+  return `<p class="note">필요한 소모품을 골드로 걸어두면, 가진 사람이 바로 팔 수 있어요. 등록하는 순간 골드가 묶이고, 팔리는 만큼 소모품이 바로 들어와요.<br>${requiredLevel(5)}부터 · 수수료 없음 · 7일 지나면 남은 골드 자동 환불 · 최대 10건</p><div class="actions">${btn("구매 요청 등록","buyOrderNew","","primary")}${btn("새로고침","buyOrderRefresh")}</div><div class="market-compact-grid">${(buyOrders.orders||[]).map(buyOrderCard).join("")||'<div class="empty">아직 구매 요청이 없어요. 필요한 소모품을 먼저 요청해 보세요.</div>'}</div>${mineRows?`<h3 class="buy-order-mine-title">내 구매 요청</h3><div class="buy-order-mine-list">${mineRows}</div>`:""}`;
+}
+function buyOrderNewDialog(key=null){
+  if(!key)return open("구매 요청할 소모품",`<p class="note">사고 싶은 소모품을 고르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${BUY_ORDER_KEYS.map(k=>`<button class="market-compact-card" data-action="buyOrderNewPick" data-arg="${k}">${marketMaterialIcon(k,'material-tile-image')}<strong>${esc(materialName(k))}</strong><small>보유 ${fmt(marketHave(k))}개</small></button>`).join("")}</div>`);
+  if(!BUY_ORDER_KEYS.includes(key))return;
+  const best=(buyOrders?.orders||[]).filter(o=>o.key===key).reduce((m,o)=>Math.max(m,o.price),0);
+  open("구매 요청 등록",`${btn("← 소모품 목록","buyOrderNew")}<div class="material-picked" data-currency-label>${marketMaterialIcon(key)}<div><strong>${esc(materialName(key))}</strong><p>보유 ${fmt(marketHave(key))}개${best?` · 현재 최고 요청가 ${fmt(best)} G`:""}</p></div></div><input id="bo-key" type="hidden" value="${key}"><label>사고 싶은 수량<input id="bo-count" type="number" inputmode="numeric" min="1" max="1000000" step="1" value="1"></label><label>개당 가격 (G)<input id="bo-price" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="${best||1000}"></label><p id="bo-total" class="note"></p>${btn("골드 걸고 요청하기","buyOrderCreate","","primary",true)}`);
+  updateBuyOrderForm();
+}
+function updateBuyOrderForm(){
+  const out=$('#bo-total');if(out){const count=Number($('#bo-count').value),price=Number($('#bo-price').value),total=count*price,valid=Number.isSafeInteger(count)&&count>=1&&count<=1e6&&Number.isSafeInteger(price)&&price>=1&&price<=1e9&&total<=1e12;
+    out.textContent=!valid?'수량 1~1,000,000개, 개당 1~10억 G, 합계 1조 G 이하로 입력해 주세요.':total>state.gold?`묶일 골드 ${fmt(total)} G · 보유 골드가 부족해요.`:`묶일 골드 ${fmt(total)} G (보유 ${fmt(state.gold)} G)`;
+    const b=modal.querySelector('[data-action="buyOrderCreate"]');if(b)b.disabled=!valid||total>state.gold;}
+  const fill=$('#bo-fill-count');if(fill){const o=(buyOrders?.orders||[]).find(x=>x.id===fill.dataset.order),count=Number(fill.value),valid=o&&Number.isSafeInteger(count)&&count>=1&&count<=Math.min(o.quantity,marketHave(o.key));
+    $('#bo-fill-total').textContent=valid?`받을 골드 ${fmt(count*o.price)} G`:'보유 수량과 남은 요청 수량 안에서 입력해 주세요.';const b=modal.querySelector('[data-action="buyOrderFill"]');if(b)b.disabled=!valid;}
+}
+function buyOrderPickDialog(id){
+  const o=(buyOrders?.orders||[]).find(x=>x.id===id)||(buyOrders?.mine||[]).find(x=>x.id===id&&x.status==="open");if(!o)return toast("이미 끝난 요청이에요.");
+  const own=o.own||(buyOrders?.mine||[]).some(x=>x.id===id);
+  if(own)return open("구매 요청 취소",`<div class="material-picked" data-currency-label>${marketMaterialIcon(o.key)}<div><strong>${esc(materialName(o.key))}</strong><p>개당 ${fmt(o.price)} G · 남은 ${fmt(o.quantity)}개</p></div></div><p>취소하면 묶어둔 골드 <b>${fmt(o.price*o.quantity)} G</b>를 바로 돌려받아요. 이미 받은 소모품은 그대로예요.</p>${btn("요청 취소하기","buyOrderCancel",o.id,"danger",true)}`);
+  const have=marketHave(o.key),max=Math.min(have,o.quantity);
+  open("구매 요청에 판매",`<div class="material-picked" data-currency-label>${marketMaterialIcon(o.key)}<div><strong>${esc(materialName(o.key))}</strong><p>구매 요청 · 개당 <b>${fmt(o.price)} G</b> · 남은 ${fmt(o.quantity)}개</p><p>내 보유 ${fmt(have)}개</p></div></div>${max>0?`<label>판매 수량<input id="bo-fill-count" data-order="${esc(o.id)}" type="number" inputmode="numeric" min="1" max="${max}" step="1" value="${max}"></label><p id="bo-fill-total" class="note"></p>${btn("팔고 골드 받기","buyOrderFill",o.id,"primary",true)}`:'<p class="note">이 소모품을 가지고 있지 않아요.</p>'}`);
+  updateBuyOrderForm();
+}
+async function buyOrderWrite(action,args){
+  if(busy)return;await command("sync",{},true);if(busy)return;busy=true;const key=pendingKey()+"_buyorder";
+  try{await ensureToken();let p=JSON.parse(localStorage.getItem(key)||"null");
+    if(!p){p={p_action:action,p_args:args,p_request:crypto.randomUUID()};localStorage.setItem(key,JSON.stringify(p));}
+    else if(p.p_action!==action||JSON.stringify(p.p_args)!==JSON.stringify(args))toast("이전 거래 요청을 복구합니다.");
+    const result=await request("/rest/v1/rpc/rebirth_buy_order",p);localStorage.removeItem(key);
+    busy=false;await command("sync",{},true);await buyOrdersLoad();return result;
+  }catch(e){if(e.status===400)localStorage.removeItem(key);throw e;}finally{busy=false;}
+}
+function open(title, html, closable = true) {
+  stopSkillLookPreview?.();stopSkillLookPreview=null;
+  if(modal.open&&modal.dataset.scrollKey)dialogScroll.set(modal.dataset.scrollKey,modal.scrollTop);
+  const scrollKey=(selected||"")+"|"+title,preservedModalScroll=title.endsWith(" · 결과 선택")?0:dialogScroll.get(scrollKey)||0;modal.dataset.scrollKey=scrollKey;
+  modal.classList.remove("prof-dialog", "enhance-dialog", "cube-dialog", "market-picker-dialog", "attendance-dialog", "change-class-dialog", "fantasy-menu-dialog", "summon-result-dialog", "invest-activity-dialog", "invest-trade-dialog", "admin-positions-dialog", "invest-rank-dialog", "title-dialog", "companion-dialog", "tribe-dialog");
+  replacePreservingDetails(modal, "dialog|"+scrollKey, `${closable ? btn("닫기", "close", "", "close") : ""}<h2 id="dialog-title">${title}</h2>${html}`);
+  modal.setAttribute("aria-labelledby", "dialog-title");
+  modal.scrollTop = preservedModalScroll;
+  requestAnimationFrame(()=>{if(modal.open&&modal.dataset.scrollKey===scrollKey)modal.scrollTop=preservedModalScroll;});
+  if (!modal.open) {
+    sounds.play('ui-open');
+    history.pushState({ modal: true }, "");
+    modal.showModal();
+  }
+  modal.dataset.closable = String(closable);
+  refreshLevelRequirements();
+}
+let cubeKind="cube", cubeLockChoice=-1, lastStarResult=null, lastCubeResult=null;
+const enhanceIcon=(key)=>key==='gold'?'':`<img class="enhance-currency" src="${currencyIconURL(key)}" alt="">`;
+function enhancementBlock(it) {
+  return it.broken?"파괴된 장비를 먼저 복구해 주세요.":it.locked?"장비 잠금을 해제해 주세요.":state.battle||state.partyRoom?"보스전 종료 후 이용할 수 있어요.":"";
+}
+function enhancementOptions(item,label="현재 잠재능력"){return potentialPanel(item,label);}
+function enhancementWallet(cost,key=null,count=1) {
+  return `<div class="enhance-wallet">${key?`<div><span>${enhanceIcon(key)}${D.MATERIALS[key]}</span><strong class="${state.materials[key]<count?"short":""}">${fmt(state.materials[key])}<small> / ${count}개 필요</small></strong></div>`:""}<div><span>${enhanceIcon("gold")}필요 골드</span><strong class="${state.gold<cost?"short":""}">${fmt(cost)}<small> G</small></strong></div><div class="wallet-owned"><span>보유 골드</span><span>${fmt(state.gold)} G</span></div></div>`;
+}
+function starPanel(it) {
+  if(it.broken){const materials=state.items.filter(x=>x.id!==it.id&&!x.broken&&!x.locked&&!Object.values(state.equipped).includes(x.id)&&D.equipmentKey(x)===D.equipmentKey(it));return `<div class="enhance-empty">${gearMarkup(it,"big-item")}<h3>장비의 흔적이 남았어요</h3><p>같은 20레벨 구간·직업·종류의 장비 1개로 12성 복구합니다.<br>잠재능력은 유지됩니다.</p></div><label class="enhance-field" for="restore-material">복구에 사용할 장비</label><select id="restore-material">${materials.length?materials.map(x=>`<option value="${x.id}">${esc(D.gearName(x))} · ${x.stars}성</option>`).join(""):'<option value="">사용 가능한 장비가 없습니다</option>'}</select>${disabledBtn("12성으로 복구","restore",it.id,!materials.length||it.locked||!!state.battle,"enhance-primary")}`;}
+  const max=it.stars>=25,o=D.starOdds(it.stars),cost=D.starCost(it),blocked=enhancementBlock(it)||(max?"최고 단계에 도달했습니다.":state.gold<cost?"골드가 부족합니다.":""),target=Math.min(25,it.stars+1);
+  const current=D.gearAttributes(it),next=D.gearAttributes(it,target),cl=D.CLASSES.find(c=>c.id===(D.isCommonBossGear(it)?state.classId:it.classId));
+  const result=lastStarResult?.id===it.id?lastStarResult:null;
+  return `<div class="enhance-intro"><span>STAR FORCE</span><small>성공할 때마다 공격력·주스탯 상승 · 방어구 5부위는 HP도 상승</small></div>${result?`<div class="enhance-result ${result.outcome}" role="status"><strong>${{success:"강화 성공!",keep:"강화 실패 · 별 유지",down:"강화 실패 · 별 하락"}[result.outcome]||"장비 파괴"}</strong><span>${result.before}성 → ${result.after}성${result.gains?` · 장비 공격력 +${result.gains.attack.toFixed(1)} · ${cl.stat} +${result.gains.stat}${result.gains.hp?` · HP +${result.gains.hp}`:""}`:" · 골드 "+fmt(result.cost)+" 소모"}</span></div>`:""}<div class="star-track" role="img" aria-label="최대 25성 중 ${it.stars}성">${Array.from({length:5},(_,g)=>`<span>${Array.from({length:5},(_,i)=>`<i class="${g*5+i<it.stars?"lit":g*5+i===it.stars&&!max?"next":""}">★</i>`).join("")}</span>`).join("")}</div><div class="enhance-stage"><div class="enhance-item-display">${gearMarkup(it,"big-item")}</div><div class="star-transition"><span>${max?"강화 완료":"다음 강화 단계"}</span><div><b>${it.stars}<small>성</small></b>${max?'<em>MAX</em>':`<span class="transition-arrow">→</span><b class="target">${target}<small>성</small></b>`}</div></div></div><p class="note">${Object.values(state.equipped).includes(it.id)?"장착 중 · 강화 수치가 캐릭터에 바로 반영됩니다.":"미장착 · 장비는 강해지지만 캐릭터 수치는 장착 후 반영됩니다."}</p>${max?'':`<div class="enhance-gains"><div><span>기본 공격</span><b>${current.attack.toFixed(1)} <i>→</i> <em>${next.attack.toFixed(1)}</em></b></div><div><span>${cl.stat}</span><b>${current.stat} <i>→</i> <em>${next.stat}</em></b></div>${next.hp>current.hp?`<div><span>최대 HP</span><b>${current.hp} <i>→</i> <em>${next.hp}</em></b></div>`:""}</div><section class="enhance-probabilities"><div class="probability-title"><span>성공 확률</span><strong>${pct(o.success)}</strong></div><div class="probability-bar" aria-hidden="true">${[["success",o.success],["keep",o.keep],["down",o.down],["destroy",o.destroy]].map(([k,v])=>`<i class="${k}" style="width:${v*100}%"></i>`).join("")}</div><div class="probability-details">${[["유지",o.keep,"keep"],["하락",o.down,"down"],["파괴",o.destroy,"destroy"]].map(([name,v,k])=>`<div class="${k}"><span>${name}</span><b>${v===0?"0%":pct(v)}</b></div>`).join("")}</div></section>${enhancementWallet(cost)}`}${max&&D.canTranscendTier(it)?transcendBlock(it):disabledBtn(max?(it.boss&&Number(it.level)>=D.TRANSCEND_LEVEL?"최고 등급 · 25성 달성":"최대 25성 달성"):`${target}성 강화하기`,"star",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked&&!max?"short":""}">${blocked|| (o.destroy>0?"실패 시 장비가 파괴될 수 있습니다. 흔적과 잠재는 보존됩니다.":o.down>0?"실패 시 별이 1개 내려갈 수 있습니다. 파괴 위험은 없습니다.":"실패해도 현재 별이 유지됩니다. 파괴 위험은 없습니다.")}</p>`;
+}
+
+// 2026-11-02 초월: 220제 등급 보스장비 25성 → 초월석으로 다음 등급 (스탯은 새 등급 범위에서 랜덤, 스타포스만 0성)
+// 2026-11-03 도현: 초월 성공 연출 — 화면 전체에 빛 + "초월 성공!" 크게, 2.8초 뒤 자동으로 닫힘(누르면 바로 닫힘).
+function transcendCelebrate(e){
+ try{
+  document.querySelector('.transcend-celebrate')?.remove();
+  const it=state.items?.find(x=>x.id===e.id),art=it?D.equipmentIdentity(it):null;
+  const el=document.createElement('div');el.className='transcend-celebrate';el.setAttribute('role','status');
+  el.innerHTML=`<div class="tc-rays"></div><div class="tc-core">${art?.art?`<img src="${art.art}" alt="">`:''}<small>TRANSCEND</small><strong>초월 성공!</strong><p>${esc(e.fromName)} <i>→</i> <b>${esc(e.toName)}</b></p><span>${art?.name?esc(art.name)+' · ':''}스타포스 0성부터 다시</span></div>${'<i class="tc-spark"></i>'.repeat(14)}`;
+  const close=()=>{el.classList.add('out');setTimeout(()=>el.remove(),350);};
+  el.addEventListener('click',close);document.body.append(el);setTimeout(close,2800);
+  sounds?.play?.('loot-rare');
+ }catch{toast(`초월 성공! ${e.fromName} → ${e.toName} 등급`);}
+}
+function transcendBlock(it){
+ const need=D.transcendCost(it),have=state.materials?.transcendStone||0,next={...it,bossTier:D.bossTier(it)+1},range=D.gearStatRanges(next),m=D.gearStatMultiplier(it);
+ const blocked=enhancementBlock(it)||(!state.isAdmin&&have<need?`초월석이 부족합니다 (${fmt(have)}/${fmt(need)}개)`:"");
+ return `<section class="transcend-box"><div class="transcend-head"><span>TRANSCEND</span><b>${esc(D.bossTierName(it))} <i>→</i> ${esc(D.bossTierName(next))}</b></div><p>25성 달성! 초월하면 <b>다음 등급 장비</b>로 바뀌어요.</p><ul><li>기본 수치는 새 등급 범위에서 다시 랜덤 · 공격력 ${fmt(Math.round(range.attack.min*m))}~${fmt(Math.round(range.attack.max*m))}</li><li><b>스타포스만 0성으로 초기화</b> · 잠재능력·추가옵션은 그대로</li><li>다시 25성을 찍으면 다음 등급으로 초월할 수 있어요</li></ul><p class="transcend-cost" data-currency-label="transcendStone"><img src="${currencyIconURL('transcendStone')}" alt="">초월석 <b>${fmt(need)}개</b> 필요 · 보유 ${fmt(have)}개</p>${disabledBtn(`초월하기 (초월석 ${need}개)`,"transcend",it.id,!!blocked,"enhance-primary")}<p class="enhance-help ${blocked?"short":""}">${blocked||`성공률 <b>${Math.round(D.transcendChance(it)*100)}%</b>${(it.transcendFails||0)>=D.TRANSCEND_PITY?" · 이번엔 확정 성공!":(it.transcendFails||0)?` · 연속 실패 ${it.transcendFails}회 (${D.TRANSCEND_PITY}회 실패 시 다음 확정)`:""} · 실패해도 장비·스타포스·잠재는 그대로, 초월석만 소모`}</p></section>`;
+}
+function baseStatsPanel(it){return gearRollDetails(it)+renderRefinePanel(it,state,enhancementBlock(it));}
+let lastUnlockResult=null;
+function cubePanel(it){return renderCubePanel(it,state,cubeKind,lastCubeResult,enhancementBlock(it),cubeLockChoice,lastUnlockResult)+renderAdditionalSection(it,state,enhancementBlock(it),lastUnlockResult);}
+function itemDetail(id, section=id===selected?itemSection:"info") {
+  if(selected!==id){lastStarResult=null;lastCubeResult=null;cubeLockChoice=-1;lastUnlockResult=null;}
+  selected=id;itemSection=section;
+  const it=state.items.find(x=>x.id===id);if(!it)return;
+  const p=power(state),next=power({...state,equipped:{...state.equipped,[it.slot]:it.id}}),equipped=Object.values(state.equipped).includes(id),o=D.starOdds(it.stars);
+  const comparison=D.canEquipClass(it,state.classId)&&it.level<=state.level&&!it.broken?`장착 시 공격력 ${fmt(next.attack)} (${next.attack-p.attack>=0?"+":""}${next.attack-p.attack}) · HP ${fmt(next.hp)}`:!D.canEquipClass(it,state.classId)?`${D.CLASSES.find(c=>c.id===it.classId).name} 전용 장비입니다. 현재 직업으로는 착용할 수 없습니다. 장비 능력치는 직업에 관계없이 볼 수 있습니다.`:"착용 레벨과 장비 상태를 확인하세요.";
+  let body="";
+  if(section==="info")body=`${gearStatsMarkup(it)}${gearRollDetails(it)}<p class="note">${comparison}</p><p>${it.boss?"보스 장비":"일반 장비"} · ${it.bound?"거래 불가":it.hairUnbound?"거래 1회 가능 (링구의 머리카락)":it.locked?"잠금":"거래 가능"}</p><div class="actions">${btn(equipped?"장착 해제":"장착","equip",id,"gold",true)}${btn(it.locked?"잠금 해제":"잠금","lock",id,"",true)}${btn("분해","salvageConfirm",id,"danger")}${it.bound&&Number(it.level)>1?disabledBtn(`<img class="hair-btn-art" src="${currencyIconURL("ringuHair")}" alt="" width="28" height="28">링구의 머리카락 바르기 (보유 ${fmt(state.materials?.ringuHair||0)})`,"hairConfirm",id,!state.isAdmin&&!(state.materials?.ringuHair>0)):""}</div><div class="potential">${it.lines.length?it.lines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):"잠재 미개방"}${it.addLines?.length?`<p class="additional-heading">에디셔널 잠재능력</p>`+it.addLines.map(l=>`<p class="grade-color-${l.grade}">[${D.RARITIES[l.grade]}] ${D.OPTIONS[l.key]} +${l.value}${D.optionUnit(l.key)}</p>`).join(""):""}</div>`;
+  if(section==="star")body=starPanel(it);
+  if(section==="potential")body=cubePanel(it);
+  if(section==="baseStats")body=baseStatsPanel(it);
+  // 2026-11-03: 220제 이상은 강화하는 순간 거래 불가.
+  if(section!=="info"&&Number(it.level)>=220&&!it.bound)body=`<p class="trade-bind-warn">⚠ 220제 이상 장비는 강화(스타포스·잠재·에디·불꽃·재련·초월)를 하면 <b>거래 불가</b>로 바뀌어요. 거래소에 올릴 거면 강화 전에 올리세요.</p>`+body;
+  open(section==="star"?"스타포스 강화":section==="potential"?"잠재능력 · 큐브":section==="baseStats"?"기본 수치":"장비 정보",`<div class="enhance-content" data-currency-label><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong><small>${requiredLevel(it.level)} · ${D.isCommonBossGear(it)?"전 직업 공통":D.CLASSES.find(c=>c.id===it.classId).name} · ${D.equipmentType(it)} · ${it.broken?"파괴된 흔적":it.stars+"성"} · ${gearRollLabel(it)}</small></div></div><div class="enhance-tabs">${[["info","장비 정보"],["star","스타포스"],["potential","잠재 · 큐브"],["baseStats","기본 수치"]].map(([k,l])=>btn(l,"itemMode",id+":"+k,section===k?"active":"")).join("")}</div>${body}</div>`);
+  modal.classList.add("enhance-dialog");if(section==="potential")modal.classList.add("cube-dialog");
+}
+function refineChoice() {
+ const p=state.pendingRefine,it=state.items.find(i=>i.id===p.id);if(!it)return;
+ selected=p.id;itemSection="baseStats";
+ open((p.kind==="bonus"?"추가옵션 불꽃":"기본수치 재련석")+" · 결과 선택",`<div class="enhance-content"><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong></div></div>${renderRefineChoice(it,p,state)}</div>`,false);
+ modal.classList.add("enhance-dialog","cube-dialog");
+}
+function addCubeChoice() {
+ const p=state.pendingAddCube,it=state.items.find(i=>i.id===p.id);if(!it)return;
+ selected=p.id;itemSection="potential";
+ open("에디셔널 큐브 · 결과 선택",`<div class="enhance-content"><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong></div></div>${renderAddCubeChoice(it,p,state)}</div>`,false);
+ modal.classList.add("enhance-dialog","cube-dialog");
+}
+function cubeChoice() {
+ const p=state.pendingCube,it=state.items.find(i=>i.id===p.id);
+ selected=p.id;itemSection="potential";cubeKind=p.kind||(p.high?"highCube":"cube");
+ open((D.CUBES[p.kind]?.name||"큐브")+" · 결과 선택",`<div class="enhance-content"><div class="enhance-item-head">${gearMarkup(it)}<div><strong>${esc(D.gearName(it))}</strong></div></div>${renderCubeChoice(it,p,state,cubeKind)}</div>`,false);
+ modal.classList.add("enhance-dialog","cube-dialog");
+}
+function sweepResult(e){
+  const line=(n,k)=>e[k]>0?`<li><span>${n}</span><b>${fmt(e[k])}</b></li>`:'';
+  const items=(e.items||[]).map(id=>state.items?.find(it=>it.id===id)).filter(Boolean);
+  const rows=e.entries.map(x=>`<li><span>${esc(x.name)}${x.weekly?' <small>주간</small>':''}</span><small>${[x.gold&&fmt(x.gold)+' G',x.highCube&&'블랙 '+x.highCube,x.addCube&&'에디 '+x.addCube,x.tokens&&'토큰 '+fmt(x.tokens),x.keys&&'열쇠 '+x.keys,x.items?.length&&'장비 '+x.items.length].filter(Boolean).join(' · ')}</small></li>`).join('');
+  open(e.all?'전체 소탕 완료 · '+e.count+'건':'소탕 완료',`<div class="sweep-result"><h4>받은 보상</h4><ul class="sweep-total">${line('골드','gold')}${line('레드 큐브','cube')}${line('블랙 큐브','highCube')}${line('에디셔널 큐브','addCube')}${line('잠재 잠금석','potentialLock')}${line('토큰','tokens')}${line('던전 열쇠','keys')}</ul>${items.length?`<h4>장비 ${items.length}개</h4>`+items.map(it=>`<div class="panel pad">${gearMarkup(it)}<strong>${esc(D.gearName(it))}</strong><p>Lv.${it.level} · ${D.SLOTS[it.slot]}</p></div>`).join(''):''}${e.entries.length>1?`<details><summary>소탕 내역 ${e.entries.length}건</summary><ul class="sweep-list">${rows}</ul></details>`:`<ul class="sweep-list">${rows}</ul>`}</div>`+btn('확인','ack','','gold',true),false);
+}
+function showEvents(events) {
+  const earnedTitles=events.filter(e=>e.type==='titleEarned');
+  if(earnedTitles.length)queueMicrotask(()=>{sounds.play('loot-rare');
+    if(modal.open){toast('칭호 획득 · '+earnedTitles.map(e=>e.name).join(', '));return;}
+    open(earnedTitles.length>1?'칭호 '+earnedTitles.length+'개 획득!':'칭호 획득!',earnedTitles.length>1?`<div class="title-earned">${earnedTitles.map(e=>titleBadge(e.id,'md')).join('')}<p>칭호 창에서 장착할 수 있어요.</p></div>`+btn('칭호 보기','titleOpen'):titleEarnedView(earnedTitles[0])+btn('장착하기','titleEquip',earnedTitles[0].id));});
+  for (const e of events) {
+    if(e.type==='titleEarned'||e.type==='titleEquip')continue;
+    if(e.type==='citadelChest'){sounds.play(e.items?.length?'loot-rare':'loot-common');const parts=['장비 파편 '+fmt(e.fragment||0)+'개'];if(e.potentialLock)parts.push('잠재 잠금석 '+e.potentialLock+'개');if(e.scroll)parts.push('잠재 해금 주문서 '+e.scroll+'개');if(e.highCube)parts.push('블랙 큐브 '+e.highCube+'개');for(const it of e.items||[])parts.push('보스 장비 · '+D.gearName(it)+' Lv.'+it.level);toast('보스 상자 · '+parts.join(' · ')+(e.stored?' (가방이 가득 차 우편함으로)':''));continue;}
+    if(e.type==='sweep'){sounds.play(e.items?.length?'loot-rare':'loot-common');sweepResult(e);continue;}
+    if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
+    if(e.type==='fishCatch'&&!e.won){sounds.play('ui-error');toast(e.reason==='snap'?'줄이 끊어졌어요… 낚싯대 힘이 모자라요.':'물고기를 놓쳤어요…');continue;}
+    if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
+    if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}
+    if(e.type==='fishSell'){toast('🎟 낚시 토큰 '+fmt(e.tokens)+'개 받았어요.');continue;}
+    if(e.type==='fishAquariumClaim'){toast(fmt(e.gold)+' G 받았어요.');continue;}
+    if(e.type==='fishEnhance'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🔨 강화 성공! 낚싯대 +'+e.level:'강화 실패… 단계는 그대로예요 (+'+e.level+')');continue;}
+    if(e.type==='fishEnchant'){toast('✨ 인챈트를 새로 뽑았어요.');continue;}
+    if(e.type==='fishAutoBuy'){toast('🤖 자동 낚시권 구매 완료 · 오토 버튼을 눌러 시작하세요.');continue;}
+    if(e.type==='fishFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🧬 합성 성공!':'합성 실패… 1마리만 남았어요.');continue;}
+    if(e.type==='fishGoldFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🌈 무지개 개체 탄생!':'황금 합성 실패… 황금 1마리가 남았어요.');continue;}
+    if(e.type==='fishAwaken'){toast('★ 각성! ★'+e.star+' (같은 종 '+e.used+'마리 사용)');continue;}
+    if(e.type==='fishAquariumExpand'){toast('수족관이 '+e.slots+'칸이 됐어요.');continue;}
+    if(e.type==='fishQuestClaim'){toast('일일퀘스트 · 다이아 '+e.diamonds+'개 받았어요.');continue;}
+    if(e.type==='fishExchange'){toast(e.name+' '+e.count+'개 교환 완료 · 다이아 '+e.diamonds+'개 사용');continue;}
+    if(e.type==='fishContestClaim'){toast('대어 대회 '+e.rank+'위 보상 · 다이아 '+e.diamonds+'개, 에디셔널 큐브 '+e.addCube+'개');continue;}
+    if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
+    if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
+    if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
+    if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
+    if(e.type==='goldTransfer'){modal.close();toast(`${e.recipientName}님에게 ${fmt(e.amount)} G를 우편으로 보냈습니다.`);continue;}
+    if(e.type==='arenaSeasonReward'){sounds.play('loot-rare');toast(`${e.tier} 시즌 보상 · ${fmt(e.rewards.gold)} G · 블랙 ${fmt(e.rewards.highCube)}개 · 프라임 ${fmt(e.rewards.primeCube)}개를 받았습니다.`);continue;}
+    if(e.type==='goldTransferClaim'){toast(`우편에서 ${fmt(e.amount)} G를 받았습니다.`);continue;}
+    if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
+    if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
+    if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":e.resource==="diamond"?"다이아":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
+    sounds.event(e);
+    if(e.type==="systemMail"){
+      const MAIL_NAMES={tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
+      const text=Object.entries(e.rewards||{}).filter(([k])=>k!=="bossChest200").map(([k,n])=>(MAIL_NAMES[k]||D.MATERIALS[k]||k)+" "+fmt(n)+(["companionTicket","pickupTicket"].includes(k)?"장":"개")).join(" · ");
+      if(e.items?.length){const it=e.items[0];modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("우편 보상 수령",`<p>${esc(text)}</p>${gearMarkup(it.item,"big-item")}<h3>${esc(D.gearName(it.item))}</h3><p>Lv.${it.item.level} 보스 장비 · ${it.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});}
+      else toast(text+" 받았습니다.");
+      continue;
+    }
+    if (e.type === "attendance") {
+      open(`${e.day}일차 출석 완료`, `<p class="attendance-claimed">${attendanceReward(e.reward)}</p><p class="note">보상이 가방과 재화에 지급됐어요.${e.day===7?" 내일부터 다시 1일차 보상을 받을 수 있어요.":""}</p><div class="actions">${btn("확인","close","","gold")}</div>`);
+      modal.classList.add("attendance-dialog");
+      continue;
+    }
+    if(e.type==="classChange") {rankingRows=[];rankingUpdated=0;toast(D.CLASSES.find(c=>c.id===e.to).name+"으로 직업을 변경했어요. 새 장비를 장착하고 사냥을 시작하세요.");}
+    if(e.type==="gearPreset")toast("장비 슬롯 "+(e.slot+1)+"번으로 전환했어요.");
+    if(e.type==="autoEquip") {
+      open("최적 장착 완료",`<div class="auto-equip-result"><span>${e.changed.length?e.changed.length+"개 부위 교체":"현재 장비 유지"}</span><div><b>${fmt(e.before)}</b><i>→</i><strong>${fmt(e.after)}</strong></div><p>전투력 +${fmt(e.after-e.before)}</p></div><p class="note">${e.changed.length?e.changed.map(slot=>D.SLOTS[slot]).join(" · ")+" 장비를 교체했습니다.":"이번 비교에서 더 높은 전투력 조합을 찾지 못해 현재 장비를 유지했습니다."}</p>`);
+    }
+    if(e.type==="daily"){
+      const task=Object.values(D.DAILY_TASKS).find(t=>t.name===e.name);
+      open("일일 과제 보상",'<h3>'+esc(e.name)+'</h3>'+(task?'<p>'+dailyRewardLines(task).join('<br>')+'<br>경험치 5%</p>':'<p>보상을 받았습니다.</p>')+btn("확인","close","","gold"));
+    }
+    if(e.type==="coop"){tab="boss";bossTab=e.mode==="citadel"?"citadel":e.mode==="raid"?"raid":"exploration";view="game";render();reward();continue;}
+    if(e.type==="exchangeGear")open(e.boss?"보스 장비 획득!":"장비 교환 완료",`${e.boss?'<p class="exchange-boss-hit">1% 확률 당첨 · 보스 장비</p>':''}${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
+    if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
+    if(e.type==="costumeBuy")toast("코스튬 구매 완료! 보유 효과로 공격력 +1%가 적용됐어요.");
+    if(e.type==='skillLookBuy')toast('스킬 외형을 구매했어요. 장착하면 적용됩니다.');
+    if(e.type==='skillLookEquip')toast('스킬 외형을 장착했어요.');
+    if(e.type==='skillLookUnequip')toast('기본 스킬 외형으로 변경했어요.');
+    if(e.type==="costumeEquip")toast("코스튬을 장착했어요.");
+    if(e.type==="costumeUnequip")toast("기본 의상으로 변경했어요.");
+    if(e.type==="shopSell")toast(`셀리아: 고마워! ${fmt(e.gold)} G를 지급했어.${e.mileage?` · 마일리지 +${fmt(e.mileage)}`:""}`);
+    if(e.type==="mileageBuy")toast(`${e.name} ${fmt(e.quantity)}개 구매 · 남은 마일리지 ${fmt(e.mileage)}`);
+    if(e.type=="salvage")open("장비 분해 완료",`<p>장비 ${e.count}개를 분해했습니다.</p><p class="salvage-reward"><strong>장비 파편 ${fmt(e.fragments)}개 획득</strong></p><p class="note">현재 보유 ${fmt(state.materials.fragment)}개</p>${btn("확인","close","","gold")}`);
+
+    if(e.type==='advancementTrial'){tab='boss';bossTab='advancement';view='game';render();advancementResult(e);continue;}
+    if(e.type==='tokenBoss'){tab='boss';bossTab='token';tokenPage='dungeon';view='game';render();tokenBossReward(e);continue;}
+    if(e.type==='keyBoss'){tab='boss';bossTab='key';view='game';render();keyBossReward(e);continue;}
+    if(e.type==='tribeRoll'||e.type==='tribeChoose')continue;
+    if(e.type==='tokenShopBuy'&&e.id==='tribeTicket'){continue;}
+    if(e.type==='tokenShopBuy'){toast(e.name+' '+e.quantity+'개 교환 완료 · 남은 토큰 '+fmt(e.tokens));continue;}
+    if(e.type==='tower'){tab='boss';bossTab='tower';view='game';render();towerReward(e);continue;}
+    if (e.type === "combat") continue;
+    if (e.type === "skill") {
+      const arena = $(".arena");
+      const look=equippedSkillLook(state);
+      if(arena&&!settings.low)fadeSkillOverlay(arena,e.slot);
+      if(look&&arena&&!settings.low){playSkillLookOverlay(arena,look,e.slot);continue;}
+      if(state.classId==='priest'&&arena&&!settings.low){playHolyOverlay(arena,e.slot);continue;}
+      if(e.slot===5&&arena&&!settings.low){void playFifthOverlay(arena,state.classId);continue;}
+      if(e.slot===2&&arena&&!settings.low){playSecondOverlay(arena,state.classId);continue;}
+      if (arena && !settings.low) {
+        const flash = document.createElement("div");
+        flash.className = "skill-burst " + state.classId+(e.slot===4?" fourth-burst":e.slot===3?" third-burst":e.slot===1?" second-burst":"");if(e.slot===1)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);if(e.slot===3)flash.style.setProperty("--third-col",D.THIRD_SKILLS[state.classId].art);
+        flash.textContent = (e.slot===5?D.FIFTH_SKILLS:e.slot===4?D.FOURTH_SKILLS:e.slot===3?D.THIRD_SKILLS:e.slot===2?D.SECOND_SKILLS:D.CLASS_SKILLS)[state.classId].name;
+        arena.append(flash);
+        setTimeout(()=>flash.remove(), e.slot===4?6000:e.slot===1?1200:900);
+      }
+    }
+    if (e.type === "transcend") {
+      lastStarResult=null;itemDetail(e.id,"star");if(e.success===false)toast(`초월 실패 · 초월석 ${e.cost}개 소모${e.fails>=D.TRANSCEND_PITY?" · 다음 초월은 확정 성공!":` (연속 ${e.fails}회)`}`);else transcendCelebrate(e);
+    } else if (e.type === "star") {
+      lastStarResult=e;
+      itemDetail(e.id,"star");
+    } else if(e.type === "advancement") {open("전직 완료",`<div class="advancement-reveal"><h2>${D.ADVANCEMENTS[state.classId]}</h2><p>공격력 +10% · 최대 HP +10%</p></div>`);
+    } else if (["boss", "dungeon", "party", "offline"].includes(e.type)) {
+      if (e.type !== "offline" || e.seconds >= 300) reward();
+    } else if (e.type === "refine") {
+      if (state.pendingRefine) refineChoice();
+      else itemDetail(e.id,"baseStats");
+    } else if (e.type === "addCube") {
+      lastUnlockResult=null;
+      if (state.pendingAddCube) addCubeChoice();
+      else itemDetail(e.id,"potential");
+    } else if (e.type === "additionalUnlock") {
+      lastUnlockResult={id:e.id,kind:"additional",success:e.success,chance:e.chance};
+      itemDetail(e.id,"potential");
+    } else if (e.type === "cube") {
+      lastCubeResult=e;lastUnlockResult=null;
+      if (state.pendingCube) cubeChoice();
+      else itemDetail(e.id);
+    } else if (["craft", "potential", "restore"].includes(e.type)) {
+      if(e.type==="restore")lastStarResult=null;
+      if(e.type==="potential"){lastCubeResult=null;lastUnlockResult={id:e.id,kind:"main",success:e.success!==false,chance:e.chance??1};itemDetail(e.id,"potential");continue;}
+      itemDetail(e.id);
+    }
+  }
+}
+function advancementResult(r){const t=D.ADVANCEMENT_BOSSES.find(t=>t.stage===r.stage);open(r.practice?(r.won?'전직 보스 연습 성공':'전직 보스 연습 종료'):r.won?(r.stage+1)+'차 전직 완료':'전직 도전 종료','<div class="advancement-reveal"><h2>'+t.name+'</h2><p>'+(r.practice?'연습 전투입니다. 전직·능력치·보상은 추가로 지급되지 않습니다.':r.won&&r.stage>=5?advancementBonusText(r.stage)+' 획득':r.won?'공격력 +10% · 최대 HP +10% · '+(r.stage===4?D.FIFTH_SKILLS[state.classId].name:r.stage===3?D.FOURTH_SKILLS[state.classId].name:r.stage===2?D.THIRD_SKILLS[state.classId].name:r.stage===1?D.SECOND_SKILLS[state.classId].name:D.CLASS_SKILLS[state.classId].name)+' 해금':'아직 시련을 넘지 못했습니다. 장비를 강화하고 다시 도전하세요.')+'</p></div>'+btn('확인','towerAck','','gold',true));}
+// 6·7차 전직 보너스 문구 (advancement.mjs ADVANCEMENT_STAT_BONUS 기준).
+function advancementBonusText(stage){const b=D.ADVANCEMENT_STAT_BONUS[stage]||{},names={attack:'공격력',boss:'보스 피해',crit:'치명타 확률',hp:'최대 HP'};return Object.entries(b).map(([k,v])=>names[k]+' +'+v+(k==='crit'?'%p':'%')).join(' · ');}
+function keyBossReward(r){if(r.won)sounds.play('loot-rare');open(r.won?`${r.stage}단계 처치! · 던전 열쇠 ${r.keys}개 획득`:'열쇠 던전 종료',keyBossResult(r)+'<div class="actions">'+btn('확인','ack','','gold',true)+'</div>',false);}
+function tokenBossReward(r){open(r.won?r.stage+'단계 처치!':'토큰 던전 종료',tokenBossResult(r)+'<div class="actions">'+btn('확인','ack','','gold',true)+'</div>',false);}
+function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}층 돌파!`:'탑 도전 종료',`<div class="tower-result"><div class="tower-portrait${f.artFrames===1?' single-boss-art':''}" style="background-image:url('tower/boss-${f.art}.webp')"></div><h3>${f.name}</h3><p>${r.won?'클리어 '+r.seconds.toFixed(1)+'초':r.reason==='timeout'?'제한 시간이 끝났습니다.':r.reason==='leave'?'도전을 종료했습니다.':'쓰러졌습니다. 다시 도전할 수 있어요.'}</p><p>${r.gold?fmt(r.gold)+' G'+['fragment','cube','highCube','primeCube','scroll'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+fmt(r[k])+'개').join(''):r.won?'최초 보상을 이미 받은 층입니다. 반복 보상은 없습니다.':'입장 횟수 제한 없이 재도전할 수 있습니다.'}</p><p class="note">일반 사냥이 다시 시작됐습니다.</p><div class="actions">${btn('확인','towerAck','','gold',true)}${r.won&&r.floor<TOWER_FLOORS.length?btn('다음 층 도전','towerStart',r.floor+1,'',true):btn('다시 도전','towerStart',r.floor,'',true)}</div></div>`);}
+function reward() {
+  const r = state.lastReward;
+  if(r?.type==='coop'&&r.mode==='exploration')return open(r.won?'링구의 탐험 완료':'탐험 종료','<p>'+esc(r.name||'링구의 탐험')+' · '+(r.cleared||0)+'층 완료</p><p>'+fmt(r.gold||0)+' G'+['scroll','highCube','potentialLock','addCube','bonusFlame'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+r[k]+'개').join('')+(r.companionTicket?'<br>동료 소환권 '+r.companionTicket+'장':'')+'</p>'+(r.items||[]).map(it=>'<div class="panel pad">'+gearMarkup(it)+'<strong>'+esc(D.gearName(it))+'</strong><p>Lv.'+it.level+' · '+D.SLOTS[it.slot]+'</p></div>').join('')+(r.stored?'<p class="note">가방이 가득 차 장비를 보관함으로 보냈습니다.</p>':'')+btn('확인','ack','','gold',true),false);
+  if(r?.type==='coop'&&r.mode==='raid'){
+    const loot=r.practice?'이번 주 레이드 보상 3회를 모두 받았습니다. 이번 클리어는 연습으로 처리됩니다.':fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join('');
+    const remaining=Number.isInteger(r.weeklyUsed)?`이번 주 개인 보상 ${r.weeklyUsed}/${r.weeklyLimit}회 · 남은 보상 ${r.weeklyRemaining}회<br>`:'';
+    return open(r.practice?'레이드 연습 완료':'레이드 보상 획득','<h3>'+esc(r.name)+'</h3><p>'+loot+'</p><p class="note">'+remaining+'모든 레이드 보스 합산 · 월요일 00시(한국 시간) 초기화</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+'</p>').join('')+btn('확인','ack','','gold',true));
+  }
+  if(r?.type==='coop'&&r.mode==='wave')return open(r.ending?'200웨이브 엔딩 · 보상 지급 완료':'웨이브 종료 · 보상 지급 완료',waveRewardBody(r)+btn('확인','ack','','gold',true),false);
+  if(r?.type==='coop')return open(r.won?'개인 상자 획득':'균열 도전 종료','<p>'+(r.won?fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join(''):'장비를 정비하고 다시 도전해 보세요.')+'</p>'+(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · 잠재 3줄 잠금 (가방이 가득 차면 보관함)</p>').join('')+btn('확인','ack','','gold',true));
+  if(r?.type==='advancementTrial')return advancementResult(r);
+  if(r?.type==='tokenBoss')return tokenBossReward(r);
+  if(r?.type==='keyBoss')return keyBossReward(r);
+  if(r?.type==='tower')return towerReward(r);
+  const enemy = r && (r.type === "dungeon" ? D.DUNGEONS[r.dungeon] : r.type === "boss" ? D.BOSSES[r.bossId] : null);
+  if (!r) return toast("새로 정산된 보상이 없습니다.");
+  if(r.type==="party") {const b=D.raidBoss(r.bossId)||D.BOSSES[r.bossId],total=(r.members||[]).reduce((n,m)=>n+Number(m.damage),0);return open(r.won?"협동 토벌 완료":"협동전 종료",`${bossMarkup(b,"big-item")}<h3>${b.name}</h3><p>${r.practice?"연습 · 보상 없음":r.rewarded?(r.raid?fmt(r.gold)+" G · 파편 "+r.fragment+" · 큐브 "+r.cube+" · 블랙 큐브 "+r.highCube:"지역 재료 "+r.materials+" · 큐브 3 · 블랙 큐브 1")+" · 장비 "+r.items.length:"보상 횟수 차감 없음"}</p>${r.stored?'<p>장비는 보관함에 지급됐습니다.</p>':""}<div class="stack">${(r.members||[]).map(m=>`<div class="row spread"><span>${esc(m.name)}</span><b>기여 ${total?(m.damage/total*100).toFixed(1):"0.0"}%</b></div>`).join("")}</div><p class="note">자동사냥이 다시 시작됐습니다.</p>${btn("확인","ack","","gold",true)}`);}
+
+  open(
+    enemy ? (r.won ? "토벌 완료" : "도전 종료") : r.adminSkip ? r.hours+"시간 사냥 보상" : "사냥 보상",
+    enemy
+      ? `${bossMarkup(enemy,"big-item")}<h3>${enemy.name}</h3><p class="note">${r.practice ? "연습 도전 · 보상 없음" : r.won ? r.type === "dungeon" ? enemy.reward : "장비 " + r.items.length + "개 · "+fmt(r.gold||0)+" G · 큐브 "+(r.cube||0)+["highCube","addCube","potentialLock"].filter(k=>r[k]>0).map(k=>" · "+D.MATERIALS[k]+" "+r[k]).join("") : "보상 횟수는 차감되지 않았습니다."}</p><p class="note">자동사냥이 다시 시작됐습니다.</p><div class="actions">${btn("확인", "ack", "", "gold", true)}</div>`
+      : `<p>정산 시간 ${fmt(r.seconds / 60)}분 · ${fmt(r.kills)}마리</p><div class="metrics" style="margin-top:12px"><div><small>경험치</small><b>${fmt(r.xp)}</b></div><div><small>골드</small><b>${fmt(r.gold)}</b></div><div><small>장비</small><b>${r.drops.length}개</b></div></div><p class="note">파편 ${r.fragment} · 큐브 ${r.cube}<br>${r.stored ? "가방 초과 장비 " + r.stored + "개는 장비 탭 보관함에 보관되었습니다." : ""}${r.defeats ? " 패배 " + r.defeats + "회 · 하위 사냥터에서 성장하세요." : ""}</p><div class="actions">${btn("보상 확인", "ack", "", "gold", true)}</div>`,
+  );
+}
+function clearAccountView() {
+  activeCoopInput?.abort();
+  if(coopController){coopController.dispose();coopController=null;}
+  coopRoom=null;coopRooms=[];
+  resetNewsNotifications();newsPollAt=0;
+  closeWarriorLab();
+  lottoData=null;lottoLoadedAt=0;clearLotto();investmentData=null;investmentLoadedAt=0;resetInvestment();
+  clearDisclosureState();
+  if(towerController){towerController.dispose();towerController=null;}document.body.classList.remove('tower-mode');
+  state=null;stateRevision=null;partyRoom=null;partyRooms=[];rankingRows=[];rankingUpdated=0;rankingRequest++;rankingLoading=false;rankingError="";
+  marketKind="all";marketRows=[];marketRequest++;marketPage=0;mine=false;buyOrderMode=false;buyOrders=null;buyOrderRequest++;selected=null;view="game";tab="hunt";sub="bag";
+  chosenClass="warrior";characterName="";combatFrames.length=0;connectionLost=false;retryAt=0;retryFailures=0;lastHuntSettlement=0;
+}
+function authFailureMessage(err,register) {
+  const code=err.code||err.message;
+  if(code==="user_banned"||/user.*banned/i.test(err.message))return "이 계정은 서버에서 로그인 차단 상태입니다. 재가입으로 해결되지 않습니다. 관리자에게 아이디와 함께 차단 상태 확인을 요청해 주세요.";
+  if(["user_already_exists","email_exists","USER_ALREADY_REGISTERED"].includes(code)||/already (registered|exists)/i.test(err.message))return "이미 사용 중인 계정 이름입니다. 기존 계정이면 ‘로그인’을, 새 계정이면 다른 이름을 입력해 주세요.";
+  if(err.status===429||["over_request_rate_limit","over_email_send_rate_limit"].includes(code))return `잠시 가입·로그인 요청이 제한됐습니다. ${err.retryAfter?Math.ceil(err.retryAfter)+"초 후":"잠시 후"} 다시 시도해 주세요.`;
+  if(code==="invalid_credentials"||/invalid login credentials/i.test(err.message))return "계정 이름 또는 비밀번호가 맞지 않습니다. 기존 계정은 ‘로그인’으로 접속해 주세요.";
+  if(code==="weak_password"||/password.*(least|weak|short)/i.test(err.message))return "비밀번호가 가입 조건에 맞지 않습니다. 8자 이상으로 더 강한 비밀번호를 입력해 주세요.";
+  if(["signup_disabled","email_provider_disabled"].includes(code))return "현재 서버에서 새 계정 가입을 받지 않고 있습니다.";
+  if(code==="email_not_confirmed"||code==="AUTH_CONFIRMATION_REQUIRED")return "계정 확인이 완료되지 않아 접속할 수 없습니다. 관리자에게 가입 설정 확인을 요청해 주세요.";
+  if(code==="email_address_invalid"||code==="validation_failed")return "계정 이름은 영문·숫자·밑줄 3~32자, 비밀번호는 8자 이상으로 입력해 주세요.";
+  if(!err.status)return "서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.";
+  return (register?"계정 생성":"로그인")+"에 실패했습니다. "+(err.code||err.message);
+}
+function login() {
+  stopFishing();
+  closeWarriorLab();
+  document.body.classList.remove("pet-event-mode","tower-mode","fishing-mode");
+  app.innerHTML = `<div class="login panel"><div class="brand">링구 RPG<br><small>새로운 여정</small></div><p class="note">모바일로 이어가는 나만의 모험</p><form id="auth"><label>계정 이름<input name="username" autocomplete="username" pattern="[a-zA-Z0-9_]{3,32}" minlength="3" maxlength="32" required placeholder="영문·숫자·밑줄 3~32자"></label><label>비밀번호<input name="password" autocomplete="current-password" type="password" minlength="8" maxlength="256" required placeholder="8자 이상"></label><div class="two"><button type="submit" name="mode" value="login" class="gold">로그인</button><button type="submit" name="mode" value="register">새 계정 만들기</button></div><p id="auth-error" class="error" role="alert"></p></form><p class="footer-note">이전 게임 아이디·비밀번호도 그대로 로그인할 수 있습니다.<br>PC·모바일은 같은 계정으로 로그인하면 이어집니다.<br>이미 있는 아이디는 재가입하지 말고 ‘로그인’을 눌러 주세요.<br>계정 이름은 대소문자를 구분하지 않습니다.</p></div>`;
+  $("#auth").onsubmit = async (e) => {
+    e.preventDefault();
+    if (busy) return;
+    busy = true;
+    const form = e.currentTarget,
+      register = e.submitter?.value === "register",
+      f = new FormData(form),
+      username = String(f.get("username")).trim().toLowerCase();
+    $("#auth-error").textContent="";
+    form.querySelectorAll("button").forEach((b) => (b.disabled = true));
+    try {
+      const nextSession = await request(
+        register ? "/auth/v1/signup" : "/auth/v1/token?grant_type=password",
+        {
+          email: username + "@players.ringu.example",
+          password: f.get("password"),
+          ...(register ? { data: { username } } : {}),
+        },
+        false,
+      );
+      if (!nextSession.access_token) {
+        const err=new Error((nextSession.user||nextSession).identities?.length===0?"USER_ALREADY_REGISTERED":"AUTH_CONFIRMATION_REQUIRED");
+        err.code=err.message;throw err;
+      }
+      clearAccountView();
+      session=nextSession;
+      session.expires_at =
+        session.expires_at || Date.now() / 1000 + session.expires_in;
+      persist();
+      busy = false;
+      await command("sync");
+    } catch (err) {
+    sounds.play("ui-error");
+      if ($("#auth-error"))
+        $("#auth-error").textContent = authFailureMessage(err,register);
+    } finally {
+      busy = false;
+      form.querySelectorAll("button").forEach((b) => (b.disabled = b.hasAttribute("data-unavailable")));
+    }
+  };
+}
+function createScreen() {
+  app.innerHTML = `<div class="login panel" style="max-width:650px"><p class="eyebrow">CHOOSE YOUR PATH</p><p class="note">접속 계정: ${esc(session?.user?.email?.split("@")[0]||session?.user?.user_metadata?.username||"현재 계정")}</p><h2>어떤 모험가가 될까요?</h2><p class="note">직업에 맞는 주스탯과 장비를 성장시키세요.</p><div class="class-choice">${D.CLASSES.map((c, i) => btn(`<div class="portrait ${c.id==='priest'?'priest-portrait':''}" style="background-position:${portraitPosition(c.id)}% 0"></div>${c.name}<br><small>${c.stat}</small>`, "chooseClass", c.id, c.id === chosenClass ? "selected" : "")).join("")}</div><p class="note">선택: ${D.CLASSES.find((c) => c.id === chosenClass).name} · 첫 무기와 잠재 주문서를 지급합니다.</p><label>캐릭터 이름<input id="char-name" maxlength="12" placeholder="한글·영문·숫자 2~12자"></label><div class="actions">${btn("모험 시작", "create", "", "gold", true)}${btn("다른 계정 만들기 · 로그인", "switchAccount")}</div></div>`;
+}
+let betaResource="gold",betaAmount=1000;
+function betaTools(){
+  if(!state?.isAdmin)return;
+  const blocked=!!state.battle||!!state.partyRoom||!!state.coopRoom;
+  open("관리자 · 도현1",`<p class="note">랭킹 제외 · 던전 무한 입장 · 골드와 모든 재화·소비템 각각 999,999,999,999</p><section class="panel pad"><h3>레벨 조정 · Lv.${state.level}</h3><input id="beta-level" aria-label="원하는 레벨" type="number" inputmode="numeric" min="1" max="400" step="1" value="${state.level}"><p class="note">1~250레벨. 스탯 포인트를 다시 분배하고, 착용 레벨에 맞지 않는 장비는 해제합니다. 낮춘 레벨에 맞춰 전직도 해제됩니다.</p>${disabledBtn("레벨 적용","betaLevel","",blocked||!!state.pendingCube,"gold")}</section><section class="panel pad"><h3>사냥 시간 건너뛰기</h3><p class="note">현재 사냥터·장비로 선택한 시간만큼 사냥합니다. 경험치와 무작위 드롭을 실제로 지급합니다. 너무 강한 사냥터에서는 처치하지 못할 수 있습니다.</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${Array.from({length:12},(_,i)=>disabledBtn((i+1)+"시간","adminSkip",i+1,blocked)).join("")}</div></section>${blocked?'<p class="note">전투·파티 종료 후 사용할 수 있습니다.</p>':""}`);
+}
+function settingsDialog() {
+  open(
+    "설정",
+    `<div class="stack"><label>효과음 <input id="sound" type="range" min="0" max="1" step=".05" value="${settings.sound}"></label><label>배경음 <input id="music" type="range" min="0" max="1" step=".05" value="${settings.music}"></label><fieldset class="skill-alpha-settings"><legend>스킬 투명도 <small>(낮을수록 투명 · 내 캐릭터가 잘 보여요)</small></legend>${getSkillAlpha().map((v,i)=>`<label>${i+1}차 스킬 <input id="skillAlpha${i+1}" type="range" min=".1" max="1" step=".05" value="${v}"><b>${Math.round(v*100)}%</b></label>`).join('')}</fieldset><label><input id="low" type="checkbox" ${settings.low ? "checked" : ""} style="width:auto;min-height:0"> 저사양 · 모션 감소</label><p class="note">자동사냥·오프라인은 서버에서 정산합니다. 소리와 모션은 이 기기에 저장됩니다.</p>${btn("저장", "saveSettings", "", "gold")}${btn("로그아웃", "logout", "", "danger")}</div>`,
+  );
+}
+let marketSellId=null,marketSellSlot="",marketSellClass="",marketSellPrice="10000";
+function marketItemBlock(it) {
+  if(!it)return "판매할 장비를 선택해 주세요.";
+  if(it.bound)return "거래 불가";
+  if(it.broken)return "파괴된 장비";
+  if(it.locked)return "잠금 중";
+  if(Object.values(state.equipped).includes(it.id))return "장착 중";
+  if(state.pendingCube?.id===it.id||state.pendingAddCube?.id===it.id||state.pendingRefine?.id===it.id)return "큐브 선택 중";
+  return "";
+}
+function marketSellBlock(it) {
+  return marketItemBlock(it)||(state.level<5?"거래소는 Lv.5부터 이용할 수 있습니다.":state.battle||state.partyRoom?"전투·파티를 종료한 뒤 등록할 수 있습니다.":"");
+}
+function updateSellPrice() {
+  const input=$("#sell-price");if(!input)return;
+  marketSellPrice=input.value;
+  const price=Number(marketSellPrice),valid=Number.isSafeInteger(price)&&price>=100&&price<=1e9;
+  $("#sell-net").textContent=valid?fmt(price)+" G":"—";
+  const it=state.items.find(it=>it.id===marketSellId),reason=marketSellBlock(it)||(!valid?"100~1,000,000,000 G 범위의 정수를 입력해 주세요.":"");
+  $("#sell-reason").innerHTML=esc(reason||"선택한 장비 1개를 등록합니다. 판매 수수료는 5%입니다.").replace("Lv.20",requiredLevel(20));
+  const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
+}
+// Market materials: regular materials plus 다이아 (fishing record), 동료 소환권 (companions), 보물찾기 티켓 (treasure).
+const MARKET_EXTRA={luckPotion:'행운 물약',tribeTicket:'종족 주사위',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'};
+// 2026-11-04 전문 직업: 거래 가능 소모품 확장
+const MARKET_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
+const MARKET_MATERIALS=()=>Object.fromEntries(MARKET_KEYS.map(k=>[k,MARKET_EXTRA[k]||D.MATERIALS[k]||k]));
+const marketHave=k=>k==='luckPotion'?(state.consumables?.luckPotion||0):k==='tribeTicket'?(state.tribeGacha?.tickets||0):k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='pickupTicket'?(state.companions?.pickupTickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
+const materialName=k=>MARKET_EXTRA[k]||D.MATERIALS[k]||k;
+const marketMaterialIcon=(k,cls='')=>`<img${cls?` class="${cls}"`:''} src="${currencyIconURL(k)}" alt="">`;
+function consumableSellDialog(key=null){
+ if(!key){
+  open("판매할 소모품 선택",`<p class="note">가방에서 판매할 소모품을 누르세요.</p><div class="market-compact-grid material-sell-grid" data-currency-label>${Object.entries(MARKET_MATERIALS()).map(([k,name])=>`<button class="market-compact-card" data-action="materialSellPick" data-arg="${k}" ${marketHave(k)>0?"":"disabled"}>${marketMaterialIcon(k,'material-tile-image')}<strong class="market-card-name">${name}</strong><small>보유 ${fmt(marketHave(k))}개</small><span class="market-card-status">${marketHave(k)>0?"선택":"보유 없음"}</span></button>`).join("")}</div>`);
+  return;
+ }
+ if(!Object.hasOwn(MARKET_MATERIALS(),key)||!(marketHave(key)>0))return;
+ open("소모품 판매 등록",`${btn("← 소모품 목록","marketSellConsumables")}<div class="material-picked" data-currency-label>${marketMaterialIcon(key)}<div><strong>${materialName(key)}</strong><p>보유 ${fmt(marketHave(key))}개</p></div></div><input id="material-sell-key" type="hidden" value="${key}"><label>등록 수량<input id="material-sell-count" type="number" inputmode="numeric" min="1" max="${Math.min(1e6,marketHave(key))}" step="1" value="1"></label><label>개당 가격 (G)<input id="material-sell-price" type="number" inputmode="numeric" min="1" max="1000000000" step="1" value="100"></label><p id="material-sale-total" class="note"></p><p class="note">필요한 수량만 판매합니다. 등록 7일 · 수수료 없음. 취소 시 남은 수량을 돌려받습니다.</p>${btn("소모품 등록","sellConsumableConfirm","","gold")}`);
+ updateMaterialSale();
+}
+function updateMaterialSale(){const key=$('#material-sell-key')?.value;if(!key)return;const count=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value),total=count*price,valid=Number.isSafeInteger(count)&&count>=1&&count<=Math.min(1e6,marketHave(key))&&Number.isSafeInteger(price)&&price>=1&&total<=1e9;$('#material-sale-total').textContent=valid?'전량 판매 시 총 '+fmt(total)+' G · 예상 수령 '+fmt(total)+' G':'보유 수량 안에서 정수로 입력하세요. 총 등록 금액은 10억 G 이하입니다.';modal.querySelector('[data-action=sellConsumableConfirm]').disabled=!valid;}
+function updateMaterialBuy(){const input=$('#material-buy-count');if(!input)return;const listing=marketRows.find(l=>l.id===input.dataset.listing),count=Number(input.value),valid=listing&&Number.isSafeInteger(count)&&count>=1&&count<=listing.item.quantity;$('#material-buy-total').textContent=valid?'결제 금액 '+fmt(count*listing.price)+' G':'남은 수량 안에서 정수로 입력하세요.';modal.querySelector('[data-action=buyListing]').disabled=!valid||count*listing.price>state.gold;}
+function marketSellPicker() {
+  const scroll=modal.querySelector('.market-inventory-grid')?.scrollTop||0;
+  const items=state.items.filter(it=>(marketSellSlot===""||it.slot===Number(marketSellSlot))&&(marketSellClass===""||D.canEquipClass(it,marketSellClass))).sort((a,b)=>Number(!!marketItemBlock(a))-Number(!!marketItemBlock(b))||b.stars-a.stars||b.level-a.level);
+  const it=state.items.find(it=>it.id===marketSellId),cl=it&&D.CLASSES.find(c=>c.id===(D.isCommonBossGear(it)?state.classId:it.classId)),growth=it?1+it.stars*.055+Math.max(0,it.stars-15)**1.4*.025:0;
+  const stats=it?[["기본 공격력",D.gearAttributes(it,0).attack.toFixed(1)],["장비 공격력",D.gearAttributes(it).attack.toFixed(1)],[cl.stat,fmt(D.gearAttributes(it).stat)],["최대 HP",fmt(D.gearAttributes(it).hp)],["방어력",(D.gearAttributes(it).defense).toLocaleString("ko-KR")]]:[];
+  const canCompare=it&&!it.broken&&D.canEquipClass(it,state.classId)&&it.level<=state.level;
+  const before=power(state).combatPower,after=canCompare?power({...state,equipped:{...state.equipped,[it.slot]:it.id}}).combatPower:0;
+  open("판매할 장비 선택",`<p class="market-picker-intro">가방에서 장비를 고르고, 능력치와 잠재 옵션을 확인하세요.</p><div class="market-picker-layout ${it?"show-detail":""}"><section class="market-picker-bag"><div class="market-picker-filters"><label>부위<select id="market-sell-slot"><option value="">모든 부위</option>${D.SLOTS.map((name,i)=>`<option value="${i}" ${String(i)===marketSellSlot?"selected":""}>${name}</option>`).join("")}</select></label><label>직업<select id="market-sell-class"><option value="">모든 직업</option>${D.CLASSES.map(c=>`<option value="${c.id}" ${c.id===marketSellClass?"selected":""}>${c.name}</option>`).join("")}</select></label></div><p class="market-bag-count">가방 ${state.items.length}/300 · 표시 ${items.length}개 · 판매 가능 ${items.filter(it=>!marketItemBlock(it)).length}개</p><div class="market-inventory-grid" role="group" aria-label="판매 장비 인벤토리">${items.length?items.map(item=>{const reason=marketItemBlock(item);return `<button data-action="marketSellPick" data-arg="${item.id}" aria-pressed="${marketSellId===item.id}" class="market-inventory-item ${item.boss?"boss-gear":""} ${marketSellId===item.id?"picked":""} ${reason?"unavailable":""}"><span class="market-tile-meta">${requiredLevel(item.level)}<b>${item.stars}★</b></span>${gearMarkup(item)}<strong>${esc(D.gearName(item))}</strong><small>${reason||D.CLASSES.find(c=>c.id===item.classId).name+" · "+D.SLOTS[item.slot]}</small></button>`;}).join(""):'<div class="empty">조건에 맞는 장비가 없습니다.</div>'}</div><p class="note">장착·잠금·파괴·거래 불가·큐브 선택 중인 장비는 상세 확인만 가능합니다.</p></section><section class="market-sell-detail" aria-live="polite">${btn("← 장비 목록","marketSellBack")}${it?`<div class="market-picked-head">${gearMarkup(it,"big-item")}<div><small>선택한 장비</small><h3>${esc(D.gearName(it))}</h3><p>${requiredLevel(it.level)} · ${cl.name} · ${D.equipmentType(it)}</p><b>${it.stars}성 · ${it.boss?"보스 장비":"일반 장비"}</b></div></div><div class="market-picked-stats">${stats.map(([k,v])=>`<div><span>${k}</span><b>+${v}</b></div>`).join("")}</div><p class="note">스타포스가 반영된 장비 능력치입니다. 잠재 효과는 아래에 별도로 표시합니다.${it.broken?" 파괴된 장비는 현재 능력치가 적용되지 않습니다.":""}</p><div class="market-picked-options"><h4>잠재능력</h4>${it.lines.length?it.lines.map((line,i)=>`<div class="grade-color-${line.grade}"><small>${i+1}줄 · ${D.RARITIES[line.grade]}</small><span>${D.OPTIONS[line.key]}</span><b>+${line.value}${D.optionUnit(line.key)}</b></div>`).join(""):'<p class="note">잠재 미개방</p>'}</div>${canCompare?`<p class="market-equip-compare">장착 시 내 전투력 <strong>${fmt(after)}</strong> <span>(${after-before>=0?"+":""}${fmt(after-before)})</span></p>`:""}`:'<div class="market-pick-empty"><span>◇</span><h3>판매할 장비를 선택하세요</h3><p>장비 이미지를 누르면 강화 수치와<br>줄별 잠재 옵션이 여기에 표시됩니다.</p></div>'}<div class="market-price-box"><label for="sell-price">판매 가격 <small>G</small></label><input id="sell-price" type="number" inputmode="numeric" min="100" max="1000000000" step="1" value="${esc(marketSellPrice)}"><div class="market-net"><span>판매 완료 시 수령액</span><strong id="sell-net">—</strong></div><p id="sell-reason" class="note"></p>${disabledBtn("선택 장비 등록","sellConfirm","",true,"gold market-register")}<p class="note">등록 기간 7일 · 판매 완료 시 수수료 없음</p></div></section></div>`);
+  modal.classList.add("market-picker-dialog");modal.querySelector('.market-inventory-grid').scrollTop=scroll;updateSellPrice();
+}
+async function marketWrite(action, args) {
+  if (busy) return;
+  await command("sync", {}, true);
+  if (busy) return;
+  busy = true;
+  const key = pendingKey() + "_market";
+  try {
+    await ensureToken();
+    let p = JSON.parse(localStorage.getItem(key) || "null");
+    if (!p) {
+      p = { p_action: action, p_args: args, p_request: crypto.randomUUID() };
+      localStorage.setItem(key, JSON.stringify(p));
+    } else if(p.p_action!==action || JSON.stringify(p.p_args)!==JSON.stringify(args)) toast("이전 거래 요청을 복구합니다.");
+    await request("/rest/v1/rpc/rebirth_market", p);
+    localStorage.removeItem(key);
+  } catch (e) {
+  if(e.message==='INVALID_INVESTMENT_PRICE_CHANGED'){investmentData=null;investmentLoadedAt=0;}
+    if (e.status === 400) localStorage.removeItem(key);
+    throw e;
+  } finally {
+    busy = false;
+  }
+  await command("sync", {}, true);
+  await marketLoad();
+  modal.close();
+  sounds.play("purchase-complete");
+  toast(action==="buy"?"구매 완료 · 우편함에서 받아 주세요.":"거래가 완료되었습니다.");
+}
+// Percent buttons size the order by margin (gold × leverage); re-applied when leverage changes afterwards.
+let investPercentPick=0;
+function applyInvestPercent(){const price=investmentData?.coins[selectedCoin]?.price||10000;let q=Math.floor(state.gold*investPercentPick/100*investmentLeverage/price);while(q>0&&investmentMargin(q,price)>state.gold)q--;setInvestmentAmount(q);}
+document.addEventListener('input',e=>{if(e.target.id==='invest-percent'){investPercentPick=Number(e.target.value)||0;setInvestmentPercent(investPercentPick);applyInvestPercent();const out=document.querySelector('#invest-percent-value');if(out)out.textContent=investPercentPick+'%';const amt=document.querySelector('#invest-amount');if(amt)amt.value=investmentAmount;const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);return;}if(e.target.id==='invest-amount'){investPercentPick=0;setInvestmentPercent(0);const out=document.querySelector('#invest-percent-value'),rng=document.querySelector('#invest-percent');if(out)out.textContent='0%';if(rng)rng.value=0;setInvestmentAmount(e.target.value);const help=document.querySelector('.invest-help');if(help&&investmentData)help.textContent=investmentOrderHelp(investmentData.coins[selectedCoin].price);}});
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-action]");
+  if (!b || b.disabled) return;
+  const action = b.dataset.action,
+    arg = b.dataset.arg;
+  if(action==='rankingProfile')return showRankingProfile(arg);
+  sounds.start();sounds.music();
+  sounds.play(['close','back'].includes(action)?'ui-back':['tab','bossTab','bagPage','shopCategory'].includes(action)?'ui-tab':'ui-click');
+  if(action.startsWith('companion')){try{await companionAction(action,arg,{state:()=>state,command:(c,a)=>companionCommandRequest(c,a),open:(t,h,c=true,cls)=>{open(t,h,c);if(cls)modal.classList.add(cls);},close:()=>modal.close(),toast,render});}catch(error){toast(message(error));}return;}
+  if(action==='star')sounds.play('enhance-charge');
+  try {
+    if(action==='arenaOpen'){modal.close();view='arena';arenaPage='home';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}render();await loadArena();return;}
+    if(action==='arenaRetry'){await loadArena();return;}
+    if(action==='arenaPage'){if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}arenaPage=['home','opponents','ranking','rewards','history'].includes(arg)?arg:'home';view='arena';render();if(!arenaData||Date.now()>=new Date(arenaData.nextRefreshAt).getTime())await loadArena();return;}
+    if(action==='arenaChallenge'){if(busy||!arenaData?.offers?.some(o=>o.id===arg&&!o.used))return;b.disabled=true;b.textContent='전투 준비 중…';try{await command('arenaFight',{opponentId:arg});}catch(e){b.disabled=false;b.textContent='도전';if(['ARENA_OFFERS_EXPIRED','ARENA_OPPONENT_UNAVAILABLE'].includes(e.message))await loadArena();}return;}
+    if(action==='arenaSkip'){arenaPlayback?.skip();return;}
+    if(action==='arenaSpeed'){const speed=arenaPlayback?.speed();b.textContent=speed===2?'1배속':'2배속';return;}
+    if(dungeonExitActions.has(action)){b.disabled=true;modal.close();return await exitDungeon(action);}
+    if(action==="bagPage"){bagPage=Math.max(0,Number(arg)||0);render();return;}
+    if(action==='adminCoinDirection'){if(!state.isAdmin||b.disabled)return;const [coin,side]=arg.split(':');b.disabled=true;try{await ensureToken();const result=await request('/rest/v1/rpc/rebirth_admin_coin_direction',{p_coin:Number(coin),p_side:side});toast(`${result.name} · ${new Date(result.scheduledAt).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'})} 봉 ${side==='long'?'상승':'하락'} 1회 지정`);}finally{b.disabled=false;}return;}
+    if(action==='adminInventory'){if(!state?.isAdmin)return;return showAdminInventory({open,modal,allowed:()=>!!session&&state?.isAdmin===true,art:gearMarkup,fetchData:async id=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_inventory',{p_user:id});}});}
+    if(action==='adminPositions'){if(!state.isAdmin&&!state.isTester)return;return await showAdminPositions({open,modal,allowed:()=>!!session&&(state?.isAdmin===true||state?.isTester===true),fetchData:async()=>{await ensureToken();return request('/rest/v1/rpc/rebirth_admin_positions',{});}});}
+    if(action==='investCopy'){b.disabled=true;try{await openCopyTrading();}finally{b.disabled=false;}return;}
+    if(action==='investCopyClaim'){if(busy)return;b.disabled=true;try{await copyTradingClaim();}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyDisband'){copyTradingDisbandAsk();return;}
+    if(action==='investCopyDisbandConfirm'){
+      if(copyDisbandPending)return;
+      const account=session?.user?.id;
+      copyDisbandPending=true;b.disabled=true;b.textContent='처리 중…';
+      try{
+        // Background settlement must not silently discard a confirmed action.
+        while(busy)await new Promise(resolve=>commandIdleWaiters.push(resolve));
+        if(!account||session?.user?.id!==account||!b.isConnected)return;
+        await copyTradingDisband();
+      }finally{
+        copyDisbandPending=false;
+        if(b.isConnected){b.disabled=false;b.textContent='확인';}
+      }
+      return;
+    }
+    if(action==='investCopyWalletMax'){const input=modal.querySelector('#copy-wallet-amount'),w=modal.querySelector('.invest-copy-wallet-head b');if(input)input.value=fmt(arg==='deposit'?Math.floor(state?.gold||0):Number(String(w?.textContent||'').replace(/[^0-9]/g,'')));return;}
+    if(action==='investCopyWalletForce'){if(busy)return;b.disabled=true;try{await copyTradingWallet('withdraw',Number(arg));}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyWallet'){if(busy)return;b.disabled=true;try{await copyTradingWallet(arg);}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyIntro'){if(busy)return;b.disabled=true;try{await copyTradingIntro();}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyMin'){if(busy)return;b.disabled=true;try{await copyTradingMin();}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyStart'||action==='investCopyStop'){if(busy)return;b.disabled=true;try{await copyTradingAction(action==='investCopyStart'?'start':'stop',arg);}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investRankings'){b.disabled=true;try{await openCoinRankings();}finally{b.disabled=false;}return;}
+    if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
+    if(action==='investCoin'){selectCoin(arg);if(investPercentPick)applyInvestPercent();return render();}
+    if(action==='investLeverage'){setInvestmentAmount(document.querySelector('#invest-amount')?.value||investmentAmount);setInvestmentLeverage(arg);if(investPercentPick)applyInvestPercent();return render();}
+    if(action==='investPercent'){investPercentPick=Number(arg);setInvestmentPercent(arg);applyInvestPercent();return render();}
+    if(action==='investBuy'){if(busy||!investmentData)return;setInvestmentAmount(document.querySelector('#invest-amount')?.value||'');const quantity=Number(investmentAmount);if(!Number.isSafeInteger(quantity)||quantity<1||investmentMargin(quantity,investmentData.coins[selectedCoin].price)>state.gold)return toast('증거금이 보유 골드를 넘어요. 수량을 줄여 주세요.');return await command('investBuy',{coin:selectedCoin,side:arg==='short'?'short':'long',quantity,leverage:investmentLeverage,price:investmentData.coins[selectedCoin].price,tickAt:investmentData.coins[selectedCoin].tickAt});}
+    if(action==='investSell'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;return await command('investSell',{position:arg,price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
+    if(action==='investSellHalf'){if(busy||!investmentData)return;const pos=investmentData.positions.find(p=>p.id===arg);if(!pos)return;if(Number(pos.quantity)<2)return toast('수량이 2개 이상이어야 절반 판매할 수 있어요.');return await command('investSell',{position:arg,portion:'half',price:investmentData.coins[pos.coin].price,tickAt:investmentData.coins[pos.coin].tickAt});}
+    if(action==='treasureStart'||action==='treasureCash'){if(busy)return;const result=await command(action,{});const e=result?.result?.events?.find(x=>x.type==='treasureCash');if(e){const gear=e.got?.bossGear;toast((e.cleared?'전부 찾았어요! ':'')+'보상 획득'+(gear?' · 보스장비 상자 '+gear+'개':''));}return;}
+    if(action==='treasureDig'){if(busy)return;const result=await command('treasureDig',{cell:Number(arg)});const e=result?.result?.events?.[0];if(e?.type==='treasureBoom')toast('💥 지뢰! 모은 보상을 잃었어요.');else if(e?.type==='treasureCash')toast('🎉 안전한 칸을 전부 찾아서 보상을 받았어요!');return;}
+    if(action==='eventPage'){eventPage=arg==='lotto'?'lotto':arg==='treasure'?'treasure':'fishing';tab='event';view='game';render();if(arg==='lotto')await command('lottoList',{},true);return;}
+    if(action==='fishPanel'){fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);return;}
+    if(action==='fishExchange'){const [item,count]=String(arg).split(':');return await fishingCommandRequest('fishExchange',{item,count:Number(count)});}
+    if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
+    if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
+    if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
+    if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}if(!((state.fishing?.autoUntil||0)>Date.now())){fishingUI.panel='shop';render();return toast('🤖 자동 낚시권이 있어야 오토 낚시를 할 수 있어요. 상점에서 구매해 주세요.');}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
+    if(action==='fishCancel'&&fishingUI.auto)stopAutoFishing();
+    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:5});}
+    // v3 낚시: 강화·인챈트·합성·각성
+    if(action==='fishEnhance')return await fishingCommandRequest('fishEnhance',{});
+    if(action==='fishAutoBuy')return await fishingCommandRequest('fishAutoBuy',{plan:arg});
+    if(action==='fishEnchantLock'){const i=Number(arg),l=new Set(fishingUI.locks||[]);l.has(i)?l.delete(i):l.add(i);fishingUI.locks=[...l];return render();}
+    if(action==='fishEnchant'){const slots=(state.fishing?.enhance||0)>=8?3:(state.fishing?.enhance||0)>=4?2:1;return await fishingCommandRequest('fishEnchant',{locks:(fishingUI.locks||[]).filter(i=>i<slots&&state.fishing?.enchants?.[i])});}
+    if(action==='fishFuse'){const [sp,size]=String(arg).split(':'),sizeOf=x=>x.size||'normal';const list=(state.fishing?.fish||[]).filter(x=>x.species===sp&&sizeOf(x)===size).sort((a,b)=>(a.mut?1:0)-(b.mut?1:0)||a.weight-b.weight).slice(0,3);if(list.length<3)return;return await fishingCommandRequest('fishFuse',{ids:list.map(x=>x.id)});}
+    if(action==='fishGoldFuse'){const golds=(state.fishing?.fish||[]).filter(x=>x.mut==='gold');const rank=x=>D_FISH_RARITY(x.species);const best=golds.slice().sort((a,b)=>rank(b)-rank(a))[0];const rest=golds.filter(x=>x!==best).sort((a,b)=>rank(a)-rank(b)).slice(0,4);if(!best||rest.length<4)return;return await fishingCommandRequest('fishGoldFuse',{ids:[best.id,...rest.map(x=>x.id)]});}
+    if(action==='fishAwaken')return await fishingCommandRequest('fishAwaken',{id:arg});
+    if(action==='fishBaitBuy'){const [id,mul]=String(arg).split(':'),b=BAITS.find(x=>x.id===id);return await fishingCommandRequest(action,{bait:id,count:(b?.pack||10)*(Number(mul)||1),currency:b?.gold?'gold':'tokens'});}
+    if(action==='fishTrain')return await fishingCommandRequest(action,{gold:Number(arg)});
+    if(action==='fishSell')return await fishingCommandRequest(action,{ids:[arg]});
+    if(action==='fishSellAll'){if(!state.fishing?.fish.length)return;open('물고기 전부 판매',`<p>가방의 물고기 ${state.fishing.fish.length}마리를 모두 판매할까요?</p><p class="note">수족관에 있는 물고기는 포함되지 않아요.</p>${btn('전부 판매','fishSellAllConfirm','','gold')}`);return;}
+    if(action==='fishSellAllConfirm'){modal.close();return await fishingCommandRequest('fishSell',{ids:state.fishing.fish.map(x=>x.id)});}
+    if(['fishCancel','fishUpgrade','fishAquariumAdd','fishAquariumRemove','fishAquariumClaim','fishAquariumExpand','fishQuestClaim','fishAquariumAuto'].includes(action))return await fishingCommandRequest(action,{id:arg});
+    if(action==='lottoNumber'){const n=Number(arg);if(!lottoSelection.includes(n)&&lottoSelection.length===2)toast('번호는 2개만 선택할 수 있어요.');selectLottoNumber(n);return render();}
+    if(action==='lottoAuto'){autoLotto(lottoData);return render();}
+    if(action==='lottoPanel'){setLottoPanel(arg);render();if(Date.now()-lottoLoadedAt>10000)await command('lottoList',{},true);return;}
+    if(action==='shopCategory'){shopCategory=['boss','costume','skilllook','consumable','mileage','blackmarket'].includes(arg)?arg:'boss';return render();}
+    if(action==='mileageBuy'){if(busy)return;const [id,q]=String(arg).split(':');await command('mileageBuy',{id,quantity:Number(q)||1});return;}
+    if(action==='skillLookClass'){skillLookClass=arg;return render();}
+    if(action==='skillLookTier'){
+      const [id,tier]=arg.split(':'),c=skillLookById(id),canvas=modal.querySelector('[data-skill-look-preview]');if(!c||!canvas)return;
+      stopSkillLookPreview?.();stopSkillLookPreview=playSkillLookPreview(canvas,c,{slot:Number(tier),cycle:false});
+      modal.querySelectorAll('[data-action="skillLookTier"]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.arg===arg)));return;
+    }
+    if(action==='skillLookPreview'){
+      const c=skillLookById(arg);if(!c)return;
+      open('스킬 외형 미리보기',skillLookPreviewView(c));
+      stopSkillLookPreview=playSkillLookPreview(modal.querySelector('[data-skill-look-preview]'),c);return;
+    }
+    if(action==='skillLookBuyPick'){
+      const c=skillLookById(arg);if(!c)return;
+      open('스킬 외형 구매',skillLookPreviewView(c)+`<div class="shop-confirm-price">${goldPurchaseIcon()}20,000,000 G</div><p class="note">구매 후 해당 직업으로 장착할 수 있습니다. 데미지·범위·능력치는 바뀌지 않습니다.</p><div class="actions">${btn('취소','close')}<button data-action="skillLookBuyConfirm" data-arg="${c.id}" data-write ${state.gold<c.price?'disabled data-unavailable':''}>${state.gold<c.price?'골드 부족':'구매 확정'}</button></div>`);
+      stopSkillLookPreview=playSkillLookPreview(modal.querySelector('[data-skill-look-preview]'),c);return;
+    }
+    if(action==='skillLookBuyConfirm'){if(busy)return;const result=await command('skillLookBuy',{id:arg});if(result?.result?.events?.some(e=>e.type==='skillLookBuy'&&e.id===arg)){stopSkillLookPreview?.();modal.close();}return;}
+    if(action==='skillLookEquip'||action==='skillLookUnequip'){if(busy)return;return await command(action,{id:arg});}
+    if(action==='blackMarketBuyPick'){
+      const index=Number(arg),offer=blackMarketOffersFor(state,blackMarketRotation().id)[index];if(!offer)return render();
+      open('암시장 · 구매 확인',blackMarketPurchaseView(state,D,gearMarkup,index));updateBlackMarketPurchase(state,modal);return;
+    }
+    if(action==='blackMarketBuyMax'){const input=modal.querySelector('#bm-buy-quantity');if(input){input.value=String(blackMarketLimit(state,blackMarketRotation().id,Number(arg)));updateBlackMarketPurchase(state,modal);}return;}
+    if(action==='blackMarketBuyConfirm'){
+      if(busy)return;const index=Number(arg),rotation=blackMarketRotation(),input=modal.querySelector('#bm-buy-quantity'),quantity=input?Number(input.value):1;
+      if(!Number.isSafeInteger(quantity)||quantity<1||quantity>blackMarketLimit(state,rotation.id,index)){updateBlackMarketPurchase(state,modal);return;}
+      const result=await command('blackMarketBuy',{rotation:rotation.id,index,quantity});
+      const bought=result?.result?.events?.find(e=>e.type==='blackMarketBuy'&&e.index===index);
+      if(bought){modal.close();toast('벨록: 거래 끝. '+(bought.item?D.gearName(bought.item):bought.name+' '+fmt(bought.quantity)+'개')+' 챙겨가.');}else render();return;
+    }
+    if(action==='consumableBuyPick'){
+      const item=shopConsumable(arg);if(!item)return;
+      open(item.name+' 구매',consumablePurchaseView(state,arg));updateConsumablePurchase(state,modal);return;
+    }
+    if(action==='consumableBuyMax'){const input=modal.querySelector('#shop-buy-quantity');if(input){input.value=String(shopPurchaseLimit(state,arg));updateConsumablePurchase(state,modal);}return;}
+    if(action==='consumableBuyConfirm'){
+      if(busy)return;const item=shopConsumable(arg);if(!item)return;
+      const quantity=item.id===LUCK_POTION.id?1:Number(modal.querySelector('#shop-buy-quantity')?.value);
+      if(!Number.isSafeInteger(quantity)||quantity<1||quantity>shopPurchaseLimit(state,arg)){updateConsumablePurchase(state,modal);return;}
+      const result=await command('consumableBuy',{id:arg,quantity});
+      const bought=result?.result?.events?.find(e=>e.type==='consumableBuy'&&e.id===arg);
+      if(bought){modal.close();toast(item.name+' '+fmt(bought.quantity)+'개를 구매했어요.'+(bought.mileage?' · 마일리지 +'+fmt(bought.mileage):''));}return;
+    }
+    if(action==='consumableSellPick'){const item=shopConsumable(arg);if(!item||!SELL_PRICES[arg])return;open(item.name+' 판매',consumableSellView(state,arg));updateConsumableSale(state,modal);return;}
+    if(action==='consumableSellMax'){const input=modal.querySelector('#shop-sell-quantity');if(input){input.value=String(shopSellLimit(state,arg));updateConsumableSale(state,modal);}return;}
+    if(action==='consumableSellConfirm'){
+      if(busy)return;const item=shopConsumable(arg);if(!item)return;
+      const quantity=Number(modal.querySelector('#shop-sell-quantity')?.value);
+      if(!Number.isSafeInteger(quantity)||quantity<1||quantity>shopSellLimit(state,arg)){updateConsumableSale(state,modal);return;}
+      const result=await command('consumableSell',{id:arg,quantity});
+      const sold=result?.result?.events?.find(e=>e.type==='consumableSell'&&e.id===arg);
+      if(sold){modal.close();toast(item.name+' '+fmt(sold.quantity)+'개를 '+fmt(sold.gold)+' G에 판매했어요.'+(sold.mileage?' · 마일리지 +'+fmt(sold.mileage):''));}return;
+    }
+    if(action==='consumableUse'){if(busy)return;const result=await command('consumableUse',{id:arg});if(result)toast('행운 물약 시간 +5분 · 행운 +50% 효과가 유지됩니다.');return;}
+    if(action==='costumeWardrobe'){open("내 코스튬",costumeWardrobe(state));return;}
+    if(action==='costumeBuyPick'){
+      const c=costumeById(arg);if(!c)return;
+      open("코스튬 구매",`<div class="costume-card" data-no-currency-art><img src="${c.portrait}" alt="${c.name}"><strong>${c.name}</strong><span>${goldPurchaseIcon()}${fmt(c.price)} G</span></div><p class="note">보유 효과: 공격력 +1%. 구매 즉시 적용되며, 장착하지 않아도 효과가 유지돼요. 외형은 해당 직업으로 장착할 수 있어요.</p><div class="actions">${btn("취소","close")}${btn("구매 확정","costumeBuyConfirm",c.id,"gold",true)}</div>`);return;
+    }
+    if(action==='costumeBuyConfirm'){modal.close();return await command('costumeBuy',{id:arg});}
+    if(action==='costumeEquip'||action==='costumeUnequip'){modal.close();return await command(action,{id:arg});}
+    if(action==='shopSellPick'){
+      const it=state.items.find(x=>x.id===arg),reason=bossSaleBlock(state,it);if(reason)return toast(reason);
+      open("보스장비 판매 확인",`<div class="shop-confirm-item">${gearMarkup(it,"big-item")}<div><strong>${esc(D.gearName(it))}</strong><p>Lv.${it.level} · ${D.SLOTS[it.slot]} · ${it.stars||0}성</p></div></div><div class="shop-confirm-price">${fmt(bossSalePrice(it))} G</div><p class="note">판매하면 이 장비는 가방에서 사라집니다. 판매할까요?</p><div class="actions">${btn("취소","close")}${btn("판매 확정","shopSellConfirm",it.id,"gold",true)}</div>`);return;
+    }
+    if(action==='shopSellConfirm'){
+      const it=state.items.find(x=>x.id===arg),reason=bossSaleBlock(state,it);if(reason)return toast(reason);modal.close();return await command('shopSell',{id:arg});
+    }
+    if(action==='lottoBuy'){if(busy||lottoSelection.length!==2||!lottoData)return;const r=await command('lottoBuy',{numbers:[...lottoSelection],drawAt:lottoData.drawAt});if(r?.result?.events?.some(e=>e.type==='lottoBuy')){clearLotto();render();}return;}
+    if(action==="dailyClaim")return await command("dailyClaim",{key:arg});
+    if(action==="battlePotion")return await command("battlePotion");
+    if(action==='autoSkills'){regularAutoSkills=!regularAutoSkills;render();return;}
+    if(action==='waveRewardHistory'){const r=state.waveRewardHistory?.[Number(arg)];if(r)return open('웨이브 보상 수령 내역',waveRewardBody(r)+btn('닫기','close','','gold'));return;}
+    if(action==="waveCreate")return;
+    if(action==="coopCreate")return toast("협동 균열은 종료된 콘텐츠입니다.");
+    if(action==='citadelCreate')return await command('coopCreate',{mode:'citadel',tier:0,...(/^[1-6]$/.test(String(arg))?{boss:Number(arg)}:{})});
+    if(action==="explorationCreate")return await command("coopCreate",{mode:"exploration",tier:Number(arg)});
+    if(action==="explorationBusCreate"){if(!confirm("버스 방을 만들까요?\n방장만 열쇠를 쓰고 클리어 보상도 방장만 받아요. 파티원은 열쇠를 쓰지 않고 보상도 없어요."))return;return await command("coopCreate",{mode:"exploration",tier:Number(arg),bus:true});}
+    if(action==="raidCreate")return await command("coopCreate",{mode:"raid",tier:Number(arg)});
+    if(action==="coopJoin")return await command("coopJoin",{room:arg});
+    if(action==="coopList")return await refreshCoopRooms();
+    if(["coopStart","coopSync","coopLeave"].includes(action)){modal.close();return await command(action);}
+    if(action==="coopLeaveConfirm")return open(coopRoom?.mode==="citadel"?"암흑성채에서 나가기":coopRoom?.mode==="wave"?"웨이브에서 나가기":coopRoom?.mode==="advancement"?"전직 보스에서 나가기":"균열에서 나가기",'<p>'+(coopRoom?.mode==="citadel"?"현재 보상은 없습니다. 나가면 이번 원정이 종료됩니다.":coopRoom?.mode==="wave"?"완료한 마지막 10단위 구간에서 한 번 추첨하고, 미수령 최초 보상을 함께 받습니다. 진행 중인 웨이브는 제외되며 재도전은 1웨이브부터 시작합니다.":"진행 중인 도전에서 나가면 보상을 받을 수 없습니다.")+'</p>'+btn("나가기","coopLeave","","danger",true));
+    if(action==='itemGroup')return itemGroup(arg);
+    if(action==='towerOpen')return await command('towerOpen',{runId:state.battle?.runId});
+    if(action==='tokenPage'){tokenPage=['shop','race'].includes(arg)?arg:'dungeon';render();if(tokenPage==='race'&&!state.race?.card)await command('raceCard',{},true);return;}
+    if(action==='tokenBossStart'){modal.close();tab='boss';bossTab='token';view='game';return await command('tokenBossStart',{stage:Number(arg)});}
+    if(action==='sweep'){const [kind,v]=String(arg).split(':');modal.close();return await command('sweep',kind==='all'?{kind}:kind==='boss'?{kind,id:Number(v)}:{kind,stage:Number(v)});}
+    if(action==='keyBossStart'){modal.close();tab='boss';bossTab='key';view='game';return await command('keyBossStart',{stage:Number(arg)});}
+    if(action==='tokenShopBuy'){if(busy)return;const [id,q]=String(arg).split(':');await command('tokenShopBuy',{id,quantity:Number(q)||1});return;}
+    if(action==='raceCard'){await command('raceCard',{},true);return;}
+    if(action==='raceLane'){if(raceUI.anim)return;raceUI.lane=Number(arg)||1;render();return;}
+    if(action==='raceType'){raceUI.type=arg==='place'?'place':'win';render();return;}
+    if(action==='raceAmount'){raceUI.bet=Math.max(1,Math.min(100,Number(arg)||1));render();return;}
+    if(action==='raceNext'){clearTimeout(raceTimer);raceUI.anim=null;render();return;}
+    if(action==='raceBet'){
+      if(busy||raceUI.anim)return;const card=state.race?.card;if(!card)return;
+      const bet=Math.min(raceUI.bet,Math.floor(state.tokens||0));
+      let result;try{result=await command('raceBet',{cardId:card.id,lane:raceUI.lane,type:raceUI.type,bet},true);}catch{return;}
+      const ev=result?.result?.events?.find(e=>e.type==='raceResult');if(!ev)return;
+      raceUI.anim={...ev,done:false,go:false};render();requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!raceUI.anim)return;raceUI.anim.go=true;document.querySelector('.token-track')?.classList.add('go');}));
+      clearTimeout(raceTimer);raceTimer=setTimeout(()=>{if(!raceUI.anim)return;raceUI.anim.done=true;if(tab==='boss'&&bossTab==='token')render();toast(ev.hit?'🎉 적중! 토큰 '+fmt(ev.payout)+'개':'아쉽게도 '+ev.rank+'등');},4150);
+      return;
+    }
+    if(action==='towerStart'){modal.close();tab='boss';bossTab='tower';view='game';return await command('towerStart',{floor:Number(arg)});}
+    if(action==='dummyStart'||action==='dummyRestart'){
+      if(state.battle||state.coopRoom||state.partyRoom)return toast('진행 중인 전투를 먼저 종료해 주세요.');
+      const mode=action==='dummyRestart'?dummyBattle?.dummyMode:arg;
+      if(mode!=='normal'&&mode!=='boss')return;
+      dummyBattle=newTrainingBattle(mode,state.classId,power(state),Date.now(),crypto.randomUUID(),state.advancement>=1);
+      tab='boss';bossTab='training';view='game';render();return;
+    }
+    if(action==='dummyLeave'){dummyBattle=null;render();return;}
+    if(action==='towerAck'){modal.close();return await command('ack');}
+    if(action==='towerLeaveConfirm')return open('전투에서 나가기',`<p>현재 층의 도전을 종료합니다. 획득한 이전 층 보상과 기록은 유지됩니다.</p>${btn('나가기','towerLeave','','danger',true)}`);
+    if(action==='towerLeave'){modal.close();return await command('towerLeave');}
+    if (action === "cubeKind") {cubeKind=Object.hasOwn(D.CUBES,arg)?arg:"cube";return itemDetail(selected,"potential");}
+    if (action === "reconnect") return await command("sync",{},false,true);
+    if (action === "recoverLogin"){location.href="recover.html?v=request-recovery-2";return;}
+    if (action === "attendance") return attendance();
+    if(action==="hairConfirm"){const it=state.items.find(x=>x.id===arg);if(!it)return;return open("링구의 머리카락",`<div class="shop-confirm-item">${gearMarkup(it,"big-item")}<div><strong>${esc(D.gearName(it))}</strong><p class="note">링구의 머리카락 1개를 발라 이 장비를 <b>거래 가능</b>으로 바꿔요.<br>거래소에서 <b>한 번 팔리면</b> 산 사람에게는 다시 거래 불가로 바뀌어요.<br>220제 이상은 다시 강화하면 거래 불가로 돌아가요.<br>다시 거래 불가가 되면 또 바를 수 있어요.</p></div></div><div class="actions">${btn("바르기","hairApply",it.id,"gold",true)}${btn("취소","close")}</div>`);}
+    if(action==="hairApply"){modal.close();await command("hairApply",{id:arg});toast("링구의 머리카락을 발랐어요 · 이제 거래소에 1번 올릴 수 있어요");return itemDetail(arg,"info");}
+    if (action === "systemInbox") {if(!busy)await command("sync",{},true);return systemInbox();}
+    if (action === "claimTradeMailAll") {const r=await command("claimTradeMailAll",{});const e=r?.result?.events?.find(x=>x.type==="tradeMailAll");if(e)toast(`거래소 우편 ${e.count}통 받기 완료${e.left?` · 가방이 가득 차서 ${e.left}통 남음`:""}`);systemInbox();return;}
+    if (action === "claimSystemMail") {
+      const chest=state.systemMailbox?.some(m=>m.id===arg&&["lumiBossChest","wheelBossChest"].includes(m.kind));
+      const playerGold=state.systemMailbox?.some(m=>m.id===arg&&m.kind==="playerGold");
+      const arenaReward=state.systemMailbox?.some(m=>m.id===arg&&m.kind==="arenaSeason");
+      const result=await command(arenaReward?"arenaRewardClaim":playerGold?"goldTransferClaim":"claimSystemMail",{id:arg});
+      if(result&&!chest)systemInbox();
+      return;
+    }
+    if(action==="professionOpen"){await command('sync',{},true);await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
+    if(action==="professionChoose"){if(busy)return;const cur=state.profession?.id,pname=D_PROFESSIONS.find(p=>p.id===arg)?.name||arg;if(cur&&!confirm(`${pname}(으)로 변경할까요?\n1억 G가 소모되고 숙련도가 Lv.1로 초기화되며, 7일 동안 다시 바꿀 수 없어요.`))return;if(!cur&&!confirm(`${pname}을(를) 선택할까요?\n첫 선택은 무료지만, 바꾸려면 7일 쿨타임 + 1억 G가 필요해요.`))return;const r=await command('professionChoose',{id:arg});await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');const e=r?.result?.events?.find(x=>x.type==='professionChoose');if(e)toast(e.changed?`${e.name}(으)로 변경했어요`:`${e.name} 선택 완료`);return;}
+    if(action==="professionCraft"||action==="professionCraftMax"){if(busy)return;const input=modal.querySelector(`[data-recipe-count="${arg}"]`);const count=action==="professionCraftMax"?'max':Number(input?.value);if(count!=='max'&&(!Number.isInteger(count)||count<1||count>1000))return toast('제작 수량은 1~1,000 사이로 입력해 주세요.');const r=await command('professionCraft',{recipe:arg,count});const scroll=modal.scrollTop;open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');modal.scrollTop=scroll;const e=r?.result?.events?.find(x=>x.type==='professionCraft');if(e){const made=Object.values(e.made)[0];toast(`${e.name} ${made.toLocaleString('ko-KR')}개 제작${e.levelUps?` · 숙련도 Lv.${e.level} 달성!`:''}`);}return;}
+    if(action==="tribeOpen"){await command('sync',{},true);openTribe();return;}
+    if(action==="tribeBuy"){if(busy||tribeSpinning)return;try{await command('tokenShopBuy',{id:'tribeTicket',quantity:1},true);toast('종족 주사위 1개 구매');}catch{}openTribe();return;}
+    if(action==="tribeRoll"){
+      if(busy||tribeSpinning)return;
+      let result;try{result=await command('tribeRoll',{},true);}catch{openTribe();return;}
+      const ev=result?.result?.events?.find(e=>e.type==='tribeRoll');if(!ev){openTribe();return;}
+      tribeSpinning=true;openTribe();
+      try{await spinTribeReel(modal.querySelector('[data-tribe-screen]'),ev.id);await new Promise(r=>setTimeout(r,ev.grade==='myth'||ev.grade==='legend'?1400:700));}finally{tribeSpinning=false;}
+      if(modal.open&&modal.querySelector('[data-tribe-screen]'))openTribe();
+      return;
+    }
+    if(action==="tribeChoose"){if(busy||tribeSpinning)return;let r;try{r=await command('tribeChoose',{take:arg==='take'},true);}catch{openTribe();return;}const e=r?.result?.events?.find(x=>x.type==='tribeChoose');if(e)toast(e.took?'종족이 바뀌었어요.':'지금 종족을 유지했어요.');openTribe();return;}
+    if(action==="bankOpen"){await command('sync',{},true);open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
+    if(action==="bankTermOpen"){if(busy)return;const [product,all]=String(arg).split(':');const raw=document.querySelector('#bank-term-amount')?.value?.trim().replace(/,/g,'')||'';if(all!=='all'&&!/^\d+$/.test(raw))return toast('가입 금액을 숫자로 입력해 주세요.');const result=await command(action,{product,amount:all==='all'?'all':Number(raw)});bankCancelArm=null;open('황금 은행',bankView(state,Date.now(),bankCancelArm));modal.classList.add('bank-dialog');const e=result?.result?.events?.find(x=>x.type==="bankTermOpen");if(e)toast(`정기예금 가입 완료 · 만기 ${e.payout.toLocaleString('ko-KR')} G`);return;}
+    if(action==="bankTermCancel"){if(busy)return;if(bankCancelArm!==arg){bankCancelArm=arg;open('황금 은행',bankView(state,Date.now(),bankCancelArm));modal.classList.add('bank-dialog');return;}const result=await command(action,{id:arg});bankCancelArm=null;open('황금 은행',bankView(state,Date.now(),bankCancelArm));modal.classList.add('bank-dialog');const e=result?.result?.events?.find(x=>x.type==="bankTermCancel");if(e)toast(`정기예금 해지 · ${e.refund.toLocaleString('ko-KR')} G 지급`);return;}
+    if(action==="bankDeposit"||action==="bankWithdraw"){if(busy)return;const raw=document.querySelector('#bank-amount')?.value?.trim()||'';if(arg!=='all'&&!/^\d+$/.test(raw))return toast('골드 금액을 숫자로 입력해 주세요.');const amount=arg==='all'?'all':Number(raw);await command(action,{amount});open('황금 은행',bankView(state));modal.classList.add('bank-dialog');return;}
+    if(action==="titleOpen"){setTitleFilter('all');open("칭호",titlePanelView(state));modal.classList.add("title-dialog");await command('titleSync',{},true).catch(()=>{});if(modal.open&&modal.classList.contains('title-dialog'))open("칭호",titlePanelView(state)),modal.classList.add("title-dialog");return;}
+    if(action==="titleDetail"){setTitleDetail(arg);open("칭호",titlePanelView(state));modal.classList.add("title-dialog");return;}
+    if(action==="titleFilter"){setTitleFilter(arg);open("칭호",titlePanelView(state));modal.classList.add("title-dialog");return;}
+    if(action==="titleEquip"){if(busy)return;const r=await command('titleEquip',{id:arg||null});if(r){toast(arg?'칭호 장착 완료':'칭호를 해제했어요');open("칭호",titlePanelView(state));modal.classList.add("title-dialog");}return;}
+    if(action==="luckyWheelOpen"){open("행운의 돌림판",luckyWheelView(state));modal.classList.add("lucky-wheel-dialog");return;}
+    if(action==="luckyWheelSpin"){
+      if(luckyWheelSpinning())return;
+      const root=modal.querySelector("[data-lucky-wheel]"),button=root?.querySelector(".lucky-wheel-spin");if(button)button.disabled=true;
+      let result;try{result=await command("luckyWheelSpin",{},true);}catch{if(button)button.disabled=false;return;}
+      const ev=result?.result?.events?.find(e=>e.type==="luckyWheel");if(!ev){if(button)button.disabled=false;return;}
+      sounds.play("ui-click");await spinLuckyWheel(root,ev.index);
+      const jackpot=ev.id==="jackpot",text=jackpot?"🎉 잭팟! 보스 장비 상자가 우편으로 도착했어요!":ev.label+" 획득!";
+      sounds.play(jackpot?"loot-rare":"loot-common");
+      if(modal.open&&modal.querySelector("[data-lucky-wheel]")){const body=modal.querySelector("[data-lucky-wheel]");body.outerHTML=luckyWheelView(state,text);const r=modal.querySelector(".lucky-wheel-result");if(jackpot)r?.classList.add("jackpot");}
+      if(jackpot)toast("행운의 돌림판 잭팟! 우편함에서 Lv.150~190 보스 장비 상자를 받으세요.");
+      return;
+    }
+    if (action === "gameMenu") {open("모험 메뉴",fantasyMenu(state)+(state.isAdmin?btn("유저 장비 · 재화 조회","adminInventory","","gold"):""));modal.classList.add("fantasy-menu-dialog");return;}
+    if (action === "petPreview") {if(!state.isAdmin)return; sounds.play("loot-rare"); return playLumiReveal(()=>{});}
+    if (action === "petOdds") return open("소환 확률 · 남은 수량",petOdds(state));
+    if (action === "petBag") {modal.close();tab="gear";sub="pets";view="game";return render();}
+    if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
+    if (action === "petEquip") return await command("petEquip",{id:arg||null});
+    if (action === "attendanceClaim") return await command("attendanceClaim");
+    if (action === "testerSet") {if(state?.name!=="테스터")return;const [cid,ps]=String(arg).split(":"),preset=Number(ps)||0;if(cid!==state.classId){await command("changeClass",{classId:cid});filterClass="";salvageSelection.clear();}if((state.gearPresets?.[cid]?.active??0)!==preset)await command("gearPreset",{slot:preset});return render();}
+    if (action === "changeClass") return changeClassDialog();
+    if (action === "changeClassPick") return confirmClassChange(arg);
+    if (action === "changeClassConfirm") {await command("changeClass",{classId:arg});modal.close();filterClass="";salvageSelection.clear();tab="character";view="game";return render();}
+    if (action === "close") {
+      modal.close();
+      return;
+    }
+    if(action==="tab"&&arg==="citadel"){tab="boss";bossTab="citadel";view="game";render();return await refreshCoopRooms();}
+    if (action === "tab") {
+      const enteringHunt=arg==="hunt"&&(tab!=="hunt"||view!=="game");
+      tab = arg;
+      view = "game";
+      filterSlot = "";
+      filterClass = "";
+      marketRequest++;
+      combatFrames.length = 0;
+      modal.close();
+      render();
+      window.scrollTo({top:0,behavior:"instant"});
+      if(enteringHunt)requestAutoHunt();
+      if(tab==='boss'&&['citadel','exploration','raid','advancement'].includes(bossTab))await refreshCoopRooms();
+      if (tab === "market") {if(buyOrderMode)await buyOrdersLoad();else await marketLoad();}
+      if(tab==='investment')await command('investList',{},true);
+      if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
+      return;
+    }
+    if(action==="warriorLab"){if(!state?.isAdmin)return;await command("sync",{},true,true);if(!state?.isAdmin||state.classId!=="warrior")return toast("관리자 전사만 입장할 수 있습니다.");modal.close();try{await openWarriorLab({getState:()=>state,onClose:()=>{sounds.setCombat(false);render();},sound:id=>sounds.play(id)});sounds.setCombat(true);}catch(e){toast(e.message||"3D 전투에 입장하지 못했습니다.");}return;}
+    if (action === "bossSub") {bossTab=["wave","coop"].includes(arg)?"exploration":arg;render();if(["citadel","advancement","raid","exploration"].includes(bossTab))await refreshCoopRooms();return;}
+    if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
+    if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
+    if (action === "advance") {tab="boss";bossTab="advancement";view="game";render();return await refreshCoopRooms();}
+    if(action==="advancementStart"){modal.close();tab="boss";bossTab="advancement";view="game";return await command("coopCreate",{mode:"advancement",tier:Number(arg)});}
+    if (action === "journal") {modal.close();view="journal";return render();}
+    if (action === "ranking") {modal.close();view="ranking";return await loadRankings();}
+    if(action==="adminTransferOpen")return adminTransferDialog(arg);
+    if(action==="goldTransferOpen")return goldTransferDialog(arg);
+    if(action==="goldTransferConfirm"){
+      if(busy||!state||state.isAdmin)return;
+      const amount=Number($("#gold-transfer-amount")?.value),target=rankingRows.find(r=>r.id===arg&&!r.isMe);
+      if(!target)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
+      if(!Number.isSafeInteger(amount)||amount<1||amount>999999999999)return toast("송금액은 1~999,999,999,999 G 사이의 정수로 입력해 주세요.");
+      if(amount>state.gold)return toast("골드가 부족합니다.");
+      return open("골드 송금 확인",`<p><strong>${esc(target.name)}</strong>님에게 <strong>${fmt(amount)} G</strong>를 우편으로 보냅니다.</p><p class="note">내 골드에서 즉시 차감됩니다. 송금 후 취소할 수 없습니다.</p>${btn("송금하기","goldTransferSend",arg+":"+amount,"gold",true)}`);
+    }
+    if(action==="goldTransferSend"){
+      if(busy||!state||state.isAdmin)return;
+      const [id,amountText]=arg.split(":"),amount=Number(amountText);
+      if(!rankingRows.some(r=>r.id===id&&!r.isMe)||!Number.isSafeInteger(amount)||amount<1||amount>999999999999)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
+      return await command("goldTransfer",{recipient:id,amount});
+    }
+    if(action==="adminTransferSend"){
+      if(busy||!state?.isAdmin)return;
+      const amount=Number($("#transfer-amount")?.value),resource=$("#transfer-resource")?.value;
+      if(!Number.isSafeInteger(amount)||amount<1||amount>999999999999)return toast("수량은 1~999,999,999,999 사이 정수로 입력해 주세요.");
+      return await command("adminTransfer",{recipient:arg,resource,amount});
+    }
+    if (action === "rankingRefresh") return await loadRankings();
+    if (action === "rankingMode") {rankingMode=arg==="combat"?"combat":"level";return render();}
+    if(action==="betaBossReset"){
+      if(busy)return;
+      const result=await command("betaBossReset",{kind:arg});
+      if(result){betaTools();toast((arg==="daily"?"일일":arg==="weekly"?"주간":"일일·주간")+" 보스 보상 횟수가 초기화됐어요.");}return;
+    }
+    if(action==="adminSkip")return await command("adminSkip",{hours:Number(arg)});
+    if(action==="betaTools")return betaTools();
+    if(action==="betaGrant"){
+      if(busy)return;
+      betaResource=$("#beta-resource").value;betaAmount=Number($("#beta-amount").value);
+      if(!Number.isSafeInteger(betaAmount)||betaAmount<1||betaAmount>1e9)return toast("수량은 1~10억 사이 정수로 입력해 주세요.");
+      const result=await command("betaGrant",{key:betaResource,amount:betaAmount});
+      if(result){betaTools();toast("선택한 재화가 지급됐어요.");}return;
+    }
+    if(action==="betaLevel"){
+      if(busy)return;
+      const level=Number($("#beta-level").value);
+      if(!Number.isSafeInteger(level)||level<1||level>400)return toast("레벨은 1~400 사이 정수로 입력해 주세요.");
+      const result=await command("betaLevel",{level});
+      if(result){betaTools();toast("레벨이 조정됐어요. 스탯 포인트를 분배해 주세요.");}return;
+    }
+    if (action === "settings") return settingsDialog();
+    if (action === "saveSettings") {
+      settings.sound = Number($("#sound").value);
+      settings.music = Number($("#music").value);
+      settings.low = $("#low").checked;
+      settings.skillAlpha = setSkillAlpha([1,2,3,4,5].map(i=>Number($("#skillAlpha"+i)?.value)));
+      localStorage.setItem("ringu_rebirth_settings", JSON.stringify(settings));
+      document.body.classList.toggle("low", settings.low);
+      sounds.start();
+      sounds.music();
+      modal.close();
+      return;
+    }
+    if (action === "logout" || action === "switchAccount") {
+      try {
+        await ensureToken();
+        await request("/auth/v1/logout?scope=local", {});
+      } finally {
+        session = null;
+        persist();
+        clearAccountView();
+        modal.close();
+        sounds.pause();
+        login();
+      }
+      return;
+    }
+    if (action === "chooseClass") {
+      characterName = $("#char-name")?.value || characterName;
+      chosenClass = arg;
+      createScreen();
+      $("#char-name").value = characterName;
+      return;
+    }
+    if (action === "create")
+      return await command("create", {
+        classId: chosenClass,
+        name: $("#char-name").value.trim(),
+      });
+    if (action === "regions") {
+      view = "regions";
+      render();
+      // 2026-11-03 도현: 사냥터 선택을 열면 지금 사냥 중인 사냥터로 바로 이동.
+      requestAnimationFrame(()=>document.querySelector('.stage-row.current-stage')?.scrollIntoView({block:"center"}));
+      return;
+    }
+    if (action === "back") {
+      view = "game";
+      if(tab==="hunt")requestAutoHunt();
+      return render();
+    }
+    if (action === "enterStage") {
+      await command("stage", { id: Number(arg) });
+      view = "game";
+      tab = "hunt";
+      requestAutoHunt();
+      return render();
+    }
+    if (action === "toggleHunt")
+      return await command("hunt", { enabled: !state.hunting });
+    if (action === "skill") return await command("skill",{slot:Number(arg)||1});
+    if (action === "reward") return reward();
+    if (action === "ack") {
+      await command("ack");
+      modal.close();
+      return;
+    }
+    if (action === "tutorial") return await command("tutorial");
+    if (action === "stats")
+      return open(
+        "능력치 분배",
+        `<p>남은 포인트 ${state.points}</p><select id="stat-key">${Object.keys(
+          state.stats,
+        )
+          .map((k) => `<option>${k}</option>`)
+          .join(
+            "",
+          )}</select><input id="stat-amount" type="number" min="1" max="${state.points}" value="1"><div class="actions">${btn("분배", "applyStats", "", "gold", true)}</div>`,
+      );
+    if (action === "applyStats") {
+      await command("stats", {
+        key: $("#stat-key").value,
+        amount: Number($("#stat-amount").value),
+      });
+      modal.close();
+      return;
+    }
+    if (action === "autoEquip") return await command("autoEquip");
+    if (action === "gearPreset") return await command("gearPreset", { slot: Number(arg) });
+    if (action === "autoStats") {
+      if (!state.points) return toast("남은 포인트가 없습니다.");
+      return await command("stats", {
+        key: D.CLASSES.find((c) => c.id === state.classId).stat,
+        amount: state.points,
+      });
+    }
+    if (action === "resetStats")
+      return open(
+        "스탯 초기화",
+        `<p>5,000 골드를 사용해 모든 분배 포인트를 돌려받습니다.</p><div class="actions">${btn("초기화", "doReset", "", "gold", true)}</div>`,
+      );
+    if (action === "doReset") {
+      await command("resetStats");
+      modal.close();
+      return;
+    }
+    if (action === "gearSub") {
+      sub = arg;
+      return render();
+    }
+    if(action==="exchangeGear")return await command("exchangeGear",{level:Number(arg),classId:exchangeClass||state.classId});
+    if (action === "item")
+      return arg ? itemDetail(arg) : toast("아직 장착된 장비가 없습니다.");
+    if (action === "equip") {
+      const it = state.items.find((i) => i.id === arg);
+      await command(
+        Object.values(state.equipped).includes(arg) ? "unequip" : "equip",
+        Object.values(state.equipped).includes(arg)
+          ? { slot: it.slot }
+          : { id: arg },
+      );
+      return itemDetail(arg);
+    }
+    if (action === "potentialUnlock") return await command("potential", {id:arg});
+    if (action === "additionalUnlock") return await command("additionalUnlock", {id:arg});
+    if (action === "addCubeUse") return await command("addCube", {id:arg});
+    if (action === "bonusRoll" || action === "statReroll") return await command(action, {id:arg});
+    if (action === "refineChooseRepeat") {
+      if(busy||!state.pendingRefine)return;
+      const {id,kind}=state.pendingRefine;
+      const result=await command("refineChoose",{apply:arg==="yes"});
+      if(!result||state.pendingRefine)return;
+      itemDetail(id,"baseStats");
+      return await command(kind==="bonus"?"bonusRoll":"statReroll",{id});
+    }
+    if (action === "refineChoose") {
+      const id=state.pendingRefine?.id;
+      await command("refineChoose", { apply: arg === "yes" });
+      modal.close();
+      return itemDetail(id||selected,"baseStats");
+    }
+    if (action === "addCubeChooseRepeat") {
+      if(busy||!state.pendingAddCube)return;
+      const id=state.pendingAddCube.id;
+      const result=await command("addCubeChoose",{apply:arg==="yes"});
+      if(!result||state.pendingAddCube)return;
+      itemDetail(id,"potential");
+      return await command("addCube",{id});
+    }
+    if (action === "addCubeChoose") {
+      const id=state.pendingAddCube?.id;
+      await command("addCubeChoose", { apply: arg === "yes" });
+      modal.close();
+      return itemDetail(id||selected,"potential");
+    }
+    if (action === "cubeUse") return await command("cube", {id:arg,kind:cubeKind,lock:Number(document.querySelector('#cube-lock')?.value??-1)});
+    if(action==="transcend"){return await command("transcend",{id:arg});}
+    if (["lock", "star"].includes(action)) {
+      await command(action, { id: arg });
+      if (action !== "star") itemDetail(arg);
+      return;
+    }
+    if (action === "cube" || action === "highCube")
+      return await command("cube", { id: arg, high: action === "highCube" });
+    if (action === "cubeChooseRepeat") {
+      if(busy||!state.pendingCube)return;
+      const pending=state.pendingCube,id=pending.id,kind=pending.kind||(pending.high?"highCube":"cube");
+      const result=await command("cubeChoose",{apply:arg==="yes"});
+      if(!result||state.pendingCube)return;
+      lastCubeResult=null;
+      itemDetail(id,"potential");
+      return await command("cube",{id,kind,lock:pending.lock??-1});
+    }
+    if (action === "cubeChoose") {
+      await command("cubeChoose", { apply: arg === "yes" });
+      modal.close();
+      lastCubeResult=null;
+      return itemDetail(selected,"potential");
+    }
+    if(action==="salvageMode"){salvageMode=!salvageMode;salvageSelection.clear();render();return;}
+    if(action==="salvageClear"){salvageSelection.clear();render();return;}
+    if(action==="salvagePick"){
+      const it=state.items.find(it=>it.id===arg);
+      if(!it||!canSalvage(it))return toast("분해할 수 없는 장비입니다.");
+      if(salvageSelection.has(arg))salvageSelection.delete(arg);
+      else if(salvageSelection.size<50)salvageSelection.add(arg);
+      else return toast("한 번에 최대 50개까지 선택할 수 있습니다.");
+      render();return;
+    }
+    if(action==="salvageSelectVisible"){
+      const visibleGroups=inventoryGroups(state.items,D.CLASSES,state.classId,Object.values(state.equipped),filterClass,filterSlot,state.gearPresets);
+      for(const group of visibleGroups)for(const slot of group.slots)for(const it of slot.items)if(salvageSelection.size<50&&canSalvage(it))salvageSelection.add(it.id);
+      render();return;
+    }
+    if(action==="salvageBatchConfirm"){
+      const items=state.items.filter(it=>salvageSelection.has(it.id)&&canSalvage(it));
+      if(!items.length)return;
+      open("선택 장비 분해",`<p>선택한 장비 ${items.length}개를 분해하고 장비 파편 ${fmt(Math.round(items.reduce((n,it)=>n+D.salvageYield(it),0)*fragBoost(state)))}개를 받습니다.</p><p class="note">분해한 장비는 복구할 수 없습니다.</p>${items.map(it=>`<p>${esc(D.gearName(it))} · Lv.${it.level} · ${it.stars}성</p>`).join("")}${btn("선택 장비 분해하기","salvageBatch","","danger",true)}`);return;
+    }
+    if(action==="salvageBatch"){
+      await command("salvage",{ids:[...salvageSelection]});salvageSelection.clear();render();return;
+    }
+    if (action === "salvageConfirm")
+      return open(
+        "장비 분해",
+        `<p>분해 보상: 장비 파편 ${Math.round(D.salvageYield(state.items.find(it=>it.id===arg))*fragBoost(state))}개.<br>선택한 장비가 사라집니다. 강화·잠재은 복구할 수 없습니다.</p><div class="actions">${btn("분해하기", "salvage", arg, "danger", true)}</div>`,
+      );
+    if (action === "salvage") {
+      await command("salvage", { ids: [arg] });
+      return;
+    }
+    if (action === "restore")
+      return await command("restore", {
+        id: arg,
+        materialId: $("#restore-material").value,
+      });
+    if (action === "bossStart" || action === "bossPractice") {
+      await command("boss", {
+        id: Number(arg),
+        practice: action === "bossPractice",
+      });
+      if(!state.battle)return;
+      tab = "hunt";
+      view = "game";
+      render();
+      window.scrollTo({top:0,behavior:"instant"});
+      requestAnimationFrame(()=>window.scrollTo({top:0,behavior:"instant"}));
+      return;
+    }
+    if (action === "claimMail") return await command("claimMail", {key:arg});
+    if (action === "abandonConfirm") return open("전투 포기", `<p class="note">보상과 도전 횟수는 차감되지 않습니다.</p>${btn("포기하기","abandon","","danger",true)}`);
+    if (action === "abandon") { await command("abandon"); modal.close(); return render(); }
+    if (action === "marketMode") {
+      buyOrderMode = arg === "orders";
+      mine = arg === "mine";
+      marketPage = 0;
+      if(buyOrderMode){render();return await buyOrdersLoad();}
+      return await marketLoad();
+    }
+    if(action==="buyOrderRefresh")return await buyOrdersLoad();
+    if(action==="buyOrderNew")return buyOrderNewDialog();
+    if(action==="buyOrderNewPick")return buyOrderNewDialog(arg);
+    if(action==="buyOrderPick")return buyOrderPickDialog(arg);
+    if(action==="buyOrderCreate"){const key=$('#bo-key').value,quantity=Number($('#bo-count').value),price=Number($('#bo-price').value);if(!BUY_ORDER_KEYS.includes(key)||!Number.isSafeInteger(quantity)||quantity<1||quantity>1e6||!Number.isSafeInteger(price)||price<1||price>1e9||quantity*price>1e12)return toast('수량과 개당 가격을 확인해 주세요.');if(quantity*price>state.gold)return toast('보유 골드가 부족해요.');const r=await buyOrderWrite('create',{key,quantity:String(quantity),price:String(price)});if(r){modal.close();toast(`구매 요청 등록 · ${fmt(r.escrow)} G 묶음`);}return;}
+    if(action==="buyOrderCancel"){const r=await buyOrderWrite('cancel',{id:arg});if(r){modal.close();toast(`구매 요청 취소 · ${fmt(r.refund)} G 환불`);}return;}
+    if(action==="buyOrderFill"){const count=Number($('#bo-fill-count').value);if(!Number.isSafeInteger(count)||count<1)return toast('판매 수량을 확인해 주세요.');const r=await buyOrderWrite('fill',{id:arg,quantity:String(count)});if(r){modal.close();toast(`${fmt(r.quantity)}개 판매 · ${fmt(r.total)} G는 우편함으로 보냈어요`);}return;}
+    if (action === "page") {
+      marketPage = Number(arg);
+      return await marketLoad();
+    }
+    if (action === "marketRefresh") return await marketLoad();
+    if(action==='marketKind'){marketKind=arg;filterSlot='';filterClass='';marketPage=0;return await marketLoad();}
+    if(action==='marketSellConsumables')return consumableSellDialog();
+    if(action==='materialSellPick')return consumableSellDialog(arg);
+    if(action==='sellConsumableConfirm'){const material=$('#material-sell-key').value,quantity=Number($('#material-sell-count').value),price=Number($('#material-sell-price').value);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>Math.min(1e6,marketHave(material))||!Number.isSafeInteger(price)||price<1||price*quantity>1e9)return toast('수량과 개당 가격을 확인해 주세요.');return await marketWrite('sell',{material,quantity,price});}
+    if (action === "marketSell") {marketSellId=null;marketSellSlot="";marketSellClass="";marketSellPrice="10000";return marketSellPicker();}
+    if (action === "marketSellPick") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;marketSellId=arg;return marketSellPicker();}
+    if (action === "marketSellBack") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;marketSellId=null;return marketSellPicker();}
+    if (action === "sellConfirm") {
+      const it=state.items.find(it=>it.id===marketSellId),reason=marketSellBlock(it),price=Number($("#sell-price")?.value);
+      if(reason)return toast(reason);
+      if(!Number.isSafeInteger(price)||price<100||price>1e9)return toast("판매 가격은 100~1,000,000,000 G의 정수로 입력해 주세요.");
+      return await marketWrite("sell", {itemId:it.id,price});
+    }
+    if (action === "marketConfirm") {
+      const l = marketRows.find((l) => l.id === arg);
+      if(!l)return toast("상품 목록을 새로고침해 주세요.");
+      if(l.status!=="open")return open("판매 내역",`${l.item.kind==="consumable"?itemMarkup(l.item):marketGearDetails(l.item)}<p>${l.status==="sold"?"판매 완료":"회수 완료"}</p>`);
+      if(l.item.kind==="consumable"){open(l.own?"소모품 판매 취소":"소모품 구매",`<div class="item">${itemMarkup(l.item)}</div><p>${l.own?"":goldPurchaseIcon()}개당 ${fmt(l.price)} G</p>${l.own?`<p>남은 ${fmt(l.item.quantity)}개를 돌려받습니다.</p>`:`<label>구매 수량<input id="material-buy-count" data-listing="${l.id}" type="number" min="1" max="${l.item.quantity}" step="1" value="1"></label><p>${goldPurchaseIcon()}<span id="material-buy-total"></span></p>`}${btn(l.own?"남은 수량 회수":"구매 확정",l.own?"cancelListing":"buyListing",arg,"gold")}`);if(!l.own)updateMaterialBuy();return;}
+      return open(
+        l.own ? "판매 취소" : "구매 확인",
+        `${marketGearDetails(l.item)}<p class="note">${l.own?"":goldPurchaseIcon()}${fmt(l.price)} 골드</p><div class="actions">${btn(l.own ? "장비 회수" : "구매 확정", l.own ? "cancelListing" : "buyListing", arg, "gold")}</div>`,
+      );
+    }
+    if (action === "cancelListing" || action === "buyListing")
+      return await marketWrite(action === "cancelListing" ? "cancel" : "buy", {
+        id: arg,
+        ...(action==="buyListing"&&marketRows.find(l=>l.id===arg)?.item.kind==="consumable"?{quantity:Number($("#material-buy-count")?.value)}:{}),
+      });
+  } catch (err) {
+    sounds.play("ui-error");
+    toast(message(err));
+  }
+});
+document.addEventListener("input", e=>{if(/^skillAlpha[1-5]$/.test(e.target.id||'')&&e.target.nextElementSibling)e.target.nextElementSibling.textContent=Math.round(e.target.value*100)+'%';if(e.target.id==="shop-buy-quantity")updateConsumablePurchase(state,modal);if(e.target.id==="shop-sell-quantity")updateConsumableSale(state,modal);if(e.target.id==="bm-buy-quantity")updateBlackMarketPurchase(state,modal);if(e.target.id?.startsWith("material-sell"))updateMaterialSale();if(e.target.id==="material-buy-count")updateMaterialBuy();if(e.target.id==="sell-price")updateSellPrice();});
+document.addEventListener("change", async (e) => {
+  if(e.target.id==='cube-lock'){cubeLockChoice=Number(e.target.value);return;}
+  if(e.target.id==='fishing-bait'){fishingUI.bait=e.target.value;render();return;}
+  if(e.target.id==="exchange-class"){exchangeClass=e.target.value;render();return;}
+  if(e.target.id==="exchange-level"){exchangeLevel=Number(e.target.value);render();return;}
+  if(e.target.id==="material-sell-key"){updateMaterialSale();return;}
+  if(/^bo-/.test(e.target.id||"")){updateBuyOrderForm();return;}
+  if(e.target.dataset?.recipeCount){const id=e.target.dataset.recipeCount,p=state?.profession,def=p&&D_PROFESSIONS.find(x=>x.id===p.id),r=def?.recipes.find(x=>x.id===id),out=modal.querySelector(`[data-recipe-sum="${id}"]`);if(r&&out)out.textContent=craftSummary(state,p,r,Number(e.target.value));return;}
+  if(e.target.id==="market-sell-slot"||e.target.id==="market-sell-class") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;if(e.target.id==="market-sell-slot")marketSellSlot=e.target.value;else marketSellClass=e.target.value;marketSellId=null;marketSellPicker();return;}
+
+  if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.raidBoss(partyBossId));return;}
+  if(e.target.id==="party-practice") {partyPractice=e.target.checked;return;}
+  if (!e.target.dataset.filter) return;
+  bagPage=0;
+  if (e.target.dataset.filter === "slot") filterSlot = e.target.value;
+  else filterClass = e.target.value;
+  if (tab === "market") {
+    marketPage = 0;
+    try {
+      await marketLoad();
+    } catch (e) {
+      toast(message(e));
+    }
+  } else render();
+});
+modal.addEventListener("cancel", (e) => {
+  if (modal.dataset.closable === "false") e.preventDefault();
+});
+window.addEventListener("popstate", () => {
+  if (modal.open && modal.dataset.closable !== "false") modal.close();
+  else if (modal.open && modal.dataset.closable === "false") history.pushState({modal:true}, "");
+  else if (view === "regions") {
+    view = "game";
+    render();
+  }
+});
+setInterval(() => {
+  if (!session || document.hidden || busy || !state || !navigator.onLine || Date.now() < retryAt) return;
+  if(state.battle?.kind==='tower'||coopController)return;
+  if(view==='game'&&tab==='event'&&eventPage==='fishing'&&(fishingUI.pending||state.fishing?.cast))return;
+  // Keep reward settlement independent from successful market/lotto refreshes.
+  if(state.hunting&&!state.battle&&!state.coopRoom&&!state.partyRoom&&Date.now()-lastHuntSettlement>=30000){command('sync',{},true).catch(()=>{});return;}
+  if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=5000){refreshCoopRooms().catch(()=>{});return;}
+  if(regularAutoSkills&&state.battle&&state.battle.started===regularAutoBattle&&!modal.open){const slot=nextAutoSkill(state,Date.now());if(slot!==null){command('skill',{slot}).catch(()=>{});return;}}
+  if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
+  // Measure from dispatch so response latency does not lengthen each combat second.
+  if(state.battle?.kind==='boss'){
+    if(Date.now()-lastBattleRequestAt>=1000)command("sync",{},true).catch(()=>{});
+    return;
+  }
+  const partyLobbyOpen = false;
+  const due = state.coopRoom&&coopRoom?.status==='waiting'?2000:state.partyRoom || state.battle ? 3000 : partyLobbyOpen ? 8000 : tab === "hunt" ? 10000 : 30000;
+  if(view==='game'&&tab==='investment'){updateInvestmentClock(investmentData,investmentLoadedAt);const due=!investmentData||Date.parse(investmentData.serverNow)+(Date.now()-investmentLoadedAt)>=Date.parse(investmentData.nextAt);if(due||Date.now()-investmentLoadedAt>30000){command('investList',{},true).catch(()=>{});return;}}
+  if(view==='game'&&tab==='event'&&eventPage==='lotto'&&Date.now()-lottoLoadedAt>30000){command('lottoList',{},true).catch(()=>{});return;}
+  if (Date.now() - lastSync > due) command("sync", {}, true).catch(() => {});
+}, 250);
+function strike(arena, frame = null) {
+  sounds.play(state.classId+"-attack");
+  if (settings.low || arena.querySelectorAll(".slash").length > 2) return;
+  const slash = document.createElement("i");
+  slash.className = "slash strike-" + state.classId;
+  arena.append(slash);
+  const target = arena.querySelector(".monster");
+  target?.classList.remove("struck");
+  if (target) { void target.offsetWidth; target.classList.add("struck"); }
+  if (frame) {
+    const n=document.createElement("span");
+    n.className="damage"+(frame.crit?" critical":"");
+    n.textContent=(frame.crit?"CRITICAL ":"")+fmt(frame.damage);
+    arena.append(n);
+    const restack=()=>{const rows=[...arena.querySelectorAll('.damage')];while(rows.length>10)rows.shift().remove();rows.forEach((row,i)=>row.style.setProperty('--damage-row',String(rows.length-1-i)));};
+    restack();setTimeout(()=>{n.remove();restack();},2400);
+  }
+  setTimeout(()=>slash.remove(),450);
+
+}
+setInterval(() => {
+  if (state?.battle?.kind==='tower')return;
+  if (!state || (!state.partyRoom && tab !== "hunt") || view !== "game" || document.hidden || modal.open) { combatFrames.length=0; return; }
+  const arena = $(".arena");
+  if (!arena || connectionLost || Date.now()-lastSync>35000) return;
+  updateCombatClock();
+  if(state.partyRoom && partyRoom?.status==="fighting") {if(Date.now()-lastVisualHit>=1000){lastVisualHit=Date.now();strike(arena);} return;}
+  if (!state.battle && state.hunting) {
+    const rate=huntingRate(state), p=power(state), st=D.STAGES[state.stage];
+    const elapsed=Math.max(0,(Date.now()-lastSync)/1000);
+    const progress=((state.huntRemainder||0)+elapsed)%rate.seconds;
+    const deathAt=rate.seconds-10;
+    const recovering=!rate.survives&&progress>=deathAt;
+    const defeated=rate.survives&&progress>=rate.fightSeconds;
+    const fightTime=recovering?deathAt:Math.min(progress,rate.fightSeconds-.001);
+    const incoming=rate.incoming;
+    const hp=recovering?0:p.pet?fieldPetHP(p.hp,incoming,fightTime):Math.max(0,p.hp-Math.floor(fightTime/rate.enemyInterval)*incoming);
+    const enemyHp=defeated?0:Math.max(1,st.hp-rate.damagePerHit*Math.floor(fightTime/rate.attackInterval));
+    const bar=$("#enemy-hp");
+    if(bar)bar.style.width=(100*enemyHp/st.hp)+"%";
+    const ownBar=$("#field-player-bar");
+    if(ownBar)ownBar.style.width=(100*hp/p.hp)+"%";
+    const ownLabel=$("#field-player-hp");
+    if(ownLabel)ownLabel.textContent="내 HP "+fmt(hp)+" / "+fmt(p.hp);
+    let petStatus=arena.querySelector('.field-pet-status');
+    if(p.pet){
+      if(!petStatus){petStatus=document.createElement('small');petStatus.className='field-pet-status';arena.querySelector('.combat-status')?.append(petStatus);}
+      const heal=fieldPetVisual(p.hp,incoming,fightTime,defeated);
+      const recent=!recovering&&heal.healAt!==null&&fightTime-heal.healAt<1.5&&heal.amount>0;
+      petStatus.textContent=recovering?'루미 · 부활 대기':defeated?'루미 · 처치 완료! 쿨타임 초기화 · 회복 준비 완료':recent?'루미 +'+fmt(heal.amount)+' HP 회복':heal.healAt===null?'루미 · 체력 8% 감소 시 회복':'루미 · 회복 +'+fmt(heal.amount)+' HP · 쿨타임 '+Math.ceil(heal.readyIn)+'초';
+      if(defeated||progress<Number(arena.dataset.petProgress||0))delete arena.dataset.petHealAt;
+      arena.dataset.petProgress=String(progress);
+      if(recent&&arena.dataset.petHealAt!==String(heal.healAt)){
+        arena.dataset.petHealAt=String(heal.healAt);
+        const number=document.createElement('span');number.className='field-pet-heal-number';number.textContent='루미 +'+fmt(heal.amount)+' HP';arena.append(number);
+        arena.classList.remove('field-pet-healing');void arena.offsetWidth;arena.classList.add('field-pet-healing');
+        // Briefly show the damage before the simultaneous heal, then fill the bar.
+        if(ownBar)ownBar.style.width=(100*heal.before/p.hp)+'%';
+        if(ownLabel)ownLabel.textContent='내 HP '+fmt(heal.before)+' / '+fmt(p.hp);
+        setTimeout(()=>{if(ownBar?.isConnected)ownBar.style.width=(100*hp/p.hp)+'%';if(ownLabel?.isConnected)ownLabel.textContent='내 HP '+fmt(hp)+' / '+fmt(p.hp);},180);
+        setTimeout(()=>{number.remove();arena.classList.remove('field-pet-healing');},1400);
+      }
+    }else if(petStatus)petStatus.textContent='루미 미장착 · 가방 → 펫에서 장착';
+    const status=$("#hunt-status");
+    if(status)status.textContent=recovering?"부활 대기":defeated?"다음 몬스터 등장 대기":"자동 전투 중";
+    const result=$("#field-combat-result");
+    if(result)result.textContent=recovering?"패배 · "+Math.ceil(rate.seconds-progress)+"초 후 자동 재도전 · 처치 보상 없음":defeated?"처치 완료 · 다음 전투 준비":"공격 1초 · 피격 1.5초 · HP가 0이면 패배";
+    const label=$("#battle-info");
+    if(label)label.textContent="몬스터 HP "+fmt(enemyHp)+" / "+fmt(st.hp);
+    if (!recovering && !defeated && Date.now()-lastVisualHit>=rate.attackInterval*1000) { lastVisualHit=Date.now(); strike(arena); }
+
+  }
+  if(state.battle) {
+    const b=state.battle, enemy=battleEnemy(b);
+    const tick=Math.min(enemy.seconds,b.tick+Math.floor((Date.now()-lastSync)/1000));
+    const remaining=enemy.patternEvery-tick%enemy.patternEvery;
+    const pattern=$("#pattern-info");
+    if(pattern) { pattern.textContent=enemy.pattern+" · "+remaining+"초 후"; pattern.classList.toggle("pattern-warning",remaining<=3); }
+    arena.classList.toggle("danger-pattern",remaining<=3);
+
+  }
+  const frame=combatFrames.shift();
+  if(frame) strike(arena,frame);
+}, 500);
+function updateCombatClock(){
+ const party=!!state.partyRoom,r=party?partyRoom:state.battle;if(!r)return;
+ const seconds=party?r.seconds:battleEnemy(r).seconds;
+ const tick=Math.min(seconds,r.tick+Math.max(0,Math.floor((Date.now()-lastSync)/1000)));
+ const timer=$('#battle-timer');if(timer)timer.textContent='남은 '+Math.max(0,seconds-tick)+'초 / '+seconds+'초';
+ document.querySelectorAll('.regular-combat-skills [data-skill-slot]').forEach(button=>{
+  const {disabled,status}=combatSkillState(Number(button.dataset.skillSlot),party,tick);
+  button.disabled=disabled;
+  const label=button.querySelector('[data-skill-status]');
+  if(label&&label.textContent!==status)label.textContent=status;
+ });
+}
+function unavailable() {
+  app.innerHTML='<div class="login panel"><p class="eyebrow">링구 RPG</p><h2>잠시 연결을 기다리고 있어요</h2><p class="note">연결이 복구되면 저장된 모험을 이어갈 수 있어요.</p><div class="actions">'+btn("다시 연결","reconnect","","gold")+btn("로그인 복구","recoverLogin")+'</div></div>';
+}
+window.addEventListener("online",()=>{ if(session&&!coopController) command("sync",{},true).catch(()=>{}); });
+window.addEventListener("offline",()=>{connectionLost=true;const banner=$("#connection-status");if(banner)banner.hidden=false;});
+setInterval(()=>{const el=document.querySelector('[data-arena-countdown]');if(el){const remaining=Math.max(0,new Date(el.dataset.arenaCountdown).getTime()-Date.now());el.textContent=`${Math.floor(remaining/3600000)}시간 ${String(Math.floor(remaining%3600000/60000)).padStart(2,'0')}분`;}if(view==='arena'&&!['battle','result'].includes(arenaPage)&&arenaData&&Date.now()>=new Date(arenaData.nextRefreshAt).getTime()&&!busy)loadArena();},10000);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) sounds.pause();
+  else {
+    sounds.start();
+    sounds.music();
+    if (session&&!coopController) command("sync", {}, true).then(()=>{if(view==="game"&&tab==="hunt")requestAutoHunt();}).catch(() => {});
+  }
+});
+installCurrencyIcons();
+if (session) command("sync").catch(() => {});
+else login();
+
+installMenuIcons();
+
+
+
+
+
+setInterval(()=>{if(!document.hidden)updatePetCountdown();},1000);
+setInterval(()=>{if(state&&!document.hidden){updateLuckTimers(state);const bm=document.querySelector('[data-bm-end]');if(bm&&Date.now()>=Number(bm.dataset.bmEnd)&&!modal.open)render();}},1000);
+
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-action=rankingProfile]')){e.preventDefault();e.target.click();}});
