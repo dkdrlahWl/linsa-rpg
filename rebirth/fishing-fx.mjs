@@ -25,7 +25,7 @@ const VERT='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;v.y=1.-v.y;gl_
 const FRAG=`precision mediump float;varying vec2 v;uniform sampler2D img;uniform vec4 cover;uniform float t;uniform vec2 res;uniform vec4 rip[4];uniform vec2 cam;
 vec4 tex(vec2 s){return texture2D(img,cover.xy+s*cover.zw);}
 void main(){
- vec2 s=(v-.5)/1.035+.5+cam;
+ vec2 s=v+cam;
  vec4 c0=tex(s);
  float water=smoothstep(.015,.14,c0.b-c0.r*.85)*smoothstep(.28,.52,v.y);
  vec2 o=vec2(sin(v.y*70.+t*1.7)*.0018+sin(v.x*23.+t*.9)*.0011,cos(v.x*48.+t*1.3)*.0014+sin(v.y*31.-t*1.1)*.0009)*water;
@@ -53,6 +53,7 @@ function makeWater(canvas){
 }
 // object-fit:cover + object-position 을 텍스처 좌표로 그대로 옮긴다.
 function coverRect(img,w,h){
+ if(img.dataset.anchored){const dw=parseFloat(img.style.width),dh=parseFloat(img.style.height);if(dw>0&&dh>0)return [-parseFloat(img.style.left)/dw,-parseFloat(img.style.top)/dh,w/dw,h/dh];}
  const iw=img.naturalWidth,ih=img.naturalHeight,scale=Math.max(w/iw,h/ih),vw=w/scale/iw,vh=h/scale/ih;
  const pos=getComputedStyle(img).objectPosition.split(' ').map(x=>parseFloat(x)/100),px=Number.isFinite(pos[0])?pos[0]:.5,py=Number.isFinite(pos[1])?pos[1]:.5;
  return [(1-vw)*px,(1-vh)*py,vw,vh];
@@ -137,7 +138,7 @@ class FishingFx{
    const W=this.water,gl=W.gl;W.upload(art);
    if(W.ready){
     gl.viewport(0,0,this.glCanvas.width,this.glCanvas.height);
-    gl.uniform4fv(W.u.cover,coverRect(art,w,h));gl.uniform1f(W.u.t,still?0:t);gl.uniform2f(W.u.res,w,h);gl.uniform2f(W.u.cam,camX,camY);
+    gl.uniform4fv(W.u.cover,coverRect(art,w,h));gl.uniform1f(W.u.t,still?0:t);gl.uniform2f(W.u.res,w,h);gl.uniform2f(W.u.cam,art.dataset.anchored?0:camX,art.dataset.anchored?0:camY);
     const rip=new Float32Array(16);this.ripples.forEach((r,i)=>{rip.set([r.x/w,r.y/h,r.t,t-r.t<4?r.amp:0],i*4);});
     // 찌가 떠 있는 동안은 잔잔한 고리가 계속 퍼진다.
     if(bob?.visible&&!still&&(!this.ripples[0]||t-this.ripples[0].t>(this.phase==='bite'?.45:1.9)))this.ripples.unshift({x:bob.x,y:bob.y,t,amp:this.phase==='bite'?1.1:.45}),this.ripples.length=Math.min(4,this.ripples.length);

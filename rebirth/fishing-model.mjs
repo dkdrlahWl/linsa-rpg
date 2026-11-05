@@ -1,3 +1,4 @@
+import {FISHING_SKINS,fishingSkin} from './fishing-skins.mjs';
 import {professionGather,gatherAmount} from './profession-model.mjs';
 import {FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
@@ -36,6 +37,7 @@ export function normalizeFishing(s,now){
  if(!Number.isInteger(f.rod)||f.rod<1)f.rod=1;
  // 2026-11-05 도현: 강화 삭제 · 낚싯대 16종 — 시험 계정의 8종 단계(t)는 같은 낚시터를 여는 2t-1 단계로, 강화에 쓴 다이아는 돌려준다.
  if(f.rodScheme!==16){f.rod=Math.min(8,f.rod)*2-1;const e=Math.max(0,Math.min(LEGACY_ENHANCE_DIAMONDS.length,Number(f.enhance)||0));f.diamonds=(Number(f.diamonds)||0)+LEGACY_ENHANCE_DIAMONDS.slice(0,e).reduce((n,x)=>n+x,0);f.rodScheme=16;}
+ f.skin=fishingSkin(f.skin).id;
  delete f.enhance;if(f.rod>ROD_MAX)f.rod=ROD_MAX;
  f.tokens=Number.isSafeInteger(f.tokens)&&f.tokens>=0?f.tokens:0;f.enchants=Array.isArray(f.enchants)?f.enchants.slice(0,3):[];
  f.collection??={};f.daily??={};if(f.best&&typeof f.best!=='object')delete f.best;f.bait??={worm:0};
@@ -171,6 +173,9 @@ const sameFish=(a,b)=>a.species===b.species&&fishSizeOf(a).id===fishSizeOf(b).id
 export function fishingCommand(s,command,args,ctx){
  const f=normalizeFishing(s,ctx.now);settleAquarium(f,ctx.now);
  s.materials??={};
+ if(command==='fishSkinEquip'){
+  require(FISHING_SKINS.some(x=>x.id===args.skin),'INVALID_FISHING_SKIN');require(!f.cast,'FISHING_CAST_ACTIVE');f.skin=args.skin;return {type:'fishSkinEquip',skin:f.skin};
+ }
  if(command==='fishCast'){
   require(args.protocol===FISHING_PROTOCOL,'FISHING_REFRESH_REQUIRED');
   require(!f.cast,'FISHING_CAST_ACTIVE');require(f.fish.length<fishBagSize(s),'FISHING_BAG_FULL');

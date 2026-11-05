@@ -1807,6 +1807,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishCatchClose'){fishingUI.seenCatch=state.fishing?.lastCatch?.at;render();return;}
     if(action==='fishCatchTank'){fishingUI.seenCatch=state.fishing?.lastCatch?.at;return await fishingCommandRequest('fishAquariumAdd',{id:arg});}
     if(action==='fishPanel'){if(fishingUI.sheet===arg&&!b.closest('.fishing-sheet')){fishingUI.sheet=null;render();return;}fishingUI.sheet=arg;if(arg!=='map')fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);if(arg==='records')await command('fishRecordList',{},true);return;}
+    if(action==='fishSkinEquip')return await fishingCommandRequest('fishSkinEquip',{skin:arg});
     if(action==='fishRecordTab'){fishingUI.recordTab=arg;render();return;}
     if(action==='fishExchange'){const [item,count]=String(arg).split(':');return await fishingCommandRequest('fishExchange',{item,count:Number(count)});}
     if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
