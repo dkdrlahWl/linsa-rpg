@@ -335,3 +335,5 @@ body #app .fishing-screen .rod-row .rod-buy img:not(.fishing-button-art){display
 
 /* Atlas padding can contain the neighboring pose's hair. Hide only the empty right gutter. */
 .fishing-skin-preview,.fishing-play .fishing-angler{clip-path:inset(0 6% 0 0)}
+/* 2026-11-05 도현: 등급 표시는 왼쪽 아래 (크기 배지와 겹치지 않게) */
+body .fishing-screen .fish-portrait>span{top:auto;bottom:2px;left:2px}
