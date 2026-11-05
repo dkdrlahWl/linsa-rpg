@@ -14,10 +14,11 @@ export function fishingSceneMotion({width,height,angler,phase,pose=0,elapsed=900
  const [ax,ay]=tips[pose]||tips[0],size=angler.size;
  const ox=size*(angler.seat?.[0]??.42),oy=size*(angler.seat?.[1]??.82),rx=ax*size-ox,ry=ay*size-oy,r=angle*Math.PI/180;
  const tip={x:angler.left+ox+rx*Math.cos(r)-ry*Math.sin(r),y:angler.top+oy+rx*Math.sin(r)+ry*Math.cos(r)+dy};
- let x=width*.64,y=height*.67,slack=Math.min(14,height*.035),splash=false;
+ const seatY=angler.top+size*(angler.seat?.[1]??.82);
+ let x=width*.86,y=clamp(seatY-height*.11,height*.46,height*.62),slack=Math.min(14,height*.035),splash=false;
  if(phase==='casting'){
   const p=clamp((elapsed-220)/680,0,1),ease=1-(1-p)**2;
-  x=tip.x+(x-tip.x)*ease;y=tip.y+(y-tip.y)*ease-Math.sin(p*Math.PI)*height*.18;
+  x=tip.x+(x-tip.x)*ease;y=tip.y+(y-tip.y)*ease-Math.sin(p*Math.PI)*height*.22;
   if(elapsed<220){x=tip.x+5;y=tip.y+18;}
   slack=3+Math.sin(p*Math.PI)*9;splash=p>.9;
  }else if(phase==='waiting'){x+=1.2*Math.sin(t*1.8);y+=1.4*Math.sin(t*2.4);}
@@ -29,11 +30,11 @@ export function fishingSceneMotion({width,height,angler,phase,pose=0,elapsed=900
  return {tip,end,control,angle,dy,splash,visible:['casting','waiting','bite','hooking','reeling'].includes(phase)};
 }
 // Measured sitting points on the actual dock/stone platform in each source image.
-export const FISHING_DOCKS=Object.freeze({brook:[.25,.70],moon:[.25,.70],canyon:[.25,.72],coral:[.25,.70],abyss:[.25,.69],palace:[.25,.68],volcano:[.25,.69],origin:[.25,.69]});
+export const FISHING_DOCKS=Object.freeze({brook:[.43,.64],moon:[.45,.635],canyon:[.42,.66],coral:[.42,.625],abyss:[.42,.65],palace:[.41,.625],volcano:[.45,.63],origin:[.40,.63]});
 export function fishingDockLayout({width,height,imageWidth,imageHeight,site,skin='default'}){
  const [ax,ay]=FISHING_DOCKS[site]||FISHING_DOCKS.brook,scale=Math.max(width/imageWidth,height/imageHeight);
  const iw=imageWidth*scale,ih=imageHeight*scale;
- const left=clamp(width*.25-ax*iw,width-iw,0),top=clamp(height*.63-ay*ih,height-ih,0);
+ const left=clamp(width*.36-ax*iw,width-iw,0),top=clamp(height*.63-ay*ih,height-ih,0);
  const dock={x:left+ax*iw,y:top+ay*ih},seat=fishingSkin(skin).seat;
  const size=Math.min(width*(width>=700?.30:.44),width>=700?260:240,dock.x/seat[0]*.96,dock.y/seat[1]*.96);
  return {image:{left,top,width:iw,height:ih},dock,angler:{left:dock.x-seat[0]*size,top:dock.y-seat[1]*size,size}};
