@@ -238,7 +238,10 @@ export function fishingCommand(s,command,args,ctx){
  // v3: 다음 낚싯대를 토큰으로 산다 (순서대로).
  if(command==='fishRodBuy'){
   require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');const next=ROD_TIERS[f.rod];require(args.tier===next.tier,'FISHING_REFRESH_REQUIRED');
-  require((f.diamonds||0)>=next.diamonds,'FISHING_DIAMONDS_REQUIRED');spendTokens(f,next.tokens);f.diamonds-=next.diamonds;f.rod=next.tier;return {type:'fishRodBuy',tier:next.tier,name:next.name,tokens:next.tokens,diamonds:next.diamonds};
+  require((f.diamonds||0)>=next.diamonds,'FISHING_DIAMONDS_REQUIRED');spendTokens(f,next.tokens);f.diamonds-=next.diamonds;f.rod=next.tier;
+  // 2026-11-05 도현: 다음 낚싯대를 사면 인챈트는 초기화.
+  const hadEnchant=(f.enchants||[]).some(Boolean);f.enchants=[];
+  return {type:'fishRodBuy',tier:next.tier,name:next.name,tokens:next.tokens,diamonds:next.diamonds,enchantReset:hadEnchant};
  }
  if(command==='fishTrain'){
   require(false,'FISHING_REFRESH_REQUIRED');const cost=rodGoldCost(f.rod);

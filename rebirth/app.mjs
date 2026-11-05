@@ -225,7 +225,7 @@ const errors = {
   TREASURE_CELL_OPEN: "이미 연 칸이에요.",
   FISHING_AQUARIUM_OPTIMAL: "이미 시간당 수익이 가장 높은 물고기들이 수족관에 있어요.",
   TESTER_BLOCKED: "테스트 계정은 사용할 수 없는 기능이에요.",
-  FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시 상자와 일일퀘스트에서 얻을 수 있어요.",
+  FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시로 다이아 상자를 낚아 모아 보세요.",
   FISHING_EXCHANGE_LIMIT: "오늘 교환 한도(30개)를 다 썼어요. 자정에 초기화돼요.",
   INVALID_FISHING_EXCHANGE: "교환할 수 없는 항목이에요.",
   FISHING_CONTEST_CLOSED: "받을 수 있는 대회 기간이 아니에요.",
@@ -736,7 +736,6 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if(result.arena){arenaData=result.arena;arenaError='';}
     if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
     // A fishing daily that just became claimable gets a one-time toast (badges stay until it is claimed).
-    if(state){const ready=fishingQuestsReady(state);if(audioPrevious&&ready>fishingQuestsReady(audioPrevious))toast('낚시 일일퀘스트 완료! 이벤트 › 낚시 여행 › 일일퀘스트에서 다이아를 받으세요.');}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result){
       if(!state?.coopRoom)coopRoom=null;
@@ -865,7 +864,7 @@ function confirmClassChange(classId) {
 function shell(content) {
   if(document.body.classList.contains("tower-mode"))return `<div class="shell">${content}</div>`;
   const c = D.CLASSES.find(c=>c.id===state.classId);
-  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':arenaDock():fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady(),fishingQuestsReady(state));
+  const footer=view==='arena'?['battle','result'].includes(arenaPage)?'':arenaDock():fantasyFooter(tab,(state.systemMailbox||[]).length,attendanceReady(),0);
   return `<div class="shell fantasy-shell">${fantasyHeader(state,view==="arena"?"arena":view==="game"?tab:"")}<div class="fantasy-player-strip"><span><strong>${esc(state.name)}</strong> · Lv.${state.level} ${c.name}</span><span>전투력 <b>${fmt(power(state).combatPower)}</b></span></div><div id="connection-status" class="connection-status" role="status" ${connectionLost?"":"hidden"}>연결이 지연되고 있어요. ${btn("다시 연결","reconnect")}</div><main class="fantasy-content" data-screen="${esc(view==="game"?tab:view)}">${content}</main>${footer}</div>`;
 }
 
@@ -1447,7 +1446,7 @@ function showEvents(events) {
     if(e.type==='fishExchange'){toast(e.name+' '+e.count+'개 교환 완료 · 다이아 '+e.diamonds+'개 사용');continue;}
     if(e.type==='fishContestClaim'){toast('대어 대회 '+e.rank+'위 보상 · 다이아 '+e.diamonds+'개, 에디셔널 큐브 '+e.addCube+'개');continue;}
     if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
-    if(e.type==='fishRodBuy'){sounds.play('loot-rare');toast('🎣 '+e.name+' 구매!'+(e.tier%2?' 새 낚시터가 열렸어요.':' 힘과 보너스가 올랐어요.'));continue;}
+    if(e.type==='fishRodBuy'){sounds.play('loot-rare');toast('🎣 '+e.name+' 구매!'+(e.tier%2?' 새 낚시터가 열렸어요.':' 힘과 보너스가 올랐어요.')+(e.enchantReset?' 인챈트는 초기화됐어요.':''));continue;}
     if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
     if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
