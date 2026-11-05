@@ -152,3 +152,23 @@
 .rod-row img{width:28px;height:40px;object-fit:contain;flex:none}.rod-row span{flex:1;min-width:0;display:flex;flex-direction:column}.rod-row span b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rod-row span small{font-size:11px;color:#cdbf9f}
 .rod-row em{font-style:normal;font-size:12px;color:#8fe0a0;white-space:nowrap}.rod-row i{font-style:normal;font-size:12px;color:#cdbf9f;white-space:nowrap}
 .rod-row .rod-buy{min-height:32px!important;padding:4px 10px!important;font-size:12px!important;white-space:nowrap}.rod-row .rod-buy .fishing-button-art{display:none}
+/* 2026-11-05 대어 랭킹 */
+.fish-record-mines{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:8px 0}
+.fish-record-mine{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:10px;border:1px solid color-mix(in srgb,var(--rarity) 45%,transparent);background:color-mix(in srgb,var(--rarity) 10%,#0b1c26);color:#e8f3ec;font:inherit;cursor:pointer;min-width:0}
+.fish-record-mine small{font-size:10px;color:var(--rarity)}.fish-record-mine b{font-size:11px;white-space:nowrap}.fish-record-mine i{font-style:normal;font-size:10px;color:#ffd477;min-height:12px}
+.fish-record-mine.active{outline:2px solid var(--rarity)}
+.fish-record-tabs{display:flex;gap:4px;overflow-x:auto;margin:6px 0;scrollbar-width:none}
+.fish-record-tabs button{flex:0 0 auto;padding:5px 10px;border-radius:999px;border:1px solid #ffffff22;background:#ffffff0d;color:#cfe0d6;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.fish-record-tabs button.active{background:#ffd477;color:#2a1c00;border-color:#ffd477}
+.fish-record-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.fish-record-list li{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:12px;background:#ffffff0a;border:1px solid color-mix(in srgb,var(--rarity,#888) 35%,transparent)}
+.fish-record-list li.me{background:color-mix(in srgb,#ffd477 16%,#0b1c26);border-color:#ffd477}
+.fish-record-list li>b{width:34px;flex:0 0 auto;color:#ffd477;font-size:13px}
+.fish-record-list li:nth-child(1)>b{font-size:15px}
+.fish-record-list .fish-record-art{width:38px;height:38px;object-fit:contain;flex:0 0 auto}
+.fish-record-list li>span{flex:1;min-width:0;display:flex;flex-direction:column}
+.fish-record-list li>span strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fish-record-list li>span small{color:var(--rarity,#aaa);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+.fish-record-list li>em{font-style:normal;font-weight:700;white-space:nowrap;color:#fff}
+.fish-record-list li.empty{justify-content:center;color:#9fb3a8}
+@media (max-width:420px){.fish-record-mine b{font-size:9.5px}}

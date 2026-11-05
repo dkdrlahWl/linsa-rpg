@@ -117,7 +117,11 @@ export const FISH_VALUE_NORMALIZE=SIZE_MEAN*MUT_MEAN/1.22;
 export const fishSizeOf=fish=>FISH_SIZES.find(x=>x.id===fish?.size)||(d=>!d?FISH_SIZES[1]:fish.weight>d.max*2?FISH_SIZES[5]:fish.weight>d.max*1.3?FISH_SIZES[4]:fish.weight>d.max?FISH_SIZES[3]:fish.weight>d.min+(d.max-d.min)*.65?FISH_SIZES[2]:fish.weight>d.min+(d.max-d.min)*.3?FISH_SIZES[1]:FISH_SIZES[0])(FISH.find(x=>x.id===fish?.species));
 export const fishMutationOf=fish=>MUTATIONS.find(x=>x.id===fish?.mut)||null;
 // 크기 구간 안에서 무게(g) 정하기.
-export const fishSizeWeight=(d,size,r)=>Math.round(size.max?d.max*(size.max[0]+(size.max[1]-size.max[0])*r):d.min+(d.max-d.min)*(size.from+(size.to-size.from)*r));
+// 2026-11-05 도현: 등급별로 무게 최대치가 다르다 — 기록급 상한(종 최대 무게 대비): 일반 ×2 … 태고 ×5. 대어·괴물급 구간도 같은 비율로 늘어난다.
+export const RARITY_SIZE_CAP=Object.freeze([2,2.3,2.6,3,3.5,4,5]);
+export const sizeRange=(size,rarity=0)=>{if(!size?.max)return null;const k=(RARITY_SIZE_CAP[rarity]-1)/1.8;return [1+(size.max[0]-1)*k,1+(size.max[1]-1)*k];};
+export const fishMaxWeight=d=>Math.round(d.max*RARITY_SIZE_CAP[d.rarity]);
+export const fishSizeWeight=(d,size,r)=>{const m=sizeRange(size,d.rarity);return Math.round(m?d.max*(m[0]+(m[1]-m[0])*r):d.min+(d.max-d.min)*(size.from+(size.to-size.from)*r));};
 // 크기 추첨: big = 대어 이상 확률 배율.
 export function rollFishSize(random,big=1){const w=FISH_SIZES.map((x,i)=>x.p*(i>=3?big:1)),t=w.reduce((a,b)=>a+b,0);let r=random()*t;for(let i=0;i<w.length;i++){r-=w[i];if(r<0)return FISH_SIZES[i];}return FISH_SIZES.at(-1);}
 export function rollMutation(random,boost=1){let r=random();for(const m of [...MUTATIONS].reverse()){r-=m.p*boost;if(r<0)return m;}return null;}
@@ -156,8 +160,10 @@ export const ENCHANTS=Object.freeze([
  {id:'token',name:'판매 토큰',values:[.05,.10,.18,.30]},
  {id:'tank',name:'수족관 골드',values:[.10,.20,.35,.60]},
 ].map(Object.freeze));
-export const ENCHANT_COST=30000,ENCHANT_LOCK_MULT=2;
-export const enchantCost=locked=>ENCHANT_COST*ENCHANT_LOCK_MULT**locked;
+// 2026-11-05 도현: 인챈트 비용은 낚싯대 단계에 비례 — 그 단계 하루 수입(600회)의 약 30%. 잠금 1칸마다 ×2.
+export const ENCHANT_COST_BY_TIER=Object.freeze([1000,1000,2000,3000,5000,7000,13000,20000,30000,50000,70000,100000,150000,300000,600000,1200000]);
+export const ENCHANT_COST=ENCHANT_COST_BY_TIER[0],ENCHANT_LOCK_MULT=2;
+export const enchantCost=(locked,tier=1)=>ENCHANT_COST_BY_TIER[Math.max(1,Math.min(ENCHANT_COST_BY_TIER.length,tier||1))-1]*ENCHANT_LOCK_MULT**locked;
 export const enchantText=e=>{const d=ENCHANTS.find(x=>x.id===e?.id);if(!d)return '';const v=d.values[e.tier];return d.name+' '+(d.flat?Math.round(v*100)+'%':(d.sign||'+')+Math.round(v*100)+'%');};
 // 낚싯대 인챈트 합계 (같은 옵션 여러 칸이면 더한다).
 export const fishingEnchant=(f,id)=>(f?.enchants||[]).reduce((n,e)=>n+(e&&e.id===id?ENCHANTS.find(x=>x.id===id).values[e.tier]:0),0);
