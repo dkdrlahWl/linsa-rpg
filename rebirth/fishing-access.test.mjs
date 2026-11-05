@@ -32,7 +32,7 @@ try{
  }
  user={id:'test',app_metadata:{ringu_admin:false}};
  freshState=initialState('warrior','낚시',{now:Date.now(),uuid:randomUUID,random:()=>.5});freshState.hunting=false;
- const before=structuredClone(freshState),body={command:'fishCast',args:{spot:'brook',bait:'worm',protocol:5,_compact:true,_stateRevision:7},requestId:randomUUID()};
+ const before=structuredClone(freshState),body={command:'fishCast',args:{spot:'brook',bait:'worm',protocol:6,_compact:true,_stateRevision:7},requestId:randomUUID()};
  const compactResponse=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer local'},body:JSON.stringify(body)}));
  assert.equal(compactResponse.status,200);const compact=await compactResponse.json();
  assert.deepEqual(applyFishingPatch(before,7,compact.statePatch),committed.p_state);assert.equal(compact.revision,8);assert.equal(compact.result.events[0].type,'fishCast');
