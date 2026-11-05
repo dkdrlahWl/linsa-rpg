@@ -33,7 +33,7 @@ export const PROFESSIONS=Object.freeze([
    {id:'highCube',name:'블랙 큐브',out:{highCube:1},cost:{cube:1},gold:200000},
   ]}),
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
-  gather:{fragment:2.5}, // 2026-11-05 도현: 광부와 같은 패시브(장비 파편 드랍률)
+  gather:{fragment:2.5},gatherBoost:{fragment:2}, // 2026-11-05 도현: 광부와 같은 패시브(장비 파편 드랍률), 전 레벨 2배
   recipes:[
    {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:200},gold:900000}, // 2026-11-05 도현: 파편 200 · 90만
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:50},gold:800000},
@@ -46,7 +46,7 @@ export const PROFESSIONS=Object.freeze([
    {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:4200000},
   ]}),
  Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공',
-  gather:{fragment:2.5},
+  gather:{fragment:2.5},gatherBoost:{fragment:2}, // 2026-11-05 도현: 파편 패시브 전 레벨 2배 (Lv.1 ×4.5 · Lv.10 ×7)
   recipes:[
    {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:60,highCube:2,cube:4},gold:1700000},
    {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:150,highCube:3},gold:5300000},
@@ -78,7 +78,7 @@ export function professionGather(s,key){
  const p=normalizeProfession(s);if(!p)return 1;
  const def=professionById(p.id),bonus=def?.gather?.[key];if(!bonus)return 1;
  const scale=0.5+0.5*(p.level-1)/(PROFESSION_MAX_LEVEL-1);
- return 1+bonus*scale;
+ return (1+bonus*scale)*(def.gatherBoost?.[key]||1);
 }
 // 재료 보관 위치(거래소와 같은 규칙)
 // 소수 배율 개수: 기대값이 정확히 맞도록 확률적 반올림
