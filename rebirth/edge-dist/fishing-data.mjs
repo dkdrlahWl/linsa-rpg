@@ -37,7 +37,7 @@ const rows=[
 export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:SPOTS.find(s=>s.id===spot).level}));
 // v3 미끼: 지렁이만 골드, 나머지는 낚시 토큰. luck=희귀 이상(최대 2단계 위까지) 배율 지수, 나머지는 각 효과 배율.
 export const BAITS=[
- {id:'worm',name:'숲 지렁이',pack:600,gold:60000,level:1,luck:0,text:'기본 미끼'},
+ {id:'worm',name:'숲 지렁이',pack:600,gold:60000,level:1,luck:0,text:'기본 미끼 · 무한',infinite:true},
  {id:'shrimp',name:'반짝 새우',pack:10,tokens:1500,level:1,luck:.6,text:'희귀 이상 ×1.6'},
  {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:1,luck:0,chest:1.6,text:'다이아 상자 ×1.6'},
  {id:'golden',name:'황금 미끼',pack:10,tokens:3500,level:1,luck:0,big:1.25,key:1.3,text:'대어 ×1.25 · 던전 열쇠 ×1.3'},

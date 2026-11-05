@@ -168,12 +168,13 @@ export function fishingCommand(s,command,args,ctx){
   const spot=SPOTS.find(x=>x.id===args.spot),bait=BAITS.find(x=>x.id===args.bait);
   require(spot&&bait,'INVALID_FISHING_SPOT');require(f.rod>=spot.level&&f.rod>=bait.level,'FISHING_ROD_REQUIRED');
   const bonus=fishingBonuses(s,f,spot,bait);
-  require((f.bait[bait.id]||0)>0,'FISHING_BAIT_REQUIRED');
+  // 2026-11-05 도현: 기본 미끼(지렁이)는 무한.
+  require(bait.id==='worm'||(f.bait[bait.id]||0)>0,'FISHING_BAIT_REQUIRED');
   // The catch is rolled on the server when the fish bites, so a visible cast reveals nothing to reroll.
   // 2026-11-04 도현: 어부는 입질 3~5초 (일반 5~9초)
   // v3: 낚싯대 레벨(-0.5%/Lv) · 숲속 여울(×0.5) · 입질 인챈트로 입질이 빨라진다 (최소 1초).
   const fisher=s.profession?.id==='fisher',biteAt=ctx.now+Math.max(1000,Math.round(((fisher?FISHER_BITE_MIN_MS:BITE_MIN_MS)+Math.floor(ctx.random()*(fisher?FISHER_BITE_RANGE_MS:BITE_RANGE_MS)))*bonus.bite));
-  f.bait[bait.id]--;f.daily.casts=(f.daily.casts||0)+1;
+  if(bait.id!=='worm')f.bait[bait.id]--;f.daily.casts=(f.daily.casts||0)+1;
   f.cast={protocol:FISHING_PROTOCOL,id:ctx.uuid(),spot:spot.id,bait:bait.id,rod:f.rod,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+CAST_EXPIRE_MS,hookAt:null,expires:biteAt+CAST_EXPIRE_MS};
   return {type:'fishCast',castId:f.cast.id};
  }
