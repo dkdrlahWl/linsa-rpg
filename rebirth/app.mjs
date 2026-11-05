@@ -736,7 +736,7 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if(result.arena){arenaData=result.arena;arenaError='';}
     if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
     // A fishing daily that just became claimable gets a one-time toast (badges stay until it is claimed).
-    if(state){const ready=fishingQuestsReady(state);if(audioPrevious&&ready>fishingQuestsReady(audioPrevious))toast('낚시 일일퀘스트 완료! 이벤트 › 낚시 여행 › 일일퀘스트에서 다이아를 받으세요.');}
+    if(state){const ready=fishingQuestsReady(state);if(audioPrevious&&ready>fishingQuestsReady(audioPrevious))toast('낚시 일일퀘스트 완료! 이벤트 › 낚시 여행 › 상점 아래 일일퀘스트에서 다이아를 받으세요.');}
     if(audioPrevious&&state){if(state.level>audioPrevious.level)sounds.play('level-up');else if((state.recentLoot?.[0]?.at||0)>(audioPrevious.recentLoot?.[0]?.at||0))sounds.play(state.recentLoot[0].kind==='gear'&&state.recentLoot[0].item?.boss?'loot-rare':'loot-common');}
     if("coop" in result){
       if(!state?.coopRoom)coopRoom=null;

@@ -321,3 +321,5 @@ body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-pull.f
 body #app .fishing-screen .rod-row .rod-buy{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;width:auto!important;max-width:none!important;flex:none!important;white-space:nowrap}
 body #app .fishing-screen .rod-row .rod-buy>span{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;white-space:nowrap}
 body #app .fishing-screen .rod-row .rod-buy img:not(.fishing-button-art){display:inline-block!important;width:18px!important;height:18px!important;min-width:18px}
+/* 2026-11-05: 일일퀘스트는 상점 아래로, 하단 메뉴는 인챈트 */
+.fishing-shop-quests{margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
