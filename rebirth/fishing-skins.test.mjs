@@ -8,7 +8,7 @@ for(const skin of FISHING_SKINS){fishingCommand(state,'fishSkinEquip',{skin:skin
 assert.throws(()=>fishingCommand(state,'fishSkinEquip',{skin:'invalid'},ctx),/INVALID_FISHING_SKIN/);
 state.fishing.cast={id:'active',expires:now+10000};assert.throws(()=>fishingCommand(state,'fishSkinEquip',{skin:'default'},ctx),/FISHING_CAST_ACTIVE/);
 for(const [width,height] of [[320,520],[390,700],[768,650],[980,600]])for(const site of Object.keys(FISHING_DOCKS))for(const skin of FISHING_SKINS){
- const landscape=['palace','volcano','origin'].includes(site),iw=landscape?1440:1024,ih=landscape?960:1536;
+ const iw=1536,ih=1024;
  const l=fishingDockLayout({width,height,imageWidth:iw,imageHeight:ih,site,skin:skin.id});
  const seat=fishingSkin(skin.id).seat;
  assert.ok(Math.abs(l.angler.left+l.angler.size*seat[0]-l.dock.x)<1e-6);

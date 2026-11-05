@@ -22,32 +22,49 @@ const rand=(a,b)=>a+Math.random()*(b-a);
 
 // ── WebGL 물결 ──
 const VERT='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;v.y=1.-v.y;gl_Position=vec4(p,0.,1.);}';
-const FRAG=`precision mediump float;varying vec2 v;uniform sampler2D img;uniform vec4 cover;uniform float t;uniform vec2 res;uniform vec4 rip[4];uniform vec2 cam;
+const FRAG=`precision mediump float;varying vec2 v;uniform sampler2D img;uniform vec4 cover;uniform float t;uniform vec2 res;uniform vec4 rip[4];uniform vec2 cam;uniform vec3 skyOrb;
 vec4 tex(vec2 s){return texture2D(img,cover.xy+s*cover.zw);}
 void main(){
  vec2 s=v+cam;
+ vec2 world=cover.xy+s*cover.zw;
  vec4 c0=tex(s);
- float water=smoothstep(.015,.14,c0.b-c0.r*.85)*smoothstep(.28,.52,v.y);
- vec2 o=vec2(sin(v.y*70.+t*1.7)*.0018+sin(v.x*23.+t*.9)*.0011,cos(v.x*48.+t*1.3)*.0014+sin(v.y*31.-t*1.1)*.0009)*water;
+ // Source-image masks keep the whole dock still, including on narrow phone crops.
+ float aboveDock=1.-smoothstep(.53,.63,world.y);
+ float green=smoothstep(.015,.12,c0.g-max(c0.r*.90,c0.b*.91));
+ float blossom=smoothstep(.025,.19,max(c0.r,c0.b)-c0.g)*smoothstep(.22,.58,max(c0.r,c0.b));
+ float leafySide=1.-smoothstep(.40,.63,world.x);
+ float foliage=max(green,blossom*.8)*aboveDock*max(leafySide,1.-smoothstep(.15,.32,world.y));
+ float breeze=sin(t*.68+world.y*8.)*.65+sin(t*1.37+world.x*23.+world.y*11.)*.35;
+ vec2 wind=vec2(breeze*.0042,sin(t*.9+world.x*13.)*.0015)*foliage;
+ float sky=(1.-smoothstep(.28,.48,world.y))*smoothstep(.30,.52,world.x);
+ float cloudTone=1.-smoothstep(.22,.52,max(c0.r,max(c0.g,c0.b))-min(c0.r,min(c0.g,c0.b)));
+ float stillOrb=skyOrb.z>0.?smoothstep(skyOrb.z,skyOrb.z+.035,length(world-skyOrb.xy)):1.;
+ vec2 cloud=vec2(sin(world.y*9.+t*.12)*.005,cos(world.x*10.+t*.10)*.0017)*sky*cloudTone*stillOrb;
+ float openWater=smoothstep(.42,.53,world.y)*smoothstep(.36,.47,world.x);
+ float water=smoothstep(-.025,.13,max(c0.b-c0.r*.85,c0.g-c0.r*.94))*openWater;
+ vec2 o=wind+cloud+vec2(sin(v.y*70.+t*1.7)*.0018+sin(v.x*23.+t*.9)*.0011,cos(v.x*48.+t*1.3)*.0014+sin(v.y*31.-t*1.1)*.0009)*water;
  float ring=0.;
  for(int i=0;i<4;i++){vec4 r=rip[i];if(r.w<=0.)continue;vec2 d=(v-r.xy)*vec2(res.x/res.y,2.6);float dist=length(d),age=t-r.z;float wave=sin(dist*90.-age*9.)*exp(-dist*7.)*exp(-age*1.4)*step(dist,age*.16);ring+=wave*r.w;o+=normalize(d+1e-4)*wave*.006*r.w;}
  vec4 c=tex(s+o);
  float caustic=pow(max(0.,sin((v.x*38.+sin(v.y*26.+t*1.2)*1.6+t*.6))*sin(v.y*44.-t*.8+sin(v.x*17.)*1.3)),6.);
  c.rgb+=water*(caustic*.10+ring*.20)*vec3(.85,.97,1.);
- c.rgb+=water*.035*sin(t*.7+v.x*6.);
+ c.rgb+=water*.025*sin(t*.7+v.x*6.);
+ float star=smoothstep(.78,.96,max(c0.r,max(c0.g,c0.b)))*sky*stillOrb;
+ c.rgb+=star*.035*sin(t*1.3+world.x*137.+world.y*193.);
+ c.rgb+=foliage*.008*sin(t*.65+world.x*7.);
  gl_FragColor=vec4(c.rgb,1.);
 }`;
 function makeWater(canvas){
  const gl=canvas.getContext('webgl',{premultipliedAlpha:false,antialias:false,alpha:false,powerPreference:'low-power'});if(!gl)return null;
  const sh=(type,src)=>{const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
  const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VERT));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FRAG));gl.linkProgram(prog);
- if(!gl.getProgramParameter(prog,gl.LINK_STATUS))return null;gl.useProgram(prog);
+ if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(prog));gl.useProgram(prog);
  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
  const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
  const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
  for(const [k,val] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,val);
  const u=n=>gl.getUniformLocation(prog,n);
- return {gl,u:{cover:u('cover'),t:u('t'),res:u('res'),rip:u('rip'),cam:u('cam')},src:'',ready:false,
+ return {gl,u:{cover:u('cover'),t:u('t'),res:u('res'),rip:u('rip'),cam:u('cam'),skyOrb:u('skyOrb')},src:'',ready:false,
   upload(img){if(this.src===img.currentSrc&&this.ready)return;if(!img.complete||!img.naturalWidth)return;try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);this.src=img.currentSrc;this.ready=true;}catch{this.ready=false;}},
  };
 }
@@ -57,6 +74,26 @@ function coverRect(img,w,h){
  const iw=img.naturalWidth,ih=img.naturalHeight,scale=Math.max(w/iw,h/ih),vw=w/scale/iw,vh=h/scale/ih;
  const pos=getComputedStyle(img).objectPosition.split(' ').map(x=>parseFloat(x)/100),px=Number.isFinite(pos[0])?pos[0]:.5,py=Number.isFinite(pos[1])?pos[1]:.5;
  return [(1-vw)*px,(1-vh)*py,vw,vh];
+}
+
+// Canvas fallback uses the same painted image and source masks when WebGL is unavailable.
+function atmosphereLayers(art,spot){
+ const w=art.naturalWidth,h=art.naturalHeight,base=document.createElement('canvas');base.width=w;base.height=h;
+ const bc=base.getContext('2d',{willReadFrequently:true});bc.drawImage(art,0,0);
+ try{
+  const original=bc.getImageData(0,0,w,h),leaves=new ImageData(new Uint8ClampedArray(original.data),w,h),clouds=new ImageData(new Uint8ClampedArray(original.data),w,h);
+  const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+  for(let i=0;i<original.data.length;i+=4){
+   const x=(i/4%w)/w,y=Math.floor(i/4/w)/h,r=original.data[i]/255,g=original.data[i+1]/255,b=original.data[i+2]/255;
+   const green=smooth(.015,.12,g-Math.max(r*.90,b*.91)),blossom=smooth(.025,.19,Math.max(r,b)-g)*smooth(.22,.58,Math.max(r,b));
+   const leaf=Math.max(green,blossom*.8)*(1-smooth(.53,.63,y))*Math.max(1-smooth(.40,.63,x),1-smooth(.15,.32,y));
+   const orb=spot==='moon'?smooth(.17,.205,Math.hypot(x-.8,y-.16)):1;
+   const sky=(1-smooth(.28,.48,y))*smooth(.30,.52,x)*(1-smooth(.22,.52,Math.max(r,g,b)-Math.min(r,g,b)))*smooth(.45,.75,Math.max(r,g,b))*orb;
+   leaves.data[i+3]=Math.round(leaf*255);clouds.data[i+3]=Math.round(sky*180);
+  }
+  const layer=data=>{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').putImageData(data,0,0);return c;};
+  return {leaves:layer(leaves),clouds:layer(clouds)};
+ }catch{return null;}
 }
 
 class FishingFx{
@@ -71,7 +108,7 @@ class FishingFx{
  dispose(){cancelAnimationFrame(this.raf);this.raf=0;removeEventListener('pointermove',this.onMove);document.removeEventListener('visibilitychange',this.onVis);this.glCanvas?.remove();this.fx?.remove();this.scene=null;}
  attach(scene){
   this.scene=scene;const art=scene.querySelector('.fishing-scene-art');
-  if(!this.glCanvas&&!this.glFailed){this.glCanvas=document.createElement('canvas');this.glCanvas.className='fishing-fx-water';try{this.water=makeWater(this.glCanvas);}catch{this.water=null;}if(!this.water){this.glFailed=true;this.glCanvas=null;}}
+  if(!this.glCanvas&&!this.glFailed){this.glCanvas=document.createElement('canvas');this.glCanvas.className='fishing-fx-water';try{this.water=makeWater(this.glCanvas);}catch(error){console.warn('fishing water renderer',error);this.water=null;}if(!this.water){this.glFailed=true;this.glCanvas=document.createElement('canvas');this.glCanvas.className='fishing-fx-water';this.fallbackWater=this.glCanvas.getContext('2d');}}
   if(this.glCanvas&&art)art.after(this.glCanvas);
   if(!this.fx){this.fx=document.createElement('canvas');this.fx.className='fishing-fx-layer';this.ctx=this.fx.getContext('2d');}
   const notice=scene.querySelector('.fishing-catch-notice');notice?notice.before(this.fx):scene.append(this.fx);
@@ -79,7 +116,7 @@ class FishingFx{
   scene.classList.add('fishing-fx-on');
  }
  size(){
-  const s=this.scene,w=s.clientWidth,h=s.clientHeight,dpr=Math.min(devicePixelRatio||1,1.5);
+  const s=this.scene,w=s.clientWidth,h=s.clientHeight,dpr=Math.min(devicePixelRatio||1,this.fallbackWater?1:1.5);
   for(const c of [this.glCanvas,this.fx]){if(!c)continue;const cw=Math.round(w*dpr),ch=Math.round(h*dpr);if(c.width!==cw||c.height!==ch){c.width=cw;c.height=ch;}}
   return {w,h,dpr};
  }
@@ -130,7 +167,7 @@ class FishingFx{
   const camX=still?0:Math.sin(t*.13)*.004+p.x*.006,camY=still?0:Math.cos(t*.11)*.003+p.y*.004;
   // 카메라 흔들림(입질·낚아올림)
   const sk=Math.max(0,1-(now-this.shake)/380),shx=sk?(Math.random()-.5)*7*sk:0,shy=sk?(Math.random()-.5)*5*sk:0;
-  const angler=this.scene.querySelector('.fishing-angler');if(angler&&!still)angler.style.translate=`${(-p.x*6).toFixed(1)}px ${(-p.y*3).toFixed(1)}px`;
+  const angler=this.scene.querySelector('.fishing-angler');if(angler&&!still)angler.style.translate=this.scene.querySelector('.fishing-scene-art')?.dataset.anchored?'0px 0px':`${(-p.x*6).toFixed(1)}px ${(-p.y*3).toFixed(1)}px`;
   this.scene.style.setProperty('--fx-shake',`${shx.toFixed(1)}px ${shy.toFixed(1)}px`);
   // WebGL 물
   const art=this.scene.querySelector('.fishing-scene-art');
@@ -138,6 +175,7 @@ class FishingFx{
    const W=this.water,gl=W.gl;W.upload(art);
    if(W.ready){
     gl.viewport(0,0,this.glCanvas.width,this.glCanvas.height);
+    gl.uniform3fv(W.u.skyOrb,this.spot==='moon'?[.80,.16,.17]:[0,0,0]);
     gl.uniform4fv(W.u.cover,coverRect(art,w,h));gl.uniform1f(W.u.t,still?0:t);gl.uniform2f(W.u.res,w,h);gl.uniform2f(W.u.cam,art.dataset.anchored?0:camX,art.dataset.anchored?0:camY);
     const rip=new Float32Array(16);this.ripples.forEach((r,i)=>{rip.set([r.x/w,r.y/h,r.t,t-r.t<4?r.amp:0],i*4);});
     // 찌가 떠 있는 동안은 잔잔한 고리가 계속 퍼진다.
@@ -145,6 +183,20 @@ class FishingFx{
     gl.uniform4fv(W.u.rip,rip);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
     this.glCanvas.classList.add('ready');
    }
+  }
+  if(this.fallbackWater&&art?.complete&&art.naturalWidth&&now-(this.fallbackAt||0)>33){
+   this.fallbackAt=now;const c=this.fallbackWater,l=parseFloat(art.style.left)||0,top=parseFloat(art.style.top)||0,iw=parseFloat(art.style.width)||w,ih=parseFloat(art.style.height)||h;
+   if(this.atmosphereSrc!==art.currentSrc){this.atmosphereSrc=art.currentSrc;this.atmosphereLayers=atmosphereLayers(art,this.spot);}
+   c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);c.drawImage(art,l,top,iw,ih);
+   if(!still){
+    const left=Math.max(0,l+iw*.45),start=Math.max(0,top+ih*.48),sourceScale=art.naturalWidth/iw;
+    for(let y=start;y<h;y+=6){const row=Math.min(6,h-y),wave=Math.sin(y*.065+t*1.4)*1.6+Math.sin(y*.021-t*.8)*.8;
+     c.drawImage(art,(left-l-wave)*sourceScale,(y-top)*sourceScale,(w-left)*sourceScale,row*sourceScale,left,y,w-left,row);
+    }
+    const layers=this.atmosphereLayers;
+    if(layers){c.drawImage(layers.leaves,l+Math.sin(t*.72)*w*.0023,top+Math.sin(t*.93)*h*.0008,iw,ih);c.drawImage(layers.clouds,l+Math.sin(t*.11)*w*.004,top+Math.cos(t*.09)*h*.001,iw,ih);}
+   }
+   this.glCanvas.classList.add('ready');
   }
   // 2D 효과
   const c=this.ctx;c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);if(still&&!this.jump)return;
