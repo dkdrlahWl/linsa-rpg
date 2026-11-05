@@ -61,7 +61,8 @@ export const baitGradeWeight=(fish,bait)=>(bait?.rare||1)**Math.min(BAIT_RARE_CA
 // Deeper spots: each grade up is spot.luck x more likely (first spot 1x).
 export const spotGradeWeight=fish=>(SPOTS.find(x=>x.id===fish.spot)?.luck||1)**fish.rarity;
 // Bite wait is the only cast delay. Every bite is caught.
-export const BITE_MIN_MS=5000,BITE_RANGE_MS=4000,CAST_EXPIRE_MS=60000;
+export const BITE_MIN_MS=3000,BITE_RANGE_MS=2000,// 2026-11-05 도현: 모두 어부처럼 입질 3~5초
+ CAST_EXPIRE_MS=60000;
 export const FISHER_BITE_MIN_MS=3000,FISHER_BITE_RANGE_MS=2000; // 2026-11-04 도현: 어부 입질 3~5초
 // Lv.1→30 grows 16%/level; Lv.30+ only 7%/level. Lv.1→50 totals about 17M gold.
 // 2026-10-25 Lv.50+: gold grows 15%/level, diamonds 20 + 2/level (Lv.50→70 ≈ 1.46억 G + 780 다이아).
