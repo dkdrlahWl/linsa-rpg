@@ -1,5 +1,5 @@
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,ROD_ENHANCE,ROD_ENHANCE_MAX,ENHANCE_TOKEN_BONUS,ENHANCE_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,ROD_ENHANCE,ROD_ENHANCE_MAX,ENHANCE_TOKEN_BONUS,ENHANCE_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,ENHANCE_POWER,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=5; // v3 낚시 개편
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
@@ -33,6 +33,8 @@ export function normalizeFishing(s,now){
   }
   f.v3Refund={gold:r.gold,diamonds:r.diamonds,at:now};
  }
+ // 시험판(Lv.1~50 낚싯대) 상태 → 8종 낚싯대 단계로 변환.
+ if(!Number.isInteger(f.rod)||f.rod<1)f.rod=1;if(f.rod>ROD_MAX)f.rod=SPOTS.filter(x=>x.depth<=f.rod).length||1;
  f.tokens=Number.isSafeInteger(f.tokens)&&f.tokens>=0?f.tokens:0;f.enhance=Number.isInteger(f.enhance)?Math.max(0,Math.min(ROD_ENHANCE_MAX,f.enhance)):0;f.enchants=Array.isArray(f.enchants)?f.enchants.slice(0,3):[];
  f.collection??={};f.daily??={};f.bait??={worm:0};
  if(f.daily.day!==koreanDay(now))f.daily={day:koreanDay(now),catch:0,rare:0,sell:0,exchanged:0,claimed:[]};
@@ -48,8 +50,8 @@ const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
 // ── v3 손맛 낚시 ──
 // 낚싯대 힘 = 레벨 + 강화×2. 물고기가 요구하는 힘 = 낚시터 레벨 + 등급×4 + 크기 단계×3.
 // 힘이 모자랄수록 막대가 좁고 빠르고 줄이 쉽게 끊어진다. 15 넘게 모자라면 바로 끊어진다.
-export const rodPower=f=>Math.max(1,f?.rod||1)+2*(f?.enhance||0);
-export function fishNeed(fish){const d=FISH.find(x=>x.id===fish.species),spot=SPOTS.find(x=>x.id===d.spot),size=Math.max(0,FISH_SIZES.findIndex(x=>x.id===fishSizeOf(fish).id));return spot.level+d.rarity*4+size*3;}
+export const rodPower=f=>rodTier(f).power+ENHANCE_POWER*(f?.enhance||0);
+export function fishNeed(fish){const d=FISH.find(x=>x.id===fish.species),spot=SPOTS.find(x=>x.id===d.spot),size=Math.max(0,FISH_SIZES.findIndex(x=>x.id===fishSizeOf(fish).id));return spot.depth+d.rarity*4+size*3;}
 export const FISHING_SNAP_DEFICIT=15,FISHING_TICK_MS=50;
 export function fishingDifficulty(fish,power){
  const d=FISH.find(x=>x.id===fish.species),size=Math.max(0,FISH_SIZES.findIndex(x=>x.id===fishSizeOf(fish).id)),deficit=fishNeed(fish)-power;
@@ -88,7 +90,7 @@ export const fishingMeter=()=>({tick:0,cursor:.5,vel:0,hits:0,strain:0,progress:
 export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.000585,.000189,.000018];
 // v3 낚시 판정. 낚싯대 레벨·강화·인챈트·낚시터 특기·미끼가 모두 여기서 합쳐진다.
 export function fishingBonuses(s,f,spot,bait){
- const sp=spot?.special||{},rod=Math.max(1,f?.rod||1),star=f?.enhance||0;
+ const sp=spot?.special||{},power=rodPower(f),star=f?.enhance||0;
  return {
   rare:(sp.rare||1)*(1+ENHANCE_RARE_BONUS*star)*(1+fishingEnchant(f,'rare')),
   legend:bait?.legend||1,
@@ -97,9 +99,9 @@ export function fishingBonuses(s,f,spot,bait){
   key:(sp.key||1)*(bait?.key||1)*(1+fishingEnchant(f,'key'))*professionGather(s,'dungeonKey'),
   double:(sp.double||0)+(bait?.double||0)+fishingEnchant(f,'double'),
   mut:(sp.mut||1)*(bait?.mut||1),
-  bite:(sp.bite||1)*(1-.005*(rod-1))*(1-fishingEnchant(f,'bite')),
+  bite:(sp.bite||1)*(1-.004*Math.max(0,power-8))*(1-fishingEnchant(f,'bite')),
   token:1+ENHANCE_TOKEN_BONUS*star+fishingEnchant(f,'token'),
-  rodRare:r=>1+.009*(rod-1)*r,
+  rodRare:r=>1+.007*Math.max(0,power-8)*r,
  };
 }
 function rollSpecies(spot,bait,b,ctx){
@@ -217,12 +219,17 @@ export function fishingCommand(s,command,args,ctx){
   if(currency==='gold')spendGold(s,cost);else spendTokens(f,cost);
   f.bait[bait.id]=(f.bait[bait.id]||0)+args.count;return {type:'fishBaitBuy',count:args.count,[currency]:cost,currency};
  }
+ // v3: 다음 낚싯대를 토큰으로 산다 (순서대로).
+ if(command==='fishRodBuy'){
+  require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');const next=ROD_TIERS[f.rod];require(args.tier===next.tier,'FISHING_REFRESH_REQUIRED');
+  spendTokens(f,next.tokens);f.rod=next.tier;return {type:'fishRodBuy',tier:next.tier,name:next.name,tokens:next.tokens};
+ }
  if(command==='fishTrain'){
-  require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');const cost=rodGoldCost(f.rod);
+  require(false,'FISHING_REFRESH_REQUIRED');const cost=rodGoldCost(f.rod);
   require(f.xp<cost,'FISHING_XP_FULL');require(integer(args.gold,1,cost-f.xp),'INVALID_FISHING_COST');spendGold(s,args.gold);f.xp+=args.gold;return {type:'fishTrain'};
  }
  if(command==='fishUpgrade'){
-  require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');require(f.xp>=rodGoldCost(f.rod),'FISHING_XP_REQUIRED');const cost=rodDiamondCost(f.rod);
+  require(false,'FISHING_REFRESH_REQUIRED');require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');require(f.xp>=rodGoldCost(f.rod),'FISHING_XP_REQUIRED');const cost=rodDiamondCost(f.rod);
   require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');f.diamonds-=cost;f.rod++;f.xp=0;return {type:'fishUpgrade',level:f.rod};
  }
  if(command==='fishSell'){
@@ -251,8 +258,8 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishAquariumExpand'){require(f.slots<10,'FISHING_MAX_SLOTS');const cost=aquariumExpandCost(f.slots);spendTokens(f,cost);f.slots++;return {type:'fishAquariumExpand',slots:f.slots,tokens:cost};}
  // ── v3 낚싯대 강화 (토큰, 실패하면 토큰만 사라지고 단계 유지) ──
  if(command==='fishEnhance'){
-  require(f.enhance<ROD_ENHANCE_MAX,'FISHING_ENHANCE_MAX');const step=ROD_ENHANCE[f.enhance];spendTokens(f,step.cost);
-  const success=ctx.random()<step.chance;if(success)f.enhance++;return {type:'fishEnhance',success,level:f.enhance,tokens:step.cost};
+  require(f.enhance<ROD_ENHANCE_MAX,'FISHING_ENHANCE_MAX');const step=ROD_ENHANCE[f.enhance];require(f.diamonds>=step.cost,'FISHING_DIAMONDS_REQUIRED');f.diamonds-=step.cost;
+  const success=ctx.random()<step.chance;if(success)f.enhance++;return {type:'fishEnhance',success,level:f.enhance,diamonds:step.cost};
  }
  // ── v3 인챈트: 잠그지 않은 열린 칸을 전부 다시 뽑는다. 잠근 칸 1개마다 비용 2배 ──
  if(command==='fishEnchant'){
