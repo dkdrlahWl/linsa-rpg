@@ -12,15 +12,15 @@ export const fishingDailyCasts=s=>s?.profession?.id==='fisher'?FISHER_DAILY_CAST
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
 export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240},{name:'태고',color:'#7ff6ff',gate:70,value:600}];
 export const SPOTS=[
- {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,special:{bite:.5},specialText:'입질 2배 빠름',subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
- {id:'moon',bonus:1.15,luck:1.6,name:'달빛 호수',level:8,special:{double:.25,mut:3},specialText:'두 마리 동시 25% · 돌연변이 ×3',subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
- {id:'canyon',bonus:1.3,luck:1.7,name:'단풍 협곡',level:15,special:{key:1.4},specialText:'던전 열쇠 ×1.4',subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
- {id:'coral',bonus:1.45,luck:1.8,name:'산호 해안',level:22,special:{chest:1.5},specialText:'다이아 상자 ×1.5',subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
- {id:'abyss',bonus:1.6,luck:1.9,name:'천상의 심해',level:29,special:{rare:1.4},specialText:'희귀 이상 ×1.4',subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
+ {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,special:{},specialText:'',subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
+ {id:'moon',bonus:1.15,luck:1.6,name:'달빛 호수',level:8,special:{},specialText:'',subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
+ {id:'canyon',bonus:1.3,luck:1.7,name:'단풍 협곡',level:15,special:{},specialText:'',subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
+ {id:'coral',bonus:1.45,luck:1.8,name:'산호 해안',level:22,special:{},specialText:'',subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
+ {id:'abyss',bonus:1.6,luck:1.9,name:'천상의 심해',level:29,special:{},specialText:'',subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
  // 2026-10-25: 낚싯대 70 확장. 용궁 해구 Lv.50, 불꽃 열수해 Lv.60, 태고의 바다 Lv.70 (태고 등급은 태고의 바다에서만).
- {id:'palace',bonus:1.65,tank:1.25,luck:1.95,name:'용궁 해구',level:36,special:{ticket:3},specialText:'보물찾기 티켓 ×3',subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
- {id:'volcano',bonus:1.7,tank:1.5,luck:2,name:'불꽃 열수해',level:43,special:{big:1.3},specialText:'대어 확률 ×1.3',subtitle:'바다 밑 화산이 숨 쉬는 곳',accent:'#ff8a5a'},
- {id:'origin',bonus:1.75,tank:1.8,luck:2.05,name:'태고의 바다',level:50,special:{},specialText:'태고 등급 출현',subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
+ {id:'palace',bonus:1.65,tank:1.25,luck:1.95,name:'용궁 해구',level:36,special:{},specialText:'',subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
+ {id:'volcano',bonus:1.7,tank:1.5,luck:2,name:'불꽃 열수해',level:43,special:{},specialText:'',subtitle:'바다 밑 화산이 숨 쉬는 곳',accent:'#ff8a5a'},
+ {id:'origin',bonus:1.75,tank:1.8,luck:2.05,name:'태고의 바다',level:50,special:{},specialText:'',subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
 ];
 const rows=[
  ['brook','풀잎 피라미',0,80,300,'leaf green minnow with gold fins'],['brook','은빛 송사리',0,20,120,'tiny silver ricefish with pale green fins'],['brook','조약돌 망둑어',0,100,450,'round speckled stone goby'],['brook','햇살 붕어',0,250,1500,'warm golden crucian carp'],['brook','산들 메기',0,400,2500,'cute moss grey catfish with flowing whiskers'],['brook','꽃잎 잉어',0,300,2000,'pink white koi with petal shaped fins'],['brook','이끼 비늘어',1,400,2500,'emerald moss scaled fish'],['brook','청금 송어',1,700,3500,'turquoise trout with golden flecks'],['brook','반딧불 버들치',1,120,800,'willow minnow with luminous yellow speckles'],['brook','수련 베타',1,100,600,'jade pink betta with lotus petal fins'],
@@ -32,6 +32,7 @@ const rows=[
  ['volcano','용암 피라미',0,600,3500,'tiny lava minnow with glowing orange cracks'],['volcano','흑요석 망둑어',0,1000,6000,'black obsidian goby with ember eyes'],['volcano','유황 해파리어',1,1500,9000,'yellow sulfur jellyfish like fish with glowing tendrils'],['volcano','화산재 메기',1,2500,15000,'ash grey catfish with smoldering whiskers'],['volcano','불꽃 날치',2,3000,18000,'flying fish with flame wings'],['volcano','마그마 거북',2,8000,50000,'small sea turtle with a glowing magma shell'],['volcano','홍염 랍스터어',3,10000,60000,'crimson flame lobster fish with molten claws'],['volcano','화염비늘 상어',3,20000,120000,'shark with burning ember scales'],['volcano','불사조 가오리',4,30000,200000,'phoenix manta ray with fiery feather wings'],['volcano','화산신 이프리트어',5,55000,350000,'mythical fire god fish with a crown of lava and golden flames'],
  ['origin','원시 화석어',0,1500,9000,'ancient armored fossil fish with stone plates'],['origin','호박빛 투명어',1,2000,12000,'translucent fish glowing like amber'],['origin','고대 앵무조개',1,3000,18000,'ancient nautilus with golden spiral shell'],['origin','시간의 비늘어',2,6000,35000,'fish with clock like silver scales and glowing runes'],['origin','태초 물결가오리',2,10000,60000,'primordial ray with aurora wave wings'],['origin','창세의 고래상어',3,25000,150000,'genesis whale shark with starry spots'],['origin','별을 삼킨 리바이어던',4,40000,260000,'cosmic leviathan with a galaxy belly'],['origin','태양을 품은 해룡',5,60000,380000,'mythical sea dragon carrying a radiant sun orb'],['origin','태고의 세계어',6,120000,800000,'primordial world fish with tiny islands and forests on its back, cosmic aura'],['origin','시원의 백금룡',6,100000,650000,'primordial platinum dragon of creation with prismatic aura'],
 ];
+// 2026-11-05 도현: 낚시터별 특기(버프) 삭제 — 낚시터 차이는 물고기 종류·등급뿐.
 // v3: 물고기는 낚시터가 열리면 등급 상관없이 전부 나온다 (등급 관문 없음).
 export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:SPOTS.find(s=>s.id===spot).level}));
 // v3 미끼: 지렁이만 골드, 나머지는 낚시 토큰. luck=희귀 이상(최대 2단계 위까지) 배율 지수, 나머지는 각 효과 배율.
