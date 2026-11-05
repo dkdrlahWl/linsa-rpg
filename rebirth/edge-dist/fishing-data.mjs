@@ -162,7 +162,8 @@ export const ENCHANTS=Object.freeze([
  {id:'tank',name:'수족관 골드',values:[.10,.20,.35,.60]},
 ].map(Object.freeze));
 // 2026-11-05 도현: 인챈트 비용은 낚싯대 단계에 비례 — 그 단계 하루 수입(600회)의 약 30%. 잠금 1칸마다 ×2.
-export const ENCHANT_COST_BY_TIER=Object.freeze([1000,1000,2000,3000,5000,7000,13000,20000,30000,50000,70000,100000,150000,300000,600000,1200000]);
+// 2026-11-05 도현: 인챈트는 토큰이 아니라 다이아로, 비싸게. 낚싯대 단계별 1회 다이아(잠금 1칸마다 2배).
+export const ENCHANT_COST_BY_TIER=Object.freeze([10,10,12,14,16,20,24,28,32,36,40,45,50,55,60,70]);
 export const ENCHANT_COST=ENCHANT_COST_BY_TIER[0],ENCHANT_LOCK_MULT=2;
 export const enchantCost=(locked,tier=1)=>ENCHANT_COST_BY_TIER[Math.max(1,Math.min(ENCHANT_COST_BY_TIER.length,tier||1))-1]*ENCHANT_LOCK_MULT**locked;
 export const enchantText=e=>{const d=ENCHANTS.find(x=>x.id===e?.id);if(!d)return '';const v=d.values[e.tier];return d.name+' '+(d.flat?Math.round(v*100)+'%':(d.sign||'+')+Math.round(v*100)+'%');};
