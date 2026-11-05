@@ -103,13 +103,14 @@ export const FISH_PRICE_BASE=480; // 2026-10-12: sale prices -20%
 export const legacyFishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;const bonus=SPOTS.find(x=>x.id===d.spot).bonus;return Math.max(10,Math.round(RARITIES[d.rarity].value*FISH_PRICE_BASE*bonus*(1.1+.3*Math.min(1,fish.weight/d.max))/10)*10);};
 // ── v3 크기 등급 · 돌연변이 ──
 // 크기: 무게 구간(종 최소~최대 기준 비율, 1 넘으면 최대 무게의 배수)과 가치 배율. 큰 것일수록 드물다.
+// 2026-11-05 도현: 대어·괴물급·기록급 확률 반토막(6%→3%, 1.7%→0.85%, 0.3%→0.15%), 줄어든 몫은 작음·보통·큼에 비율대로.
 export const FISH_SIZES=Object.freeze([
- {id:'small',name:'작음',p:.40,mult:.7,from:0,to:.3,color:'#a9b8b0'},
- {id:'normal',name:'보통',p:.35,mult:1,from:.3,to:.65,color:'#d8e7d1'},
- {id:'large',name:'큼',p:.17,mult:1.5,from:.65,to:1,color:'#9fe0ff'},
- {id:'big',name:'대어',p:.06,mult:2.5,max:[1,1.2],color:'#ffd477'},
- {id:'monster',name:'괴물급',p:.017,mult:5,max:[1.4,1.8],color:'#ff9a6b'},
- {id:'record',name:'기록급',p:.003,mult:12,max:[2.2,2.8],color:'#ff6bd0'},
+ {id:'small',name:'작음',p:.418,mult:.7,from:0,to:.3,color:'#a9b8b0'},
+ {id:'normal',name:'보통',p:.365,mult:1,from:.3,to:.65,color:'#d8e7d1'},
+ {id:'large',name:'큼',p:.177,mult:1.5,from:.65,to:1,color:'#9fe0ff'},
+ {id:'big',name:'대어',p:.03,mult:2.5,max:[1,1.2],color:'#ffd477'},
+ {id:'monster',name:'괴물급',p:.0085,mult:5,max:[1.4,1.8],color:'#ff9a6b'},
+ {id:'record',name:'기록급',p:.0015,mult:12,max:[2.2,2.8],color:'#ff6bd0'},
 ].map(Object.freeze));
 // 돌연변이: 크기와 따로 추첨, 배율은 곱한다.
 export const MUTATIONS=Object.freeze([
