@@ -1442,6 +1442,7 @@ function showEvents(events) {
     if(e.type==='fishExchange'){toast(e.name+' '+e.count+'개 교환 완료 · 다이아 '+e.diamonds+'개 사용');continue;}
     if(e.type==='fishContestClaim'){toast('대어 대회 '+e.rank+'위 보상 · 다이아 '+e.diamonds+'개, 에디셔널 큐브 '+e.addCube+'개');continue;}
     if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
+    if(e.type==='fishRodBuy'){sounds.play('loot-rare');toast('🎣 '+e.name+' 구매! 새 낚시터가 열렸어요.');continue;}
     if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
     if(e.type==='lottoGold'){toast(`로또 당첨금 ${fmt(e.amount)}골드를 받았습니다.`);continue;}
@@ -1801,12 +1802,13 @@ document.addEventListener("click", async (e) => {
     if(action==='fishExchange'){const [item,count]=String(arg).split(':');return await fishingCommandRequest('fishExchange',{item,count:Number(count)});}
     if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
-    if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
+    if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast(spot.level+'단계 낚싯대부터 입장할 수 있어요. 낚싯대 메뉴에서 구매해 주세요.');fishingUI.spot=arg;render();return;}
     if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}if(!((state.fishing?.autoUntil||0)>Date.now())){fishingUI.panel='shop';render();return toast('🤖 자동 낚시권이 있어야 오토 낚시를 할 수 있어요. 상점에서 구매해 주세요.');}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
     if(action==='fishCancel'&&fishingUI.auto)stopAutoFishing();
     if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:5});}
     // v3 낚시: 강화·인챈트·합성·각성
     if(action==='fishEnhance')return await fishingCommandRequest('fishEnhance',{});
+    if(action==='fishRodBuy')return await fishingCommandRequest('fishRodBuy',{tier:Number(arg)});
     if(action==='fishAutoBuy')return await fishingCommandRequest('fishAutoBuy',{plan:arg});
     if(action==='fishEnchantLock'){const i=Number(arg),l=new Set(fishingUI.locks||[]);l.has(i)?l.delete(i):l.add(i);fishingUI.locks=[...l];return render();}
     if(action==='fishEnchant'){const slots=(state.fishing?.enhance||0)>=8?3:(state.fishing?.enhance||0)>=4?2:1;return await fishingCommandRequest('fishEnchant',{locks:(fishingUI.locks||[]).filter(i=>i<slots&&state.fishing?.enchants?.[i])});}

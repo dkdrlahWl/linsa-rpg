@@ -144,3 +144,11 @@
 .bait-shop .bait-buy .fishing-button-art,.fishing-auto-plans .fishing-button-art{display:none}
 .bait-lock{flex:1;text-align:center;font-size:12px;color:#cdbf9f;padding:6px;border:1px dashed #64727399;border-radius:8px}
 @media(max-width:380px){.bait-shop{grid-template-columns:1fr}}
+/* v3 낚싯대 8종 */
+.rod-list{margin-top:12px;padding:12px 14px;border:1px solid #9b7d48;border-radius:12px;background:#122430}
+.rod-list h3{margin:0 0 8px;font-size:15px}.rod-list h3 small{display:block;font-size:11px;font-weight:400;color:#cdbf9f;margin-top:2px}
+.rod-row{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;background:#0d1c26;border:1px solid #64727366;margin-top:5px;opacity:.75}
+.rod-row.owned{opacity:1}.rod-row.current{border-color:#ffd34d;box-shadow:0 0 10px #ffd34d44;opacity:1}
+.rod-row img{width:28px;height:40px;object-fit:contain;flex:none}.rod-row span{flex:1;min-width:0;display:flex;flex-direction:column}.rod-row span b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rod-row span small{font-size:11px;color:#cdbf9f}
+.rod-row em{font-style:normal;font-size:12px;color:#8fe0a0;white-space:nowrap}.rod-row i{font-style:normal;font-size:12px;color:#cdbf9f;white-space:nowrap}
+.rod-row .rod-buy{min-height:32px!important;padding:4px 10px!important;font-size:12px!important;white-space:nowrap}.rod-row .rod-buy .fishing-button-art{display:none}
