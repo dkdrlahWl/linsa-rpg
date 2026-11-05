@@ -109,7 +109,9 @@ class FishingFx{
    this.lastCatch=key;const img=new Image();img.src=key;const from=bob||{x:w*.62,y:h*.68};
    const big=Number(s.dataset.rarityTier||0);
    // 0.75초 동안 물속에서 버둥대다가(등급이 높을수록 크고 오래) 물 밖으로 튀어 오른다.
-   this.jump={img,at:now,fight:420+big*160,from,to:{x:w*.55,y:h*.48},color:s.dataset.rarity||'#ffe7a6',big,name:s.dataset.rarityName||'',title:res.getAttribute('alt')?.replace(/^잡은 /,'')||''};
+   // 오토 낚시: 짧게 튀어 올라 1초 동안 또렷이 보여 준 뒤 사라지고, 그동안 다음 던지기를 기다린다.
+   const auto=!!this.isAuto?.(),fight=auto?250:420+big*160,flyMs=auto?350:650,T=auto?fight+flyMs+1000+200:fight+1300+big*450;
+   this.jump={img,at:now,auto,flyMs,T,fight,from,to:{x:w*.55,y:h*.48},color:s.dataset.rarity||'#ffe7a6',big,name:s.dataset.rarityName||'',title:res.getAttribute('alt')?.replace(/^잡은 /,'')||''};
    res.classList.add('fishing-fx-hidden');
   }
   if(!res)this.lastCatch='';
@@ -215,10 +217,10 @@ class FishingFx{
    c.save();c.translate(p.x,p.y-k*10);c.scale(s,s);c.globalAlpha=a;c.font='900 42px system-ui,sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineWidth=7;c.strokeStyle='#5a1d00';c.strokeText(p.text,0,0);c.fillStyle='#ffd34d';c.fillText(p.text,0,0);c.restore();}
  }
  drawJump(c,now,w,h){
-  const j=this.jump;if(!j)return;const el=now-j.at,F=j.fight,T=F+1300+j.big*450;
+  const j=this.jump;if(!j)return;const el=now-j.at,F=j.fight,T=j.T;
   // 다음 낚시를 던지면(오토 포함) 연출을 0.3초 안에 접는다.
   if(this.phase!=='caught'&&!j.ending)j.ending=now;const endFade=j.ending?Math.max(0,1-(now-j.ending)/300):1;
-  if(el>=T||endFade<=0){this.jump=null;this.scene.querySelector('.fishing-result-fish')?.classList.remove('fishing-fx-hidden');return;}
+  if(el>=T||endFade<=0){const done=j;this.jump=null;if(!done.auto)this.scene.querySelector('.fishing-result-fish')?.classList.remove('fishing-fx-hidden');return;}
   // 1) 버둥대기: 찌 자리에서 그림자가 크게 요동치고 물보라가 계속 튄다.
   c.save();c.globalAlpha=endFade;
   if(el<F){
@@ -231,9 +233,9 @@ class FishingFx{
   const e2=el-F,k=e2/(T-F);
   if(e2<30&&!j.launched){j.launched=true;this.splash(j.from.x,j.from.y,36+j.big*8,1.8+j.big*.25);this.shake=now;if(j.big>=4)j.flash=now;}
   // 2) 튀어 오르기 → 3) 공중에서 빛나며 보여주기 → 4) 사라짐
-  const fly=Math.min(1,e2/650),ease=1-(1-fly)**3;
+  const fly=Math.min(1,e2/j.flyMs),ease=1-(1-fly)**3;
   const x=j.from.x+(j.to.x-j.from.x)*ease,y=j.from.y+(j.to.y-j.from.y)*ease-Math.sin(fly*Math.PI)*h*.14;
-  const size=Math.min(w,h)*(.14+.08*ease+.014*j.big)*(1+.05*Math.sin(now/120)),rot=(1-ease)*-1.6+Math.sin(now/260)*.07,a=(k>.85?1-(k-.85)/.15:1)*endFade;
+  const size=Math.min(w,h)*(.14+.08*ease+.014*j.big)*(1+.05*Math.sin(now/120)),rot=(1-ease)*-1.6+Math.sin(now/260)*.07,a=(j.auto?Math.min(1,(T-el)/200):k>.85?1-(k-.85)/.15:1)*endFade;
   if(j.flash){const fk=(now-j.flash)/500;if(fk<1){c.save();c.fillStyle=`rgba(255,255,255,${.55*(1-fk)})`;c.fillRect(0,0,w,h);c.restore();}}
   c.save();c.globalAlpha=a;c.globalCompositeOperation='lighter';
   const glow=c.createRadialGradient(x,y,0,x,y,size*(1.1+j.big*.12));glow.addColorStop(0,j.color+'cc');glow.addColorStop(1,j.color+'00');c.fillStyle=glow;c.beginPath();c.arc(x,y,size*(1.1+j.big*.12),0,Math.PI*2);c.fill();
@@ -246,7 +248,7 @@ class FishingFx{
   c.restore();
   if(fly<1&&Math.random()<.7)this.drops.push({x,y,vx:rand(-1,1),vy:rand(0,1.5),life:.5,age:0,r:rand(1,2.2)});
   // 등급 이름 배너
-  if(fly>=1&&(j.name||j.title)){const bk=Math.min(1,(e2-650)/260),bs=bk<1?.6+.55*bk:1.15-Math.min(.15,(e2-910)/1200);
+  if(fly>=1&&(j.name||j.title)){const bk=Math.min(1,(e2-j.flyMs)/(j.auto?120:260)),bs=bk<1?.6+.55*bk:1.15-Math.min(.15,(e2-j.flyMs-260)/1200);
    c.save();c.globalAlpha=a*bk;c.translate(w/2,Math.min(h*.78,y+size*1.35));c.scale(bs,bs);c.textAlign='center';c.textBaseline='middle';
    if(j.name){c.font=`900 ${16+j.big*2}px system-ui,sans-serif`;c.lineWidth=5;c.strokeStyle='#08131c';const label=j.big>=4?'★ '+j.name+' ★':j.name;c.strokeText(label,0,-14);c.fillStyle=j.color;c.fillText(label,0,-14);}
    if(j.title){c.font='800 15px system-ui,sans-serif';c.lineWidth=4;c.strokeStyle='#08131c';c.strokeText(j.title,0,10);c.fillStyle='#fff6df';c.fillText(j.title,0,10);}
@@ -255,5 +257,7 @@ class FishingFx{
  }
 }
 let fx=null;
-export function startFishingFx(){if(!fx)fx=new FishingFx();else if(!fx.raf)fx.loop();}
+export function startFishingFx(opts={}){if(!fx)fx=new FishingFx();else if(!fx.raf)fx.loop();if(opts.isAuto)fx.isAuto=opts.isAuto;}
+// 낚은 물고기 연출이 끝나는 시각(performance.now 기준). 오토 낚시는 이 시각까지 다음 던지기를 미룬다.
+export const fishingFxBusyUntil=()=>fx?.jump&&!fx.jump.ending?fx.jump.at+fx.jump.T:0;
 export function stopFishingFx(){fx?.dispose();fx=null;}

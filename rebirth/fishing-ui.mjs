@@ -1,6 +1,6 @@
 import {fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,fishingQuestsReady,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,fishWeight,rodGoldCost,rodDiamondCost,resourceName,aquariumExpandCost,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_START,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {mountFishingScene} from './fishing-motion.mjs?v=fishing-line-180';
-import {startFishingFx,stopFishingFx} from './fishing-fx.mjs?v=fx1-20261105';
+import {startFishingFx,stopFishingFx,fishingFxBusyUntil} from './fishing-fx.mjs?v=fx2-20261105';
 import {normalizeFishing,aquariumBank} from './fishing-model.mjs';
 import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
@@ -131,6 +131,7 @@ export function scheduleAutoFishing(delay=1200){
   if(!document.querySelector('.fishing-screen'))return stopAutoFishing();
   // Wait for the previous request, a hidden tab or an active cast instead of spending bait.
   if(fishingUI.pending||document.hidden||autoState?.fishing?.cast)return scheduleAutoFishing(700);
+  const busy=fishingFxBusyUntil()-performance.now();if(busy>0)return scheduleAutoFishing(Math.ceil(busy)+30);
   const blocked=autoBlocker(autoState);if(blocked)return stopAutoFishing(blocked);
   fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;
   try{const result=await autoSend?.('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:4});if(!result&&fishingUI.auto)scheduleAutoFishing(1500);}
@@ -143,7 +144,7 @@ export function mountFishing(root,state,send){
  let cast=state.fishing?.cast;autoState=state;autoSend=send;if(!cast)scheduleAutoFishing();if(root)startFishingFx();
  if(controller?.root===root&&controller?.castId===cast?.id&&controller?.pull.isConnected){controller.accept(cast);return;}
  if(!cast&&fishingUI.pending==='fishCast')return;
- controller?.dispose();controller=null;sceneController?.dispose();sceneController=null;if(root)startFishingFx();if(!root||!cast){if(!cast){localCast=null;pendingCastStarted=null;}return;}
+ controller?.dispose();controller=null;sceneController?.dispose();sceneController=null;if(root)startFishingFx({isAuto:()=>fishingUI.auto});if(!root||!cast){if(!cast){localCast=null;pendingCastStarted=null;}return;}
  // Server clock offset from the cast receipt; the bite time is in server time.
  if(!localCast||localCast.id!==cast.id)localCast={id:cast.id,visualStarted:Math.min(cast.started,pendingCastStarted||cast.started),offset:Date.now()-cast.started<2500&&Date.now()-cast.started>-60000?cast.started-Date.now():0,hooking:false,error:false,retryAt:0,failures:0};
  const c=localCast;pendingCastStarted=null;
