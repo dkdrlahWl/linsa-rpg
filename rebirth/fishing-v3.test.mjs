@@ -46,7 +46,8 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rodScheme:16,rod:16,x
  s.fishing.rod=5;s.fishing.enchants=[];
  fishingCommand(s,'fishEnchant',{},{now,random,uuid});assert.equal(s.fishing.enchants.length,1);
  assert.throws(()=>fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid}),/INVALID_FISHING_ENCHANT/,'cannot lock every open slot');
- s.fishing.rod=16;const t0=s.fishing.tokens;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(t0-s.fishing.tokens,2400000);
+ s.fishing.rod=16;const t0=s.fishing.tokens,d0=s.fishing.diamonds;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(d0-s.fishing.diamonds,140);assert.equal(s.fishing.tokens,t0,'enchant costs diamonds, not tokens');
+ s.fishing.diamonds=139;assert.throws(()=>fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid}),/FISHING_DIAMONDS_REQUIRED/);s.fishing.diamonds=1000;
  {const b0=s.fishing.bait.star||0;fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'tokens'},{now,random,uuid});assert.equal(s.fishing.bait.star,b0+10);}
  assert.throws(()=>fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'diamonds'},{now,random,uuid}),/FISHING_REFRESH_REQUIRED/);
  const t1=s.fishing.tokens;fishingCommand(s,'fishAquariumExpand',{},{now,random,uuid});assert.equal(t1-s.fishing.tokens,aquariumExpandCost(3));assert.equal(s.fishing.slots,4);

@@ -273,10 +273,10 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishEnchant'){
   const slots=enchantSlotCount(f.rod),locks=Array.isArray(args.locks)?[...new Set(args.locks)]:[];
   require(locks.every(i=>Number.isInteger(i)&&i>=0&&i<slots&&f.enchants[i]),'INVALID_FISHING_ENCHANT');require(locks.length<slots,'INVALID_FISHING_ENCHANT');
-  const cost=enchantCost(locks.length,f.rod);spendTokens(f,cost);
+  const cost=enchantCost(locks.length,f.rod);require((f.diamonds||0)>=cost,'FISHING_DIAMONDS_REQUIRED');f.diamonds-=cost;
   const rollTier=()=>{let r=ctx.random();for(let i=ENCHANT_TIERS.length-1;i>0;i--){r-=ENCHANT_TIERS[i].p;if(r<0)return i;}return 0;};
   const next=[];for(let i=0;i<slots;i++)next[i]=locks.includes(i)?f.enchants[i]:{id:ENCHANTS[Math.floor(ctx.random()*ENCHANTS.length)].id,tier:rollTier()};
-  f.enchants=next;return {type:'fishEnchant',enchants:next,tokens:cost};
+  f.enchants=next;return {type:'fishEnchant',enchants:next,diamonds:cost};
  }
  // 2026-11-05 도현: 합성 삭제.
  if(command==='fishFuse'||command==='fishGoldFuse')require(false,'FISHING_FUSE_REMOVED');
