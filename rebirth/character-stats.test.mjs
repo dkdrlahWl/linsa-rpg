@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {initialState,makeItem,power} from './engine.mjs?v=fragx2-20261105';
+import {initialState,makeItem,power} from './engine.mjs?v=frag400-20261105';
 import {CLASSES} from './data.mjs?v=crit-restore-57-lv300b';
 const ctx={now:0,uuid:randomUUID,random:()=>.5};
 for(const cl of CLASSES){

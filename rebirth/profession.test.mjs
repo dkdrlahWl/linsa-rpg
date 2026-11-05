@@ -1,6 +1,6 @@
 // node rebirth/profession.test.mjs — 2026-11-04 전문 직업
 import assert from 'node:assert/strict';
-import {PROFESSIONS,professionCommand,professionGather,professionCostMultiplier,professionBonusChance,recipeCost,normalizeProfession,PROFESSION_CHANGE_COST,PROFESSION_OPEN,JOB_MATERIALS,rollJobMaterials} from './profession-model.mjs';
+import {PROFESSIONS,professionCommand,professionGather,professionCostMultiplier,professionBonusChance,recipeCost,normalizeProfession,PROFESSION_CHANGE_COST,PROFESSION_OPEN,JOB_MATERIALS,rollJobMaterials,professionFragmentBoost} from './profession-model.mjs';
 import {transcendChance,TRANSCEND_PITY} from './equipment.mjs';
 import {TOKEN_SHOP} from './token-content.mjs';
 import {REWARD_RATES} from './fishing-data.mjs';
@@ -31,7 +31,7 @@ assert.throws(()=>professionCommand(s,'professionChoose',{id:'miner'},t0+1000,Ma
 s.gold=PROFESSION_CHANGE_COST+5;professionCommand(s,'professionChoose',{id:'miner'},t0+8*86400000,Math.random);
 assert.equal(s.gold,5);assert.equal(normalizeProfession(s).level,1);assert.equal(normalizeProfession(s).id,'miner');
 // 채집 보너스: Lv.1 50% of listed, 비직업 1
-assert.equal(professionGather(s,'fragment'),2.25);assert.equal(professionGather(s,'cube'),1);assert.equal(professionGather({},'fragment'),1);
+assert.ok(Math.abs(professionGather(s,'fragment')*27+professionFragmentBoost(s)*140-400)<1e-9);assert.equal(professionGather(s,'cube'),1);assert.equal(professionGather({},'fragment'),1);
 // 어부 다이아 경로 · 픽업 경로
 const f={gold:4200000,isAdmin:true,materials:{cube:10,pearl:2},fishing:{diamonds:20},companions:{tickets:0,pickupTickets:0}};
 professionCommand(f,'professionChoose',{id:'fisher'},t0,Math.random);

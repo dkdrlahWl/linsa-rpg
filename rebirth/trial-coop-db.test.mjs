@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-import {initialState,power} from './engine.mjs?v=fragx2-20261105';
+import {initialState,power} from './engine.mjs?v=frag400-20261105';
 import {startCoop} from './coop-model.mjs?v=crit-restore-57';
 import {jobStage,ADVANCEMENT_BOSSES} from './advancement.mjs';
 const db=new PGlite(),ctx={now:Date.now(),random:()=>.5,uuid:randomUUID};

@@ -1,6 +1,6 @@
 
 import fs from 'node:fs';
-import {initialState,execute,power,huntingRate,bestEquipment} from './engine.mjs?v=fragx2-20261105';
+import {initialState,execute,power,huntingRate,bestEquipment} from './engine.mjs?v=frag400-20261105';
 import * as D from './data.mjs?v=boss-relic-only-130-lv300b';
 import {towerStep,TOWER_CLASSES} from './tower-model.mjs?v=fifth-impact-121';
 const classId=process.argv[2]||'warrior',seed=Number(process.argv[3]||1),maxDays=Number(process.argv[4]||365);

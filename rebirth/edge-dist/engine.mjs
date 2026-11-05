@@ -1010,7 +1010,7 @@ function executeCore(input, command, args = {}, ctx) {
         writable(s, it);
         check(!Object.values(s.equipped).includes(it.id), "ITEM_EQUIPPED");
       }
-      const fragments=list.reduce((sum,it)=>sum+salvageYield(it),0)*professionFragmentBoost(s);
+      const fragments=Math.round(list.reduce((sum,it)=>sum+salvageYield(it),0)*professionFragmentBoost(s));
       for (const it of list) removeItem(s, it);
       s.materials.fragment += fragments;
       events.push({type:"salvage",count:list.length,fragments});

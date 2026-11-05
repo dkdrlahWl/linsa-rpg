@@ -1,4 +1,4 @@
-import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=fragx2-20261105';
+import {initialState,makeItem,power,huntingRate} from './engine.mjs?v=frag400-20261105';
 import {TIERS,STAGES,xpNeeded,BOSSES} from './data.mjs?v=boss-relic-only-130-lv300b';
 // Optimistic level curve: immediately available level-appropriate gear, no drop delays.
 // This deliberately reports a lower bound, not a measured player completion time.

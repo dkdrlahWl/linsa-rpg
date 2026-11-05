@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initialState,execute,power} from './engine.mjs?v=fragx2-20261105';
+import {initialState,execute,power} from './engine.mjs?v=frag400-20261105';
 import {jobStage,firstJobUnlocked,ADVANCEMENT_BOSSES} from './advancement.mjs';
 import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-restore-57';
 import {startCoop as startCoopRaw,advanceCoop} from './coop-model.mjs?v=crit-restore-57';

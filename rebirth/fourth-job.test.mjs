@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
-import {initialState,execute,power} from './engine.mjs?v=fragx2-20261105';
+import {initialState,execute,power} from './engine.mjs?v=frag400-20261105';
 import {newTowerBattle,towerStep} from './tower-model.mjs?v=crit-restore-57';
 import {startCoop,predictCoopStep} from './coop-model.mjs?v=crit-restore-57';
 import {randomUUID} from 'node:crypto';

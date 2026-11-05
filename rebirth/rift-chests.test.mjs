@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-import {initialState,execute,grantCoopChest} from './engine.mjs?v=fragx2-20261105';
+import {initialState,execute,grantCoopChest} from './engine.mjs?v=frag400-20261105';
 import {normalizePotentialState} from './data.mjs?v=crit-restore-57-lv300b';
 import {COOP_TIERS,startCoop,advanceCoop} from './coop-model.mjs?v=crit-restore-57';
 import {renderCubePanel} from './cube-ui.mjs?v=crit-restore-57';

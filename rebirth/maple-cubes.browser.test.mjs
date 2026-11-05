@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import assert from 'node:assert/strict';
-import {initialState,execute} from './engine.mjs?v=fragx2-20261105';
+import {initialState,execute} from './engine.mjs?v=frag400-20261105';
 import {normalizePotentialState,CUBES} from './data.mjs?v=crit-restore-57-lv300b';
 const root=path.resolve('.');
 const server=http.createServer((req,res)=>{try{let p=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));if(!p.startsWith(root+path.sep))throw Error();if(fs.statSync(p).isDirectory())p=path.join(p,'index.html');res.setHeader('Content-Type',p.endsWith('.mjs')||p.endsWith('.js')?'text/javascript':p.endsWith('.css')?'text/css':p.endsWith('.svg')?'image/svg+xml':p.endsWith('.html')?'text/html':'application/octet-stream');res.end(fs.readFileSync(p));}catch{res.writeHead(404);res.end();}});

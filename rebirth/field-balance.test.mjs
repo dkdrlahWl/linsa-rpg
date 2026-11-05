@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initialState,makeItem,power,huntingRate,execute} from './engine.mjs?v=fragx2-20261105';
+import {initialState,makeItem,power,huntingRate,execute} from './engine.mjs?v=frag400-20261105';
 import * as D from './data.mjs?v=crit-restore-57-lv300b';
 import {damageRows} from './damage-stack.mjs';
 import {newTowerBattle,towerStep,TOWER_CLASSES} from './tower-model.mjs?v=crit-restore-57';

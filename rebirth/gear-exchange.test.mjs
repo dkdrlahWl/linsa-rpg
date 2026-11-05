@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initialState,execute,huntingRate} from './engine.mjs?v=fragx2-20261105';
+import {initialState,execute,huntingRate} from './engine.mjs?v=frag400-20261105';
 import {CLASSES} from './data.mjs?v=crit-restore-57-lv300b';
 let id=0;const ctx={now:1e6,random:()=>.5,uuid:()=>String(++id)};
 const fresh=()=>{const s=initialState('warrior','교환',ctx);s.hunting=false;s.materials.fragment=10000;return s;};

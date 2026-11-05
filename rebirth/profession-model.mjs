@@ -33,7 +33,7 @@ export const PROFESSIONS=Object.freeze([
    {id:'highCube',name:'블랙 큐브',out:{highCube:1},cost:{cube:1},gold:200000},
   ]}),
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
-  gather:{fragment:2.5},gatherBoost:{fragment:2}, // 2026-11-05 도현: 광부와 같은 패시브(장비 파편 드랍률), 전 레벨 2배
+  gather:{fragment:2.5}, // 2026-11-05 도현: 광부와 같은 패시브(장비 파편)
   recipes:[
    {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:200},gold:900000}, // 2026-11-05 도현: 파편 200 · 90만
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:50},gold:800000},
@@ -46,7 +46,7 @@ export const PROFESSIONS=Object.freeze([
    {id:'pickupTicket',name:'픽업 소환권',out:{pickupTicket:1},cost:{diamond:8},gold:4200000},
   ]}),
  Object.freeze({id:'miner',name:'광부',icon:'⛏️',blurb:'강화 재료 가공',
-  gather:{fragment:2.5},gatherBoost:{fragment:2}, // 2026-11-05 도현: 파편 패시브 전 레벨 2배 (Lv.1 ×4.5 · Lv.10 ×7)
+  gather:{fragment:2.5},
   recipes:[
    {id:'potentialLock',name:'잠재 잠금석',out:{potentialLock:1},cost:{fragment:60,highCube:2,cube:4},gold:1700000},
    {id:'transcendStone',name:'초월석',out:{transcendStone:1},cost:{fragment:150,highCube:3},gold:5300000},
@@ -80,10 +80,14 @@ export function professionGather(s,key){
  const p=normalizeProfession(s);if(!p)return 1;
  const def=professionById(p.id),bonus=def?.gather?.[key];if(!bonus)return 1;
  const scale=0.5+0.5*(p.level-1)/(PROFESSION_MAX_LEVEL-1);
- return (1+bonus*scale)*(p.level>=PROFESSION_MAX_LEVEL?def.gatherBoost?.[key]||1:1); // gatherBoost는 Lv.10 달성 시에만
+ return (1+bonus*scale)*(key==='fragment'?professionFragmentBoost(s):1);
 }
-// 2026-11-05 도현: 광부·탐험가는 Lv.10 달성 시 장비 파편 획득 자체 2배 — 사냥(gatherBoost)·분해·성채 상자 모두.
-export const professionFragmentBoost=s=>{const p=normalizeProfession(s);return p&&p.level>=PROFESSION_MAX_LEVEL&&(p.id==='miner'||p.id==='explorer')?2:1;};
+// 2026-11-05 도현: 광부·탐험가 장비 파편 하루 획득량 Lv.1 400개 → Lv.10 1,200개 (레벨마다 균등 증가).
+// 기준 하루: 사냥 9,000마리(파편 0.3%=27개) + 장비 분해 약 80개 + 성채 60개. 사냥·분해·성채 전부에 같은 배율을 곱한다.
+export const FRAGMENT_DAILY_BASE={hunt:27,other:140},FRAGMENT_DAILY_TARGET=[400,1200];
+export const professionFragmentBoost=s=>{const p=normalizeProfession(s);if(!p||(p.id!=='miner'&&p.id!=='explorer'))return 1;
+ const t=(p.level-1)/(PROFESSION_MAX_LEVEL-1),scale=0.5+0.5*t,target=FRAGMENT_DAILY_TARGET[0]+(FRAGMENT_DAILY_TARGET[1]-FRAGMENT_DAILY_TARGET[0])*t;
+ return target/(FRAGMENT_DAILY_BASE.hunt*(1+2.5*scale)+FRAGMENT_DAILY_BASE.other);};
 // 재료 보관 위치(거래소와 같은 규칙)
 // 소수 배율 개수: 기대값이 정확히 맞도록 확률적 반올림
 export const gatherAmount=(s,key,n,random)=>{const x=n*professionGather(s,key),f=Math.floor(x);return x>f?f+(random()<x-f?1:0):f;}; // 보너스 없으면 난수 안 씀(판정 순서 유지)

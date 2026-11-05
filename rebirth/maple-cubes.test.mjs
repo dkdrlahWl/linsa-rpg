@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {initialState,execute,power} from './engine.mjs?v=fragx2-20261105';
+import {initialState,execute,power} from './engine.mjs?v=frag400-20261105';
 import {normalizePotentialItem,normalizePotentialState,gearAttributes,OPTIONS} from './data.mjs?v=crit-restore-57-lv300b';
 import {CUBES,cubeUpgrade,cubeTable,cubeLineRates,rerollCube,rollCubeLine} from './maple-cubes.mjs?v=crit-restore-57';
 import {renderCubePanel} from './cube-ui.mjs?v=crit-restore-57';
