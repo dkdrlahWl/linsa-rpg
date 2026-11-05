@@ -246,6 +246,7 @@ const errors = {
   LOGIN_REQUIRED: "다시 로그인해 주세요.",
   EXPLORATION_KEY_REQUIRED: "던전 열쇠가 부족해요. (4단계 1 · 5단계 2 · 6단계 3 · 7단계 4 · 8단계 5 · 9단계 6 · 10단계 7개, 대기 중인 다른 방 몫 포함)",
   EXPLORATION_PREVIOUS_REQUIRED: "이전 단계 탐험을 먼저 클리어해야 해요.",
+  CITADEL_PREVIOUS_REQUIRED: "암흑성채 이전 보스를 먼저 처치해야 해요.",
   EXPLORATION_KEY_RESERVED: "진행 중인 탐험에 필요한 던전 열쇠 1개는 판매할 수 없습니다.",
   SESSION_ENDED: "종료된 로그인입니다. 다시 로그인해 주세요.",
   SESSION_REPLACED: "다른 기기에서 로그인했어요.",

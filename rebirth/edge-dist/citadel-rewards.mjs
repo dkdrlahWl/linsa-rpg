@@ -16,14 +16,14 @@ export const CITADEL_BOSS_REWARDS=[
  {lock:.05,scroll:.3,highCube:.0667,highCubeCount:1,fragment:10,gear:.05,max:170},
  {lock:.0583,scroll:.35,highCube:.075,highCubeCount:1,fragment:10,gear:.05,max:190},
 ];
-// 2026-11-05 도현: 보스별 입장 보상 — 보스 장비·파편 위주, 뒤 보스일수록 크게 증가. 입장 제한 없음. 보스 장비 레벨은 min~max 10단위 균등 (최대 190제).
+// 2026-11-05 도현: 보스별 입장 보상 — 보스 장비·파편 위주(파편은 처음 값의 절반), 뒤 보스일수록 크게 증가. 입장 제한 없음. 보스 장비 레벨은 min~max 10단위 균등 (최대 190제).
 export const CITADEL_SOLO_REWARDS=[
- {lock:0,scroll:.05,highCube:.02,highCubeCount:1,fragment:20,gear:.10,min:100,max:150},
- {lock:.01,scroll:.10,highCube:.04,highCubeCount:1,fragment:40,gear:.15,min:130,max:170},
- {lock:.02,scroll:.18,highCube:.07,highCubeCount:1,fragment:70,gear:.22,min:150,max:180},
- {lock:.035,scroll:.28,highCube:.10,highCubeCount:1,fragment:110,gear:.30,min:160,max:190},
- {lock:.05,scroll:.40,highCube:.15,highCubeCount:1,fragment:160,gear:.40,min:170,max:190},
- {lock:.08,scroll:.55,highCube:.22,highCubeCount:2,fragment:250,gear:.55,min:180,max:190},
+ {lock:0,scroll:.05,highCube:.02,highCubeCount:1,fragment:10,gear:.10,min:100,max:150},
+ {lock:.01,scroll:.10,highCube:.04,highCubeCount:1,fragment:20,gear:.15,min:130,max:170},
+ {lock:.02,scroll:.18,highCube:.07,highCubeCount:1,fragment:35,gear:.22,min:150,max:180},
+ {lock:.035,scroll:.28,highCube:.10,highCubeCount:1,fragment:55,gear:.30,min:160,max:190},
+ {lock:.05,scroll:.40,highCube:.15,highCubeCount:1,fragment:80,gear:.40,min:170,max:190},
+ {lock:.08,scroll:.55,highCube:.22,highCubeCount:2,fragment:125,gear:.55,min:180,max:190},
 ];
 export const citadelGearLevel=(max,random,min=100)=>min+10*Math.floor(random()*((max-min)/10+1));
 export function citadelPendingChests(state,room,userId){
@@ -52,7 +52,9 @@ export function grantCitadelChests(input,room,userId,ctx){
  for(const key of ['potentialLock','scroll','highCube','fragment'])state.materials[key]=(state.materials[key]||0)+reward[key];
  const prior=state.citadelClaims?.room===room.id?state.citadelClaims.bosses||[]:[];
  state.citadelClaims={room:room.id,bosses:[...prior,...bosses].sort((a,b)=>a-b)};
- state.citadelEver=[...new Set([...(state.citadelEver||[]),...bosses])].sort((a,b)=>a-b);state.citadelMaxFloor=Math.max(state.citadelMaxFloor||0,room.floor||0);
+ state.citadelEver=[...new Set([...(state.citadelEver||[]),...bosses])].sort((a,b)=>a-b);
+ // 2026-11-05 도현: 보스별 입장은 링탐처럼 오름차순 해금 — 처치한 보스 기록(다음 보스 입장 조건).
+ if(room.citadelBoss)state.citadelBossClear=[...new Set([...(state.citadelBossClear||[]),...bosses])].sort((a,b)=>a-b);state.citadelMaxFloor=Math.max(state.citadelMaxFloor||0,room.floor||0);
  state.lastReward=reward;
  return {state,reward};
 }
