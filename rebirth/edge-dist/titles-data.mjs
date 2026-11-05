@@ -96,9 +96,9 @@ const ROWS=[
  ['fieldNew','미지의 개척자','사냥','legend','마지막 사냥터('+STAGES.at(-1).name+')에서 사냥 성공',s=>(s.bestStage??-1)>=STAGES.length-1,()=>STAGES.length-1>FIELD_LAST_V1],
  ['raid4','성역의 끝을 본 자','레이드','myth',(RAID_ENCOUNTERS[4]?.name||'다음')+' 레이드 클리어',s=>(s.raidCleared||[]).includes(4),()=>RAID_ENCOUNTERS.length>4],
  ['job6','여섯 번째 각성','전직','legend','6차 전직 완료',s=>(s.advancement||0)>=5,()=>ADVANCEMENT_BOSSES.length>5],
- ['rod60','심연의 강태공','낚시','legend','낚싯대 Lv.60',s=>(s.fishing?.rod||0)>=60,()=>ROD_MAX>=60],
+ ['rod60','심연의 강태공','낚시','legend','낚싯대 Lv.40',s=>(s.fishing?.version||1)>=3?(s.fishing?.rod||0)>=40:(s.fishing?.rod||0)>=60,()=>ROD_MAX>=40], // 2026-11-05 낚시 v3: Lv.50 체계
  // 2026-10-25 낚싯대 70 확장 칭호
- ['rod70','태고의 강태공','낚시','myth','낚싯대 Lv.70 (태고의 바다 해금)',s=>(s.fishing?.rod||0)>=70,()=>ROD_MAX>=70],
+ ['rod70','태고의 강태공','낚시','myth','낚싯대 Lv.50 (태고의 바다 해금)',s=>(s.fishing?.version||1)>=3?(s.fishing?.rod||0)>=50:(s.fishing?.rod||0)>=70,()=>ROD_MAX>=50],
  ['fishP','태고를 낚은 자','낚시','myth','태고 물고기 처음 낚기',s=>fishOf(s,6),()=>FISH.some(f=>f.rarity===6)],
  ['fishAll2','모든 바다의 기록자','낚시','myth','물고기 도감 '+FISH.length+'종 완성',s=>FISH.every(f=>(s.fishing?.collection||{})[f.id]!==undefined),()=>FISH.length>50],
  ['look3','환상의 수집가','수집','epic','스킬 외형 3종 보유',s=>ownedSkillLookCount(s)>=3],

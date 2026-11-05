@@ -69,3 +69,56 @@
 .fishing-scene .fishing-result-fish{transition:opacity .4s}
 .fishing-scene .fishing-angler{transition:translate .2s linear}
 @media(prefers-reduced-motion:reduce){.fishing-scene .fishing-fx-water,.fishing-scene .fishing-fx-layer{display:none}}
+
+/* 2026-11-05 낚시 v3: 토큰·크기·돌연변이·합성·강화·인챈트 */
+.fish-portrait{position:relative}
+.fish-portrait .fish-size,.fish-portrait .fish-mut{position:absolute;font-style:normal;font-size:10px;font-weight:800;padding:1px 6px;border-radius:8px;background:#071622d9;border:1px solid var(--size,var(--mut));color:var(--size,var(--mut));line-height:1.5}
+.fish-portrait .fish-size{top:4px;left:4px}.fish-portrait .fish-mut{top:4px;right:4px}
+.fish-card .fish-star{font-style:normal;color:#ffd34d;font-size:11px;margin-left:3px;letter-spacing:-1px}
+.fish-card.size-monster{box-shadow:0 0 0 1px #ff9a6b88,0 0 14px #ff9a6b55}.fish-card.size-record{box-shadow:0 0 0 2px #ff6bd0aa,0 0 20px #ff6bd077}
+.fish-card.mut-gold{background:linear-gradient(160deg,#4a3b12,#1b2630 60%)!important;border-color:#ffd34d!important}
+.fish-card.mut-silver{border-color:#dfe8f2!important}
+.fish-card.mut-rainbow{border-color:transparent!important;background:linear-gradient(#152430,#152430) padding-box,linear-gradient(120deg,#ff7a7a,#ffd34d,#7dff9a,#6bc8ff,#c58bff) border-box!important;border:2px solid transparent!important;animation:fish-rainbow 3s linear infinite}
+@keyframes fish-rainbow{to{filter:hue-rotate(360deg)}}
+.fish-fuse{margin:6px 0 12px;padding:10px 12px;border:1px solid #9b7d48;border-radius:12px;background:#122430}
+.fish-fuse h3{margin:0 0 8px;font-size:14px}.fish-fuse h3 small{display:block;font-weight:400;font-size:11px;color:#cdbf9f;margin-top:2px}
+.fish-fuse-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.fish-fuse-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;background:#0d1c26;border:1px solid color-mix(in srgb,var(--rarity,#ffd34d) 55%,transparent)}
+.fish-fuse-row img{width:42px;height:42px;object-fit:contain;flex:none}.fish-fuse-row span{display:flex;flex-direction:column;min-width:0;flex:1}.fish-fuse-row small{font-size:11px;color:#cdbf9f}
+.fish-fuse-row button{flex:none;min-height:34px!important;padding:4px 10px!important}.fish-fuse-row.gold{border-color:#ffd34d}.fish-fuse-icon{font-size:28px;flex:none!important}
+.rod-enhance,.rod-enchant{margin-top:12px;padding:12px 14px;border:1px solid #9b7d48;border-radius:12px;background:#122430}
+.rod-enhance h3,.rod-enchant h3{margin:0 0 6px;font-size:15px}.rod-enhance h3 b{color:#ffd34d}.rod-enchant h3 small{display:block;font-size:11px;font-weight:400;color:#cdbf9f;margin-top:2px}
+.rod-enhance p{font-size:12px;color:#d7c9a8;margin:0 0 8px}
+.rod-enhance-bar{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:10px}.rod-enhance-bar i{height:8px;border-radius:4px;background:#2c3b45}.rod-enhance-bar i.on{background:linear-gradient(90deg,#ffd34d,#ff9a4d);box-shadow:0 0 6px #ffcf5a88}
+.rod-enchant-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.rod-enchant-slot{display:flex;flex-direction:column;gap:3px;padding:8px;border-radius:10px;border:1px solid var(--tier);background:#0d1c26;min-height:78px;font-size:12px}
+.rod-enchant-slot b{color:var(--tier);font-size:11px}.rod-enchant-slot.closed{opacity:.5;border-style:dashed}.rod-enchant-slot.locked{box-shadow:inset 0 0 0 2px #ffd34d66}
+.rod-enchant-slot .rod-enchant-lock{margin-top:auto;min-height:28px!important;padding:2px 6px!important;font-size:11px}
+.rod-star{color:#ffd34d;font-size:.8em}
+.fishing-site-special{display:block;font-size:9px!important;color:#ffe6a9!important;font-weight:600}
+.fishing-token-big{font-size:34px;line-height:1.2}
+.bait-golden{filter:hue-rotate(-40deg) saturate(1.6) brightness(1.1)}
+@media(max-width:600px){.fish-fuse-list{grid-template-columns:1fr}.rod-enchant-slots{grid-template-columns:1fr}}
+/* v3 손맛 낚시 (fishing-ui reelFrame) */
+.fishing-scene .fishing-reel{position:absolute;right:12px;top:22%;bottom:17%;width:118px;z-index:3;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;animation:reel-in .25s ease-out}
+@keyframes reel-in{from{transform:translateX(30px);opacity:0}}
+.fishing-reel .reel-head{text-align:center;background:#071622e0;border:1px solid var(--rarity);border-radius:10px;padding:5px 8px;width:100%}
+.fishing-reel .reel-head b{display:block;color:var(--rarity);font-size:13px}.fishing-reel .reel-head em{font-style:normal;font-size:11px;color:#ffd477}.fishing-reel .reel-head small{display:block;font-size:10px;color:#e8dcc0}
+.fishing-reel .reel-bar{position:relative;flex:1;width:44px;border-radius:12px;background:linear-gradient(#0b2a3a,#06141e);border:2px solid #b58f4d;overflow:hidden;box-shadow:inset 0 0 12px #000a}
+.fishing-reel .reel-zone{position:absolute;left:3px;right:3px;border-radius:8px;background:linear-gradient(#86da8c,#37a579);box-shadow:0 0 10px #57e4ba80;transition:background .1s}
+.fishing-reel.inside .reel-zone{background:linear-gradient(#b4ffb9,#4fd197)}
+.fishing-reel .reel-fish{position:absolute;left:50%;transform:translate(-50%,50%);font-size:22px;filter:drop-shadow(0 0 4px var(--rarity))}
+.fishing-reel .reel-gauges{position:absolute;right:-2px;top:58px;bottom:42px;display:flex;gap:4px;left:auto}
+.fishing-reel .reel-gauges{position:static;display:flex;gap:6px;height:46px;width:100%;justify-content:center}
+.fishing-reel .reel-progress,.fishing-reel .reel-strain{position:relative;width:46px;height:100%;border-radius:6px;background:#06141e;border:1px solid #b58f4d;overflow:hidden}
+.fishing-reel .reel-progress i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#ffe8a6,#e5b04f)}
+.fishing-reel .reel-progress u{position:absolute;left:0;right:0;height:2px;background:#fff;box-shadow:0 0 4px #fff}
+.fishing-reel .reel-strain i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#ff8d6b,#c2342b)}
+.fishing-reel .reel-gauges small{position:absolute;inset:auto 0 2px;text-align:center;font-size:9px;color:#fffc;z-index:1}
+.fishing-reel .reel-tip{margin:0;font-size:10px;text-align:center;color:#fff;text-shadow:0 1px 3px #000}
+.fishing-reel.won .reel-bar{border-color:#8fffb0;box-shadow:0 0 18px #8fffb0}.fishing-reel.lost .reel-bar{border-color:#ff6b6b;box-shadow:0 0 18px #ff6b6b}
+.fishing-pull.fishing-reel-hold{background:linear-gradient(#8fe0a0,#3c9f6c)!important;color:#0b2416!important;font-weight:900}
+.fishing-auto-shop{margin:0 0 10px;padding:10px 12px;border:1px solid #9b7d48;border-radius:12px;background:#122430}
+.fishing-auto-shop h3{margin:0 0 8px;font-size:14px}.fishing-auto-shop h3 small{display:block;font-weight:400;font-size:11px;color:#cdbf9f;margin-top:2px}
+.fishing-auto-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.fishing-auto-plans article{display:flex;flex-direction:column;gap:3px;align-items:center;padding:8px;border-radius:10px;background:#0d1c26;border:1px solid #647273;text-align:center}
+.fishing-auto-plans small{color:#ffe08a}.fishing-auto-plans button{width:100%}

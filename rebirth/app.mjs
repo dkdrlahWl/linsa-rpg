@@ -34,7 +34,8 @@ import {professionView,craftSummary} from './profession-ui.mjs';
 import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost} from './profession-model.mjs';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
-import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
+import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
+const D_FISH_RARITY=id=>D_FISH_LIST.find(x=>x.id===id)?.rarity||0;
 import {luckyWheelView,spinLuckyWheel,luckyWheelSpinning} from './lucky-wheel-ui.mjs';
 import {fantasyHeader,fantasyFooter,fantasyMenu,setBuyOrderAlert} from './fantasy-ui.mjs?v=boalert-20261104';
 import {arenaView,startArenaReplay,arenaDock,arenaTierIcon} from './arena-ui.mjs?v=arena-fit-170';
@@ -213,7 +214,7 @@ const errors = {
   FISHING_ROD_REQUIRED: "낚싯대 레벨이 부족해요.",
   FISHING_BAIT_REQUIRED: "미끼가 없어요. 낚시 상점에서 구매해 주세요.",
   FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
-  FISHING_DAILY_LIMIT: "오늘 낚시는 하루 600번까지예요. 한국 시간 자정에 초기화돼요.",
+  FISHING_DAILY_LIMIT: "오늘 낚시 횟수를 다 썼어요. 한국 시간 자정에 초기화돼요.",
   FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
   TREASURE_DAILY_LIMIT: "오늘 보물 찾기 3판을 모두 했어요. 자정에 초기화돼요.",
   TREASURE_TICKET_REQUIRED: "오늘 무료 3판을 다 했어요. 더 하려면 티켓이 필요해요 (낚시에서 획득).",
@@ -265,6 +266,17 @@ const errors = {
   SHOP_WEEKLY_LIMIT: "이번 주 구매 한도를 다 썼어요. 월요일 00시에 초기화돼요.",
   EXPLORATION_MEMBER_KEY_REQUIRED: "던전 열쇠가 부족한 파티원이 있어요. 파티원 모두 각자 열쇠가 필요해요.",
   FISHING_EXCHANGE_REMOVED: "다이아 교환소는 종료됐어요.",
+  FISHING_AUTO_REQUIRED: "자동 낚시권이 끝났어요. 상점에서 구매하면 오토 낚시를 할 수 있어요.",
+  INVALID_FISHING_INPUT: "손맛 낚시 기록이 올바르지 않아요. 다시 던져 주세요.",
+  INVALID_FISHING_AUTO: "구매할 수 없는 자동 낚시권이에요.",
+  FISHING_TOKENS_REQUIRED: "낚시 토큰이 부족해요. 물고기를 팔면 토큰을 받아요.",
+  FISHING_ENHANCE_MAX: "이미 최고 강화 단계예요.",
+  INVALID_FISHING_ENCHANT: "인챈트 잠금이 올바르지 않아요. 열린 칸 중 하나는 남겨 두세요.",
+  INVALID_FISHING_FUSE: "합성할 물고기를 다시 골라 주세요.",
+  FISHING_FUSE_MISMATCH: "같은 종·같은 크기(황금 합성은 황금 개체)만 합성할 수 있어요.",
+  FISHING_FUSE_MAX: "기록급은 더 합성할 수 없어요.",
+  FISHING_AWAKEN_MAX: "이미 최고 각성(★5)이에요.",
+  FISHING_AWAKEN_REQUIRED: "가방에 같은 종 물고기가 부족해요.",
   PROFESSION_LOCKED: "전문 직업은 아직 준비 중이에요.",
   PROFESSION_FULL: "이 직업은 정원(2명)이 다 찼어요. 다른 직업을 골라 주세요.",
   PROFESSION_SAME: "이미 그 직업이에요.",
@@ -600,7 +612,7 @@ async function fishingCommandRequest(action,args={}){
   if(session?.user?.id!==account||!state)return;
   for(let attempt=0;attempt<3;attempt++){
    const result=await command(action,args);
-   if(result?.result?.events?.some(e=>e.type===action||((action==='fishFinish'||action==='fishHook')&&e.type==='fishCatch')))return result;
+   if(result?.result?.events?.some(e=>e.type===action||((action==='fishFinish'||action==='fishHook')&&e.type==='fishCatch')||(action==='fishHook'&&e.type==='fishBite')))return result;
    if(!result)return;
   }
   throw Error('SERVER_RETRY_REQUIRED');
@@ -1414,9 +1426,18 @@ function showEvents(events) {
     if(e.type==='citadelChest'){sounds.play(e.items?.length?'loot-rare':'loot-common');const parts=['장비 파편 '+fmt(e.fragment||0)+'개'];if(e.potentialLock)parts.push('잠재 잠금석 '+e.potentialLock+'개');if(e.scroll)parts.push('잠재 해금 주문서 '+e.scroll+'개');if(e.highCube)parts.push('블랙 큐브 '+e.highCube+'개');for(const it of e.items||[])parts.push('보스 장비 · '+D.gearName(it)+' Lv.'+it.level);toast('보스 상자 · '+parts.join(' · ')+(e.stored?' (가방이 가득 차 우편함으로)':''));continue;}
     if(e.type==='sweep'){sounds.play(e.items?.length?'loot-rare':'loot-common');sweepResult(e);continue;}
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
+    if(e.type==='fishCatch'&&!e.won){sounds.play('ui-error');toast(e.reason==='snap'?'줄이 끊어졌어요… 낚싯대 힘이 모자라요.':'물고기를 놓쳤어요…');continue;}
     if(e.type==='fishCatch'){sounds.play(e.won?'loot-rare':'ui-error');if(e.won&&e.reward!=='fish')toast(resourceName(e.reward)+(e.diamonds?' · 다이아 '+e.diamonds+'개':' 획득'));continue;}
     if(e.type==='fishAquariumAuto'){toast('수족관 최적 배치 · '+e.moved+'마리 교체 · 시간당 '+fmt(e.before)+' → '+fmt(e.after)+' G');continue;}
-    if(['fishSell','fishAquariumClaim'].includes(e.type)){toast(fmt(e.gold)+' G 받았어요.');continue;}
+    if(e.type==='fishSell'){toast('🎟 낚시 토큰 '+fmt(e.tokens)+'개 받았어요.');continue;}
+    if(e.type==='fishAquariumClaim'){toast(fmt(e.gold)+' G 받았어요.');continue;}
+    if(e.type==='fishEnhance'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🔨 강화 성공! 낚싯대 +'+e.level:'강화 실패… 단계는 그대로예요 (+'+e.level+')');continue;}
+    if(e.type==='fishEnchant'){toast('✨ 인챈트를 새로 뽑았어요.');continue;}
+    if(e.type==='fishAutoBuy'){toast('🤖 자동 낚시권 구매 완료 · 오토 버튼을 눌러 시작하세요.');continue;}
+    if(e.type==='fishFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🧬 합성 성공!':'합성 실패… 1마리만 남았어요.');continue;}
+    if(e.type==='fishGoldFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🌈 무지개 개체 탄생!':'황금 합성 실패… 황금 1마리가 남았어요.');continue;}
+    if(e.type==='fishAwaken'){toast('★ 각성! ★'+e.star+' (같은 종 '+e.used+'마리 사용)');continue;}
+    if(e.type==='fishAquariumExpand'){toast('수족관이 '+e.slots+'칸이 됐어요.');continue;}
     if(e.type==='fishQuestClaim'){toast('일일퀘스트 · 다이아 '+e.diamonds+'개 받았어요.');continue;}
     if(e.type==='fishExchange'){toast(e.name+' '+e.count+'개 교환 완료 · 다이아 '+e.diamonds+'개 사용');continue;}
     if(e.type==='fishContestClaim'){toast('대어 대회 '+e.rank+'위 보상 · 다이아 '+e.diamonds+'개, 에디셔널 큐브 '+e.addCube+'개');continue;}
@@ -1781,10 +1802,18 @@ document.addEventListener("click", async (e) => {
     if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast('낚싯대 Lv.'+spot.level+'부터 입장할 수 있어요.');fishingUI.spot=arg;render();return;}
-    if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
+    if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}if(!((state.fishing?.autoUntil||0)>Date.now())){fishingUI.panel='shop';render();return toast('🤖 자동 낚시권이 있어야 오토 낚시를 할 수 있어요. 상점에서 구매해 주세요.');}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
     if(action==='fishCancel'&&fishingUI.auto)stopAutoFishing();
-    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:4});}
-    if(action==='fishBaitBuy')return await fishingCommandRequest(action,{bait:arg,count:BAITS.find(x=>x.id===arg)?.pack||20,currency:BAITS.find(x=>x.id===arg)?.gold?'gold':'diamonds'});
+    if(action==='fishCast'){fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:5});}
+    // v3 낚시: 강화·인챈트·합성·각성
+    if(action==='fishEnhance')return await fishingCommandRequest('fishEnhance',{});
+    if(action==='fishAutoBuy')return await fishingCommandRequest('fishAutoBuy',{plan:arg});
+    if(action==='fishEnchantLock'){const i=Number(arg),l=new Set(fishingUI.locks||[]);l.has(i)?l.delete(i):l.add(i);fishingUI.locks=[...l];return render();}
+    if(action==='fishEnchant'){const slots=(state.fishing?.enhance||0)>=8?3:(state.fishing?.enhance||0)>=4?2:1;return await fishingCommandRequest('fishEnchant',{locks:(fishingUI.locks||[]).filter(i=>i<slots&&state.fishing?.enchants?.[i])});}
+    if(action==='fishFuse'){const [sp,size]=String(arg).split(':'),sizeOf=x=>x.size||'normal';const list=(state.fishing?.fish||[]).filter(x=>x.species===sp&&sizeOf(x)===size).sort((a,b)=>(a.mut?1:0)-(b.mut?1:0)||a.weight-b.weight).slice(0,3);if(list.length<3)return;return await fishingCommandRequest('fishFuse',{ids:list.map(x=>x.id)});}
+    if(action==='fishGoldFuse'){const golds=(state.fishing?.fish||[]).filter(x=>x.mut==='gold');const rank=x=>D_FISH_RARITY(x.species);const best=golds.slice().sort((a,b)=>rank(b)-rank(a))[0];const rest=golds.filter(x=>x!==best).sort((a,b)=>rank(a)-rank(b)).slice(0,4);if(!best||rest.length<4)return;return await fishingCommandRequest('fishGoldFuse',{ids:[best.id,...rest.map(x=>x.id)]});}
+    if(action==='fishAwaken')return await fishingCommandRequest('fishAwaken',{id:arg});
+    if(action==='fishBaitBuy'){const [id,mul]=String(arg).split(':'),b=BAITS.find(x=>x.id===id);return await fishingCommandRequest(action,{bait:id,count:(b?.pack||10)*(Number(mul)||1),currency:b?.gold?'gold':'tokens'});}
     if(action==='fishTrain')return await fishingCommandRequest(action,{gold:Number(arg)});
     if(action==='fishSell')return await fishingCommandRequest(action,{ids:[arg]});
     if(action==='fishSellAll'){if(!state.fishing?.fish.length)return;open('물고기 전부 판매',`<p>가방의 물고기 ${state.fishing.fish.length}마리를 모두 판매할까요?</p><p class="note">수족관에 있는 물고기는 포함되지 않아요.</p>${btn('전부 판매','fishSellAllConfirm','','gold')}`);return;}
