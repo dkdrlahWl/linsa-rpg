@@ -31,7 +31,7 @@ let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
-import {PROFESSIONS as D_PROFESSIONS} from './profession-model.mjs';
+import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost} from './profession-model.mjs';
 import {fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=bag300-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
@@ -62,7 +62,7 @@ import {applyFieldArt} from './field-art.mjs?v=field-art-20261103';
 applyFieldArt(D);
 import { installCurrencyIcons, currencyIconURL, goldPurchaseIcon } from "./currency-icons.mjs?v=allmarket-20261104";
 import { inventoryGroups } from "./inventory-order.mjs?v=bag-sort2-20261028";
-import { power, huntingRate, battleEnemy } from "./engine.mjs?v=bossatk-20261103";
+import { power, huntingRate, battleEnemy } from "./engine.mjs?v=fragx2-20261105";
 import {tokenView,keyView,tokenVisible,tokenBossResult,keyBossResult,raceUI} from "./token-ui.mjs?v=gold500-20261105";
 import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNameFit} from "./tribe-ui.mjs?v=price300-20261104";
 installNameFit();
@@ -2246,7 +2246,7 @@ document.addEventListener("click", async (e) => {
     if(action==="salvageBatchConfirm"){
       const items=state.items.filter(it=>salvageSelection.has(it.id)&&canSalvage(it));
       if(!items.length)return;
-      open("선택 장비 분해",`<p>선택한 장비 ${items.length}개를 분해하고 장비 파편 ${fmt(items.reduce((n,it)=>n+D.salvageYield(it),0))}개를 받습니다.</p><p class="note">분해한 장비는 복구할 수 없습니다.</p>${items.map(it=>`<p>${esc(D.gearName(it))} · Lv.${it.level} · ${it.stars}성</p>`).join("")}${btn("선택 장비 분해하기","salvageBatch","","danger",true)}`);return;
+      open("선택 장비 분해",`<p>선택한 장비 ${items.length}개를 분해하고 장비 파편 ${fmt(items.reduce((n,it)=>n+D.salvageYield(it),0)*fragBoost(state))}개를 받습니다.</p><p class="note">분해한 장비는 복구할 수 없습니다.</p>${items.map(it=>`<p>${esc(D.gearName(it))} · Lv.${it.level} · ${it.stars}성</p>`).join("")}${btn("선택 장비 분해하기","salvageBatch","","danger",true)}`);return;
     }
     if(action==="salvageBatch"){
       await command("salvage",{ids:[...salvageSelection]});salvageSelection.clear();render();return;
@@ -2254,7 +2254,7 @@ document.addEventListener("click", async (e) => {
     if (action === "salvageConfirm")
       return open(
         "장비 분해",
-        `<p>분해 보상: 장비 파편 ${D.salvageYield(state.items.find(it=>it.id===arg))}개.<br>선택한 장비가 사라집니다. 강화·잠재은 복구할 수 없습니다.</p><div class="actions">${btn("분해하기", "salvage", arg, "danger", true)}</div>`,
+        `<p>분해 보상: 장비 파편 ${D.salvageYield(state.items.find(it=>it.id===arg))*fragBoost(state)}개.<br>선택한 장비가 사라집니다. 강화·잠재은 복구할 수 없습니다.</p><div class="actions">${btn("분해하기", "salvage", arg, "danger", true)}</div>`,
       );
     if (action === "salvage") {
       await command("salvage", { ids: [arg] });

@@ -2,6 +2,7 @@
 import {isCitadel} from './citadel-zero.mjs';
 import {CLASSES,selectDesign,rollBaseStats} from './data.mjs';
 import {makeItem,addItem,halfWeaponSlot} from './engine.mjs';
+import {professionFragmentBoost} from './profession-model.mjs';
 // lock = 잠재 잠금석, scroll = 잠재 해금 주문서 (1 each on success); fragment guaranteed; gear = boss gear chance,
 // gear chance is applied exactly as shown in the lobby (no BOSS_GEAR_RATE_SCALE);
 // gear level uniform over the 10-level tiers 100..max; weapon slot at half weight.
@@ -32,7 +33,7 @@ export function grantCitadelChests(input,room,userId,ctx){
   if(ctx.random()<r.scroll)reward.scroll++;
   // 2026-11-03 도현: 성채 보스 상자 블랙 큐브(보스별 20~45% · 1~3개, 6보스 다 깨면 최대 12개).
   if(ctx.random()<r.highCube)reward.highCube+=r.highCubeCount;
-  reward.fragment+=r.fragment;
+  reward.fragment+=r.fragment*professionFragmentBoost(state);
   if(ctx.random()<r.gear){
    const level=citadelGearLevel(r.max,ctx.random),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);

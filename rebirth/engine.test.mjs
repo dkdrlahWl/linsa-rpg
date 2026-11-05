@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import * as E from './engine.mjs?v=crit-restore-57';
+import * as E from './engine.mjs?v=fragx2-20261105';
 import * as D from './data.mjs?v=crit-restore-57-lv300b';
 const ctx=(now=0,random=()=>.5)=>({now,random,uuid:randomUUID});
 let s=E.initialState('rogue','도전자',ctx());

@@ -1,5 +1,5 @@
 import {settleBank,bankCommand} from './bank-model.mjs';
-import {normalizeProfession,professionCommand,professionGather,JOB_MATERIAL_DROP,rollJobMaterials,resourceAdd} from './profession-model.mjs';
+import {professionFragmentBoost,normalizeProfession,professionCommand,professionGather,JOB_MATERIAL_DROP,rollJobMaterials,resourceAdd} from './profession-model.mjs';
 import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
@@ -1010,12 +1010,9 @@ function executeCore(input, command, args = {}, ctx) {
         writable(s, it);
         check(!Object.values(s.equipped).includes(it.id), "ITEM_EQUIPPED");
       }
-      const fragments=list.reduce((sum,it)=>sum+salvageYield(it),0);
-      for (const it of list) {
-        s.materials.fragment +=
-          salvageYield(it);
-        removeItem(s, it);
-      }
+      const fragments=list.reduce((sum,it)=>sum+salvageYield(it),0)*professionFragmentBoost(s);
+      for (const it of list) removeItem(s, it);
+      s.materials.fragment += fragments;
       events.push({type:"salvage",count:list.length,fragments});
       break;
     }

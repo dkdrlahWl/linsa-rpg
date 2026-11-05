@@ -80,6 +80,8 @@ export function professionGather(s,key){
  const scale=0.5+0.5*(p.level-1)/(PROFESSION_MAX_LEVEL-1);
  return (1+bonus*scale)*(def.gatherBoost?.[key]||1);
 }
+// 2026-11-05 도현: 광부·탐험가는 장비 파편 획득 자체 2배 — 사냥(gatherBoost)·분해·성채 상자 모두.
+export const professionFragmentBoost=s=>{const p=normalizeProfession(s);return p&&(p.id==='miner'||p.id==='explorer')?2:1;};
 // 재료 보관 위치(거래소와 같은 규칙)
 // 소수 배율 개수: 기대값이 정확히 맞도록 확률적 반올림
 export const gatherAmount=(s,key,n,random)=>{const x=n*professionGather(s,key),f=Math.floor(x);return x>f?f+(random()<x-f?1:0):f;}; // 보너스 없으면 난수 안 씀(판정 순서 유지)

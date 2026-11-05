@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
-import {initialState,makeItem,power} from './engine.mjs?v=crit-restore-57';
+import {initialState,makeItem,power} from './engine.mjs?v=fragx2-20261105';
 import {CLASSES,OPTIONS} from './data.mjs?v=crit-restore-57-lv300b';
 const db=new PGlite();const ctx={now:0,uuid:randomUUID,random:()=>.5};
 try {
