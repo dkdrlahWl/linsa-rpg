@@ -16,8 +16,8 @@ for(const [width,height] of [[302,220],[374,310],[930,450]]){
  assert.equal(waiting.tip.x,angler.left+ROD_TIPS[0][0]*size);
  assert.ok(Math.abs(waiting.tip.y-(angler.top+ROD_TIPS[0][1]*size))<1e-9);
  const landing=fishingSceneMotion({width,height,angler,phase:'casting',pose:2,elapsed:900,reduced:true});
- assert.ok(Math.abs(landing.end.x-width*.64)<1e-9);
- assert.ok(Math.abs(landing.end.y-height*.67)<1e-9);
+ assert.ok(landing.end.x>=width*.82&&landing.end.x<=width*.90,'cast reaches open water near the far side');
+ const seatY=angler.top+size*.82;assert.ok(landing.end.y<=seatY-height*.08,'cast lands deeper into the water beyond the seated character');
  assert.equal(fishingSceneMotion({width,height,angler,phase:'missed'}).visible,false);
 }
 console.log('PASS rod anchors, casting landing, sag, clipping bounds at phone and desktop sizes');

@@ -332,3 +332,6 @@ body #app .fishing-screen .rod-row .rod-buy img:not(.fishing-button-art){display
 @media(min-width:700px){.fishing-skin-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 .fishing-scene:has(.fishing-scene-art[data-anchored]) .fishing-water{background-image:none!important}
+
+/* Atlas padding can contain the neighboring pose's hair. Hide only the empty right gutter. */
+.fishing-skin-preview,.fishing-play .fishing-angler{clip-path:inset(0 6% 0 0)}
