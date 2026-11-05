@@ -142,9 +142,11 @@ function addCaughtFish(s,f,c,fish,ctx){
  f.collection[item.species]=Math.max(f.collection[item.species]||0,item.weight);f.daily.catch=(f.daily.catch||0)+1;f.totalCatch=(f.totalCatch||0)+1;
  const rarity=FISH.find(x=>x.id===item.species).rarity;if(rarity>=1)f.daily.rare=(f.daily.rare||0)+1;
  // 2026-11-05 도현: 대어 랭킹 — 등급별 가장 무거운 한 마리(역대 최고)를 남긴다. 서버 랭킹은 이 값으로 매긴다.
+ if(!s.isAdmin&&!s.isTester){
  f.best??={};const best=f.best[rarity];
  if(!best||item.weight>best.weight){f.best[rarity]={species:item.species,weight:item.weight,size:item.size,...(item.mut?{mut:item.mut}:{}),at:item.caughtAt};c.records=[...(c.records||[]),{rarity,weight:item.weight,previous:best?.weight||0}];}
- recordContest(f,item);return item;
+ recordContest(f,item);}
+ return item;
 }
 function landCatch(s,f,c,ctx){
  f.cast=null;

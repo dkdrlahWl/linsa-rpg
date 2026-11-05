@@ -42,8 +42,8 @@ export const BAITS=[
  {id:'shrimp',name:'반짝 새우',pack:10,tokens:1500,level:1,rare:1.15,text:'희귀할수록 등급마다 ×1.15'},
  {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:3,rare:1.3,text:'희귀할수록 등급마다 ×1.3'},
  {id:'golden',name:'황금 미끼',pack:10,tokens:6000,level:5,rare:1.45,text:'희귀할수록 등급마다 ×1.45',art:'star',hue:'golden'},
- {id:'glow',name:'형광 미끼',pack:10,tokens:12000,level:7,rare:1.6,text:'희귀할수록 등급마다 ×1.6',art:'pearl',hue:'glow'},
- {id:'star',name:'별가루 미끼',pack:10,tokens:24000,level:9,rare:1.8,text:'희귀할수록 등급마다 ×1.8'},
+ {id:'glow',name:'형광 미끼',pack:10,tokens:12000,level:7,rare:1.6,text:'희귀할수록 등급마다 ×1.6',art:'bait-glow-v2'},
+ {id:'star',art:'bait-star-v2',name:'별가루 미끼',pack:10,tokens:24000,level:9,rare:1.8,text:'희귀할수록 등급마다 ×1.8'},
 ];
 export const BAIT_RARE_CAP=4;
 export const baitDiamondCost=()=>0;
@@ -73,22 +73,22 @@ export const ROD_PRICE=[[0,0],[2600,35],[3100,35],[15000,70],[19000,70],[35000,7
 // 단계마다 판매 토큰 +3% · 희귀 이상 +2% (예전 강화 보너스를 낚싯대로 옮김). 가격은 토큰 + 다이아.
 export const ROD_TOKEN_BONUS=.03,ROD_RARE_BONUS=.02;
 export const ROD_TIERS=Object.freeze([
- {tier:1,name:'견습 대나무 낚싯대',power:8,tokens:ROD_PRICE[0][0],diamonds:ROD_PRICE[0][1],art:'rod'},
- {tier:2,name:'단단한 대나무 낚싯대',power:12,tokens:ROD_PRICE[1][0],diamonds:ROD_PRICE[1][1],art:'rod'},
- {tier:3,name:'달빛 갈대 낚싯대',power:15,tokens:ROD_PRICE[2][0],diamonds:ROD_PRICE[2][1],art:'rod'},
- {tier:4,name:'은빛 갈대 낚싯대',power:19,tokens:ROD_PRICE[3][0],diamonds:ROD_PRICE[3][1],art:'rod'},
- {tier:5,name:'단풍목 낚싯대',power:22,tokens:ROD_PRICE[4][0],diamonds:ROD_PRICE[4][1],art:'rod'},
- {tier:6,name:'붉은 단풍목 낚싯대',power:26,tokens:ROD_PRICE[5][0],diamonds:ROD_PRICE[5][1],art:'rod'},
- {tier:7,name:'산호 낚싯대',power:29,tokens:ROD_PRICE[6][0],diamonds:ROD_PRICE[6][1],art:'rod'},
- {tier:8,name:'진주 산호 낚싯대',power:33,tokens:ROD_PRICE[7][0],diamonds:ROD_PRICE[7][1],art:'rod'},
- {tier:9,name:'성운 낚싯대',power:36,tokens:ROD_PRICE[8][0],diamonds:ROD_PRICE[8][1],art:'rod-50'},
- {tier:10,name:'은하 성운 낚싯대',power:40,tokens:ROD_PRICE[9][0],diamonds:ROD_PRICE[9][1],art:'rod-50'},
- {tier:11,name:'용궁 낚싯대',power:43,tokens:ROD_PRICE[10][0],diamonds:ROD_PRICE[10][1],art:'rod-50'},
- {tier:12,name:'용왕의 낚싯대',power:47,tokens:ROD_PRICE[11][0],diamonds:ROD_PRICE[11][1],art:'rod-50'},
- {tier:13,name:'화염 낚싯대',power:50,tokens:ROD_PRICE[12][0],diamonds:ROD_PRICE[12][1],art:'rod-60'},
- {tier:14,name:'마그마 낚싯대',power:56,tokens:ROD_PRICE[13][0],diamonds:ROD_PRICE[13][1],art:'rod-60'},
- {tier:15,name:'태초의 낚싯대',power:62,tokens:ROD_PRICE[14][0],diamonds:ROD_PRICE[14][1],art:'rod-70'},
- {tier:16,name:'창세의 낚싯대',power:75,tokens:ROD_PRICE[15][0],diamonds:ROD_PRICE[15][1],art:'rod-70'},
+ {tier:1,name:'견습 대나무 낚싯대',power:8,tokens:ROD_PRICE[0][0],diamonds:ROD_PRICE[0][1],art:'rod-tier-01'},
+ {tier:2,name:'단단한 대나무 낚싯대',power:12,tokens:ROD_PRICE[1][0],diamonds:ROD_PRICE[1][1],art:'rod-tier-02'},
+ {tier:3,name:'달빛 갈대 낚싯대',power:15,tokens:ROD_PRICE[2][0],diamonds:ROD_PRICE[2][1],art:'rod-tier-03'},
+ {tier:4,name:'은빛 갈대 낚싯대',power:19,tokens:ROD_PRICE[3][0],diamonds:ROD_PRICE[3][1],art:'rod-tier-04'},
+ {tier:5,name:'단풍목 낚싯대',power:22,tokens:ROD_PRICE[4][0],diamonds:ROD_PRICE[4][1],art:'rod-tier-05'},
+ {tier:6,name:'붉은 단풍목 낚싯대',power:26,tokens:ROD_PRICE[5][0],diamonds:ROD_PRICE[5][1],art:'rod-tier-06'},
+ {tier:7,name:'산호 낚싯대',power:29,tokens:ROD_PRICE[6][0],diamonds:ROD_PRICE[6][1],art:'rod-tier-07'},
+ {tier:8,name:'진주 산호 낚싯대',power:33,tokens:ROD_PRICE[7][0],diamonds:ROD_PRICE[7][1],art:'rod-tier-08'},
+ {tier:9,name:'성운 낚싯대',power:36,tokens:ROD_PRICE[8][0],diamonds:ROD_PRICE[8][1],art:'rod-tier-09'},
+ {tier:10,name:'은하 성운 낚싯대',power:40,tokens:ROD_PRICE[9][0],diamonds:ROD_PRICE[9][1],art:'rod-tier-10'},
+ {tier:11,name:'용궁 낚싯대',power:43,tokens:ROD_PRICE[10][0],diamonds:ROD_PRICE[10][1],art:'rod-tier-11'},
+ {tier:12,name:'용왕의 낚싯대',power:47,tokens:ROD_PRICE[11][0],diamonds:ROD_PRICE[11][1],art:'rod-tier-12'},
+ {tier:13,name:'화염 낚싯대',power:50,tokens:ROD_PRICE[12][0],diamonds:ROD_PRICE[12][1],art:'rod-tier-13'},
+ {tier:14,name:'마그마 낚싯대',power:56,tokens:ROD_PRICE[13][0],diamonds:ROD_PRICE[13][1],art:'rod-tier-14'},
+ {tier:15,name:'태초의 낚싯대',power:62,tokens:ROD_PRICE[14][0],diamonds:ROD_PRICE[14][1],art:'rod-tier-15'},
+ {tier:16,name:'창세의 낚싯대',power:75,tokens:ROD_PRICE[15][0],diamonds:ROD_PRICE[15][1],art:'rod-tier-16'},
 ].map(Object.freeze));
 export const rodTier=f=>ROD_TIERS[Math.max(1,Math.min(ROD_MAX,f?.rod||1))-1];
 export const rodGoldCost=()=>0,rodDiamondCost=()=>0;
