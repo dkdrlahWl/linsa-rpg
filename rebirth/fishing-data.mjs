@@ -36,17 +36,16 @@ const rows=[
 // v3: 물고기는 낚시터가 열리면 등급 상관없이 전부 나온다 (등급 관문 없음). level = 필요한 낚싯대 단계(1~8), depth = 손맛 난이도 기준.
 export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:SPOTS.find(s=>s.id===spot).level}));
 // v3 미끼: 지렁이만 골드, 나머지는 낚시 토큰. luck=희귀 이상(최대 2단계 위까지) 배율 지수, 나머지는 각 효과 배율.
+// 2026-11-05 도현: 미끼는 좋을수록 희귀한 물고기가 더 잘 낚인다 — 등급 1단계마다 rare배 (최대 4단계까지 곱함).
 export const BAITS=[
- {id:'worm',name:'숲 지렁이',pack:600,gold:60000,level:1,luck:0,text:'기본 미끼 · 무한',infinite:true},
- {id:'shrimp',name:'반짝 새우',pack:10,tokens:1500,level:1,luck:.6,text:'희귀 이상 ×1.6'},
- {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:1,luck:0,chest:1.6,text:'다이아 상자 ×1.6'},
- {id:'golden',name:'황금 미끼',pack:10,tokens:3500,level:1,luck:0,big:1.25,key:1.3,text:'대어 ×1.25 · 던전 열쇠 ×1.3'},
- {id:'star',name:'별가루 미끼',pack:10,tokens:6000,level:1,luck:0,legend:4,text:'전설 이상 ×4'},
- // 2026-11-05 추가 미끼
- {id:'glow',name:'형광 미끼',pack:10,tokens:4000,level:3,luck:0,mut:2.5,text:'돌연변이 ×2.5',art:'pearl',hue:'glow'},
- {id:'giant',name:'거대 미끼',pack:10,tokens:6000,level:4,luck:0,big:2,text:'대어 이상 ×2',art:'worm',hue:'giant'},
- {id:'twin',name:'쌍둥이 미끼',pack:10,tokens:2500,level:2,luck:0,double:.2,text:'두 마리 동시 +20%',art:'shrimp',hue:'twin'},
+ {id:'worm',name:'숲 지렁이',pack:600,gold:60000,level:1,rare:1,text:'기본 미끼 · 무한',infinite:true},
+ {id:'shrimp',name:'반짝 새우',pack:10,tokens:1500,level:1,rare:1.15,text:'희귀할수록 등급마다 ×1.15'},
+ {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:2,rare:1.3,text:'희귀할수록 등급마다 ×1.3'},
+ {id:'golden',name:'황금 미끼',pack:10,tokens:6000,level:3,rare:1.45,text:'희귀할수록 등급마다 ×1.45',art:'star',hue:'golden'},
+ {id:'glow',name:'형광 미끼',pack:10,tokens:12000,level:4,rare:1.6,text:'희귀할수록 등급마다 ×1.6',art:'pearl',hue:'glow'},
+ {id:'star',name:'별가루 미끼',pack:10,tokens:24000,level:5,rare:1.8,text:'희귀할수록 등급마다 ×1.8'},
 ];
+export const BAIT_RARE_CAP=4;
 export const baitDiamondCost=()=>0;
 // 예전(v2) 미끼 다이아 값 — 초기화 환불용 (개당 다이아).
 export const LEGACY_BAIT_DIAMONDS={shrimp:2/15,pearl:4/10,star:6/5};
@@ -58,7 +57,7 @@ export const fishingQuestsReady=(s,now=Date.now())=>{const d=s?.fishing?.daily;i
 export const REWARD_RATES=[{id:'fish',name:'물고기',chance:.9875},{id:'diamondChest',name:'다이아 상자',chance:.01},{id:'dungeonKey',name:'던전 열쇠',chance:.0025}]; // 2026-11-05 도현: 열쇠 0.5% → 0.25% (반토막)
 // Bait: each grade above the spot's lowest grade is (1+luck)x more likely, for at most two grades
 // (every spot now starts at 일반, so an uncapped bonus would compound over six grades).
-export const baitGradeWeight=(fish,bait)=>(1+bait.luck)**Math.min(2,fish.rarity-Math.min(...FISH.filter(x=>x.spot===fish.spot).map(x=>x.rarity)));
+export const baitGradeWeight=(fish,bait)=>(bait?.rare||1)**Math.min(BAIT_RARE_CAP,fish.rarity);
 // Deeper spots: each grade up is spot.luck x more likely (first spot 1x).
 export const spotGradeWeight=fish=>(SPOTS.find(x=>x.id===fish.spot)?.luck||1)**fish.rarity;
 // Bite wait is the only cast delay. Every bite is caught.

@@ -269,6 +269,7 @@ const errors = {
   FISHING_AUTO_REQUIRED: "자동 낚시권이 끝났어요. 상점에서 구매하면 오토 낚시를 할 수 있어요.",
   INVALID_FISHING_INPUT: "손맛 낚시 기록이 올바르지 않아요. 다시 던져 주세요.",
   INVALID_FISHING_AUTO: "구매할 수 없는 자동 낚시권이에요.",
+  FISHING_FUSE_REMOVED: "합성은 없어졌어요.",
   FISHING_TOKENS_REQUIRED: "낚시 토큰이 부족해요. 물고기를 팔면 토큰을 받아요.",
   FISHING_ENHANCE_MAX: "이미 최고 강화 단계예요.",
   INVALID_FISHING_ENCHANT: "인챈트 잠금이 올바르지 않아요. 열린 칸 중 하나는 남겨 두세요.",

@@ -30,16 +30,16 @@ assert.ok(Math.abs(fishYield({...base,size:'monster'})/fishYield(base)-Math.sqrt
 // 낚시 → 판매 토큰 → 강화 · 인챈트 · 미끼 · 수족관
 const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rod:50,xp:0,diamonds:0,bait:{worm:10000},fish:[],aquarium:[],slots:3,bank:0,bankAt:now0,collection:{},daily:{},cast:null,lastCatch:null,tokens:0,enhance:0,enchants:[],autoUntil:now0+864e5}});
 {
- const s=fresh(),random=seq(7);s.fishing.bait.twin=1000;let now=now0,sizes={},muts=0,extra=0;
+ const s=fresh(),random=seq(7);s.fishing.bait.star=1000;let now=now0,sizes={},muts=0,extra=0;
  assert.throws(()=>fishingCommand(s,'fishCast',{protocol:4,spot:'brook',bait:'worm'},{now,random,uuid}),/FISHING_REFRESH_REQUIRED/);
  for(let i=0;i<400;i++){
-  const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:i%2?'moon':'volcano',bait:i%2?'twin':'worm'},{now,random,uuid});now=s.fishing.cast.biteAt;
+  const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:i%2?'moon':'volcano',bait:i%2?'star':'worm'},{now,random,uuid});now=s.fishing.cast.biteAt;
   const r=fishingCommand(s,'fishHook',{id:castId,auto:true},{now,random,uuid});
   if(r.fish){sizes[r.fish.size]=(sizes[r.fish.size]||0)+1;if(r.fish.mut)muts++;if(r.extra)extra++;}
   if(s.fishing.fish.length>=140){fishingCommand(s,'fishSell',{ids:s.fishing.fish.map(x=>x.id)},{now,random,uuid});}
   now+=1000;s.fishing.daily.casts=0;
  }
- assert.ok(sizes.small>sizes.large&&sizes.large>(sizes.big||0));assert.ok(extra>0,'twin bait double catch');
+ assert.ok(sizes.small>sizes.large&&sizes.large>(sizes.big||0));assert.equal(extra,0);
  const before=s.fishing.tokens,ids=s.fishing.fish.map(x=>x.id),want=Math.round(s.fishing.fish.reduce((a,x)=>a+fishPrice(x),0));
  const sold=fishingCommand(s,'fishSell',{ids},{now,random,uuid});assert.equal(sold.tokens,want);assert.equal(s.fishing.tokens,before+want);
  s.fishing.tokens=1e7;s.fishing.diamonds=1000;
@@ -48,18 +48,14 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rod:50,xp:0,diamonds:
  fishingCommand(s,'fishEnchant',{},{now,random,uuid});assert.equal(s.fishing.enchants.length,1);
  assert.throws(()=>fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid}),/INVALID_FISHING_ENCHANT/,'cannot lock every open slot');
  s.fishing.enhance=8;const t0=s.fishing.tokens;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(t0-s.fishing.tokens,60000);
- fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'tokens'},{now,random,uuid});assert.equal(s.fishing.bait.star,10);
+ {const b0=s.fishing.bait.star||0;fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'tokens'},{now,random,uuid});assert.equal(s.fishing.bait.star,b0+10);}
  assert.throws(()=>fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'diamonds'},{now,random,uuid}),/FISHING_REFRESH_REQUIRED/);
  const t1=s.fishing.tokens;fishingCommand(s,'fishAquariumExpand',{},{now,random,uuid});assert.equal(t1-s.fishing.tokens,aquariumExpandCost(3));assert.equal(s.fishing.slots,4);
 }
 // 합성 · 황금 합성 · 각성
 {
  const s=fresh(),f=s.fishing,now=now0,mk=(o)=>({id:uuid(),species:'fish-41',weight:2000,size:'small',caughtAt:now,...o});
- f.fish=[mk(),mk(),mk()];const r=fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>0,uuid});assert.equal(r.success,true);assert.equal(f.fish.length,1);assert.equal(f.fish[0].species,'fish-41');assert.equal(f.fish[0].size,'large','jackpot: two sizes');assert.equal(f.fish[0].mut,'rainbow');
- {const seqR=[.5,.99,.99,.99];let k=0;f.fish=[mk(),mk(),mk()];const r1=fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>seqR[k++]??.99,uuid});assert.equal(r1.success,true);assert.equal(r1.jump,1);assert.equal(f.fish[0].size,'normal');}
- f.fish=[mk({size:'big'}),mk({size:'big'}),mk({size:'big'})];const r2=fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>.99,uuid});assert.equal(r2.success,false);assert.equal(f.fish.length,1);assert.equal(f.fish[0].size,'big');
- f.fish=[mk(),mk({size:'normal'}),mk()];assert.throws(()=>fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>0,uuid}),/FISHING_FUSE_MISMATCH/);
- f.fish=Array.from({length:5},(_,i)=>mk({mut:'gold',species:i?'fish-41':'fish-49'}));const g1=fishingCommand(s,'fishGoldFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>0,uuid});assert.equal(g1.success,true);assert.equal(f.fish.length,1);assert.equal(f.fish[0].mut,'rainbow');assert.equal(f.fish[0].species,'fish-49');
+ for(const c of ['fishFuse','fishGoldFuse'])assert.throws(()=>fishingCommand(s,c,{ids:[]},{now,random:()=>0,uuid}),/FISHING_FUSE_REMOVED/);
  f.aquarium=[mk({id:'t'})];f.fish=[mk(),mk(),mk()];
  fishingCommand(s,'fishAwaken',{id:'t'},{now,random:()=>0,uuid});assert.equal(f.aquarium[0].star,1);assert.equal(f.fish.length,2);
  fishingCommand(s,'fishAwaken',{id:'t'},{now,random:()=>0,uuid});assert.equal(f.aquarium[0].star,2);assert.equal(f.fish.length,0);
@@ -90,3 +86,10 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rod:50,xp:0,diamonds:
  s.fishing.tokens=ROD_TIERS[1].tokens;assert.throws(()=>fishingCommand(s,'fishRodBuy',{tier:3},{now:now0,random:Math.random,uuid}),/FISHING_REFRESH_REQUIRED/);fishingCommand(s,'fishRodBuy',{tier:2},{now:now0,random:Math.random,uuid});assert.equal(s.fishing.rod,2);assert.equal(s.fishing.tokens,0);
  fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'moon',bait:'worm'},{now:now0,random:Math.random,uuid});}
 console.log('PASS fishing v3: data, refund+reset, tokens, enhance, enchant locks, baits, aquarium, fuse, gold fuse, awaken, spot gates');
+// 미끼 등급 ↑ → 희귀 물고기 확률 ↑
+{
+ const {BAITS,baitGradeWeight}=await import('./fishing-data.mjs');
+ const legend={rarity:4},common={rarity:0};
+ let prev=0;for(const b of Object.values(BAITS)){const w=baitGradeWeight(legend,b)/baitGradeWeight(common,b);assert.ok(w>=prev);prev=w;}
+ assert.ok(prev>5);
+}
