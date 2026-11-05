@@ -18,8 +18,8 @@ function route(d,from,goal){
  const cx=(x+.5)*100,cy=(y+.5)*100;if(best.x!==cx&&Math.abs(from.y-cy)>25)return {x:from.x,y:cy};if(best.y!==cy&&Math.abs(from.x-cx)>25)return {x:cx,y:from.y};
  return best;
 }
-export function campaign(seed,{players=1,power=DOHYUN,from=1,to=21,reaction=3,maxTicks=60000}={}){
- let w=startCoop({mode:'citadel',tier:0,status:'waiting',owner:'p0',members:Array.from({length:players},(_,i)=>({id:'p'+i,classId:CLASSES[i%4],power:{...power},advanced:true,ready:true}))},seed);
+export function campaign(seed,{players=1,power=DOHYUN,from=1,to=21,reaction=3,maxTicks=60000,citadelBoss}={}){
+ let w=startCoop({mode:'citadel',tier:0,...(citadelBoss?{citadelBoss}:{}),status:'waiting',owner:'p0',members:Array.from({length:players},(_,i)=>({id:'p'+i,classId:CLASSES[i%4],power:{...power},advanced:true,ready:true}))},seed);
  w.entryWaiting=false;
  if(from>1){w.floor=from;explorationFloor(w);}
  const log=[];let floorStart=0,lastFloor=w.floor;

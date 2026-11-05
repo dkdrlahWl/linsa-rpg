@@ -16,7 +16,16 @@ export const CITADEL_BOSS_REWARDS=[
  {lock:.05,scroll:.3,highCube:.0667,highCubeCount:1,fragment:10,gear:.05,max:170},
  {lock:.0583,scroll:.35,highCube:.075,highCubeCount:1,fragment:10,gear:.05,max:190},
 ];
-export const citadelGearLevel=(max,random)=>100+10*Math.floor(random()*((max-100)/10+1));
+// 2026-11-05 도현: 보스별 입장 보상 — 보스 장비·파편 위주, 뒤 보스일수록 크게 증가. 입장 제한 없음. 보스 장비 레벨은 min~max 10단위 균등.
+export const CITADEL_SOLO_REWARDS=[
+ {lock:0,scroll:.05,highCube:.02,highCubeCount:1,fragment:20,gear:.10,min:100,max:150},
+ {lock:.01,scroll:.10,highCube:.04,highCubeCount:1,fragment:40,gear:.15,min:130,max:170},
+ {lock:.02,scroll:.18,highCube:.07,highCubeCount:1,fragment:70,gear:.22,min:150,max:180},
+ {lock:.035,scroll:.28,highCube:.10,highCubeCount:1,fragment:110,gear:.30,min:170,max:190},
+ {lock:.05,scroll:.40,highCube:.15,highCubeCount:1,fragment:160,gear:.40,min:180,max:200},
+ {lock:.08,scroll:.55,highCube:.22,highCubeCount:2,fragment:250,gear:.55,min:190,max:220,levels:[190,200,220]},
+];
+export const citadelGearLevel=(max,random,min=100)=>min+10*Math.floor(random()*((max-min)/10+1));
 export function citadelPendingChests(state,room,userId){
  const member=room?.members?.find(m=>m.id===userId&&!m.left);if(!member)return [];
  const claims=state?.citadelClaims?.room===room.id?state.citadelClaims.bosses||[]:[];
@@ -28,14 +37,14 @@ export function grantCitadelChests(input,room,userId,ctx){
  const state=structuredClone(input);state.materials??={};state.items??=[];state.collection??=[];
  const reward={type:'citadelChest',bosses,potentialLock:0,scroll:0,highCube:0,fragment:0,items:[]};
  for(const boss of bosses){
-  const r=CITADEL_BOSS_REWARDS[boss-1];
+  const r=(room.citadelBoss?CITADEL_SOLO_REWARDS:CITADEL_BOSS_REWARDS)[boss-1];
   if(r.lock>0&&ctx.random()<r.lock)reward.potentialLock++;
   if(ctx.random()<r.scroll)reward.scroll++;
   // 2026-11-03 도현: 성채 보스 상자 블랙 큐브(보스별 20~45% · 1~3개, 6보스 다 깨면 최대 12개).
   if(ctx.random()<r.highCube)reward.highCube+=r.highCubeCount;
   reward.fragment+=Math.round(r.fragment*professionFragmentBoost(state));
   if(ctx.random()<r.gear){
-   const level=citadelGearLevel(r.max,ctx.random),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
+   const level=r.levels?r.levels[Math.floor(ctx.random()*r.levels.length)]:citadelGearLevel(r.max,ctx.random,r.min??100),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
    if(state.items.length>=300)reward.stored=(reward.stored||0)+1;addItem(state,item);reward.items.push(item);
   }

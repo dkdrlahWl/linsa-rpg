@@ -1,4 +1,4 @@
-import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending} from './citadel-zero.mjs';
+import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending,CITADEL_BOSS_FLOORS} from './citadel-zero.mjs';
 import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
@@ -63,7 +63,7 @@ export function explorationFloor(w){
 export function initializeExploration(w){
  if(w.members.filter(m=>!m.left).length>4)throw Error('INVALID_EXPLORATION_PLAYERS');
  // Ringu exploration starts straight in the final boss arena (2026-10-15); the citadel still starts at region 1.
- Object.assign(w,{floor:isCitadel(w)?1:EXPLORATIONS[w.tier].floors,population:w.members.filter(m=>!m.left).length,kills:0,seed:(w.started>>>0)||1,mapSeed:w.started>>>0});explorationFloor(w);return w;
+ Object.assign(w,{floor:isCitadel(w)?(CITADEL_BOSS_FLOORS[(w.citadelBoss|0)-1]||1):EXPLORATIONS[w.tier].floors,population:w.members.filter(m=>!m.left).length,kills:0,seed:(w.started>>>0)||1,mapSeed:w.started>>>0});explorationFloor(w);return w;
 }
 export function explorationProgress(w){
  if(isCitadel(w)&&w.tick>=w.floorDeadline){w.status='lost';w.reason='floorTimeout';w.endedTick=w.tick;return;}
@@ -75,7 +75,7 @@ export function explorationProgress(w){
    if(citadelStage(w.floor)?.boss&&!w.rewardChest){const at=w.bossDeath||w.exit;w.rewardChest={x:at.x,y:at.y,boss:citadelBossOrdinal(w.floor),floor:w.floor,at:w.tick};}
    w.exitLocked=citadelChestPending(w);if(w.exitLocked){for(const m of w.members)m.exitStay=0;return;}
   }
-  if(w.floor===theme.floors){w.status='won';w.chest=isCitadel(w)?null:{...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members){m.input=[0,0,0];
+  if(w.floor===theme.floors||(isCitadel(w)&&w.citadelBoss)){w.status='won';w.chest=isCitadel(w)?null:{...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members){m.input=[0,0,0];
    // 2026-10-25: 링구의 탐험 클리어 시 쓰러진 동료(이탈 제외)는 체력 30%로 부활해 상자를 열 수 있다.
    if(!isCitadel(w)&&!m.left&&m.hp<=0){m.hp=Math.max(1,Math.round(m.power.hp*.3));m.reviveProgress=0;m.reviver=null;m.inputAt=0;}}return;}
   // Citadel portals need a deliberate one-second stand, so running past never warps the party.

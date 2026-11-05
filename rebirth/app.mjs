@@ -1869,7 +1869,7 @@ document.addEventListener("click", async (e) => {
     if(action==='waveRewardHistory'){const r=state.waveRewardHistory?.[Number(arg)];if(r)return open('웨이브 보상 수령 내역',waveRewardBody(r)+btn('닫기','close','','gold'));return;}
     if(action==="waveCreate")return;
     if(action==="coopCreate")return toast("협동 균열은 종료된 콘텐츠입니다.");
-    if(action==='citadelCreate')return await command('coopCreate',{mode:'citadel',tier:0});
+    if(action==='citadelCreate')return await command('coopCreate',{mode:'citadel',tier:0,...(/^[1-6]$/.test(String(arg))?{boss:Number(arg)}:{})});
     if(action==="explorationCreate")return await command("coopCreate",{mode:"exploration",tier:Number(arg)});
     if(action==="explorationBusCreate"){if(!confirm("버스 방을 만들까요?\n방장만 열쇠를 쓰고 클리어 보상도 방장만 받아요. 파티원은 열쇠를 쓰지 않고 보상도 없어요."))return;return await command("coopCreate",{mode:"exploration",tier:Number(arg),bus:true});}
     if(action==="raidCreate")return await command("coopCreate",{mode:"raid",tier:Number(arg)});

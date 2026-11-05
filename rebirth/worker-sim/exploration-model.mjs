@@ -42,7 +42,7 @@ export function advanceExplorationRaw(room,user,input,now,frames=[],owned=false)
   for(const m of alive){
    const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0];const n=Math.max(1,Math.hypot(x,y));x/=n;y/=n;m.dir=towerFacing(x,y,m.dir);m.moving=Math.hypot(x,y)>.01;if(m.moving)m.walk++;
    if((bits&4)&&t>=m.dashReady){m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;const f=facingVector(m.dir);m.dx=m.moving?x:f.x;m.dy=m.moving?y:f.y;}
-   const oldX=m.x,oldY=m.y;const dashing=t<(m.dashUntil||0),speed=c.speed*dungeonMoveSpeed(w)*(t<(m.slowUntil||0)?.55:1);dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(isCitadel(w)&&w.monsters.some(e=>e.hp>0&&e.bossKind==='serpents'&&distance(m,e)<110)){m.x=oldX;m.y=oldY;}if(x)m.face=x<0?-1:1;
+   const oldX=m.x,oldY=m.y;const dashing=t<(m.dashUntil||0),speed=c.speed*dungeonMoveSpeed(w)*(t<(m.slowUntil||0)?.55:1);dungeonMove(w.dungeon,m,(dashing?m.dx*3:x)*speed,(dashing?m.dy*3:y)*speed);if(isCitadel(w)&&w.monsters.some(e=>e.hp>0&&e.bossKind==='serpents'&&distance(m,e)<110&&distance(m,e)<Math.hypot(oldX-e.x,oldY-e.y))){m.x=oldX;m.y=oldY;} // 2026-11-05: 뱀에 끼임 방지 — 다가가는 이동만 막음if(x)m.face=x<0?-1:1;
 
    const targets=w.monsters.filter(e=>e.hp>0&&(!isCitadel(w)||distance(e,m)<1800)&&bodySight(w.dungeon,m,e)).sort((a,b)=>distance(a,m)-distance(b,m)),target=targets[0];
    const chest=w.rewardChest;

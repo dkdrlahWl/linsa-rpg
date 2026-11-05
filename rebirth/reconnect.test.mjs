@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {abortable} from './request-lifecycle.mjs';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
-const source=readFileSync(new URL('./app.mjs?v=frag400-20261105',import.meta.url),'utf8');
+const source=readFileSync(new URL('./app.mjs?v=cboss-20261105',import.meta.url),'utf8');
 const auth=source.slice(source.indexOf('async function request('),source.indexOf('let newsPollAt='));
 const commands=source.slice(source.indexOf('const dungeonExitActions='),source.indexOf('async function loadArena('));
 const ranking=source.slice(source.indexOf('let rankingAttempt='),source.indexOf('function rankings()'));

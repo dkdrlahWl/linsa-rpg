@@ -46,9 +46,19 @@ export const citadelPopulation=n=>({hp:1+(Math.max(1,Math.min(4,n))-1)/3,attack:
 export const CITADEL_ATTACK_BOOST={normal:10,boss:15};
 export const citadelAttackBoost=boss=>boss?CITADEL_ATTACK_BOOST.boss:CITADEL_ATTACK_BOOST.normal;
 export const CITADEL_TUNING={depthStart:.6,depthStep:.07,normalAttackStep:.015,normalHp:180000,normalAttack:2000,bossHp:18000000,bossAttack:900,bossAttackBy:{totem:1,shadow:1,plant:.22,harbingers:.9,serpents:.25,avatar:.45},bossHpBy:{totem:2.5,shadow:1,plant:1.3,harbingers:3,serpents:2,avatar:1}};
-export function citadelStats(floor,count,boss=false){
- const k=CITADEL_TUNING,stage=citadelStage(floor),depth=k.depthStart+k.depthStep*(floor-1);
- return {hp:Math.round((boss?k.bossHp*(k.bossHpBy[stage.boss]??1):k.normalHp)*depth*citadelPopulation(count).hp),attack:Math.round((boss?k.bossAttack*(k.bossAttackBy[stage.boss]??1)*depth:k.normalAttack*(k.depthStart+k.normalAttackStep*(floor-1)))*citadelAttackBoost(boss)),speed:boss?19:20+Math.min(5,stage.act)};
+// 2026-11-05 도현: 보스별 입장(w.citadelBoss) — 시간 제한 없음, 보스마다 난이도 차이 크게(체력 2배씩·공격력 1.5배씩),
+// 체력은 입장 인원 수만큼 배수(2인 2배 · 4인 4배). 일반 몹·소환수는 기존 성채의 3배.
+export const CITADEL_SOLO_DIFFICULTY=3;
+export const CITADEL_SOLO_BOSS=Object.freeze([
+ {hp:300e6,attack:25000,cadence:0},{hp:600e6,attack:38000,cadence:2},{hp:1200e6,attack:57000,cadence:4},
+ {hp:2400e6,attack:85000,cadence:6},{hp:4800e6,attack:128000,cadence:8},{hp:9600e6,attack:190000,cadence:10}
+].map(Object.freeze));
+export const citadelSoloPopulation=n=>({hp:Math.max(1,Math.min(4,n)),attack:1});
+export const CITADEL_BOSS_FLOORS=CITADEL_STAGES.map((s,i)=>s.boss?i+1:0).filter(Boolean);
+export function citadelStats(floor,count,boss=false,solo=false){
+ if(solo&&boss){const b=CITADEL_SOLO_BOSS[citadelBossOrdinal(floor)-1];return {hp:Math.round(b.hp*citadelSoloPopulation(count).hp),attack:b.attack,speed:19};}
+ const k=CITADEL_TUNING,stage=citadelStage(floor),depth=k.depthStart+k.depthStep*(floor-1),d=solo?CITADEL_SOLO_DIFFICULTY:1,pop=solo?citadelSoloPopulation(count):citadelPopulation(count);
+ return {hp:Math.round((boss?k.bossHp*(k.bossHpBy[stage.boss]??1):k.normalHp)*depth*pop.hp*d),attack:Math.round((boss?k.bossAttack*(k.bossAttackBy[stage.boss]??1)*depth:k.normalAttack*(k.depthStart+k.normalAttackStep*(floor-1)))*citadelAttackBoost(boss)*d),speed:boss?19:20+Math.min(5,stage.act)};
 }
 function rng(seed){let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
 export function makeCitadelDungeon(floor,seed){return buildCitadelRegion(citadelStage(floor),floor,seed,CITADEL_VERSION);}
@@ -102,11 +112,11 @@ export function citadelFloor(w,walkable,reveal){
  const slots=[];for(const r of w.dungeon.rooms){if(r.id===3)continue;for(let y=r.y+1;y<r.y+r.h-1;y++)for(let x=r.x+1;x<r.x+r.w-1;x++)if(walkable(w.dungeon,(x+.5)*100,(y+.5)*100))slots.push({x:(x+.5)*100,y:(y+.5)*100});}
  for(let i=slots.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}
  const count=st.boss?0:Math.min(slots.length-12-CITADEL_HEARTS,Math.round((CITADEL_MONSTERS.base+st.act*CITADEL_MONSTERS.perAct+Math.floor(random()*CITADEL_MONSTERS.spread))*CITADEL_MONSTER_SCALE*(w.dungeon.monsterScale??1)));
- const make=(i,point,extra={})=>{const stats=citadelStats(w.floor,w.population,!!extra.boss),species=st.biome*4+i%4;return {id:-(w.floor*10000+i+1),...point,species,name:CITADEL_BIOMES[st.biome].enemies[i%4],citadel:true,explorationTier:3,art:citadelAsset('enemy',species),level:200,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,ready:w.tick+15,walk:0,face:1,elite:i%13===0,role:[6,11,13,21,25].includes(species)?'ranged':[3,9,14,15,22,26,27,31].includes(species)?'caster':'melee',...extra};};
+ const make=(i,point,extra={})=>{const stats=citadelStats(w.floor,w.population,!!extra.boss,!!w.citadelBoss),species=st.biome*4+i%4;return {id:-(w.floor*10000+i+1),...point,species,name:CITADEL_BIOMES[st.biome].enemies[i%4],citadel:true,explorationTier:3,art:citadelAsset('enemy',species),level:200,hp:stats.hp,maxHp:stats.hp,attack:stats.attack,speed:stats.speed,ready:w.tick+15,walk:0,face:1,elite:i%13===0,role:[6,11,13,21,25].includes(species)?'ranged':[3,9,14,15,22,26,27,31].includes(species)?'caster':'melee',...extra};};
  for(let i=0;i<count;i++)w.monsters.push(make(i,slots.pop()));
  if(st.boss){const order=[0,1,2,3];for(let j=3;j>0;j--){const k=Math.floor(random()*(j+1));[order[j],order[k]]=[order[k],order[j]];}const n=st.boss==='harbingers'?2:st.boss==='serpents'?3:1,artIndex={totem:0,shadow:4,plant:5,harbingers:6,serpents:8,avatar:9}[st.boss];
-  for(let i=0;i<n;i++){const stats=citadelStats(w.floor,w.population,true);w.monsters.push(make(900+i,{x:w.exit.x+(i-(n-1)/2)*450,y:w.exit.y},{boss:true,elite:true,role:'boss',name:CITADEL_BOSSES[st.boss],bossKind:st.boss,art:citadelAsset('boss',artIndex+(st.boss==='harbingers'?i:0)),hp:Math.round(stats.hp/n),maxHp:Math.round(stats.hp/n),speed:st.boss==='totem'||st.boss==='shadow'||st.boss==='plant'?0:stats.speed,skillReady:w.tick+30,phase:0,phaseOrder:order}));}
-  if(st.boss==='shadow')for(let i=0;i<4;i++)w.monsters.push(make(1000+i,{x:w.exit.x+Math.cos(i*Math.PI/2)*550,y:w.exit.y+Math.sin(i*Math.PI/2)*550},{channel:true,attack:Math.round(500*citadelAttackBoost(false)),role:'caster',art:citadelAsset('enemy',9),name:'의식의 광신도',hp:citadelStats(w.floor,w.population,true).hp/12,maxHp:citadelStats(w.floor,w.population,true).hp/12}));
+  for(let i=0;i<n;i++){const stats=citadelStats(w.floor,w.population,true,!!w.citadelBoss);w.monsters.push(make(900+i,{x:w.exit.x+(i-(n-1)/2)*450,y:w.exit.y},{boss:true,elite:true,role:'boss',name:CITADEL_BOSSES[st.boss],bossKind:st.boss,art:citadelAsset('boss',artIndex+(st.boss==='harbingers'?i:0)),hp:Math.round(stats.hp/n),maxHp:Math.round(stats.hp/n),speed:st.boss==='totem'||st.boss==='shadow'||st.boss==='plant'?0:stats.speed,skillReady:w.tick+30,phase:0,phaseOrder:order}));}
+  if(st.boss==='shadow')for(let i=0;i<4;i++)w.monsters.push(make(1000+i,{x:w.exit.x+Math.cos(i*Math.PI/2)*550,y:w.exit.y+Math.sin(i*Math.PI/2)*550},{channel:true,attack:Math.round(500*citadelAttackBoost(false)*(w.citadelBoss?CITADEL_SOLO_DIFFICULTY:1)),role:'caster',art:citadelAsset('enemy',9),name:'의식의 광신도',hp:citadelStats(w.floor,w.population,true,!!w.citadelBoss).hp/12,maxHp:citadelStats(w.floor,w.population,true,!!w.citadelBoss).hp/12}));
  }
  if(!st.boss&&st.biome!==0)for(let i=0;i<6+st.act;i++){const p=slots.pop();if(p)w.traps.push({id:w.floor*100+i,...p,r:100,ready:w.tick+15,type:st.biome===1?'rock':st.biome===4?'thorn':st.biome===7?'shadow':'spike'});}
  w.maxHp=w.monsters.reduce((n,e)=>n+e.maxHp,0);w.hp=w.maxHp;w.enemy={...w.exit,face:1};
@@ -122,7 +132,7 @@ export function citadelBossTick(w,e,alive){
  if(kind==='avatar')e.art=citadelAsset('boss',e.phase===1?4:9);
  if(kind==='totem')e.art=citadelAsset('boss',e.phaseOrder[e.phase]);
  if(e.charge&&t>=e.charge.at){const q=e.charge;if(t<q.end){dungeonMove(w.dungeon,e,q.dx,q.dy,60);e.moving=true;e.walk++;if(q.fire&&t%2===0)w.hazards.push({type:'circle',x:e.x,y:e.y,r:130,at:t+2,end:t+32,citadel:true,attack:e.attack*.35,source:e.id,element:'fire'});}else delete e.charge;}
- if(t<(e.skillReady||0))return true;e.skillReady=t+(kind==='avatar'?24:kind==='serpents'?32:42);e.castStart=t;e.attackStart=t+14;e.attackUntil=t+18;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);
+ if(t<(e.skillReady||0))return true;const solo=w.citadelBoss?CITADEL_SOLO_BOSS[w.citadelBoss-1]:null;e.casts=(e.casts||0)+1;e.skillReady=t+(kind==='avatar'?24:kind==='serpents'?32:42)-(solo?.cadence||0);e.castStart=t;e.attackStart=t+14;e.attackUntil=t+18;e.attackAngle=Math.atan2(target.y-e.y,target.x-e.x);
  const circle=(x,y,r,delay=14,mult=1.4,extra={})=>w.hazards.push({type:'circle',x,y,r,at:t+delay,end:t+delay+4,citadel:true,attack:e.attack*mult,source:e.id,...extra});
  const line=(a,b,width=140,delay=14,mult=1.5)=>w.hazards.push({type:'line',x:a.x,y:a.y,tx:b.x,ty:b.y,width,at:t+delay,end:t+delay+4,citadel:true,attack:e.attack*mult,source:e.id});
  if(kind==='totem'){const element=e.phaseOrder[e.phase];if(element===0)for(let i=0;i<6;i++){const angle=i*Math.PI/3+t*.07;circle(e.x+Math.cos(angle)*650,e.y+Math.sin(angle)*650,150,14+i*2,1.3,{element:'fire',linger:30});}else if(element===1)for(const m of alive)circle(m.x,m.y,210,18,1.2,{element:'ice',slow:20});else if(element===2){circle(e.x,e.y,700,18,1.6,{inner:350,element:'earth'});for(const m of alive)circle(m.x,m.y,130,12);}else for(const m of alive){line(e,{x:m.x+(m.x-e.x),y:m.y+(m.y-e.y)},110,10,1.2);circle(m.x,m.y,130,22,1.4);}}
@@ -131,9 +141,24 @@ export function citadelBossTick(w,e,alive){
  if(kind==='harbingers'){if(e.art.includes('boss-6')){circle(e.x,e.y,480,12,1.6);line(e,target,300,18,1.6);}else{for(let i=0;i<6;i++){const a=i*Math.PI/3+t*.05;circle(target.x+Math.cos(a)*400,target.y+Math.sin(a)*400,160,12+i*2,1.5);}}}
  if(kind==='serpents'){const n=Math.max(1,dist(e,target));e.charge={at:t+18,end:t+30,dx:(target.x-e.x)/n*55,dy:(target.y-e.y)/n*55,fire:true};line(e,{x:target.x+(target.x-e.x),y:target.y+(target.y-e.y)},200,18,1.8);circle(e.x,e.y,230,8,1.2,{element:'fire',linger:25});}
  if(kind==='avatar'){const pattern=Math.floor(t/24)%5;if(e.phase===1){for(let i=0;i<8;i++){const a=i*Math.PI/4+t*.04;line(e,{x:e.x+Math.cos(a)*1500,y:e.y+Math.sin(a)*1500},90,16,1.4);}}else if(pattern===0){circle(e.x,e.y,650,14,1.7,{inner:180,element:'lightning',disarm:15});}else if(pattern===1){const n=Math.max(1,dist(e,target));e.charge={at:t+12,end:t+12+(e.phase===2?18:6),dx:(target.x-e.x)/n*75,dy:(target.y-e.y)/n*75,fire:e.phase===2};for(let i=0;i<(e.phase===2?3:1);i++)line({x:e.x+i*80,y:e.y-i*80},target,260,12+i*8,1.6);}else if(pattern===2){line(e,{x:target.x+(target.x-e.x)*2,y:target.y+(target.y-e.y)*2},130,12,2);}else if(pattern===3){circle(e.x,e.y,850,24,2,{inner:200});}else{for(const m of alive)circle(m.x,m.y,250,18,1.9,{element:'shadow',linger:28});}if(e.phase===2)for(let i=0;i<8;i++){const a=t*.05+i*Math.PI/4;circle(e.x+Math.cos(a)*700,e.y+Math.sin(a)*700,170,14+i*2,1.5,{element:'fire',linger:30});}}
+ if(solo)citadelSoloPattern(w,e,alive,target,t,circle,line);
  // Summons are capped; encounter identity and serial remain replay deterministic.
- if(['totem','plant','shadow','avatar','serpents'].includes(kind)&&w.monsters.filter(m=>m.summon&&m.hp>0).length<8){const num=kind==='shadow'?0:kind==='serpents'?1:2;for(let i=0;i<num;i++){const a=t*.04+i*Math.PI,x=e.x+Math.cos(a)*500,y=e.y+Math.sin(a)*500,stats=citadelStats(w.floor,w.population);w.monsters.push({id:-(1000000+(++w.serial)),x,y,hp:stats.hp,maxHp:stats.hp,attack:Math.round(stats.attack*.5),speed:22,ready:t+15,skillReady:t+30,walk:0,face:1,elite:false,aggro:true,summon:true,citadel:true,explorationTier:3,species:kind==='plant'?18:kind==='totem'?2:15,art:citadelAsset('enemy',kind==='plant'?18:kind==='totem'?2:15),role:'melee'});}}
+ if(['totem','plant','shadow','avatar','serpents'].includes(kind)&&w.monsters.filter(m=>m.summon&&m.hp>0).length<8){const num=kind==='shadow'?0:kind==='serpents'?1:2;for(let i=0;i<num;i++){const a=t*.04+i*Math.PI,x=e.x+Math.cos(a)*500,y=e.y+Math.sin(a)*500,stats=citadelStats(w.floor,w.population,false,!!w.citadelBoss);w.monsters.push({id:-(1000000+(++w.serial)),x,y,hp:stats.hp,maxHp:stats.hp,attack:Math.round(stats.attack*.5),speed:22,ready:t+15,skillReady:t+30,walk:0,face:1,elite:false,aggro:true,summon:true,citadel:true,explorationTier:3,species:kind==='plant'?18:kind==='totem'?2:15,art:citadelAsset('enemy',kind==='plant'?18:kind==='totem'?2:15),role:'melee'});}}
  return true;
+}
+// 2026-11-05 도현: 보스별 입장 추가 패턴 — 보스 단계가 높을수록 패턴이 더 섞이고 겹친다(결정적: 시간·보스 id만 사용).
+// 1 유성우 · 2 회전 십자 레이저 · 3 도넛(보스 곁만 안전) · 4 추적 폭발 · 5 바깥 고리(보스에서 멀어야 안전) · 6 나선 레이저
+function citadelSoloPattern(w,e,alive,target,t,circle,line){
+ const tier=w.citadelBoss,n=e.casts||1,pool=[0,1,2,3,4,5].slice(0,Math.min(6,tier+1)),pick=pool[(n+Math.abs(e.id))%pool.length],extra=tier>=4&&n%2===0?pool[(n+3)%pool.length]:-1;
+ const run=k=>{
+  if(k===0)for(const m of alive)for(let i=0;i<2+tier;i++){const a=i*2.399+t*.13;circle(m.x+Math.cos(a)*(90+i*55),m.y+Math.sin(a)*(90+i*55),120,16+i*3,1.1,{element:'fire'});}
+  if(k===1){const spin=t*.09;for(let i=0;i<4;i++){const a=spin+i*Math.PI/2;line(e,{x:e.x+Math.cos(a)*1600,y:e.y+Math.sin(a)*1600},120,18,1.5);line(e,{x:e.x+Math.cos(a+.4)*1600,y:e.y+Math.sin(a+.4)*1600},120,30,1.5);}}
+  if(k===2)circle(e.x,e.y,1300,20,1.8,{inner:260,element:'shadow'});
+  if(k===3)for(const m of alive)for(let i=0;i<4;i++)circle(m.x,m.y,160,14+i*7,1.3,{element:'lightning'});
+  if(k===4){circle(e.x,e.y,620,18,2,{element:'earth'});for(let i=0;i<10;i++){const a=i*Math.PI/5+t*.05;circle(e.x+Math.cos(a)*900,e.y+Math.sin(a)*900,150,26,1.2);}}
+  if(k===5)for(let i=0;i<12;i++){const a=i*Math.PI/6+t*.07;line(e,{x:e.x+Math.cos(a)*1700,y:e.y+Math.sin(a)*1700},80,14+i*2,1.3);}
+ };
+ run(pick);if(extra>=0&&extra!==pick)run(extra);
 }
 export function citadelAfterDamage(w){
  if(!isCitadel(w))return;
