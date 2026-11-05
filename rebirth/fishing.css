@@ -298,3 +298,9 @@ body #app .fishing-screen.fishing-stage-layout .fishing-hud-tools .fishing-bait-
 .fishing-locked-card>b{font-size:21px;color:#ffd477}
 .fishing-locked-card p{margin:0;font-size:13.5px;line-height:1.55}
 .fishing-locked-card small{color:#9fb6ad;font-size:12px}
+/* 2026-11-05 v3: 던지기 버튼 작게, 가운데 */
+body #app .fishing-screen.fishing-stage-layout .fishing-controls>button:not(.fishing-auto):not(.fishing-cancel),body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-pull{left:0!important;right:0!important;margin-inline:auto!important;width:min(64%,260px);height:50px;min-height:50px;font-size:16px;bottom:80px;border-radius:25px!important;padding:0 14px}
+body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-button-art{width:24px;height:24px}
+body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-cancel{right:auto;left:calc(50% + min(32%,130px) + 8px);bottom:80px;width:50px;height:50px;min-height:50px}
+body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-pull.fishing-reel-hold{animation:none}
+.fishing-stage-layout .fishing-play{height:calc(100dvh - 214px)}
