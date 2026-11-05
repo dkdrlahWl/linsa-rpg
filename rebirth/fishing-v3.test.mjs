@@ -7,7 +7,7 @@ const seq=seed=>{let x=seed>>>0;return ()=>((x=(Math.imul(x,1664525)+1013904223)
 const now0=Date.UTC(2026,10,5,6);
 // 데이터
 assert.equal(ROD_MAX,50);assert.deepEqual(SPOTS.map(s=>s.level),[1,8,15,22,29,36,43,50]);assert.ok(SPOTS.every(s=>s.specialText));
-let g=0,d=0;for(let L=1;L<50;L++){g+=rodGoldCost(L);d+=rodDiamondCost(L);}assert.ok(g>1.3e8&&g<1.7e8,String(g));assert.ok(d>1000&&d<1300,String(d));
+let g=0,d=0;for(let L=1;L<50;L++){g+=rodGoldCost(L);d+=rodDiamondCost(L);}assert.ok(g>2.3e8&&g<2.7e8,String(g));assert.ok(d>2100&&d<2500,String(d));
 assert.ok(Math.abs(FISH_SIZES.reduce((a,x)=>a+x.p,0)-1)<1e-9);assert.deepEqual(MUTATIONS.map(m=>m.id),['silver','gold','rainbow']);
 assert.ok(BAITS.filter(b=>b.id!=='worm').every(b=>b.tokens>0&&!b.diamonds));
 assert.equal(ROD_ENHANCE.length,10);
@@ -54,7 +54,8 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rod:50,xp:0,diamonds:
 // 합성 · 황금 합성 · 각성
 {
  const s=fresh(),f=s.fishing,now=now0,mk=(o)=>({id:uuid(),species:'fish-41',weight:2000,size:'small',caughtAt:now,...o});
- f.fish=[mk(),mk(),mk()];const r=fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>0,uuid});assert.equal(r.success,true);assert.equal(f.fish.length,1);assert.equal(f.fish[0].size,'normal');
+ f.fish=[mk(),mk(),mk()];const r=fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>0,uuid});assert.equal(r.success,true);assert.equal(f.fish.length,1);assert.equal(f.fish[0].species,'fish-41');assert.equal(f.fish[0].size,'large','jackpot: two sizes');assert.equal(f.fish[0].mut,'rainbow');
+ {const seqR=[.5,.99,.99,.99];let k=0;f.fish=[mk(),mk(),mk()];const r1=fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>seqR[k++]??.99,uuid});assert.equal(r1.success,true);assert.equal(r1.jump,1);assert.equal(f.fish[0].size,'normal');}
  f.fish=[mk({size:'big'}),mk({size:'big'}),mk({size:'big'})];const r2=fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>.99,uuid});assert.equal(r2.success,false);assert.equal(f.fish.length,1);assert.equal(f.fish[0].size,'big');
  f.fish=[mk(),mk({size:'normal'}),mk()];assert.throws(()=>fishingCommand(s,'fishFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>0,uuid}),/FISHING_FUSE_MISMATCH/);
  f.fish=Array.from({length:5},(_,i)=>mk({mut:'gold',species:i?'fish-41':'fish-49'}));const g1=fishingCommand(s,'fishGoldFuse',{ids:f.fish.map(x=>x.id)},{now,random:()=>0,uuid});assert.equal(g1.success,true);assert.equal(f.fish.length,1);assert.equal(f.fish[0].mut,'rainbow');assert.equal(f.fish[0].species,'fish-49');

@@ -1,5 +1,5 @@
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,ROD_ENHANCE,ROD_ENHANCE_MAX,ENHANCE_TOKEN_BONUS,ENHANCE_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,ROD_ENHANCE,ROD_ENHANCE_MAX,ENHANCE_TOKEN_BONUS,ENHANCE_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=5; // v3 낚시 개편
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
@@ -53,13 +53,13 @@ export function fishNeed(fish){const d=FISH.find(x=>x.id===fish.species),spot=SP
 export const FISHING_SNAP_DEFICIT=15,FISHING_TICK_MS=50;
 export function fishingDifficulty(fish,power){
  const d=FISH.find(x=>x.id===fish.species),size=Math.max(0,FISH_SIZES.findIndex(x=>x.id===fishSizeOf(fish).id)),deficit=fishNeed(fish)-power;
- const over=Math.max(0,deficit),spare=Math.min(10,Math.max(0,-deficit)),ch=Math.max(0,d.rarity*.6+size*.5+over*.3-spare*.08);
- return {need:fishNeed(fish),power,deficit,snap:deficit>FISHING_SNAP_DEFICIT,rarity:d.rarity,size:fishSizeOf(fish).id,
-  band:clamp(.16-ch*.012,.055,.16),speed:clamp(.75+ch*.1,.7,1.45),drift:.016,tap:.04,
-  strainLimit:Math.round(clamp(52-d.rarity*2.5-size*1.5-over*2,10,52)),required:clamp(.40+d.rarity*.03+size*.02,.40,.70),ticks:70+d.rarity*14+size*10};
+ const over=Math.max(0,deficit),spare=Math.min(10,Math.max(0,-deficit)),ch=Math.max(0,d.rarity*.5+size*.42+over*.38-spare*.06);
+ return {need:fishNeed(fish),power,deficit,snap:deficit>FISHING_SNAP_DEFICIT,species:d.id,rarity:d.rarity,size:fishSizeOf(fish).id,
+  band:clamp(.15-ch*.012,.05,.15),speed:clamp(.8+ch*.11,.8,1.6),drift:.011+ch*.0006,tap:.05,
+  strainLimit:Math.round(clamp(46-d.rarity*2-size*1.5-over*2.2,8,46)),required:clamp(.45+d.rarity*.025+size*.02,.45,.72),ticks:80+d.rarity*16+size*12};
 }
 // 오토(자동 낚시권): 손맛 없이 낚싯대 힘만으로 판정 — 충분하면 95%, 1 모자랄 때마다 -8%.
-export const autoCatchChance=dif=>dif.snap?0:clamp(.95-Math.max(0,dif.deficit)*.08,0,.95);
+export const autoCatchChance=dif=>dif.snap?0:clamp(.9-Math.max(0,dif.deficit)*.08,0,.9);
 export function fishingTarget(cast,tick){
  const sp=cast.challenge?.speed||1,seed=cast.seed||0;
  return clamp(.5+Math.sin(tick*.035*sp+seed)*.25+Math.sin(tick*.09*sp+seed*2)*.09+Math.sin(tick*.23*sp+seed*3)*.02*sp,.04,.96);
@@ -67,10 +67,12 @@ export function fishingTarget(cast,tick){
 export function fishingStep(cast,input,meter){
  const c=cast.challenge;meter.tick++;
  const target=fishingTarget(cast,meter.tick);
- meter.cursor=clamp(meter.cursor+(input?c.tap-c.drift:-c.drift),.02,.98);
+ // v3 클릭 낚시: input = 이 틱(50ms)에 누른 횟수(0~3). 한 번 누를 때마다 오른쪽으로, 가만히 두면 왼쪽으로 밀린다.
+ meter.cursor=clamp(meter.cursor+Math.min(3,Math.max(0,Number(input)||0))*c.tap-c.drift,.02,.98);
  const inside=Math.abs(meter.cursor-target)<=c.band;
  if(inside)meter.hits++;
- meter.strain=Math.max(0,meter.strain+(inside?-1.5:1));
+ // 처음 1초(20틱)는 장력이 오르지 않는다 — 막대를 물고기 쪽으로 옮길 시간.
+ meter.strain=Math.max(0,meter.strain+(inside?-1.5:meter.tick<=20?0:1));
  meter.progress=meter.hits/c.ticks;
  meter.failed=meter.strain>=c.strainLimit;
  meter.finished=meter.failed||meter.tick>=c.ticks;
@@ -91,8 +93,8 @@ export function fishingBonuses(s,f,spot,bait){
   big:(sp.big||1)*(bait?.big||1)*(1+fishingEnchant(f,'big'))*professionGather(s,'bigFish'),
   chest:(sp.chest||1)*(bait?.chest||1)*(1+fishingEnchant(f,'chest')),
   key:(sp.key||1)*(bait?.key||1)*(1+fishingEnchant(f,'key'))*professionGather(s,'dungeonKey'),
-  double:(sp.double||0)+fishingEnchant(f,'double'),
-  mut:sp.mut||1,
+  double:(sp.double||0)+(bait?.double||0)+fishingEnchant(f,'double'),
+  mut:(sp.mut||1)*(bait?.mut||1),
   bite:(sp.bite||1)*(1-.005*(rod-1))*(1-fishingEnchant(f,'bite')),
   token:1+ENHANCE_TOKEN_BONUS*star+fishingEnchant(f,'token'),
   rodRare:r=>1+.009*(rod-1)*r,
@@ -193,9 +195,9 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishFinish'){
   const c=f.cast;require(c&&c.id===args.id,'FISHING_CAST_MISSING');require(c.hookAt&&c.challenge,'FISHING_HOOK_REQUIRED');
   if(ctx.now>c.reelDeadline)return escapeCatch(f,c,ctx,'timeout');
-  const inputs=args.inputs;require(typeof inputs==='string'&&/^[01]*$/.test(inputs)&&inputs.length<=c.challenge.ticks,'INVALID_FISHING_INPUT');
+  const inputs=args.inputs;require(typeof inputs==='string'&&/^[0-3]*$/.test(inputs)&&inputs.length<=c.challenge.ticks,'INVALID_FISHING_INPUT');
   // 서버가 같은 규칙으로 다시 계산해서 판정 (조작 방지). 입력이 짧으면 남은 칸은 손을 뗀 것으로 본다.
-  const m=fishingMeter();for(let i=0;i<c.challenge.ticks&&!m.finished;i++)fishingStep(c,inputs[i]==='1',m);
+  const m=fishingMeter();for(let i=0;i<c.challenge.ticks&&!m.finished;i++)fishingStep(c,Number(inputs[i]||0),m);
   if(fishingMeterWon(c,m))return landCatch(s,f,c,ctx);
   return escapeCatch(f,c,ctx,m.failed?'snap':'escape');
  }
@@ -269,10 +271,13 @@ export function fishingCommand(s,command,args,ctx){
   const muts=list.map(x=>x.mut||null),bestMut=[...MUTATIONS].reverse().find(m=>muts.includes(m.id))?.id||null;
   const keepMut=muts.every(m=>m===muts[0])?muts[0]:bestMut&&ctx.random()<.3?bestMut:null;
   f.fish=f.fish.filter(x=>!ids.includes(x.id));
-  const success=ctx.random()<FUSE_CHANCE[sizeIndex],d=FISH.find(x=>x.id===list[0].species),size=success?FISH_SIZES[sizeIndex+1]:FISH_SIZES[sizeIndex];
-  const item=success?{id:ctx.uuid(),species:d.id,weight:fishSizeWeight(d,size,ctx.random()),size:size.id,...(keepMut?{mut:keepMut}:{}),caughtAt:ctx.now}:{...list[0]};
+  const d=FISH.find(x=>x.id===list[0].species),success=ctx.random()<FUSE_CHANCE[sizeIndex];
+  const jump=success&&sizeIndex+2<FISH_SIZES.length&&ctx.random()<FUSE_JACKPOT?2:success?1:0,size=FISH_SIZES[sizeIndex+jump];
+  // 새 돌연변이: 더 좋은 게 나오면 바꾼다.
+  const rolled=rollMutation(ctx.random,FUSE_MUT_BOOST),rank=id=>MUTATIONS.findIndex(m=>m.id===id),mut=rolled&&rank(rolled.id)>rank(keepMut)?rolled.id:keepMut;
+  const item=success||mut!==(list[0].mut||null)?{id:ctx.uuid(),species:d.id,weight:fishSizeWeight(d,size,ctx.random()),size:size.id,...(mut?{mut}:{}),caughtAt:ctx.now}:{...list[0]};
   f.fish.push(item);if(success){f.collection[d.id]=Math.max(f.collection[d.id]||0,item.weight);recordContest(f,{...item,caughtAt:ctx.now});}
-  return {type:'fishFuse',success,fish:item};
+  return {type:'fishFuse',success,jump,mutated:!!mut&&mut!==(list[0].mut||null),fish:item};
  }
  // 황금 개체 5마리 → 20% 무지개 (가장 높은 등급 물고기가 무지개가 된다)
  if(command==='fishGoldFuse'){

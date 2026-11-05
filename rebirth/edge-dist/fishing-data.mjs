@@ -41,6 +41,10 @@ export const BAITS=[
  {id:'pearl',name:'진주 미끼',pack:10,tokens:500,level:1,luck:0,chest:1.6,text:'다이아 상자 ×1.6'},
  {id:'golden',name:'황금 미끼',pack:10,tokens:600,level:1,luck:0,big:1.25,key:1.3,text:'대어 ×1.25 · 던전 열쇠 ×1.3'},
  {id:'star',name:'별가루 미끼',pack:10,tokens:1000,level:1,luck:0,legend:4,text:'전설 이상 ×4'},
+ // 2026-11-05 추가 미끼
+ {id:'glow',name:'형광 미끼',pack:10,tokens:800,level:15,luck:0,mut:2.5,text:'돌연변이 ×2.5',art:'pearl',hue:'glow'},
+ {id:'giant',name:'거대 미끼',pack:10,tokens:1200,level:22,luck:0,big:2,text:'대어 이상 ×2',art:'worm',hue:'giant'},
+ {id:'twin',name:'쌍둥이 미끼',pack:10,tokens:700,level:8,luck:0,double:.2,text:'두 마리 동시 +20%',art:'shrimp',hue:'twin'},
 ];
 export const baitDiamondCost=()=>0;
 // 예전(v2) 미끼 다이아 값 — 초기화 환불용 (개당 다이아).
@@ -63,9 +67,9 @@ export const FISHER_BITE_MIN_MS=3000,FISHER_BITE_RANGE_MS=2000; // 2026-11-04 �
 // 2026-10-25 Lv.50+: gold grows 15%/level, diamonds 20 + 2/level (Lv.50→70 ≈ 1.46억 G + 780 다이아).
 export const legacyRodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,Math.min(level,50)-30)*1.15**Math.max(0,level-50)/100)*100;
 export const legacyRodDiamondCost=level=>level>=50?20+2*(level-50):2+Math.floor(level/5);
-// v3 낚싯대 Lv.1→50: 골드(경험치) 채운 뒤 다이아로 레벨업. 총 약 1.5억 골드 + 다이아 1,164개.
-export const rodGoldCost=level=>Math.round(70000*1.12**(level-1)/1000)*1000;
-export const rodDiamondCost=level=>5+Math.floor(level*.75);
+// v3 낚싯대 Lv.1→50: 골드(경험치) 채운 뒤 다이아로 레벨업. 하루 2시간(600회) 기준 약 두 달 — 총 약 2.5억 골드 + 다이아 약 2,300개.
+export const rodGoldCost=level=>Math.round(117000*1.12**(level-1)/1000)*1000;
+export const rodDiamondCost=level=>10+Math.floor(level*1.5);
 // One price per grade everywhere (×600 G), with a small bonus for later spots (1.0 → 1.6×), then weight.
 export const FISH_PRICE_BASE=480; // 2026-10-12: sale prices -20%
 // 예전(v2) 판매가(골드) — 초기화 환불용.
@@ -133,10 +137,11 @@ export const enchantText=e=>{const d=ENCHANTS.find(x=>x.id===e?.id);if(!d)return
 // 낚싯대 인챈트 합계 (같은 옵션 여러 칸이면 더한다).
 export const fishingEnchant=(f,id)=>(f?.enchants||[]).reduce((n,e)=>n+(e&&e.id===id?ENCHANTS.find(x=>x.id===id).values[e.tier]:0),0);
 // v3 자동 낚시권(골드): 있을 때만 오토 낚시, 손맛 없이 낚싯대 힘으로 판정.
-export const FISHING_AUTO_PLANS=Object.freeze([{id:'h24',name:'자동 낚시권 24시간',hours:24,gold:5000000},{id:'d3',name:'자동 낚시권 3일',hours:72,gold:12000000},{id:'d7',name:'자동 낚시권 7일',hours:168,gold:25000000}].map(Object.freeze));
+export const FISHING_AUTO_PLANS=Object.freeze([{id:'h24',name:'자동 낚시권 24시간',hours:24,gold:30000000},{id:'d3',name:'자동 낚시권 3일',hours:72,gold:80000000},{id:'d7',name:'자동 낚시권 7일',hours:168,gold:160000000}].map(Object.freeze));
 // ── v3 합성 ──
-// 같은 종·같은 크기 3마리 → 다음 크기 1마리. 대어→괴물급 50%, 괴물급→기록급 25%, 실패하면 1마리만 남는다.
-export const FUSE_COUNT=3,FUSE_CHANCE=[1,1,1,.5,.25];
+// 2026-11-05 도현: 합성은 도박 — 같은 종·같은 크기 3마리 → 같은 종 1마리. 성공하면 크기가 커지고(가끔 두 단계),
+// 실패하면 같은 크기 1마리만 남는다. 합성할 때마다 돌연변이가 새로 붙을 수도 있다(일반 낚시의 5배 확률).
+export const FUSE_COUNT=3,FUSE_CHANCE=[.6,.4,.2,.08,.03],FUSE_JACKPOT=.1,FUSE_MUT_BOOST=5;
 // 황금 개체 5마리(종 무관) → 20% 무지개 개체, 실패하면 황금 1마리.
 export const GOLD_FUSE_COUNT=5,GOLD_FUSE_CHANCE=.2;
 export const legacyAquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
