@@ -33,7 +33,7 @@ export const PROFESSIONS=Object.freeze([
    {id:'highCube',name:'블랙 큐브',out:{highCube:1},cost:{cube:1},gold:200000},
   ]}),
  Object.freeze({id:'explorer',name:'탐험가',icon:'🗝️',blurb:'입장권·불꽃 가공',
-  gather:{highCube:.2},
+  gather:{fragment:2.5}, // 2026-11-05 도현: 광부와 같은 패시브(장비 파편 드랍률)
   recipes:[
    {id:'dungeonKey',name:'던전 열쇠',out:{dungeonKey:1},cost:{fragment:200},gold:900000}, // 2026-11-05 도현: 파편 200 · 90만
    {id:'treasureTicket',name:'보물찾기 티켓',out:{treasureTicket:1},cost:{fragment:50},gold:800000},
