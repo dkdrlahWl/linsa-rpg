@@ -7,7 +7,7 @@ const seq=seed=>{let x=seed>>>0;return ()=>((x=(Math.imul(x,1664525)+1013904223)
 const now0=Date.UTC(2026,10,5,6);
 // 데이터
 assert.equal(ROD_MAX,8);assert.deepEqual(SPOTS.map(s=>s.level),[1,2,3,4,5,6,7,8]);assert.deepEqual(SPOTS.map(s=>s.depth),[1,8,15,22,29,36,43,50]);assert.ok(SPOTS.every(s=>!Object.keys(s.special||{}).length),'no spot buffs');
-const rodTokens=ROD_TIERS.reduce((a,r)=>a+r.tokens,0);assert.ok(rodTokens>1.5e6&&rodTokens<2.2e6,String(rodTokens));assert.ok(ROD_TIERS.every((r,i)=>!i||r.power>ROD_TIERS[i-1].power&&r.tokens>ROD_TIERS[i-1].tokens));
+const rodTokens=ROD_TIERS.reduce((a,r)=>a+r.tokens,0);assert.ok(rodTokens>6e6&&rodTokens<8e6,String(rodTokens));assert.ok(ROD_TIERS.every((r,i)=>!i||r.power>ROD_TIERS[i-1].power&&r.tokens>ROD_TIERS[i-1].tokens));
 const enhanceDia=ROD_ENHANCE.reduce((a,x)=>a+x.cost/x.chance,0);assert.ok(enhanceDia>2000&&enhanceDia<2800,String(enhanceDia));
 assert.ok(Math.abs(FISH_SIZES.reduce((a,x)=>a+x.p,0)-1)<1e-9);assert.deepEqual(MUTATIONS.map(m=>m.id),['silver','gold','rainbow']);
 assert.ok(BAITS.filter(b=>b.id!=='worm').every(b=>b.tokens>0&&!b.diamonds));
@@ -47,7 +47,7 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rod:50,xp:0,diamonds:
  const fail=fishingCommand(s,'fishEnhance',{},{now,random:()=>.99,uuid});assert.equal(fail.success,false);assert.equal(s.fishing.enhance,1,'fail keeps level');
  fishingCommand(s,'fishEnchant',{},{now,random,uuid});assert.equal(s.fishing.enchants.length,1);
  assert.throws(()=>fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid}),/INVALID_FISHING_ENCHANT/,'cannot lock every open slot');
- s.fishing.enhance=8;const t0=s.fishing.tokens;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(t0-s.fishing.tokens,6000);
+ s.fishing.enhance=8;const t0=s.fishing.tokens;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(t0-s.fishing.tokens,60000);
  fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'tokens'},{now,random,uuid});assert.equal(s.fishing.bait.star,10);
  assert.throws(()=>fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'diamonds'},{now,random,uuid}),/FISHING_REFRESH_REQUIRED/);
  const t1=s.fishing.tokens;fishingCommand(s,'fishAquariumExpand',{},{now,random,uuid});assert.equal(t1-s.fishing.tokens,aquariumExpandCost(3));assert.equal(s.fishing.slots,4);
@@ -87,6 +87,6 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rod:50,xp:0,diamonds:
 }
 // 낚시터 잠금: 낚싯대 레벨
 {const s=fresh();s.fishing.rod=1;assert.throws(()=>fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'moon',bait:'worm'},{now:now0,random:Math.random,uuid}),/FISHING_ROD_REQUIRED/);
- s.fishing.tokens=10000;assert.throws(()=>fishingCommand(s,'fishRodBuy',{tier:3},{now:now0,random:Math.random,uuid}),/FISHING_REFRESH_REQUIRED/);fishingCommand(s,'fishRodBuy',{tier:2},{now:now0,random:Math.random,uuid});assert.equal(s.fishing.rod,2);assert.equal(s.fishing.tokens,0);
+ s.fishing.tokens=ROD_TIERS[1].tokens;assert.throws(()=>fishingCommand(s,'fishRodBuy',{tier:3},{now:now0,random:Math.random,uuid}),/FISHING_REFRESH_REQUIRED/);fishingCommand(s,'fishRodBuy',{tier:2},{now:now0,random:Math.random,uuid});assert.equal(s.fishing.rod,2);assert.equal(s.fishing.tokens,0);
  fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'moon',bait:'worm'},{now:now0,random:Math.random,uuid});}
 console.log('PASS fishing v3: data, refund+reset, tokens, enhance, enchant locks, baits, aquarium, fuse, gold fuse, awaken, spot gates');

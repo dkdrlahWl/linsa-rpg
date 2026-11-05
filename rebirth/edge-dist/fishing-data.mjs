@@ -38,14 +38,14 @@ export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+Stri
 // v3 미끼: 지렁이만 골드, 나머지는 낚시 토큰. luck=희귀 이상(최대 2단계 위까지) 배율 지수, 나머지는 각 효과 배율.
 export const BAITS=[
  {id:'worm',name:'숲 지렁이',pack:600,gold:60000,level:1,luck:0,text:'기본 미끼'},
- {id:'shrimp',name:'반짝 새우',pack:10,tokens:200,level:1,luck:.6,text:'희귀 이상 ×1.6'},
- {id:'pearl',name:'진주 미끼',pack:10,tokens:500,level:1,luck:0,chest:1.6,text:'다이아 상자 ×1.6'},
- {id:'golden',name:'황금 미끼',pack:10,tokens:600,level:1,luck:0,big:1.25,key:1.3,text:'대어 ×1.25 · 던전 열쇠 ×1.3'},
- {id:'star',name:'별가루 미끼',pack:10,tokens:1000,level:1,luck:0,legend:4,text:'전설 이상 ×4'},
+ {id:'shrimp',name:'반짝 새우',pack:10,tokens:1500,level:1,luck:.6,text:'희귀 이상 ×1.6'},
+ {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:1,luck:0,chest:1.6,text:'다이아 상자 ×1.6'},
+ {id:'golden',name:'황금 미끼',pack:10,tokens:3500,level:1,luck:0,big:1.25,key:1.3,text:'대어 ×1.25 · 던전 열쇠 ×1.3'},
+ {id:'star',name:'별가루 미끼',pack:10,tokens:6000,level:1,luck:0,legend:4,text:'전설 이상 ×4'},
  // 2026-11-05 추가 미끼
- {id:'glow',name:'형광 미끼',pack:10,tokens:800,level:3,luck:0,mut:2.5,text:'돌연변이 ×2.5',art:'pearl',hue:'glow'},
- {id:'giant',name:'거대 미끼',pack:10,tokens:1200,level:4,luck:0,big:2,text:'대어 이상 ×2',art:'worm',hue:'giant'},
- {id:'twin',name:'쌍둥이 미끼',pack:10,tokens:700,level:2,luck:0,double:.2,text:'두 마리 동시 +20%',art:'shrimp',hue:'twin'},
+ {id:'glow',name:'형광 미끼',pack:10,tokens:4000,level:3,luck:0,mut:2.5,text:'돌연변이 ×2.5',art:'pearl',hue:'glow'},
+ {id:'giant',name:'거대 미끼',pack:10,tokens:6000,level:4,luck:0,big:2,text:'대어 이상 ×2',art:'worm',hue:'giant'},
+ {id:'twin',name:'쌍둥이 미끼',pack:10,tokens:2500,level:2,luck:0,double:.2,text:'두 마리 동시 +20%',art:'shrimp',hue:'twin'},
 ];
 export const baitDiamondCost=()=>0;
 // 예전(v2) 미끼 다이아 값 — 초기화 환불용 (개당 다이아).
@@ -69,16 +69,16 @@ export const FISHER_BITE_MIN_MS=3000,FISHER_BITE_RANGE_MS=2000; // 2026-11-04 �
 export const legacyRodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,Math.min(level,50)-30)*1.15**Math.max(0,level-50)/100)*100;
 export const legacyRodDiamondCost=level=>level>=50?20+2*(level-50):2+Math.floor(level/5);
 // 2026-11-05 도현: 낚싯대는 낚시 토큰으로 사는 8종 — 단계마다 낚시터 하나가 열리고 힘(손맛 난이도)이 오른다.
-// 하루 2시간(600회) 기준 다음 낚싯대까지 2~17일, 전부 합쳐 약 50일(토큰 약 186만).
+// 하루 2시간(600회) 기준: 지금 열린 가장 깊은 낚시터에서 2·3·4·6·8·10·14일 — 앞 낚시터에서 모으면 두 배 넘게 걸린다. 전부 약 47일.
 export const ROD_TIERS=Object.freeze([
  {tier:1,name:'견습 대나무 낚싯대',power:8,tokens:0,art:'rod'},
- {tier:2,name:'달빛 갈대 낚싯대',power:15,tokens:10000,art:'rod'},
- {tier:3,name:'단풍목 낚싯대',power:22,tokens:30000,art:'rod'},
- {tier:4,name:'산호 낚싯대',power:29,tokens:70000,art:'rod'},
- {tier:5,name:'성운 낚싯대',power:36,tokens:150000,art:'rod-50'},
- {tier:6,name:'용궁 낚싯대',power:43,tokens:300000,art:'rod-50'},
- {tier:7,name:'화염 낚싯대',power:50,tokens:500000,art:'rod-60'},
- {tier:8,name:'태초의 낚싯대',power:55,tokens:800000,art:'rod-70'},
+ {tier:2,name:'달빛 갈대 낚싯대',power:15,tokens:6000,art:'rod'},
+ {tier:3,name:'단풍목 낚싯대',power:22,tokens:22000,art:'rod'},
+ {tier:4,name:'산호 낚싯대',power:29,tokens:67000,art:'rod'},
+ {tier:5,name:'성운 낚싯대',power:36,tokens:216000,art:'rod-50'},
+ {tier:6,name:'용궁 낚싯대',power:43,tokens:620000,art:'rod-50'},
+ {tier:7,name:'화염 낚싯대',power:50,tokens:1600000,art:'rod-60'},
+ {tier:8,name:'태초의 낚싯대',power:55,tokens:4600000,art:'rod-70'},
 ].map(Object.freeze));
 export const rodTier=f=>ROD_TIERS[Math.max(1,Math.min(ROD_MAX,f?.rod||1))-1];
 export const rodGoldCost=()=>0,rodDiamondCost=()=>0;
@@ -116,7 +116,10 @@ export function rollMutation(random,boost=1){let r=random();for(const m of [...M
 export const fishValue=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;const bonus=SPOTS.find(x=>x.id===d.spot).bonus;return RARITIES[d.rarity].value*FISH_PRICE_BASE*bonus*fishSizeOf(fish).mult*(fishMutationOf(fish)?.mult||1)/FISH_VALUE_NORMALIZE;};
 // 판매하면 낚시 토큰: 가치 100골드어치 = 토큰 1개 (낚싯대 강화·인챈트 보너스는 판매할 때 따로 곱한다).
 export const TOKEN_PER_GOLD=.01;
-export const fishPrice=fish=>Math.max(1,Math.round(fishValue(fish)*TOKEN_PER_GOLD));
+// 2026-11-05 도현: 판매 토큰은 낚시터마다 크게 다르게(한 단계 위로 갈 때마다 약 2.2배) — 앞 낚시터에서 모아서 건너뛸 수 없게.
+// 낚시터 토큰 배율(SPOT_TOKEN)은 각 낚시터를 그 단계 낚싯대로 낚을 때 한 번에 평균 5·12·28·60·130·270·550·1100 토큰이 되게 맞춘 값.
+export const SPOT_TOKEN={brook:3.4,moon:5.8,canyon:12,coral:25,abyss:51,palace:103,volcano:207,origin:460};
+export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;return Math.max(1,Math.round(RARITIES[d.rarity].value*fishSizeOf(fish).mult*(fishMutationOf(fish)?.mult||1)/FISH_VALUE_NORMALIZE*(SPOT_TOKEN[d.spot]||1)));};
 // Aquarium gold per hour = sale price × grade rate. Rates keep each grade's best aquarium income close to the
 // previous table now that deep-spot top fish sell for more (신화 stays the best per fish).
 // 2026-10-12: 9 mythic ≈ half of the best hunting income (~340k/h).
@@ -145,7 +148,7 @@ export const ENCHANTS=Object.freeze([
  {id:'token',name:'판매 토큰',values:[.05,.10,.18,.30]},
  {id:'tank',name:'수족관 골드',values:[.10,.20,.35,.60]},
 ].map(Object.freeze));
-export const ENCHANT_COST=3000,ENCHANT_LOCK_MULT=2;
+export const ENCHANT_COST=30000,ENCHANT_LOCK_MULT=2;
 export const enchantCost=locked=>ENCHANT_COST*ENCHANT_LOCK_MULT**locked;
 export const enchantText=e=>{const d=ENCHANTS.find(x=>x.id===e?.id);if(!d)return '';const v=d.values[e.tier];return d.name+' '+(d.flat?Math.round(v*100)+'%':(d.sign||'+')+Math.round(v*100)+'%');};
 // 낚싯대 인챈트 합계 (같은 옵션 여러 칸이면 더한다).
@@ -160,7 +163,7 @@ export const FUSE_COUNT=3,FUSE_CHANCE=[.6,.4,.2,.08,.03],FUSE_JACKPOT=.1,FUSE_MU
 export const GOLD_FUSE_COUNT=5,GOLD_FUSE_CHANCE=.2;
 export const legacyAquariumExpandCost=slots=>Math.round(300000*1.6**(slots-3)/1000)*1000;
 // v3 수족관 칸(4~10칸) 확장은 낚시 토큰.
-export const AQUARIUM_TOKEN_COST=[10000,20000,35000,50000,70000,100000,140000];
+export const AQUARIUM_TOKEN_COST=[20000,60000,150000,400000,1000000,2000000,4000000];
 export const aquariumExpandCost=slots=>AQUARIUM_TOKEN_COST[slots-3]??0;
 export const fishWeight=grams=>grams>=1000?(grams/1000).toFixed(2)+' kg':grams+' g';
 export const resourceName=id=>({addCube:'에디셔널 큐브',diamond:'다이아',diamondChest:'다이아 상자',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',scroll:'잠재 해금 주문서'}[id]||id);
