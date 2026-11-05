@@ -1,7 +1,7 @@
 // Shared with the authenticated server. Fish use gold; bait bundles use diamonds. Weight is grams.
 export const FISHING_VERSION=3; // 2026-11-05 낚시 v3: 토큰 경제·낚싯대 Lv.50·강화·인챈트·크기·돌연변이·합성
 // 낚싯대 최대 레벨: 확장 시 여기만 수정 (rodGoldCost/rodDiamondCost 표도 같이 늘릴 것).
-export const ROD_MAX=8; // 2026-11-05 도현: 낚싯대는 8종(토큰 구매), 레벨 대신 종류
+export const ROD_MAX=16; // 2026-11-05 도현: 강화 삭제 → 낚싯대 16종(토큰+다이아 구매), 낚시터 하나당 2종
 // 하루 낚시(찌 던지기) 상한, 한국 시간 자정 초기화.
 export const FISHING_DAILY_CASTS=600;
 // 2026-11-05 도현: 어부는 하루 1,000회
@@ -13,14 +13,14 @@ export const fishingDailyCasts=s=>s?.profession?.id==='fisher'?FISHER_DAILY_CAST
 export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240},{name:'태고',color:'#7ff6ff',gate:70,value:600}];
 export const SPOTS=[
  {id:'brook',bonus:1,luck:1,name:'숲속 여울',level:1,depth:1,special:{},specialText:'',subtitle:'햇살이 머무는 작은 숲',accent:'#a6edac'},
- {id:'moon',bonus:1.15,luck:1.6,name:'달빛 호수',level:2,depth:8,special:{},specialText:'',subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
- {id:'canyon',bonus:1.3,luck:1.7,name:'단풍 협곡',level:3,depth:15,special:{},specialText:'',subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
- {id:'coral',bonus:1.45,luck:1.8,name:'산호 해안',level:4,depth:22,special:{},specialText:'',subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
- {id:'abyss',bonus:1.6,luck:1.9,name:'천상의 심해',level:5,depth:29,special:{},specialText:'',subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
+ {id:'moon',bonus:1.15,luck:1.6,name:'달빛 호수',level:3,depth:8,special:{},specialText:'',subtitle:'달의 조각이 잠든 물결',accent:'#a4cbff'},
+ {id:'canyon',bonus:1.3,luck:1.7,name:'단풍 협곡',level:5,depth:15,special:{},specialText:'',subtitle:'붉은 잎 사이 흐르는 비밀',accent:'#ffc891'},
+ {id:'coral',bonus:1.45,luck:1.8,name:'산호 해안',level:7,depth:22,special:{},specialText:'',subtitle:'노을빛 바다의 보물',accent:'#8cf0e7'},
+ {id:'abyss',bonus:1.6,luck:1.9,name:'천상의 심해',level:9,depth:29,special:{},specialText:'',subtitle:'별과 바다가 만나는 끝',accent:'#d8a6ff'},
  // 2026-10-25: 낚싯대 70 확장. 용궁 해구 Lv.50, 불꽃 열수해 Lv.60, 태고의 바다 Lv.70 (태고 등급은 태고의 바다에서만).
- {id:'palace',bonus:1.65,tank:1.25,luck:1.95,name:'용궁 해구',level:6,depth:36,special:{},specialText:'',subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
- {id:'volcano',bonus:1.7,tank:1.5,luck:2,name:'불꽃 열수해',level:7,depth:43,special:{},specialText:'',subtitle:'바다 밑 화산이 숨 쉬는 곳',accent:'#ff8a5a'},
- {id:'origin',bonus:1.75,tank:1.8,luck:2.05,name:'태고의 바다',level:8,depth:50,special:{},specialText:'',subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
+ {id:'palace',bonus:1.65,tank:1.25,luck:1.95,name:'용궁 해구',level:11,depth:36,special:{},specialText:'',subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
+ {id:'volcano',bonus:1.7,tank:1.5,luck:2,name:'불꽃 열수해',level:13,depth:43,special:{},specialText:'',subtitle:'바다 밑 화산이 숨 쉬는 곳',accent:'#ff8a5a'},
+ {id:'origin',bonus:1.75,tank:1.8,luck:2.05,name:'태고의 바다',level:15,depth:50,special:{},specialText:'',subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
 ];
 const rows=[
  ['brook','풀잎 피라미',0,80,300,'leaf green minnow with gold fins'],['brook','은빛 송사리',0,20,120,'tiny silver ricefish with pale green fins'],['brook','조약돌 망둑어',0,100,450,'round speckled stone goby'],['brook','햇살 붕어',0,250,1500,'warm golden crucian carp'],['brook','산들 메기',0,400,2500,'cute moss grey catfish with flowing whiskers'],['brook','꽃잎 잉어',0,300,2000,'pink white koi with petal shaped fins'],['brook','이끼 비늘어',1,400,2500,'emerald moss scaled fish'],['brook','청금 송어',1,700,3500,'turquoise trout with golden flecks'],['brook','반딧불 버들치',1,120,800,'willow minnow with luminous yellow speckles'],['brook','수련 베타',1,100,600,'jade pink betta with lotus petal fins'],
@@ -40,10 +40,10 @@ export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+Stri
 export const BAITS=[
  {id:'worm',name:'숲 지렁이',pack:600,gold:60000,level:1,rare:1,text:'기본 미끼 · 무한',infinite:true},
  {id:'shrimp',name:'반짝 새우',pack:10,tokens:1500,level:1,rare:1.15,text:'희귀할수록 등급마다 ×1.15'},
- {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:2,rare:1.3,text:'희귀할수록 등급마다 ×1.3'},
- {id:'golden',name:'황금 미끼',pack:10,tokens:6000,level:3,rare:1.45,text:'희귀할수록 등급마다 ×1.45',art:'star',hue:'golden'},
- {id:'glow',name:'형광 미끼',pack:10,tokens:12000,level:4,rare:1.6,text:'희귀할수록 등급마다 ×1.6',art:'pearl',hue:'glow'},
- {id:'star',name:'별가루 미끼',pack:10,tokens:24000,level:5,rare:1.8,text:'희귀할수록 등급마다 ×1.8'},
+ {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:3,rare:1.3,text:'희귀할수록 등급마다 ×1.3'},
+ {id:'golden',name:'황금 미끼',pack:10,tokens:6000,level:5,rare:1.45,text:'희귀할수록 등급마다 ×1.45',art:'star',hue:'golden'},
+ {id:'glow',name:'형광 미끼',pack:10,tokens:12000,level:7,rare:1.6,text:'희귀할수록 등급마다 ×1.6',art:'pearl',hue:'glow'},
+ {id:'star',name:'별가루 미끼',pack:10,tokens:24000,level:9,rare:1.8,text:'희귀할수록 등급마다 ×1.8'},
 ];
 export const BAIT_RARE_CAP=4;
 export const baitDiamondCost=()=>0;
@@ -67,17 +67,27 @@ export const FISHER_BITE_MIN_MS=3000,FISHER_BITE_RANGE_MS=2000; // 2026-11-04 �
 // 2026-10-25 Lv.50+: gold grows 15%/level, diamonds 20 + 2/level (Lv.50→70 ≈ 1.46억 G + 780 다이아).
 export const legacyRodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,Math.min(level,50)-30)*1.15**Math.max(0,level-50)/100)*100;
 export const legacyRodDiamondCost=level=>level>=50?20+2*(level-50):2+Math.floor(level/5);
-// 2026-11-05 도현: 낚싯대는 낚시 토큰으로 사는 8종 — 단계마다 낚시터 하나가 열리고 힘(손맛 난이도)이 오른다.
-// 하루 2시간(600회) 기준: 지금 열린 가장 깊은 낚시터에서 2·3·4·6·8·10·14일 — 앞 낚시터에서 모으면 두 배 넘게 걸린다. 전부 약 47일.
+export const ROD_PRICE=[[0,0],[2600,35],[3100,35],[15000,70],[19000,70],[35000,70],[70000,110],[120000,110],[180000,110],[380000,145],[590000,145],[1100000,180],[1600000,180],[2700000,215],[6300000,250],[15000000,290]]; // [토큰, 다이아] · 하루 2시간 꾸준히 사면 약 56일, 다이아 합계 2,015
+// 2026-11-05 도현: 강화 삭제, 낚싯대 16종. 홀수 단계(1·3·…·15)에서 새 낚시터가 열리고, 짝수 단계는 같은 낚시터에서 힘·보너스만 오른다.
+// 단계마다 판매 토큰 +3% · 희귀 이상 +2% (예전 강화 보너스를 낚싯대로 옮김). 가격은 토큰 + 다이아.
+export const ROD_TOKEN_BONUS=.03,ROD_RARE_BONUS=.02;
 export const ROD_TIERS=Object.freeze([
- {tier:1,name:'견습 대나무 낚싯대',power:8,tokens:0,art:'rod'},
- {tier:2,name:'달빛 갈대 낚싯대',power:15,tokens:6000,art:'rod'},
- {tier:3,name:'단풍목 낚싯대',power:22,tokens:22000,art:'rod'},
- {tier:4,name:'산호 낚싯대',power:29,tokens:67000,art:'rod'},
- {tier:5,name:'성운 낚싯대',power:36,tokens:216000,art:'rod-50'},
- {tier:6,name:'용궁 낚싯대',power:43,tokens:620000,art:'rod-50'},
- {tier:7,name:'화염 낚싯대',power:50,tokens:1600000,art:'rod-60'},
- {tier:8,name:'태초의 낚싯대',power:55,tokens:4600000,art:'rod-70'},
+ {tier:1,name:'견습 대나무 낚싯대',power:8,tokens:ROD_PRICE[0][0],diamonds:ROD_PRICE[0][1],art:'rod'},
+ {tier:2,name:'단단한 대나무 낚싯대',power:12,tokens:ROD_PRICE[1][0],diamonds:ROD_PRICE[1][1],art:'rod'},
+ {tier:3,name:'달빛 갈대 낚싯대',power:15,tokens:ROD_PRICE[2][0],diamonds:ROD_PRICE[2][1],art:'rod'},
+ {tier:4,name:'은빛 갈대 낚싯대',power:19,tokens:ROD_PRICE[3][0],diamonds:ROD_PRICE[3][1],art:'rod'},
+ {tier:5,name:'단풍목 낚싯대',power:22,tokens:ROD_PRICE[4][0],diamonds:ROD_PRICE[4][1],art:'rod'},
+ {tier:6,name:'붉은 단풍목 낚싯대',power:26,tokens:ROD_PRICE[5][0],diamonds:ROD_PRICE[5][1],art:'rod'},
+ {tier:7,name:'산호 낚싯대',power:29,tokens:ROD_PRICE[6][0],diamonds:ROD_PRICE[6][1],art:'rod'},
+ {tier:8,name:'진주 산호 낚싯대',power:33,tokens:ROD_PRICE[7][0],diamonds:ROD_PRICE[7][1],art:'rod'},
+ {tier:9,name:'성운 낚싯대',power:36,tokens:ROD_PRICE[8][0],diamonds:ROD_PRICE[8][1],art:'rod-50'},
+ {tier:10,name:'은하 성운 낚싯대',power:40,tokens:ROD_PRICE[9][0],diamonds:ROD_PRICE[9][1],art:'rod-50'},
+ {tier:11,name:'용궁 낚싯대',power:43,tokens:ROD_PRICE[10][0],diamonds:ROD_PRICE[10][1],art:'rod-50'},
+ {tier:12,name:'용왕의 낚싯대',power:47,tokens:ROD_PRICE[11][0],diamonds:ROD_PRICE[11][1],art:'rod-50'},
+ {tier:13,name:'화염 낚싯대',power:50,tokens:ROD_PRICE[12][0],diamonds:ROD_PRICE[12][1],art:'rod-60'},
+ {tier:14,name:'마그마 낚싯대',power:56,tokens:ROD_PRICE[13][0],diamonds:ROD_PRICE[13][1],art:'rod-60'},
+ {tier:15,name:'태초의 낚싯대',power:62,tokens:ROD_PRICE[14][0],diamonds:ROD_PRICE[14][1],art:'rod-70'},
+ {tier:16,name:'창세의 낚싯대',power:75,tokens:ROD_PRICE[15][0],diamonds:ROD_PRICE[15][1],art:'rod-70'},
 ].map(Object.freeze));
 export const rodTier=f=>ROD_TIERS[Math.max(1,Math.min(ROD_MAX,f?.rod||1))-1];
 export const rodGoldCost=()=>0,rodDiamondCost=()=>0;
@@ -130,12 +140,11 @@ export const AQUARIUM_V3_BOOST=1.5,AWAKEN_MAX=5,AWAKEN_BONUS=.2;
 // 수족관은 크기·돌연변이 배율의 제곱근만 받는다(괴물급 ×5 → 수입 ×2.2) — 대박 한 마리가 골드를 무한정 찍지 않게.
 export const fishYieldMult=fish=>Math.sqrt(fishSizeOf(fish).mult*(fishMutationOf(fish)?.mult||1));
 export const fishYield=(fish,tankBonus=0)=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishValue(fish)/(fishSizeOf(fish).mult*(fishMutationOf(fish)?.mult||1))*fishYieldMult(fish)*AQUARIUM_RATE[d.rarity]*(SPOTS.find(s=>s.id===d.spot).tank||1)*AQUARIUM_V3_BOOST*(1+AWAKEN_BONUS*Math.min(AWAKEN_MAX,fish.star||0))*(1+tankBonus))):0;};
-// ── v3 낚싯대 강화(토큰) · 인챈트 ──
-// 2026-11-05 도현: 낚싯대 강화는 다이아 (실패해도 단계 유지). 기대 비용 합계 약 2,400개 ≈ 하루 40개 × 두 달.
-export const ROD_ENHANCE=Object.freeze([[15,1],[20,.95],[30,.9],[40,.8],[60,.7],[80,.6],[100,.5],[140,.4],[180,.3],[230,.25]].map(([cost,chance])=>Object.freeze({cost,chance})));
-export const ENHANCE_POWER=2;
-export const ROD_ENHANCE_MAX=ROD_ENHANCE.length,ENHANCE_TOKEN_BONUS=.05,ENHANCE_RARE_BONUS=.03;
-export const enchantSlotCount=star=>star>=8?3:star>=4?2:1;
+// ── v3 인챈트 ── (2026-11-05 도현: 강화 삭제 — 인챈트 칸은 낚싯대 6·12단계에서 열림)
+// 예전 강화 다이아 비용(시험 계정 환불용).
+export const LEGACY_ENHANCE_DIAMONDS=[15,20,30,40,60,80,100,140,180,230];
+export const ENCHANT_SLOT_TIERS=[1,6,12];
+export const enchantSlotCount=tier=>ENCHANT_SLOT_TIERS.filter(x=>tier>=x).length;
 export const ENCHANT_TIERS=Object.freeze([{name:'일반',p:.6,color:'#d8e7d1'},{name:'희귀',p:.28,color:'#74caff'},{name:'에픽',p:.1,color:'#cf9cff'},{name:'전설',p:.02,color:'#ffd477'}].map(Object.freeze));
 export const ENCHANTS=Object.freeze([
  {id:'bite',name:'입질 시간 단축',values:[.05,.10,.15,.25],sign:'-'},
