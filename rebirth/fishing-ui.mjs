@@ -1,7 +1,7 @@
 import {RARITY_SIZE_CAP,fishMaxWeight,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,fishingQuestsReady,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,fishWeight,rodGoldCost,rodDiamondCost,resourceName,aquariumExpandCost,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_START,CONTEST_CLOSED,CONTEST_LAST,contestWeek,contestWeekEnd,contestTarget,FISH_SIZES,MUTATIONS,fishSizeOf,fishMutationOf,ROD_TOKEN_BONUS,ROD_RARE_BONUS,ENCHANT_SLOT_TIERS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,enchantText,FUSE_COUNT,FUSE_CHANCE,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,AWAKEN_BONUS,fishingEnchant,FISHING_AUTO_PLANS,ROD_TIERS,rodTier} from './fishing-data.mjs';
 import {mountFishingScene} from './fishing-motion.mjs?v=fishing-line-180';
 import {startFishingFx,stopFishingFx,fishingFxBusyUntil} from './fishing-fx.mjs?v=fx2-20261105';
-import {normalizeFishing,aquariumBank,aquariumHourly,fishingMeter,fishingStep,fishingMeterWon,FISHING_TICK_MS,rodPower} from './fishing-model.mjs';
+import {FISHING_PROTOCOL,normalizeFishing,aquariumBank,aquariumHourly,fishingMeter,fishingStep,fishingMeterWon,FISHING_TICK_MS,rodPower} from './fishing-model.mjs';
 import {fantasyHeader,fantasyFooter} from './fantasy-ui.mjs';
 import {currencyIconURL} from './currency-icons.mjs';
 import {replacePreservingDetails} from './disclosure-state.mjs';
@@ -168,7 +168,7 @@ export function scheduleAutoFishing(delay=1200){
   const busy=fishingFxBusyUntil()-performance.now();if(busy>0)return scheduleAutoFishing(Math.ceil(busy)+30);
   const blocked=autoBlocker(autoState);if(blocked)return stopAutoFishing(blocked);
   fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;
-  try{const result=await autoSend?.('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:5});if(!result&&fishingUI.auto)scheduleAutoFishing(1500);}
+  try{const result=await autoSend?.('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:FISHING_PROTOCOL});if(!result&&fishingUI.auto)scheduleAutoFishing(1500);}
   catch{stopAutoFishing('낚시 요청이 실패해서 오토 낚시를 멈췄어요.');}
  },delay);
 }
@@ -240,3 +240,4 @@ export function mountFishing(root,state,send){
  raf=requestAnimationFrame(frame);
  sceneController=mountFishingScene(els.scene,c.visualStarted);
 }
+export {FISHING_PROTOCOL};
