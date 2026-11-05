@@ -58,3 +58,14 @@
 
 /* Level 50/60/70 generated rod artwork; fixed size keeps the live scene stable. */
 .fishing-rod-chip{display:flex;align-items:center;gap:5px}.fishing-rod-chip .fishing-rod-mini{width:20px;height:30px;object-fit:contain;flex:none}
+
+/* 2026-11-05 낚시 리뉴얼(연출): WebGL 물결 + 2D 효과 층 (fishing-fx.mjs) */
+.fishing-scene .fishing-fx-water{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .35s;pointer-events:none}
+.fishing-scene .fishing-fx-water.ready{opacity:1}
+.fishing-scene .fishing-fx-water.ready~.fishing-water,.fishing-scene .fishing-fx-water.ready~.fishing-water-light{display:none}
+.fishing-scene .fishing-fx-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.fishing-scene.fishing-fx-on{translate:var(--fx-shake,0 0)}
+.fishing-scene .fishing-result-fish.fishing-fx-hidden{visibility:hidden!important;animation:none!important}
+.fishing-scene .fishing-result-fish{transition:opacity .4s}
+.fishing-scene .fishing-angler{transition:translate .2s linear}
+@media(prefers-reduced-motion:reduce){.fishing-scene .fishing-fx-water,.fishing-scene .fishing-fx-layer{display:none}}
