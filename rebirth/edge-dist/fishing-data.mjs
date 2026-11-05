@@ -176,7 +176,10 @@ export const enchantText=e=>{const d=ENCHANTS.find(x=>x.id===e?.id);if(!d)return
 // 낚싯대 인챈트 합계 (같은 옵션 여러 칸이면 더한다).
 export const fishingEnchant=(f,id)=>(f?.enchants||[]).reduce((n,e)=>n+(e&&e.id===id?ENCHANTS.find(x=>x.id===id).values[e.tier]:0),0);
 // v3 자동 낚시권(골드): 있을 때만 오토 낚시, 손맛 없이 낚싯대 힘으로 판정.
-export const FISHING_AUTO_PLANS=Object.freeze([{id:'h24',name:'자동 낚시권 24시간',hours:24,gold:30000000},{id:'d3',name:'자동 낚시권 3일',hours:72,gold:80000000},{id:'d7',name:'자동 낚시권 7일',hours:168,gold:160000000}].map(Object.freeze));
+// 2026-11-05 도현: 자동 낚시권은 시간이 아니라 횟수 — 하루치(600회) 단위로 판매, 어부는 반값.
+export const FISHING_AUTO_PLANS=Object.freeze([{id:'h24',name:'자동 낚시 600회',casts:600,gold:30000000},{id:'d3',name:'자동 낚시 1,800회',casts:1800,gold:80000000},{id:'d7',name:'자동 낚시 4,200회',casts:4200,gold:160000000}].map(Object.freeze));
+export const fishingAutoPrice=(s,plan)=>s?.profession?.id==='fisher'?Math.round(plan.gold/2):plan.gold;
+export const AUTO_CASTS_PER_HOUR=25; // 예전 시간제 남은 시간 → 횟수 변환 (600회/24시간)
 // ── v3 합성 ──
 // 2026-11-05 도현: 합성은 도박 — 같은 종·같은 크기 3마리 → 같은 종 1마리. 성공하면 크기가 커지고(가끔 두 단계),
 // 실패하면 같은 크기 1마리만 남는다. 합성할 때마다 돌연변이가 새로 붙을 수도 있다(일반 낚시의 5배 확률).

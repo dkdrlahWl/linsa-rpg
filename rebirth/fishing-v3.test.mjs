@@ -79,7 +79,7 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rodScheme:16,rod:16,x
  }
  assert.ok(bites>40&&won>10&&lost>10,JSON.stringify({bites,won,lost}));
  assert.throws(()=>fishingCommand(s,'fishFinish',{id:'x',inputs:''},{now,random,uuid}),/FISHING_CAST_MISSING/);
- fishingCommand(s,'fishAutoBuy',{plan:'h24'},{now,random,uuid});assert.equal(f.autoUntil,now+864e5);fishingCommand(s,'fishAutoBuy',{plan:'d3'},{now,random,uuid});assert.equal(f.autoUntil,now+864e5*4,'stacks');
+ {const a0=f.autoCasts||0;fishingCommand(s,'fishAutoBuy',{plan:'h24'},{now,random,uuid});assert.equal(f.autoCasts,a0+600);fishingCommand(s,'fishAutoBuy',{plan:'d3'},{now,random,uuid});assert.equal(f.autoCasts,a0+2400,'stacks');}
  const weak=fishingDifficulty({species:'fish-70',size:'record'},10);assert.equal(weak.snap,true);
 }
 // 낚시터 잠금: 낚싯대 레벨
@@ -122,3 +122,14 @@ for(const role of ['isAdmin','isTester']){
  assert.ok(caught>0);assert.deepEqual(s.fishing.best,before);assert.equal(s.fishing.contest,undefined);
 }
 console.log('PASS administrator/tester catches preserve old data without updating records');
+// 자동 낚시권: 횟수제 · 어부 반값 · 시간제 변환
+{
+ const {FISHING_AUTO_PLANS:P}=await import('./fishing-data.mjs');
+ const s={gold:1e9,materials:{},fishing:{version:3,rodScheme:16,rod:1,bait:{worm:1},fish:[],aquarium:[],slots:3,bank:0,bankAt:now0,collection:{},daily:{},tokens:0,enchants:[],autoUntil:now0+2*3600000}};
+ fishingCommand(s,'fishAutoBuy',{plan:'h24'},{now:now0,random:Math.random,uuid});assert.equal(s.fishing.autoUntil,undefined);assert.equal(s.fishing.autoCasts,50+600);assert.equal(s.gold,1e9-P[0].gold);
+ s.profession={id:'fisher',level:1};const g=s.gold;fishingCommand(s,'fishAutoBuy',{plan:'d7'},{now:now0,random:Math.random,uuid});assert.equal(g-s.gold,P[2].gold/2);assert.equal(s.fishing.autoCasts,650+4200);
+ s.fishing.autoCasts=1;const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'brook',bait:'worm'},{now:now0,random:Math.random,uuid});
+ fishingCommand(s,'fishHook',{id:castId,auto:true},{now:s.fishing.cast.biteAt,random:Math.random,uuid});assert.equal(s.fishing.autoCasts,0);
+ const c2=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'brook',bait:'worm'},{now:now0+60000,random:Math.random,uuid}).castId;
+ assert.throws(()=>fishingCommand(s,'fishHook',{id:c2,auto:true},{now:s.fishing.cast.biteAt,random:Math.random,uuid}),/FISHING_AUTO_REQUIRED/);
+}

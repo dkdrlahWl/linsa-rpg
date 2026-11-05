@@ -1440,7 +1440,7 @@ function showEvents(events) {
     if(e.type==='fishAquariumClaim'){toast(fmt(e.gold)+' G 받았어요.');continue;}
     if(e.type==='fishEnhance'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🔨 강화 성공! 낚싯대 +'+e.level:'강화 실패… 단계는 그대로예요 (+'+e.level+')');continue;}
     if(e.type==='fishEnchant'){toast('✨ 인챈트를 새로 뽑았어요.');continue;}
-    if(e.type==='fishAutoBuy'){toast('🤖 자동 낚시 시간 추가 완료 · 총 남은 시간 '+Math.max(0,Math.ceil((e.until-Date.now())/60000)).toLocaleString('ko-KR')+'분');continue;}
+    if(e.type==='fishAutoBuy'){toast('🤖 자동 낚시 '+e.casts.toLocaleString('ko-KR')+'회 추가 · 남은 오토 '+e.total.toLocaleString('ko-KR')+'회');continue;}
     if(e.type==='fishFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🧬 합성 성공!':'합성 실패… 1마리만 남았어요.');continue;}
     if(e.type==='fishGoldFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🌈 무지개 개체 탄생!':'황금 합성 실패… 황금 1마리가 남았어요.');continue;}
     if(e.type==='fishAwaken'){toast('★ 각성! ★'+e.star+' (같은 종 '+e.used+'마리 사용)');continue;}
@@ -1815,7 +1815,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
     if(action==='fishSpot'){const spot=SPOTS.find(x=>x.id===arg);if(!spot)return;if((state.fishing?.rod||1)<spot.level)return toast(spot.level+'단계 낚싯대부터 입장할 수 있어요. 낚싯대 메뉴에서 구매해 주세요.');fishingUI.spot=arg;fishingUI.sheet=null;render();return;}
-    if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}if(!((state.fishing?.autoUntil||0)>Date.now())){fishingUI.panel='shop';fishingUI.sheet='shop';render();return toast('🤖 자동 낚시권이 있어야 오토 낚시를 할 수 있어요. 상점에서 구매해 주세요.');}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
+    if(action==='fishAuto'){if(fishingUI.auto){stopAutoFishing();return;}if(!((state.fishing?.autoCasts||0)>0)){fishingUI.panel='shop';fishingUI.sheet='shop';render();return toast('🤖 자동 낚시권이 있어야 오토 낚시를 할 수 있어요. 상점에서 구매해 주세요.');}fishingUI.notify=toast;fishingUI.auto=true;render();if(!state.fishing?.cast)scheduleAutoFishing(0);return;}
     if(action==='fishCancel'&&fishingUI.auto)stopAutoFishing();
     if(action==='fishCast'){fishingUI.sheet=null;fishingUI.seenCatch=state.fishing?.lastCatch?.at;fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:FISH_PROTOCOL});}
     // v3 낚시: 강화·인챈트·합성·각성

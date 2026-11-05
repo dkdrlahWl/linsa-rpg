@@ -1,6 +1,6 @@
 import {FISHING_SKINS,fishingSkin} from './fishing-skins.mjs';
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {baitPackPrice,BAIT_SPECIAL_LIMIT,FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {fishingAutoPrice,AUTO_CASTS_PER_HOUR,baitPackPrice,BAIT_SPECIAL_LIMIT,FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=6; // v3 낚시 개편
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
@@ -39,7 +39,10 @@ export function normalizeFishing(s,now){
  if(f.rodScheme!==16){f.rod=Math.min(8,f.rod)*2-1;const e=Math.max(0,Math.min(LEGACY_ENHANCE_DIAMONDS.length,Number(f.enhance)||0));f.diamonds=(Number(f.diamonds)||0)+LEGACY_ENHANCE_DIAMONDS.slice(0,e).reduce((n,x)=>n+x,0);f.rodScheme=16;}
  f.skin=fishingSkin(f.skin).id;
  delete f.enhance;if(f.rod>ROD_MAX)f.rod=ROD_MAX;
- f.tokens=Number.isSafeInteger(f.tokens)&&f.tokens>=0?f.tokens:0;f.enchants=Array.isArray(f.enchants)?f.enchants.slice(0,3):[];
+ f.tokens=Number.isSafeInteger(f.tokens)&&f.tokens>=0?f.tokens:0;
+ // 2026-11-05 도현: 자동 낚시권 시간제 → 횟수제 (남은 시간 1시간 = 25회)
+ if(f.autoUntil!=null){const left=Math.max(0,(Number(f.autoUntil)||0)-now);f.autoCasts=(Number(f.autoCasts)||0)+Math.ceil(left/3600000*AUTO_CASTS_PER_HOUR);delete f.autoUntil;}
+ f.autoCasts=Number.isSafeInteger(f.autoCasts)&&f.autoCasts>0?f.autoCasts:0;f.enchants=Array.isArray(f.enchants)?f.enchants.slice(0,3):[];
  f.collection??={};f.daily??={};if(f.best&&typeof f.best!=='object')delete f.best;f.bait??={worm:0};
  if(f.daily.day!==koreanDay(now))f.daily={day:koreanDay(now),catch:0,rare:0,sell:0,exchanged:0,claimed:[]};
  if(f.cast&&now>f.cast.expires)f.cast=null;
@@ -204,7 +207,7 @@ export function fishingCommand(s,command,args,ctx){
   if(c.reward!=='fish')return landCatch(s,f,c,ctx);
   const dif=fishingDifficulty(c,rodPower(f));
   if(args.auto){
-   require((f.autoUntil||0)>ctx.now,'FISHING_AUTO_REQUIRED');
+   require((f.autoCasts||0)>0,'FISHING_AUTO_REQUIRED');f.autoCasts--;
    if(ctx.random()<autoCatchChance(dif))return landCatch(s,f,c,ctx);
    return escapeCatch(f,c,ctx,dif.snap?'weak':'escape',{need:dif.need,power:dif.power,auto:true});
   }
@@ -224,8 +227,8 @@ export function fishingCommand(s,command,args,ctx){
  }
  // 자동 낚시권 (골드): 남은 시간에 더한다.
  if(command==='fishAutoBuy'){
-  const plan=FISHING_AUTO_PLANS.find(x=>x.id===args.plan);require(plan,'INVALID_FISHING_AUTO');spendGold(s,plan.gold);
-  f.autoUntil=Math.max(f.autoUntil||0,ctx.now)+plan.hours*3600000;return {type:'fishAutoBuy',plan:plan.id,until:f.autoUntil,gold:plan.gold};
+  const plan=FISHING_AUTO_PLANS.find(x=>x.id===args.plan);require(plan,'INVALID_FISHING_AUTO');const gold=fishingAutoPrice(s,plan);spendGold(s,gold);
+  f.autoCasts=(f.autoCasts||0)+plan.casts;return {type:'fishAutoBuy',plan:plan.id,casts:plan.casts,total:f.autoCasts,gold};
  }
  if(command==='fishBaitBuy'){
   const bait=BAITS.find(x=>x.id===args.bait);require(bait&&integer(args.count,1,10000),'INVALID_FISHING_BAIT');
