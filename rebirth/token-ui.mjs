@@ -5,7 +5,7 @@ import {currencyIconURL} from './currency-icons.mjs';
 import {KEY_BOSS_STAGES,KEY_DAILY_TRIES,KEY_BOSS_NAME,keyTriesLeft,keyStageOpen,keyCount} from './key-dungeon.mjs?v=keydungeon-20261103';
 import {tokenSweepable,keySweepable} from './sweep.mjs';
 const keyIcon=()=>`<img class="token-currency-art" src="${currencyIconURL('dungeonKey')}" alt="" width="22" height="22" decoding="async">`;
-import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=noticket-20261105';
+import {TOKEN_CONTENT_OPEN,TOKEN_BOSS_STAGES,TOKEN_DAILY_TRIES,TOKEN_SHOP,RACE_BETS,RACE_MIN_BET,RACE_MAX_BET,RACE_DAILY,RACE_RTP,tokenCount,tokenTriesLeft,tokenStageOpen,tokenShopBought,tokenShopLimit} from './token-content.mjs?v=gold500-20261105';
 
 const fmt=n=>Math.floor(Number(n)||0).toLocaleString('ko-KR');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -33,6 +33,7 @@ function dungeon(s,now){
 
 // 교환소: 종류별로 묶은 타일 격자. 아이콘·수량·가격·한도를 한 칸에 모아 한눈에 비교한다.
 const SHOP_GROUPS=[
+ ['골드',['gold']],
  ['소모품',['luckPotion']],
  ['한정 품목',['tribeTicket','treasureTicket','rerollStone']],
 ];
@@ -47,7 +48,7 @@ function shopTile(s,o,now){
   <div class="token-tile-art">${offerIcon(o)}${lim?`<span class="token-tile-limit">${soldOut?'품절':`${per} ${left}/${lim}`}</span>`:''}</div>
   <strong>${esc(offerName(o))}</strong><small>${offerAmount(o)||'&nbsp;'}${lim?`<span class="m-only">${offerAmount(o)?' · ':''}${soldOut?'품절':`${per} ${left}/${lim}`}</span>`:''}</small>
   <b class="token-tile-price">${tokenIcon()} ${fmt(o.cost)}</b>
-  <div class="token-tile-buy">${b(soldOut?'품절':'1개','tokenShopBuy',o.id+':1','gold',soldOut||!afford)}${ten?b('10개','tokenShopBuy',o.id+':10','',soldOut||have<o.cost*10||left<10):''}</div>
+  <div class="token-tile-buy">${b(soldOut?'품절':'1개','tokenShopBuy',o.id+':1','gold',soldOut||!afford)}${ten?b('10개','tokenShopBuy',o.id+':10','',soldOut||have<o.cost*10||left<10):''}${lim>=100?b('100개','tokenShopBuy',o.id+':100','',soldOut||have<o.cost*100||left<100):''}</div>
  </article>`;
 }
 function shop(s,now){
