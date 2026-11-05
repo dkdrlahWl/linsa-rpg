@@ -6,7 +6,7 @@ let n=0;const uuid=()=>'id-'+(++n);
 const seq=seed=>{let x=seed>>>0;return ()=>((x=(Math.imul(x,1664525)+1013904223)>>>0)/4294967296);};
 const now0=Date.UTC(2026,10,5,6);
 // 데이터
-assert.equal(ROD_MAX,50);assert.deepEqual(SPOTS.map(s=>s.level),[1,8,15,22,29,36,43,50]);assert.ok(SPOTS.every(s=>s.specialText));
+assert.equal(ROD_MAX,50);assert.deepEqual(SPOTS.map(s=>s.level),[1,8,15,22,29,36,43,50]);assert.ok(SPOTS.every(s=>!Object.keys(s.special||{}).length),'no spot buffs');
 let g=0,d=0;for(let L=1;L<50;L++){g+=rodGoldCost(L);d+=rodDiamondCost(L);}assert.ok(g>2.3e8&&g<2.7e8,String(g));assert.ok(d>2100&&d<2500,String(d));
 assert.ok(Math.abs(FISH_SIZES.reduce((a,x)=>a+x.p,0)-1)<1e-9);assert.deepEqual(MUTATIONS.map(m=>m.id),['silver','gold','rainbow']);
 assert.ok(BAITS.filter(b=>b.id!=='worm').every(b=>b.tokens>0&&!b.diamonds));
@@ -29,16 +29,16 @@ assert.ok(Math.abs(fishYield({...base,size:'monster'})/fishYield(base)-Math.sqrt
 // 낚시 → 판매 토큰 → 강화 · 인챈트 · 미끼 · 수족관
 const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rod:50,xp:0,diamonds:0,bait:{worm:10000},fish:[],aquarium:[],slots:3,bank:0,bankAt:now0,collection:{},daily:{},cast:null,lastCatch:null,tokens:0,enhance:0,enchants:[],autoUntil:now0+864e5}});
 {
- const s=fresh(),random=seq(7);let now=now0,sizes={},muts=0,extra=0;
+ const s=fresh(),random=seq(7);s.fishing.bait.twin=1000;let now=now0,sizes={},muts=0,extra=0;
  assert.throws(()=>fishingCommand(s,'fishCast',{protocol:4,spot:'brook',bait:'worm'},{now,random,uuid}),/FISHING_REFRESH_REQUIRED/);
  for(let i=0;i<400;i++){
-  const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:i%2?'moon':'volcano',bait:'worm'},{now,random,uuid});now=s.fishing.cast.biteAt;
+  const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:i%2?'moon':'volcano',bait:i%2?'twin':'worm'},{now,random,uuid});now=s.fishing.cast.biteAt;
   const r=fishingCommand(s,'fishHook',{id:castId,auto:true},{now,random,uuid});
   if(r.fish){sizes[r.fish.size]=(sizes[r.fish.size]||0)+1;if(r.fish.mut)muts++;if(r.extra)extra++;}
   if(s.fishing.fish.length>=140){fishingCommand(s,'fishSell',{ids:s.fishing.fish.map(x=>x.id)},{now,random,uuid});}
   now+=1000;s.fishing.daily.casts=0;
  }
- assert.ok(sizes.small>sizes.large&&sizes.large>(sizes.big||0));assert.ok(extra>0,'moon double catch');
+ assert.ok(sizes.small>sizes.large&&sizes.large>(sizes.big||0));assert.ok(extra>0,'twin bait double catch');
  const before=s.fishing.tokens,ids=s.fishing.fish.map(x=>x.id),want=Math.round(s.fishing.fish.reduce((a,x)=>a+fishPrice(x),0));
  const sold=fishingCommand(s,'fishSell',{ids},{now,random,uuid});assert.equal(sold.tokens,want);assert.equal(s.fishing.tokens,before+want);
  s.fishing.tokens=1e7;
