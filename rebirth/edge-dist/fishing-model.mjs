@@ -1,6 +1,6 @@
 import {FISHING_SKINS,fishingSkin} from './fishing-skins.mjs';
 import {professionGather,gatherAmount} from './profession-model.mjs';
-import {FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
+import {baitPackPrice,BAIT_SPECIAL_LIMIT,FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 export const FISHING_PROTOCOL=6; // v3 낚시 개편
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
@@ -230,8 +230,8 @@ export function fishingCommand(s,command,args,ctx){
   const bait=BAITS.find(x=>x.id===args.bait);require(bait&&integer(args.count,1,10000),'INVALID_FISHING_BAIT');
   const currency=bait.gold?'gold':'tokens';require(args.currency===currency,'FISHING_REFRESH_REQUIRED');
   require(args.count%bait.pack===0,'INVALID_FISHING_BAIT');
-  require(f.rod>=bait.level,'FISHING_ROD_REQUIRED');require((f.bait[bait.id]||0)+args.count<=10000,'FISHING_BAIT_LIMIT');
-  const cost=(bait.gold||bait.tokens)*(args.count/bait.pack);
+  require(f.rod>=bait.level,'FISHING_ROD_REQUIRED');require((f.bait[bait.id]||0)+args.count<=(bait.gold?10000:BAIT_SPECIAL_LIMIT),'FISHING_BAIT_LIMIT');
+  const cost=baitPackPrice(bait,f.rod)*(args.count/bait.pack);
   if(currency==='gold')spendGold(s,cost);else spendTokens(f,cost);
   f.bait[bait.id]=(f.bait[bait.id]||0)+args.count;return {type:'fishBaitBuy',count:args.count,[currency]:cost,currency};
  }

@@ -1,6 +1,6 @@
 import {coopInputWire,deferCoopWrite} from './coop-transport-policy.mjs';
 import {rankingProfile} from './ranking-profile.mjs';
-const FISHING_LOCKED=true;
+const FISHING_LOCKED=false; // 2026-11-05 22:10 도현: 낚시 전체 오픈
 import {isCitadel,packCitadelWorld,unpackCitadelWorld} from './citadel-zero.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';

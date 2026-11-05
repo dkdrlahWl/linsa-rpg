@@ -39,13 +39,18 @@ export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+Stri
 // 2026-11-05 도현: 미끼는 좋을수록 희귀한 물고기가 더 잘 낚인다 — 등급 1단계마다 rare배 (최대 4단계까지 곱함).
 export const BAITS=[
  {id:'worm',name:'숲 지렁이',pack:600,gold:60000,level:1,rare:1,text:'기본 미끼 · 무한',infinite:true},
- {id:'shrimp',name:'반짝 새우',pack:10,tokens:1500,level:1,rare:1.15,text:'희귀할수록 등급마다 ×1.15'},
- {id:'pearl',name:'진주 미끼',pack:10,tokens:3000,level:3,rare:1.3,text:'희귀할수록 등급마다 ×1.3'},
- {id:'golden',name:'황금 미끼',pack:10,tokens:6000,level:5,rare:1.45,text:'희귀할수록 등급마다 ×1.45',art:'star',hue:'golden'},
- {id:'glow',name:'형광 미끼',pack:10,tokens:12000,level:7,rare:1.6,text:'희귀할수록 등급마다 ×1.6',art:'bait-glow-v2'},
- {id:'star',art:'bait-star-v2',name:'별가루 미끼',pack:10,tokens:24000,level:9,rare:1.8,text:'희귀할수록 등급마다 ×1.8'},
+ {id:'shrimp',name:'반짝 새우',pack:10,tokens:1,level:1,rare:1.15,text:'희귀할수록 등급마다 ×1.15'},
+ {id:'pearl',name:'진주 미끼',pack:10,tokens:1,level:3,rare:1.3,text:'희귀할수록 등급마다 ×1.3'},
+ {id:'golden',name:'황금 미끼',pack:10,tokens:1,level:5,rare:1.45,text:'희귀할수록 등급마다 ×1.45',art:'star',hue:'golden'},
+ {id:'glow',name:'형광 미끼',pack:10,tokens:1,level:7,rare:1.6,text:'희귀할수록 등급마다 ×1.6',art:'bait-glow-v2'},
+ {id:'star',art:'bait-star-v2',name:'별가루 미끼',pack:10,tokens:1,level:9,rare:1.8,text:'희귀할수록 등급마다 ×1.8'},
 ];
 export const BAIT_RARE_CAP=4;
+// 2026-11-05 도현: 특수 미끼 값은 지금 낚싯대 단계에 비례 — 그 단계 지렁이 1회 수입(ROD_CAST_VALUE)의 %로, 늘어나는 수입의 약 절반.
+export const ROD_CAST_VALUE=Object.freeze([5,5.4,13,17,31,41,71,111,166,260,364,560,823,1600,3331,6420]);
+export const BAIT_COST_PCT=Object.freeze({shrimp:.035,pearl:.07,golden:.105,glow:.14,star:.175});
+export const BAIT_SPECIAL_LIMIT=600; // 싸게 사서 쌓아두고 높은 단계에서 쓰는 걸 막는 보유 한도(종류별)
+export const baitPackPrice=(bait,rod=1)=>bait?.gold?bait.gold:Math.max(10,Math.round(ROD_CAST_VALUE[Math.max(1,Math.min(ROD_CAST_VALUE.length,rod||1))-1]*(BAIT_COST_PCT[bait?.id]||0)*(bait?.pack||10)));
 export const baitDiamondCost=()=>0;
 // 예전(v2) 미끼 다이아 값 — 초기화 환불용 (개당 다이아).
 export const LEGACY_BAIT_DIAMONDS={shrimp:2/15,pearl:4/10,star:6/5};
@@ -141,7 +146,8 @@ export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)re
 export const AQUARIUM_RATE=[.9375,.65,.4625,.29375,.155,.16875,.1]; // x1.25 with the -20% sale base: aquarium income unchanged // 신화 sale value 600→240 (2026-10-12); rate keeps its aquarium income
 // 2026-10-25: 새 낚시터 물고기는 수족관 수입 추가 배율(용궁 ×1.25, 불꽃 열수해 ×1.5, 태고의 바다 ×1.8).
 // v3: 판매 골드가 없어진 대신 수족관 골드 ×1.5, 각성 ★마다 +20%.
-export const AQUARIUM_V3_BOOST=1.5,AWAKEN_MAX=5,AWAKEN_BONUS=.2;
+export const AQUARIUM_V3_BOOST=3,// 2026-11-05 도현: 수족관 골드 전 구간 ×2
+ AWAKEN_MAX=5,AWAKEN_BONUS=.2;
 // 수족관은 크기·돌연변이 배율의 제곱근만 받는다(괴물급 ×5 → 수입 ×2.2) — 대박 한 마리가 골드를 무한정 찍지 않게.
 export const fishYieldMult=fish=>Math.sqrt(fishSizeOf(fish).mult*(fishMutationOf(fish)?.mult||1));
 export const fishYield=(fish,tankBonus=0)=>{const d=FISH.find(x=>x.id===fish.species);return d?Math.max(1,Math.round(fishValue(fish)/(fishSizeOf(fish).mult*(fishMutationOf(fish)?.mult||1))*fishYieldMult(fish)*AQUARIUM_RATE[d.rarity]*(SPOTS.find(s=>s.id===d.spot).tank||1)*AQUARIUM_V3_BOOST*(1+AWAKEN_BONUS*Math.min(AWAKEN_MAX,fish.star||0))*(1+tankBonus))):0;};

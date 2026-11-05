@@ -27,7 +27,7 @@ try{
    user={id:'test',app_metadata:{ringu_admin:flag}};calls=[];
    fingerprint={command,args:{protocol:5}};
    const response=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer local'},body:JSON.stringify({...fingerprint,requestId:randomUUID()})}));
-   if(flag===true){assert.equal(response.status,200);assert.equal(calls.length,2);}else{assert.equal(response.status,403);assert.deepEqual(await response.json(),{error:'FISHING_LOCKED'});}
+   assert.equal(response.status,200);assert.equal(calls.length,2);
   }
  }
  user={id:'test',app_metadata:{ringu_admin:true}};
@@ -40,7 +40,7 @@ try{
  user=null;calls=[];
  const denied=await handler(new Request('http://local',{method:'POST',headers:{Authorization:'Bearer invalid'},body:JSON.stringify({command:'fishCast',args:{protocol:5},requestId:randomUUID()})}));
  assert.equal(denied.status,401);assert.deepEqual(await denied.json(),{error:'LOGIN_REQUIRED'});assert.equal(calls.length,1);
- const locked=fishingView({isAdmin:false,gold:0});assert.match(locked,/새 낚시 준비 중/);assert.doesNotMatch(locked,/data-action="fishCast"/);const open=fishingView({isAdmin:true,gold:0});assert.match(open,/data-action="fishCast"/);assert.match(open,/fishing-scene-art/);assert.match(fishingView({isTester:true,gold:0}),/data-action="fishCast"/);
+ assert.match(fishingView({isAdmin:false,gold:0}),/data-action="fishCast"/);const open=fishingView({isAdmin:true,gold:0});assert.match(open,/data-action="fishCast"/);assert.match(open,/fishing-scene-art/);assert.match(fishingView({isTester:true,gold:0}),/data-action="fishCast"/);
  assert.match(lottoView({isAdmin:false,gold:0},null),/data-arg="fishing"/);
- console.log('PASS HTTP access: fishing locked except admin/tester, invalid login rejected before snapshot, fishing and lottery navigation open');
+ console.log('PASS HTTP access: fishing open to everyone, invalid login rejected before snapshot, fishing and lottery navigation open');
 }finally{globalThis.fetch=originalFetch;delete globalThis.Deno;}
