@@ -314,3 +314,10 @@ body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-pull.f
 .fishing-screen .fishing-sheet-body .fishing-sites{height:auto;max-height:none;overflow:visible;flex-shrink:0;touch-action:pan-y}
 .fishing-screen[data-sheet="map"] .fishing-sites button{height:100px;flex-shrink:0;touch-action:pan-y}
 .fishing-screen .fishing-sheet-backdrop{position:fixed;z-index:29}
+
+/* 2026-11-05: 낚시 다이아 표시는 게임 다이아 아이콘 사용 */
+.fishing-screen img.fishing-diamond-icon{display:inline-block!important;width:20px!important;height:20px!important;min-width:20px;object-fit:contain;vertical-align:middle;flex:none;filter:none}
+.fishing-screen .fishing-hud-wallet img.fishing-diamond-icon{width:16px!important;height:16px!important;min-width:16px}
+body #app .fishing-screen .rod-row .rod-buy{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;width:auto!important;max-width:none!important;flex:none!important;white-space:nowrap}
+body #app .fishing-screen .rod-row .rod-buy>span{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;white-space:nowrap}
+body #app .fishing-screen .rod-row .rod-buy img:not(.fishing-button-art){display:inline-block!important;width:18px!important;height:18px!important;min-width:18px}
