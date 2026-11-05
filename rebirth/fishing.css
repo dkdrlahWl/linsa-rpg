@@ -294,3 +294,7 @@ body #app .fishing-screen.fishing-stage-layout .fishing-hud-tools .fishing-bait-
 body #app .fishing-screen.fishing-stage-layout .fishing-hud-tools .fishing-bait-select::before,body #app .fishing-screen.fishing-stage-layout .fishing-hud-tools .fishing-bait-select::after{display:none}
 body #app .fishing-screen.fishing-stage-layout .fishing-hud-tools select#fishing-bait{height:30px!important;min-height:30px!important;max-height:30px;width:auto!important;min-width:0!important;max-width:150px;padding:0 24px 0 12px!important;border-radius:999px!important;font-size:12px!important;line-height:28px;margin:0!important;box-sizing:border-box}
 body #app .fishing-screen.fishing-stage-layout .fishing-hud-tools .fishing-bait-select{height:30px!important;min-height:0!important;width:max-content!important;min-width:0!important;max-width:none!important;flex:none!important;padding:0!important;margin:0!important;border:0!important;background:none!important}
+.fishing-locked-card{position:absolute;z-index:5;left:16px;right:16px;top:50%;transform:translateY(-60%);padding:18px 18px 16px;border-radius:20px;text-align:center;background:rgba(6,18,26,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid #ffd47766;color:#f5ecd6;display:flex;flex-direction:column;gap:8px}
+.fishing-locked-card>b{font-size:21px;color:#ffd477}
+.fishing-locked-card p{margin:0;font-size:13.5px;line-height:1.55}
+.fishing-locked-card small{color:#9fb6ad;font-size:12px}

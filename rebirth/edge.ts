@@ -1,5 +1,6 @@
 import {coopInputWire,deferCoopWrite} from './coop-transport-policy.mjs';
 import {rankingProfile} from './ranking-profile.mjs';
+const FISHING_LOCKED=true;
 import {isCitadel,packCitadelWorld,unpackCitadelWorld} from './citadel-zero.mjs';
 import {adminExplorationFloor} from './exploration-admin.mjs';
 import {grantExplorationChest} from './exploration-rewards.mjs';
@@ -101,6 +102,8 @@ Deno.serve(async (req) => {
       user=await auth.json();
     }
     // 2026-11-05 낚시 v3 시험판: ringu-rebirth-v3 함수는 관리자·테스터 계정만.
+    // 2026-11-05 도현: 낚시 v3 정식 반영 — 오픈 전까지 관리자·테스터만 낚시 가능.
+    if(FISHING_LOCKED&&typeof body.command==='string'&&/^fish/.test(body.command)&&user?.app_metadata?.ringu_admin!==true&&user?.app_metadata?.ringu_tester!==true)return reply({error:'FISHING_LOCKED'},403);
     if(new URL(req.url).pathname.includes('ringu-rebirth-v3')&&user?.app_metadata?.ringu_admin!==true&&user?.app_metadata?.ringu_tester!==true)return reply({error:'BETA_DISABLED'},403);
     // 2026-11-04 전문 직업 인원 제한: 서버가 DB에서 직업별 인원을 세서 넣는다(클라이언트 값은 덮어씀).
     if(body.command==='professionCounts')return reply({professionCounts:await rpc('rebirth_profession_counts',{},true)});

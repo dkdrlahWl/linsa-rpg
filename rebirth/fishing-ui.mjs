@@ -94,7 +94,13 @@ function panelBody(s,f){
  const spot=SPOTS.find(x=>x.id===fishingUI.collectionSpot);
  return `<div class="fishing-panel-title"><div><h2>물고기 도감</h2><small>${FISH.length}종 · 전설 ${FISH.filter(x=>x.rarity===4).length}종 · 신화 ${FISH.filter(x=>x.rarity===5).length}종 · 태고 ${FISH.filter(x=>x.rarity===6).length}종 · 발견 ${Object.keys(f.collection).filter(id=>FISH.some(x=>x.id===id)).length}/${FISH.length}</small></div></div><div class="fishing-site-filter">${SPOTS.map(x=>button(x.name,'fishCollectionSpot',x.id,false,x.id===spot.id?'active':'')).join('')}</div><div class="fish-grid collection">${FISH.filter(x=>x.spot===spot.id).map(d=>{const weight=f.collection[d.id],r=RARITIES[d.rarity];return `<article class="fish-card ${weight?'discovered':'undiscovered'}" style="--rarity:${r.color}"><div class="fish-portrait">${image(d.id,'',d.name)}<span>${r.name}</span></div><strong>${d.name}</strong><small>${d.level}단계 낚싯대</small><b>${weight?'내 최고 '+fishWeight(weight):'아직 만나지 못했어요'}</b><small>${fishWeight(d.min)} ~ 기록급 ${fishWeight(fishMaxWeight(d))}</small></article>`;}).join('')}</div>`;
 }
+// 2026-11-05 도현: 낚시 v3 정식 반영 — 오픈 전까지 관리자·테스터만 낚시 가능 (서버도 막음).
+export const FISHING_LOCKED=true;
+function lockedFishingView(s){
+ return `<section class="fishing-screen fishing-stage-layout" data-sheet="" data-currency-label style="--site-accent:#a6edac" aria-label="판타지 낚시">${fantasyHeader(s,'event')}<div class="fishing-scroll"><nav class="fishing-event-switch">${button('낚시 여행','eventPage','fishing',false,'active')}${button('주간 로또','eventPage','lotto')}${button('보물 찾기','eventPage','treasure')}</nav><section class="fishing-play fishing-locked" aria-label="낚시 준비 중"><div class="fishing-scene" data-site="brook" data-phase="idle"><img class="fishing-scene-art" src="${url('scene-brook')}" alt="숲속 여울" decoding="async"><div class="fishing-scene-shade"></div><div class="fishing-angler" data-pose="0"></div><div class="fishing-locked-card"><b>🎣 새 낚시 준비 중</b><p>낚시가 완전히 새로워져요. 손맛 낚시 · 낚싯대 16종 · 크기·돌연변이 · 대어 랭킹.</p><p>지금까지 낚시에 쓴 골드·다이아와 물고기 값은 <b>우편함</b>으로 돌려드렸어요. 열리면 모두 처음부터 시작해요.</p><small>오픈 전까지 잠시 낚시를 할 수 없어요.</small></div></div><section class="fishing-console"></section></section></div>${fantasyFooter('event')}</section>`;
+}
 export function fishingView(s){
+ if(FISHING_LOCKED&&!s?.isAdmin&&!s?.isTester)return lockedFishingView(s);
  const f=normalizeFishing({fishing:s.fishing?structuredClone(s.fishing):undefined},Date.now());
  // 낚시 화면에 들어올 때마다 갈 수 있는 가장 높은 낚시터로 바로 이동.
  if(!fishingUI.entered){fishingUI.entered=true;const best=SPOTS.filter(x=>x.level<=f.rod).sort((a,b)=>b.level-a.level)[0];if(best)fishingUI.spot=best.id;}
