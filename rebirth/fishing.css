@@ -127,3 +127,20 @@
 .fishing-auto-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.fishing-auto-plans article{display:flex;flex-direction:column;gap:3px;align-items:center;padding:8px;border-radius:10px;background:#0d1c26;border:1px solid #647273;text-align:center}
 .fishing-auto-plans small{color:#ffe08a}.fishing-auto-plans button{width:100%}
 .bait-glow{filter:hue-rotate(90deg) saturate(2) brightness(1.2) drop-shadow(0 0 6px #7dffb0)}.bait-giant{filter:hue-rotate(-30deg) saturate(1.4);transform:scale(1.15)}.bait-twin{filter:hue-rotate(160deg) saturate(1.3)}
+/* 상점 가격표 줄바꿈 금지 */
+.bait-shop article b,.bait-shop article h3,.fishing-auto-plans b,.fishing-auto-plans small{white-space:nowrap}
+.bait-shop article small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bait-shop article>div{min-width:0}
+.fishing-auto-plans b{font-size:12px}
+.bait-shop article button,.fishing-auto-plans button{white-space:nowrap}
+/* 상점 카드 컴팩트 */
+.bait-shop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.bait-shop article{display:grid!important;grid-template-columns:44px minmax(0,1fr);grid-template-rows:auto auto;gap:4px 10px;align-items:center;padding:10px!important;min-height:0!important}
+.bait-shop article>img{width:44px;height:44px;object-fit:contain;grid-row:1}
+.bait-shop article>div:not(.bait-buy){grid-column:2;min-width:0}
+.bait-shop article h3{margin:0;font-size:14px}.bait-shop article b{font-size:12px;color:#ffe08a}
+.bait-shop .bait-buy{grid-column:1/-1;display:flex;gap:6px}
+.bait-shop .bait-buy button,.fishing-auto-plans button{flex:1;min-height:32px!important;padding:4px 8px!important;font-size:12px!important}
+.bait-shop .bait-buy .fishing-button-art,.fishing-auto-plans .fishing-button-art{display:none}
+.bait-lock{flex:1;text-align:center;font-size:12px;color:#cdbf9f;padding:6px;border:1px dashed #64727399;border-radius:8px}
+@media(max-width:380px){.bait-shop{grid-template-columns:1fr}}

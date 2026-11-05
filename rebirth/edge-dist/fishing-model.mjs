@@ -55,7 +55,7 @@ export function fishingDifficulty(fish,power){
  const d=FISH.find(x=>x.id===fish.species),size=Math.max(0,FISH_SIZES.findIndex(x=>x.id===fishSizeOf(fish).id)),deficit=fishNeed(fish)-power;
  const over=Math.max(0,deficit),spare=Math.min(10,Math.max(0,-deficit)),ch=Math.max(0,d.rarity*.5+size*.42+over*.38-spare*.06);
  return {need:fishNeed(fish),power,deficit,snap:deficit>FISHING_SNAP_DEFICIT,species:d.id,rarity:d.rarity,size:fishSizeOf(fish).id,
-  band:clamp(.15-ch*.012,.05,.15),speed:clamp(.8+ch*.11,.8,1.6),drift:.011+ch*.0006,tap:.05,
+  band:clamp(.16-ch*.012,.06,.16),speed:clamp(.8+ch*.11,.8,1.6),drift:.033+ch*.001,tap:.042,
   strainLimit:Math.round(clamp(46-d.rarity*2-size*1.5-over*2.2,8,46)),required:clamp(.45+d.rarity*.025+size*.02,.45,.72),ticks:80+d.rarity*16+size*12};
 }
 // 오토(자동 낚시권): 손맛 없이 낚싯대 힘만으로 판정 — 충분하면 95%, 1 모자랄 때마다 -8%.
@@ -68,7 +68,9 @@ export function fishingStep(cast,input,meter){
  const c=cast.challenge;meter.tick++;
  const target=fishingTarget(cast,meter.tick);
  // v3 클릭 낚시: input = 이 틱(50ms)에 누른 횟수(0~3). 한 번 누를 때마다 오른쪽으로, 가만히 두면 왼쪽으로 밀린다.
- meter.cursor=clamp(meter.cursor+Math.min(3,Math.max(0,Number(input)||0))*c.tap-c.drift,.02,.98);
+ // 한 번 누르면 막대가 쭉 미끄러지듯 크게 움직인다(속도 = 누른 힘, 매 틱 30%씩 줄어듦).
+ meter.vel=(meter.vel||0)*.7+Math.min(3,Math.max(0,Number(input)||0))*c.tap;
+ meter.cursor=clamp(meter.cursor+meter.vel-c.drift,.02,.98);if(meter.cursor<=.02||meter.cursor>=.98)meter.vel*=.3;
  const inside=Math.abs(meter.cursor-target)<=c.band;
  if(inside)meter.hits++;
  // 처음 1초(20틱)는 장력이 오르지 않는다 — 막대를 물고기 쪽으로 옮길 시간.
@@ -80,7 +82,7 @@ export function fishingStep(cast,input,meter){
  return meter;
 }
 export const fishingMeterWon=(cast,m)=>!m.failed&&m.tick>=cast.challenge.ticks&&m.hits/cast.challenge.ticks>=cast.challenge.required;
-export const fishingMeter=()=>({tick:0,cursor:.5,hits:0,strain:0,progress:0,failed:false,finished:false,target:.5,inside:true});
+export const fishingMeter=()=>({tick:0,cursor:.5,vel:0,hits:0,strain:0,progress:0,failed:false,finished:false,target:.5,inside:true});
 // Base grade weights per grade (2026-10-12).
 // 2026-10-25: 전설·신화 확률 절반, 태고 3배.
 export const FISH_GRADE_WEIGHTS=[1,.30,.09,.006,.000585,.000189,.000018];
