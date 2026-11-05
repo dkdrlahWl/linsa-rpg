@@ -7,10 +7,10 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const short=n=>{n=Math.floor(n||0);const u=[[1e12,'조'],[1e8,'억'],[1e4,'만']];for(const [v,k] of u)if(n>=v){const x=n/v;return (x>=100?Math.floor(x).toLocaleString('ko-KR'):(Math.floor(x*10)/10).toString())+k;}return fmt(n);};
 const bigGold=short;
 const pct=x=>Math.round(x*100)+'%';
-const GATHER_LABELS={cube:'사냥 레드 큐브',highCube:'링탐 블랙 큐브',diamond:'낚시 다이아',fragment:'사냥 장비 파편'};
+const GATHER_LABELS={cube:'사냥 레드 큐브',highCube:'링탐 블랙 큐브',diamond:'낚시 다이아',fragment:'장비 파편(사냥·분해·성채)'};
 // 효과 표기: 드랍률형은 실제 확률, 개수형은 +%
 const DROP_RATE={cube:1,fragment:1};
-const gatherText=(k,mult)=>DROP_RATE[k]?`드랍률 <b>×${+mult.toFixed(2)}</b>`:`<b>+${Math.round((mult-1)*100)}%</b>`;
+const gatherText=(k,mult)=>DROP_RATE[k]?`드랍률 <b>×${+mult.toFixed(mult>=10?1:2)}</b>`:`<b>+${Math.round((mult-1)*100)}%</b>`;
 const REF_PRICE={highCube:500000,primeCube:1500000,addCube:1000000,dungeonKey:8000000,treasureTicket:2000000,bonusFlame:5000000,companionTicket:4000000,pickupTicket:6000000,potentialLock:4500000,transcendStone:10000000};
 const icon=k=>`<img class="prof-ic" src="${currencyIconURL(k)}" alt="" title="${RESOURCE_NAMES[k]||k}">`;
 const chip=(k,v)=>`<span class="prof-chip" title="${RESOURCE_NAMES[k]||k} ${v}">${icon(k)}${v}</span>`;
