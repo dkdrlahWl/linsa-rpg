@@ -196,7 +196,7 @@ export function mountFishing(root,state,send){
  };
  // ── 손맛 낚시(클릭): 누를 때마다 막대가 오른쪽으로, 가만히 두면 왼쪽으로 밀린다. 물고기를 막대 안에 두면 게이지가 찬다 ──
  let taps=0;
- const tap=e=>{if(c.reel&&!c.reel.done){taps=Math.min(3,taps+1);c.reel.el?.classList.remove('tap');void c.reel.el?.offsetWidth;c.reel.el?.classList.add('tap');e?.preventDefault?.();}};
+ const tap=e=>{if(e){if(e.__fishTap)return;e.__fishTap=true;}if(c.reel&&!c.reel.done){taps=Math.min(3,taps+1);c.reel.el?.classList.remove('tap');void c.reel.el?.offsetWidth;c.reel.el?.classList.add('tap');e?.preventDefault?.();}};
  const key=e=>{if(e.code==='Space'&&!e.repeat&&c.reel&&!c.reel.done){tap(e);}};
  const RARITY_HINT=['평범한 입질','희귀한 손맛','레어 물고기!','에픽 물고기!!','전설의 손맛!!!','신화급 괴력!!!','태고의 존재!!!'];
  function reelFrame(){
