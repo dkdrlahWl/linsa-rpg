@@ -66,8 +66,10 @@ export function normalizeProfession(s){
  return p;
 }
 // 2026-11-04 도현: Lv.10까지 총 10,000회 제작. Lv.n→n+1 필요 = 10000×n/45 (222, 444, … 2,000).
-export const PROFESSION_TOTAL_CRAFTS=10000;
-export const professionXpNeeded=level=>Math.round(PROFESSION_TOTAL_CRAFTS*level/45);
+// 2026-11-05 도현: 구간별 경험치 빡세게 — 레벨이 오를수록 가파르게 (Lv.10까지 총 23,550회).
+export const PROFESSION_XP_TABLE=Object.freeze([200,350,600,1000,1600,2500,3800,5500,8000]);
+export const PROFESSION_TOTAL_CRAFTS=PROFESSION_XP_TABLE.reduce((a,b)=>a+b,0);
+export const professionXpNeeded=level=>PROFESSION_XP_TABLE[level-1]??PROFESSION_XP_TABLE.at(-1);
 export const professionLevel=s=>normalizeProfession(s)?.level||0;
 export const professionOf=s=>{const p=normalizeProfession(s);return p?professionById(p.id):null;};
 // 2026-11-04 도현: 제작 비용은 숙련도와 무관하게 전 구간 동일. 숙련도는 추가 제작 확률만 올린다.
@@ -78,10 +80,10 @@ export function professionGather(s,key){
  const p=normalizeProfession(s);if(!p)return 1;
  const def=professionById(p.id),bonus=def?.gather?.[key];if(!bonus)return 1;
  const scale=0.5+0.5*(p.level-1)/(PROFESSION_MAX_LEVEL-1);
- return (1+bonus*scale)*(def.gatherBoost?.[key]||1);
+ return (1+bonus*scale)*(p.level>=PROFESSION_MAX_LEVEL?def.gatherBoost?.[key]||1:1); // gatherBoost는 Lv.10 달성 시에만
 }
-// 2026-11-05 도현: 광부·탐험가는 장비 파편 획득 자체 2배 — 사냥(gatherBoost)·분해·성채 상자 모두.
-export const professionFragmentBoost=s=>{const p=normalizeProfession(s);return p&&(p.id==='miner'||p.id==='explorer')?2:1;};
+// 2026-11-05 도현: 광부·탐험가는 Lv.10 달성 시 장비 파편 획득 자체 2배 — 사냥(gatherBoost)·분해·성채 상자 모두.
+export const professionFragmentBoost=s=>{const p=normalizeProfession(s);return p&&p.level>=PROFESSION_MAX_LEVEL&&(p.id==='miner'||p.id==='explorer')?2:1;};
 // 재료 보관 위치(거래소와 같은 규칙)
 // 소수 배율 개수: 기대값이 정확히 맞도록 확률적 반올림
 export const gatherAmount=(s,key,n,random)=>{const x=n*professionGather(s,key),f=Math.floor(x);return x>f?f+(random()<x-f?1:0):f;}; // 보너스 없으면 난수 안 씀(판정 순서 유지)
