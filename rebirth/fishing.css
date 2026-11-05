@@ -321,3 +321,14 @@ body #app .fishing-screen.fishing-stage-layout .fishing-controls .fishing-pull.f
 body #app .fishing-screen .rod-row .rod-buy{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;width:auto!important;max-width:none!important;flex:none!important;white-space:nowrap}
 body #app .fishing-screen .rod-row .rod-buy>span{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:4px;white-space:nowrap}
 body #app .fishing-screen .rod-row .rod-buy img:not(.fishing-button-art){display:inline-block!important;width:18px!important;height:18px!important;min-width:18px}
+/* Six-pose fishing skin collection. */
+.fishing-skin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fishing-skin-card{min-width:0;padding:10px;border:1px solid #6c8c88;border-radius:16px;background:linear-gradient(145deg,#253d46,#10232e);text-align:center}
+.fishing-skin-card.selected{border-color:#f5d488;box-shadow:inset 0 0 18px #f5d48820}
+.fishing-skin-preview{width:100%;aspect-ratio:1;background-size:300% 200%;background-repeat:no-repeat;background-position:0 0;filter:drop-shadow(0 4px 5px #0005)}
+.fishing-skin-card h3{font-size:14px;color:#ffe4b0;margin:4px 0 8px}.fishing-skin-card p{min-height:32px;font-size:11px;line-height:1.5;color:#c0d2d3}.fishing-skin-card button{width:100%}
+.fishing-stage-layout .fishing-play .fishing-panels{grid-template-columns:repeat(8,minmax(0,1fr))}
+.fishing-scene .fishing-scene-art[data-anchored]{inset:auto;max-width:none;max-height:none;object-fit:fill}
+@media(min-width:700px){.fishing-skin-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+.fishing-scene:has(.fishing-scene-art[data-anchored]) .fishing-water{background-image:none!important}
