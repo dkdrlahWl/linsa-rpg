@@ -616,6 +616,7 @@ function claimTradeMail(s,m,ctx){
   for(const [k,v] of Object.entries(r)){const n=Number(v);if(!Number.isSafeInteger(n)||n<=0)continue;
     if(k==='gold')s.gold=(Number(s.gold)||0)+n;
     else if(k==='diamond'){normalizeFishing(s,ctx.now);s.fishing.diamonds=(Number(s.fishing.diamonds)||0)+n;}
+    else if(k==='fishToken'){normalizeFishing(s,ctx.now);s.fishing.tokens=Math.min(9e12,(Number(s.fishing.tokens)||0)+n);} // 2026-11-05 거래소 낚시 토큰
     else if(k==='luckPotion')s.consumables={...(s.consumables||{}),luckPotion:(Number(s.consumables?.luckPotion)||0)+n};
     else if(k==='tribeTicket')normalizeTribe(s).tickets+=n;
     else if(k==='companionTicket'||k==='pickupTicket'){const c=normalizeCompanions(s);if(k==='companionTicket')c.tickets+=n;else c.pickupTickets+=n;}

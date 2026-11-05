@@ -115,7 +115,7 @@ async function refreshCoopRooms(){
 let bankCancelArm=null;
 // 2026-11-04 거래소 구매 요청(소모품만): 필요한 사람이 골드를 걸어두면 가진 사람이 바로 판다.
 let buyOrderMode=false,buyOrders=null,buyOrderRequest=0;
-const BUY_ORDER_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
+const BUY_ORDER_KEYS=['fishToken','primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
 let marketKind="all",exchangeClass="",exchangeLevel=10;
 let salvageMode=false;
 const salvageSelection=new Set();
@@ -825,7 +825,7 @@ function header(title, kicker = "새로운 여정") {
 }
 function systemInbox() {
   const mails=state.systemMailbox||[],blocked=!!(state.battle||state.partyRoom||state.coopRoom);
-  const labels={diamond:"다이아",luckPotion:"행운 물약",treasureTicket:"보물찾기 티켓",tokens:"토큰",bossChest200:"200제 보스 장비 상자 (직업·부위 랜덤)",tribeTicket:"종족 주사위",pickupTicket:"픽업 소환권",companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
+  const labels={fishToken:"낚시 토큰",diamond:"다이아",luckPotion:"행운 물약",treasureTicket:"보물찾기 티켓",tokens:"토큰",bossChest200:"200제 보스 장비 상자 (직업·부위 랜덤)",tribeTicket:"종족 주사위",pickupTicket:"픽업 소환권",companionTicket:"동료 소환권",scroll:"장비 잠재 개방 주문서",fragment:"장비 파편"};
   const tradeN=mails.filter(m=>m.kind==="trade").length;
   open("우편함",`<p class="mail-intro">받지 않은 우편 ${mails.length}통 · 보상을 받으면 우편이 사라집니다.</p>${tradeN>1?`<div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":`거래소 우편 ${tradeN}통 모두 받기`,"claimTradeMailAll","",blocked,"gold")}</div>`:""}<div class="stack">${mails.map(mail=>`<article class="system-mail"><span class="mail-sender">${esc(mail.sender)}</span><h3>${esc(mail.title)}</h3><p>${esc(mail.message)}</p><div class="mail-rewards">${mail.kind==="lumiBossChest"?'<div class="mail-reward"><span class="pet-chest" style="width:56px;height:56px"></span><span>100레벨 보스 장비 상자<strong>1개</strong></span></div>':""}${mail.kind==="wheelBossChest"?'<div class="mail-reward"><img src="ui/lucky-wheel-chest.svg" alt="" style="width:56px;height:56px"><span>Lv.150~190 보스 장비 상자<strong>1개</strong></span></div>':""}${(mail.items||[]).map(it=>`<div class="mail-reward mail-gear">${gearMarkup(it)}<span>${esc(D.gearName(it))}<strong>${requiredLevel(it.level)} · ${it.stars||0}★</strong></span></div>`).join("")}${Object.entries(mail.rewards||{}).map(([key,amount])=>`<div class="mail-reward" data-currency-label="${esc(key)}">${key==='gold'?'':`<img src="${key==='tribeTicket'?'tribes/polished-v1/ticket-transparent-v2.webp':key==='tokens'?'token/token-v1.webp':key==='bossChest200'?'ui/lucky-wheel-chest.svg':currencyIconURL(key)}" alt="">`}<span>${esc(key==="gold"?"골드":labels[key]||D.MATERIALS[key])}<strong>${fmt(amount)}${key==="gold"?" G":["companionTicket","pickupTicket"].includes(key)?"장":"개"}</strong></span></div>`).join("")}</div><p class="note">${mail.kind==="trade"?"거래소 거래 · 수령 기한 없음":"계정당 1회 수령 · 수령 기한 없음"}</p><div class="actions">${disabledBtn(blocked?"전투·파티 종료 후 받기":"보상 받기","claimSystemMail",mail.id,blocked,"gold")}</div></article>`).join("")||'<div class="mail-empty"><strong>받을 우편이 없습니다</strong><p>수령한 보상은 가방에서 확인할 수 있어요.</p></div>'}</div>`);
 }
@@ -1461,7 +1461,7 @@ function showEvents(events) {
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":e.resource==="diamond"?"다이아":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
-      const MAIL_NAMES={tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
+      const MAIL_NAMES={fishToken:"낚시 토큰",tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
       const text=Object.entries(e.rewards||{}).filter(([k])=>k!=="bossChest200").map(([k,n])=>(MAIL_NAMES[k]||D.MATERIALS[k]||k)+" "+fmt(n)+(["companionTicket","pickupTicket"].includes(k)?"장":"개")).join(" · ");
       if(e.items?.length){const it=e.items[0];modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("우편 보상 수령",`<p>${esc(text)}</p>${gearMarkup(it.item,"big-item")}<h3>${esc(D.gearName(it.item))}</h3><p>Lv.${it.item.level} 보스 장비 · ${it.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});}
       else toast(text+" 받았습니다.");
@@ -1688,11 +1688,11 @@ function updateSellPrice() {
   const button=modal.querySelector('[data-action="sellConfirm"]');button.disabled=!!reason;button.toggleAttribute("data-unavailable",!!reason);
 }
 // Market materials: regular materials plus 다이아 (fishing record), 동료 소환권 (companions), 보물찾기 티켓 (treasure).
-const MARKET_EXTRA={luckPotion:'행운 물약',tribeTicket:'종족 주사위',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'};
+const MARKET_EXTRA={fishToken:'낚시 토큰',luckPotion:'행운 물약',tribeTicket:'종족 주사위',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'};
 // 2026-11-04 전문 직업: 거래 가능 소모품 확장
-const MARKET_KEYS=['primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
+const MARKET_KEYS=['fishToken','primeCube','cube','highCube','fragment','scroll','potentialLock','dungeonKey','diamond','companionTicket','treasureTicket','addCube','transcendStone','bonusFlame','pickupTicket','essence','mapPiece','pearl','ore','rerollStone','ringuHair','luckPotion','tribeTicket'];
 const MARKET_MATERIALS=()=>Object.fromEntries(MARKET_KEYS.map(k=>[k,MARKET_EXTRA[k]||D.MATERIALS[k]||k]));
-const marketHave=k=>k==='luckPotion'?(state.consumables?.luckPotion||0):k==='tribeTicket'?(state.tribeGacha?.tickets||0):k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='pickupTicket'?(state.companions?.pickupTickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
+const marketHave=k=>k==='fishToken'?(state.fishing?.tokens||0):k==='luckPotion'?(state.consumables?.luckPotion||0):k==='tribeTicket'?(state.tribeGacha?.tickets||0):k==='diamond'?(state.fishing?.diamonds||0):k==='companionTicket'?(state.companions?.tickets||0):k==='pickupTicket'?(state.companions?.pickupTickets||0):k==='treasureTicket'?(state.treasure?.tickets||0):(state.materials?.[k]||0);
 const materialName=k=>MARKET_EXTRA[k]||D.MATERIALS[k]||k;
 const marketMaterialIcon=(k,cls='')=>`<img${cls?` class="${cls}"`:''} src="${currencyIconURL(k)}" alt="">`;
 function consumableSellDialog(key=null){
