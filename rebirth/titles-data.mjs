@@ -17,6 +17,8 @@ const G={common:0,rare:1,epic:2,legend:3,myth:4};
 const tower=(s,f)=>(s.tower?.cleared||[]).includes(f);
 const expl=(s,t)=>(s.exploration?.cleared||[]).includes(t);
 const citadelBosses=s=>new Set([...(s.citadelEver||[]),...(s.citadelClaims?.bosses||[])]);
+// Six distinct citadel stages, including historical campaign and boss-entry records.
+const citadelFinalCleared=s=>{const bosses=new Set([...citadelBosses(s),...(s.citadelBossClear||[])]);return [1,2,3,4,5,6].every(b=>bosses.has(b));};
 const FISH_V1=FISH.slice(0,50);
 const fishOf=(s,rarity)=>Object.keys(s.fishing?.collection||{}).some(id=>{const f=FISH.find(f=>f.id===id);return f?.rarity===rarity&&f.cond?.boss==null;}); // 보스 트로피는 제외
 const equippedItems=s=>Object.values(s.equipped||{}).map(id=>(s.items||[]).find(i=>i.id===id)).filter(Boolean);
@@ -124,6 +126,7 @@ const ROWS=[
  ['vip8','황금 저울의 주인','셀리아','legend','셀리아 VIP 8 · 누적 거래 500억 G',s=>vipTier(s).level>=8],
  ['vip9','셀리아의 귀빈','셀리아','myth','셀리아 VIP 9 · 누적 거래 700억 G',s=>vipTier(s).level>=9],
  ['vip10','셀리아의 단골','셀리아','myth','셀리아 VIP 10 · 누적 거래 1,000억 G',s=>vipTier(s).level>=10],
+ ['citadelFinal','암흑성채의 종결자','성채','myth','암흑성채 1~6단계 전부 클리어',citadelFinalCleared],
 ];
 // ALL_TITLES includes not-yet-released rows (art is pre-built); TITLES is what players can see/earn now.
 export const ALL_TITLES=ROWS.map(([id,name,category,grade,condition,check,when],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i,available:!when||!!when()}));
