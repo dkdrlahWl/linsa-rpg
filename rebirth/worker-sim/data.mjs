@@ -351,7 +351,7 @@ export function starCost(item) {
   );
   // Keep the late-star price curve increasing after the 20-star boundary.
   // 2026-11-02 도현: 220제부터 스타포스 비용 4배 (대신 별 하나당 상승폭이 크다).
-  return base * (item.boss && item.level >= 150 ? 3 : 1) * (Number(item.level) >= 220 ? 4 : 1);
+  return base * (item.boss && item.level >= 150 ? 3 : 1) * (Number(item.level) >= 300 ? 9 : Number(item.level) >= 250 ? 6 : Number(item.level) >= 220 ? 4 : 1); // 2026-11-06: 250제 6배·300제 9배
 }
 export function starOdds(stars) {
  const success=stars>=25?0:STAR_SUCCESS[stars];return {success,keep:1-success,down:0,destroy:0};

@@ -62,7 +62,8 @@ export const TRANSCEND_LEVEL=220;
 export const canTranscendTier=item=>!!item?.boss&&Number(item.level)>=TRANSCEND_LEVEL&&bossTier(item)<bossTierCount(item)-1;
 // 2026-11-03 도현: 초월석 2배 — n번째 초월에 2n개(무기 2·4·6·8, 방어구 2·4).
 export const TRANSCEND_COST_MULTIPLIER=2;
-export const transcendCost=item=>(bossTier(item)+1)*TRANSCEND_COST_MULTIPLIER;
+// 2026-11-06 도현: 250제 3배·300제 4배 (220제 2배).
+export const transcendCost=item=>(bossTier(item)+1)*(Number(item?.level)>=300?4:Number(item?.level)>=250?3:TRANSCEND_COST_MULTIPLIER);
 // 2026-11-04 초월 성공률(단계별): 무기 1차 100% · 2차 70% · 3차 50% · 4차 30%, 방어구 1차 100% · 2차 60%. 3회 연속 실패 시 다음 확정.
 export const TRANSCEND_CHANCES={weapon:[1,.7,.5,.3],armor:[1,.6]};
 export const TRANSCEND_PITY=3;
