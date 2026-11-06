@@ -72,7 +72,9 @@ export function explorationProgress(w){
  if(w.exitOpen){
   const theme=isCitadel(w)?CITADEL_CONTENT:EXPLORATIONS[w.tier];
   if(isCitadel(w)){
-   if(citadelStage(w.floor)?.boss&&!w.rewardChest){const at=w.bossDeath||w.exit;w.rewardChest={x:at.x,y:at.y,boss:citadelBossOrdinal(w.floor),floor:w.floor,at:w.tick};}
+   if(citadelStage(w.floor)?.boss&&!w.rewardChest){const at=w.bossDeath||w.exit;w.rewardChest={x:at.x,y:at.y,boss:citadelBossOrdinal(w.floor),floor:w.floor,at:w.tick};
+    // 2026-11-06 도현: 성채 보스를 아군이 잡으면 쓰러진 동료(이탈 제외)도 체력 30%로 부활 — 직접 상자를 열어 보상을 받는다.
+    for(const m of w.members)if(!m.left&&m.hp<=0){m.hp=Math.max(1,Math.round(m.power.hp*.3));m.reviveProgress=0;m.reviver=null;m.immune=w.tick+20;m.input=[0,0,0];m.inputAt=0;}}
    w.exitLocked=citadelChestPending(w);if(w.exitLocked){for(const m of w.members)m.exitStay=0;return;}
   }
   if(w.floor===theme.floors||(isCitadel(w)&&w.citadelBoss)){w.status='won';w.chest=isCitadel(w)?null:{...(w.bossDeath||w.exit)};w.hazards=[];w.effects=[];w.numbers=[];w.projectiles=[];w.lootAt=w.started+w.tick*100;for(const m of w.members){m.input=[0,0,0];
