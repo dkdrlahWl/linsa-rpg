@@ -1,0 +1,522 @@
+{
+  "generator": "Built-in image generation",
+  "date": "2026-11-06",
+  "contents": [
+    {
+      "id": "fish-81",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        0,
+        0,
+        561,
+        278
+      ]
+    },
+    {
+      "id": "fish-82",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        561,
+        0,
+        1122,
+        278
+      ]
+    },
+    {
+      "id": "fish-83",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        0,
+        282,
+        561,
+        548
+      ]
+    },
+    {
+      "id": "fish-84",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        561,
+        282,
+        1122,
+        548
+      ]
+    },
+    {
+      "id": "fish-85",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        0,
+        552,
+        561,
+        788
+      ]
+    },
+    {
+      "id": "fish-86",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        561,
+        552,
+        1122,
+        788
+      ]
+    },
+    {
+      "id": "fish-87",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        0,
+        792,
+        561,
+        1078
+      ]
+    },
+    {
+      "id": "fish-88",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        561,
+        792,
+        1122,
+        1078
+      ]
+    },
+    {
+      "id": "fish-89",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        0,
+        1082,
+        561,
+        1402
+      ]
+    },
+    {
+      "id": "fish-90",
+      "source": "exec-9fd89d6d-8d67-44d2-80c0-540eed3e1ceb.png",
+      "crop": [
+        561,
+        1082,
+        1122,
+        1402
+      ]
+    },
+    {
+      "id": "fish-91",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        0,
+        0,
+        444,
+        345
+      ]
+    },
+    {
+      "id": "fish-92",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        444,
+        0,
+        887,
+        345
+      ]
+    },
+    {
+      "id": "fish-93",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        0,
+        345,
+        444,
+        681
+      ]
+    },
+    {
+      "id": "fish-94",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        444,
+        345,
+        887,
+        681
+      ]
+    },
+    {
+      "id": "fish-95",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        0,
+        681,
+        444,
+        1007
+      ]
+    },
+    {
+      "id": "fish-96",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        444,
+        681,
+        887,
+        1007
+      ]
+    },
+    {
+      "id": "fish-97",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        0,
+        1007,
+        444,
+        1330
+      ]
+    },
+    {
+      "id": "fish-98",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        444,
+        1007,
+        887,
+        1330
+      ]
+    },
+    {
+      "id": "fish-99",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        0,
+        1330,
+        444,
+        1774
+      ]
+    },
+    {
+      "id": "fish-100",
+      "source": "exec-089bf753-d519-477d-a3ae-fd0638813764.png",
+      "crop": [
+        444,
+        1330,
+        887,
+        1774
+      ]
+    },
+    {
+      "id": "fish-101",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        0,
+        0,
+        561,
+        272
+      ]
+    },
+    {
+      "id": "fish-102",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        561,
+        0,
+        1122,
+        272
+      ]
+    },
+    {
+      "id": "fish-103",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        0,
+        276,
+        561,
+        547
+      ]
+    },
+    {
+      "id": "fish-104",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        561,
+        276,
+        1122,
+        547
+      ]
+    },
+    {
+      "id": "fish-105",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        0,
+        551,
+        561,
+        822
+      ]
+    },
+    {
+      "id": "fish-106",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        561,
+        551,
+        1122,
+        822
+      ]
+    },
+    {
+      "id": "fish-107",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        0,
+        826,
+        561,
+        1085
+      ]
+    },
+    {
+      "id": "fish-108",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        561,
+        826,
+        1122,
+        1085
+      ]
+    },
+    {
+      "id": "fish-109",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        0,
+        1089,
+        561,
+        1402
+      ]
+    },
+    {
+      "id": "fish-110",
+      "source": "exec-32f79d20-6e94-4517-a9d8-7249c731635f.png",
+      "crop": [
+        561,
+        1089,
+        1122,
+        1402
+      ]
+    },
+    {
+      "id": "fish-111",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        0,
+        0,
+        512,
+        303
+      ]
+    },
+    {
+      "id": "fish-112",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        512,
+        0,
+        1024,
+        303
+      ]
+    },
+    {
+      "id": "fish-113",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        0,
+        303,
+        512,
+        601
+      ]
+    },
+    {
+      "id": "fish-114",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        512,
+        303,
+        1024,
+        601
+      ]
+    },
+    {
+      "id": "fish-115",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        0,
+        601,
+        512,
+        902
+      ]
+    },
+    {
+      "id": "fish-116",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        512,
+        601,
+        1024,
+        902
+      ]
+    },
+    {
+      "id": "fish-117",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        0,
+        902,
+        512,
+        1197
+      ]
+    },
+    {
+      "id": "fish-118",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        512,
+        902,
+        1024,
+        1197
+      ]
+    },
+    {
+      "id": "fish-119",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        0,
+        1197,
+        512,
+        1536
+      ]
+    },
+    {
+      "id": "fish-120",
+      "source": "exec-417d4a08-4835-48d8-bd70-ee1778244bf2.png",
+      "crop": [
+        512,
+        1197,
+        1024,
+        1536
+      ]
+    },
+    {
+      "id": "fish-121",
+      "source": "exec-550f2852-4484-44c7-bfd6-1954ae67c8d0.png"
+    },
+    {
+      "id": "fish-122",
+      "source": "exec-adb29949-b6d1-4f7c-9b64-e2a790a8e7c5.png"
+    },
+    {
+      "id": "fish-123",
+      "source": "exec-13e7bbcd-afbc-4f28-a324-4ff8d360ce6c.png"
+    },
+    {
+      "id": "rod-tier-17",
+      "source": "exec-20fcd336-4c24-4f29-aeea-c06d801719b3.png"
+    },
+    {
+      "id": "rod-tier-18",
+      "source": "exec-f9256b13-c80a-4e5a-97c6-263a17085b31.png"
+    },
+    {
+      "id": "rod-tier-19",
+      "source": "exec-a5880a3a-528c-4296-bdfb-182d22a3492e.png"
+    },
+    {
+      "id": "rod-tier-20",
+      "source": "exec-29f4ddda-1904-4852-949f-0b8855126f38.png"
+    },
+    {
+      "id": "scene-glacier-serene",
+      "source": "exec-dd2494c9-2ba9-4435-ba91-43fc7272f53b.png"
+    },
+    {
+      "id": "scene-galaxy-serene",
+      "source": "exec-9fb1eac2-2309-4999-959c-6e21e940cc11.png"
+    },
+    {
+      "id": "time-dawn",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        0,
+        0,
+        444,
+        444
+      ]
+    },
+    {
+      "id": "time-day",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        444,
+        0,
+        887,
+        444
+      ]
+    },
+    {
+      "id": "time-night",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        887,
+        0,
+        1330,
+        444
+      ]
+    },
+    {
+      "id": "weather-clear",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        1330,
+        0,
+        1774,
+        444
+      ]
+    },
+    {
+      "id": "weather-rain",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        0,
+        444,
+        444,
+        887
+      ]
+    },
+    {
+      "id": "weather-storm",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        444,
+        444,
+        887,
+        887
+      ]
+    },
+    {
+      "id": "weather-meteor",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        887,
+        444,
+        1330,
+        887
+      ]
+    },
+    {
+      "id": "menu-boss",
+      "source": "exec-4cf5206e-5b05-4fa3-ae7e-10deb7eba483.png",
+      "crop": [
+        1330,
+        444,
+        1774,
+        887
+      ]
+    }
+  ]
+}
