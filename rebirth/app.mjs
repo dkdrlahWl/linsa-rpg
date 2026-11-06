@@ -1811,7 +1811,10 @@ document.addEventListener("click", async (e) => {
     if(action==='investCopyWallet'){if(busy)return;b.disabled=true;try{await copyTradingWallet(arg);}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyIntro'){if(busy)return;b.disabled=true;try{await copyTradingIntro();}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investCopyMin'){if(busy)return;b.disabled=true;try{await copyTradingMin();}finally{if(b.isConnected)b.disabled=false;}return;}
-    if(action==='investCopyStart'||action==='investCopyStop'){if(busy)return;b.disabled=true;try{await copyTradingAction(action==='investCopyStart'?'start':'stop',arg);}finally{if(b.isConnected)b.disabled=false;}return;}
+    // 2026-11-06 도현: 카피 종료는 확인/취소 창을 먼저 띄운다.
+    if(action==='investCopyStop'){open('카피 종료',`<div class="stack"><p>카피 트레이딩을 <b>종료</b>하시겠습니까?</p><p class="note">카피 계좌에 남은 잔액은 보유 골드로 돌아가요.</p><div class="actions">${btn('확인','investCopyStopConfirm','','gold',true)}${btn('취소','investCopyStopCancel')}</div></div>`);return;}
+    if(action==='investCopyStopCancel'){b.disabled=true;try{await openCopyTrading();}catch{modal.close();}finally{if(b.isConnected)b.disabled=false;}return;}
+    if(action==='investCopyStart'||action==='investCopyStopConfirm'){if(busy)return;b.disabled=true;try{await copyTradingAction(action==='investCopyStart'?'start':'stop',arg);if(action==='investCopyStopConfirm'&&modal.open&&!modal.querySelector('.invest-copy-feed'))await openCopyTrading();}finally{if(b.isConnected)b.disabled=false;}return;}
     if(action==='investRankings'){b.disabled=true;try{await openCoinRankings();}finally{b.disabled=false;}return;}
     if(action==='investNews'||action==='investHistory'){b.disabled=true;try{await openCoinActivity(action==='investNews'?'news':'trades');}finally{b.disabled=false;}return;}
     if(action==='investCoin'){selectCoin(arg);if(investPercentPick)applyInvestPercent();return render();}
