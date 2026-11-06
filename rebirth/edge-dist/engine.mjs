@@ -382,7 +382,7 @@ function rollCount(n, prob, ctx) {
 export function addItem(s, item) {
   const key = equipmentKey(item);
   if (!s.collection.includes(key)) s.collection.push(key);
-  if (s.items.length < 300) s.items.push(item);
+  if (s.items.length < 1000) s.items.push(item);
   else {
     s.mailbox ||= [];
     const mailKey=key+"|lv"+item.level+(item.baseStats?"|s"+JSON.stringify(item.baseStats):"")+"|p"+JSON.stringify(item.lines);
@@ -423,7 +423,7 @@ export function settle(s, ctx) {
   s.gold += gold;
   const drops = [], loot=[];
   const rates=fieldDropRates(STAGES[s.stage]);
-  const capacity = Math.max(0, 300 - s.items.length), normalGearCount = s.isTester?0:rollCount(kills, rates.equipment, ctx),bossGearCount=s.isTester?0:rollCount(kills,rates.bossEquipment,ctx),gearCount=normalGearCount+bossGearCount;
+  const capacity = Math.max(0, 1000 - s.items.length), normalGearCount = s.isTester?0:rollCount(kills, rates.equipment, ctx),bossGearCount=s.isTester?0:rollCount(kills,rates.bossEquipment,ctx),gearCount=normalGearCount+bossGearCount;
   for (let i = 0; i < gearCount; i++) {
     const item = makeLootItem(
       STAGES[s.stage].dropLevel,
@@ -605,12 +605,12 @@ function applyTowerFrames(b,args,ctx){
       }
 }
 // 칭호: every command re-checks titles; titleEquip / titleSync are handled around the core command.
-// 2026-11-04 도현: 거래 우편(kind='trade') 수령 — 골드·소모품·장비. 장비는 가방 300칸 안에서만.
+// 2026-11-04 도현: 거래 우편(kind='trade') 수령 — 골드·소모품·장비. 장비는 가방 1000칸 안에서만.
 function claimTradeMail(s,m,ctx){
   s.claimedSystemMail||=[];
   if(s.claimedSystemMail.includes(m.id))throw new Error('MAIL_ALREADY_CLAIMED');
   const all=Array.isArray(m.items)?m.items:[],items=all.filter(x=>x?.kind!=='companion'),cards=all.filter(x=>x?.kind==='companion'); // 2026-11-06 동료 카드 거래
-  if((s.items?.length||0)+items.length>300)throw new Error('INVENTORY_FULL');
+  if((s.items?.length||0)+items.length>1000)throw new Error('INVENTORY_FULL');
   if(cards.length){const c=normalizeCompanions(s);if(c.cards.length+cards.length>COMPANION_BAG)throw new Error('COMPANION_BAG_FULL');}
   const r=m.rewards||{};
   if(r.gold){const g=Number(r.gold);if(!Number.isSafeInteger(g)||g<0||(Number(s.gold)||0)+g>9e12)throw new Error('INVALID_BALANCE');}
@@ -895,14 +895,14 @@ function executeCore(input, command, args = {}, ctx) {
     }
     case "claimSystemMail": {
       {const tm=(s.rewardMailbox||[]).find(m=>m.id===args.id&&m.kind==='trade');if(tm){events.push(claimTradeMail(s,tm,ctx));break;}}
-      events.push(claimSystemMail(s,args.id,chest=>{if(chest?.kind===WHEEL_CHEST.kind){const lo=chest.minLevel??WHEEL_CHEST.minLevel,hi=chest.maxLevel??WHEEL_CHEST.maxLevel,tiers=(hi-lo)/10+1,level=lo+10*Math.floor(ctx.random()*tiers),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=300;addItem(s,item);return {item,stored};}));
+      events.push(claimSystemMail(s,args.id,chest=>{if(chest?.kind===WHEEL_CHEST.kind){const lo=chest.minLevel??WHEEL_CHEST.minLevel,hi=chest.maxLevel??WHEEL_CHEST.maxLevel,tiers=(hi-lo)/10+1,level=lo+10*Math.floor(ctx.random()*tiers),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=1000;addItem(s,item);return {item,stored};}const fixed=args.id==='gift-ringu-100-archer-20261002'&&ctx.accountId==='6636b846-8005-4cfe-b325-b96da657ece4';const design=fixed?selectDesign(100,'archer',0,true,ctx.random):null;const item=fixed?{...makeItem(100,'archer',0,true,ctx,design.weaponVariant),...design}:makeLootItem(100,s.classId,Math.floor(ctx.random()*9),true,ctx);if(fixed)item.baseStats=rollBaseStats(item,ctx.random);const stored=s.items.length>=1000;addItem(s,item);return {item,stored};}));
       break;
     }
     case "claimMail": {
       const mail = s.mailbox?.find(x => x.key === args.key);
       check(mail, "MAIL_NOT_FOUND");
-      check(s.items.length < 300, "INVENTORY_FULL");
-      const count = Math.min(mail.quantity, 300 - s.items.length, 50);
+      check(s.items.length < 1000, "INVENTORY_FULL");
+      const count = Math.min(mail.quantity, 1000 - s.items.length, 50);
       for (let n = 0; n < count; n++) s.items.push({...mail.item, id:ctx.uuid()});
       mail.quantity -= count;
       s.mailbox = s.mailbox.filter(x => x.quantity > 0);
@@ -1240,7 +1240,7 @@ export function grantRaidChest(input,tier,ctx){
   if(ctx.random()<rewardChance(raid.bossGearChance??0.6,s,ctx.now)){
    const level=raid.level,classId=pick(CLASSES,ctx).id,slot=balanceBossGearSlot(Math.floor(ctx.random()*SLOTS.length),ctx),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
-   const stored=s.items.length>=300;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;
+   const stored=s.items.length>=1000;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;
   }
   s.raidWeekly={week:weekly.week,count:weekly.used+1};
  }

@@ -24,7 +24,7 @@ export function grantExplorationChest(input,room,ctx){
  if(forced||ctx.random()<rates.bossGear){
   const level=forced?.level??explorationGearLevelFor(rates,ctx.random),classId=forced?.classId??CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=forced?Number(forced.slot==='weapon'?0:forced.slot)||0:halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
-  state.items??=[];state.collection??=[];if(state.items.length>=300)reward.stored=1;addItem(state,item);reward.items.push(item);
+  state.items??=[];state.collection??=[];if(state.items.length>=1000)reward.stored=1;addItem(state,item);reward.items.push(item);
  }
  // 동료 소환권(기존 보상 판정 순서를 바꾸지 않도록 마지막에 굴림): 모든 테마 동일하게 클리어당 25% (열쇠가 횟수를 제한한다).
  if(EXPLORATION_COMPANION_TICKET_CHANCE>0&&ctx.random()<EXPLORATION_COMPANION_TICKET_CHANCE*professionGather(state,'companionTicket')){state.companions=state.companions&&typeof state.companions==='object'?state.companions:{};state.companions.tickets=(Number.isInteger(state.companions.tickets)&&state.companions.tickets>=0?state.companions.tickets:0)+1;reward.companionTicket=1;}

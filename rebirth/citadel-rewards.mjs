@@ -46,7 +46,7 @@ export function grantCitadelChests(input,room,userId,ctx){
   if(ctx.random()<r.gear){
    const level=r.levels?r.levels[Math.floor(ctx.random()*r.levels.length)]:citadelGearLevel(r.max,ctx.random,r.min??100),classId=CLASSES[Math.floor(ctx.random()*CLASSES.length)].id,slot=halfWeaponSlot(ctx.random),design=selectDesign(level,classId,slot,true,ctx.random);
    const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
-   if(state.items.length>=300)reward.stored=(reward.stored||0)+1;addItem(state,item);reward.items.push(item);
+   if(state.items.length>=1000)reward.stored=(reward.stored||0)+1;addItem(state,item);reward.items.push(item);
   }
  }
  for(const key of ['potentialLock','scroll','highCube','fragment'])state.materials[key]=(state.materials[key]||0)+reward[key];
