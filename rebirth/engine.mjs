@@ -937,6 +937,24 @@ function executeCore(input, command, args = {}, ctx) {
       s.points = totalStatPoints(s.level);
       break;
     }
+    // 2026-11-06 도현: 테스터·관리자 전용 — 지금 직업의 250제/300제 최고 장비(25성·최고등급 우선)를 한 번에 장착.
+    case "testerFullSet": {
+      check(s.isTester||s.isAdmin,"FORBIDDEN");
+      check(!s.pendingCube,"ITEM_CUBE_PENDING");
+      const lv=Number(args.level);check([250,300].includes(lv),"INVALID_LEVEL");
+      const score=it=>(it.classId===s.classId?1e9:0)+(Number(it.stars)||0)*1e6+(Number(it.bossTier)||0)*1e4+(Number(it.grade)||0)*100+(it.lines||[]).reduce((n,l)=>n+(['attack','boss','crit'].includes(l.key)?Number(l.value)||0:0),0);
+      const next={};
+      for(let slot=0;slot<9;slot++){
+        const best=s.items.filter(it=>Number(it.level)===lv&&it.boss&&!it.broken&&Number(it.slot)===slot&&canEquipClass(it,s.classId)&&(s.isTester||s.isAdmin||it.level<=s.level)).sort((x,y)=>score(y)-score(x))[0];
+        if(best)next[slot]=best.id;
+      }
+      check(Object.keys(next).length>0,"ITEM_REQUIREMENT");
+      // 프리셋 1·2(200제·220제)는 건드리지 않게 3번 프리셋으로 옮긴 뒤 장착.
+      const p=classGearPresets(s);p.list[p.active]={...s.equipped};p.active=2;
+      s.equipped={...(p.list[2]||{}),...next};p.list[2]={...s.equipped};
+      events.push({type:"testerFullSet",level:lv,count:Object.keys(next).length});
+      break;
+    }
     case "autoEquip": {
       check(!s.pendingCube, "ITEM_CUBE_PENDING");
       const result=bestEquipment(s);

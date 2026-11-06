@@ -848,10 +848,13 @@ function attendance() {
 }
 // 테스터 계정 전용: 직업별 보스용 종결 세트로 한 번에 전환(직업 변경 + 그 직업 장비 프리셋 자동 장착).
 function testerSetBar(){
-  if(state?.name!=="테스터")return "";
+  if(state?.name!=="테스터"&&!state?.isAdmin)return "";
   // 프리셋 1 = 200제 종결, 프리셋 2 = 220제 종결. 지금 직업·프리셋과 같은 버튼은 비활성.
   const row=(label,preset)=>`<div class="subnav tester-set-bar" aria-label="테스터 ${label} 세트"><small style="align-self:center;opacity:.7">${label}</small>${D.CLASSES.map(c=>{const on=c.id===state.classId&&(state.gearPresets?.[c.id]?.active??0)===preset;return `<button data-action="testerSet" data-arg="${c.id}:${preset}" ${on?"disabled class=\"active\"":""}>${c.name}</button>`;}).join("")}</div>`;
-  return row("200제",0)+row("220제",1);
+  // 2026-11-06: 250제·300제 — 프리셋 대신 그 레벨 최고 장비를 바로 장착.
+  const weaponLv=Number(state.items?.find(x=>x.id===state.equipped?.[0])?.level)||0;
+  const full=lv=>`<div class="subnav tester-set-bar" aria-label="테스터 ${lv}제 세트"><small style="align-self:center;opacity:.7">${lv}제</small>${D.CLASSES.map(c=>{const on=c.id===state.classId&&weaponLv===lv;return `<button data-action="testerFullSet" data-arg="${c.id}:${lv}" ${on?"disabled class=\"active\"":""}>${c.name}</button>`;}).join("")}</div>`;
+  return row("200제",0)+row("220제",1)+full(250)+full(300);
 }
 function changeClassDialog() {
   const current = D.CLASSES.find(c=>c.id===state.classId);
@@ -2042,7 +2045,8 @@ document.addEventListener("click", async (e) => {
     if (action === "petSummon") return await command("petSummon",{count:Number(arg)});
     if (action === "petEquip") return await command("petEquip",{id:arg||null});
     if (action === "attendanceClaim") return await command("attendanceClaim");
-    if (action === "testerSet") {if(state?.name!=="테스터")return;const [cid,ps]=String(arg).split(":"),preset=Number(ps)||0;if(cid!==state.classId){await command("changeClass",{classId:cid});filterClass="";salvageSelection.clear();}if((state.gearPresets?.[cid]?.active??0)!==preset)await command("gearPreset",{slot:preset});return render();}
+    if (action === "testerFullSet") {if(state?.name!=="테스터"&&!state?.isAdmin)return;const [cid,lv]=String(arg).split(":");if(cid!==state.classId){await command("changeClass",{classId:cid});filterClass="";salvageSelection.clear();}await command("testerFullSet",{level:Number(lv)});return render();}
+    if (action === "testerSet") {if(state?.name!=="테스터"&&!state?.isAdmin)return;const [cid,ps]=String(arg).split(":"),preset=Number(ps)||0;if(cid!==state.classId){await command("changeClass",{classId:cid});filterClass="";salvageSelection.clear();}if((state.gearPresets?.[cid]?.active??0)!==preset)await command("gearPreset",{slot:preset});return render();}
     if (action === "changeClass") return changeClassDialog();
     if (action === "changeClassPick") return confirmClassChange(arg);
     if (action === "changeClassConfirm") {await command("changeClass",{classId:arg});modal.close();filterClass="";salvageSelection.clear();tab="character";view="game";return render();}
