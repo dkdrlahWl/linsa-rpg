@@ -18,7 +18,7 @@ const tower=(s,f)=>(s.tower?.cleared||[]).includes(f);
 const expl=(s,t)=>(s.exploration?.cleared||[]).includes(t);
 const citadelBosses=s=>new Set([...(s.citadelEver||[]),...(s.citadelClaims?.bosses||[])]);
 const FISH_V1=FISH.slice(0,50);
-const fishOf=(s,rarity)=>Object.keys(s.fishing?.collection||{}).some(id=>FISH.find(f=>f.id===id)?.rarity===rarity);
+const fishOf=(s,rarity)=>Object.keys(s.fishing?.collection||{}).some(id=>{const f=FISH.find(f=>f.id===id);return f?.rarity===rarity&&f.cond?.boss==null;}); // 보스 트로피는 제외
 const equippedItems=s=>Object.values(s.equipped||{}).map(id=>(s.items||[]).find(i=>i.id===id)).filter(Boolean);
 const weekly=BOSSES.filter(b=>b.weekly).map(b=>b.id),daily=BOSSES.filter(b=>!b.weekly).map(b=>b.id);
 const st=s=>s.titleStats||{};

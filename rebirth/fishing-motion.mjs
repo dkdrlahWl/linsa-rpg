@@ -30,7 +30,7 @@ export function fishingSceneMotion({width,height,angler,phase,pose=0,elapsed=900
  return {tip,end,control,angle,dy,splash,visible:['casting','waiting','bite','hooking','reeling'].includes(phase)};
 }
 // Measured sitting points on the actual dock/stone platform in each source image.
-export const FISHING_DOCKS=Object.freeze({brook:[.43,.64],moon:[.45,.635],canyon:[.42,.66],coral:[.42,.625],abyss:[.42,.65],palace:[.41,.625],volcano:[.45,.63],origin:[.40,.63]});
+export const FISHING_DOCKS=Object.freeze({brook:[.43,.64],moon:[.45,.635],canyon:[.42,.66],coral:[.42,.625],abyss:[.42,.65],palace:[.41,.625],volcano:[.45,.63],origin:[.40,.63],glacier:[.45,.635],galaxy:[.42,.65]});
 export function fishingDockLayout({width,height,imageWidth,imageHeight,site,skin='default'}){
  const [ax,ay]=FISHING_DOCKS[site]||FISHING_DOCKS.brook,scale=Math.max(width/imageWidth,height/imageHeight);
  const iw=imageWidth*scale,ih=imageHeight*scale;

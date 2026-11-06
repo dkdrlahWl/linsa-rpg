@@ -122,6 +122,8 @@ Deno.serve(async (req) => {
     }
     // 2026-11-05 도현: 대어 랭킹(등급별·전체 역대 최고 무게).
     if(body.command==='fishRecordList')return reply({fishingRecords:await rpc('rebirth_fishing_records',{})});
+    // 2026-11-06 도현: 보스 물고기 — 현재·최근 보스 체력과 내 기여.
+    if(body.command==='fishBossStatus')return reply({fishBoss:await rpc('rebirth_fish_boss_status',{})});
     if(body.command==='fishContestList'){
       return reply({fishingContest:await rpc('rebirth_fishing_contest',{p_week:CONTEST_CLOSED?CONTEST_LAST:contestWeek(Date.now())})});
     }
@@ -252,6 +254,7 @@ Deno.serve(async (req) => {
       // 칭호: SQL-backed stats (arena/lotto/market/investment) come from the server, never from the client.
       if (body.command === "titleSync" && snap.state) (ctx as any).titleStats = await rpc("rebirth_title_stats", {});
       // 대어 대회 보상: 순위는 SQL 서버 집계만 믿는다.
+      if (body.command === "fishBossClaim" && snap.state) (ctx as any).fishBoss = await rpc("rebirth_fish_boss_status", {});
       if (body.command === "fishContestClaim" && snap.state) (ctx as any).fishingContest = await rpc("rebirth_fishing_contest", {p_week:contestWeek(Number(snap.now))});
       if (!snap.state && body.command !== "create")
         return reply({
@@ -289,9 +292,15 @@ Deno.serve(async (req) => {
         const latest = own
           ? { state: computed.state, revision: snap.revision + 1 }
           : await rpc("rebirth_snapshot", { p_request: body.requestId });
-        return reply((body.command.startsWith('fish')||body.command==='towerInput'||body.command==='sync')
+        // 2026-11-06 도현: 보스 물고기 시간에 잡은 물고기 → 공동 체력 감소 (새로 저장된 결과일 때만, 재전송 영수증은 제외).
+        let fishBoss=null;
+        if(own)for(const e of computed.events||[])if(e?.type==='fishCatch'&&e.bossHit){
+          try{fishBoss=await rpc('rebirth_fish_boss_hit',{p_user:user.id,p_id:e.bossHit.id,p_kind:e.bossHit.kind,p_starts:e.bossHit.startsAt,p_ends:e.bossHit.endsAt,p_dmg:e.bossHit.dmg},true);}catch(err){console.warn('fish-boss-hit',String(err?.message||err));}
+        }
+        const out=(body.command.startsWith('fish')||body.command==='towerInput'||body.command==='sync')
           ?fishingStateReply(snap,latest,result,body.args._stateRevision,body.args._compact)
-          :{state:latest.state,revision:latest.revision,result});
+          :{state:latest.state,revision:latest.revision,result};
+        return reply(fishBoss?{...out,fishBoss:{history:[fishBoss],now:Date.now(),live:true}}:out);
       } catch (e) {
         if (e.message === "SAVE_CONFLICT" && retry < 2) continue;
         throw e;

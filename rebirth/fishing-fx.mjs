@@ -16,6 +16,8 @@ const SPOT_FX={
  palace:{kind:'bubble',count:22,tint:'255,200,190',rays:'255,200,180'},
  volcano:{kind:'ember',count:30,tint:'255,140,70',rays:'255,150,90'},
  origin:{kind:'sparkle',count:28,tint:'160,250,255',rays:'150,240,255'},
+ glacier:{kind:'firefly',count:30,tint:'235,250,255',rays:'180,240,255'},
+ galaxy:{kind:'sparkle',count:34,tint:'255,200,250',rays:'255,170,240'},
 };
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const rand=(a,b)=>a+Math.random()*(b-a);

@@ -32,7 +32,7 @@ import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
 import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost,professionOf as profOf,recipeMaxCount as profMax,recipeCost as profCost,RESOURCE_NAMES as PROF_NAMES} from './profession-model.mjs';
-import {FISHING_PROTOCOL as FISH_PROTOCOL,fishFailText,fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView} from './fishing-ui.mjs?v=fx2-20261105';
+import {FISHING_PROTOCOL as FISH_PROTOCOL,fishFailText,fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView,liveBoss} from './fishing-ui.mjs?v=fx2-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
 const RARITIES_V3=['일반','희귀','레어','에픽','전설','신화','태고'];
@@ -217,6 +217,9 @@ const errors = {
   FISHING_ROD_REQUIRED: "낚싯대 레벨이 부족해요.",
   FISHING_BAIT_REQUIRED: "미끼가 없어요. 낚시 상점에서 구매해 주세요.",
   FISHING_BAG_FULL: "물고기 가방이 가득 찼어요. 판매하거나 수족관에 넣어주세요.",
+  FISHING_BOSS_NOT_DEFEATED: "아직 처치하지 못한 보스예요.",
+  FISHING_BOSS_TOO_FEW_HITS: "보스를 10번 이상 공격해야 보상을 받을 수 있어요.",
+  FISHING_BOSS_CLAIMED: "이미 받은 보스 보상이에요.",
   FISHING_DAILY_LIMIT: "오늘 낚시 횟수를 다 썼어요. 한국 시간 자정에 초기화돼요.",
   FISHING_AQUARIUM_FULL: "수족관이 가득 찼어요. 칸을 확장하거나 물고기를 꺼내주세요.",
   TREASURE_DAILY_LIMIT: "오늘 보물 찾기 3판을 모두 했어요. 자정에 초기화돼요.",
@@ -735,6 +738,8 @@ async function command(command, args = {}, quiet = false, freshSnapshot = false,
     if(result.lotto){lottoData=result.lotto;lottoLoadedAt=Date.now();}
     if(result.fishingContest){fishingUI.contest=result.fishingContest;fishingUI.contestLoadedAt=Date.now();}
     if(result.fishingRecords){fishingUI.records=result.fishingRecords;fishingUI.recordsLoadedAt=Date.now();}
+    // 2026-11-06 도현: 보스 물고기 — 전체 기록(status) 또는 방금 때린 보스 한 마리(live)를 합친다.
+    if(result.fishBoss){if(result.fishBoss.live){const row=result.fishBoss.history?.[0],old=fishingUI.boss?.history||[];if(row)fishingUI.boss={...(fishingUI.boss||{}),history:[row,...old.filter(x=>x.id!==row.id)]};}else{fishingUI.boss=result.fishBoss;fishingUI.bossLoadedAt=Date.now();}}
     if(result.professionCounts)professionCounts=result.professionCounts;
     if(result.arena){arenaData=result.arena;arenaError='';}
     if(result.battle){arenaBattle=result.battle;arenaPage='battle';if(arenaPlayback){arenaPlayback.stop();arenaPlayback=null;}}
@@ -1455,6 +1460,7 @@ function showEvents(events) {
     if(e.type==='fishAquariumExpand'){toast('수족관이 '+e.slots+'칸이 됐어요.');continue;}
     if(e.type==='fishQuestClaim'){toast('일일퀘스트 · 다이아 '+e.diamonds+'개 받았어요.');continue;}
     if(e.type==='fishExchange'){toast(e.name+' '+e.count+'개 교환 완료 · 다이아 '+e.diamonds+'개 사용');continue;}
+    if(e.type==='fishBossClaim'){toast('🐋 '+e.name+' 처치 보상 · 토큰 '+Math.floor(e.tokens).toLocaleString('ko-KR')+' · 다이아 '+e.diamonds+' · 트로피 물고기!');continue;}
     if(e.type==='fishContestClaim'){toast('대어 대회 '+e.rank+'위 보상 · 다이아 '+e.diamonds+'개, 에디셔널 큐브 '+e.addCube+'개');continue;}
     if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
     if(e.type==='fishRodBuy'){sounds.play('loot-rare');toast('🎣 '+e.name+' 구매!'+(e.tier%2?' 새 낚시터가 열렸어요.':' 힘과 보너스가 올랐어요.')+(e.enchantReset?' 인챈트는 초기화됐어요.':''));continue;}
@@ -1832,9 +1838,10 @@ document.addEventListener("click", async (e) => {
     if(action==='fishSheetClose'){fishingUI.sheet=null;render();return;}
     if(action==='fishCatchClose'){fishingUI.seenCatch=state.fishing?.lastCatch?.at;render();return;}
     if(action==='fishCatchTank'){fishingUI.seenCatch=state.fishing?.lastCatch?.at;return await fishingCommandRequest('fishAquariumAdd',{id:arg});}
-    if(action==='fishPanel'){if(fishingUI.sheet===arg&&!b.closest('.fishing-sheet')){fishingUI.sheet=null;render();return;}fishingUI.sheet=arg;if(arg!=='map')fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);if(arg==='records')await command('fishRecordList',{},true);return;}
+    if(action==='fishPanel'){if(fishingUI.sheet===arg&&!b.closest('.fishing-sheet')){fishingUI.sheet=null;render();return;}fishingUI.sheet=arg;if(arg!=='map')fishingUI.panel=arg;render();if(arg==='contest')await command('fishContestList',{},true);if(arg==='records')await command('fishRecordList',{},true);if(arg==='boss')await command('fishBossStatus',{},true);return;}
     if(action==='fishSkinEquip')return await fishingCommandRequest('fishSkinEquip',{skin:arg});
     if(action==='fishRecordTab'){fishingUI.recordTab=arg;render();return;}
+    if(action==='fishBossClaim'){const done=await fishingCommandRequest('fishBossClaim',{id:arg});await command('fishBossStatus',{},true);return done;}
     if(action==='fishExchange'){const [item,count]=String(arg).split(':');return await fishingCommandRequest('fishExchange',{item,count:Number(count)});}
     if(action==='fishContestClaim'){const done=await fishingCommandRequest('fishContestClaim',{week:arg});await command('fishContestList',{},true);return done;}
     if(action==='fishCollectionSpot'){fishingUI.collectionSpot=arg;render();return;}
@@ -2461,6 +2468,7 @@ setInterval(() => {
   if(coopLobbyVisible()&&!modal.open&&Date.now()-coopListAttempt>=5000){refreshCoopRooms().catch(()=>{});return;}
   if(regularAutoSkills&&state.battle&&state.battle.started===regularAutoBattle&&!modal.open){const slot=nextAutoSkill(state,Date.now());if(slot!==null){command('skill',{slot}).catch(()=>{});return;}}
   if(view==="ranking"&&!modal.open&&Date.now()-rankingAttempt>=10000)loadRankings(true);
+  if(view==='game'&&tab==='event'&&eventPage==='fishing'&&!modal.open&&!fishingRequest&&Date.now()-(fishingUI.bossLoadedAt||0)>=(liveBoss()?20000:180000)){fishingUI.bossLoadedAt=Date.now();command('fishBossStatus',{},true).catch(()=>{});return;}
   if(view==='game'&&tab==='event'&&eventPage==='fishing'&&fishingUI.sheet==='records'&&!modal.open&&Date.now()-(fishingUI.recordsLoadedAt||0)>=20000){fishingUI.recordsLoadedAt=Date.now();command('fishRecordList',{},true).catch(()=>{});return;}
   // Measure from dispatch so response latency does not lengthen each combat second.
   if(state.battle?.kind==='boss'){

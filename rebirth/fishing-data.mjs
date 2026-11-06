@@ -1,7 +1,7 @@
 // Shared with the authenticated server. Fish use gold; bait bundles use diamonds. Weight is grams.
 export const FISHING_VERSION=3; // 2026-11-05 낚시 v3: 토큰 경제·낚싯대 Lv.50·강화·인챈트·크기·돌연변이·합성
 // 낚싯대 최대 레벨: 확장 시 여기만 수정 (rodGoldCost/rodDiamondCost 표도 같이 늘릴 것).
-export const ROD_MAX=16; // 2026-11-05 도현: 강화 삭제 → 낚싯대 16종(토큰+다이아 구매), 낚시터 하나당 2종
+export const ROD_MAX=20; // 2026-11-06 도현: 낚싯대 20종 (빙하 협만 17 · 은하 수해 19) // 2026-11-05 도현: 강화 삭제 → 낚싯대 16종(토큰+다이아 구매), 낚시터 하나당 2종
 // 하루 낚시(찌 던지기) 상한, 한국 시간 자정 초기화.
 export const FISHING_DAILY_CASTS=600;
 // 2026-11-05 도현: 어부는 하루 1,000회
@@ -21,6 +21,9 @@ export const SPOTS=[
  {id:'palace',bonus:1.65,tank:1.25,luck:1.95,name:'용궁 해구',level:11,depth:36,special:{},specialText:'',subtitle:'용왕의 궁전이 잠든 바다',accent:'#ffb3a1'},
  {id:'volcano',bonus:1.7,tank:1.5,luck:2,name:'불꽃 열수해',level:13,depth:43,special:{},specialText:'',subtitle:'바다 밑 화산이 숨 쉬는 곳',accent:'#ff8a5a'},
  {id:'origin',bonus:1.75,tank:1.8,luck:2.05,name:'태고의 바다',level:15,depth:50,special:{},specialText:'',subtitle:'세상이 처음 태어난 물결',accent:'#7ff6ff'},
+ // 2026-11-06 도현: 새 낚시터 2곳 — 빙하 협만(17단계) · 은하 수해(19단계).
+ {id:'glacier',bonus:1.8,tank:2.1,luck:2.1,name:'빙하 협만',level:17,depth:62,special:{},specialText:'',subtitle:'오로라 아래 얼어붙은 바다',accent:'#bfe9ff'},
+ {id:'galaxy',bonus:1.85,tank:2.4,luck:2.15,name:'은하 수해',level:19,depth:74,special:{},specialText:'',subtitle:'별이 흐르는 하늘의 바다',accent:'#ffc8ff'},
 ];
 const rows=[
  ['brook','풀잎 피라미',0,80,300,'leaf green minnow with gold fins'],['brook','은빛 송사리',0,20,120,'tiny silver ricefish with pale green fins'],['brook','조약돌 망둑어',0,100,450,'round speckled stone goby'],['brook','햇살 붕어',0,250,1500,'warm golden crucian carp'],['brook','산들 메기',0,400,2500,'cute moss grey catfish with flowing whiskers'],['brook','꽃잎 잉어',0,300,2000,'pink white koi with petal shaped fins'],['brook','이끼 비늘어',1,400,2500,'emerald moss scaled fish'],['brook','청금 송어',1,700,3500,'turquoise trout with golden flecks'],['brook','반딧불 버들치',1,120,800,'willow minnow with luminous yellow speckles'],['brook','수련 베타',1,100,600,'jade pink betta with lotus petal fins'],
@@ -31,10 +34,52 @@ const rows=[
  ['palace','산호 꼬마복어',0,300,2000,'tiny coral pink pufferfish with pearl spots'],['palace','물결 은갈치',0,800,5000,'long silver ribbon cutlassfish with wave patterns'],['palace','청자 거북복',1,1200,8000,'celadon jade boxfish with crackle glaze pattern'],['palace','용궁 시녀어',1,900,6000,'elegant red and gold fish with flowing hanbok like fins'],['palace','진주 조개어',2,2500,15000,'pearl white fish holding a glowing pearl between clam shaped fins'],['palace','홍산호 도미',2,4000,26000,'crimson coral sea bream with golden scales'],['palace','청룡 비늘어',3,8000,50000,'azure dragon scaled fish with jade whiskers'],['palace','용왕의 호위상어',3,15000,90000,'armored royal guard shark with golden helmet fins'],['palace','여의주 해룡',4,20000,130000,'majestic sea dragon holding a glowing wish pearl'],['palace','용왕 금린어',5,45000,300000,'mythical dragon king giant fish with golden scales and a coral crown'],
  ['volcano','용암 피라미',0,600,3500,'tiny lava minnow with glowing orange cracks'],['volcano','흑요석 망둑어',0,1000,6000,'black obsidian goby with ember eyes'],['volcano','유황 해파리어',1,1500,9000,'yellow sulfur jellyfish like fish with glowing tendrils'],['volcano','화산재 메기',1,2500,15000,'ash grey catfish with smoldering whiskers'],['volcano','불꽃 날치',2,3000,18000,'flying fish with flame wings'],['volcano','마그마 거북',2,8000,50000,'small sea turtle with a glowing magma shell'],['volcano','홍염 랍스터어',3,10000,60000,'crimson flame lobster fish with molten claws'],['volcano','화염비늘 상어',3,20000,120000,'shark with burning ember scales'],['volcano','불사조 가오리',4,30000,200000,'phoenix manta ray with fiery feather wings'],['volcano','화산신 이프리트어',5,55000,350000,'mythical fire god fish with a crown of lava and golden flames'],
  ['origin','원시 화석어',0,1500,9000,'ancient armored fossil fish with stone plates'],['origin','호박빛 투명어',1,2000,12000,'translucent fish glowing like amber'],['origin','고대 앵무조개',1,3000,18000,'ancient nautilus with golden spiral shell'],['origin','시간의 비늘어',2,6000,35000,'fish with clock like silver scales and glowing runes'],['origin','태초 물결가오리',2,10000,60000,'primordial ray with aurora wave wings'],['origin','창세의 고래상어',3,25000,150000,'genesis whale shark with starry spots'],['origin','별을 삼킨 리바이어던',4,40000,260000,'cosmic leviathan with a galaxy belly'],['origin','태양을 품은 해룡',5,60000,380000,'mythical sea dragon carrying a radiant sun orb'],['origin','태고의 세계어',6,120000,800000,'primordial world fish with tiny islands and forests on its back, cosmic aura'],['origin','시원의 백금룡',6,100000,650000,'primordial platinum dragon of creation with prismatic aura'],
+ // 2026-11-06 도현: 빙하 협만 · 은하 수해
+ ['glacier','서리 빙어',0,2000,12000,'frost white smelt with ice crystal fins'],['glacier','유빙 펭귄어',1,3000,18000,'round penguin-like fish with black and white scales'],['glacier','청빙 대구',1,4000,24000,'pale blue ice cod with frosted scales'],['glacier','오로라 연어',2,8000,45000,'salmon with shimmering aurora green and pink stripes'],['glacier','빙결 일각어',2,13000,80000,'narwhal-like fish with a crystal ice horn'],['glacier','설원 바다표범어',3,32000,190000,'seal-shaped silver fish with snowy fur'],['glacier','극야의 얼음고래',4,52000,330000,'ice whale glowing under the polar night'],['glacier','빙하를 깨는 해룡',5,78000,480000,'white ice sea dragon breaking glaciers'],['glacier','만년설 세계어',6,155000,1000000,'colossal ancient fish covered in eternal snow'],['glacier','오로라 백금 리바이어던',6,130000,850000,'platinum leviathan wrapped in aurora light'],
+ ['galaxy','별사탕 피라미',0,2500,15000,'tiny minnow made of pastel star candy'],['galaxy','성운 금붕어',1,4000,24000,'goldfish with a nebula pink and purple tail'],['galaxy','달토끼 복어',1,5000,30000,'cute pufferfish with rabbit-ear fins and moon spots'],['galaxy','토성 고리가오리',2,10000,60000,'manta ray circled by saturn rings'],['galaxy','은하수 장어',2,16000,100000,'long eel made of the flowing milky way'],['galaxy','초신성 상어',3,40000,240000,'shark bursting with supernova light'],['galaxy','블랙홀 아귀',4,65000,420000,'anglerfish with a tiny black hole lure'],['galaxy','성좌의 수호룡',5,100000,600000,'constellation dragon with a star-linked body'],['galaxy','창조의 은하고래',6,200000,1300000,'whale with a spiral galaxy inside its body'],['galaxy','무한의 별고래',6,170000,1100000,'infinite starlight whale with a golden halo'],
+ // 2026-11-06 도현: 시간대(한국시간 새벽 5~8시 · 밤 19~5시)·날씨(3시간마다 바뀜) 물고기 — 조건이 맞을 때만 나온다.
+ ['brook','반딧불 송사리',2,60,400,'tiny minnow glowing like a firefly',{time:'night'}],['brook','빗방울 무지개송어',3,800,4500,'rainbow trout with raindrop shaped scales',{weather:'rain'}],
+ ['moon','새벽별 은어',2,300,1800,'sweetfish with a morning star mark',{time:'dawn'}],['moon','월광 해파리어',3,600,3500,'moonlit jellyfish fish with silver bell',{time:'night'}],
+ ['canyon','천둥 협곡메기',3,3000,18000,'catfish crackling with thunder',{weather:'storm'}],['canyon','여명 단풍잉어',2,1500,9000,'koi glowing with dawn maple colors',{time:'dawn'}],
+ ['coral','폭풍 청새치',3,8000,48000,'marlin riding a storm wave',{weather:'storm'}],['coral','별똥 불가사리어',4,4000,26000,'starfish shaped fish trailing shooting stars',{weather:'meteor'}],
+ ['abyss','유성 해룡어',4,20000,130000,'sea dragon fish lit by falling meteors',{weather:'meteor'}],['abyss','심야 그림자장어',3,9000,55000,'shadow eel visible only at midnight',{time:'night'}],
+ ['palace','빗속 진주조개어',3,6000,38000,'clam fish holding a rain pearl',{weather:'rain'}],['palace','용궁 새벽잉어',4,22000,140000,'golden dawn koi of the dragon palace',{time:'dawn'}],
+ ['volcano','뇌운 불꽃상어',4,35000,220000,'flame shark inside a thunder cloud',{weather:'storm'}],['volcano','밤의 흑염 가오리',5,60000,380000,'black flame manta of the night',{time:'night'}],
+ ['origin','유성우 시원고래',5,70000,420000,'primordial whale under a meteor shower',{weather:'meteor'}],['origin','여명의 태고룡',6,130000,850000,'ancient dragon awakening at dawn',{time:'dawn'}],
+ ['glacier','오로라 얼음고래',5,85000,520000,'ice whale dancing in aurora',{time:'night'}],['glacier','눈보라 서리상어',4,55000,350000,'frost shark in a blizzard',{weather:'storm'}],
+ ['galaxy','혜성 꼬리별어',6,190000,1200000,'fish with a long glowing comet tail',{weather:'meteor'}],['galaxy','새벽 은하해마',5,90000,560000,'galactic seahorse glowing at dawn',{time:'dawn'}],
+ // 2026-11-06 도현: 보스 물고기 트로피 — 보스를 잡은 참가자만 받는다 (일반 낚시로는 안 나옴).
+ ['brook','심해의 대왕 크라켄',6,500000,3000000,'giant ancient kraken boss',{boss:0}],['brook','폭풍을 부르는 용왕고래',6,600000,3600000,'storm calling dragon king whale boss',{boss:1}],['brook','별을 삼킨 고대 해룡왕',6,700000,4200000,'ancient sea dragon king that swallowed stars boss',{boss:2}],
 ];
 // 2026-11-05 도현: 낚시터별 특기(버프) 삭제 — 낚시터 차이는 물고기 종류·등급뿐.
 // v3: 물고기는 낚시터가 열리면 등급 상관없이 전부 나온다 (등급 관문 없음). level = 필요한 낚싯대 단계(1~8), depth = 손맛 난이도 기준.
-export const FISH=rows.map(([spot,name,rarity,min,max,art],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:SPOTS.find(s=>s.id===spot).level}));
+export const FISH=rows.map(([spot,name,rarity,min,max,art,cond],i)=>({id:'fish-'+String(i+1).padStart(2,'0'),spot,name,rarity,min,max,art,level:SPOTS.find(s=>s.id===spot).level,...(cond?{cond}:{})}));
+// ── 2026-11-06 도현: 시간대·날씨 ── 한국시간. 날씨는 3시간마다 바뀌고 모든 낚시터가 같은 날씨.
+const kstDate=now=>new Date(Number(now)+9*3600000);
+export const FISHING_TIMES=Object.freeze([{id:'dawn',name:'새벽',icon:'🌅',text:'05~08시'},{id:'day',name:'낮',icon:'🌤️',text:'08~19시'},{id:'night',name:'밤',icon:'🌙',text:'19~05시'}]);
+export const fishingTimeOf=now=>{const h=kstDate(now).getUTCHours();return h>=5&&h<8?'dawn':h>=8&&h<19?'day':'night';};
+export const WEATHERS=Object.freeze([{id:'clear',name:'맑음',icon:'☀️',p:.45},{id:'rain',name:'비',icon:'🌧️',p:.3},{id:'storm',name:'폭풍',icon:'⛈️',p:.15},{id:'meteor',name:'유성우',icon:'🌠',p:.1}]);
+export const WEATHER_BLOCK_MS=3*3600000;
+const weatherHash=n=>{let x=(n*2654435761)>>>0;x^=x>>>16;x=Math.imul(x,2246822519)>>>0;x^=x>>>13;x=Math.imul(x,3266489917)>>>0;x^=x>>>16;return (x>>>0)/4294967296;};
+export const fishingWeatherAt=block=>{let r=weatherHash(block+7919);for(const w of WEATHERS){r-=w.p;if(r<0)return w;}return WEATHERS[0];};
+export const fishingWeather=now=>fishingWeatherAt(Math.floor((Number(now)+9*3600000)/WEATHER_BLOCK_MS));
+export const fishingWeatherEndsAt=now=>(Math.floor((Number(now)+9*3600000)/WEATHER_BLOCK_MS)+1)*WEATHER_BLOCK_MS-9*3600000;
+export const fishCondText=d=>!d?.cond?'':d.cond.boss!=null?'보스 처치 보상':d.cond.time?(t=>t.icon+' '+t.name+'('+t.text+')에만')(FISHING_TIMES.find(x=>x.id===d.cond.time)):(w=>w.icon+' '+w.name+' 올 때만')(WEATHERS.find(x=>x.id===d.cond.weather));
+export const fishAvailable=(d,now)=>!d.cond||(d.cond.boss==null&&(!d.cond.time||d.cond.time===fishingTimeOf(now))&&(!d.cond.weather||d.cond.weather===fishingWeather(now).id));
+// ── 2026-11-06 도현: 보스 물고기 ── 매일 13·19·22시(한국시간) 30분 동안 '거대한 그림자'. 손맛으로 잡을 때마다 공동 체력을 깎는다.
+export const FISH_BOSS_HOURS=Object.freeze([13,19,22]),FISH_BOSS_MS=30*60000,FISH_BOSS_HP_PER_PLAYER=900,FISH_BOSS_MIN_HITS=10,FISH_BOSS_DIAMONDS=30,FISH_BOSS_TOKEN_CASTS=150;
+export const FISH_BOSSES=Object.freeze(FISH.filter(x=>x.cond?.boss!=null).sort((a,b)=>a.cond.boss-b.cond.boss).map(x=>Object.freeze({kind:x.cond.boss,name:x.name,species:x.id})));
+export function fishBossWindow(now){
+ const k=kstDate(now),day=Date.UTC(k.getUTCFullYear(),k.getUTCMonth(),k.getUTCDate()),dayIndex=Math.floor(day/86400000);
+ for(let i=0;i<FISH_BOSS_HOURS.length;i++){const startsAt=day+FISH_BOSS_HOURS[i]*3600000-9*3600000;if(now>=startsAt&&now<startsAt+FISH_BOSS_MS)return {id:new Date(day).toISOString().slice(0,10)+'-'+FISH_BOSS_HOURS[i],kind:(dayIndex*FISH_BOSS_HOURS.length+i)%FISH_BOSSES.length,startsAt,endsAt:startsAt+FISH_BOSS_MS};}
+ return null;
+}
+export function nextFishBoss(now){
+ const k=kstDate(now),day=Date.UTC(k.getUTCFullYear(),k.getUTCMonth(),k.getUTCDate());
+ for(let d=0;d<2;d++)for(let i=0;i<FISH_BOSS_HOURS.length;i++){const startsAt=day+d*86400000+FISH_BOSS_HOURS[i]*3600000-9*3600000;if(startsAt+FISH_BOSS_MS>now){const dayIndex=Math.floor((day+d*86400000)/86400000);return {id:new Date(day+d*86400000).toISOString().slice(0,10)+'-'+FISH_BOSS_HOURS[i],kind:(dayIndex*FISH_BOSS_HOURS.length+i)%FISH_BOSSES.length,startsAt,endsAt:startsAt+FISH_BOSS_MS};}}
+ return null;
+}
+export const fishBossDamage=(rarity,sizeIndex,auto)=>Math.max(1,Math.round((10+rarity*8+Math.max(0,sizeIndex)*4)*(auto?.5:1)));
 // v3 미끼: 지렁이만 골드, 나머지는 낚시 토큰. luck=희귀 이상(최대 2단계 위까지) 배율 지수, 나머지는 각 효과 배율.
 // 2026-11-05 도현: 미끼는 좋을수록 희귀한 물고기가 더 잘 낚인다 — 등급 1단계마다 rare배 (최대 4단계까지 곱함).
 export const BAITS=[
@@ -47,7 +92,7 @@ export const BAITS=[
 ];
 export const BAIT_RARE_CAP=4;
 // 2026-11-05 도현: 특수 미끼 값은 지금 낚싯대 단계에 비례 — 그 단계 지렁이 1회 수입(ROD_CAST_VALUE)의 %로, 늘어나는 수입의 약 절반.
-export const ROD_CAST_VALUE=Object.freeze([5,5.4,13,17,31,41,71,111,166,260,364,560,823,1600,3331,6420]);
+export const ROD_CAST_VALUE=Object.freeze([5,5.4,13,17,31,41,71,111,166,260,364,560,823,1600,3331,6420,9200,16500,23600,42700]);
 export const BAIT_COST_PCT=Object.freeze({shrimp:.035,pearl:.07,golden:.105,glow:.14,star:.175});
 export const BAIT_SPECIAL_LIMIT=600; // 싸게 사서 쌓아두고 높은 단계에서 쓰는 걸 막는 보유 한도(종류별)
 export const baitPackPrice=(bait,rod=1)=>bait?.gold?bait.gold:Math.max(10,Math.round(ROD_CAST_VALUE[Math.max(1,Math.min(ROD_CAST_VALUE.length,rod||1))-1]*(BAIT_COST_PCT[bait?.id]||0)*(bait?.pack||10)));
@@ -73,7 +118,7 @@ export const FISHER_BITE_MIN_MS=3000,FISHER_BITE_RANGE_MS=2000; // 2026-11-04 �
 // 2026-10-25 Lv.50+: gold grows 15%/level, diamonds 20 + 2/level (Lv.50→70 ≈ 1.46억 G + 780 다이아).
 export const legacyRodGoldCost=level=>Math.round(5000*1.16**(Math.min(level,30)-1)*1.07**Math.max(0,Math.min(level,50)-30)*1.15**Math.max(0,level-50)/100)*100;
 export const legacyRodDiamondCost=level=>level>=50?20+2*(level-50):2+Math.floor(level/5);
-export const ROD_PRICE=[[0,0],[2600,35],[3100,35],[15000,70],[19000,70],[35000,70],[70000,110],[120000,110],[180000,110],[380000,145],[590000,145],[1100000,180],[1600000,180],[2700000,215],[6300000,250],[15000000,290]]; // [토큰, 다이아] · 하루 2시간 꾸준히 사면 약 56일, 다이아 합계 2,015
+export const ROD_PRICE=[[0,0],[2600,35],[3100,35],[15000,70],[19000,70],[35000,70],[70000,110],[120000,110],[180000,110],[380000,145],[590000,145],[1100000,180],[1600000,180],[2700000,215],[6300000,250],[15000000,290],[34000000,330],[60000000,370],[130000000,410],[260000000,450]]; // [토큰, 다이아] · 하루 2시간 꾸준히 사면 약 56일, 다이아 합계 2,015
 // 2026-11-05 도현: 강화 삭제, 낚싯대 16종. 홀수 단계(1·3·…·15)에서 새 낚시터가 열리고, 짝수 단계는 같은 낚시터에서 힘·보너스만 오른다.
 // 단계마다 판매 토큰 +3% · 희귀 이상 +2% (예전 강화 보너스를 낚싯대로 옮김). 가격은 토큰 + 다이아.
 export const ROD_TOKEN_BONUS=.03,ROD_RARE_BONUS=.02;
@@ -94,6 +139,11 @@ export const ROD_TIERS=Object.freeze([
  {tier:14,name:'마그마 낚싯대',power:56,tokens:ROD_PRICE[13][0],diamonds:ROD_PRICE[13][1],art:'rod-tier-14'},
  {tier:15,name:'태초의 낚싯대',power:62,tokens:ROD_PRICE[14][0],diamonds:ROD_PRICE[14][1],art:'rod-tier-15'},
  {tier:16,name:'창세의 낚싯대',power:75,tokens:ROD_PRICE[15][0],diamonds:ROD_PRICE[15][1],art:'rod-tier-16'},
+ // 2026-11-06 도현: 17~20단계 (빙하 협만 17 · 은하 수해 19)
+ {tier:17,name:'서리 결정 낚싯대',power:78,tokens:ROD_PRICE[16][0],diamonds:ROD_PRICE[16][1],art:'rod-tier-17'},
+ {tier:18,name:'오로라 빙하 낚싯대',power:88,tokens:ROD_PRICE[17][0],diamonds:ROD_PRICE[17][1],art:'rod-tier-18'},
+ {tier:19,name:'성운 항해 낚싯대',power:92,tokens:ROD_PRICE[18][0],diamonds:ROD_PRICE[18][1],art:'rod-tier-19'},
+ {tier:20,name:'무한 은하 낚싯대',power:106,tokens:ROD_PRICE[19][0],diamonds:ROD_PRICE[19][1],art:'rod-tier-20'},
 ].map(Object.freeze));
 export const rodTier=f=>ROD_TIERS[Math.max(1,Math.min(ROD_MAX,f?.rod||1))-1];
 export const rodGoldCost=()=>0,rodDiamondCost=()=>0;
@@ -138,7 +188,7 @@ export const fishValue=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)re
 export const TOKEN_PER_GOLD=.01;
 // 2026-11-05 도현: 판매 토큰은 낚시터마다 크게 다르게(한 단계 위로 갈 때마다 약 2.2배) — 앞 낚시터에서 모아서 건너뛸 수 없게.
 // 낚시터 토큰 배율(SPOT_TOKEN)은 각 낚시터를 그 단계 낚싯대로 낚을 때 한 번에 평균 5·12·28·60·130·270·550·1100 토큰이 되게 맞춘 값.
-export const SPOT_TOKEN={brook:3.4,moon:5.8,canyon:12,coral:25,abyss:51,palace:103,volcano:207,origin:460};
+export const SPOT_TOKEN={brook:3.4,moon:5.8,canyon:12,coral:25,abyss:51,palace:103,volcano:207,origin:460,glacier:1010,galaxy:2220};
 export const fishPrice=fish=>{const d=FISH.find(x=>x.id===fish.species);if(!d)return 0;return Math.max(1,Math.round(RARITIES[d.rarity].value*fishSizeOf(fish).mult*(fishMutationOf(fish)?.mult||1)/FISH_VALUE_NORMALIZE*(SPOT_TOKEN[d.spot]||1)));};
 // Aquarium gold per hour = sale price × grade rate. Rates keep each grade's best aquarium income close to the
 // previous table now that deep-spot top fish sell for more (신화 stays the best per fish).
@@ -170,7 +220,7 @@ export const ENCHANTS=Object.freeze([
 ].map(Object.freeze));
 // 2026-11-05 도현: 인챈트 비용은 낚싯대 단계에 비례 — 그 단계 하루 수입(600회)의 약 30%. 잠금 1칸마다 ×2.
 // 2026-11-05 도현: 인챈트는 토큰이 아니라 다이아로, 비싸게. 낚싯대 단계별 1회 다이아(잠금 1칸마다 2배).
-export const ENCHANT_COST_BY_TIER=Object.freeze([10,10,12,14,16,20,24,28,32,36,40,45,50,55,60,70]);
+export const ENCHANT_COST_BY_TIER=Object.freeze([10,10,12,14,16,20,24,28,32,36,40,45,50,55,60,70,80,90,100,115]);
 export const ENCHANT_COST=ENCHANT_COST_BY_TIER[0],ENCHANT_LOCK_MULT=2;
 export const enchantCost=(locked,tier=1)=>ENCHANT_COST_BY_TIER[Math.max(1,Math.min(ENCHANT_COST_BY_TIER.length,tier||1))-1]*ENCHANT_LOCK_MULT**locked;
 export const enchantText=e=>{const d=ENCHANTS.find(x=>x.id===e?.id);if(!d)return '';const v=d.values[e.tier];return d.name+' '+(d.flat?Math.round(v*100)+'%':(d.sign||'+')+Math.round(v*100)+'%');};

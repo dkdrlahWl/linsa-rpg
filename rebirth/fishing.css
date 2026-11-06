@@ -337,3 +337,38 @@ body #app .fishing-screen .rod-row .rod-buy img:not(.fishing-button-art){display
 .fishing-skin-preview,.fishing-play .fishing-angler{clip-path:inset(0 6% 0 0)}
 /* 2026-11-05 도현: 등급 표시는 왼쪽 아래 (크기 배지와 겹치지 않게) */
 body .fishing-screen .fish-portrait>span{top:auto;bottom:2px;left:2px}
+/* 2026-11-06 도현: 시간대·날씨 · 보스 물고기 */
+.fishing-stage-layout .fishing-play .fishing-panels{grid-template-columns:repeat(9,minmax(0,1fr))}
+.fishing-hud-sky{white-space:nowrap;color:#d9f1ff}
+.fishing-hud-sky small{opacity:.7;font-size:10px}
+body #app .fishing-screen .fishing-boss-banner{position:relative;width:100%;display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px 11px;border-radius:14px;border:1px solid #ff9a6a!important;background:linear-gradient(135deg,rgba(70,10,30,.85),rgba(20,10,50,.85))!important;color:#fff;text-align:left;cursor:pointer;box-shadow:0 0 18px rgba(255,90,90,.45);animation:fishBossPulse 2.4s ease-in-out infinite}
+body #app .fishing-screen .fishing-boss-banner.is-down{border-color:#ffd477!important;box-shadow:0 0 18px rgba(255,212,119,.5);animation:none}
+.fishing-boss-banner b{font-size:13px;text-shadow:0 1px 6px #000}
+.fishing-boss-banner small{font-size:10.5px;color:#ffd9c9}
+.fishing-boss-hp{display:block;position:relative;height:7px;border-radius:9px;background:rgba(255,255,255,.14);overflow:hidden}
+.fishing-boss-hp i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#ff3b5c,#ffb03b);border-radius:9px;transition:width .6s}
+.fishing-boss-hp.big{height:20px;margin:6px 0}
+.fishing-boss-hp.big em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-style:normal;color:#fff;text-shadow:0 1px 3px #000}
+@keyframes fishBossPulse{50%{box-shadow:0 0 28px rgba(255,90,90,.8)}}
+@media(prefers-reduced-motion:reduce){body #app .fishing-screen .fishing-boss-banner{animation:none}}
+.fishing-boss-card{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start;padding:12px;margin:10px 0;border-radius:14px;background:linear-gradient(135deg,rgba(60,14,34,.55),rgba(16,20,48,.6));border:1px solid rgba(255,150,120,.35)}
+.fishing-boss-card.is-down{border-color:rgba(255,212,119,.6)}
+.fishing-boss-art img{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(255,120,120,.5))}
+.fishing-boss-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fishing-boss-info strong{font-size:16px;color:#fff}
+.fishing-boss-info small{opacity:.75;font-size:11px}
+.fishing-boss-info>span{font-size:12px}
+.fishing-boss-top{list-style:none;margin:6px 0;padding:0;display:grid;gap:2px;font-size:12px}
+.fishing-boss-top li{display:grid;grid-template-columns:22px 1fr auto;gap:6px;padding:3px 6px;border-radius:7px;background:rgba(255,255,255,.05)}
+.fishing-boss-top li.me{background:rgba(255,212,119,.16);color:#ffe7a8}
+.fishing-boss-top em{font-style:normal;font-variant-numeric:tabular-nums}
+.fishing-boss-claimed{font-style:normal;font-size:12px;opacity:.75}
+.fishing-boss-next{display:flex;flex-direction:column;gap:3px;padding:14px;margin:10px 0;border-radius:14px;background:rgba(255,255,255,.05);text-align:center}
+.fishing-boss-next b{font-size:18px;color:#ffd477}
+.fishing-boss-rewards{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(255,212,119,.08);font-size:12px}
+.fishing-boss-rewards .fishing-token-icon,.fishing-boss-rewards .fishing-diamond-icon{width:16px;height:16px;vertical-align:-3px}
+.fishing-boss-history{margin:16px 0 4px;font-size:14px}
+.fish-cond{font-style:normal;color:#ffe7a8}
+.fishing-hud-events{position:absolute;z-index:5;top:190px;left:10px;width:min(280px,66%);display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.fishing-special-now{margin:0;padding:4px 10px;border-radius:12px;font-size:11px;line-height:1.45;color:#ffe7a8;background:rgba(6,18,26,.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);border:1px solid rgba(255,231,168,.3)}
+.fishing-special-now b{color:var(--rarity)}

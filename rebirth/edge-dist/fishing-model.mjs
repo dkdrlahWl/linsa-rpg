@@ -2,6 +2,7 @@ import {FISHING_SKINS,fishingSkin} from './fishing-skins.mjs';
 import {professionGather,gatherAmount} from './profession-model.mjs';
 import {fishingAutoPrice,AUTO_CASTS_PER_HOUR,baitPackPrice,BAIT_SPECIAL_LIMIT,FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
+import {fishAvailable,fishBossWindow,fishBossDamage,FISH_BOSSES,FISH_BOSS_MIN_HITS,FISH_BOSS_DIAMONDS,FISH_BOSS_TOKEN_CASTS,ROD_CAST_VALUE} from './fishing-data.mjs';
 export const FISHING_PROTOCOL=6; // v3 낚시 개편
 const require=(ok,msg)=>{if(!ok)throw Error(msg);};
 const integer=(n,min,max)=>Number.isSafeInteger(n)&&n>=min&&n<=max;
@@ -114,7 +115,8 @@ export function fishingBonuses(s,f,spot,bait){
  };
 }
 function rollSpecies(spot,bait,b,ctx){
- const available=FISH.filter(x=>x.spot===spot.id);
+ // 2026-11-06 도현: 시간대·날씨 물고기는 조건이 맞을 때만, 보스 트로피는 일반 낚시로 안 나온다.
+ const available=FISH.filter(x=>x.spot===spot.id&&fishAvailable(x,ctx.now));
  const perGrade={};for(const x of available)perGrade[x.rarity]=(perGrade[x.rarity]||0)+1;
  const weights=available.map(x=>FISH_GRADE_WEIGHTS[x.rarity]*baitGradeWeight(x,bait)*spotGradeWeight(x)*b.rodRare(x.rarity)*(x.rarity>=1?b.rare:1)*(x.rarity>=4?b.legend:1)/perGrade[x.rarity]);
  let roll=ctx.random()*weights.reduce((n,x)=>n+x,0),index=weights.length-1;
@@ -147,7 +149,7 @@ function addCaughtFish(s,f,c,fish,ctx){
  f.collection[item.species]=Math.max(f.collection[item.species]||0,item.weight);f.daily.catch=(f.daily.catch||0)+1;f.totalCatch=(f.totalCatch||0)+1;
  const rarity=FISH.find(x=>x.id===item.species).rarity;if(rarity>=1)f.daily.rare=(f.daily.rare||0)+1;
  // 2026-11-05 도현: 대어 랭킹 — 등급별 가장 무거운 한 마리(역대 최고)를 남긴다. 서버 랭킹은 이 값으로 매긴다.
- if(!s.isAdmin&&!s.isTester){
+ if(!s.isAdmin&&!s.isTester&&FISH.find(x=>x.id===item.species)?.cond?.boss==null){
  f.best??={};const best=f.best[rarity];
  if(!best||item.weight>best.weight){f.best[rarity]={species:item.species,weight:item.weight,size:item.size,...(item.mut?{mut:item.mut}:{}),at:item.caughtAt};c.records=[...(c.records||[]),{rarity,weight:item.weight,previous:best?.weight||0}];}
  recordContest(f,item);}
@@ -160,6 +162,9 @@ function landCatch(s,f,c,ctx){
  const result={type:'fishCatch',at:ctx.now,won:true,species:c.species,weight:c.weight,size:c.size,mut:c.mut,reward};
  if(reward==='fish'){
   c.records=[];const item=addCaughtFish(s,f,c,c,ctx);result.fish=item;result.tokens=fishPrice(item);
+  // 2026-11-06 도현: 보스 물고기 시간이면 잡은 물고기만큼 공동 체력을 깎는다 (오토는 절반). 서버(엣지)가 DB에 반영한다.
+  const boss=fishBossWindow(ctx.now);
+  if(boss){const d=FISH.find(x=>x.id===item.species),size=Math.max(0,FISH_SIZES.findIndex(x=>x.id===fishSizeOf(item).id));result.bossHit={id:boss.id,kind:boss.kind,startsAt:boss.startsAt,endsAt:boss.endsAt,dmg:fishBossDamage(d.rarity,size,!!c.auto)};}
   // 두 마리 동시 낚기: 가방에 자리가 있을 때만.
   if(c.extra&&f.fish.length<fishBagSize(s)&&c.extraOk!==false){const extra=addCaughtFish(s,f,c,c.extra,ctx);result.extra=extra;}
  }else if(reward==='diamondChest'){const diamonds=gatherAmount(s,'diamond',3+Math.floor(ctx.random()*6),ctx.random);f.diamonds+=diamonds;result.diamonds=diamonds;}
@@ -207,7 +212,7 @@ export function fishingCommand(s,command,args,ctx){
   if(c.reward!=='fish')return landCatch(s,f,c,ctx);
   const dif=fishingDifficulty(c,rodPower(f));
   if(args.auto){
-   require((f.autoCasts||0)>0,'FISHING_AUTO_REQUIRED');f.autoCasts--;
+   require((f.autoCasts||0)>0,'FISHING_AUTO_REQUIRED');f.autoCasts--;c.auto=true;
    if(ctx.random()<autoCatchChance(dif))return landCatch(s,f,c,ctx);
    return escapeCatch(f,c,ctx,dif.snap?'weak':'escape',{need:dif.need,power:dif.power,auto:true});
   }
@@ -311,6 +316,19 @@ export function fishingCommand(s,command,args,ctx){
   const cost=item.diamonds*args.count;require(f.diamonds>=cost,'FISHING_DIAMONDS_REQUIRED');
   f.diamonds-=cost;f.daily.exchanged=(f.daily.exchanged||0)+args.count;s.materials[item.id]=(s.materials[item.id]||0)+args.count;
   return {type:'fishExchange',item:item.id,name:item.name,count:args.count,diamonds:cost};
+ }
+ // 2026-11-06 도현: 보스 물고기 보상 — 처치 기록은 서버(SQL) 집계만 믿는다(ctx.fishBoss). 한 보스당 한 번.
+ if(command==='fishBossClaim'){
+  const id=String(args.id||''),board=ctx.fishBoss,row=(board?.history||[]).find(x=>x.id===id);
+  require(row&&row.defeated,'FISHING_BOSS_NOT_DEFEATED');require((row.myHits||0)>=FISH_BOSS_MIN_HITS,'FISHING_BOSS_TOO_FEW_HITS');
+  f.bossClaims=Array.isArray(f.bossClaims)?f.bossClaims:[];require(!f.bossClaims.includes(id),'FISHING_BOSS_CLAIMED');
+  require(f.fish.length<fishBagSize(s),'FISHING_BAG_FULL');
+  const boss=FISH_BOSSES.find(x=>x.kind===Number(row.kind))||FISH_BOSSES[0],d=FISH.find(x=>x.id===boss.species);
+  const tokens=Math.round(ROD_CAST_VALUE[Math.max(1,Math.min(ROD_CAST_VALUE.length,f.rod))-1]*FISH_BOSS_TOKEN_CASTS),diamonds=FISH_BOSS_DIAMONDS;
+  const size=FISH_SIZES.find(x=>x.id==='big')||FISH_SIZES[0],trophy={species:d.id,weight:fishSizeWeight(d,size,ctx.random()),size:size.id};
+  const item=addCaughtFish(s,f,{},trophy,ctx);f.tokens=Math.min(9e12,(f.tokens||0)+tokens);f.diamonds=(f.diamonds||0)+diamonds;
+  f.bossClaims=[...f.bossClaims.slice(-29),id];
+  return {type:'fishBossClaim',id,kind:boss.kind,name:boss.name,tokens,diamonds,fish:item};
  }
  if(command==='fishContestClaim'){
   // The ranking comes from the server (rebirth_fishing_contest), never from the client.
