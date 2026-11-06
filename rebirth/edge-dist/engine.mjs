@@ -29,7 +29,7 @@ import {tokenBossEnter,tokenBossFinish,tokenShopBuy,raceState,raceBet,tokenOpenF
 import {mileageEarn,mileageBuy} from './mileage.mjs';
 import {keyBossEnter,keyBossFinish} from './key-dungeon.mjs';
 import {sweepCommand} from './sweep.mjs';
-import {companionCommand,normalizeCompanions} from './companion-model.mjs';
+import {companionCommand,normalizeCompanions,COMPANION_BAG} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs';
@@ -609,8 +609,9 @@ function applyTowerFrames(b,args,ctx){
 function claimTradeMail(s,m,ctx){
   s.claimedSystemMail||=[];
   if(s.claimedSystemMail.includes(m.id))throw new Error('MAIL_ALREADY_CLAIMED');
-  const items=Array.isArray(m.items)?m.items:[];
+  const all=Array.isArray(m.items)?m.items:[],items=all.filter(x=>x?.kind!=='companion'),cards=all.filter(x=>x?.kind==='companion'); // 2026-11-06 동료 카드 거래
   if((s.items?.length||0)+items.length>300)throw new Error('INVENTORY_FULL');
+  if(cards.length){const c=normalizeCompanions(s);if(c.cards.length+cards.length>COMPANION_BAG)throw new Error('COMPANION_BAG_FULL');}
   const r=m.rewards||{};
   if(r.gold){const g=Number(r.gold);if(!Number.isSafeInteger(g)||g<0||(Number(s.gold)||0)+g>9e12)throw new Error('INVALID_BALANCE');}
   for(const [k,v] of Object.entries(r)){const n=Number(v);if(!Number.isSafeInteger(n)||n<=0)continue;
@@ -623,9 +624,10 @@ function claimTradeMail(s,m,ctx){
     else resourceAdd(s,k,n);}
   s.items??=[];s.collection??=[];
   for(const it of items){s.items.push({...it,id:s.items.some(x=>x.id===it.id)?ctx.uuid():it.id});const key=equipmentKey(it);if(!s.collection.includes(key))s.collection.push(key);}
+  if(cards.length){const c=normalizeCompanions(s);for(const card of cards){const {kind,...rest}=card;c.cards.push({...rest,i:c.nextId++});}}
   // 거래 우편 id는 일회성이라 claimedSystemMail에 쌓지 않음 (우편함에서 제거만)
   s.rewardMailbox=(s.rewardMailbox||[]).filter(x=>x.id!==m.id);s.systemMailbox=(s.systemMailbox||[]).filter(x=>x.id!==m.id);
-  return {type:'tradeMail',id:m.id,rewards:{...r},items:items.length};
+  return {type:'tradeMail',id:m.id,rewards:{...r},items:items.length,companions:cards.length};
 }
 export function execute(input, command, args = {}, ctx) {
   const title=command==='titleEquip'||command==='titleSync';

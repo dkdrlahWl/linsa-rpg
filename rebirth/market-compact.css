@@ -42,3 +42,7 @@
 .buy-order-mine span{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .buy-order-mine small{font-size:11px;color:#b9c8d8;overflow-wrap:anywhere}
 .buy-order-mine button{flex:0 0 auto}
+/* 2026-11-06 동료 카드 구매 요청 판매 — 카드 고르기 */
+.cp-sell-pick{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;margin:8px 0}
+.cp-sell-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid #ffffff22;background:#ffffff0a;cursor:pointer;font-size:13px}
+.cp-sell-row input{accent-color:#ffd477;width:18px;height:18px;flex:none}
