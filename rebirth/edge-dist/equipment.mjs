@@ -90,7 +90,7 @@ function tieredIdentity(item){
   const high=equipmentTierLevel(item);
   if(high>=250){
     const n=HIGH_BOSS_NAMES[high],name=(common?n.armor[tier]+' '+COMMON_ARMOR_NOUNS[item.slot]:n.weapon[tier]+' '+type);
-    const art=common?`equipment/boss${high}/common-t${tier}-${item.slot}.webp`:`equipment/boss${high}/${item.classId}-t${tier}.webp`;
+    const art=common?`equipment/boss${high}/beauty-v2/common-t${tier}-${item.slot}.webp`:`equipment/boss${high}/beauty-v2/${item.classId}-t${tier}.webp`;
     return {key:equipmentKey(item),name,art,type,tier,tierName:bossTierName(item),common,standalone:true,grid:false,column:0,row:0,columns:1,rows:1};
   }
   if(Number(item.level)>=220){
