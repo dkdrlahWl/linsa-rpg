@@ -256,7 +256,7 @@ export const HIGH_CUBE_UP = CUBES.highCube.up;
 export const LINE_WEIGHTS = [0.7, 0.27, 0.03];
 export const EQUIP_DROP = 0.0013;
 export const FIELD_BOSS_DROP = 0;
-export function equipmentLevelRange(base){const min=Number(base)===220?220:dropEquipmentLevel(base);return {min,max:min};}
+export function equipmentLevelRange(base){const min=[220,250,300].includes(Number(base))?Number(base):dropEquipmentLevel(base);return {min,max:min};}
 export function rollEquipmentLevel(base,random=Math.random){const {min,max}=equipmentLevelRange(base);return min===max?min:random()<Math.SQRT1_2?min:max;}
 export const itemQuality = item => Number.isInteger(item.quality)&&item.quality>=0&&item.quality<=100?item.quality:50;
 export const qualityMultiplier = item => 0.9+itemQuality(item)*0.002;
@@ -287,12 +287,15 @@ export function xpNeeded(level) {
 export const TIERED_BOSS_MAX_SCALE=1.3;
 // 200레벨 공통 방어구 공격력: 기존 최소값 유지, 최대값은 화면 표기 기준 1,200 (3세트 균등 분할)
 export const TIERED_BOSS_ARMOR_ATTACK_MAX=1200;
+export const HIGH_BOSS_RANGE=[1.2,3.0];
 export function gearStatRanges(item) {
  // 220: minimum exceeds the full 200 maximum by 25%; maximum is 3.2x that maximum.
+ // 2026-11-06 도현: 250제는 220제 최고치, 300제는 250제 최고치 기준 최소 120%~최대 300% (220처럼 등급 간 차이 크게).
  if(item.boss&&Number(item.level)>=220){
-  const previous=gearStatFullRanges({...item,level:200}),tiers=bossTierCount(item),tier=bossTier(item);
+  const level=Number(item.level),prevLevel=level>=300?250:level>=250?220:200,[lo,hi]=level>=250?HIGH_BOSS_RANGE:[1.25,3.2];
+  const previous=gearStatFullRanges({...item,level:prevLevel}),tiers=bossTierCount(item),tier=bossTier(item);
   return Object.fromEntries(Object.entries(previous).map(([key,r])=>{
-   const min=Math.ceil(r.max*1.25),top=Math.ceil(r.max*3.2),width=(top-min+1)/tiers;
+   const min=Math.ceil(r.max*lo),top=Math.ceil(r.max*hi),width=(top-min+1)/tiers;
    return [key,{min:min+Math.floor(tier*width),max:tier===tiers-1?top:min+Math.floor((tier+1)*width)-1}];
   }));
  }
@@ -390,7 +393,7 @@ export function normalizePotentialItem(item) {
   if (!item) return item;
   // Preserve identity, stars, rolls' relative positions, potentials and locks.
   if (Number.isFinite(item.level)) {
-    const level=Math.max(1,Math.floor(Math.min(220,item.level)/10)*10);
+    const level=item.boss&&item.level>=250?(item.level>=300?300:250):Math.max(1,Math.floor(Math.min(220,item.level)/10)*10);
     if(level!==item.level){
       const before=item.baseStats?gearStatRanges(item):null;
       item.level=level;

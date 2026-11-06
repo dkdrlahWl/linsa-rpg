@@ -3,7 +3,7 @@ import * as D from './data.mjs?v=boss220-20261102';
 const bossesFor=level=>D.BOSSES.filter(b=>b.gearLevel===level);
 const option=(value,label)=>'<option value="'+value+'">'+label+'</option>';
 document.querySelector('#class').innerHTML+=D.CLASSES.map(c=>option(c.id,c.name)).join('');
-document.querySelector('#level').innerHTML+=[...Array.from({length:20},(_,i)=>(i+1)*10),220].map(level=>option(level,level)).join('');
+document.querySelector('#level').innerHTML+=[...Array.from({length:20},(_,i)=>(i+1)*10),220,250,300].map(level=>option(level,level)).join('');
 document.querySelector('#slot').innerHTML+=D.SLOTS.map((s,i)=>option(i,s)).join('');
 function draw(){const cl=document.querySelector('#class').value,level=document.querySelector('#level').value,slot=document.querySelector('#slot').value,q=document.querySelector('#search').value.trim();
 const rows=D.EQUIPMENT_CATALOG.filter(it=>it.boss&&(!cl||D.canEquipClass(it,cl))&&(!level||it.level===+level)&&(!slot||it.slot===+slot)).map(it=>({it,bosses:bossesFor(it.level)})).filter(({it,bosses})=>!q||D.gearName(it).includes(q)||bosses.some(b=>b.name.includes(q)));

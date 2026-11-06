@@ -8,7 +8,10 @@ const LEVELS = Array.from({length:20},(_,i)=>(i+1)*10);
 export function weaponVariant(item) {
   return item.slot === 0 && Number.isInteger(item.weaponVariant) && item.weaponVariant >= 0 && item.weaponVariant < 3 ? item.weaponVariant : 0;
 }
-export const equipmentTierLevel = item => Math.max(10,Math.floor(Math.min(220,item.level)/10)*10);
+// 2026-11-06 도현: 250제·300제 보스장비(220제와 같은 무기 5등급·방어구 3등급).
+export const HIGH_BOSS_LEVELS=[250,300];
+export const clampEquipmentLevel=(level,boss)=>{const l=Number(level)||0;if(boss&&l>=250)return l>=300?300:250;return Math.max(10,Math.floor(Math.min(220,l)/10)*10);};
+export const equipmentTierLevel = item => clampEquipmentLevel(item.level,item.boss);
 export function canonicalDesign(item){return item.boss?2:Math.abs(Number.isInteger(item.design)?item.design:weaponVariant(item))%2;}
 export function normalizeEquipment(item){if(!item||!item.classId)return item;item.design=canonicalDesign(item);item.weaponVariant=item.slot===0?item.design:0;item.catalogVersion=5;if(isTieredBossGear(item)){if(Number.isInteger(item.bossTier))item.bossTier=bossTier(item);}else delete item.bossTier;return item;}
 export function equipmentKey(item){if(isTieredBossGear(item))return ['v5',equipmentTierLevel(item),isCommonBossGear(item)?'common':item.classId,item.slot,2,'t'+bossTier(item)].join(':');return ['v5',equipmentTierLevel(item),item.classId,item.slot,canonicalDesign(item)].join(':');}
@@ -43,7 +46,7 @@ const EPITHETS=["척후병의","수호자의","방랑기사의","정복자의","
 const PATTERNS=[[0,0,2,1,2,1],[1,1,0,2,0,2],[2,0,2,1,0,1]];
 export const designCount=(level,classId,slot,boss=false)=>boss?1:2;
 export const designWeights=count=>count===1?[100]:[50,50];
-export function designItem(level,classId,slot,boss,design=0,tier){const item={level:Math.max(10,Math.floor(Math.min(220,level)/10)*10),classId,slot,boss,design};if(Number.isInteger(tier))item.bossTier=tier;return normalizeEquipment(item);}
+export function designItem(level,classId,slot,boss,design=0,tier){const item={level:clampEquipmentLevel(level,boss),classId,slot,boss,design};if(Number.isInteger(tier))item.bossTier=tier;return normalizeEquipment(item);}
 // 200레벨 이상 보스장비: 무기는 직업별 5등급, 나머지 8부위는 전 직업 공통 3등급(낮음·중간·높음).
 export const TIERED_BOSS_LEVEL=200;
 export const BOSS_WEAPON_TIER_NAMES=["최하","낮음","중간","높음","최상"];
@@ -77,8 +80,18 @@ const ORIGINAL_ART_FALLBACK = new Set(["archer-boss-alpha-v3-c2-r7.svg","archer-
 const TIER_WEAPON_PREFIX=["균열","성흔","심연","천멸","종언"];
 const TIER_ARMOR_PREFIX=["잔광의","황혼의","종언의"];
 const COMMON_ARMOR_NOUNS=["","투구","흉갑","각반","건틀릿","장화","반지","귀걸이","펜던트"];
+const HIGH_BOSS_NAMES={
+  250:{weapon:['홍염의 서약','적월의 계시','멸화의 권능','혈성의 심판','염제의 왕관'],armor:['잉걸의','홍련의','염제의']},
+  300:{weapon:['공허의 서약','극광의 계시','태허의 권능','초신성의 심판','영겁의 왕좌'],armor:['여명의','극광의','태허의']},
+};
 function tieredIdentity(item){
   const tier=bossTier(item),common=isCommonBossGear(item),type=equipmentType(item);
+  const high=equipmentTierLevel(item);
+  if(high>=250){
+    const n=HIGH_BOSS_NAMES[high],name=(common?n.armor[tier]+' '+COMMON_ARMOR_NOUNS[item.slot]:n.weapon[tier]+' '+type);
+    const art=common?`equipment/boss${high}/common-t${tier}-${item.slot}.webp`:`equipment/boss${high}/${item.classId}-t${tier}.webp`;
+    return {key:equipmentKey(item),name,art,type,tier,tierName:bossTierName(item),common,standalone:true,grid:false,column:0,row:0,columns:1,rows:1};
+  }
   if(Number(item.level)>=220){
     const names=common?['성운의','천상의','창세의']:['별의 맹세','성운의 계시','천상의 권능','창세의 심판','무한의 왕권'];
     const name=names[tier]+' '+(common?COMMON_ARMOR_NOUNS[item.slot]:type);
@@ -103,6 +116,7 @@ export function designIdentity(item) {
 }
 export const equipmentIdentity=designIdentity;
 export const EQUIPMENT_CATALOG=[
+  ...HIGH_BOSS_LEVELS.flatMap(level=>[...CLASSES.flatMap(classId=>Array.from({length:5},(_,tier)=>designItem(level,classId,0,true,2,tier))),...Array.from({length:8},(_,i)=>Array.from({length:3},(_,tier)=>designItem(level,CLASSES[0],i+1,true,2,tier))).flat()]),
   ...CLASSES.flatMap(classId=>Array.from({length:5},(_,tier)=>designItem(220,classId,0,true,2,tier))),
   ...Array.from({length:8},(_,i)=>Array.from({length:3},(_,tier)=>designItem(220,CLASSES[0],i+1,true,2,tier))).flat(),
   ...CLASSES.flatMap(classId=>LEVELS.flatMap(level=>Array.from({length:9},(_,slot)=>Array.from({length:3},(_,design)=>design===2&&level>=TIERED_BOSS_LEVEL?(slot===0?Array.from({length:5},(_,tier)=>designItem(level,classId,0,true,2,tier)):[]):[designItem(level,classId,slot,design===2,design)]).flat()).flat())),
