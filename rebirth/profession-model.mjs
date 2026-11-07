@@ -27,7 +27,7 @@ export const PROFESSIONS=Object.freeze([
  Object.freeze({id:'alchemist',name:'연금술사',icon:'⚗️',blurb:'큐브 가공 · 프라임·에디셔널·블랙 큐브',
   gather:{cube:7.5},
   recipes:[
-   {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:600000},
+   {id:'primeCube',name:'프라임 큐브',out:{primeCube:1},cost:{highCube:1,cube:2},gold:300000}, // 2026-11-07 도현: 60만 → 30만 G
    {id:'addCube',name:'에디셔널 큐브',out:{addCube:1},cost:{cube:2},gold:600000},
    // 2026-11-04 도현: 연금술사 블랙 큐브 제작 (블랙 기준가 50만, 이익 20만 규칙: 레드 1(10만) + 20만 G)
    {id:'highCube',name:'블랙 큐브',out:{highCube:1},cost:{cube:1},gold:200000},
