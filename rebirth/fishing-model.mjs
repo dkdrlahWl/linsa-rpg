@@ -252,6 +252,13 @@ export function fishingCommand(s,command,args,ctx){
   const hadEnchant=(f.enchants||[]).some(Boolean);f.enchants=[];
   return {type:'fishRodBuy',tier:next.tier,name:next.name,tokens:next.tokens,diamonds:next.diamonds,enchantReset:hadEnchant};
  }
+ // 2026-11-07 도현: 테스터·관리자 계정은 모든 낚싯대를 골라 쓸 수 있다 (구매 없이 자유 교체).
+ if(command==='fishRodSelect'){
+  require(s.isAdmin===true||s.isTester===true,'FORBIDDEN');const tier=Number(args.tier);
+  require(Number.isInteger(tier)&&tier>=1&&tier<=ROD_MAX,'FISHING_REFRESH_REQUIRED');require(!f.cast,'FISHING_CAST_ACTIVE');
+  f.rod=tier;const slots=enchantSlotCount(tier);f.enchants=(f.enchants||[]).slice(0,slots);
+  return {type:'fishRodSelect',tier,name:ROD_TIERS[tier-1].name};
+ }
  if(command==='fishTrain'){
   require(false,'FISHING_REFRESH_REQUIRED');const cost=rodGoldCost(f.rod);
   require(f.xp<cost,'FISHING_XP_FULL');require(integer(args.gold,1,cost-f.xp),'INVALID_FISHING_COST');spendGold(s,args.gold);f.xp+=args.gold;return {type:'fishTrain'};

@@ -1463,6 +1463,7 @@ function showEvents(events) {
     if(e.type==='fishBossClaim'){toast('🐋 '+e.name+' 처치 보상 · 토큰 '+Math.floor(e.tokens).toLocaleString('ko-KR')+' · 다이아 '+e.diamonds+' · 트로피 물고기!');continue;}
     if(e.type==='fishContestClaim'){toast('대어 대회 '+e.rank+'위 보상 · 다이아 '+e.diamonds+'개, 에디셔널 큐브 '+e.addCube+'개');continue;}
     if(e.type==='fishUpgrade'){toast('낚싯대 Lv.'+e.level+' 달성!');continue;}
+    if(e.type==='fishRodSelect'){toast('🎣 '+e.name+' 사용');continue;}
     if(e.type==='fishRodBuy'){sounds.play('loot-rare');toast('🎣 '+e.name+' 구매!'+(e.tier%2?' 새 낚시터가 열렸어요.':' 힘과 보너스가 올랐어요.')+(e.enchantReset?' 인챈트는 초기화됐어요.':''));continue;}
     if(e.type==='investSell'){toast('판매 완료 · '+fmt(e.amount)+' G 수령 / 수수료 '+fmt(e.fee)+' G');continue;}
     if(e.type==='lottoBuy'){toast(`번호 ${e.numbers.join(' · ')} · 복권 구매 완료`);continue;}
@@ -1851,6 +1852,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishCast'){fishingUI.sheet=null;fishingUI.seenCatch=state.fishing?.lastCatch?.at;fishingUI.bait=document.querySelector('#fishing-bait')?.value||fishingUI.bait;return await fishingCommandRequest('fishCast',{spot:fishingUI.spot,bait:fishingUI.bait,protocol:FISH_PROTOCOL});}
     // v3 낚시: 강화·인챈트·합성·각성
     if(action==='fishRodBuy')return await fishingCommandRequest('fishRodBuy',{tier:Number(arg)});
+    if(action==='fishRodSelect'){if(!state?.isAdmin&&!state?.isTester)return;return await fishingCommandRequest('fishRodSelect',{tier:Number(arg)});}
     if(action==='fishAutoBuy')return await fishingCommandRequest('fishAutoBuy',{plan:arg});
     if(action==='fishEnchantLock'){const i=Number(arg),l=new Set(fishingUI.locks||[]);l.has(i)?l.delete(i):l.add(i);fishingUI.locks=[...l];return render();}
     if(action==='fishEnchant'){const rod=state.fishing?.rod||1,slots=rod>=12?3:rod>=6?2:1;return await fishingCommandRequest('fishEnchant',{locks:(fishingUI.locks||[]).filter(i=>i<slots&&state.fishing?.enchants?.[i])});}

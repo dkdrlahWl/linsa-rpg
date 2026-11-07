@@ -133,3 +133,10 @@ console.log('PASS administrator/tester catches preserve old data without updatin
  const c2=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'brook',bait:'worm'},{now:now0+60000,random:Math.random,uuid}).castId;
  assert.throws(()=>fishingCommand(s,'fishHook',{id:c2,auto:true},{now:s.fishing.cast.biteAt,random:Math.random,uuid}),/FISHING_AUTO_REQUIRED/);
 }
+// 2026-11-07: 테스터·관리자는 모든 낚싯대를 자유롭게 고른다.
+{const {fishingCommand}=await import('./fishing-model.mjs');const {initialState}=await import('./engine.mjs');const {ROD_MAX}=await import('./fishing-data.mjs');const {fishingView}=await import('./fishing-ui.mjs');
+ const ctx={now:Date.now(),random:()=>.5,uuid:()=>crypto.randomUUID()};
+ for(const flag of ['isAdmin','isTester']){const t=initialState('warrior','테스트',ctx);t[flag]=true;fishingCommand(t,'fishRodSelect',{tier:ROD_MAX},ctx);assert.equal(t.fishing.rod,ROD_MAX);fishingCommand(t,'fishRodSelect',{tier:1},ctx);assert.equal(t.fishing.rod,1);}
+ const u=initialState('warrior','유저',ctx);assert.throws(()=>fishingCommand(u,'fishRodSelect',{tier:5},ctx),/FORBIDDEN/);assert.equal(u.fishing.rod,1);
+ assert.throws(()=>{const t=initialState('warrior','테스트',ctx);t.isAdmin=true;fishingCommand(t,'fishRodSelect',{tier:ROD_MAX+1},ctx);});
+ console.log('PASS 테스터·관리자 낚싯대 자유 선택');}
