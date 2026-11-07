@@ -518,5 +518,13 @@
         887
       ]
     }
-  ]
+  ],
+  "edgeRepair": {
+    "date": "2026-11-07",
+    "generator": "Built-in image generation",
+    "source": "exec-79635bd9-0e06-4125-936f-e30b00e5dc54.png",
+    "fish": "81-123",
+    "layout": "7x7 reading order, 43 occupied cells",
+    "changes": "Transparent backgrounds, restored fin silhouettes, soft alpha edges, padded 320px sprites"
+  }
 }

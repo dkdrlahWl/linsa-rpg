@@ -17,7 +17,7 @@ const mutBadge=fish=>{const m=fishMutationOf(fish);return m?`<em class="fish-mut
 const starBadge=fish=>fish.star?`<em class="fish-star">${'★'.repeat(fish.star)}</em>`:'';
 export const catchLabel=fish=>{const z=fishSizeOf(fish),m=fishMutationOf(fish);return [z.id!=='normal'?z.name:'',m?m.name:''].filter(Boolean).join(' ');};
 const NEW_FISHING_ART=/^(?:fish-(?:5[1-9]|[67]\d|80)|scene-(?:palace|volcano|origin)(?:-thumb)?|rod-(?:50|60|70))$/,V4_FISHING_ART=/^(?:fish-(?:8[1-9]|9\d|1\d\d)|scene-(?:glacier|galaxy)(?:-thumb)?|rod-tier-(?:1[7-9]|20)|fish-boss-\d)$/;
-const url=id=>{const art=id.startsWith('scene-')?(id.endsWith('-thumb')?id.slice(0,-6)+'-serene-thumb':id+'-serene'):id;const updated=V4_FISHING_ART.test(id)||/^(?:time-|weather-|menu-boss$)/.test(id);return new URL('./fishing/'+(updated?'update-20261106/':'')+art+'.webp'+(V4_FISHING_ART.test(id)?'?v=illustrated-v1':NEW_FISHING_ART.test(id)?'?v=serene-20261105':''),import.meta.url).href;};
+const url=id=>{const art=id.startsWith('scene-')?(id.endsWith('-thumb')?id.slice(0,-6)+'-serene-thumb':id+'-serene'):id;const updated=V4_FISHING_ART.test(id)||/^(?:time-|weather-|menu-boss$)/.test(id);return new URL('./fishing/'+(updated?'update-20261106/':'')+art+'.webp'+(V4_FISHING_ART.test(id)?'?v=soft-alpha-20261107':NEW_FISHING_ART.test(id)?'?v=serene-20261105':''),import.meta.url).href;};
 export const fishingRodArt=tier=>ROD_TIERS[Math.max(1,Math.min(ROD_TIERS.length,tier||1))-1].art;
 export const fishingArt=id=>['cube','scroll','highCube','primeCube','addCube'].includes(id)?currencyIconURL(id):url(id);
 const image=(id,cls='',alt='')=>`<img class="${cls}" src="${fishingArt(id)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
