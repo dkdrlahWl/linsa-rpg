@@ -3,9 +3,13 @@
 // 같은 캐릭터 카드끼리 합성하면 별이 오른다. 전투·아레나에는 영향 없음.
 // 2026-11-02 도현: 동료 버프 — SS급 신설(픽업 전용), 아스트리아는 일반 소환 S급으로 이동, 더 좋은 S급 5종 추가.
 export const COMPANION_GRADES=['SS','S','A','B','C','D','F'];
-export const COMPANION_GRADE_RATES={SS:0,S:.01,A:.05,B:.10,C:.20,D:.25,F:.39};
+const CELESTIA_RATE=.002;
+export const PICKUP_RATE=.005;
+export const COMPANION_GRADE_RATES={SS:CELESTIA_RATE,S:.01-CELESTIA_RATE,A:.05,B:.10,C:.20,D:.25,F:.39};
+export const PICKUP_GRADE_RATES={...COMPANION_GRADE_RATES,SS:PICKUP_RATE,S:.01-PICKUP_RATE};
 // id는 이미지 파일명(companions/<id>.webp)으로도 쓴다.
 export const COMPANIONS=[
+ {id:'pickup-celestia',grade:'SS',name:'셀레스티아',title:'천상의 여제 셀레스티아',min:20000,max:25000,weight:1},
  {id:'s1',grade:'S',name:'엘리시아',min:4000,max:5000,weight:35},
  {id:'s2',grade:'S',name:'카이로스',min:3500,max:4400,weight:65},
  {id:'s3',grade:'S',name:'세라피온',min:5500,max:6500,weight:20},
@@ -33,9 +37,7 @@ export const COMPANIONS=[
  {id:'f3',grade:'F',name:'줄리안',min:110,max:140,weight:20},
  {id:'f4',grade:'F',name:'에블린',min:140,max:180,weight:10},
 ];
-// 2026-11-02 도현: SS 상향 14,000~17,000 → 20,000~25,000 G/분 (이미 뽑은 카드는 같은 위치 비율로 옮김).
-export const PICKUP_COMPANION={id:'pickup-celestia',grade:'SS',name:'셀레스티아',title:'천상의 여제 셀레스티아',min:20000,max:25000,pickup:true};
-export const PICKUP_RATE=.005;
+export const PICKUP_COMPANION={id:'pickup-aurel',grade:'SS',name:'아우렐',title:'별의 금고지기 아우렐',min:35000,max:35000,pickup:true};
 export const PICKUP_PITY=80;
 export const COMPANION_BY_ID=Object.fromEntries([...COMPANIONS,PICKUP_COMPANION].map(c=>[c.id,c]));
 // 패시브: 종류는 1/3씩, 수치는 등급 상관없이 같은 범위에서 랜덤(%).
@@ -76,9 +78,9 @@ export function normalizeCompanions(s){
  c.summoned=Number.isInteger(c.summoned)?c.summoned:0;
  s.companions=c;return c;
 }
-export function rollGrade(random){
+export function rollGrade(random,rates=COMPANION_GRADE_RATES){
  let r=random();
- for(const g of COMPANION_GRADES){r-=COMPANION_GRADE_RATES[g];if(r<0)return g;}
+ for(const g of COMPANION_GRADES){r-=rates[g];if(r<0)return g;}
  return 'F';
 }
 // Within each grade, better base-income characters have lower weights.
@@ -88,7 +90,14 @@ export function rollCompanionCharacter(grade,random){
  for(const c of pool){roll-=c.weight;if(roll<0)return c;}
  return pool[pool.length-1];
 }
-export const companionSummonChance=id=>{const c=COMPANION_BY_ID[id];return c?COMPANION_GRADE_RATES[c.grade]*c.weight/COMPANIONS.filter(d=>d.grade===c.grade).reduce((sum,d)=>sum+d.weight,0):0;};
+export function companionSummonChance(id,banner='normal'){
+ const c=COMPANION_BY_ID[id],pickup=banner==='pickup';
+ if(!c)return 0;
+ if(c.grade==='SS')return pickup?(c.pickup?PICKUP_RATE:0):(c.pickup?0:CELESTIA_RATE);
+ const rates=pickup?PICKUP_GRADE_RATES:COMPANION_GRADE_RATES;
+ const total=COMPANIONS.filter(d=>d.grade===c.grade).reduce((sum,d)=>sum+d.weight,0);
+ return rates[c.grade]*c.weight/total;
+}
 // Descending integer weights: lowest 21, highest 1 (total 231).
 export function companionPassiveValueChance(type,value){
  const p=COMPANION_PASSIVES[type];if(!p||!Number.isInteger(value)||value<p.min||value>p.max)return 0;
@@ -100,19 +109,20 @@ export function rollCompanionPassiveValue(type,random){
  return p.max;
 }
 export function rollCompanion(random,id){
- const grade=rollGrade(random),def=rollCompanionCharacter(grade,random);
- const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)],p=COMPANION_PASSIVES[t];
+ return rollCompanionCard(rollCompanionCharacter(rollGrade(random),random),random,id);
+}
+function rollCompanionCard(def,random,id){
+ const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)];
  return {i:id,c:def.id,r:rint(random,def.min,def.max),t,v:rollCompanionPassiveValue(t,random),s:1};
 }
 export const companionPassiveDef=card=>{const p=COMPANION_PASSIVES[card.t];return p;};
 export function rollGuaranteedPickup(random,id){
- const t=COMPANION_PASSIVE_KEYS[Math.floor(random()*3)];
- return {i:id,c:PICKUP_COMPANION.id,r:rint(random,PICKUP_COMPANION.min,PICKUP_COMPANION.max),t,v:rollCompanionPassiveValue(t,random),s:1};
+ return rollCompanionCard(PICKUP_COMPANION,random,id);
 }
 export function rollPickupCompanion(random,id){
- const gradeRoll=random();
- if(gradeRoll>=PICKUP_RATE){let first=true;return rollCompanion(()=>{if(first){first=false;return gradeRoll;}return random();},id);}
- return rollGuaranteedPickup(random,id);
+ const grade=rollGrade(random,PICKUP_GRADE_RATES);
+ if(grade==='SS')return rollGuaranteedPickup(random,id);
+ return rollCompanionCard(rollCompanionCharacter(grade,random),random,id);
 }
 // 0~100: 분당 골드와 패시브 수치가 각자 범위에서 얼마나 높게 떴는지의 평균.
 export function companionQuality(card){

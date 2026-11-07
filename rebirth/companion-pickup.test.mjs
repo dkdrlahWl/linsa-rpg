@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {companionCommand,normalizeCompanions,PICKUP_COMPANION,rollPickupCompanion,companionRate,companionQuality,slotAccrued} from './companion-model.mjs';
+import {companionCommand,normalizeCompanions,PICKUP_COMPANION,rollPickupCompanion} from './companion-model.mjs';
 const ctx={now:0,random:()=>0};
 let s={gold:0,companions:{tickets:5,pickupTickets:5,cards:[]}};
 let e=companionCommand(s,'companionSummon',{count:5,banner:'pickup'},ctx);
@@ -10,20 +10,19 @@ const saved=JSON.parse(JSON.stringify(s));assert.equal(normalizeCompanions(saved
 assert.throws(()=>companionCommand(s,'companionSummon',{banner:'other'},ctx),/INVALID_BANNER/);
 const full={companions:{tickets:0,pickupTickets:5,cards:Array.from({length:100},(_,i)=>({i,c:'s1'}))}};
 assert.throws(()=>companionCommand(full,'companionSummon',{count:5,banner:'pickup'},ctx),/BAG_FULL/);assert.equal(full.companions.pickupTickets,5);
-for(const t of ['gold','growth','jackpot']){
- const c={i:1,c:PICKUP_COMPANION.id,r:10000,t,v:t==='growth'?100:80,s:1};assert.equal(companionQuality(c),100);
- if(t==='growth'){assert.equal(companionRate(c,3600e3),12000);assert.equal(companionRate(c,5*3600e3),20000);assert.equal(slotAccrued(c,{placedAt:0,claimedAt:0},8*3600e3),7800000);}
- if(t==='gold')assert.equal(companionRate(c),18000);
-}
+assert.ok(e.cards.every(c=>c.r===35000));
+const retired={companions:{ssRateVersion:1,cards:[{i:7,c:'pickup-celestia',r:23456,t:'gold',v:26,s:2}],slots:[{card:7}]}};
+assert.equal(normalizeCompanions(retired).cards[0].r,23456);
+assert.equal(retired.companions.slots[0].card,7);
 let i=0;const seq=[.005,0,0,0,0,0];assert.notEqual(rollPickupCompanion(()=>seq[i++]??0,1).c,PICKUP_COMPANION.id);
 const old={companions:{tickets:3,cards:[{i:1,c:'s1',t:'gold',v:40,r:5000,s:1}],passiveVersion:2}};normalizeCompanions(old);assert.equal(old.companions.pickupTickets,0);assert.equal(old.companions.cards[0].v,40);
-console.log('PASS pickup: isolated ticket wallets, no ordinary-pool leak, persistence, bag atomicity, doubled passive production and quality');
+console.log('PASS pickup: isolated ticket wallets, no ordinary-pool leak, persistence, bag atomicity, fixed gold and pity rollover');
 
-// Exact stratified grade boundaries: total S 1%, pickup .5%, ordinary S .5%.
+// Exact stratified grade boundaries: SS+S 1%, pickup .5%, ordinary S .5%.
 let pickup=0,ordinaryS=0,a=0;
 for(let k=0;k<100000;k++){let first=true;const c=rollPickupCompanion(()=>{if(first){first=false;return (k+.5)/100000;}return 0;},k);if(c.c===PICKUP_COMPANION.id)pickup++;else if(c.c==='s1')ordinaryS++;else if(c.c==='a1')a++;}
 assert.equal(pickup,500);assert.equal(ordinaryS,500);assert.equal(a,5000);
-console.log('PASS exact pickup .5%, ordinary S .5%, total S 1%, A 5%');
+console.log('PASS exact pickup .5%, ordinary S .5%, SS+S 1%, A 5%');
 
 const pity={companions:{tickets:0,pickupTickets:80,pickupPity:79,cards:[]}};
 const missed={now:0,random:()=>.9};

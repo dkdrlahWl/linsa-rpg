@@ -269,9 +269,9 @@ dialog.companion-dialog:has(.cp-sanctum):not([open]){display:none}
 .cp-portrait:has(img[src*="frame-ss"]) .cp-frame,.cp-g-SS .cp-frame{filter:saturate(1.6) brightness(.92) sepia(.25)}
 
 /* Complete companion art release: dedicated Celestia pickup environment. */
-.cp-sanctum.cp-pickup{background:linear-gradient(#07122c38,#08132bd9 65%,#08132bf5),url('companions/pickup-celestia-sanctum-v1.webp') center/cover}
-.cp-pickup .cp-banner-hero{background:url('companions/pickup-celestia-sanctum-v1.webp') center/cover;border:1px solid #efd28d80}
-.cp-pickup .cp-banner-art{object-fit:contain!important;object-position:center!important;background:transparent;filter:drop-shadow(0 0 15px #e5c67860)}
+.cp-sanctum.cp-pickup{background:linear-gradient(#07122c38,#08132bd9 65%,#08132bf5),url('companions/pickup-aurel-sanctum-v1.webp') center/cover}
+.cp-pickup .cp-banner-hero{background:url('companions/pickup-aurel-sanctum-v1.webp') center/cover;border:1px solid #efd28d80}
+.cp-pickup .cp-banner-art{object-fit:cover!important;object-position:center 31%!important;background:transparent}
 .cp-pickup .cp-banner-copy{background:linear-gradient(transparent,#07132ddd)}
 
 /* Painted rarity crests; the live grade letter stays crisp at phone size. */
