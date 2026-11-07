@@ -93,9 +93,13 @@ export const BAITS=[
 export const BAIT_RARE_CAP=4;
 // 2026-11-05 도현: 특수 미끼 값은 지금 낚싯대 단계에 비례 — 그 단계 지렁이 1회 수입(ROD_CAST_VALUE)의 %로, 늘어나는 수입의 약 절반.
 export const ROD_CAST_VALUE=Object.freeze([5,5.4,13,17,31,41,71,111,166,260,364,560,823,1600,3331,6420,9200,16500,23600,42700]);
-export const BAIT_COST_PCT=Object.freeze({shrimp:.035,pearl:.07,golden:.105,glow:.14,star:.175});
+// 2026-11-07 도현: 미끼 값 = 지렁이 대비 늘어나는 판매 토큰의 절반 (낚싯대 단계별, 그 단계 최고 낚시터·오토 4만 회 시뮬레이션 기준).
+// 이전에는 단계와 상관없이 한 번 던질 때 버는 토큰의 3.5~17.5%로 고정이라, 높은 단계에서 별가루 미끼 순이익이 +130%까지 커졌다.
+// 값은 낚싯대 1~20단계 순서, 한 번 던질 때 버는 토큰(ROD_CAST_VALUE) 대비 개당 가격 비율.
+export const BAIT_COST_PCT=Object.freeze({shrimp:[.043,.045,.055,.055,.055,.055,.055,.055,.055,.055,.055,.055,.055,.055,.076,.085,.091,.091,.091,.097],pearl:[.108,.108,.108,.108,.108,.108,.108,.108,.108,.108,.108,.108,.108,.108,.149,.165,.195,.195,.208,.213],golden:[.147,.147,.147,.147,.147,.147,.152,.152,.152,.152,.152,.152,.152,.152,.236,.267,.315,.315,.329,.333],glow:[.198,.198,.198,.198,.198,.198,.198,.198,.199,.199,.199,.199,.206,.206,.328,.365,.439,.439,.46,.462],star:[.238,.238,.238,.238,.238,.238,.238,.238,.238,.238,.261,.261,.261,.261,.432,.49,.596,.596,.638,.646]});
+const baitCostPct=(id,rod)=>{const a=BAIT_COST_PCT[id];return Array.isArray(a)?a[Math.max(1,Math.min(a.length,rod||1))-1]:(a||0);};
 export const BAIT_SPECIAL_LIMIT=600; // 싸게 사서 쌓아두고 높은 단계에서 쓰는 걸 막는 보유 한도(종류별)
-export const baitPackPrice=(bait,rod=1)=>bait?.gold?bait.gold:Math.max(10,Math.round(ROD_CAST_VALUE[Math.max(1,Math.min(ROD_CAST_VALUE.length,rod||1))-1]*(BAIT_COST_PCT[bait?.id]||0)*(bait?.pack||10)));
+export const baitPackPrice=(bait,rod=1)=>bait?.gold?bait.gold:Math.max(10,Math.round(ROD_CAST_VALUE[Math.max(1,Math.min(ROD_CAST_VALUE.length,rod||1))-1]*baitCostPct(bait?.id,rod)*(bait?.pack||10)));
 export const baitDiamondCost=()=>0;
 // 예전(v2) 미끼 다이아 값 — 초기화 환불용 (개당 다이아).
 export const LEGACY_BAIT_DIAMONDS={shrimp:2/15,pearl:4/10,star:6/5};
