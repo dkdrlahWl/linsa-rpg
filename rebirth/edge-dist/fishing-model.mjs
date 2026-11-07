@@ -249,14 +249,14 @@ export function fishingCommand(s,command,args,ctx){
   require(f.rod<ROD_MAX,'FISHING_MAX_LEVEL');const next=ROD_TIERS[f.rod];require(args.tier===next.tier,'FISHING_REFRESH_REQUIRED');
   require((f.diamonds||0)>=next.diamonds,'FISHING_DIAMONDS_REQUIRED');spendTokens(f,next.tokens);f.diamonds-=next.diamonds;f.rod=next.tier;
   // 2026-11-05 도현: 다음 낚싯대를 사면 인챈트는 초기화.
-  const hadEnchant=(f.enchants||[]).some(Boolean);f.enchants=[];
+  const hadEnchant=(f.enchants||[]).some(Boolean);f.enchants=[];delete f.enchantPending;
   return {type:'fishRodBuy',tier:next.tier,name:next.name,tokens:next.tokens,diamonds:next.diamonds,enchantReset:hadEnchant};
  }
  // 2026-11-07 도현: 테스터·관리자 계정은 모든 낚싯대를 골라 쓸 수 있다 (구매 없이 자유 교체).
  if(command==='fishRodSelect'){
   require(s.isAdmin===true||s.isTester===true,'FORBIDDEN');const tier=Number(args.tier);
   require(Number.isInteger(tier)&&tier>=1&&tier<=ROD_MAX,'FISHING_REFRESH_REQUIRED');require(!f.cast,'FISHING_CAST_ACTIVE');
-  f.rod=tier;const slots=enchantSlotCount(tier);f.enchants=(f.enchants||[]).slice(0,slots);
+  f.rod=tier;delete f.enchantPending;const slots=enchantSlotCount(tier);f.enchants=(f.enchants||[]).slice(0,slots);
   return {type:'fishRodSelect',tier,name:ROD_TIERS[tier-1].name};
  }
  if(command==='fishTrain'){
@@ -297,10 +297,17 @@ export function fishingCommand(s,command,args,ctx){
  if(command==='fishEnchant'){
   const slots=enchantSlotCount(f.rod),locks=Array.isArray(args.locks)?[...new Set(args.locks)]:[];
   require(locks.every(i=>Number.isInteger(i)&&i>=0&&i<slots&&f.enchants[i]),'INVALID_FISHING_ENCHANT');require(locks.length<slots,'INVALID_FISHING_ENCHANT');
+  // 2026-11-07 도현: 새로 뽑은 결과는 바로 적용하지 않고, 이전/새 인챈트 중 고르게 한다.
+  require(!f.enchantPending,'FISHING_ENCHANT_PENDING');
   const cost=enchantCost(locks.length,f.rod);require((f.diamonds||0)>=cost,'FISHING_DIAMONDS_REQUIRED');f.diamonds-=cost;
   const rollTier=()=>{let r=ctx.random();for(let i=ENCHANT_TIERS.length-1;i>0;i--){r-=ENCHANT_TIERS[i].p;if(r<0)return i;}return 0;};
   const next=[];for(let i=0;i<slots;i++)next[i]=locks.includes(i)?f.enchants[i]:{id:ENCHANTS[Math.floor(ctx.random()*ENCHANTS.length)].id,tier:rollTier()};
-  f.enchants=next;return {type:'fishEnchant',enchants:next,diamonds:cost};
+  f.enchantPending={enchants:next,diamonds:cost,at:ctx.now};return {type:'fishEnchant',enchants:next,diamonds:cost,pending:true};
+ }
+ if(command==='fishEnchantChoose'){
+  const p=f.enchantPending;require(p&&Array.isArray(p.enchants),'FISHING_ENCHANT_NONE');require(args.pick==='new'||args.pick==='old','INVALID_FISHING_ENCHANT');
+  if(args.pick==='new')f.enchants=p.enchants.slice(0,enchantSlotCount(f.rod));delete f.enchantPending;
+  return {type:'fishEnchantChoose',pick:args.pick,enchants:f.enchants};
  }
  // 2026-11-05 도현: 합성 삭제.
  if(command==='fishFuse'||command==='fishGoldFuse')require(false,'FISHING_FUSE_REMOVED');

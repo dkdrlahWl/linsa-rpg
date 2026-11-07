@@ -231,6 +231,8 @@ const errors = {
   FISHING_AQUARIUM_OPTIMAL: "이미 시간당 수익이 가장 높은 물고기들이 수족관에 있어요.",
   TESTER_BLOCKED: "테스트 계정은 사용할 수 없는 기능이에요.",
   FISHING_DIAMONDS_REQUIRED: "다이아가 부족해요. 낚시로 다이아 상자를 낚아 모아 보세요.",
+  FISHING_ENCHANT_PENDING: "먼저 이전 인챈트와 새 인챈트 중 하나를 골라 주세요.",
+  FISHING_ENCHANT_NONE: "고를 인챈트가 없어요. 새로고침해 주세요.",
   FISHING_EXCHANGE_LIMIT: "오늘 교환 한도(30개)를 다 썼어요. 자정에 초기화돼요.",
   INVALID_FISHING_EXCHANGE: "교환할 수 없는 항목이에요.",
   FISHING_CONTEST_CLOSED: "받을 수 있는 대회 기간이 아니에요.",
@@ -1452,7 +1454,8 @@ function showEvents(events) {
     if(e.type==='fishSell'){toast('낚시 토큰 '+fmt(e.tokens)+'개 받았어요.');continue;}
     if(e.type==='fishAquariumClaim'){toast(fmt(e.gold)+' G 받았어요.');continue;}
     if(e.type==='fishEnhance'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🔨 강화 성공! 낚싯대 +'+e.level:'강화 실패… 단계는 그대로예요 (+'+e.level+')');continue;}
-    if(e.type==='fishEnchant'){toast('✨ 인챈트를 새로 뽑았어요.');continue;}
+    if(e.type==='fishEnchant'){toast('✨ 새 인챈트를 뽑았어요. 이전과 새 인챈트 중 골라 주세요.');continue;}
+    if(e.type==='fishEnchantChoose'){toast(e.pick==='new'?'✨ 새 인챈트를 적용했어요.':'이전 인챈트를 유지했어요.');continue;}
     if(e.type==='fishAutoBuy'){toast('🤖 자동 낚시 '+e.casts.toLocaleString('ko-KR')+'회 추가 · 남은 오토 '+e.total.toLocaleString('ko-KR')+'회');continue;}
     if(e.type==='fishFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🧬 합성 성공!':'합성 실패… 1마리만 남았어요.');continue;}
     if(e.type==='fishGoldFuse'){sounds.play(e.success?'loot-rare':'ui-error');toast(e.success?'🌈 무지개 개체 탄생!':'황금 합성 실패… 황금 1마리가 남았어요.');continue;}
@@ -1855,6 +1858,7 @@ document.addEventListener("click", async (e) => {
     if(action==='fishRodSelect'){if(!state?.isAdmin&&!state?.isTester)return;return await fishingCommandRequest('fishRodSelect',{tier:Number(arg)});}
     if(action==='fishAutoBuy')return await fishingCommandRequest('fishAutoBuy',{plan:arg});
     if(action==='fishEnchantLock'){const i=Number(arg),l=new Set(fishingUI.locks||[]);l.has(i)?l.delete(i):l.add(i);fishingUI.locks=[...l];return render();}
+    if(action==='fishEnchantChoose')return await fishingCommandRequest('fishEnchantChoose',{pick:arg==='new'?'new':'old'});
     if(action==='fishEnchant'){const rod=state.fishing?.rod||1,slots=rod>=12?3:rod>=6?2:1;return await fishingCommandRequest('fishEnchant',{locks:(fishingUI.locks||[]).filter(i=>i<slots&&state.fishing?.enchants?.[i])});}
     if(action==='fishFuse'){const [sp,size]=String(arg).split(':'),sizeOf=x=>x.size||'normal';const list=(state.fishing?.fish||[]).filter(x=>x.species===sp&&sizeOf(x)===size).sort((a,b)=>(a.mut?1:0)-(b.mut?1:0)||a.weight-b.weight).slice(0,3);if(list.length<3)return;return await fishingCommandRequest('fishFuse',{ids:list.map(x=>x.id)});}
     if(action==='fishGoldFuse'){const golds=(state.fishing?.fish||[]).filter(x=>x.mut==='gold');const rank=x=>D_FISH_RARITY(x.species);const best=golds.slice().sort((a,b)=>rank(b)-rank(a))[0];const rest=golds.filter(x=>x!==best).sort((a,b)=>rank(a)-rank(b)).slice(0,4);if(!best||rest.length<4)return;return await fishingCommandRequest('fishGoldFuse',{ids:[best.id,...rest.map(x=>x.id)]});}

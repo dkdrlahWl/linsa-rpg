@@ -44,9 +44,9 @@ const fresh=()=>({gold:1e9,materials:{},fishing:{version:3,rodScheme:16,rod:16,x
  s.fishing.tokens=1e7;s.fishing.diamonds=1000;
  assert.throws(()=>fishingCommand(s,'fishEnhance',{},{now,random,uuid}),/FISHING_ENHANCE_REMOVED/);
  s.fishing.rod=5;s.fishing.enchants=[];
- fishingCommand(s,'fishEnchant',{},{now,random,uuid});assert.equal(s.fishing.enchants.length,1);
+ fishingCommand(s,'fishEnchant',{},{now,random,uuid});fishingCommand(s,'fishEnchantChoose',{pick:'new'},{now,random,uuid});assert.equal(s.fishing.enchants.length,1);
  assert.throws(()=>fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid}),/INVALID_FISHING_ENCHANT/,'cannot lock every open slot');
- s.fishing.rod=16;const t0=s.fishing.tokens,d0=s.fishing.diamonds;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(d0-s.fishing.diamonds,140);assert.equal(s.fishing.tokens,t0,'enchant costs diamonds, not tokens');
+ s.fishing.rod=16;const t0=s.fishing.tokens,d0=s.fishing.diamonds;fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid});fishingCommand(s,'fishEnchantChoose',{pick:'new'},{now,random,uuid});assert.equal(s.fishing.enchants.length,3);assert.equal(d0-s.fishing.diamonds,140);assert.equal(s.fishing.tokens,t0,'enchant costs diamonds, not tokens');
  s.fishing.diamonds=139;assert.throws(()=>fishingCommand(s,'fishEnchant',{locks:[0]},{now,random,uuid}),/FISHING_DIAMONDS_REQUIRED/);s.fishing.diamonds=1000;
  {const t={fishing:structuredClone(s.fishing)};t.fishing.rod=3;t.fishing.enchants=[{id:t.fishing.enchants[0]?.id||'bite',tier:3}];t.fishing.tokens=1e9;t.fishing.diamonds=1e6;const r=fishingCommand(t,'fishRodBuy',{tier:4},{now,random,uuid});assert.equal(t.fishing.rod,4);assert.deepEqual(t.fishing.enchants,[]);assert.equal(r.enchantReset,true);}
  {const {baitPackPrice,BAITS:BB}=await import('./fishing-data.mjs');s.fishing.bait.star=0;const tk=s.fishing.tokens;fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'tokens'},{now,random,uuid});assert.equal(s.fishing.bait.star,10);assert.equal(tk-s.fishing.tokens,baitPackPrice(BB.find(x=>x.id==='star'),s.fishing.rod));s.fishing.bait.star=600;assert.throws(()=>fishingCommand(s,'fishBaitBuy',{bait:'star',count:10,currency:'tokens'},{now,random,uuid}),/FISHING_BAIT_LIMIT/);}
@@ -140,3 +140,15 @@ console.log('PASS administrator/tester catches preserve old data without updatin
  const u=initialState('warrior','유저',ctx);assert.throws(()=>fishingCommand(u,'fishRodSelect',{tier:5},ctx),/FORBIDDEN/);assert.equal(u.fishing.rod,1);
  assert.throws(()=>{const t=initialState('warrior','테스트',ctx);t.isAdmin=true;fishingCommand(t,'fishRodSelect',{tier:ROD_MAX+1},ctx);});
  console.log('PASS 테스터·관리자 낚싯대 자유 선택');}
+// 2026-11-07: 인챈트는 뽑은 뒤 이전/새 중 고른다.
+{const {fishingCommand}=await import('./fishing-model.mjs');const {initialState}=await import('./engine.mjs');
+ let n=0;const ctx={now:Date.now(),random:()=>((n=(n*9301+49297)%233280)/233280),uuid:()=>crypto.randomUUID()};
+ const t=initialState('warrior','인챈트',ctx);(await import('./fishing-model.mjs')).normalizeFishing(t,ctx.now);t.fishing.rod=12;t.fishing.diamonds=1e4;
+ fishingCommand(t,'fishEnchant',{},ctx);assert.ok(t.fishing.enchantPending);assert.equal(t.fishing.enchants.filter(Boolean).length,0,'not applied before choosing');
+ assert.throws(()=>fishingCommand(t,'fishEnchant',{},ctx),/FISHING_ENCHANT_PENDING/);
+ const fresh=structuredClone(t.fishing.enchantPending.enchants);fishingCommand(t,'fishEnchantChoose',{pick:'new'},ctx);assert.deepEqual(t.fishing.enchants,fresh);assert.equal(t.fishing.enchantPending,undefined);
+ const before=structuredClone(t.fishing.enchants),d=t.fishing.diamonds;fishingCommand(t,'fishEnchant',{},ctx);assert.ok(t.fishing.diamonds<d,'cost paid on roll');
+ fishingCommand(t,'fishEnchantChoose',{pick:'old'},ctx);assert.deepEqual(t.fishing.enchants,before);assert.throws(()=>fishingCommand(t,'fishEnchantChoose',{pick:'new'},ctx),/FISHING_ENCHANT_NONE/);
+ fishingCommand(t,'fishEnchant',{},ctx);t.fishing.tokens=1e12;fishingCommand(t,'fishRodBuy',{tier:13},ctx);assert.equal(t.fishing.enchantPending,undefined);
+ const {fishingView,fishingUI}=await import('./fishing-ui.mjs');fishingCommand(t,'fishEnchant',{},ctx);fishingUI.panel='enchant';const html=fishingView(t);assert.match(html,/data-action="fishEnchantChoose" data-arg="old"/);assert.match(html,/data-action="fishEnchantChoose" data-arg="new"/);
+ console.log('PASS 인챈트 이전/새 선택');}
