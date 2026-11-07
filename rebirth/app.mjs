@@ -1203,10 +1203,12 @@ async function loadRankings(quiet=false) {
   } catch(err) { rankingError=message(err); }
   finally { if(requestId===rankingRequest){rankingLoading=false;if(view==="ranking")render();} }
 }
+// 2026-11-07 도현: 관리자 송금 — 재화·소모품·동료 소환권 등 보낼 수 있는 것 전부.
+const ADMIN_TRANSFER_NAMES=()=>({gold:"골드",diamond:"다이아",token:"토큰",mileage:"셀리아 마일리지",fishToken:"낚시 토큰",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",treasureTicket:"보물찾기 티켓",tribeTicket:"종족 주사위",luckPotion:"행운 물약",...D.MATERIALS});
 function adminTransferDialog(id) {
   if(!state?.isAdmin)return;
   const target=rankingRows.find(r=>r.id===id);if(!target)return toast("랭킹을 새로고침한 뒤 선택해 주세요.");
-  open("관리자 송금",`<div class="stack"><p><strong>${esc(target.name)}</strong> · Lv.${target.level} · ${esc(D.CLASSES.find(c=>c.id===target.classId)?.name||"")}</p><label>재화 · 소비템<select id="transfer-resource">${Object.entries({gold:"골드",diamond:"다이아",...D.MATERIALS}).map(([key,name])=>`<option value="${key}">${esc(name)}</option>`).join("")}</select></label><label>보낼 수량<input id="transfer-amount" type="number" inputmode="numeric" min="1" max="999999999999" step="1" value="1"></label><p class="note">수수료 없이 입력한 수량 전부가 상대방 보유량에 추가됩니다. 관리자 재화는 999,999,999,999로 유지됩니다.</p>${btn("송금하기","adminTransferSend",id,"gold",true)}</div>`);
+  open("관리자 송금",`<div class="stack"><p><strong>${esc(target.name)}</strong> · Lv.${target.level} · ${esc(D.CLASSES.find(c=>c.id===target.classId)?.name||"")}</p><label>재화 · 소비템<select id="transfer-resource">${Object.entries(ADMIN_TRANSFER_NAMES()).map(([key,name])=>`<option value="${key}">${esc(name)}</option>`).join("")}</select></label><label>보낼 수량<input id="transfer-amount" type="number" inputmode="numeric" min="1" max="999999999999" step="1" value="1"></label><p class="note">수수료 없이 입력한 수량 전부가 상대방 보유량에 추가됩니다. 관리자 재화는 999,999,999,999로 유지됩니다.</p>${btn("송금하기","adminTransferSend",id,"gold",true)}</div>`);
 }
 function goldTransferDialog(id) {
   const target=rankingRows.find(r=>r.id===id&&!r.isMe);
@@ -1476,7 +1478,7 @@ function showEvents(events) {
     if(e.type==='goldTransferClaim'){toast(`우편에서 ${fmt(e.amount)} G를 받았습니다.`);continue;}
     if(e.type==="bossChest"){modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("보스 장비 획득",`${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${e.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});continue;}
     if(e.type==="petSummon"){const show=()=>{open("달빛 소환 결과",petResult(e)+btn("보유 펫 보기","petBag","","gold")+btn("확인","close"));modal.classList.add("summon-result-dialog");};if(e.rewards.some(r=>r.key==="pet")){sounds.play("loot-rare");playLumiReveal(show);}else playSummonReveal(e,show);continue;}
-    if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${e.resource==="gold"?"골드":e.resource==="diamond"?"다이아":D.MATERIALS[e.resource]} ${fmt(e.amount)} 송금 완료`);continue;}
+    if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${ADMIN_TRANSFER_NAMES()[e.resource]||e.resource} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
       const MAIL_NAMES={fishToken:"낚시 토큰",tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
