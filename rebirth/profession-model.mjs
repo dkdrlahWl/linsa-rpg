@@ -81,14 +81,14 @@ export function professionGather(s,key){
  const p=normalizeProfession(s);if(!p)return 1;
  const def=professionById(p.id),bonus=def?.gather?.[key];if(!bonus)return 1;
  const t=(p.level-1)/(PROFESSION_MAX_LEVEL-1),scale=0.5+0.5*t;
- // 2026-11-07 도현: 연금술사 레드 큐브 하루 Lv.1 400개 → Lv.10 1,600개 (11-05: 50 → 200) (사냥 9,000마리 기준 기본 1.8개).
+ // 2026-11-07 도현: 연금술사 레드 큐브 하루 Lv.1 200개 → Lv.10 800개 (11-05: 50 → 200) (사냥 9,000마리 기준 기본 1.8개).
  if(p.id==='alchemist'&&key==='cube')return (ALCHEMIST_CUBE_DAILY[0]+(ALCHEMIST_CUBE_DAILY[1]-ALCHEMIST_CUBE_DAILY[0])*t)/ALCHEMIST_CUBE_BASE;
  // 2026-11-05 도현: 어부 다이아 Lv.1 +50% → Lv.10 +150%.
  if(p.id==='fisher'&&key==='diamond')return 1.5+t;
  return (1+bonus*scale)*(key==='fragment'?professionFragmentBoost(s):1);
 }
-// 2026-11-07 도현: 연금술사 레드 큐브 하루 Lv.1 400개 → Lv.10 1,600개 (이전 50 → 200).
-export const ALCHEMIST_CUBE_DAILY=[400,1600],ALCHEMIST_CUBE_BASE=9000*0.0002;
+// 2026-11-07 도현: 연금술사 레드 큐브 하루 Lv.1 200개 → Lv.10 800개 (이전 50 → 200, 4배 비율 유지).
+export const ALCHEMIST_CUBE_DAILY=[200,800],ALCHEMIST_CUBE_BASE=9000*0.0002;
 // 2026-11-05 도현: 광부·탐험가 장비 파편 하루 획득량 Lv.1 400개 → Lv.10 1,200개 (레벨마다 균등 증가).
 // 기준 하루: 사냥 9,000마리(파편 0.3%=27개) + 장비 분해 약 80개 + 성채 60개. 사냥·분해·성채 전부에 같은 배율을 곱한다.
 export const FRAGMENT_DAILY_BASE={hunt:27,other:140},FRAGMENT_DAILY_TARGET=[400,1200];
