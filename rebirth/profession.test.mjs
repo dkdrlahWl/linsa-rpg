@@ -11,7 +11,7 @@ const seq=(...v)=>{let i=0;return()=>v[i++%v.length];};
 // 잠금: 일반 유저는 선택·제작 불가
 if(!PROFESSION_OPEN)assert.throws(()=>professionCommand({gold:1,materials:{}},'professionChoose',{id:'alchemist'},t0,Math.random),/PROFESSION_LOCKED/);
 // 직업 재료 드랍: 4종 랜덤, 총 개수 보존
-{const m=rollJobMaterials(40,seq(0.1,0.8,0.88,0.97));assert.deepEqual(m,{essence:10,mapPiece:10,pearl:10,ore:10});}
+{const m=rollJobMaterials(40,seq(0.1,0.87,0.93,0.98));assert.deepEqual(m,{essence:10,mapPiece:10,pearl:10,ore:10});}
 const s={gold:100000000,isAdmin:true,materials:{fragment:100,cube:50,highCube:20,essence:30,mapPiece:5,ore:9},fishing:{diamonds:30},companions:{tickets:0,pickupTickets:0},treasure:{tickets:0}};
 assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'primeCube',count:1},t0,Math.random),/PROFESSION_REQUIRED/);
 professionCommand(s,'professionChoose',{id:'alchemist'},t0,Math.random);assert.equal(s.gold,100000000,'first choice free');
