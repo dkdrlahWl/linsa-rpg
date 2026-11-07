@@ -98,7 +98,7 @@
 .fishing-site-special{display:block;font-size:9px!important;color:#ffe6a9!important;font-weight:600}
 .fishing-token-big{font-size:34px;line-height:1.2}
 .bait-golden{filter:hue-rotate(-40deg) saturate(1.6) brightness(1.1)}
-@media(max-width:600px){.fish-fuse-list{grid-template-columns:1fr}.rod-enchant-slots{grid-template-columns:1fr}}
+@media(max-width:600px){.fish-fuse-list{grid-template-columns:1fr}}
 /* v3 손맛 낚시 (클릭 · 가로 막대) */
 .fishing-scene .fishing-reel{position:absolute;left:14px;right:14px;bottom:52px;z-index:3;pointer-events:none;animation:reel-in .25s ease-out;--strain:0}
 @keyframes reel-in{from{transform:translateY(24px);opacity:0}}
@@ -387,3 +387,30 @@ body #app .fishing-screen .fishing-boss-banner.is-down{border-color:#ffd477!impo
 .rod-enchant-compare .rod-enchant-slot.changed{box-shadow:inset 0 0 0 2px #ffd34d55}
 .rod-enchant-compare .rod-enchant-slot.same{opacity:.7}
 .rod-enchant-compare button{width:100%}
+
+/* 2026-11-07 인챈트 창 한눈에 보기 (모바일 포함) */
+.rod-enchant{padding:10px 10px 8px}
+.rod-enchant h3{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
+.rod-enchant h3 em{font-style:normal;font-size:12px;font-weight:600;color:#ffe9a8;display:inline-flex;align-items:center;gap:3px;margin-left:auto}
+.rod-enchant h3 em img{width:15px;height:15px}
+.rod-enchant h3 small{flex-basis:100%;font-size:10.5px;line-height:1.35}
+.rod-enchant .rod-enchant-slots{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:8px}
+.rod-enchant .rod-enchant-slot{position:relative;min-height:62px;padding:6px 6px 5px;gap:2px;font-size:11.5px;line-height:1.3;border-radius:9px;word-break:keep-all}
+.rod-enchant .rod-enchant-slot b{font-size:10.5px;padding-right:24px}
+.rod-enchant .rod-enchant-slot span{display:block}
+.rod-enchant .rod-enchant-slots .rod-enchant-slot{padding-right:28px}
+.rod-enchant .rod-enchant-empty{color:#8f9aa0;font-size:11px;margin:auto 0}
+.rod-enchant .rod-enchant-lock{position:absolute;top:4px;right:4px;width:22px;height:22px;min-height:0!important;min-width:0!important;padding:0!important;margin:0;border-radius:7px;border:1px solid #5a6a72;background:#162a36;font-size:12px;line-height:1;display:grid;place-items:center;box-shadow:none}
+.rod-enchant .rod-enchant-lock.on{border-color:#ffd34d;background:#3a2f12}
+.rod-enchant .rod-enchant-roll{width:100%;min-height:40px}
+.rod-enchant-info{margin-top:6px;font-size:10.5px;color:#a9b2ae}
+.rod-enchant-info summary{cursor:pointer;color:#cdbf9f;font-size:11px}
+.rod-enchant-info p{margin:4px 0 0;line-height:1.45}
+.rod-enchant-pick{margin-top:0;padding:8px}
+.rod-enchant-pick>p{margin:0 0 6px}
+.rod-enchant .rod-enchant-compare{display:grid;grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr);gap:5px 4px;align-items:stretch}
+.rod-enchant-compare>i{display:grid;place-items:center;font-style:normal;color:#ffd34d;font-size:12px}
+.rod-enchant-col{font-size:11px;color:#cdbf9f;font-weight:600}
+.rod-enchant .rod-enchant-compare .rod-enchant-slot{min-height:46px}
+.rod-enchant-choose{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.rod-enchant-choose button{width:100%;min-height:40px}
