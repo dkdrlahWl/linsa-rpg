@@ -10,6 +10,8 @@ const pct=x=>Math.round(x*100)+'%';
 const GATHER_LABELS={cube:'사냥 레드 큐브',highCube:'링탐 블랙 큐브',diamond:'낚시 다이아',fragment:'장비 파편(사냥·분해·성채)'};
 // 효과 표기: 드랍률형은 실제 확률, 개수형은 +%
 const DROP_RATE={cube:1,fragment:1};
+// 2026-11-07 도현: 직업 선택 카드의 채집 보너스(Lv.1 → Lv.10)를 실제 계산식(professionGather)으로 표시 — 예전엔 옛 공식이라 어부 다이아가 +25%→+50%로 잘못 보였다.
+const gatherRange=(id,k)=>[1,PROFESSION_MAX_LEVEL].map(level=>professionGather({profession:{id,level,xp:0,bonus:0,crafted:0,chosenAt:0}},k));
 const gatherText=(k,mult)=>DROP_RATE[k]?`드랍률 <b>×${+mult.toFixed(mult>=10?1:2)}</b>`:`<b>+${Math.round((mult-1)*100)}%</b>`;
 const REF_PRICE={highCube:500000,primeCube:1500000,addCube:1000000,dungeonKey:8000000,treasureTicket:2000000,bonusFlame:5000000,companionTicket:4000000,pickupTicket:6000000,potentialLock:4500000,transcendStone:10000000};
 const icon=k=>`<img class="prof-ic" src="${currencyIconURL(k)}" alt="" title="${RESOURCE_NAMES[k]||k}">`;
@@ -32,7 +34,7 @@ export function professionView(s,now=Date.now(),counts={}){
 }
 function card(d,s,disabled=false,counts={}){
  const jm=JOB_MATERIALS[d.id],n=Number(counts?.[d.id])||0,full=n>=PROFESSION_SLOTS&&!s.isAdmin&&!s.isTester;
- return `<article class="prof-card" data-profession="${d.id}"><div class="prof-card-art"><img src="${art(d.id)}" alt="${d.name} 전용 일러스트" loading="lazy"><span>전문 직업 · ${n}/${PROFESSION_SLOTS}명</span><h4>${d.name}</h4></div><div class="prof-card-body"><p>${esc(d.blurb)}</p><p class="prof-jobmat"><small>제작 1회당 소모</small><span>${icon(jm)}<b>${RESOURCE_NAMES[jm]} 1개</b></span></p><ul>${d.recipes.map(r=>`<li>${icon(Object.keys(r.out)[0])}<b>${r.name}</b><span>${Object.entries(r.cost).map(([k,v])=>chip(k,v)).join('')}${goldChip(r.gold)}</span></li>`).join('')}</ul><small>채집 보너스 (Lv.1 → Lv.10)${Object.entries(d.gather).map(([k,v])=>`<span>${GATHER_LABELS[k]||k} ${DROP_RATE[k]?`×${+(1+v/2).toFixed(2)} → <b>×${+(1+v).toFixed(2)}</b>`:`+${Math.round(v*50)}% → <b>+${Math.round(v*100)}%</b>`}</span>`).join('')}${d.id==='fisher'?'<span>하루 낚시 <b>1,000회</b> (일반 600회)</span><span>물고기 가방 <b>300칸</b> (일반 150칸)</span>':''}</small><button data-action="professionChoose" data-arg="${d.id}" ${disabled||full?'disabled':''}>${full?'정원 마감':normalizeProfession(s)?'이 직업으로 변경':d.name+' 선택'}</button></div></article>`;
+ return `<article class="prof-card" data-profession="${d.id}"><div class="prof-card-art"><img src="${art(d.id)}" alt="${d.name} 전용 일러스트" loading="lazy"><span>전문 직업 · ${n}/${PROFESSION_SLOTS}명</span><h4>${d.name}</h4></div><div class="prof-card-body"><p>${esc(d.blurb)}</p><p class="prof-jobmat"><small>제작 1회당 소모</small><span>${icon(jm)}<b>${RESOURCE_NAMES[jm]} 1개</b></span></p><ul>${d.recipes.map(r=>`<li>${icon(Object.keys(r.out)[0])}<b>${r.name}</b><span>${Object.entries(r.cost).map(([k,v])=>chip(k,v)).join('')}${goldChip(r.gold)}</span></li>`).join('')}</ul><small>채집 보너스 (Lv.1 → Lv.10)${Object.entries(d.gather).map(([k])=>{const [a,b]=gatherRange(d.id,k);return `<span>${GATHER_LABELS[k]||k} ${DROP_RATE[k]?`×${+a.toFixed(a>=10?1:2)} → <b>×${+b.toFixed(b>=10?1:2)}</b>`:`+${Math.round((a-1)*100)}% → <b>+${Math.round((b-1)*100)}%</b>`}</span>`;}).join('')}${d.id==='fisher'?'<span>하루 낚시 <b>1,000회</b> (일반 600회)</span><span>물고기 가방 <b>300칸</b> (일반 150칸)</span>':''}</small><button data-action="professionChoose" data-arg="${d.id}" ${disabled||full?'disabled':''}>${full?'정원 마감':normalizeProfession(s)?'이 직업으로 변경':d.name+' 선택'}</button></div></article>`;
 }
 // 제작창 상단: 이 직업 레시피에 쓰이는 재료(직업 재료 포함) + 골드 보유량
 function wallet(s,def){
