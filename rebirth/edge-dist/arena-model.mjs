@@ -7,7 +7,7 @@ import {beginFifth,stepFifth,fifthUnlocked} from './fifth-job.mjs';
 import {supportTick,holyDamage} from './priest.mjs';
 import {botName} from './arena-names.mjs';
 import {makeItem,power} from './engine.mjs';
-import {ARENA_BALANCE,ARENA_BALANCE_VERSION,arenaPower,arenaSkillScale,arenaAbsorbDamage,scaleArenaSupport,arenaHealThreshold,arenaDamageScale} from './arena-balance.mjs';
+import {ARENA_UNIFORM_SKILLS,ARENA_UNIFORM,ARENA_SUPPORT,ARENA_BALANCE,ARENA_BALANCE_VERSION,arenaPower,arenaSkillScale,arenaAbsorbDamage,scaleArenaSupport,arenaHealThreshold,arenaDamageScale} from './arena-balance.mjs';
 
 export const ARENA_BOT_COUNT=2000;
 export const ARENA_CLASSES=['warrior','mage','archer','rogue','pirate','priest'];
@@ -158,35 +158,54 @@ export function simulateArena(leftState,rightState,seed='arena'){
    const hit=(scale,critAdd=0,target=b,slot=0)=>{
     if(a.hp<=0||b.hp<=0)return;
     const crit=random()<Math.min(.95,(a.power.crit||.05)+critAdd);
-    const raw=a.power.attack*arenaSkillScale(a.classId,slot,scale)*(crit?a.power.critDamage||1.6:1);
+    const raw=a.power.attack*(ARENA_UNIFORM_SKILLS&&slot?scale:arenaSkillScale(a.classId,slot,scale))*(crit?a.power.critDamage||1.6:1);
     // Arena HP is thirtyfold for readable fights; HP-based offensive flat damage keeps its normal scale.
     const flat=a.holyFlatDamage||0;a.holyFlatDamage=flat/ARENA_BALANCE.hpMultiplier;
-    const modified=holyDamage(a,raw,tick)*arenaDamageScale(a);a.holyFlatDamage=flat;
+    const modified=(ARENA_UNIFORM_SKILLS?raw:holyDamage(a,raw,tick))*arenaDamageScale(a);a.holyFlatDamage=flat;
     const mitigation=1/(1+Math.max(0,b.power.defense||0)/2600);
-    const damage=Math.max(0,Math.round(arenaAbsorbDamage(b,modified*mitigation*(.92+random()*.16),tick)));
+    const sustain=ARENA_UNIFORM_SKILLS&&b.classId==='priest'?1-ARENA_SUPPORT.priestTrade*ARENA_SUPPORT.priestSustainRate:1;
+    // 2026-11-09: 전투가 길어져(HP 200배) 피해 편차가 묻히므로 타격당 편차를 ±8%→±20%로.
+    const damage=Math.max(0,Math.round(arenaAbsorbDamage(b,modified*mitigation*sustain*(.8+random()*.4),tick)));
     b.hp=Math.max(0,b.hp-damage);
     snapshot(side,{type:slot?'skill':'basic',slot,skill:slot?skillSets[slot][a.classId]?.name:null,damage,crit});
    };
-   if(tick>=a.nextCast){
-    const unlocked=slot=>slot===5?fifthUnlocked(a):slot===1?firstJobUnlocked(a.state):a.advancement>=slot-1;
-    const available=slot=>unlocked(slot)&&tick>=a.opening[slot]&&tick>=(a[readyKeys[slot]]||0);
-    // Heal when injured, protect before heavy attacks, and use each unlocked offensive skill.
-    let order=[5,4,3,2,1];
-    if(a.classId==='priest')order=a.hp/a.maxHp<=.55?[5,2,3,4,1]:a.hp/a.maxHp<=.8?[2,3,4,5,1]:[3,4,1,5,2];
-    for(const slot of order){
-     if(!available(slot)||a.classId==='priest'&&[2,5].includes(slot)&&a.hp/a.maxHp>arenaHealThreshold(a,slot))continue;
-     const cast=slot<=2?beginCombatSkill(a,b,tick,slot):slot===3?beginThird(a,b,tick):slot===4?beginFourth(a,b,tick):beginFifth(a,b,tick);
-     if(cast){snapshot(side,{type:'cast',slot,skill:skillSets[slot][a.classId].name,damage:0,crit:false});a.nextCast=tick+7;break;}
+   if(ARENA_UNIFORM_SKILLS){
+    // 2026-11-09 도현: 아레나 공통 스킬 틱 — 직업별 스킬 로직 대신 슬롯마다 같은 총량·지속시간·쿨타임으로 피해를 나눠 넣는다.
+    // 직업 특성·스킬 구성 차이를 전부 없애고, 남는 차이는 장비·잠재·코스튬·칭호뿐. 사제의 회복·보호막은 지원 효과로 유지(수치는 ARENA_SUPPORT).
+    a.casts||=[];
+    if(tick>=a.nextCast){
+     const unlocked=slot=>slot===5?fifthUnlocked(a):slot===1?firstJobUnlocked(a.state):a.advancement>=slot-1;
+     for(const slot of [5,4,3,2,1]){
+      const u=ARENA_UNIFORM[slot];
+      if(!unlocked(slot)||tick<a.opening[slot]||tick<(a.uniformReady?.[slot]||0))continue;
+      (a.uniformReady||={})[slot]=tick+u.cooldown;a.casts.push({slot,next:tick,left:u.hits,step:Math.max(1,Math.round(u.seconds*10/u.hits)),each:u.total/u.hits*(a.classId==='priest'?1-ARENA_SUPPORT.priestTrade:1)});
+      snapshot(side,{type:'cast',slot,skill:skillSets[slot][a.classId]?.name||'스킬',damage:0,crit:false});a.nextCast=tick+7;break;
+     }
     }
+    for(const c of a.casts)while(c.left>0&&tick>=c.next){hit(c.each,0,b,c.slot);c.left--;c.next+=c.step;}
+    a.casts=a.casts.filter(c=>c.left>0);
+   }else{
+     if(tick>=a.nextCast){
+      const unlocked=slot=>slot===5?fifthUnlocked(a):slot===1?firstJobUnlocked(a.state):a.advancement>=slot-1;
+      const available=slot=>unlocked(slot)&&tick>=a.opening[slot]&&tick>=(a[readyKeys[slot]]||0);
+      // Heal when injured, protect before heavy attacks, and use each unlocked offensive skill.
+      let order=[5,4,3,2,1];
+      if(a.classId==='priest')order=a.hp/a.maxHp<=.55?[5,2,3,4,1]:a.hp/a.maxHp<=.8?[2,3,4,5,1]:[3,4,1,5,2];
+      for(const slot of order){
+       if(!available(slot)||a.classId==='priest'&&[2,5].includes(slot)&&a.hp/a.maxHp>arenaHealThreshold(a,slot))continue;
+       const cast=slot<=2?beginCombatSkill(a,b,tick,slot):slot===3?beginThird(a,b,tick):slot===4?beginFourth(a,b,tick):beginFifth(a,b,tick);
+       if(cast){snapshot(side,{type:'cast',slot,skill:skillSets[slot][a.classId].name,damage:0,crit:false});a.nextCast=tick+7;break;}
+      }
+     }
+     stepCombatSkills(a,[b],tick,hit);
+     stepThird(a,b,tick,(scale,critAdd=0)=>hit(scale,critAdd,b,3));
+     stepFourth(a,b,tick,(scale,critAdd=0)=>hit(scale,critAdd,b,4));
+     stepFifth(a,[b],tick,hit);
+     const hpBefore=a.hp,shieldBefore=a.shield||0;
+     scaleArenaSupport(a);
+     supportTick([a],tick);
+     if(a.hp>hpBefore||(a.shield||0)>shieldBefore)snapshot(side,{type:'support',skill:(a.shield||0)>shieldBefore?'성역의 결계':'체력 회복',damage:0,heal:Math.round(a.hp-hpBefore),shield:Math.round((a.shield||0)-shieldBefore),crit:false});
    }
-   stepCombatSkills(a,[b],tick,hit);
-   stepThird(a,b,tick,(scale,critAdd=0)=>hit(scale,critAdd,b,3));
-   stepFourth(a,b,tick,(scale,critAdd=0)=>hit(scale,critAdd,b,4));
-   stepFifth(a,[b],tick,hit);
-   const hpBefore=a.hp,shieldBefore=a.shield||0;
-   scaleArenaSupport(a);
-   supportTick([a],tick);
-   if(a.hp>hpBefore||(a.shield||0)>shieldBefore)snapshot(side,{type:'support',skill:(a.shield||0)>shieldBefore?'성역의 결계':'체력 회복',damage:0,heal:Math.round(a.hp-hpBefore),shield:Math.round((a.shield||0)-shieldBefore),crit:false});
    if(tick>=a.nextBasic&&b.hp>0){hit(1);a.nextBasic=tick+Math.max(1,Math.round(10/Math.max(.6,a.power.cadence||1)));}
   }
  }
