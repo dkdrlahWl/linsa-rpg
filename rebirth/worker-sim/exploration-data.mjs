@@ -1,5 +1,5 @@
-import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending,CITADEL_BOSS_FLOORS} from './citadel-zero.mjs?v=expl1116b-20261108';
-import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs?v=expl1116b-20261108';
+import {isCitadel,CITADEL_CONTENT,CITADEL_TIER,citadelFloor,citadelStats,citadelPopulation,citadelStage,citadelBossOrdinal,citadelChestPending,CITADEL_BOSS_FLOORS} from './citadel-zero.mjs?v=priest90-20261108';
+import {makeExplorationDungeon,makeExplorationArena,revealDungeon,dungeonWalkable,nearestWalkable} from './exploration-dungeon.mjs?v=priest90-20261108';
 // Calibrated against 도현 warrior Lv.200 snapshot, 2026-10-10 KST.
 export const EXPLORATION_VERSION='exploration-arena-196';
 export const EXPLORATIONS=[

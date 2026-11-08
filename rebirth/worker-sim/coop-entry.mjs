@@ -1,7 +1,7 @@
-import {isDungeon} from './citadel-zero.mjs?v=expl1116b-20261108';
-import {EXPLORATION_MOVE_SPEED,dungeonMoveSpeed} from './exploration-data.mjs?v=expl1116b-20261108';
-import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=expl1116b-20261108';
-import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=expl1116b-20261108';
+import {isDungeon} from './citadel-zero.mjs?v=priest90-20261108';
+import {EXPLORATION_MOVE_SPEED,dungeonMoveSpeed} from './exploration-data.mjs?v=priest90-20261108';
+import {dungeonMove,revealDungeon} from './exploration-dungeon.mjs?v=priest90-20261108';
+import {TOWER_CLASSES,towerFacing} from './tower-model.mjs?v=priest90-20261108';
 
 const bound=n=>Math.max(120,Math.min(3080,n));
 export function beginCoopEntry(w,now){

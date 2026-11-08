@@ -1,11 +1,11 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=expl1116b-20261108';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=expl1116b-20261108';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=expl1116b-20261108';
-import {beginThird,stepThird} from './advancement.mjs?v=expl1116b-20261108';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=expl1116b-20261108';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=expl1116b-20261108';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=expl1116b-20261108';
-import {incomingDamage} from './journey-balance.mjs?v=expl1116b-20261108';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove} from './raid-content.mjs?v=priest90-20261108';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=priest90-20261108';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=priest90-20261108';
+import {beginThird,stepThird} from './advancement.mjs?v=priest90-20261108';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=priest90-20261108';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=priest90-20261108';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=priest90-20261108';
+import {incomingDamage} from './journey-balance.mjs?v=priest90-20261108';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>8)throw Error('INVALID_COOP_ROOM');
