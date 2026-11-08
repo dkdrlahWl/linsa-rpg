@@ -212,14 +212,15 @@ function advanceCoopTimeline(room,user,input,now){
  const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),stored=loadNet(room),net=stored?{points:[...stored.points],frames:[...stored.frames],static:{...stored.static}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
- for(const f of [...queued,...input.frames.map(f=>({...f,user}))]){
+ for(const f of [...queued.map(f=>({...f,queued:true})),...input.frames.map(f=>({...f,user}))]){
   if(f.tick<Math.max(net.points[0].tick,upto-30))continue;
   if(f.tick>upto+2){
    // A paused citadel clock resumes one tick at a time. Already-admitted
    // packets can still be up to the client's 30-tick prediction lead ahead.
    // Leave them in the durable queue (and unacknowledged on the client)
    // until their tick arrives, instead of rejecting every subsequent poll.
-   if(isCitadel(room)&&f.tick<=room.tick+30)continue;
+   if(isCitadel(room)&&(f.queued||f.tick<=room.tick+30))continue;
+   // 2026-11-08: 이미 큐에 들어간 미래 프레임 때문에 방이 영구히 막히지 않게(민당·김민정 성채 접속 불가 건).
    throw Error('INVALID_COOP_FUTURE');
   }
   const key=f.user+':'+f.tick;if(known.has(key))continue;known.add(key);

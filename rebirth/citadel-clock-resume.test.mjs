@@ -20,6 +20,8 @@ for(const floor of [2,16,21]){
  assert.equal(w.tick,306);assert.ok(w.members.every(m=>m.inputAck===298),'all four queued inputs are eventually accepted');
  assert.equal(w._net.frames.filter(f=>f.tick===298).length,4,'duplicate delivery cannot duplicate frame execution');
  const before=JSON.stringify(w);advanceCoop(w,'p0',{frames:[]},130600);assert.equal(JSON.stringify(w),before,'input world remains immutable');
- assert.throws(()=>advanceCoop({...initial,_queuedInputs:[{user:'p1',tick:initial.tick+31,input:[0,0,0]}]},'p0',{frames:[]},128100),/INVALID_COOP_FUTURE/,'prediction window stays bounded');
+ // 2026-11-08: a far-future frame already in the durable queue must not brick the room (민당·김민정 성채 건).
+assert.doesNotThrow(()=>advanceCoop({...initial,_queuedInputs:[{user:'p1',tick:initial.tick+31,input:[0,0,0]}]},'p0',{frames:[]},128100),'queued far-future frames are skipped');
+assert.throws(()=>advanceCoop(initial,'p0',{frames:[{tick:initial.tick+40,input:[0,0,0]}]},128100),/INVALID_COOP_FUTURE/,'prediction window stays bounded');
 }
 console.log('PASS citadel idle resume: 4 players, 3 floors, deferred and duplicated input retained, forward progress, rewards/membership preserved, future bound enforced');
