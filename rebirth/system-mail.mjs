@@ -2,6 +2,11 @@ import {normalizeCompanions} from './companion-model.mjs';
 import {normalizeTribe} from './tribe-model.mjs?v=balance-20261102';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id:'weekend-20261109-gold-500m',
+  title:'주말 보너스', sender:'링구 RPG 운영팀',
+  message:'즐거운 주말 보내셨나요? 주말 보너스 골드 5억을 보내드립니다!',
+  sentAt:'2026-11-08T17:55:00Z', rewards:{gold:500000000},
+}, {
   id:'big-update-20261102-gift',
   title:'대규모 업데이트 기념 선물', sender:'링구 RPG 운영팀',
   message:'토큰 던전·종족 강림·동료 SS급 등 대규모 업데이트를 기념해 선물을 보내드립니다! 200제 보스 장비 상자는 직업·부위 랜덤(무기는 다른 부위의 절반 확률)이에요.',
@@ -89,6 +94,7 @@ export function claimSystemMail(state, id, grantBossGear) {
   if(mail.rewards.bossChest200&&!grantBossGear)throw new Error('INVALID_MAIL_REWARD');
   for (const [key, amount] of Object.entries(mail.rewards)) {
     if(key==='bossChest200'){for(let k=0;k<amount;k++)items.push(grantBossGear({kind:'wheelBossChest',minLevel:200,maxLevel:200}));continue;}
+    if(key==='gold'){state.gold=Math.min(9e12,(Number.isSafeInteger(state.gold)?state.gold:0)+amount);continue;}
     if(key==='tokens'){state.tokens=Math.min(9999999,(Number.isSafeInteger(state.tokens)?state.tokens:0)+amount);continue;}
     if(key==='pickupTicket')normalizeCompanions(state).pickupTickets+=amount;
     else if(key==='companionTicket')normalizeCompanions(state).tickets+=amount;

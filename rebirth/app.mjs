@@ -1481,8 +1481,8 @@ function showEvents(events) {
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${ADMIN_TRANSFER_NAMES()[e.resource]||e.resource} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
-      const MAIL_NAMES={fishToken:"낚시 토큰",tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
-      const text=Object.entries(e.rewards||{}).filter(([k])=>k!=="bossChest200").map(([k,n])=>(MAIL_NAMES[k]||D.MATERIALS[k]||k)+" "+fmt(n)+(["companionTicket","pickupTicket"].includes(k)?"장":"개")).join(" · ");
+      const MAIL_NAMES={gold:"골드",tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
+      const text=Object.entries(e.rewards||{}).filter(([k])=>k!=="bossChest200").map(([k,n])=>(MAIL_NAMES[k]||D.MATERIALS[k]||k)+" "+fmt(n)+(k==="gold"?" G":["companionTicket","pickupTicket"].includes(k)?"장":"개")).join(" · ");
       if(e.items?.length){const it=e.items[0];modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("우편 보상 수령",`<p>${esc(text)}</p>${gearMarkup(it.item,"big-item")}<h3>${esc(D.gearName(it.item))}</h3><p>Lv.${it.item.level} 보스 장비 · ${it.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});}
       else toast(text+" 받았습니다.");
       continue;
