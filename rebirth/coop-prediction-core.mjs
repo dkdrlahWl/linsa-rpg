@@ -1,4 +1,4 @@
-import {predictCoopStep,indexCoopFrames} from './worker-sim/coop-model.mjs?v=expl1116-20261108';
+import {predictCoopStep,indexCoopFrames} from './worker-sim/coop-model.mjs?v=expl1116b-20261108';
 export const effectKey=e=>[e.owner||'',e.kind,e.id,e.start,e.slot??'',e.pulse??''].join(':');
 const positions=w=>({enemy:{...w.enemy},members:w.members.map(m=>({id:m.id,x:m.x,y:m.y})),monsters:(w.monsters||[]).map(m=>({id:m.id,x:m.x,y:m.y}))});
 export class CoopPredictionCore{
