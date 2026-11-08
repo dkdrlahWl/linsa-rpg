@@ -191,6 +191,18 @@ export function setWaveSpeed(room,user,speed,now){
  // Replay snapshots retain combat history, while the authoritative clock stays current.
  return world;
 }
+// 2026-11-08 도현(성채 튕김·렉): 서버가 잠깐 멈추면(5분마다 수 초) 입력이 늦게 와도 시간을 그대로 진행시켜
+// 멈춰 선 캐릭터가 보스 공격에 전멸하고 로비로 나가졌다. 성채는 가장 최근 입력보다 2초(20틱) 넘게 앞서 진행하지 않는다.
+// 한 명만 끊기면 다른 사람 입력으로 계속 진행되고, 모두 늦으면 잠깐 멈췄다가 입력이 오면 이어서 진행한다.
+const CITADEL_INPUT_LEAD=20;
+function citadelInputCap(room,user,input){
+ if(!isCitadel(room)||room.status!=='fighting')return Infinity;
+ let fresh=-1;
+ for(const m of room.members||[])if(!m.left)fresh=Math.max(fresh,m.inputAck??-1);
+ for(const f of input?.frames||[])if(Number.isFinite(f?.tick))fresh=Math.max(fresh,f.tick);
+ for(const f of room._queuedInputs||[])if(Number.isFinite(f?.tick)&&room.members.some(m=>m.id===f.user&&!m.left))fresh=Math.max(fresh,f.tick);
+ return fresh<0?Infinity:fresh+CITADEL_INPUT_LEAD;
+}
 export function advanceCoop(room,user,input,now){
  const world=advanceCoopTimeline(room,user,input,waveClock(room,now));
  for(const key of ['waveSpeed','speedAt','speedTime'])if(room[key]!==undefined)world[key]=room[key];
@@ -209,7 +221,7 @@ function advanceCoopTimeline(room,user,input,now){
  // Citadel has no clock limit: after a long gap (everyone idle, admin moves) resume from the
  // current tick instead of fast-forwarding monsters while every player's input is too old.
  if(isCitadel(room)&&room.status==='fighting'&&Math.floor((now-room.started)/100)-room.tick>50)room={...room,started:now-(room.tick+1)*100};
- const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.floor((now-origin)/100))),stored=loadNet(room),net=stored?{points:[...stored.points],frames:[...stored.frames],static:{...stored.static}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
+ const origin=room.status==='won'?room.lootStarted:room.started,upto=Math.min(room.status==='won'||['wave','exploration','citadel'].includes(room.mode)?room.tick+100:coopLimit(room),Math.max(room.tick,Math.min(Math.floor((now-origin)/100),citadelInputCap(room,user,input)))),stored=loadNet(room),net=stored?{points:[...stored.points],frames:[...stored.frames],static:{...stored.static}}:(()=>{const n={points:[],frames:[],static:{}};n.points.push(historyPoint(room,n));return n;})();
  let earliest=Infinity;const known=new Set(net.frames.map(f=>f.user+':'+f.tick));
  const queued=(room._queuedInputs||[]).filter(f=>validFrame(f)&&room.members.some(m=>m.id===f.user&&!m.left));
  for(const f of [...queued.map(f=>({...f,queued:true})),...input.frames.map(f=>({...f,user}))]){
