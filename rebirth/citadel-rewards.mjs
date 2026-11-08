@@ -55,6 +55,7 @@ export function grantCitadelChests(input,room,userId,ctx){
  state.citadelEver=[...new Set([...(state.citadelEver||[]),...bosses])].sort((a,b)=>a-b);
  // 2026-11-05 도현: 보스별 입장은 링탐처럼 오름차순 해금 — 처치한 보스 기록(다음 보스 입장 조건).
  if(room.citadelBoss)state.citadelBossClear=[...new Set([...(state.citadelBossClear||[]),...bosses])].sort((a,b)=>a-b);state.citadelMaxFloor=Math.max(state.citadelMaxFloor||0,room.floor||0);
+ if(room.citadelBoss===6&&room.rewardChest?.conquerorTitle===true&&bosses.includes(6))state.citadelConquerorClear=true;
  state.lastReward=reward;
  return {state,reward};
 }

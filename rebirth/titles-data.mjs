@@ -45,7 +45,7 @@ const ROWS=[
  ['expl0','유적의 탐험가','탐험','rare','달빛 수림의 유적 클리어',s=>expl(s,0)],
  ['expl1','불꽃 광산의 생존자','탐험','epic','용암 수정 광산 클리어',s=>expl(s,1)],
  ['expl2','별의 심연을 걸은 자','탐험','legend','별의 심연 성전 클리어',s=>expl(s,2)],
- ['citadel6','성채 파괴자','성채','legend','암흑성채 보스 6마리 전부 처치',s=>citadelBosses(s).size>=6],
+ ['citadelConqueror','암흑성채 정복자','성채','myth','암흑성채 6단계 암흑의 화신 처치 후 보상 상자 받기',s=>s.citadelConquerorClear===true],
  ['raid0','심해의 정복자','레이드','rare','탈라손(Lv.60) 레이드 클리어',s=>(s.raidCleared||[]).includes(0)],
  ['raid1','용철을 꺾은 자','레이드','epic','이그니바르(Lv.100) 레이드 클리어',s=>(s.raidCleared||[]).includes(1)],
  ['raid2','떨어진 별을 잠재운 자','레이드','legend','아스테리아(Lv.150) 레이드 클리어',s=>(s.raidCleared||[]).includes(2)],

@@ -634,6 +634,7 @@ export function execute(input, command, args = {}, ctx) {
   const r=executeCore(input,title?'sync':command,title?{}:args,ctx),s=r.state;
   if(command==='titleSync'&&ctx.titleStats&&typeof ctx.titleStats==='object')s.titleStats={...ctx.titleStats,at:ctx.now};
   s.titles=s.titles&&typeof s.titles==='object'?s.titles:{};
+  delete s.titles.citadel6;
   for(const id of newlyEarnedTitles(s,()=>power(s).combatPower)){s.titles[id]=ctx.now;r.events.push({type:'titleEarned',id,name:TITLE_BY_ID[id].name,grade:TITLE_BY_ID[id].grade});}
   if(command==='titleEquip'){
     const id=args.id??null;

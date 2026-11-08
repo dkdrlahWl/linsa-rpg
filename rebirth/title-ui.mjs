@@ -33,7 +33,7 @@ export function titlePanelView(s){
  const tabs=[['all','전체',count+'/'+TITLES.length],['owned','보유',''],['locked','미보유',''],...TITLE_GRADES.map(g=>[g.id,g.name,per(g.id)])];
  return `<section class="title-panel">
   <div class="title-panel-head"><div><small>TITLE COLLECTION</small><strong>${count} / ${TITLES.length}</strong><span class="title-bonus">보유 효과 · 치명타 피해 +${(count*TITLE_CRIT_DAMAGE*100).toFixed(1)}%</span></div>
-   <div class="title-current">${s.title?`<span>장착 중</span>${titleBadge(s.title,'md')}<button data-illustrated="1" class="title-unequip" data-action="titleEquip" data-arg="">해제</button>`:'<span>장착한 칭호가 없어요</span>'}</div></div>
+   <div class="title-current">${TITLE_BY_ID[s.title]?`<span>장착 중</span>${titleBadge(s.title,'md')}<button data-illustrated="1" class="title-unequip" data-action="titleEquip" data-arg="">해제</button>`:'<span>장착한 칭호가 없어요</span>'}</div></div>
   <nav class="title-tabs">${tabs.map(([k,l,c])=>`<button data-illustrated="1" class="${filter===k?'active':''} ${['common','rare','epic','legend','myth'].includes(k)?'g-'+k:''}" data-action="titleFilter" data-arg="${k}">${l}${c?`<small>${c}</small>`:''}</button>`).join('')}</nav>
   <div class="title-grid">${list.map(t=>{const has=!!owned[t.id],on=s.title===t.id;return `<button data-illustrated="1" class="title-tile g-${t.grade} ${has?'owned':'locked'} ${on?'equipped':''}" data-action="titleDetail" data-arg="${t.id}" aria-label="${esc(t.name)}"><img src="${titleArt(t.id)}" alt="" loading="lazy" decoding="async">${on?'<em>장착</em>':has?'':'<i aria-hidden="true">🔒</i>'}</button>`;}).join('')}</div>
   <p class="note">칭호 하나를 얻을 때마다 치명타 피해가 0.5%씩 올라요 (장착하지 않아도 적용). 칭호를 누르면 조건과 장착 버튼이 나오고, 장착한 칭호는 랭킹·협동 로비에서 이름 옆에 표시돼요.</p>
