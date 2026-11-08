@@ -1,6 +1,6 @@
 // 칭호 (titles): cosmetic only. Earned automatically from state + server stats (arena/lotto/market/investment).
 // Add new tiers by appending rows; ids are permanent (saved in state.titles).
-import {BOSSES,STAGES,MAX_LEVEL} from './data.mjs';
+import {BOSSES,STAGES,MAX_LEVEL,SLOTS} from './data.mjs';
 import {TOWER_FLOORS} from './tower-model.mjs';
 import {EXPLORATIONS} from './exploration-data.mjs';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
@@ -20,6 +20,11 @@ const citadelBosses=s=>new Set([...(s.citadelEver||[]),...(s.citadelClaims?.boss
 const FISH_V1=FISH.slice(0,50);
 const fishOf=(s,rarity)=>Object.keys(s.fishing?.collection||{}).some(id=>{const f=FISH.find(f=>f.id===id);return f?.rarity===rarity&&f.cond?.boss==null;}); // 보스 트로피는 제외
 const equippedItems=s=>Object.values(s.equipped||{}).map(id=>(s.items||[]).find(i=>i.id===id)).filter(Boolean);
+const ownsBossGear=(s,level)=>(s.items||[]).some(i=>i.boss&&i.level===level);
+const wearsBossSet=(s,level)=>{
+ const slots=new Set(equippedItems(s).filter(i=>i.boss&&i.level===level).map(i=>i.slot));
+ return SLOTS.every((_,slot)=>slots.has(slot));
+};
 const weekly=BOSSES.filter(b=>b.weekly).map(b=>b.id),daily=BOSSES.filter(b=>!b.weekly).map(b=>b.id);
 const st=s=>s.titleStats||{};
 
@@ -124,6 +129,24 @@ const ROWS=[
  ['vip8','황금 저울의 주인','셀리아','legend','셀리아 VIP 8 · 누적 거래 500억 G',s=>vipTier(s).level>=8],
  ['vip9','셀리아의 귀빈','셀리아','myth','셀리아 VIP 9 · 누적 거래 700억 G',s=>vipTier(s).level>=9],
  ['vip10','셀리아의 단골','셀리아','myth','셀리아 VIP 10 · 누적 거래 1,000억 G',s=>vipTier(s).level>=10],
+ ['tower35','서리 계단의 선봉','탑','legend','시련의 탑 35층 클리어',s=>tower(s,35)],
+ ['tower40','천공의 경계인','탑','legend','시련의 탑 40층 클리어',s=>tower(s,40)],
+ ['tower45','별층의 심판자','탑','myth','시련의 탑 45층 클리어',s=>tower(s,45)],
+ ['tower50','오십 층의 왕좌','탑','myth','시련의 탑 50층 클리어',s=>tower(s,50)],
+ ['expl6','심연의 길잡이','탐험','epic','링구의 탐험 6단계 클리어 보상 받기',s=>expl(s,6)],
+ ['expl8','천공의 탐험가','탐험','legend','링구의 탐험 8단계 클리어 보상 받기',s=>expl(s,8)],
+ ['expl10','별무덤의 생존자','탐험','legend','링구의 탐험 10단계 클리어 보상 받기',s=>expl(s,10)],
+ ['expl13','멸화를 건넌 자','탐험','myth','링구의 탐험 13단계 클리어 보상 받기',s=>expl(s,13)],
+ ['expl16','영겁의 귀환자','탐험','myth','링구의 탐험 16단계 클리어 보상 받기',s=>expl(s,16)],
+ ['boss220First','천체의 유물','장비','epic','220제 보스 장비 1개 이상 보유',s=>ownsBossGear(s,220)],
+ ['boss220Full','천체 군주의 갑주','장비','legend','220제 보스 장비로 9부위 전부 착용',s=>wearsBossSet(s,220)],
+ ['boss250First','황혼의 전리품','장비','legend','250제 보스 장비 1개 이상 보유',s=>ownsBossGear(s,250)],
+ ['boss250Full','종언의 무장','장비','myth','250제 보스 장비로 9부위 전부 착용',s=>wearsBossSet(s,250)],
+ ['boss300First','창세의 유물','장비','legend','300제 보스 장비 1개 이상 보유',s=>ownsBossGear(s,300)],
+ ['boss300Full','창세의 완전무장','장비','myth','300제 보스 장비로 9부위 전부 착용',s=>wearsBossSet(s,300)],
+ ['boss300Star25','창세의 별을 벼린 자','강화','myth','25성 300제 보스 장비 1개 이상 보유',s=>(s.items||[]).some(i=>i.boss&&i.level===300&&i.stars>=25)],
+ ['job7','일곱 번째 각성','전직','myth','7차 전직 완료',s=>(s.advancement||0)>=6],
+ ['rod20','은하를 낚는 손','낚시','myth','무한 은하 낚싯대(20단계) 보유',s=>s.fishing?.version>=3&&s.fishing.rod>=20],
 ];
 // ALL_TITLES includes not-yet-released rows (art is pre-built); TITLES is what players can see/earn now.
 export const ALL_TITLES=ROWS.map(([id,name,category,grade,condition,check,when],i)=>({id,name,category,grade,rank:G[grade],condition,check,order:i,available:!when||!!when()}));
