@@ -2,7 +2,12 @@
 import {TITLES,TITLE_BY_ID,TITLE_GRADES,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const newTitleArt=new Set(['look3','look6jobs','look9','look18']);
-export const titleArt=id=>'titles/'+id+'.svg?v='+(/^vip\d+$/.test(id)?'celia-title-style-v2':newTitleArt.has(id)?'skill-collection-20261025':'tower30-20261013');
+const milestoneArt=new Set([
+ 'tower35','tower40','tower45','tower50','expl6','expl8','expl10','expl13','expl16',
+ 'boss220First','boss220Full','boss250First','boss250Full','boss300First','boss300Full',
+ 'boss300Star25','job7','rod20',
+]);
+export const titleArt=id=>'titles/'+id+'.svg?v='+(milestoneArt.has(id)?'milestone-painted-v1':/^vip\d+$/.test(id)?'celia-title-style-v2':newTitleArt.has(id)?'skill-collection-20261025':'tower30-20261013');
 const gradeName=g=>TITLE_GRADES.find(x=>x.id===g)?.name||'';
 
 // Compact badge for ranking rows, lobbies and the player strip.
