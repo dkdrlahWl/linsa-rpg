@@ -16,6 +16,11 @@ const url = Deno.env.get("SUPABASE_URL")!;
 const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const origin = "https://dkdrlahwl.github.io";
+// Key-order independent JSON (jsonb reorders object keys).
+const canonicalJson = (value: unknown): string => JSON.stringify(value, function (this: unknown, _key: string, v: unknown) {
+  if (v && typeof v === "object" && !Array.isArray(v)) return Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  return v;
+});
 Deno.serve(async (req) => {
   const cors = {
     "Access-Control-Allow-Origin": origin,
@@ -288,7 +293,9 @@ Deno.serve(async (req) => {
         );
         // 2026-11-03 연결 지연 개선: commit이 우리가 계산한 결과를 그대로 저장했으면(재전송 영수증이 아님)
         // 저장된 상태 = computed.state, 리비전 = snap.revision+1 이므로 상태 전체를 다시 읽지 않는다.
-        const own = JSON.stringify(result) === JSON.stringify({ events: computed.events });
+        // 2026-11-08: jsonb는 키 순서를 바꿔 돌려주므로 키를 정렬해서 비교한다. 그냥 비교하면 항상 달라서
+        // 보스 물고기 공격(fish_boss_hit)이 한 번도 반영되지 않았다.
+        const own = canonicalJson(result) === canonicalJson({ events: computed.events });
         const latest = own
           ? { state: computed.state, revision: snap.revision + 1 }
           : await rpc("rebirth_snapshot", { p_request: body.requestId });
