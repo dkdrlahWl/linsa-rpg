@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
-import {coopInputWire,deferCoopWrite} from './coop-transport-policy.mjs';
+import {coopInputWire,deferCoopWrite,stampCoopWriter,COOP_WRITER_LEASE_MS} from './coop-transport-policy.mjs';
 import {encodeCoopView} from './coop-wire.mjs';
 const start=100000;
 const room={id:'r',mode:'exploration',started:start,tick:0,status:'fighting',members:[]};
@@ -11,12 +11,17 @@ assert.ok(writes<=10&&writes>=8,'four participants coalesce to at most ten write
 assert.equal(room.tick,27,'simulation catches up without dropping ticks');
 for(const overrides of [{entryWaiting:true},{pendingOutcome:true},{status:'won'},{status:'lost'},{mode:'raid'}])assert.equal(deferCoopWrite({...room,...overrides},start+2800,true),false);
 assert.equal(deferCoopWrite(room,start+2800,false),false);
-// 2026-11-04: 4인 탐험은 차례인 한 명만 저장(2~5틱 지연), 6틱 이상이면 누구나 저장
-{const r={...room,tick:10,members:['a','b','c','d'].map(id=>({id}))},t=start+1250,turn=r.members[Math.floor(10/3)%4].id;
- assert.equal(r.members.filter(m=>!deferCoopWrite(r,t,true,m.id)).map(m=>m.id).join(),turn,'only the turn holder writes');
- assert.ok(r.members.every(m=>deferCoopWrite(r,start+1050,true,m.id)),'under 2 ticks nobody writes');
- assert.ok(r.members.every(m=>!deferCoopWrite(r,start+1650,true,m.id)),'6+ ticks behind anyone writes');
- assert.ok(r.members.every(m=>!deferCoopWrite({...r,members:[{id:m.id}]},t,true,m.id)),'solo always writes');}
+// 2026-11-09: 저장자 임대 — 임대가 살아 있으면 저장자만 저장, 임대가 끝나거나 저장자가 나가면 누구나 저장, 2틱 미만이면 아무도 저장 안 함
+{const r={...room,tick:10,members:['a','b','c','d'].map(id=>({id}))},t=start+1250;
+ assert.equal(r.members.filter(m=>!deferCoopWrite(r,t,true,m.id)).map(m=>m.id).join(),'a,b,c,d','no lease: anyone may write');
+ const leased=stampCoopWriter({...r},'b',t-500);
+ assert.equal(r.members.filter(m=>!deferCoopWrite(leased,t,true,m.id)).map(m=>m.id).join(),'b','live lease: only the writer writes');
+ assert.equal(r.members.filter(m=>!deferCoopWrite(leased,t-500+COOP_WRITER_LEASE_MS+1,true,m.id)).map(m=>m.id).join(),'a,b,c,d','expired lease: anyone writes');
+ const gone={...leased,members:leased.members.map(m=>m.id==='b'?{...m,left:true}:m)};
+ assert.equal(gone.members.filter(m=>!m.left&&!deferCoopWrite(gone,t,true,m.id)).map(m=>m.id).join(),'a,c,d','writer left: others write');
+ assert.ok(r.members.every(m=>deferCoopWrite(leased,start+1050,true,m.id)),'under 2 ticks nobody writes');
+ assert.ok(r.members.every(m=>!deferCoopWrite({...r,members:[{id:m.id}]},t,true,m.id)),'solo always writes');
+ assert.equal(stampCoopWriter({mode:'citadel',status:'won'},'a',1).writer,undefined,'only fighting rooms get a lease');}
 assert.equal(coopInputWire({wire:1}),null);
 assert.deepEqual(coopInputWire({wire:2,cache:'x'.repeat(100),known:[[1,4],[7,6],[-1,2],['1',3],[8,9]]}),{wire:2,cache:'x'.repeat(64),known:[[1,4],[8,9]]});
 const view={...room,dungeon:{id:'floor',walls:[1,2],seen:[0]},monsters:Array.from({length:20},(_,id)=>({id,name:'monster '+id,art:'boss-large-art',maxHp:1000,attack:200,hp:900,x:id,y:id}))};

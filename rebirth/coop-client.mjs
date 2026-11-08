@@ -54,6 +54,8 @@ export function coopInputInterval(room,rtt=250){
  // 성채(성채 모드·탐험 4단계)는 방 하나에 DB 저장이 몰려 멈춤이 생겨 인원당 간격을 112ms로 늘린다(4인 ≈ 0.45초).
  const citadel=room.mode==='citadel'||(room.mode==='exploration'&&Number(room.tier)===3);
  // 2026-11-04: 작은 DB에서 4인 폴링이 초당 12회를 넘지 않도록 인원당 100ms(4인 ≈ 0.4초). 입력은 로컬 예측이 가려 체감 차이 없음.
+ // 2026-11-09 도현(7인 성채): 저장자는 한 명뿐이므로 저장자만 0.45초마다 보내고(권위 상태 갱신 주기), 나머지는 인원수 간격으로 입력만 큐에 넣는다.
+ if(room.status==='fighting'&&!room.entryWaiting&&['exploration','citadel'].includes(room.mode)&&room.writer===room.me&&Number(room.writerUntil)>Date.now()-30000)return Math.max(300,Math.min(450,rtt*.8+100));
  return Math.max(300,Math.min(8,players)*(citadel?112:100),Math.min(800,rtt*.8));
 }
 export class CoopController{
