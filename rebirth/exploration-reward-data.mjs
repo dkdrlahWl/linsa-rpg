@@ -22,6 +22,13 @@ const EXTRA=[
  // 2026-11-03 도현: 9·10단계 — 확률·개수 계속 증가. 220제 판당 확률 8단계 1% → 9단계 2% → 10단계 4%(두 배씩), 180제 제외.
  [9,{gold:10400000,scroll:.40,highCube:.48,potentialLock:.085,addCube:.65,bonusFlame:.11,bossGear:.18,counts:{scroll:3,highCube:11,potentialLock:2,addCube:6,bonusFlame:1},gear:[[190,26],[200,54],[220,10]]}],
  [10,{gold:12500000,scroll:.42,highCube:.50,potentialLock:.09,addCube:.70,bonusFlame:.12,bossGear:.20,counts:{scroll:3,highCube:12,potentialLock:2,addCube:6,bonusFlame:1},gear:[[190,2000],[200,6000],[220,2000]]}],
+ // 2026-11-08 도현: 11~16단계 — 10단계에서 확률·개수 계속 증가(골드·주문서·블랙 큐브·보스장비 확률 +2%p씩, 블랙 큐브 개수 +1).
+ [11,{gold:14800000,scroll:0.44,highCube:0.52,potentialLock:0.095,addCube:.70,bonusFlame:.12,bossGear:0.22,counts:{scroll:3,highCube:13,potentialLock:2,addCube:7,bonusFlame:1}}],
+ [12,{gold:17300000,scroll:0.46,highCube:0.54,potentialLock:0.1,addCube:.70,bonusFlame:.12,bossGear:0.24,counts:{scroll:3,highCube:14,potentialLock:2,addCube:7,bonusFlame:1}}],
+ [13,{gold:20000000,scroll:0.48,highCube:0.56,potentialLock:0.105,addCube:.70,bonusFlame:.12,bossGear:0.26,counts:{scroll:3,highCube:15,potentialLock:2,addCube:8,bonusFlame:1}}],
+ [14,{gold:23000000,scroll:0.5,highCube:0.58,potentialLock:0.11,addCube:.70,bonusFlame:.12,bossGear:0.28,counts:{scroll:3,highCube:16,potentialLock:2,addCube:8,bonusFlame:1}}],
+ [15,{gold:26300000,scroll:0.52,highCube:0.6,potentialLock:0.115,addCube:.70,bonusFlame:.12,bossGear:0.3,counts:{scroll:3,highCube:17,potentialLock:2,addCube:9,bonusFlame:1}}],
+ [16,{gold:30000000,scroll:0.54,highCube:0.62,potentialLock:0.12,addCube:.70,bonusFlame:.12,bossGear:0.32,counts:{scroll:3,highCube:18,potentialLock:2,addCube:9,bonusFlame:1}}],
  [6,{gold:4400000,scroll:.35,highCube:.40,potentialLock:.07,addCube:.50,bonusFlame:.08,bossGear:.12,counts:{scroll:3,highCube:8,potentialLock:2,addCube:4,bonusFlame:1},gear:[[180,50],[190,33],[200,17]]}],
 ];
 for(const [id,r] of EXTRA)EXPLORATION_REWARDS[id]=r;
@@ -32,7 +39,10 @@ EXPLORATION_REWARD_COUNTS.highCube=Math.ceil(EXPLORATION_REWARD_COUNTS.highCube/
 for(const r of EXPLORATION_REWARDS)if(r.counts?.highCube)r.counts.highCube=Math.ceil(r.counts.highCube/2);
 // 2026-11-04 도현: 최고 레벨 보장 상향 + 단계 안에서는 레벨이 높을수록 확률이 낮게(단조 감소). 보스장비 확률 자체는 그대로.
 // 5단계 200제 2배(10→20%), 8단계 220제 2배(6.25→12.5%), 9단계 220제 2배(11.1→22.2%). 6·7·10단계는 2배면 최고 레벨이 더 흔해져서 감소 순서를 지키는 선까지만 올림.
-const GEAR_OVERRIDE={5:[[170,31.1],[180,26.7],[190,22.2],[200,20]],6:[[180,40],[190,31],[200,29]],7:[[180,36],[190,33],[200,31]],8:[[180,33],[190,29.5],[200,25],[220,12.5]],9:[[190,40],[200,37.8],[220,22.2]],10:[[190,36],[200,34],[220,30]]};
+const GEAR_OVERRIDE={5:[[170,31.1],[180,26.7],[190,22.2],[200,20]],6:[[180,40],[190,31],[200,29]],7:[[180,36],[190,33],[200,31]],8:[[180,33],[190,29.5],[200,25],[220,12.5]],9:[[190,40],[200,37.8],[220,22.2]],10:[[190,36],[200,34],[220,30]],
+ // 2026-11-08 도현: 250제(11~13)·300제(14~16) — 새 최고 레벨 판당 확률을 220제(8~10단계)와 같게 2%·4%·6%, 단계 안에서 레벨 높을수록 낮게.
+ 11:[[190,33],[200,30],[220,27.9],[250,9.1]],12:[[200,43],[220,40.3],[250,16.7]],13:[[200,40],[220,36.9],[250,23.1]],
+ 14:[[200,33],[220,31],[250,28.86],[300,7.14]],15:[[220,45],[250,41.67],[300,13.33]],16:[[220,42],[250,39.25],[300,18.75]]};
 for(const [id,g] of Object.entries(GEAR_OVERRIDE))if(EXPLORATION_REWARDS[id])EXPLORATION_REWARDS[id].gear=g;
 export const EXPLORATION_REWARD_KEYS=['scroll','highCube','potentialLock','addCube','bonusFlame'];
 export const explorationRewardCount=(rates,key)=>rates.counts?.[key]??EXPLORATION_REWARD_COUNTS[key]??1;

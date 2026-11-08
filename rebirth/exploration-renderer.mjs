@@ -9,6 +9,8 @@ moods[9]={base:'#3a607b',fog:'#0e263e',glow:'#b8f3ff'};
 moods[10]={base:'#373041',fog:'#130d23',glow:'#f5c66f'};
 // 9·10단계는 임시 그림(7·8단계 복사)에 맞춘 색.
 moods[9]=moods[7];moods[10]=moods[8];
+// 11~16단계도 임시 그림(9·10단계 복사)에 맞춘 색.
+for(const t of [11,12,13,14,15,16])moods[t]=moods[t%2?9:10];
 
 function cell(g,im,index,x,y,width,height=width,flip=false){
  const sw=im.naturalWidth/3,sh=im.naturalHeight/2;

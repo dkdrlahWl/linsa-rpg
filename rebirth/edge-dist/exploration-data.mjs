@@ -20,6 +20,16 @@ export const EXPLORATIONS=[
  // 25억 ÷ (9,500만 × 0.7) = 37.594 · 35억 ÷ 6,650만 = 52.632. 열쇠는 8단계와 같은 5개 고정(도현). 9단계는 영겁의 서리 왕좌·네펠리온, 10단계는 종말의 별무덤·녹타리스 전용 이미지.
  {id:9,name:'영겁의 서리 왕좌',floors:5,multiplier:37.594,attackMultiplier:3.5,linearHp:true,keys:6,level:233,art:'exploration-9',map:'exploration/arena-9-original-v2.webp',arena:'exploration/arena-9-original-v2.webp',boss:'영겁의 군주 네펠리온',monsters:['서리 결정 거인','영겁의 망령 기사','얼어붙은 시간술사'],seconds:2970,gold:310000},
  {id:10,name:'종말의 별무덤',floors:5,multiplier:52.632,attackMultiplier:3.8,linearHp:true,keys:7,level:236,art:'exploration-10',map:'exploration/arena-10-original-v2.webp',arena:'exploration/arena-10-original-v2.webp',boss:'종말의 별 포식자 녹타리스',monsters:['별무덤 수호석상','붕괴한 성운 정령','검은 별 사도'],seconds:3060,gold:340000},
+// 2026-11-08 도현: 11~13단계(250제 보장)·14~16단계(300제 보장). 220제(8~10단계)와 같은 방식.
+// 첫 단계 = 이전 보장 풀세팅(220제/250제 종언급·25성·보스용 잠재27줄·코스튬90%·치피200%·Lv.300·300전직) 사제 제외 평균 120초 풀딜 × 0.94
+// (8단계 17.5억 ÷ 200제 풀딜 18.61억). 220제 풀딜 58.0억 → 11단계 55억, 250제 풀딜 172.6억 → 14단계 160억. 다음 단계는 9·10처럼 ×1.43·×1.4.
+// 열쇠는 단계마다 +1. 그림은 임시로 9·10단계 것을 번갈아 복사(도현이 직접 교체 예정).
+ {id:11,name:'홍염의 용암 왕궁',floors:5,multiplier:82.707,attackMultiplier:4.1,linearHp:true,keys:8,level:239,art:'exploration-11',map:'exploration/arena-11-original-v2.webp',arena:'exploration/arena-11-original-v2.webp',boss:'염제 이그니스바르',monsters:['용암 갑주 기사', '불씨 비룡', '잿빛 화염 사제'],seconds:3150,gold:370000},
+ {id:12,name:'적월의 핏빛 첨탑',floors:5,multiplier:118.797,attackMultiplier:4.4,linearHp:true,keys:9,level:242,art:'exploration-12',map:'exploration/arena-12-original-v2.webp',arena:'exploration/arena-12-original-v2.webp',boss:'적월의 여왕 세라핀',monsters:['핏빛 박쥐 군주', '적월 창기병', '혈석 골렘'],seconds:3240,gold:400000},
+ {id:13,name:'멸화의 화산 심장',floors:5,multiplier:165.414,attackMultiplier:4.7,linearHp:true,keys:10,level:245,art:'exploration-13',map:'exploration/arena-13-original-v2.webp',arena:'exploration/arena-13-original-v2.webp',boss:'멸화의 군주 볼카노스',monsters:['마그마 거신', '화산재 망령', '불꽃 뱀 술사'],seconds:3330,gold:430000},
+ {id:14,name:'극광의 공허 회랑',floors:5,multiplier:240.602,attackMultiplier:5.0,linearHp:true,keys:11,level:248,art:'exploration-14',map:'exploration/arena-14-original-v2.webp',arena:'exploration/arena-14-original-v2.webp',boss:'극광의 감시자 오로라스',monsters:['극광 파수꾼', '공허 결정 짐승', '오로라 마도사'],seconds:3420,gold:460000},
+ {id:15,name:'태허의 균열 신전',floors:5,multiplier:345.865,attackMultiplier:5.3,linearHp:true,keys:12,level:251,art:'exploration-15',map:'exploration/arena-15-original-v2.webp',arena:'exploration/arena-15-original-v2.webp',boss:'태허의 지배자 바르무트',monsters:['균열 촉수체', '태허 기사단장', '무형의 그림자'],seconds:3510,gold:490000},
+ {id:16,name:'영겁의 왕좌 너머',floors:5,multiplier:481.203,attackMultiplier:5.6,linearHp:true,keys:13,level:254,art:'exploration-16',map:'exploration/arena-16-original-v2.webp',arena:'exploration/arena-16-original-v2.webp',boss:'영겁의 왕 에테르니온',monsters:['초신성 수호자', '영겁의 시계 거인', '공허 대사제'],seconds:3600,gold:520000},
 ];
 // 이전 단계(암흑성채 id 3은 건너뜀). 0단계는 null.
 export const explorationPrevious=tier=>{for(let i=tier-1;i>=0;i--)if(EXPLORATIONS[i])return i;return null;};
