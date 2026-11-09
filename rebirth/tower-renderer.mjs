@@ -434,7 +434,7 @@ export class TowerRenderer {
         const frame=casting?4:attacking?5:hurt?6:Math.floor(time/8)%2,src=raidBossSource(tier),im=image(src);
         // Raid boss atlases: 4x2 cells (idle, idle, move, move, cast, attack, hurt, idle).
         // visible during idle, movement, casting, attack and hurt animations.
-        if(decodedImages.has(im)&&im.naturalWidth&&!frameBounds(im,4,2)[frame]?.empty){this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);return;}
+        if(Number(tier)<4&&decodedImages.has(im)&&im.naturalWidth&&!frameBounds(im,4,2)[frame]?.empty){this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);return;}
         const portrait=image(asset('raid-boss-'+tier+'-portrait'));
         if(decodedImages.has(portrait)&&portrait.naturalWidth){
           const age=clamp((time-(b.enemyAttackStart??time))/5),pulse=attacking?Math.sin(age*Math.PI):0;

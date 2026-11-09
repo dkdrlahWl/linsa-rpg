@@ -99,7 +99,7 @@ const ROWS=[
  ['tower25','구름을 뚫은 자','탑','legend','시련의 탑 25층 클리어',s=>tower(s,25),()=>TOWER_FLOORS.length>=25],
  ['tower30','천공의 탑주','탑','myth','시련의 탑 30층 클리어',s=>tower(s,30),()=>TOWER_FLOORS.length>=30],
  ['fieldNew','미지의 개척자','사냥','legend','마지막 사냥터('+STAGES.at(-1).name+')에서 사냥 성공',s=>(s.bestStage??-1)>=STAGES.length-1,()=>STAGES.length-1>FIELD_LAST_V1],
- ['raid4','성역의 끝을 본 자','레이드','myth',(RAID_ENCOUNTERS[4]?.name||'다음')+' 레이드 클리어',s=>(s.raidCleared||[]).includes(4),()=>RAID_ENCOUNTERS.length>4],
+ ['raid4','성역의 끝을 본 자','레이드','myth',(RAID_ENCOUNTERS[4]?.name||'다음')+' 레이드 클리어',s=>(s.raidCleared||[]).includes(4),()=>RAID_ENCOUNTERS.length>4&&!RAID_ENCOUNTERS[4].final],
  ['job6','여섯 번째 각성','전직','legend','6차 전직 완료',s=>(s.advancement||0)>=5,()=>ADVANCEMENT_BOSSES.length>5],
  ['rod60','심연의 강태공','낚시','legend','화염 낚싯대(13단계) 보유',s=>(s.fishing?.version||1)>=3?(s.fishing?.rod||0)>=13:(s.fishing?.rod||0)>=60,()=>true], // 2026-11-05 낚시 v3: Lv.50 체계
  // 2026-10-25 낚싯대 70 확장 칭호

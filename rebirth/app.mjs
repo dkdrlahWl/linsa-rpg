@@ -46,7 +46,7 @@ import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiR
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
 import {waveRewardBody} from './wave-ui.mjs?v=wave-fifth-cd-124';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
-import {raidLobby} from './raid-ui.mjs?v=fifth-impact-121';
+import {raidLobby,finalLobby} from './raid-ui.mjs?v=final-boss-20261109';
 import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
@@ -102,7 +102,7 @@ function refreshLevelRequirements() {
 const combatFrames = [];
 let towerController=null,dummyBattle=null,bagPage=0,coopController=null,coopRoom=null,coopRooms=[],dialogScroll=new Map();
 let coopListAttempt=0,coopListPending=null;
-function coopLobbyVisible(){return view==="game"&&tab==="boss"&&["citadel","advancement","raid","exploration"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
+function coopLobbyVisible(){return view==="game"&&tab==="boss"&&["citadel","advancement","raid","final","exploration"].includes(bossTab)&&!state?.coopRoom&&!state?.battle&&!state?.partyRoom;}
 async function refreshCoopRooms(){
   if(coopListPending)return coopListPending;
   coopListPending=(async()=>{
@@ -1158,12 +1158,13 @@ function sweepBar(){
   return `<section class="panel sweep-bar"><div><strong>전체 소탕</strong><small>${parts.length?parts.join(' · '):'소탕할 수 있는 보스가 없어요 · 한 번 깬 일보·주보만 소탕 가능'}</small></div>${disabledBtn(plan.length?'전체 소탕 '+plan.length+'건':'전체 소탕','sweep','all',!plan.length||!!state.battle,'gold')}</section>`;
 }
 function bosses() {
-  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["exploration","링구의 탐험"],["citadel","암흑성채"],["raid","레이드"],["daily","일일"],["weekly","주간"],["training","허수아비"],["tower","시련의 탑"],["advancement","전직 보스"],...(tokenVisible(state)?[["token","토큰 던전"]]:[]),["key","열쇠 던전"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
+  const menu=`<div class="subnav">${[...(state.isAdmin?[["warrior3d","3D 전투 실험실"]]:[]),["exploration","링구의 탐험"],["citadel","암흑성채"],["raid","레이드"],["final","최종 보스"],["daily","일일"],["weekly","주간"],["training","허수아비"],["tower","시련의 탑"],["advancement","전직 보스"],...(tokenVisible(state)?[["token","토큰 던전"]]:[]),["key","열쇠 던전"]].map(([k,l])=>btn(l,"bossSub",k,bossTab===k?"active":"")).join("")}</div>`;
   if(bossTab==="warrior3d"){if(!state.isAdmin){bossTab="daily";return bosses();}return menu+header("잿불 성채의 파수꾼","관리자 전용 · 3D 전투")+`<section class="panel pad"><h3>전사 3D 전투 실험실</h3><p>이미지 전사와 파수꾼 · 캐릭터를 따라가는 위쪽 시점 · 직접 이동 · 화염 탄막 · 내려찍기 · 돌진 · 화염 파동</p><p class="note">기존 전사 스킬: 대지 분쇄 · 균열 참격 · 천공 참렬 · 천검 만화진. 완료한 전직 단계까지 사용 가능합니다. 연습용 HP와 공격력으로 진행하며 보상·입장 비용은 없습니다.</p>${disabledBtn(state.classId!=="warrior"?"전사로 직업을 변경해 주세요":"3D 전투 입장","warriorLab","",state.classId!=="warrior"||!!state.battle||!!state.coopRoom||!!state.partyRoom,"gold")}</section>`;}
   if(bossTab==="token"){if(!tokenVisible(state)){bossTab="daily";return bosses();}return menu+tokenView(state,tokenPage);}
   if(bossTab==="key")return menu+keyView(state);
   if(bossTab==="exploration")return menu+explorationLobby(state,coopRoom,coopRooms);
   if(bossTab==="raid")return menu+raidLobby(state,coopRoom,coopRooms);
+  if(bossTab==="final")return menu+finalLobby(state,coopRoom,coopRooms);
   if(bossTab==="wave"){bossTab="exploration";return menu+coopLobby(state,coopRoom,coopRooms,"exploration");}
   if(bossTab==="citadel")return menu+citadelLobby(state,null,coopRooms);
   if(bossTab==="coop"){bossTab="exploration";return menu+explorationLobby(state,coopRoom,coopRooms);}
@@ -1501,7 +1502,7 @@ function showEvents(events) {
       const task=Object.values(D.DAILY_TASKS).find(t=>t.name===e.name);
       open("일일 과제 보상",'<h3>'+esc(e.name)+'</h3>'+(task?'<p>'+dailyRewardLines(task).join('<br>')+'<br>경험치 5%</p>':'<p>보상을 받았습니다.</p>')+btn("확인","close","","gold"));
     }
-    if(e.type==="coop"){tab="boss";bossTab=e.mode==="citadel"?"citadel":e.mode==="raid"?"raid":"exploration";view="game";render();reward();continue;}
+    if(e.type==="coop"){tab="boss";bossTab=e.mode==="citadel"?"citadel":e.mode==="raid"?(e.final?"final":"raid"):"exploration";view="game";render();reward();continue;}
     if(e.type==="exchangeGear")open(e.boss?"보스 장비 획득!":"장비 교환 완료",`${e.boss?'<p class="exchange-boss-hit">1% 확률 당첨 · 보스 장비</p>':''}${gearMarkup(e.item,"big-item")}<h3>${esc(D.gearName(e.item))}</h3><p>Lv.${e.item.level} · ${D.CLASSES.find(c=>c.id===e.item.classId).name} · ${D.SLOTS[e.item.slot]}</p><p>장비 파편 ${e.cost}개 사용 · ${e.stored?'보관함':'가방'}에 지급됐습니다.</p>${btn("확인","close","","gold")}`);
     if(e.type==="exchange")toast(D.MATERIALS[e.key]+" "+e.count+"개 교환 완료");
     if(e.type==="costumeBuy")toast("코스튬 구매 완료! 보유 효과로 공격력 +1%가 적용됐어요.");
@@ -1576,6 +1577,7 @@ function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}�
 function reward() {
   const r = state.lastReward;
   if(r?.type==='coop'&&r.mode==='exploration')return open(r.won?'링구의 탐험 완료':'탐험 종료','<p>'+esc(r.name||'링구의 탐험')+' · '+(r.cleared||0)+'층 완료</p><p>'+fmt(r.gold||0)+' G'+['scroll','highCube','potentialLock','addCube','bonusFlame'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+r[k]+'개').join('')+(r.companionTicket?'<br>동료 소환권 '+r.companionTicket+'장':'')+'</p>'+(r.items||[]).map(it=>'<div class="panel pad">'+gearMarkup(it)+'<strong>'+esc(D.gearName(it))+'</strong><p>Lv.'+it.level+' · '+D.SLOTS[it.slot]+'</p></div>').join('')+(r.stored?'<p class="note">가방이 가득 차 장비를 보관함으로 보냈습니다.</p>':'')+btn('확인','ack','','gold',true),false);
+  if(r?.type==='coop'&&r.mode==='raid'&&r.final)return open('최종 보스 클리어!','<h3>'+esc(r.name)+'</h3><p>클리어 기록이 남았어요. 보상은 준비 중입니다.</p>'+btn('확인','ack','','gold',true));
   if(r?.type==='coop'&&r.mode==='raid'){
     const loot=r.practice?'이번 주 레이드 보상 3회를 모두 받았습니다. 이번 클리어는 연습으로 처리됩니다.':fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join('');
     const remaining=Number.isInteger(r.weeklyUsed)?`이번 주 개인 보상 ${r.weeklyUsed}/${r.weeklyLimit}회 · 남은 보상 ${r.weeklyRemaining}회<br>`:'';
@@ -2082,14 +2084,14 @@ document.addEventListener("click", async (e) => {
       render();
       window.scrollTo({top:0,behavior:"instant"});
       if(enteringHunt)requestAutoHunt();
-      if(tab==='boss'&&['citadel','exploration','raid','advancement'].includes(bossTab))await refreshCoopRooms();
+      if(tab==='boss'&&['citadel','exploration','raid','final','advancement'].includes(bossTab))await refreshCoopRooms();
       if (tab === "market") {if(buyOrderMode)await buyOrdersLoad();else await marketLoad();}
       if(tab==='investment')await command('investList',{},true);
       if(tab==='event'&&eventPage==='lotto')await command('lottoList',{},true);
       return;
     }
     if(action==="warriorLab"){if(!state?.isAdmin)return;await command("sync",{},true,true);if(!state?.isAdmin||state.classId!=="warrior")return toast("관리자 전사만 입장할 수 있습니다.");modal.close();try{await openWarriorLab({getState:()=>state,onClose:()=>{sounds.setCombat(false);render();},sound:id=>sounds.play(id)});sounds.setCombat(true);}catch(e){toast(e.message||"3D 전투에 입장하지 못했습니다.");}return;}
-    if (action === "bossSub") {bossTab=["wave","coop"].includes(arg)?"exploration":arg;render();if(["citadel","advancement","raid","exploration"].includes(bossTab))await refreshCoopRooms();return;}
+    if (action === "bossSub") {bossTab=["wave","coop"].includes(arg)?"exploration":arg;render();if(["citadel","advancement","raid","final","exploration"].includes(bossTab))await refreshCoopRooms();return;}
     if (action === "partyLeaveConfirm") return open("파티에서 나가기",`<p>진행 중인 전투에서 나가면 해당 파티 보상을 받을 수 없습니다. 자동사냥은 다시 시작됩니다.</p>${btn("나가기","partyLeave","","danger",true)}`);
     if (action === "itemMode") {const [id,mode]=arg.split(":");return itemDetail(id,mode);}
     if (action === "advance") {tab="boss";bossTab="advancement";view="game";render();return await refreshCoopRooms();}

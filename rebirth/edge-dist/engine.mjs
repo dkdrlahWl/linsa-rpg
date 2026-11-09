@@ -1250,7 +1250,10 @@ export function grantCoopChest(input,tier,ctx){
 }
 
 export function grantRaidChest(input,tier,ctx){
- const s=normalizePotentialState(structuredClone(input)),raid=RAID_ENCOUNTERS[tier];check(raid,'INVALID_RAID');const weekly=raidWeeklyStatus(s,ctx.now),practice=weekly.remaining===0;
+ const s0=normalizePotentialState(structuredClone(input)),raid0=RAID_ENCOUNTERS[tier];check(raid0,'INVALID_RAID');
+ // 2026-11-09 도현: 최종 보스는 보상 미정 — 클리어 기록만 남기고 레이드 주간 횟수도 쓰지 않는다.
+ if(raid0.final){const reward={type:'coop',mode:'raid',final:true,tier,name:raid0.name,won:true,practice:false,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]};if(!(s0.finalCleared||[]).includes(tier))s0.finalCleared=[...(s0.finalCleared||[]),tier];delete s0.coopRoom;s0.hunting=true;s0.lastAt=ctx.now;s0.lastReward=reward;return {state:s0,reward};}
+ const s=s0,raid=raid0;const weekly=raidWeeklyStatus(s,ctx.now),practice=weekly.remaining===0;
  const reward=practice?{type:'coop',mode:'raid',name:raid.name,won:true,practice:true,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]}:rollRaidReward(tier,ctx.random,s,ctx.now);
  if(!practice){
   s.gold+=reward.gold;
