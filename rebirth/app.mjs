@@ -46,7 +46,7 @@ import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiR
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
 import {waveRewardBody} from './wave-ui.mjs?v=wave-fifth-cd-124';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
-import {raidLobby,finalLobby} from './raid-ui.mjs?v=final-art-20261109';
+import {raidLobby,finalLobby} from './raid-ui.mjs?v=final-open-20261109';
 import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
