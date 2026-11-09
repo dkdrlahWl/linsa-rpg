@@ -13,7 +13,7 @@ import {CoopEffectMemory} from './coop-effect-memory.mjs?v=worker-138';
 import {paintHealthBar} from './health-bar.mjs?v=coop-smooth-136';
 import {raidLobby} from './raid-ui.mjs?v=fifth-impact-121';
 import {raidMove} from './raid-content.mjs?v=priest-potential-83';
-import {raidBossSource,raidDanger} from './raid-presentation.mjs?v=raid-steady-162';
+import {raidBossSource,raidDanger} from './raid-presentation.mjs?v=final-art-20261109';
 import {autoSkillBits} from './auto-skills.mjs?v=fifth-impact-121';
 import {prepareWaveCreature} from './wave-motion.mjs?v=priest-potential-83';
 import {WAVE_MONSTERS} from './wave-monsters.mjs?v=priest-potential-83';
@@ -24,7 +24,7 @@ import {predictCoopStep,indexCoopFrames} from './coop-model.mjs?v=fifth-impact-1
 import {coopWireArgs} from './coop-wire.mjs?v=coop-wire-1';
 import {COOP_TIERS,coopEncounter} from './coop-model.mjs?v=fifth-impact-121';
 import {towerArena} from './tower-client.mjs?v=fifth-impact-121';
-import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=walk-thickness-128';
+import {TowerRenderer,motionAsset,asset,image,prepareCombatArt} from './tower-renderer.mjs?v=final-art-20261109';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const combatNumberFormat=new Intl.NumberFormat('ko-KR');
 const fmt=n=>combatNumberFormat.format(Math.round(n||0));
@@ -263,6 +263,11 @@ export class CoopController{
   if(w.mode==='raid'){const corrected={x:me.x,y:me.y};raidMove(corrected,player.x,player.y,w.walls);Object.assign(player,corrected);}
   if(isDungeon(w)){const corrected={x:me.x,y:me.y,classId:me.classId};dungeonMove(w.dungeon,corrected,player.x-me.x,player.y-me.y);player.x=corrected.x;player.y=corrected.y;}
   const b={...w,...me,localSkillsOnly:true,raidMode:w.mode==='raid',advancementStage:w.mode==='advancement'?w.tier:undefined,kind:'tower',worldVersion:3,floor:w.tier+1,encounter:tier,classId:me.classId,power:me.power,hp:me.hp,enemyHp:w.hp,player,enemy,guardUntil:me.guardUntil||0,invulnerableUntil:me.immune||0,effects:this.effectMemory?.compose(w.effects||[],w.tick+visualFraction)||w.effects||[],numbers:w.numbers||[],projectiles:w.projectiles||[],hazards:w.hazards.map(h=>({...h,type:h.type||'circle'})),allies:w.members.filter(m=>m.id!==w.me&&!m.left).map(m=>smooth(m,this.previousSim?.members.find(a=>a.id===m.id),'player:'+m.id))};
+  if(w.mode==='raid'&&w.tier>=4){
+   const last=this.previousSim?.enemy;
+   b.enemyMoving=!!last&&(w.enemy.x!==last.x||w.enemy.y!==last.y);
+   b.enemyWalk=(w.enemy.walk||0)-(b.enemyMoving?1-visualFraction:0);
+  }
   b.tick=w.tick+visualFraction;b.citadelMode=isCitadel(w);if(b.citadelMode)b.tier=3;
   if(!this.lastHud||now-this.lastHud>=100){this.lastHud=now;
   this.host.querySelector('#tower-enemy-hp').textContent=fmt(w.hp)+' / '+fmt(w.maxHp);

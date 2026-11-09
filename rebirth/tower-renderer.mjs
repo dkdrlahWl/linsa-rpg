@@ -8,7 +8,7 @@ import {skillLookContext} from './skill-look-material.mjs';
 import {drawExplorationDungeon,drawExplorationFog,drawExplorationMinimap,explorationTerrainSource} from './exploration-renderer.mjs';
 import {EXPLORATIONS,explorationArt} from './exploration-data.mjs';
 import {localSkillView,ownPriestAura} from './combat-visibility.mjs?v=worker-138';
-import {raidBossSource,raidDamageRows,drawRaidWarning,drawRaidShotWarning,drawRaidProjectile} from './raid-presentation.mjs?v=raid-steady-162';
+import {finalRaidArt,drawFinalRaidBoss,drawFinalRaidJudgment,raidBossSource,raidDamageRows,drawRaidWarning,drawRaidShotWarning,drawRaidProjectile} from './raid-presentation.mjs?v=final-art-20261109';
 import {transparentEffectAtlas} from './effect-alpha.mjs?v=priest-potential-83';
 import {healthSegments} from './health-bar.mjs?v=coop-smooth-136';
 import {prepareFifthArt,fifthFields,drawFifthGround,drawFifth,fifthPose,fifthFeedback,resolveFifthVisual} from './fifth-effects.mjs?v=fifth-impact-121';
@@ -28,7 +28,7 @@ import {towerEncounter,TOWER_FLOORS,TOWER_CLASSES,towerFacing,facingVector,TOWER
 const arenaBackdrops=new WeakMap();
 const cache=new Map(),spriteBounds=new WeakMap(),decodedImages=new WeakSet();
 function frameBounds(im,cols,rows){let cached=spriteBounds.get(im);if(cached)return cached;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const g=c.getContext("2d",{willReadFrequently:true});g.drawImage(im,0,0);const result=[];for(let f=0;f<cols*rows;f++){const x=Math.floor(f%cols*c.width/cols),y=Math.floor(Math.floor(f/cols)*c.height/rows),w=Math.floor((f%cols+1)*c.width/cols)-x,h=Math.floor((Math.floor(f/cols)+1)*c.height/rows)-y,d=g.getImageData(x,y,w,h).data;let l=w,r=0,t=h,b=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>20){l=Math.min(l,i);r=Math.max(r,i);t=Math.min(t,j);b=Math.max(b,j);}result.push(r>=l&&b>=t?{x:x+l,y:y+t,w:r-l+1,h:b-t+1}:{x,y,w,h,empty:true});}result.maxWidth=Math.max(...result.map(v=>v.w));result.maxHeight=Math.max(...result.map(v=>v.h));spriteBounds.set(im,result);return result;}
-export const asset=name=>name==='boss-token-mammon-v1'?'token/mammon-v1.webp':(name.startsWith('boss-')&&advancementArt(name.slice(5))?.sprite)||'tower/'+name+'.webp';
+export const asset=name=>/^raid-map-[4-6]$/.test(name)?finalRaidArt(Number(name.at(-1)),'map'):name==='boss-token-mammon-v1'?'token/mammon-v1.webp':(name.startsWith('boss-')&&advancementArt(name.slice(5))?.sprite)||'tower/'+name+'.webp';
 export const motionAsset=name=>'tower/'+name+'.webp';
 export function image(src){if(!cache.has(src)){const im=new Image();im.src=/^exploration\/(?:boss-[456]|map-[456]|arena-[456]-196)\.webp$/.test(src)?src+'?v=exploration-art456-20261025':src;cache.set(src,im);im.decode().then(()=>decodedImages.add(im)).catch(()=>{});}return cache.get(src);}
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -123,14 +123,14 @@ export function prepareCombatArt(classes,boss,costumeIds=[],skillLookIds=[]){
  for(const id of new Set(costumeIds)){const c=costumeById(id);if(c){tasks.push([c.atlas,COSTUME_MOTION_LAYOUT[c.motionLayout||c.classId]],[c.portrait,null]);}}
  if(String(boss).startsWith('exploration-'))tasks.push([explorationTerrainSource(Number(String(boss).slice(12))),null],['exploration/heal-heart-194.webp',null]);
  const raid=String(boss).startsWith('raid-'),raidTier=raid?Number(boss.slice(5)):null;
- tasks.push([String(boss).startsWith('exploration-')?explorationArt(Number(String(boss).slice(12)),3,true):raid?raidBossSource(raidTier):asset('boss-'+boss),null]);image('tower/priest-orb-v1.webp');if(raid){tasks.push([asset('raid-map-'+raidTier),null],[asset('raid-boss-'+raidTier+'-portrait'),null]);}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
+ tasks.push([String(boss).startsWith('exploration-')?explorationArt(Number(String(boss).slice(12)),3,true):raid?raidBossSource(raidTier):asset('boss-'+boss),null]);image('tower/priest-orb-v1.webp');if(raid){tasks.push([asset('raid-map-'+raidTier),null]);if(raidTier<4)tasks.push([asset('raid-boss-'+raidTier+'-portrait'),null]);}image(asset('fourth-job-atlas'));image(asset('fourth-impact-atlas-v2'));
  const secondAtlas=image(motionAsset('second-sequence-atlas-v1'));
  const secondLoads=[...new Set(skillLookIds)].filter(Boolean).map(prepareSkillLookArt);
  secondLoads.push(...['second-job-atlas','third-job-atlas','fourth-job-atlas','fourth-impact-atlas-v2'].map(name=>image(asset(name)).decode().catch(()=>{})));
  secondLoads.push(secondAtlas.decode().then(()=>transparentEffectAtlas(secondAtlas)).catch(()=>{}),prepareFifthArt(classes,image),...[...new Set(classes)].filter(cls=>['mage','archer','pirate'].includes(cls)).map(cls=>image(asset('second-'+cls+'-attack-v1')).decode().catch(()=>{})));
  if(classes.includes('priest'))secondLoads.push(preparePriestSkillArt());
  return Promise.all([...secondLoads,...tasks.map(([src,layout])=>{
-  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&(src===PRIEST_DEFAULT.atlas||costumeIds.some(id=>costumeById(id)?.atlas===src)))cleanDirectionalAtlas(im,layout);if(raid&&src===raidBossSource(raidTier))frameBounds(im,4,2);}catch{preparations.delete(src);}})());
+  if(!preparations.has(src))preparations.set(src,(async()=>{const im=image(src);try{await im.decode();decodedImages.add(im);if(layout&&(src===PRIEST_DEFAULT.atlas||costumeIds.some(id=>costumeById(id)?.atlas===src)))cleanDirectionalAtlas(im,layout);if(raid&&raidTier<4&&src===raidBossSource(raidTier))frameBounds(im,4,2);}catch{preparations.delete(src);}})());
   return preparations.get(src);
  })]);
 }
@@ -278,8 +278,8 @@ export class TowerRenderer {
     }
     if(this.backdrop)this.g.drawImage(this.backdrop,0,0);else{this.g.fillStyle='#101921';this.g.fillRect(0,0,TOWER_SIZE.width,TOWER_SIZE.height);}
   }
-  hazard(h,time,raid=false){
-    if(raid){drawRaidWarning(this.g,h,time);return;}
+  hazard(h,time,raid=false,tier){
+    if(raid){drawRaidWarning(this.g,h,time,false,tier);return;}
     const bossScale=this.mobileActors.matches?1.5:1;
     const g=this.g,active=time>=h.at,progress=clamp(1-(h.at-time)/12);
     g.save();g.lineWidth=active?7:4;g.strokeStyle=active?'#fff0b9':'#ff8575';
@@ -371,12 +371,13 @@ export class TowerRenderer {
     const selfField=fifthAreas.find(e=>e.classId===b.classId&&(!e.owner||e.owner===(b.actorId??b.id)));
     for(const field of fifthAreas)withSkillAlpha(g,field,()=>{const target=effectTarget(field),owner=field===selfField?player:b.allies?.find(m=>m.id===field.owner),e={...field,...(field.mode==='tracking'&&target?{x:target.x,y:target.y}:{}),...(owner?{fromX:owner.x,fromY:owner.y,...(field.mode==='self'?{x:owner.x,y:owner.y}:{})}:{})};const look=skillLookForEffect(b,field),ctx=skillLookContext(g,look,e);drawFifthGround(ctx,e,time,field===selfField?.9:fifthOpacity);if(e.classId!=='mage')drawFifth(ctx,e,time,fifthOpacity);});
     for(const [key,value] of this.fifthLandings)if(value.end<=time)this.fifthLandings.delete(key);
-    for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time,b.raidMode);
+    for(const hazard of b.hazards)if(hazard.type==='line'||visible(hazard.x,hazard.y,hazard.r))this.hazard(hazard,time,b.raidMode,f.id??b.tier);
     for(const q of b.projectiles)if(q.upperTower&&time<q.at){
       const length=Math.hypot(q.dx,q.dy)||1,dx=q.dx/length,dy=q.dy/length;
       g.save();g.strokeStyle='#ff784d88';g.lineWidth=q.r*2;g.setLineDash([30,24]);g.beginPath();g.moveTo(q.x+dx*75,q.y+dy*75);g.lineTo(q.x+dx*900,q.y+dy*900);g.stroke();g.setLineDash([]);g.strokeStyle='#ffce7c';g.lineWidth=4;g.beginPath();g.moveTo(q.x+dx*160-dy*22,q.y+dy*160+dx*22);g.lineTo(q.x+dx*195,q.y+dy*195);g.lineTo(q.x+dx*160+dy*22,q.y+dy*160-dx*22);g.stroke();g.restore();
     }
     const enemy={x:mix(previous.enemy.x,b.enemy.x,fraction),y:mix(previous.enemy.y,b.enemy.y,fraction)};
+    if(b.raidMode&&b.tier>=4)drawFinalRaidJudgment(g,b.tier,enemy,time,b.judgmentAt,b.tier===6&&b.announcement?.startsWith('최후의 포효'));
     const moving=Math.hypot(input[0],input[1])>.01,dashing=b.tick<(b.dashUntil||0)||hint.dash>now;
     const casting=b.tick<b.skillUntil||hint.skill>now,attacking=b.tick<b.attackUntil||hint.attack>now;
     // Input previews can arrive before the first simulation tick creates start/end times.
@@ -391,7 +392,7 @@ export class TowerRenderer {
     if(moving&&!dashing&&now-this.lastStep>120){this.lastStep=now;this.steps.push({x:player.x,y:player.y+3,at:now});}
     this.steps=this.steps.filter(step=>now-step.at<420).slice(-8);
     for(const step of this.steps){g.save();g.globalAlpha=(1-(now-step.at)/420)*.27;g.fillStyle='#ecce9b';g.beginPath();g.ellipse(step.x,step.y,12,5,0,0,Math.PI*2);g.fill();g.restore();}
-    if(!b.waveMode)this.shadow(enemy.x,enemy.y-4,66);this.shadow(player.x,player.y,25);
+    if(!b.waveMode)this.shadow(enemy.x,enemy.y-4,b.raidMode&&b.tier>=4?(b.tier===6?165:104):66);this.shadow(player.x,player.y,25);
     // A small, constant marker makes the player easy to track during effects.
     g.save();g.beginPath();g.ellipse(player.x,player.y,b.raidMode?78:26,b.raidMode?27:10,0,0,Math.PI*2);g.fillStyle=b.raidMode?'#fff2a72a':'#78ffe81d';g.fill();g.lineWidth=b.raidMode?7:2;g.strokeStyle=b.raidMode?'#fff1b9':'#a5ffdf99';g.shadowColor='#ffeaa7';g.shadowBlur=b.raidMode?24:0;g.stroke();g.restore();
     const attackRange=c.range;
@@ -432,6 +433,10 @@ export class TowerRenderer {
       if(b.raidMode&&!b.chest){
         const tier=f.id??b.tier,casting=b.tick>=(b.enemyCastStart??0)&&b.tick<(b.enemyCastUntil||0),attacking=b.tick>=(b.enemyAttackStart??Infinity)&&b.tick<(b.enemyAttackUntil||0),hurt=b.tick<(b.enemyHurtUntil||0);
         const frame=casting?4:attacking?5:hurt?6:Math.floor(time/8)%2,src=raidBossSource(tier),im=image(src);
+        if(Number(tier)>=4&&im.complete&&im.naturalWidth){
+          drawFinalRaidBoss(g,im,tier,enemy,time,{casting,attacking,hurt,attackStart:b.enemyAttackStart,walk:b.enemyWalk||0,moving:b.enemyMoving,lowDetail:this.lowDetail});
+          return;
+        }
         // Raid boss atlases: 4x2 cells (idle, idle, move, move, cast, attack, hurt, idle).
         // visible during idle, movement, casting, attack and hurt animations.
         if(Number(tier)<4&&decodedImages.has(im)&&im.naturalWidth&&!frameBounds(im,4,2)[frame]?.empty){this.sprite(src,4,2,frame,enemy.x,enemy.y,390,390);return;}
@@ -473,7 +478,7 @@ export class TowerRenderer {
       const old=previous.projectiles.find(p=>p.id===q.id)||{x:q.x-q.dx,y:q.y-q.dy};
       const x=mix(old.x,q.x,fraction),y=mix(old.y,q.y,fraction),enemyShot=q.side==='enemy';
       if(!visible(x,y,200))continue;
-      if(b.raidMode&&enemyShot){drawRaidProjectile(g,q,x,y);continue;}
+      if(b.raidMode&&enemyShot){drawRaidProjectile(g,q,x,y,f.id??b.tier,time);continue;}
       const cls=q.classId||b.classId;if(!enemyShot&&(cls==='warrior'||cls==='rogue')){drawBasicMissile(g,cls,x,y,Math.atan2(q.dy,q.dx),time-q.at);continue;}if(!enemyShot&&cls==='priest'){const orb=image('tower/priest-orb-v1.webp');if(orb.complete&&orb.naturalWidth){g.save();g.globalCompositeOperation='screen';g.shadowColor='#fff4b5';g.shadowBlur=25;g.drawImage(orb,x-65,y-65,130,130);g.restore();}continue;}const src=enemyShot?motionAsset('attack-beam-v2'):motionAsset(cls==='pirate'?'attack-beam-v2':'attack-bolt-v2');
       const filter=enemyShot?'hue-rotate(330deg)':cls==='mage'?'hue-rotate(72deg)':cls==='archer'?'hue-rotate(-95deg)':'none';
       this.strip(src,Math.floor((time-q.at)*2)%4,x,y,enemyShot?125*(this.mobileActors.matches?1.5:1):cls==='pirate'?140:120,enemyShot?60*(this.mobileActors.matches?1.5:1):62,Math.atan2(q.dy,q.dx),.95,filter);

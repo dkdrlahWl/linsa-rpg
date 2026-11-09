@@ -46,13 +46,13 @@ import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiR
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
 import {waveRewardBody} from './wave-ui.mjs?v=wave-fifth-cd-124';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
-import {raidLobby,finalLobby} from './raid-ui.mjs?v=final-boss-20261109';
+import {raidLobby,finalLobby} from './raid-ui.mjs?v=final-art-20261109';
 import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
 import {GameAudio,FISHING_BGM_ZONE} from './game-audio.mjs?v=priest-potential-83';
 import {COMPANION_BY_ID as CP_BY_ID,companionMaxRate as cpMaxRate,companionPassiveDef as cpPassive} from './companion-model.mjs?v=companion-ss2-20261102';
-import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=geartable-20261102';
+import {coopLobby,coopArena,CoopController} from './coop-client.mjs?v=final-art-20261109';
 import {decodeCoopReply} from './coop-wire.mjs?v=coop-wire-1';
 import {incomingDamage} from './journey-balance.mjs?v=priest-potential-83';
 import {installMenuIcons} from './menu-icons.mjs?v=top-icons-20261102';
