@@ -1,7 +1,8 @@
 import {TOP_BUTTON_ART,topNavArt} from './top-button-art.mjs';
 import {professionById,professionOpenFor} from './profession-model.mjs';
 // 2026-11-04 전문 직업 상단 버튼 (종족 옆). 직업이 있으면 그 직업 아이콘, 없으면 '職'.
-const professionHeaderButton=s=>{if(!professionOpenFor(s))return '';const d=s?.profession?.id?professionById(s.profession.id):null;return `<button class="fantasy-bank-entry fantasy-prof-entry ${d?'':'is-empty'}" data-action="professionOpen" aria-label="전문 직업${d?' · '+d.name+' Lv.'+(s.profession.level||1):''}"><img class="prof-entry-art" src="professions/${d?.id||'alchemist'}-v1.webp" alt=""><span>직업</span>${d?`<b class="fantasy-mail-count prof-entry-lv">${s.profession.level||1}</b>`:'<b class="fantasy-mail-count">!</b>'}</button>`;};
+// 2026-11-10 도현: 4개 직업 전부 보유 — 헤더 버튼은 숙련도 합계를 보여 준다.
+const professionHeaderButton=s=>{if(!professionOpenFor(s))return '';const sk=s?.professions||{},sum=['alchemist','explorer','fisher','miner'].reduce((n,id)=>n+(Number(sk[id]?.level)||1),0);return `<button class="fantasy-bank-entry fantasy-prof-entry" data-action="professionOpen" aria-label="전문 직업 · 숙련도 합계 ${sum}"><img class="prof-entry-art" src="professions/${s?.profession?.id||'alchemist'}-v1.webp" alt=""><span>직업</span><b class="fantasy-mail-count prof-entry-lv">${sum}</b></button>`;};
 import {tribeHeaderButton} from './tribe-ui.mjs?v=price300-20261104';
 import {TOKEN_ART} from './token-art.mjs';
 import {newsUnreadBadge} from './investment-notifications.mjs?v=invest-unread-6';

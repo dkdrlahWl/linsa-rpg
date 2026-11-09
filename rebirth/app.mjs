@@ -31,7 +31,7 @@ let eventPage='fishing',lottoData=null,lottoLoadedAt=0;
 import {treasureView} from './treasure-ui.mjs';
 import {companionView,companionAction,updateCompanionTimers} from './companion-ui.mjs?v=cap24label-20261104';
 import {professionView,craftSummary} from './profession-ui.mjs';
-import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost,professionOf as profOf,recipeMaxCount as profMax,recipeCost as profCost,RESOURCE_NAMES as PROF_NAMES} from './profession-model.mjs';
+import {PROFESSIONS as D_PROFESSIONS,professionFragmentBoost as fragBoost,professionOf as profOf,recipeMaxCount as profMax,recipeCost as profCost,RESOURCE_NAMES as PROF_NAMES,recipeProfession as profOfRecipe} from './profession-model.mjs';
 import {FISHING_PROTOCOL as FISH_PROTOCOL,fishFailText,fishingView,fishingUI,mountFishing,stopFishing,stopAutoFishing,scheduleAutoFishing,showFishingPending,updateFishingView,liveBoss} from './fishing-ui.mjs?v=fx2-20261105';
 import {applyFishingPatch} from './fishing-sync.mjs?v=fishing-perf-188';
 import {SPOTS,BAITS,FISH as D_FISH_LIST,resourceName,fishingQuestsReady} from './fishing-data.mjs?v=bag300-20261105';
@@ -644,7 +644,9 @@ async function companionCommandRequest(action,args={}){
  if(!state||session?.user?.id!==account)return;
  return command(action,args);
 }
-let professionCounts={};
+let professionCounts={},profTab=null;
+const profSkill=id=>({id,level:1,xp:0,crafted:0,...(state?.professions?.[id]||{})});
+const openProfession=()=>{open('전문 직업',professionView(state,Date.now(),professionCounts,profTab));modal.classList.add('prof-dialog');};
 async function command(command, args = {}, quiet = false, freshSnapshot = false, signal = null) {
   const claimOnly=command==='coopOpen'&&args.citadelClaim===true;
   const requestKey=pendingKey()+(claimOnly?'_citadel_claim':'');
@@ -1482,7 +1484,7 @@ function showEvents(events) {
     if(e.type==="adminTransfer"){modal.close();toast(`${e.recipientName}님에게 ${ADMIN_TRANSFER_NAMES()[e.resource]||e.resource} ${fmt(e.amount)} 송금 완료`);continue;}
     sounds.event(e);
     if(e.type==="systemMail"){
-      const MAIL_NAMES={gold:"골드",tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
+      const MAIL_NAMES={essence:"마력 정수",mapPiece:"고대 지도 조각",pearl:"심해 진주",ore:"원석",gold:"골드",tokens:"토큰",tribeTicket:"종족 주사위",companionTicket:"동료 소환권",pickupTicket:"픽업 소환권",fishDiamond:"낚시 다이아"};
       const text=Object.entries(e.rewards||{}).filter(([k])=>k!=="bossChest200").map(([k,n])=>(MAIL_NAMES[k]||D.MATERIALS[k]||k)+" "+fmt(n)+(k==="gold"?" G":["companionTicket","pickupTicket"].includes(k)?"장":"개")).join(" · ");
       if(e.items?.length){const it=e.items[0];modal.close();sounds.play("loot-rare");playBossChestReveal(()=>{open("우편 보상 수령",`<p>${esc(text)}</p>${gearMarkup(it.item,"big-item")}<h3>${esc(D.gearName(it.item))}</h3><p>Lv.${it.item.level} 보스 장비 · ${it.stored?"장비 보관함":"가방"}에 지급됐어요.</p>${btn("확인","close","","gold")}`);});}
       else toast(text+" 받았습니다.");
@@ -2010,18 +2012,19 @@ document.addEventListener("click", async (e) => {
       if(result&&!chest)systemInbox();
       return;
     }
-    if(action==="professionOpen"){await command('sync',{},true);await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
+    if(action==="professionOpen"){await command('sync',{},true);openProfession();return;}
+    if(action==="professionTab"){profTab=arg;const top=modal.scrollTop;openProfession();modal.scrollTop=top;return;}
     if(action==="professionChoose"){if(busy)return;const cur=state.profession?.id,pname=D_PROFESSIONS.find(p=>p.id===arg)?.name||arg;if(cur&&!confirm(`${pname}(으)로 변경할까요?\n1억 G가 소모되고 숙련도가 Lv.1로 초기화되며, 7일 동안 다시 바꿀 수 없어요.`))return;if(!cur&&!confirm(`${pname}을(를) 선택할까요?\n첫 선택은 무료지만, 바꾸려면 7일 쿨타임 + 1억 G가 필요해요.`))return;const r=await command('professionChoose',{id:arg});await command('professionCounts',{},true).catch(()=>{});open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');const e=r?.result?.events?.find(x=>x.type==='professionChoose');if(e)toast(e.changed?`${e.name}(으)로 변경했어요`:`${e.name} 선택 완료`);return;}
     // 2026-11-05 도현: 제작 전 "제작하시겠습니까?" 확인 → 제작 후 "N개 제작 완료" 창.
     if(action==="professionCraft"||action==="professionCraftMax"){if(busy)return;const input=modal.querySelector(`[data-recipe-count="${arg}"]`);let count=action==="professionCraftMax"?'max':Number(input?.value);if(count!=='max'&&(!Number.isInteger(count)||count<1||count>1000))return toast('제작 수량은 1~1,000 사이로 입력해 주세요.');
-      const def=profOf(state),recipe=def?.recipes.find(r=>r.id===arg);if(!def||!recipe)return;const n=count==='max'?profMax(state,def,recipe):count;if(!n||n<1)return toast('재료가 부족해요.');
-      const lv=state.profession?.level||1,cost=profCost(recipe,lv,n,def.id),parts=[...Object.entries(cost.materials).map(([k,v])=>`${esc(PROF_NAMES[k]||k)} ${v.toLocaleString('ko-KR')}개`),...(cost.gold?[`${cost.gold.toLocaleString('ko-KR')} G`]:[])];
+      const def=profOfRecipe(arg),recipe=def?.recipes.find(r=>r.id===arg);if(!def||!recipe)return;profTab=def.id;const n=count==='max'?profMax(state,def,recipe):count;if(!n||n<1)return toast('재료가 부족해요.');
+      const lv=profSkill(def.id).level,cost=profCost(recipe,lv,n,def.id),parts=[...Object.entries(cost.materials).map(([k,v])=>`${esc(PROF_NAMES[k]||k)} ${v.toLocaleString('ko-KR')}개`),...(cost.gold?[`${cost.gold.toLocaleString('ko-KR')} G`]:[])];
       open('제작 확인',`<div class="stack"><p><b>${esc(recipe.name)}</b> <b>${n.toLocaleString('ko-KR')}개</b>를 제작하시겠습니까?</p><p class="note">소모: ${parts.join(' · ')||'없음'}</p><div class="actions">${btn('제작하기','professionCraftConfirm',arg+'|'+n,'gold')}${btn('취소','professionCraftBack')}</div></div>`);modal.classList.add('prof-dialog');return;}
-    if(action==="professionCraftBack"){open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
+    if(action==="professionCraftBack"){openProfession();return;}
     if(action==="professionCraftConfirm"){if(busy)return;const [recipe,c]=String(arg).split('|');const r=await command('professionCraft',{recipe,count:Number(c)});const e=r?.result?.events?.find(x=>x.type==='professionCraft');
-      if(!e){open('전문 직업',professionView(state,Date.now(),professionCounts));modal.classList.add('prof-dialog');return;}
+      if(!e){openProfession();return;}
       sounds.play('purchase-complete');const made=Object.entries(e.made).map(([k,v])=>`${esc(PROF_NAMES[k]||k)} ${v.toLocaleString('ko-KR')}개`).join(' · ');
-      open('제작 완료',`<div class="stack"><p>✅ <b>${esc(e.name)}</b> <b>${e.count.toLocaleString('ko-KR')}개</b> 제작 완료!</p><p class="note">획득: ${made}${e.levelUps?` · 🎉 숙련도 Lv.${e.level} 달성!`:''}</p><div class="actions">${btn('확인','professionCraftBack','','gold')}</div></div>`);modal.classList.add('prof-dialog');return;}
+      open('제작 완료',`<div class="stack"><p>✅ <b>${esc(e.name)}</b> <b>${e.count.toLocaleString('ko-KR')}개</b> 제작 완료!</p><p class="note">획득: ${made}${e.levelUps?` · 🎉 ${esc(e.professionName||'')} 숙련도 Lv.${e.level} 달성!`:''}</p><div class="actions">${btn('확인','professionCraftBack','','gold')}</div></div>`);modal.classList.add('prof-dialog');return;}
     if(action==="tribeOpen"){await command('sync',{},true);openTribe();return;}
     if(action==="tribeBuy"){if(busy||tribeSpinning)return;try{await command('tokenShopBuy',{id:'tribeTicket',quantity:1},true);toast('종족 주사위 1개 구매');}catch{}openTribe();return;}
     if(action==="tribeRoll"){
@@ -2440,7 +2443,7 @@ document.addEventListener("change", async (e) => {
   if(e.target.id==="exchange-level"){exchangeLevel=Number(e.target.value);render();return;}
   if(e.target.id==="material-sell-key"){updateMaterialSale();return;}
   if(/^bo-/.test(e.target.id||"")){updateBuyOrderForm();return;}
-  if(e.target.dataset?.recipeCount){const id=e.target.dataset.recipeCount,p=state?.profession,def=p&&D_PROFESSIONS.find(x=>x.id===p.id),r=def?.recipes.find(x=>x.id===id),out=modal.querySelector(`[data-recipe-sum="${id}"]`);if(r&&out)out.textContent=craftSummary(state,p,r,Number(e.target.value));return;}
+  if(e.target.dataset?.recipeCount){const id=e.target.dataset.recipeCount,def=profOfRecipe(id),p=def&&profSkill(def.id),r=def?.recipes.find(x=>x.id===id),out=modal.querySelector(`[data-recipe-sum="${id}"]`);if(r&&out)out.textContent=craftSummary(state,p,r,Number(e.target.value));return;}
   if(e.target.id==="market-sell-slot"||e.target.id==="market-sell-class") {marketSellPrice=$("#sell-price")?.value??marketSellPrice;if(e.target.id==="market-sell-slot")marketSellSlot=e.target.value;else marketSellClass=e.target.value;marketSellId=null;marketSellPicker();return;}
 
   if(e.target.id==="party-boss") {partyBossId=Number(e.target.value);$("#party-boss-preview").innerHTML=partyBossPreview(D.raidBoss(partyBossId));return;}

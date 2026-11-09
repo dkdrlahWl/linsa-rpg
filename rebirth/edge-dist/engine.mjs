@@ -1,5 +1,5 @@
 import {settleBank,bankCommand} from './bank-model.mjs';
-import {professionFragmentBoost,normalizeProfession,professionCommand,professionGather,JOB_MATERIAL_DROP,rollJobMaterials,resourceAdd} from './profession-model.mjs';
+import {professionFragmentBoost,normalizeProfessions,professionCommand,professionGather,JOB_MATERIAL_DROP,rollJobMaterials,resourceAdd} from './profession-model.mjs';
 import {fishingCommand,normalizeFishing} from './fishing-model.mjs';
 import {LUCKY_WHEEL,LUCKY_WHEEL_SPINS,WHEEL_CHEST,wheelKoreanDay,rollLuckyWheel} from './lucky-wheel.mjs';
 import {FIFTH_SKILLS,fifthUnlocked,beginFifth,stepFifth} from './fifth-job.mjs';
@@ -655,7 +655,7 @@ function executeCore(input, command, args = {}, ctx) {
   deliverSystemMail(s,ctx);
   normalizeCompanions(s);
   normalizeTribe(s);
-  normalizeProfession(s);
+  normalizeProfessions(s);
   settleBank(s,ctx.now);
   if(s.balanceVersion!==BALANCE_VERSION){s.xp=Math.floor(Math.min(.999999,s.xp/Math.round((100+s.level**2.4*4)*5))*xpNeeded(s.level));s.xpRemainder=0;}s.balanceVersion=BALANCE_VERSION;
   const dailyDay=dayKey(ctx.now);

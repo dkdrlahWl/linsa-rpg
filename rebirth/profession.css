@@ -86,3 +86,36 @@ span.rank-prof{color:var(--pc);font-weight:700}
 @media(max-width:480px){.rank-prof-board{grid-template-columns:repeat(2,1fr)}}
 /* 새 구매 요청 알림 배지 (거래소 하위 메뉴) */
 .subnav .bo-alert{position:static;display:inline-block;margin-left:5px;vertical-align:1px;font-size:10px;line-height:14px}
+/* 2026-11-10 도현: 4개 직업 동시 보유 — 탭으로 바로 전환하는 제작창 */
+.prof-v2 [data-profession=alchemist],.prof-v2[data-profession=alchemist]{--prof-accent:#8cd7b9}
+.prof-v2 [data-profession=explorer],.prof-v2[data-profession=explorer]{--prof-accent:#7ed7df}
+.prof-v2 [data-profession=fisher],.prof-v2[data-profession=fisher]{--prof-accent:#8fb8ff}
+.prof-v2 [data-profession=miner],.prof-v2[data-profession=miner]{--prof-accent:#f0b37a}
+.prof-v2-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:12px}
+.prof-v2-top small{font-size:11px;letter-spacing:.08em;color:#c4ab6d}
+.prof-v2-top h3{margin:2px 0 0;font-size:20px;color:#ffe3a0}.prof-v2-top h3 span{font-size:12px;color:#9ff0a8;margin-left:6px;font-weight:600}
+.prof-gold{display:inline-flex;align-items:center;gap:4px;font-weight:700;color:#ffe08a;background:#0b1a2b;border:1px solid #c4ab6d55;border-radius:999px;padding:5px 11px;font-size:13px}
+.prof-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:sticky;top:-1px;z-index:2;padding:6px 0;background:linear-gradient(#101b1cf2 70%,#101b1c00)}
+.prof-tab{position:relative;display:grid;grid-template-columns:1fr;justify-items:center;gap:3px;padding:8px 4px 7px;border-radius:12px;border:1px solid #ffffff1f;background:linear-gradient(160deg,#1b2a2d,#0d1617);color:#d8e2ee;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s}
+.prof-tab img{width:52px;height:52px;object-fit:cover;object-position:50% 18%;border-radius:10px;border:1px solid #ffffff24;filter:saturate(.75) brightness(.85)}
+.prof-tab-name{font-size:12.5px;font-weight:700;color:#e8eef5}
+.prof-tab-lv{position:absolute;top:5px;right:5px;font-size:10.5px;font-weight:800;color:#101b1c;background:var(--prof-accent);border-radius:999px;padding:1px 6px}
+.prof-tab-xp{width:80%;height:4px;border-radius:3px;background:#061120;overflow:hidden}.prof-tab-xp i{display:block;height:100%;background:var(--prof-accent)}
+.prof-tab-mat{display:inline-flex;align-items:center;font-size:11px;color:#9fb0c4}.prof-tab-mat .prof-ic{width:15px;height:15px;margin-right:2px}
+.prof-tab:hover{transform:translateY(-1px)}
+.prof-tab.active{border-color:var(--prof-accent);box-shadow:0 0 0 1px var(--prof-accent) inset,0 6px 18px #0006;background:linear-gradient(160deg,#24383a,#101b1c)}
+.prof-tab.active img{filter:none;border-color:var(--prof-accent)}
+.prof-passives{margin:8px 0 12px}.prof-passives>small{display:block;font-size:11px;color:#9fb0c4;margin-bottom:6px}
+.prof-passives>div{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.prof-passives span{display:flex;flex-direction:column;gap:1px;font-size:11.5px;line-height:1.35;color:#c7d3e0;background:#0b1a2b;border:1px solid #2b3f5a;border-left:3px solid var(--prof-accent);border-radius:8px;padding:6px 8px}
+.prof-passives b{color:#ffe08a}.prof-passives .prof-pass-name{color:var(--prof-accent);font-size:11px}.prof-passives i{font-style:normal;color:#8ea0b5;font-size:10.5px}
+.prof-stage{border:1px solid color-mix(in srgb,var(--prof-accent) 45%,transparent);border-radius:14px;padding:12px;background:linear-gradient(170deg,color-mix(in srgb,var(--prof-accent) 9%,#101b1c),#0c1415)}
+.prof-stage-head{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.prof-stage-head img{width:72px;height:88px;object-fit:cover;object-position:50% 18%;border-radius:10px;border:1px solid var(--prof-accent);flex:none}
+.prof-stage-head h4{margin:0;font-size:18px;color:#ffe3a0}.prof-stage-head h4 small{color:var(--prof-accent);font-size:13px;margin-left:4px}
+.prof-stage-head p{margin:2px 0 5px;font-size:12px;color:#c7d3e0}.prof-stage-head>div>small{font-size:11px;color:#9fb0c4}
+.prof-stage .prof-xp i{background:var(--prof-accent)}
+.prof-v2 .prof-recipes{grid-template-columns:1fr}
+.prof-v2 .prof-recipe{border-color:color-mix(in srgb,var(--prof-accent) 35%,#35507a)}
+.prof-v2 .prof-recipe-head strong{color:var(--prof-accent)}
+@media(max-width:480px){.prof-tabs{gap:5px}.prof-tab img{width:42px;height:42px}.prof-tab-name{font-size:11.5px}.prof-passives>div{grid-template-columns:1fr}}

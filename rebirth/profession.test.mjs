@@ -13,25 +13,26 @@ if(!PROFESSION_OPEN)assert.throws(()=>professionCommand({gold:1,materials:{}},'p
 // 직업 재료 드랍: 4종 랜덤, 총 개수 보존
 {const m=rollJobMaterials(40,seq(0.1,0.87,0.93,0.98));assert.deepEqual(m,{essence:10,mapPiece:10,pearl:10,ore:10});}
 const s={gold:100000000,isAdmin:true,materials:{fragment:100,cube:50,highCube:20,essence:30,mapPiece:5,ore:9},fishing:{diamonds:30},companions:{tickets:0,pickupTickets:0},treasure:{tickets:0}};
-assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'primeCube',count:1},t0,Math.random),/PROFESSION_REQUIRED/);
 professionCommand(s,'professionChoose',{id:'alchemist'},t0,Math.random);assert.equal(s.gold,100000000,'first choice free');
 assert.equal(professionCostMultiplier(1),1);assert.equal(professionCostMultiplier(10),1);assert.equal(professionBonusChance(10),0);
 const r=PROFESSIONS[0].recipes[0];assert.deepEqual(recipeCost(r,1,2,'alchemist'),{materials:{essence:2,highCube:2,cube:4},gold:600000});
 let e=professionCommand(s,'professionCraft',{recipe:'primeCube',count:2},t0,seq(0.5,0.01));
 assert.equal(e.bonus,0);assert.equal(s.materials.primeCube,2);assert.equal(s.materials.highCube,18);assert.equal(s.gold,99400000);assert.equal(s.materials.essence,28,'직업 재료 1개/회');
-assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'dungeonKey',count:1},t0,Math.random),/INVALID_RECIPE/);
+assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'nope',count:1},t0,Math.random),/INVALID_RECIPE/);
+assert.throws(()=>professionCommand(s,'professionCraft',{recipe:'dungeonKey',count:1},t0,Math.random),/INSUFFICIENT_MATERIAL/,'2026-11-10: 대표 직업이 아니어도 다른 직업 레시피 제작 가능');
 // 숙련도: Lv.1→2 는 222회 (Lv.10까지 총 10,000회)
-normalizeProfession(s).xp=214;for(let i=0;i<8;i++)professionCommand(s,'professionCraft',{recipe:'addCube',count:1},t0,()=>.9);
-assert.equal(normalizeProfession(s).level,2);assert.equal(s.materials.essence,20);
+s.professions.alchemist.xp=214;for(let i=0;i<8;i++)professionCommand(s,'professionCraft',{recipe:'addCube',count:1},t0,()=>.9);
+assert.equal(s.professions.alchemist.level,2);assert.equal(normalizeProfession(s).level,2);assert.equal(s.materials.essence,20);
 // max count (레드 큐브 또는 정수 중 먼저 바닥나는 쪽)
 e=professionCommand(s,'professionCraft',{recipe:'addCube',count:'max'},t0,()=>.9);assert.ok(e.count>=1&&(s.materials.cube<2||s.materials.essence<1));
 assert.throws(()=>professionCommand({...s,materials:{...s.materials,cube:100,essence:0}},'professionCraft',{recipe:'addCube',count:1},t0,()=>.9),/INSUFFICIENT_MATERIAL/);
 // 변경: 쿨타임 · 비용
 assert.throws(()=>professionCommand(s,'professionChoose',{id:'miner'},t0+1000,Math.random),/PROFESSION_COOLDOWN/);
 s.gold=PROFESSION_CHANGE_COST+5;professionCommand(s,'professionChoose',{id:'miner'},t0+8*86400000,Math.random);
-assert.equal(s.gold,5);assert.equal(normalizeProfession(s).level,1);assert.equal(normalizeProfession(s).id,'miner');
+assert.equal(s.gold,5);assert.equal(normalizeProfession(s).level,1);assert.equal(normalizeProfession(s).id,'miner');assert.equal(s.professions.alchemist.level,2,'대표 직업을 바꿔도 숙련도 유지');
 // 채집 보너스: Lv.1 50% of listed, 비직업 1
-assert.ok(Math.abs(professionGather(s,'fragment')*27+professionFragmentBoost(s)*140-400)<1e-9);assert.equal(professionGather(s,'cube'),1);assert.equal(professionGather({},'fragment'),1);
+// 2026-11-10: 4개 직업 패시브 전부 적용 — 탐험가+광부 Lv.1 둘 다 보유 → 파편 하루 400×2
+assert.ok(Math.abs(professionGather(s,'fragment')*27+professionFragmentBoost(s)*140-800)<1e-9);assert.ok(professionGather(s,'cube')>1);assert.ok(Math.abs(professionGather({},'fragment')*27+professionFragmentBoost({})*140-800)<1e-9);
 // 어부 다이아 경로 · 픽업 경로
 const f={gold:4200000,isAdmin:true,materials:{cube:10,pearl:2},fishing:{diamonds:20},companions:{tickets:0,pickupTickets:0}};
 professionCommand(f,'professionChoose',{id:'fisher'},t0,Math.random);

@@ -1,3 +1,4 @@
+import {hasProfession} from './profession-model.mjs';
 // Shared with the authenticated server. Fish use gold; bait bundles use diamonds. Weight is grams.
 export const FISHING_VERSION=3; // 2026-11-05 낚시 v3: 토큰 경제·낚싯대 Lv.50·강화·인챈트·크기·돌연변이·합성
 // 낚싯대 최대 레벨: 확장 시 여기만 수정 (rodGoldCost/rodDiamondCost 표도 같이 늘릴 것).
@@ -7,8 +8,9 @@ export const FISHING_DAILY_CASTS=600;
 // 2026-11-05 도현: 어부는 하루 1,000회
 export const FISHER_DAILY_CASTS=1000;
 // 2026-11-05 도현: 물고기 가방 150칸, 어부는 300칸
-export const fishBagSize=s=>s?.profession?.id==='fisher'?300:150;
-export const fishingDailyCasts=s=>s?.profession?.id==='fisher'?FISHER_DAILY_CASTS:FISHING_DAILY_CASTS;
+// 2026-11-10 도현: 전문 직업 4개 전부 보유 — 어부 혜택은 모두에게.
+export const fishBagSize=s=>hasProfession(s,'fisher')?300:150;
+export const fishingDailyCasts=s=>hasProfession(s,'fisher')?FISHER_DAILY_CASTS:FISHING_DAILY_CASTS;
 // Gold-income rebalance (2026-10-11): every successful cast catches. value = grade multiplier, spot scale = price per grade unit.
 export const RARITIES=[{name:'일반',color:'#d8e7d1',gate:1,value:1},{name:'희귀',color:'#8de6ad',gate:1,value:3},{name:'레어',color:'#74caff',gate:10,value:9},{name:'에픽',color:'#cf9cff',gate:20,value:30},{name:'전설',color:'#ffd477',gate:35,value:120},{name:'신화',color:'#ff95c8',gate:45,value:240},{name:'태고',color:'#7ff6ff',gate:70,value:600}];
 export const SPOTS=[
@@ -233,7 +235,7 @@ export const fishingEnchant=(f,id)=>(f?.enchants||[]).reduce((n,e)=>n+(e&&e.id==
 // v3 자동 낚시권(골드): 있을 때만 오토 낚시, 손맛 없이 낚싯대 힘으로 판정.
 // 2026-11-05 도현: 자동 낚시권은 시간이 아니라 횟수 — 하루치(600회) 단위로 판매, 어부는 반값.
 export const FISHING_AUTO_PLANS=Object.freeze([{id:'h24',name:'자동 낚시 600회',casts:600,gold:30000000},{id:'d3',name:'자동 낚시 1,800회',casts:1800,gold:80000000},{id:'d7',name:'자동 낚시 4,200회',casts:4200,gold:160000000}].map(Object.freeze));
-export const fishingAutoPrice=(s,plan)=>s?.profession?.id==='fisher'?Math.round(plan.gold/2):plan.gold;
+export const fishingAutoPrice=(s,plan)=>hasProfession(s,'fisher')?Math.round(plan.gold/2):plan.gold;
 export const AUTO_CASTS_PER_HOUR=25; // 예전 시간제 남은 시간 → 횟수 변환 (600회/24시간)
 // ── v3 합성 ──
 // 2026-11-05 도현: 합성은 도박 — 같은 종·같은 크기 3마리 → 같은 종 1마리. 성공하면 크기가 커지고(가끔 두 단계),

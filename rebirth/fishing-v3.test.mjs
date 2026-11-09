@@ -126,7 +126,7 @@ console.log('PASS administrator/tester catches preserve old data without updatin
 {
  const {FISHING_AUTO_PLANS:P}=await import('./fishing-data.mjs');
  const s={gold:1e9,materials:{},fishing:{version:3,rodScheme:16,rod:1,bait:{worm:1},fish:[],aquarium:[],slots:3,bank:0,bankAt:now0,collection:{},daily:{},tokens:0,enchants:[],autoUntil:now0+2*3600000}};
- fishingCommand(s,'fishAutoBuy',{plan:'h24'},{now:now0,random:Math.random,uuid});assert.equal(s.fishing.autoUntil,undefined);assert.equal(s.fishing.autoCasts,50+600);assert.equal(s.gold,1e9-P[0].gold);
+ fishingCommand(s,'fishAutoBuy',{plan:'h24'},{now:now0,random:Math.random,uuid});assert.equal(s.fishing.autoUntil,undefined);assert.equal(s.fishing.autoCasts,50+600);assert.equal(s.gold,1e9-P[0].gold/2,'2026-11-10: 어부 혜택 전원');
  s.profession={id:'fisher',level:1};const g=s.gold;fishingCommand(s,'fishAutoBuy',{plan:'d7'},{now:now0,random:Math.random,uuid});assert.equal(g-s.gold,P[2].gold/2);assert.equal(s.fishing.autoCasts,650+4200);
  s.fishing.autoCasts=1;const {castId}=fishingCommand(s,'fishCast',{protocol:FISHING_PROTOCOL,spot:'brook',bait:'worm'},{now:now0,random:Math.random,uuid});
  fishingCommand(s,'fishHook',{id:castId,auto:true},{now:s.fishing.cast.biteAt,random:Math.random,uuid});assert.equal(s.fishing.autoCasts,0);

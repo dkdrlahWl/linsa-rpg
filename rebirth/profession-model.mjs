@@ -56,15 +56,26 @@ export const PROFESSIONS=Object.freeze([
 export const RESOURCE_NAMES=Object.freeze({essence:'마력 정수',mapPiece:'고대 지도 조각',pearl:'심해 진주',ore:'원석',fragment:'장비 파편',cube:'레드 큐브',highCube:'블랙 큐브',primeCube:'프라임 큐브',addCube:'에디셔널 큐브',potentialLock:'잠재 잠금석',dungeonKey:'던전 열쇠',bonusFlame:'추가옵션 불꽃',transcendStone:'초월석',diamond:'다이아',companionTicket:'동료 소환권',pickupTicket:'픽업 소환권',treasureTicket:'보물찾기 티켓'});
 export const professionById=id=>PROFESSIONS.find(p=>p.id===id)||null;
 const fail=code=>{throw new Error(code);};
+// 2026-11-10 도현: 전문 직업 4개를 모두 각자 제작·숙련 — 숙련도는 state.professions[직업]에 직업별로 따로 쌓인다.
+// state.profession은 "대표 직업"(채집 보너스·어부 낚시 혜택이 붙는 직업)만 가리킨다: {id,chosenAt}.
+// 예전 저장분(state.profession에 level·xp가 들어 있던 것)은 그 직업 숙련도로 옮긴다.
+export const PROFESSION_IDS=Object.freeze(['alchemist','explorer','fisher','miner']);
+const cleanSkill=p=>({level:Number.isInteger(p?.level)&&p.level>=1?Math.min(PROFESSION_MAX_LEVEL,p.level):1,xp:Number.isInteger(p?.xp)&&p.xp>=0?p.xp:0,crafted:Number.isInteger(p?.crafted)&&p.crafted>=0?p.crafted:0,bonus:Number.isInteger(p?.bonus)&&p.bonus>=0?p.bonus:0});
+export function normalizeProfessions(s){
+ const all=s.professions&&typeof s.professions==='object'&&!Array.isArray(s.professions)?s.professions:{};
+ const rep=s.profession&&typeof s.profession==='object'&&professionById(s.profession.id)?s.profession:null;
+ if(rep&&('level' in rep||'xp' in rep||'crafted' in rep)){const old=cleanSkill(rep),cur=all[rep.id]?cleanSkill(all[rep.id]):null;all[rep.id]=!cur||old.crafted+old.xp>=cur.crafted+cur.xp?old:cur;}
+ for(const id of PROFESSION_IDS)all[id]=cleanSkill(all[id]);
+ for(const k of Object.keys(all))if(!PROFESSION_IDS.includes(k))delete all[k];
+ s.professions=all;
+ if(rep)s.profession={id:rep.id,chosenAt:Number.isSafeInteger(rep.chosenAt)?rep.chosenAt:0};else if(s.profession!==undefined)delete s.profession;
+ return all;
+}
+export const professionSkill=(s,id)=>normalizeProfessions(s)[id];
+// 대표 직업 + 그 직업 숙련도 (채집 보너스 계산용 읽기 전용 사본)
 export function normalizeProfession(s){
- const p=s.profession&&typeof s.profession==='object'&&professionById(s.profession.id)?s.profession:null;
- if(!p){if(s.profession!==undefined&&s.profession!==null)delete s.profession;return null;}
- p.level=Number.isInteger(p.level)&&p.level>=1?Math.min(PROFESSION_MAX_LEVEL,p.level):1;
- p.xp=Number.isInteger(p.xp)&&p.xp>=0?p.xp:0;
- p.crafted=Number.isInteger(p.crafted)&&p.crafted>=0?p.crafted:0;
- p.bonus=Number.isInteger(p.bonus)&&p.bonus>=0?p.bonus:0;
- p.chosenAt=Number.isSafeInteger(p.chosenAt)?p.chosenAt:0;
- return p;
+ const all=normalizeProfessions(s);if(!s.profession)return null;
+ return {id:s.profession.id,chosenAt:s.profession.chosenAt,...all[s.profession.id]};
 }
 // 2026-11-04 도현: Lv.10까지 총 10,000회 제작. Lv.n→n+1 필요 = 10000×n/45 (222, 444, … 2,000).
 // 2026-11-05 도현: 구간별 경험치 빡세게 — 레벨이 오를수록 가파르게 (Lv.10까지 총 23,550회).
@@ -76,28 +87,40 @@ export const professionOf=s=>{const p=normalizeProfession(s);return p?profession
 // 2026-11-04 도현: 제작 비용은 숙련도와 무관하게 전 구간 동일. 숙련도는 추가 제작 확률만 올린다.
 export const professionCostMultiplier=()=>1;
 export const professionBonusChance=()=>0;
-// 채집 보너스 실효 배율: Lv.1 50% → Lv.10 100% of the listed bonus. Returns the multiplier (1 + bonus×scale), or 1 when not that profession.
-export function professionGather(s,key){
- const p=normalizeProfession(s);if(!p)return 1;
- const def=professionById(p.id),bonus=def?.gather?.[key];if(!bonus)return 1;
- const t=(p.level-1)/(PROFESSION_MAX_LEVEL-1),scale=0.5+0.5*t;
+// 채집 보너스 실효 배율: Lv.1 50% → Lv.10 100% of the listed bonus.
+// 2026-11-10 도현: 4개 직업을 모두 보유 — 패시브도 4개 전부 각 직업 숙련도로 적용. 탐험가·광부(둘 다 장비 파편)는 둘 다 보유하면 두 배(합산).
+export const hasProfession=(s,id)=>PROFESSION_OPEN&&PROFESSION_IDS.includes(id);
+const levelT=level=>(level-1)/(PROFESSION_MAX_LEVEL-1);
+function gatherOne(id,level,key){
+ const def=professionById(id),bonus=def?.gather?.[key];if(!bonus)return 1;
+ const t=levelT(level),scale=0.5+0.5*t;
  // 2026-11-07 도현: 연금술사 레드 큐브 하루 Lv.1 200개 → Lv.10 800개 (11-05: 50 → 200) (사냥 9,000마리 기준 기본 1.8개).
- if(p.id==='alchemist'&&key==='cube')return (ALCHEMIST_CUBE_DAILY[0]+(ALCHEMIST_CUBE_DAILY[1]-ALCHEMIST_CUBE_DAILY[0])*t)/ALCHEMIST_CUBE_BASE;
+ if(id==='alchemist'&&key==='cube')return (ALCHEMIST_CUBE_DAILY[0]+(ALCHEMIST_CUBE_DAILY[1]-ALCHEMIST_CUBE_DAILY[0])*t)/ALCHEMIST_CUBE_BASE;
  // 2026-11-05 도현: 어부 다이아 Lv.1 +50% → Lv.10 +150%.
- if(p.id==='fisher'&&key==='diamond')return 1.5+t;
- return (1+bonus*scale)*(key==='fragment'?professionFragmentBoost(s):1);
+ if(id==='fisher'&&key==='diamond')return 1.5+t;
+ return (1+bonus*scale)*(key==='fragment'?fragmentBoostOne(level):1);
 }
+const skillsOf=s=>s?.professions&&typeof s.professions==='object'?s.professions:normalizeProfessions(s);
+const levelOf=(s,id)=>{const v=skillsOf(s)?.[id]?.level;return Number.isInteger(v)&&v>=1?Math.min(PROFESSION_MAX_LEVEL,v):1;};
+export function professionGather(s,key){
+ if(!PROFESSION_OPEN)return 1;
+ if(key==='fragment'){const ids=['explorer','miner'];return ids.reduce((n,id)=>n+gatherOne(id,levelOf(s,id),key),0);}
+ return PROFESSION_IDS.reduce((n,id)=>n*gatherOne(id,levelOf(s,id),key),1);
+}
+// 한 직업 기준 배율 (UI 표기용)
+export const professionGatherAt=(id,level,key)=>gatherOne(id,level,key);
 // 2026-11-07 도현: 연금술사 레드 큐브 하루 Lv.1 200개 → Lv.10 800개 (이전 50 → 200, 4배 비율 유지).
 export const ALCHEMIST_CUBE_DAILY=[200,800],ALCHEMIST_CUBE_BASE=9000*0.0002;
 // 2026-11-05 도현: 광부·탐험가 장비 파편 하루 획득량 Lv.1 400개 → Lv.10 1,200개 (레벨마다 균등 증가).
 // 기준 하루: 사냥 9,000마리(파편 0.3%=27개) + 장비 분해 약 80개 + 성채 60개. 사냥·분해·성채 전부에 같은 배율을 곱한다.
 export const FRAGMENT_DAILY_BASE={hunt:27,other:140},FRAGMENT_DAILY_TARGET=[400,1200];
-export const professionFragmentBoost=s=>{const p=normalizeProfession(s);if(!p||(p.id!=='miner'&&p.id!=='explorer'))return 1;
- const t=(p.level-1)/(PROFESSION_MAX_LEVEL-1),scale=0.5+0.5*t,target=FRAGMENT_DAILY_TARGET[0]+(FRAGMENT_DAILY_TARGET[1]-FRAGMENT_DAILY_TARGET[0])*t;
+const fragmentBoostOne=level=>{const t=levelT(level),scale=0.5+0.5*t,target=FRAGMENT_DAILY_TARGET[0]+(FRAGMENT_DAILY_TARGET[1]-FRAGMENT_DAILY_TARGET[0])*t;
  return target/(FRAGMENT_DAILY_BASE.hunt*(1+2.5*scale)+FRAGMENT_DAILY_BASE.other);};
-// 재료 보관 위치(거래소와 같은 규칙)
+// 분해·성채 파편 배율: 탐험가 + 광부 합산 (둘 다 보유 = 두 배)
+export const professionFragmentBoost=s=>PROFESSION_OPEN?fragmentBoostOne(levelOf(s,'explorer'))+fragmentBoostOne(levelOf(s,'miner')):1;
 // 소수 배율 개수: 기대값이 정확히 맞도록 확률적 반올림
 export const gatherAmount=(s,key,n,random)=>{const x=n*professionGather(s,key),f=Math.floor(x);return x>f?f+(random()<x-f?1:0):f;}; // 보너스 없으면 난수 안 씀(판정 순서 유지)
+// 재료 보관 위치(거래소와 같은 규칙)
 export function resourcePath(key){
  if(key==='diamond')return ['fishing','diamonds'];
  if(key==='companionTicket')return ['companions','tickets'];
@@ -119,8 +142,9 @@ export function recipeCost(recipe,level,count=1,professionId=null){
  for(const [k,v] of Object.entries(recipe.cost))cost[k]=(cost[k]||0)+Math.ceil(v*m)*count;
  return {materials:cost,gold:Math.ceil(recipe.gold*m)*count};
 }
+export const recipeProfession=id=>PROFESSIONS.find(p=>p.recipes.some(r=>r.id===id))||null;
 export function recipeMaxCount(s,profession,recipe){
- const level=professionLevel(s),unit=recipeCost(recipe,level,1,profession?.id);
+ const level=profession?professionSkill(s,profession.id).level:1,unit=recipeCost(recipe,level,1,profession?.id);
  let max=1000;
  for(const [k,v] of Object.entries(unit.materials))if(v>0)max=Math.min(max,Math.floor(resourceCount(s,k)/v));
  if(unit.gold>0)max=Math.min(max,Math.floor((Number(s.gold)||0)/unit.gold));
@@ -139,12 +163,13 @@ export function professionCommand(s,command,args,now,random){
    if((Number(s.gold)||0)<PROFESSION_CHANGE_COST)fail('INSUFFICIENT_GOLD');
    s.gold-=PROFESSION_CHANGE_COST;
   }
-  s.profession={id:def.id,level:1,xp:0,crafted:0,bonus:0,chosenAt:now};
+  // 대표 직업만 바뀐다 — 직업별 숙련도는 그대로.
+  s.profession={id:def.id,chosenAt:now};
   return {type:command,id:def.id,name:def.name,changed:!!cur,gold:cur?PROFESSION_CHANGE_COST:0};
  }
  if(command==='professionCraft'){
-  const p=normalizeProfession(s)||fail('PROFESSION_REQUIRED');
-  const def=professionById(p.id),recipe=def.recipes.find(r=>r.id===args?.recipe)||fail('INVALID_RECIPE');
+  // 2026-11-10 도현: 대표 직업과 상관없이 4개 직업 레시피 전부 제작 가능. 숙련도는 그 레시피 직업에 쌓인다.
+  const def=recipeProfession(args?.recipe)||fail('INVALID_RECIPE'),recipe=def.recipes.find(r=>r.id===args.recipe),p=professionSkill(s,def.id);
   const count=args?.count==='max'?recipeMaxCount(s,def,recipe):args?.count;
   if(!Number.isInteger(count)||count<1||count>1000)fail('INVALID_CRAFT_COUNT');
   const cost=recipeCost(recipe,p.level,count,def.id);
@@ -158,7 +183,7 @@ export function professionCommand(s,command,args,now,random){
   p.crafted+=count;p.bonus+=bonus;p.xp+=count;
   let ups=0;while(p.level<PROFESSION_MAX_LEVEL&&p.xp>=professionXpNeeded(p.level)){p.xp-=professionXpNeeded(p.level);p.level++;ups++;}
   if(p.level>=PROFESSION_MAX_LEVEL)p.xp=0;
-  return {type:command,recipe:recipe.id,name:recipe.name,count,bonus,made,cost,level:p.level,levelUps:ups,xp:p.xp,xpNeeded:p.level>=PROFESSION_MAX_LEVEL?0:professionXpNeeded(p.level)};
+  return {type:command,profession:def.id,professionName:def.name,recipe:recipe.id,name:recipe.name,count,bonus,made,cost,level:p.level,levelUps:ups,xp:p.xp,xpNeeded:p.level>=PROFESSION_MAX_LEVEL?0:professionXpNeeded(p.level)};
  }
  fail('UNKNOWN_COMMAND');
 }

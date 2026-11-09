@@ -1,5 +1,5 @@
 import {FISHING_SKINS,fishingSkin} from './fishing-skins.mjs';
-import {professionGather,gatherAmount} from './profession-model.mjs';
+import {professionGather,gatherAmount,hasProfession} from './profession-model.mjs';
 import {fishingAutoPrice,AUTO_CASTS_PER_HOUR,baitPackPrice,BAIT_SPECIAL_LIMIT,FISHING_VERSION,legacyRodGoldCost,legacyRodDiamondCost,legacyAquariumExpandCost,legacyFishPrice,LEGACY_BAIT_DIAMONDS,FISH_SIZES,MUTATIONS,fishSizeOf,fishSizeWeight,rollFishSize,rollMutation,LEGACY_ENHANCE_DIAMONDS,ROD_TOKEN_BONUS,ROD_RARE_BONUS,enchantSlotCount,ENCHANT_TIERS,ENCHANTS,enchantCost,fishingEnchant,FUSE_COUNT,FUSE_CHANCE,FUSE_JACKPOT,FUSE_MUT_BOOST,GOLD_FUSE_COUNT,GOLD_FUSE_CHANCE,AWAKEN_MAX,FISHING_AUTO_PLANS,ROD_TIERS,rodTier,fishBagSize,fishingDailyCasts,FISHING_DAILY_CASTS,ROD_MAX,FISH,SPOTS,RARITIES,BAITS,FISHING_QUESTS,REWARD_RATES,fishPrice,fishYield,rodGoldCost,rodDiamondCost,baitDiamondCost,aquariumExpandCost,baitGradeWeight,spotGradeWeight,BITE_MIN_MS,BITE_RANGE_MS,FISHER_BITE_MIN_MS,FISHER_BITE_RANGE_MS,CAST_EXPIRE_MS,DIAMOND_EXCHANGE,DIAMOND_EXCHANGE_DAILY,CONTEST_REWARDS,CONTEST_CLAIM_WEEKS,CONTEST_START,CONTEST_CLOSED,contestWeek,contestWeekEnd,contestTarget} from './fishing-data.mjs';
 import {treasureTicketDrop} from './treasure-model.mjs';
 import {fishAvailable,fishBossWindow,fishBossDamage,FISH_BOSSES,FISH_BOSS_MIN_HITS,FISH_BOSS_DIAMONDS,FISH_BOSS_TOKEN_CASTS,ROD_CAST_VALUE} from './fishing-data.mjs';
@@ -197,7 +197,7 @@ export function fishingCommand(s,command,args,ctx){
   // The catch is rolled on the server when the fish bites, so a visible cast reveals nothing to reroll.
   // 2026-11-04 도현: 어부는 입질 3~5초 (일반 5~9초)
   // v3: 낚싯대 레벨(-0.5%/Lv) · 숲속 여울(×0.5) · 입질 인챈트로 입질이 빨라진다 (최소 1초).
-  const fisher=s.profession?.id==='fisher',biteAt=ctx.now+Math.max(1000,Math.round(((fisher?FISHER_BITE_MIN_MS:BITE_MIN_MS)+Math.floor(ctx.random()*(fisher?FISHER_BITE_RANGE_MS:BITE_RANGE_MS)))*bonus.bite));
+  const fisher=hasProfession(s,'fisher'),biteAt=ctx.now+Math.max(1000,Math.round(((fisher?FISHER_BITE_MIN_MS:BITE_MIN_MS)+Math.floor(ctx.random()*(fisher?FISHER_BITE_RANGE_MS:BITE_RANGE_MS)))*bonus.bite));
   if(bait.id!=='worm')f.bait[bait.id]--;f.daily.casts=(f.daily.casts||0)+1;
   f.cast={protocol:FISHING_PROTOCOL,id:ctx.uuid(),spot:spot.id,bait:bait.id,rod:f.rod,seed:ctx.random()*Math.PI*2,started:ctx.now,biteAt,hookDeadline:biteAt+CAST_EXPIRE_MS,hookAt:null,expires:biteAt+CAST_EXPIRE_MS};
   return {type:'fishCast',castId:f.cast.id};
