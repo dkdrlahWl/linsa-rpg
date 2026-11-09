@@ -27,13 +27,15 @@ export function rollBonusPct(random) {
 export const bonusPct = item => Number.isInteger(item?.bonusPct) && item.bonusPct >= BONUS_MIN && item.bonusPct <= BONUS_MAX ? item.bonusPct : 0;
 export const bonusMultiplier = item => 1 + bonusPct(item) / 100;
 
+// 2026-11-09 도현: 220제 이상은 등급 유지 — 지금 등급 수치 범위 안에서만 기본수치 재굴림.
+export const rerollKeepsTier = item => isTieredBossGear(item) && Number(item.level) >= 220;
 export function rerollGear(item, random) {
-  const tiered = isTieredBossGear(item), bossTier = tiered ? Math.floor(random() * bossTierCount(item)) : undefined;
+  const tiered = isTieredBossGear(item) && !rerollKeepsTier(item), bossTier = tiered ? Math.floor(random() * bossTierCount(item)) : undefined;
   const target = tiered ? {...item, bossTier} : item;
   const baseStats = Object.fromEntries(Object.entries(gearStatRanges(target)).map(([key, r]) =>
     [key, r.min + Math.min(r.max - r.min, Math.floor(random() * (r.max - r.min + 1)))]));
   return {baseStats, bossTier};
 }
-// 2026-11-02 도현: 기본수치 재련석은 200제 보스장비(보장) 전용. 220제부터는 초월로만 등급이 오른다.
-export const rerollStoneAllowed = item => isTieredBossGear(item) && Number(item.level) < 220;
+// 2026-11-02 도현: 기본수치 재련석은 등급 보스장비 전용. 220제부터는 등급은 초월로만 오르고 재련석은 그 등급 범위 안에서만 재굴림.
+export const rerollStoneAllowed = item => isTieredBossGear(item);
 export const rerollBaseStats = (item, random) => rerollGear(item, random).baseStats;

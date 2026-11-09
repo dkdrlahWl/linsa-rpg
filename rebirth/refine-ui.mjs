@@ -33,7 +33,7 @@ export function renderRefinePanel(it,state,protectedReason=''){
  <p class="enhance-help">${flameBlock||'1개 소모 · 결과를 보고 이전 유지 / 새 결과 적용 선택'}</p>${bonusOdds()}
  <div class="cube-controls"><p class="cube-wallet" data-no-currency-art>${materialArt(REROLL_STONE)}${REROLL_STONE.name} 보유 <b>${fmt(stones)}개</b></p>${button('기본 수치 재굴림','statReroll',it.id,!!stoneBlock)}</div>
  ${it.baseStats?rerollRange(it):''}
- <p class="enhance-help">${stoneBlock||(D.isTieredBossGear(it)?'1개 소모 · 보스 장비 등급까지 다시 추첨 · 가장 낮은 등급 ~ 가장 높은 등급 전체 범위에서 완전 랜덤 · 결과 선택 가능':'1개 소모 · 장비 범위 안에서 완전 랜덤 추첨(모든 수치 같은 확률) · 결과 선택 가능')}</p>
+ <p class="enhance-help">${stoneBlock||(D.isTieredBossGear(it)&&Number(it.level)>=220?'1개 소모 · 등급('+D.bossTierName(it)+')은 그대로 · 지금 등급 수치 범위 안에서 완전 랜덤 · 결과 선택 가능':D.isTieredBossGear(it)?'1개 소모 · 보스 장비 등급까지 다시 추첨 · 가장 낮은 등급 ~ 가장 높은 등급 전체 범위에서 완전 랜덤 · 결과 선택 가능':'1개 소모 · 장비 범위 안에서 완전 랜덤 추첨(모든 수치 같은 확률) · 결과 선택 가능')}</p>
  </section>`;
 }
 export function renderRefineChoice(it,pending,state){
