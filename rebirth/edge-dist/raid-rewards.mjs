@@ -3,7 +3,7 @@ import {weekKey} from './data.mjs';
 import {rewardChance} from './consumables.mjs';
 
 export const RAID_WEEKLY_LIMIT=3;
-export const FINAL_RAID_LOOT={4:{level:250,count:1},5:{level:300,count:2}};
+export const FINAL_RAID_LOOT={4:{level:250,count:2},5:{level:300,count:2}};
 export function finalRaidRewardAvailable(state,tier,now=Date.now()){
  return state?.finalRaidClaims?.[tier]!==weekKey(now);
 }

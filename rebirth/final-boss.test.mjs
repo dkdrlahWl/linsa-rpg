@@ -43,7 +43,9 @@ test('final boss rewards are once per boss each Korean week', () => {
   const ctx={now:Date.UTC(2026,10,8,14,59),random:()=>0,uuid:()=>String(++id)};
   const input=initialState('warrior','최종테스트',ctx);input.coopRoom='room';
   const luna=grantRaidChest(input,4,ctx);
-  assert.deepEqual(luna.reward.items.map(i=>[i.level,i.boss]),[[250,true]]);
+  assert.deepEqual(luna.reward.items.map(i=>[i.level,i.boss]),[[250,true],[250,true]]);
+  assert.equal(new Set(luna.reward.items.map(i=>i.slot)).size,2);
+  assert.equal(grantRaidChest(luna.state,4,ctx).reward.items.length,0);
   assert.equal(luna.state.coopRoom,undefined);
   assert.equal(luna.state.titles.finalRaid4,ctx.now);
   const seraph=grantRaidChest(luna.state,5,ctx);
