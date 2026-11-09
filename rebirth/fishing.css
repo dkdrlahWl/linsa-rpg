@@ -414,3 +414,6 @@ body #app .fishing-screen .fishing-boss-banner.is-down{border-color:#ffd477!impo
 .rod-enchant .rod-enchant-compare .rod-enchant-slot{min-height:46px}
 .rod-enchant-choose{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 .rod-enchant-choose button{width:100%;min-height:40px}
+
+/* 2026-11-10 도현: 자동 낚시권 할인가 — 원가는 윗줄에 작게, 할인가는 아랫줄 (카드 밖으로 넘치지 않게) */
+.fishing-auto-plans .auto-was{font-size:10.5px;color:#8e9aa3;line-height:1.1}.fishing-auto-plans small{font-size:13px;font-weight:700}
