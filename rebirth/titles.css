@@ -104,3 +104,6 @@
 .party-member small{color:#9a96a8;font-size:11px}
 .citadel-party-members .party-member span{margin-top:0}
 @media(max-width:600px){.party-cover-boss{height:78%;right:-4%;top:4%;bottom:auto;opacity:.95}.party-room .citadel-cover-title{max-width:70%}.party-room-actions button{flex:1}.party-badges .title-plate img{height:28px}}
+
+.g-transcendent .title-card-grade,.title-tabs .g-transcendent{color:#a6ffed}
+.title-tile.owned.g-transcendent{border-color:#77dfd1;box-shadow:0 0 11px #77dfd15c}

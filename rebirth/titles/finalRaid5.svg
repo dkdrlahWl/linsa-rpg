@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 100" role="img" aria-label="심판을 넘어선 자">
+ <defs><linearGradient id="metal" x2="0" y2="1"><stop stop-color="#fff7da"/><stop offset=".52" stop-color="#ffe4a0"/><stop offset="1" stop-color="#a07845"/></linearGradient><radialGradient id="field"><stop stop-color="#4b3927"/><stop offset="1" stop-color="#100e20"/></radialGradient></defs>
+ <path d="M9 50 35 22l56 4L123 11h302l28 39-28 39H123L91 74l-56 4z" fill="url(#field)" stroke="url(#metal)" stroke-width="3"/>
+ <path d="M110 32l20-12h288l21 30-21 30H130l-20-12" fill="none" stroke="#ffe4a0" stroke-opacity=".55"/>
+ <path d="M78 7l47 43-47 43L31 50z" fill="#4b3927" stroke="url(#metal)" stroke-width="2"/>
+ <g transform="translate(78 50)"><path d="M0-29l8 16-8 38-8-38zM-17-8h34v5h-34z" fill="#ffe4a0"/><path d="M-10 5Q-35 9-44-19Q-26-9-10-5m20 10Q35 9 44-19Q26-9 10-5" fill="none" stroke="#fff4c5" stroke-width="3"/></g>
+ <path d="M139 38h272M139 65h272" stroke="#ffe4a0" opacity=".3"/>
+ <text x="274" y="35" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffe4a0">초 월</text>
+ <text x="274" y="63" text-anchor="middle" font-family="sans-serif" font-size="25" font-weight="900" fill="#fff6e1" stroke="#160e21" stroke-width="2" paint-order="stroke">심판을 넘어선 자</text>
+</svg>

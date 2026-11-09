@@ -46,7 +46,8 @@ import {petEventView,petInventory,petOdds,petResult,updatePetCountdown,playLumiR
 import {replacePreservingDetails,clearDisclosureState} from './disclosure-state.mjs?v=priest-potential-83';
 import {waveRewardBody} from './wave-ui.mjs?v=wave-fifth-cd-124';
 import {playHolyOverlay} from './priest-overlay.mjs?v=priest-perf-86';
-import {raidLobby,finalLobby} from './raid-ui.mjs?v=final-open-20261109';
+import {raidLobby,finalLobby} from './raid-ui.mjs?v=final-rewards-20261109';
+import {playFinalEnding} from './final-ending.mjs?v=final-rewards-20261109';
 import {nextAutoSkill} from './auto-skills.mjs?v=fifth-impact-121';
 import {playSecondOverlay} from './skill-overlay.mjs?v=priest-potential-83';
 import {playFifthOverlay} from './fifth-overlay.mjs?v=fifth-impact-121';
@@ -71,7 +72,7 @@ import {tribeView,spinTribeReel,tribeTag,rememberTribes,rememberTribe,installNam
 installNameFit();
 import {tokenShopBought} from "./token-content.mjs?v=gold500-20261105";
 import {sweepPlan,bossSweepable} from "./sweep.mjs";
-import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs";
+import {titleBadge,titlePanelView,titleEarnedView,setTitleFilter,setTitleDetail} from "./title-ui.mjs?v=final-rewards-20261109";
 const $ = (s) => document.querySelector(s),
   app = $("#app"),
   modal = $("#modal"),
@@ -1577,7 +1578,18 @@ function towerReward(r){const f=TOWER_FLOORS[r.floor-1];open(r.won?`${r.floor}�
 function reward() {
   const r = state.lastReward;
   if(r?.type==='coop'&&r.mode==='exploration')return open(r.won?'링구의 탐험 완료':'탐험 종료','<p>'+esc(r.name||'링구의 탐험')+' · '+(r.cleared||0)+'층 완료</p><p>'+fmt(r.gold||0)+' G'+['scroll','highCube','potentialLock','addCube','bonusFlame'].filter(k=>r[k]>0).map(k=>'<br>'+D.MATERIALS[k]+' '+r[k]+'개').join('')+(r.companionTicket?'<br>동료 소환권 '+r.companionTicket+'장':'')+'</p>'+(r.items||[]).map(it=>'<div class="panel pad">'+gearMarkup(it)+'<strong>'+esc(D.gearName(it))+'</strong><p>Lv.'+it.level+' · '+D.SLOTS[it.slot]+'</p></div>').join('')+(r.stored?'<p class="note">가방이 가득 차 장비를 보관함으로 보냈습니다.</p>':'')+btn('확인','ack','','gold',true),false);
-  if(r?.type==='coop'&&r.mode==='raid'&&r.final)return open('최종 보스 클리어!','<h3>'+esc(r.name)+'</h3><p>클리어 기록이 남았어요. 보상은 준비 중입니다.</p>'+btn('확인','ack','','gold',true));
+  if(r?.type==='coop'&&r.mode==='raid'&&r.final){
+    const showResult=()=>open('최종 보스 클리어!',`<h3>${esc(r.name)}</h3>
+      ${r.ending?'<p>링구 RPG 엔딩을 감상했습니다.</p>':''}
+      ${r.titleId?titleEarnedView({id:r.titleId}):''}
+      ${r.practice?'<p>이 보스의 이번 주 보상을 이미 받았어요.</p>':''}
+      ${(r.items||[]).map(it=>'<p>'+esc(D.gearName(it))+' · Lv.'+it.level+' · '+esc(D.SLOTS[it.slot])+'</p>').join('')}
+      ${r.stored?'<p>가방이 가득 차 장비를 보관함으로 보냈습니다.</p>':''}
+      ${btn(r.ending?'모험으로 돌아가기':'확인','ack','','gold',true)}`,false);
+    if(!r.ending)return showResult();
+    open('링구 RPG · 엔딩','<div class="final-ending" aria-live="polite"></div>',false);
+    return playFinalEnding(modal.querySelector('.final-ending'),showResult);
+  }
   if(r?.type==='coop'&&r.mode==='raid'){
     const loot=r.practice?'이번 주 레이드 보상 3회를 모두 받았습니다. 이번 클리어는 연습으로 처리됩니다.':fmt(r.gold)+' G'+['cube','highCube','primeCube','fragment','scroll'].filter(k=>r[k]>0).map(k=>' · '+D.MATERIALS[k]+' '+r[k]+'개').join('');
     const remaining=Number.isInteger(r.weeklyUsed)?`이번 주 개인 보상 ${r.weeklyUsed}/${r.weeklyLimit}회 · 남은 보상 ${r.weeklyRemaining}회<br>`:'';

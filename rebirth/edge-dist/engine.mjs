@@ -15,7 +15,7 @@ import {blackMarketBuy} from './black-market.mjs';
 import {PET_ID,summonPet,equipPet,fieldPetDeath,petHealTick} from './pet-event.mjs';
 import {deliverSystemMail,claimSystemMail} from './system-mail.mjs';
 import {RAID_ENCOUNTERS} from './raid-content.mjs';
-import {raidWeeklyStatus,rollRaidReward} from './raid-rewards.mjs';
+import {raidWeeklyStatus,rollRaidReward,FINAL_RAID_LOOT,finalRaidRewardAvailable} from './raid-rewards.mjs';
 import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage,priestAttack,PRIEST_OFFENSE_POTENTIAL_RATE,PRIEST_ATTACK_RATE} from './priest.mjs';
 import {scheduleCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {FOURTH_SKILLS,beginFourth,stepFourth} from './fourth-job.mjs';
@@ -33,7 +33,7 @@ import {companionCommand,normalizeCompanions,COMPANION_BAG} from './companion-mo
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs';
-import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
+import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE,finalRaidTitleId} from './titles-data.mjs';
 import {applyBetaTool} from './beta-tools.mjs';
 import {
   VERSION,
@@ -1249,19 +1249,44 @@ export function grantCoopChest(input,tier,ctx){
  delete reward.gear;delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
 }
 
+function grantRaidGear(s,reward,level,classId,slot,ctx){
+ const design=selectDesign(level,classId,slot,true,ctx.random);
+ const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};
+ item.baseStats=rollBaseStats(item,ctx.random);
+ if(s.items.length>=1000)reward.stored=(reward.stored||0)+1;
+ addItem(s,item);reward.items.push(item);
+}
+
 export function grantRaidChest(input,tier,ctx){
  const s0=normalizePotentialState(structuredClone(input)),raid0=RAID_ENCOUNTERS[tier];check(raid0,'INVALID_RAID');
- // 2026-11-09 도현: 최종 보스는 보상 미정 — 클리어 기록만 남기고 레이드 주간 횟수도 쓰지 않는다.
- if(raid0.final){const reward={type:'coop',mode:'raid',final:true,tier,name:raid0.name,won:true,practice:false,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]};if(!(s0.finalCleared||[]).includes(tier))s0.finalCleared=[...(s0.finalCleared||[]),tier];delete s0.coopRoom;s0.hunting=true;s0.lastAt=ctx.now;s0.lastReward=reward;return {state:s0,reward};}
+ if(raid0.final){
+  const s=s0,available=finalRaidRewardAvailable(s,tier,ctx.now);
+  const reward={type:'coop',mode:'raid',final:true,tier,name:raid0.name,won:true,practice:!available,ending:tier===6,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]};
+  if(!(s.finalCleared||[]).includes(tier))s.finalCleared=[...(s.finalCleared||[]),tier];
+  const titleId=finalRaidTitleId(tier);
+  s.titles??={};
+  if(!s.titles[titleId]){s.titles[titleId]=ctx.now;reward.titleId=titleId;}
+  if(available){
+   s.finalRaidClaims={...s.finalRaidClaims,[tier]:weekKey(ctx.now)};
+   const loot=FINAL_RAID_LOOT[tier];
+   if(loot){
+    const slots=SLOTS.map((_,slot)=>slot);
+    for(let i=0;i<loot.count;i++){
+     const slot=slots.splice(Math.floor(ctx.random()*slots.length),1)[0];
+     grantRaidGear(s,reward,loot.level,pick(CLASSES,ctx).id,slot,ctx);
+    }
+   }
+  }
+  delete s.coopRoom;s.hunting=true;s.lastAt=ctx.now;s.lastReward=reward;return {state:s,reward};
+ }
  const s=s0,raid=raid0;const weekly=raidWeeklyStatus(s,ctx.now),practice=weekly.remaining===0;
  const reward=practice?{type:'coop',mode:'raid',name:raid.name,won:true,practice:true,gold:0,cube:0,highCube:0,primeCube:0,fragment:0,scroll:0,items:[]}:rollRaidReward(tier,ctx.random,s,ctx.now);
  if(!practice){
   s.gold+=reward.gold;
   for(const key of ['cube','highCube','primeCube','fragment','scroll'])s.materials[key]=(s.materials[key]||0)+reward[key];
   if(ctx.random()<rewardChance(raid.bossGearChance??0.6,s,ctx.now)){
-   const level=raid.level,classId=pick(CLASSES,ctx).id,slot=balanceBossGearSlot(Math.floor(ctx.random()*SLOTS.length),ctx),design=selectDesign(level,classId,slot,true,ctx.random);
-   const item={...makeItem(level,classId,slot,true,ctx,design.weaponVariant),...design};item.baseStats=rollBaseStats(item,ctx.random);
-   const stored=s.items.length>=1000;addItem(s,item);reward.items.push(item);if(stored)reward.stored=(reward.stored||0)+1;
+   const classId=pick(CLASSES,ctx).id,slot=balanceBossGearSlot(Math.floor(ctx.random()*SLOTS.length),ctx);
+   grantRaidGear(s,reward,raid.level,classId,slot,ctx);
   }
   s.raidWeekly={week:weekly.week,count:weekly.used+1};
  }

@@ -7,8 +7,8 @@ import {initialState,grantRaidChest} from './engine.mjs';
 const power={hp:1e6,defense:1e4,attack:1e5,crit:.5,critDamage:2,boss:1,cadence:1};
 const member=i=>({id:'u'+i,classId:'warrior',power,ready:true});
 
-test('final bosses are raid tiers 4-6 with level gates 300/350/400', () => {
-  assert.deepEqual(RAID_ENCOUNTERS.filter(r=>r.final).map(r=>[r.id,r.minLevel]),[[4,300],[5,350],[6,400]]);
+test('final bosses are raid tiers 4-6 with displayed levels 300/350/400', () => {
+  assert.deepEqual(RAID_ENCOUNTERS.filter(r=>r.final).map(r=>[r.id,r.level]),[[4,300],[5,350],[6,400]]);
   assert.equal(isFinalRaid(3),false);
   assert.equal(FINAL_RAID_MAX,7);
 });
@@ -38,11 +38,37 @@ test('shared marker splits damage across everyone standing in it', () => {
   assert.equal(alone,power.hp,'alone soaker dies');assert.ok(together<power.hp*.6,`together ${together}`);
 });
 
-test('final boss chest records the clear without rewards or raid weekly usage', () => {
+test('final boss rewards are once per boss each Korean week', () => {
+  let id=0;
+  const ctx={now:Date.UTC(2026,10,8,14,59),random:()=>0,uuid:()=>String(++id)};
+  const input=initialState('warrior','최종테스트',ctx);input.coopRoom='room';
+  const luna=grantRaidChest(input,4,ctx);
+  assert.deepEqual(luna.reward.items.map(i=>[i.level,i.boss]),[[250,true]]);
+  assert.equal(luna.state.coopRoom,undefined);
+  assert.equal(luna.state.titles.finalRaid4,ctx.now);
+  const seraph=grantRaidChest(luna.state,5,ctx);
+  assert.deepEqual(seraph.reward.items.map(i=>[i.level,i.boss]),[[300,true],[300,true]]);
+  assert.equal(new Set(seraph.reward.items.map(i=>i.slot)).size,2);
+  assert.equal(seraph.state.raidWeekly,undefined);
+  assert.equal(seraph.state.gold,input.gold);
+  const repeat=grantRaidChest(seraph.state,5,ctx);
+  assert.equal(repeat.reward.practice,true);
+  assert.equal(repeat.reward.titleId,undefined);
+  assert.deepEqual(repeat.reward.items,[]);
+  const nextWeek=grantRaidChest(repeat.state,5,{...ctx,now:ctx.now+60_000});
+  assert.equal(nextWeek.reward.practice,false);
+  assert.equal(nextWeek.reward.items.length,2);
+});
+
+test('the dragon grants a first-clear title and starts the ending without equipment', () => {
   const ctx={now:Date.UTC(2026,10,9),random:()=>0,uuid:()=>'id'};
-  const s=initialState('warrior','최종테스트',ctx);s.coopRoom='room';
-  const {state,reward}=grantRaidChest(s,5,ctx);
-  assert.equal(reward.final,true);assert.equal(reward.gold,0);assert.deepEqual(reward.items,[]);
-  assert.deepEqual(state.finalCleared,[5]);assert.equal(state.raidWeekly,undefined);assert.equal(state.gold,s.gold);
-  assert.equal(state.coopRoom,undefined);
+  const input=initialState('warrior','최종테스트',ctx);
+  const first=grantRaidChest(input,6,ctx);
+  assert.equal(first.reward.ending,true);
+  assert.equal(first.reward.titleId,'finalRaid6');
+  assert.deepEqual(first.reward.items,[]);
+  assert.deepEqual(first.state.finalCleared,[6]);
+  const repeat=grantRaidChest(first.state,6,ctx);
+  assert.equal(repeat.reward.ending,true);
+  assert.equal(repeat.reward.practice,true);
 });

@@ -1,19 +1,24 @@
 import {finalRaidArt} from './raid-presentation.mjs?v=final-art-20261109';
 import {partyRoomView} from './party-room.mjs';
 import {RAID_ENCOUNTERS,FINAL_RAID_MAX} from './raid-content.mjs?v=final-boss-20261109';
-import {raidWeeklyStatus} from './raid-rewards.mjs?v=fifth-impact-121';
+import {raidWeeklyStatus,FINAL_RAID_LOOT,finalRaidRewardAvailable} from './raid-rewards.mjs?v=final-rewards-20261109';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const btn=(label,action,arg='',disabled=false)=>`<button data-action="${action}" data-arg="${esc(arg)}" ${disabled?'disabled':''}>${label}</button>`;
 function rewardDetails(raid){
  const extras=[['highCube','블랙 큐브'],['primeCube','프라임 큐브'],['scroll','잠재 해금 주문서']];
  return `<p>확정 보상 · 레드 큐브 ${raid.cubes}개 · 장비 파편 ${raid.fragment}개 · ${raid.gold.toLocaleString('ko-KR')} G</p><p>${extras.map(([key,name])=>`${name} ${raid[key]}개 · ${Math.round(raid[key+'Chance']*100)}%`).join('<br>')}</p><p><strong>Lv.${raid.level} 랜덤 보스 장비 1개 · ${Math.round((raid.bossGearChance??.6)*100)}%</strong><br>전체 직업 장비 · 직업과 부위 무작위 · 개인별 추첨</p><small>항목별 독립 추첨 · 개인별 보상 지급</small>`;
 }
+function finalRewardDetails(state,tier){
+ const loot=FINAL_RAID_LOOT[tier],available=finalRaidRewardAvailable(state,tier);
+ const text=loot?`${loot.level}제 랜덤 보스 장비 ${loot.count}개${loot.count>1?' (서로 다른 부위)':''}`:'클리어 엔딩';
+ return `<strong>${text}</strong><br>이번 주 보상 ${available?'수령 가능':'수령 완료'} · 첫 클리어 초월 칭호`;
+}
 export function raidLobby(state,room,rooms=[]){
  const weekly=raidWeeklyStatus(state),progress=`이번 주 개인 보상 ${weekly.used}/${weekly.limit}회 · ${weekly.remaining?`남은 보상 ${weekly.remaining}회`:'보상 소진 · 연습 가능'}`;
  const rules='모든 레이드 보스 합산 계정당 주 3회 · 같은 보스 반복 가능<br>월요일 00시(한국 시간) 초기화 · 개인 상자 보상 수령 시 차감 · 실패 시 차감 없음';
  if(room){
   const r=RAID_ENCOUNTERS[room.tier],ready=room.members.every(m=>m.ready),members=room.members.filter(m=>!m.left);
-  if(r.final)return partyRoomView({room,max:FINAL_RAID_MAX,cover:finalRaidArt(r.id,'map'),boss:{src:finalRaidArt(r.id,'boss')},eyebrow:'FINAL BOSS',title:r.name,tagline:r.guide,head:`보스 Lv.${r.level}`,lines:['<strong>보상 준비 중 · 클리어 기록만 남습니다</strong>'],notes:['제한 5분 · 전투 중 부활 없음 · 사제 보호막·치유 필수','분담 표식은 모여서, 산개 표식은 흩어져서 받으세요'],role:m=>m.classId==='priest'?'사제 · 지원':'공격대원',start:{label:'최종 보스 도전',disabled:room.owner!==room.me||!ready}});
+  if(r.final)return partyRoomView({room,max:FINAL_RAID_MAX,cover:finalRaidArt(r.id,'map'),boss:{src:finalRaidArt(r.id,'boss')},eyebrow:'FINAL BOSS',title:r.name,tagline:r.guide,head:`보스 Lv.${r.level}`,lines:[finalRewardDetails(state,r.id)],notes:['제한 5분 · 전투 중 부활 없음 · 사제 보호막·치유 필수','분담 표식은 모여서, 산개 표식은 흩어져서 받으세요'],role:m=>m.classId==='priest'?'사제 · 지원':'공격대원',start:{label:'최종 보스 도전',disabled:room.owner!==room.me||!ready}});
   return partyRoomView({room,max:8,cover:`tower/${r.map}.webp`,boss:{src:`tower/raid-boss-${r.id}-portrait.webp`},eyebrow:'SACRED EXPEDITION · RAID',title:r.name,tagline:r.guide,head:`권장 Lv.${r.level} · 6인 기준 고정 난이도 · 최대 8명`,lines:[`<strong>${progress}</strong>`],notes:['제한 5분 · 전투 중 부활 없음 · 레벨 제한 없음',rules],role:m=>m.classId==='priest'?'사제 · 지원':'공격대원',start:{label:'공격대 출발',disabled:room.owner!==room.me||!ready}});
  }
  const open=rooms.filter(r=>r.mode==='raid'&&!RAID_ENCOUNTERS[r.tier]?.final);
@@ -23,5 +28,5 @@ export function raidLobby(state,room,rooms=[]){
 export function finalLobby(state,room,rooms=[]){
  if(room)return raidLobby(state,room,rooms);
  const finals=RAID_ENCOUNTERS.filter(r=>r.final),open=rooms.filter(r=>r.mode==='raid'&&RAID_ENCOUNTERS[r.tier]?.final),cleared=state?.finalCleared||[];
- return `<section class="panel pad"><p class="eyebrow">FINAL BOSS</p><h2>최종 보스</h2><p>최대 ${FINAL_RAID_MAX}명 · 5분 제한</p><p class="note">보상은 준비 중 · 지금은 클리어 기록만 남습니다.</p><h3>모집 중</h3>${btn('목록 새로고침','coopList')}${open.length?open.map(r=>`<div class="daily-row"><span>${esc(r.name)} · ${RAID_ENCOUNTERS[r.tier]?.name||''}<small>${r.count}/${FINAL_RAID_MAX}명</small></span>${btn('참가','coopJoin',r.id,r.count>=FINAL_RAID_MAX)}</div>`).join(''):'<p class="note">모집 중인 공격대가 없습니다.</p>'}</section><div class="raid-cards">${finals.map(r=>`<article class="panel raid-card" style="--raid-map:url('${finalRaidArt(r.id,'map')}')"><div class="raid-art"><img src="${finalRaidArt(r.id,'boss')}" alt="${esc(r.name)}"></div><div class="pad"><small>보스 Lv.${r.level} · ${esc(r.arena)}${cleared.includes(r.id)?' · <b>클리어</b>':''}</small><h3>${esc(r.name)}</h3><p>${esc(r.guide)}</p><p class="note">HP ${r.hp.toLocaleString('ko-KR')}</p>${btn('공격대 만들기','raidCreate',r.id)}</div></article>`).join('')}</div>`;
+ return `<section class="panel pad"><p class="eyebrow">FINAL BOSS</p><h2>최종 보스</h2><p>최대 ${FINAL_RAID_MAX}명 · 5분 제한</p><p class="note">보스별 주 1회 보상 · 한국 시간 월요일 00시 초기화</p><h3>모집 중</h3>${btn('목록 새로고침','coopList')}${open.length?open.map(r=>`<div class="daily-row"><span>${esc(r.name)} · ${RAID_ENCOUNTERS[r.tier]?.name||''}<small>${r.count}/${FINAL_RAID_MAX}명</small></span>${btn('참가','coopJoin',r.id,r.count>=FINAL_RAID_MAX)}</div>`).join(''):'<p class="note">모집 중인 공격대가 없습니다.</p>'}</section><div class="raid-cards">${finals.map(r=>`<article class="panel raid-card" style="--raid-map:url('${finalRaidArt(r.id,'map')}')"><div class="raid-art"><img src="${finalRaidArt(r.id,'boss')}" alt="${esc(r.name)}"></div><div class="pad"><small>보스 Lv.${r.level} · ${esc(r.arena)}${cleared.includes(r.id)?' · <b>클리어</b>':''}</small><h3>${esc(r.name)}</h3><p>${esc(r.guide)}</p><p class="note">HP ${r.hp.toLocaleString('ko-KR')}</p><p>${finalRewardDetails(state,r.id)}</p>${btn('공격대 만들기','raidCreate',r.id)}</div></article>`).join('')}</div>`;
 }

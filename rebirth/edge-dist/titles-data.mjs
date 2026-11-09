@@ -11,9 +11,10 @@ import {SKILL_LOOKS,ownedSkillLookCount} from './skill-looks.mjs';
 import {vipTier} from './mileage.mjs';
 
 export const TITLE_GRADES=[
- {id:'common',name:'일반'},{id:'rare',name:'희귀'},{id:'epic',name:'영웅'},{id:'legend',name:'전설'},{id:'myth',name:'신화'}
+ {id:'common',name:'일반'},{id:'rare',name:'희귀'},{id:'epic',name:'영웅'},{id:'legend',name:'전설'},{id:'myth',name:'신화'},{id:'transcendent',name:'초월'}
 ];
-const G={common:0,rare:1,epic:2,legend:3,myth:4};
+const G=Object.fromEntries(TITLE_GRADES.map(({id},rank)=>[id,rank]));
+export const finalRaidTitleId=tier=>'finalRaid'+tier;
 const tower=(s,f)=>(s.tower?.cleared||[]).includes(f);
 const expl=(s,t)=>(s.exploration?.cleared||[]).includes(t);
 const citadelBosses=s=>new Set([...(s.citadelEver||[]),...(s.citadelClaims?.bosses||[])]);
@@ -55,6 +56,9 @@ const ROWS=[
  ['raid1','용철을 꺾은 자','레이드','epic','이그니바르(Lv.100) 레이드 클리어',s=>(s.raidCleared||[]).includes(1)],
  ['raid2','떨어진 별을 잠재운 자','레이드','legend','아스테리아(Lv.150) 레이드 클리어',s=>(s.raidCleared||[]).includes(2)],
  ['raid3','시간을 멈춘 자','레이드','myth','녹스 에온(Lv.200) 레이드 클리어',s=>(s.raidCleared||[]).includes(3)],
+ ...[
+  [4,'월식을 끝낸 자'],[5,'심판을 넘어선 자'],[6,'창세의 끝에 선 자'],
+ ].map(([tier,name])=>[finalRaidTitleId(tier),name,'최종 보스','transcendent',RAID_ENCOUNTERS[tier].name+' 클리어',s=>(s.finalCleared||[]).includes(tier)]),
  ['arena10','투기장의 신인','아레나','common','아레나 누적 10승',s=>(st(s).arenaWins||0)>=10],
  ['arena1st','투기장의 군주','아레나','myth','아레나 시즌 최종 1위',s=>st(s).arenaChampion===true],
  ['fishL','전설을 낚은 자','낚시','epic','전설 물고기 처음 낚기',s=>fishOf(s,4)],

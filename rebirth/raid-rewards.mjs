@@ -3,6 +3,10 @@ import {weekKey} from './data.mjs?v=boss-relic-only-130-lv300b';
 import {rewardChance} from './consumables.mjs';
 
 export const RAID_WEEKLY_LIMIT=3;
+export const FINAL_RAID_LOOT={4:{level:250,count:1},5:{level:300,count:2}};
+export function finalRaidRewardAvailable(state,tier,now=Date.now()){
+ return state?.finalRaidClaims?.[tier]!==weekKey(now);
+}
 export function raidWeeklyStatus(state,now=Date.now()){
  const week=weekKey(now),claim=state?.raidWeekly;
  // Carry over this week's rewards from the former per-boss limit once.

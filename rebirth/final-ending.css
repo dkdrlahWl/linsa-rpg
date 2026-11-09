@@ -1,0 +1,8 @@
+.final-ending{display:grid;place-items:center;min-height:min(56vh,29rem);padding:2rem 1rem;border:1px solid #cfb57580;border-radius:14px;background:#090b19 center/cover;text-align:center;color:#fff4d9}
+.final-ending-scene{max-width:30rem;animation:final-ending-in .75s ease-out both}
+.final-ending-scene small,.final-ending-scene span{display:block;color:#efce8d;letter-spacing:.08em}
+.final-ending-scene h3{font-size:clamp(1.65rem,6vw,2.7rem);margin:.7em 0 .4em;line-height:1.2;text-wrap:balance}
+.final-ending-scene p{line-height:1.65;color:#fff4d9;text-wrap:balance}
+.final-ending-scene span{margin-top:2rem;font-size:.75rem}
+@keyframes final-ending-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.final-ending-scene{animation:none}}

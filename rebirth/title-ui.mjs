@@ -1,5 +1,5 @@
 // 칭호 UI: badge next to names, collection panel, earned popup.
-import {TITLES,TITLE_BY_ID,TITLE_GRADES,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
+import {TITLES,TITLE_BY_ID,TITLE_GRADES,TITLE_CRIT_DAMAGE} from './titles-data.mjs?v=final-rewards-20261109';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const newTitleArt=new Set(['look3','look6jobs','look9','look18']);
 const milestoneArt=new Set([
@@ -7,6 +7,7 @@ const milestoneArt=new Set([
  'boss220First','boss220Full','boss250First','boss250Full','boss300First','boss300Full',
  'boss300Star25','job7','rod20',
 ]);
+const isGrade=id=>TITLE_GRADES.some(g=>g.id===id);
 export const titleArt=id=>'titles/'+id+'.svg?v='+(milestoneArt.has(id)?'milestone-painted-v1':/^vip\d+$/.test(id)?'celia-title-style-v2':newTitleArt.has(id)?'skill-collection-20261025':'tower30-20261013');
 const gradeName=g=>TITLE_GRADES.find(x=>x.id===g)?.name||'';
 
@@ -17,7 +18,7 @@ export function titleBadge(id,size='sm'){
 }
 
 let filter='all',detail=null;
-export function setTitleFilter(f){filter=['all','owned','locked','common','rare','epic','legend','myth'].includes(f)?f:'all';detail=null;}
+export function setTitleFilter(f){filter=(['all','owned','locked'].includes(f)||isGrade(f))?f:'all';detail=null;}
 export function setTitleDetail(id){detail=TITLE_BY_ID[id]?id:null;}
 const date=ms=>{const d=new Date(ms);return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`;};
 function detailView(s,t){
@@ -39,7 +40,7 @@ export function titlePanelView(s){
  return `<section class="title-panel">
   <div class="title-panel-head"><div><small>TITLE COLLECTION</small><strong>${count} / ${TITLES.length}</strong><span class="title-bonus">보유 효과 · 치명타 피해 +${(count*TITLE_CRIT_DAMAGE*100).toFixed(1)}%</span></div>
    <div class="title-current">${s.title?`<span>장착 중</span>${titleBadge(s.title,'md')}<button data-illustrated="1" class="title-unequip" data-action="titleEquip" data-arg="">해제</button>`:'<span>장착한 칭호가 없어요</span>'}</div></div>
-  <nav class="title-tabs">${tabs.map(([k,l,c])=>`<button data-illustrated="1" class="${filter===k?'active':''} ${['common','rare','epic','legend','myth'].includes(k)?'g-'+k:''}" data-action="titleFilter" data-arg="${k}">${l}${c?`<small>${c}</small>`:''}</button>`).join('')}</nav>
+  <nav class="title-tabs">${tabs.map(([k,l,c])=>`<button data-illustrated="1" class="${filter===k?'active':''} ${isGrade(k)?'g-'+k:''}" data-action="titleFilter" data-arg="${k}">${l}${c?`<small>${c}</small>`:''}</button>`).join('')}</nav>
   <div class="title-grid">${list.map(t=>{const has=!!owned[t.id],on=s.title===t.id;return `<button data-illustrated="1" class="title-tile g-${t.grade} ${has?'owned':'locked'} ${on?'equipped':''}" data-action="titleDetail" data-arg="${t.id}" aria-label="${esc(t.name)}"><img src="${titleArt(t.id)}" alt="" loading="lazy" decoding="async">${on?'<em>장착</em>':has?'':'<i aria-hidden="true">🔒</i>'}</button>`;}).join('')}</div>
   <p class="note">칭호 하나를 얻을 때마다 치명타 피해가 0.5%씩 올라요 (장착하지 않아도 적용). 칭호를 누르면 조건과 장착 버튼이 나오고, 장착한 칭호는 랭킹·협동 로비에서 이름 옆에 표시돼요.</p>
  </section>`;
