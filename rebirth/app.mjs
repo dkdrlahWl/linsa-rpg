@@ -1,3 +1,4 @@
+import {explorationKeys as D_EXPL_KEYS} from './exploration-data.mjs';
 import {bankView} from './bank-ui.mjs?v=bank03-20261102';
 import "./abort-polyfill.mjs";
 import {advancementPortrait} from './advancement-art.mjs';
@@ -1959,7 +1960,7 @@ document.addEventListener("click", async (e) => {
     if(action==="coopCreate")return toast("협동 균열은 종료된 콘텐츠입니다.");
     if(action==='citadelCreate')return await command('coopCreate',{mode:'citadel',tier:0,...(/^[1-6]$/.test(String(arg))?{boss:Number(arg)}:{})});
     if(action==="explorationCreate")return await command("coopCreate",{mode:"exploration",tier:Number(arg)});
-    if(action==="explorationSweep"){const [tier,count]=String(arg).split(':').map(Number);if(!confirm(`링탐 소탕 ${count}회 할까요?\n열쇠를 쓰고 판마다 실제 상자 확률로 보상을 받아요.`))return;return await command("explorationSweep",{tier,count});}
+    if(action==="explorationSweep"){const [t,c]=String(arg).split(':'),tier=Number(t),need=D_EXPL_KEYS(tier),keys=Number(state.materials?.dungeonKey)||0,count=c==='max'?Math.min(100,Math.floor(keys/need)):Number(c);if(keys<need||count<1)return toast(`던전 열쇠가 없어요. (${need}개 필요 · 보유 ${fmt(keys)}개)`);if(!confirm(`링탐 소탕 ${count}회 할까요?\n열쇠를 쓰고 판마다 실제 상자 확률로 보상을 받아요.`))return;return await command("explorationSweep",{tier,count});}
     if(action==="explorationBusCreate"){if(!confirm("버스 방을 만들까요?\n방장만 열쇠를 쓰고 클리어 보상도 방장만 받아요. 파티원은 열쇠를 쓰지 않고 보상도 없어요."))return;return await command("coopCreate",{mode:"exploration",tier:Number(arg),bus:true});}
     if(action==="raidCreate")return await command("coopCreate",{mode:"raid",tier:Number(arg)});
     if(action==="coopJoin")return await command("coopJoin",{room:arg});
