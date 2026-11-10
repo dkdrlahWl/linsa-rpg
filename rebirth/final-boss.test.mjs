@@ -13,6 +13,12 @@ test('final bosses are raid tiers 4-6 with level gates 300/350/400', () => {
   assert.equal(FINAL_RAID_MAX,7);
 });
 
+test('final boss hp is per player (1인 기준)', () => {
+  const one=startRaid({status:'waiting',mode:'raid',tier:5,members:[member(0)]},0),three=startRaid({status:'waiting',mode:'raid',tier:5,members:[0,1,2].map(member)},0);
+  assert.equal(one.maxHp,RAID_ENCOUNTERS[5].hp);assert.equal(three.maxHp,RAID_ENCOUNTERS[5].hp*3);
+  assert.equal(startRaid({status:'waiting',mode:'raid',tier:3,members:[0,1].map(member)},0).maxHp,RAID_ENCOUNTERS[3].hp);
+});
+
 test('final boss rooms hold at most seven players', () => {
   assert.throws(()=>startRaid({status:'waiting',mode:'raid',tier:4,members:Array.from({length:8},(_,i)=>member(i))},0),/INVALID_COOP_ROOM/);
   assert.equal(startRaid({status:'waiting',mode:'raid',tier:4,members:Array.from({length:7},(_,i)=>member(i))},0).status,'fighting');

@@ -1,4 +1,4 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove,isFinalRaid,FINAL_RAID_MAX} from './raid-content.mjs';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove,isFinalRaid,FINAL_RAID_MAX,raidStartHp} from './raid-content.mjs';
 import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs';
 import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs';
 import {beginThird,stepThird} from './advancement.mjs';
@@ -9,7 +9,7 @@ import {incomingDamage} from './journey-balance.mjs';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>(isFinalRaid(room.tier)?FINAL_RAID_MAX:8))throw Error('INVALID_COOP_ROOM');
- const w=structuredClone(room),b=RAID_ENCOUNTERS[w.tier];Object.assign(w,{status:'fighting',started:now,tick:0,hp:b.hp,maxHp:b.hp,enemy:{x:1600,y:1200,dir:2,walk:0},walls:raidWalls(w.tier),hazards:[],effects:[],numbers:[],projectiles:[],serial:0,nextBasic:15,nextPattern:60,nextCorruption:120,nextJudgment:300,phase:0});
+ const w=structuredClone(room),b=RAID_ENCOUNTERS[w.tier];Object.assign(w,{status:'fighting',started:now,tick:0,hp:raidStartHp(b,w.members.length),maxHp:raidStartHp(b,w.members.length),enemy:{x:1600,y:1200,dir:2,walk:0},walls:raidWalls(w.tier),hazards:[],effects:[],numbers:[],projectiles:[],serial:0,nextBasic:15,nextPattern:60,nextCorruption:120,nextJudgment:300,phase:0});
  w.members.forEach((m,i)=>Object.assign(m,{x:1200+i%4*250,y:2520+Math.floor(i/4)*210,hp:m.power.hp,input:[0,0,0],inputAt:0,attackReady:0,skillReady:0,dashReady:0,ultimateReady:0,thirdReady:0,fourthReady:0,immune:0,hurtReady:0,damage:0,healing:0,shield:0,dir:6,walk:0,corruption:0,soloSupport:false}));return w;
 }
 export function advanceRaidRaw(room,user,input,now,frames=[]){
@@ -29,7 +29,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  if(w.tier===6&&t===900){w.announcement='절대룡 각성 · 보스 공격력이 계속 상승합니다';w.announcementUntil=t+40;}
  // 최종 보스 Lv.400: 50% 2페이즈(패턴 가속), 20% 최후의 포효(즉시 전체 대붕괴).
  if(w.tier===6&&!w.phase2&&w.hp<w.maxHp*.5){w.phase2=true;w.announcement='2페이즈 · 절대룡의 패턴이 빨라집니다';w.announcementUntil=t+40;w.nextPattern=Math.min(w.nextPattern,t+20);}
- if(w.tier===6&&!w.lastRoar&&w.hp<w.maxHp*.2){w.lastRoar=true;w.judgmentAt=t+35;w.announcement='최후의 포효 · 사제 보호막 즉시!';w.announcementUntil=t+40;}
+ if(w.tier===6&&!w.lastRoar&&w.hp<w.maxHp*.2){w.lastRoar=true;w.judgmentAt=t+35;w.announcement='최후의 포효 · 전체 대붕괴가 바로 옵니다!';w.announcementUntil=t+40;}
  e.dir=towerFacing(target.x-e.x,target.y-e.y,e.dir);
  if(t>(w.enemyCastUntil||0)&&dist(e,target)>430){let angle=Math.atan2(target.y-e.y,target.x-e.x);raidMove(e,e.x+Math.cos(angle)*9,e.y+Math.sin(angle)*9,w.walls);e.walk++;}
  const circle=(x,y,r,delay,mult,inner=0,extra={})=>w.hazards.push({type:'circle',x,y,r,inner,start:t,at:t+delay,end:t+delay+3,multiplier:mult,...extra});
@@ -40,7 +40,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
   if(final){
    const fan=(angle,spread,count,width,at,mult,label)=>{for(let i=0;i<count;i++){const a=angle+(i-(count-1)/2)*spread;w.hazards.push({type:'line',x:e.x,y:e.y,tx:e.x+Math.cos(a)*3000,ty:e.y+Math.sin(a)*3000,width,start:t,label,at,end:at+4,multiplier:mult,cover:true,source:{...e}});}};
    const barrage=(count,waves,mult,spin=0)=>{const angle=Math.atan2(target.y-e.y,target.x-e.x);for(let k=0;k<waves;k++)for(let i=0;i<count;i++){const a=angle+(i+k*.5)*Math.PI*2/count+k*spin,v=52+k*6;w.projectiles.push({id:++w.serial,side:'enemy',x:e.x,y:e.y,dx:Math.cos(a)*v,dy:Math.sin(a)*v,r:34,at:t+22+k*8,end:t+120,multiplier:mult});}};
-   const share=(m,label)=>circle(m.x,m.y,330,40,1.2,0,{label,share:FINAL_RAID_MAX});
+   const share=(m,label)=>circle(m.x,m.y,330,40,1.2,0,{label,share:alive.length});
    const rand=n=>((phase*2654435761+n*1013904223+w.tier*97)>>>0)%1000/1000;
    if(w.tier===4){const k=phase%3;
     if(k===0){barrage(36,2,4,.18);w.announcement='나비 탄막 · 나선 사이로 피하세요';}
@@ -83,7 +83,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
  const hurt=(m,value,unavoidable=false)=>{if(m.hp<=0||m.left||(!unavoidable&&(t<m.immune||t<m.hurtReady)))return;const damage=absorbDamage(m,Math.max(1,Math.round(value)),t);m.hp=Math.max(0,m.hp-damage);if(!unavoidable)m.hurtReady=t+5;w.numbers.push({id:++w.serial,value:damage,x:m.x,y:m.y-110,kind:'incoming',start:t,end:t+9});};
  if(t>=w.nextCorruption){for(const m of alive){m.corruption=t<(m.purifiedUntil||0)?0:(m.corruption||0)+1;hurt(m,m.power.hp*(.10+m.corruption*(w.tier>=3?.05:.035)),true);}w.nextCorruption=t+(w.tier>=3?90:120);}
- if(t===w.judgmentAt){for(const m of alive)hurt(m,m.power.hp*(w.tier>=3?.7:w.tier?.6:.3)+incomingDamage(atk,m.power.defense)*(w.tier>=3?2.5:2),true);}
+ if(t===w.judgmentAt){for(const m of alive)hurt(m,m.power.hp*(final?.45:w.tier>=3?.7:w.tier?.6:.3)+incomingDamage(atk,m.power.defense)*(final?1.5:w.tier>=3?2.5:2),true);}
  for(const h of w.hazards)if(!h.warningOnly&&t===h.at){const insideOf=m=>{if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,k=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy)));return Math.hypot(m.x-h.x-k*dx,m.y-h.y-k*dy)<h.width/2+25;}return dist(m,h)<h.r+25&&dist(m,h)>=h.inner;};
   // 분담: 표식 안 인원이 피해를 나눔. 아무도 없으면 전원이 전부 받음.
   if(h.share){const soak=alive.filter(insideOf),unit=m=>incomingDamage(atk,m.power.defense)*h.multiplier*h.share;if(soak.length)for(const m of soak)hurt(m,unit(m)/soak.length,true);else for(const m of alive)hurt(m,unit(m),true);continue;}
