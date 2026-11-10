@@ -31,6 +31,7 @@ import {keyBossEnter,keyBossFinish} from './key-dungeon.mjs?v=keydungeon-2026110
 import {sweepCommand} from './sweep.mjs';
 import {companionCommand,normalizeCompanions,COMPANION_BAG} from './companion-model.mjs';
 import { CUBES, cubeCost, cubeUpgrade, rerollCube, rollCubeLine, applyCubeBoost, applyCubeForce } from './maple-cubes.mjs';
+import {explorationSweep} from './exploration-rewards.mjs';
 import {BONUS_FLAME,REROLL_STONE,rollBonusPct,rerollGear,rerollStoneAllowed} from './gear-refine.mjs?v=transcend-20261102';
 import {ADD_CUBE,ADDITIONAL_UNLOCK_CHANCE,rollAdditionalLines,rerollAdditional,hasAdditional,allPotentialLines} from './additional-potential.mjs?v=addpot-20261025';
 import {newlyEarnedTitles,TITLE_BY_ID,TITLE_CRIT_DAMAGE} from './titles-data.mjs';
@@ -741,6 +742,11 @@ function executeCore(input, command, args = {}, ctx) {
   if(command.startsWith("fish")){events.push(fishingCommand(s,command,args,ctx));return {state:s,events};}
   if(command.startsWith("treasure")){events.push(treasureCommand(s,command,args,ctx,dayKey(ctx.now),level=>{const item=makeLootItem(level,s.classId,Math.floor(ctx.random()*9),true,ctx);addItem(s,item);return item;}));return {state:s,events};}
   switch (command) {
+    case "explorationSweep": {
+      // 2026-11-10 도현: 링탐 소탕 (혼자 한 번 이상 깬 단계만, 열쇠 소모, 판마다 실제 상자 확률).
+      check(!s.pendingCube&&!s.pendingAddCube&&!s.pendingRefine,"ITEM_CUBE_PENDING");check(!s.battle,"BATTLE_IN_PROGRESS");
+      const o=explorationSweep(s,Number(args.tier),args.count,ctx);for(const k of Object.keys(s))delete s[k];Object.assign(s,o.state);events.push(o.reward);break;
+    }
     case "sweep": {check(!s.pendingCube,"ITEM_CUBE_PENDING");events.push(sweepCommand(s,args,ctx,{grantBoss:(st,boss,claimKey,reward)=>grantBossVictory(st,boss,claimKey,ctx,reward,!!boss.weekly)}));break;}
     case "tokenBossStart": {
       check(!s.pendingCube,"ITEM_CUBE_PENDING");

@@ -254,6 +254,7 @@ const errors = {
     "새로운 여정을 준비하고 있어요. 서비스가 열리면 시작할 수 있습니다.",
   LOGIN_REQUIRED: "다시 로그인해 주세요.",
   EXPLORATION_KEY_REQUIRED: "던전 열쇠가 부족해요. (4단계 1 · 5단계 2 · 6단계 3 · 7단계 4 · 8단계 5 · 9단계 6 · 10단계 7개, 대기 중인 다른 방 몫 포함)",
+  EXPLORATION_SOLO_REQUIRED: "이 단계를 혼자 한 번 클리어해야 소탕할 수 있어요.",
   EXPLORATION_PREVIOUS_REQUIRED: "이전 단계 탐험을 먼저 클리어해야 해요.",
   CITADEL_PREVIOUS_REQUIRED: "암흑성채 이전 보스를 먼저 처치해야 해요.",
   EXPLORATION_KEY_RESERVED: "진행 중인 탐험에 필요한 던전 열쇠 1개는 판매할 수 없습니다.",
@@ -1451,6 +1452,7 @@ function showEvents(events) {
     if(e.type==='titleEarned'||e.type==='titleEquip')continue;
     if(e.type==='citadelChest'){sounds.play(e.items?.length?'loot-rare':'loot-common');const parts=['장비 파편 '+fmt(e.fragment||0)+'개'];if(e.potentialLock)parts.push('잠재 잠금석 '+e.potentialLock+'개');if(e.scroll)parts.push('잠재 해금 주문서 '+e.scroll+'개');if(e.highCube)parts.push('블랙 큐브 '+e.highCube+'개');for(const it of e.items||[])parts.push('보스 장비 · '+D.gearName(it)+' Lv.'+it.level);toast('보스 상자 · '+parts.join(' · ')+(e.stored?' (가방이 가득 차 우편함으로)':''));continue;}
     if(e.type==='sweep'){sounds.play(e.items?.length?'loot-rare':'loot-common');sweepResult(e);continue;}
+    if(e.type==='explorationSweep'){sounds.play(e.items?.length?'loot-rare':'loot-common');const line=(n,k)=>e[k]>0?`<li><span>${n}</span><b>${fmt(e[k])}</b></li>`:'';open(`링탐 소탕 완료 · ${e.count}회`,`<div class="sweep-result"><p>${esc(e.name)} · 열쇠 ${fmt(e.keys)}개 사용</p><h4>받은 보상</h4><ul class="sweep-total">${line('골드','gold')}${line('레드 큐브','cube')}${line('블랙 큐브','highCube')}${line('주문서','scroll')}${line('잠재 잠금석','potentialLock')}</ul>${(e.items||[]).length?`<h4>장비 ${e.items.length}개</h4>`+e.items.map(it=>`<div class="panel pad">${gearMarkup(it)}<strong>${esc(D.gearName(it))}</strong><p>Lv.${it.level} · ${D.SLOTS[it.slot]}</p></div>`).join(''):'<p class="note">장비는 안 나왔어요.</p>'}</div>`+btn('확인','ack','','gold',true));continue;}
     if(e.type==='investBuy'){toast('투자 완료 · '+fmt(e.amount)+' G');continue;}
     if(e.type==='fishCatch'&&!e.won){sounds.play('ui-error');toast((e.reason==='snap'||e.reason==='weak'?'💥 ':'🐟 ')+fishFailText(e));continue;}
     if(e.type==='fishCatch'&&e.won&&e.records?.length){const r=e.records.at(-1);if(fishingUI.auto)toast('🏆 '+RARITIES_V3[r.rarity]+' 최고 기록 갱신! '+(r.weight>=1000?(r.weight/1000).toFixed(2)+' kg':r.weight+' g'));if(fishingUI.sheet==='records'||Date.now()-(fishingUI.recordsLoadedAt||0)>15000)command('fishRecordList',{},true).catch(()=>{});}
@@ -1957,6 +1959,7 @@ document.addEventListener("click", async (e) => {
     if(action==="coopCreate")return toast("협동 균열은 종료된 콘텐츠입니다.");
     if(action==='citadelCreate')return await command('coopCreate',{mode:'citadel',tier:0,...(/^[1-6]$/.test(String(arg))?{boss:Number(arg)}:{})});
     if(action==="explorationCreate")return await command("coopCreate",{mode:"exploration",tier:Number(arg)});
+    if(action==="explorationSweep"){const [tier,count]=String(arg).split(':').map(Number);if(!confirm(`링탐 소탕 ${count}회 할까요?\n열쇠를 쓰고 판마다 실제 상자 확률로 보상을 받아요.`))return;return await command("explorationSweep",{tier,count});}
     if(action==="explorationBusCreate"){if(!confirm("버스 방을 만들까요?\n방장만 열쇠를 쓰고 클리어 보상도 방장만 받아요. 파티원은 열쇠를 쓰지 않고 보상도 없어요."))return;return await command("coopCreate",{mode:"exploration",tier:Number(arg),bus:true});}
     if(action==="raidCreate")return await command("coopCreate",{mode:"raid",tier:Number(arg)});
     if(action==="coopJoin")return await command("coopJoin",{room:arg});

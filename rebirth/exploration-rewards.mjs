@@ -28,6 +28,26 @@ export function grantExplorationChest(input,room,ctx){
  }
  // 동료 소환권(기존 보상 판정 순서를 바꾸지 않도록 마지막에 굴림): 모든 테마 동일하게 클리어당 25% (열쇠가 횟수를 제한한다).
  if(EXPLORATION_COMPANION_TICKET_CHANCE>0&&ctx.random()<EXPLORATION_COMPANION_TICKET_CHANCE*professionGather(state,'companionTicket')){state.companions=state.companions&&typeof state.companions==='object'?state.companions:{};state.companions.tickets=(Number.isInteger(state.companions.tickets)&&state.companions.tickets>=0?state.companions.tickets:0)+1;reward.companionTicket=1;}
- state.exploration??={cleared:[],best:{}};if(!state.exploration.cleared.includes(room.tier))state.exploration.cleared.push(room.tier);state.exploration.best[room.tier]=Math.min(state.exploration.best[room.tier]||Infinity,room.tick/10);state.lastReward=reward;
+ state.exploration??={cleared:[],best:{}};if(!state.exploration.cleared.includes(room.tier))state.exploration.cleared.push(room.tier);
+ // 2026-11-10 도현: 혼자 한 번이라도 깬 단계는 소탕 가능 (exploration.solo).
+ if(!room.sweep&&Array.isArray(room.members)&&room.members.length===1){state.exploration.solo=Array.isArray(state.exploration.solo)?state.exploration.solo:[];if(!state.exploration.solo.includes(room.tier))state.exploration.solo.push(room.tier);}
+ if(room.sweep){state.exploration.best[room.tier]=state.exploration.best[room.tier]??Infinity;}
+ else state.exploration.best[room.tier]=Math.min(state.exploration.best[room.tier]||Infinity,room.tick/10);state.lastReward=reward;
+ if(room.sweep&&state.exploration.best[room.tier]===Infinity)delete state.exploration.best[room.tier];
  return {state,reward};
+}
+
+// 2026-11-10 도현: 링탐 소탕 — 혼자 한 번이라도 깬 단계만. 열쇠(단계별 개수)×횟수를 쓰고 판마다 실제 상자 확률로 굴린다.
+export const explorationSoloCleared=(s,tier)=>Array.isArray(s?.exploration?.solo)&&s.exploration.solo.includes(tier);
+export function explorationSweep(input,tier,count,ctx){
+ const theme=EXPLORATIONS[tier];if(!theme||isCitadel({tier}))throw Error('INVALID_EXPLORATION');
+ if(!explorationSoloCleared(input,tier))throw Error('EXPLORATION_SOLO_REQUIRED');
+ const n=Math.floor(Number(count));if(!Number.isInteger(n)||n<1||n>100)throw Error('INVALID_COUNT');
+ const keys=(theme.keys||1)*n;if((Number(input.materials?.dungeonKey)||0)<keys)throw Error('EXPLORATION_KEY_REQUIRED');
+ let state=structuredClone(input);state.materials.dungeonKey-=keys;
+ const total={type:'explorationSweep',tier,name:theme.name,count:n,keys,gold:0,highCube:0,scroll:0,potentialLock:0,cube:0,items:[]};
+ const room={tier,status:'won',cleared:theme.floors,tick:(theme.seconds||600)*10,sweep:true};
+ for(let i=0;i<n;i++){const o=grantExplorationChest(state,room,ctx);state=o.state;for(const k of ['gold','highCube','scroll','potentialLock','cube'])total[k]+=o.reward[k]||0;total.items.push(...o.reward.items);}
+ state.lastReward=total;
+ return {state,reward:total};
 }
