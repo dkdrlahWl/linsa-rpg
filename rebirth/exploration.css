@@ -70,6 +70,8 @@
 .exploration-reward-list li{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dashed rgba(200,180,125,.2);padding:1px 0}
 .exploration-reward-list b{color:#ffd477;font-weight:600}.exploration-card-rewards .note{font-size:10.5px;margin:3px 0 0}
 .exploration-reward-list li.exploration-gear-tier{border-bottom-style:dotted;padding-left:10px;opacity:.9}.exploration-gear-tier small{color:var(--muted);font-size:10px}.exploration-gear-tier b{font-weight:500}
-/* 2026-11-10 도현: 링탐 소탕 버튼 */
-.exploration-sweep{display:flex;gap:6px;margin-top:6px}.exploration-sweep button{flex:1;font-size:12.5px}
-.exploration-sweep-note{margin:6px 0 0;font-size:11.5px;opacity:.8}
+/* 2026-11-10 도현: 링탐 카드 버튼 — 톱니 아이콘 없이 2열로 (탐험 준비·버스 방 / 소탕 1회·최대) */
+.exploration-cards .exploration-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.exploration-cards .exploration-actions button{width:100%;min-width:0;min-height:38px;margin:0;padding:4px 6px;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exploration-cards .exploration-actions button:only-child{grid-column:1/-1}
+.exploration-cards .exploration-actions .exploration-sweep-note{grid-column:1/-1;margin:2px 0 0;font-size:11.5px;opacity:.8}
