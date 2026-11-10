@@ -2,6 +2,11 @@ import {normalizeCompanions} from './companion-model.mjs';
 import {normalizeTribe} from './tribe-model.mjs';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id:'all-20261110-essence-3000',
+  title:'마력 정수 선물', sender:'링구 RPG 운영팀',
+  message:'모든 유저에게 마력 정수 3,000개를 보내드립니다.',
+  sentAt:'2026-11-10T01:56:18Z', rewards:{essence:3000},
+}, {
   id:'profession-all-20261110-mats-500',
   title:'전문 직업 개편 기념', sender:'링구 RPG 운영팀',
   message:'이제 연금술사·탐험가·어부·광부 4개 직업을 모두 함께 쓸 수 있어요! 직업 재료를 500개씩 보내드립니다.',
