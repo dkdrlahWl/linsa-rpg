@@ -1,7 +1,8 @@
 export function bossSalePrice(item){
- if(item?.boss!==true||!Number.isInteger(item.level)||item.level<10||item.level>220||!Number.isInteger(item.slot)||item.slot<0||item.slot>8)return 0;
- // 2026-11-10 도현: 220제 보스장비 판매 — 무기 10억 · 나머지 5억 (등급·강화 무관).
- if(item.level===220)return item.slot===0?1000000000:500000000;
+ if(item?.boss!==true||!Number.isInteger(item.level)||item.level<10||item.level>300||!Number.isInteger(item.slot)||item.slot<0||item.slot>8)return 0;
+ // 2026-11-10 도현: 220·250·300제 보스장비 판매 (등급·강화 무관) — 나머지 부위 5억·10억·20억, 무기는 2배.
+ const HIGH={220:500000000,250:1000000000,300:2000000000};
+ if(HIGH[item.level])return HIGH[item.level]*(item.slot===0?2:1);
  if(item.level>200)return 0;
  // 2026-11-03 도현: 200제 보스장비 판매가 2배(무기 4억 · 나머지 2억).
  if(item.level===200)return item.slot===0?400000000:200000000;
