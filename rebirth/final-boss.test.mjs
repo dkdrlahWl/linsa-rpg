@@ -52,3 +52,10 @@ test('final boss chest records the clear without rewards or raid weekly usage', 
   assert.deepEqual(state.finalCleared,[5]);assert.equal(state.raidWeekly,undefined);assert.equal(state.gold,s.gold);
   assert.equal(state.coopRoom,undefined);
 });
+
+test('final bosses need no priest: no corruption, collapse is a dodgeable safe-zone hazard', () => {
+  let w=startRaid({status:'waiting',mode:'raid',tier:6,members:[member(0)]},0);w.hp=w.maxHp=1e15;let collapse=null;
+  for(let t=0;t<320;t++){w=advanceRaidRaw(w,null,null,(t+1)*100,[{tick:t,user:'u0',input:[0,0,1]}]);w.members[0].hp=w.members[0].power.hp;collapse??=w.hazards.find(h=>/대붕괴/.test(h.label||''));}
+  assert.ok(collapse&&collapse.inner>=400&&!collapse.warningOnly,'collapse is a real hazard with a safe pocket');
+  assert.equal(w.members[0].corruption||0,0);
+});

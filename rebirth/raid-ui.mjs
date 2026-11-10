@@ -13,7 +13,7 @@ export function raidLobby(state,room,rooms=[]){
  const rules='모든 레이드 보스 합산 계정당 주 3회 · 같은 보스 반복 가능<br>월요일 00시(한국 시간) 초기화 · 개인 상자 보상 수령 시 차감 · 실패 시 차감 없음';
  if(room){
   const r=RAID_ENCOUNTERS[room.tier],ready=room.members.every(m=>m.ready),members=room.members.filter(m=>!m.left);
-  if(r.final)return partyRoomView({room,max:FINAL_RAID_MAX,cover:finalRaidArt(r.id,'map'),boss:{src:finalRaidArt(r.id,'boss')},eyebrow:'FINAL BOSS',title:r.name,tagline:r.guide,head:`보스 Lv.${r.level}`,lines:['<strong>보상 준비 중 · 클리어 기록만 남습니다</strong>'],notes:['제한 5분 · 전투 중 부활 없음 · 사제 보호막·치유 필수','분담 표식은 모여서, 산개 표식은 흩어져서 받으세요'],role:m=>m.classId==='priest'?'사제 · 지원':'공격대원',start:{label:'최종 보스 도전',disabled:room.owner!==room.me||!ready}});
+  if(r.final)return partyRoomView({room,max:FINAL_RAID_MAX,cover:finalRaidArt(r.id,'map'),boss:{src:finalRaidArt(r.id,'boss')},eyebrow:'FINAL BOSS',title:r.name,tagline:r.guide,head:`보스 Lv.${r.level}`,lines:['<strong>보상 준비 중 · 클리어 기록만 남습니다</strong>'],notes:['제한 5분 · 전투 중 부활 없음 · 사제 없이도 패턴을 피하면 잡을 수 있어요 · 1인 기준, 인원만큼 체력 증가','분담 표식은 모여서, 산개 표식은 흩어져서 받으세요'],role:m=>m.classId==='priest'?'사제 · 지원':'공격대원',start:{label:'최종 보스 도전',disabled:room.owner!==room.me||!ready}});
   return partyRoomView({room,max:8,cover:`tower/${r.map}.webp`,boss:{src:`tower/raid-boss-${r.id}-portrait.webp`},eyebrow:'SACRED EXPEDITION · RAID',title:r.name,tagline:r.guide,head:`권장 Lv.${r.level} · 6인 기준 고정 난이도 · 최대 8명`,lines:[`<strong>${progress}</strong>`],notes:['제한 5분 · 전투 중 부활 없음 · 레벨 제한 없음',rules],role:m=>m.classId==='priest'?'사제 · 지원':'공격대원',start:{label:'공격대 출발',disabled:room.owner!==room.me||!ready}});
  }
  const open=rooms.filter(r=>r.mode==='raid'&&!RAID_ENCOUNTERS[r.tier]?.final);

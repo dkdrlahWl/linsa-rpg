@@ -1,11 +1,11 @@
-import {RAID_ENCOUNTERS,raidWalls,covered,raidMove,isFinalRaid,FINAL_RAID_MAX,raidStartHp} from './raid-content.mjs?v=final-solo-20261110';
-import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=final-solo-20261110';
-import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=final-solo-20261110';
-import {beginThird,stepThird} from './advancement.mjs?v=final-solo-20261110';
-import {beginFourth,stepFourth} from './fourth-job.mjs?v=final-solo-20261110';
-import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=final-solo-20261110';
-import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=final-solo-20261110';
-import {incomingDamage} from './journey-balance.mjs?v=final-solo-20261110';
+import {RAID_ENCOUNTERS,raidWalls,covered,raidMove,isFinalRaid,FINAL_RAID_MAX,raidStartHp} from './raid-content.mjs?v=final-dodge-20261110';
+import {TOWER_CLASSES,towerFacing,facingVector} from './tower-model.mjs?v=final-dodge-20261110';
+import {beginCombatSkill,stepCombatSkills} from './combat-skills.mjs?v=final-dodge-20261110';
+import {beginThird,stepThird} from './advancement.mjs?v=final-dodge-20261110';
+import {beginFourth,stepFourth} from './fourth-job.mjs?v=final-dodge-20261110';
+import {beginFifth,stepFifth,boundedCombatEffects} from './fifth-job.mjs?v=final-dodge-20261110';
+import {beginPriest,stepPriest,PRIEST_SKILLS,supportTick,absorbDamage,holyDamage} from './priest.mjs?v=final-dodge-20261110';
+import {incomingDamage} from './journey-balance.mjs?v=final-dodge-20261110';
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function startRaid(room,now){
  if(room.status!=='waiting'||!RAID_ENCOUNTERS[room.tier]||!room.members.length||room.members.length>(isFinalRaid(room.tier)?FINAL_RAID_MAX:8))throw Error('INVALID_COOP_ROOM');
@@ -29,7 +29,7 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  if(w.tier===6&&t===900){w.announcement='절대룡 각성 · 보스 공격력이 계속 상승합니다';w.announcementUntil=t+40;}
  // 최종 보스 Lv.400: 50% 2페이즈(패턴 가속), 20% 최후의 포효(즉시 전체 대붕괴).
  if(w.tier===6&&!w.phase2&&w.hp<w.maxHp*.5){w.phase2=true;w.announcement='2페이즈 · 절대룡의 패턴이 빨라집니다';w.announcementUntil=t+40;w.nextPattern=Math.min(w.nextPattern,t+20);}
- if(w.tier===6&&!w.lastRoar&&w.hp<w.maxHp*.2){w.lastRoar=true;w.judgmentAt=t+35;w.announcement='최후의 포효 · 전체 대붕괴가 바로 옵니다!';w.announcementUntil=t+40;}
+ if(w.tier===6&&!w.lastRoar&&w.hp<w.maxHp*.2){w.lastRoar=true;w.roarNow=true;w.nextJudgment=t;}
  e.dir=towerFacing(target.x-e.x,target.y-e.y,e.dir);
  if(t>(w.enemyCastUntil||0)&&dist(e,target)>430){let angle=Math.atan2(target.y-e.y,target.x-e.x);raidMove(e,e.x+Math.cos(angle)*9,e.y+Math.sin(angle)*9,w.walls);e.walk++;}
  const circle=(x,y,r,delay,mult,inner=0,extra={})=>w.hazards.push({type:'circle',x,y,r,inner,start:t,at:t+delay,end:t+delay+3,multiplier:mult,...extra});
@@ -68,8 +68,10 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
    w.announcement='시간 붕괴 · 안전 고리 / 교차 광선 · 일식 추적';w.announcementUntil=t+34;}
   if(!final)w.nextPattern=t+(hard?(enraged?42:62):(enraged?70:100));
  }
- if(t<w.nextCorruption&&t>=w.nextCorruption-30&&w.corruptionWarningAt!==w.nextCorruption){w.corruptionWarningAt=w.nextCorruption;circle(1600,1600,4500,w.nextCorruption-t,0,0,{warningOnly:true,kind:'corruption',label:'침식 · 회복 준비'});}
- if(t>=w.nextJudgment){w.judgmentAt=t+35;w.announcement=w.tier?'대붕괴 · 사제 보호막 준비':'심해 침식 · 사제 치유 준비';w.announcementUntil=t+40;circle(1600,1600,4500,35,0,0,{warningOnly:true,kind:'judgment',label:w.announcement});w.nextJudgment=t+(final?200:w.tier===3?220:300);}
+ // 2026-11-10 도현: 최종 보스는 사제 없이도 피해서 잡을 수 있게 — 침식(피할 수 없는 지속 피해) 없음, 대붕괴는 안전지대 회피 패턴.
+ if(!final&&t<w.nextCorruption&&t>=w.nextCorruption-30&&w.corruptionWarningAt!==w.nextCorruption){w.corruptionWarningAt=w.nextCorruption;circle(1600,1600,4500,w.nextCorruption-t,0,0,{warningOnly:true,kind:'corruption',label:'침식 · 회복 준비'});}
+ if(final&&t>=w.nextJudgment){const k=(Math.floor(t/7)*2654435761+w.tier*97)>>>0,sx=700+k%1800,sy=700+(k>>>11)%1800;circle(sx,sy,4500,35,7,420,{label:w.roarNow?'최후의 포효 · 안전지대로!':'대붕괴 · 안전지대로'});w.announcement=w.roarNow?'최후의 포효 · 빛나는 안전지대로 피하세요!':'대붕괴 · 빛나는 안전지대로 피하세요';w.announcementUntil=t+40;w.roarNow=false;w.nextJudgment=t+200;}
+ else if(t>=w.nextJudgment){w.judgmentAt=t+35;w.announcement=w.tier?'대붕괴 · 사제 보호막 준비':'심해 침식 · 사제 치유 준비';w.announcementUntil=t+40;circle(1600,1600,4500,35,0,0,{warningOnly:true,kind:'judgment',label:w.announcement});w.nextJudgment=t+(w.tier===3?220:300);}
  supportTick(w.members,t);
  for(const m of alive){const c=TOWER_CLASSES[m.classId];let [x,y,bits]=w.started+t*100-m.inputAt<1500?m.input:[0,0,0],len=Math.max(1,Math.hypot(x,y));x/=len;y/=len;m.moving=Math.hypot(x,y)>.01;m.dir=towerFacing(x,y,m.dir);if(m.moving)m.walk++;
   let speed=c.speed;if((bits&4)&&t>=m.dashReady){const v=facingVector(m.dir);m.dashReady=t+c.dashCooldown;m.immune=t+5;m.dashUntil=t+3;m.dx=m.moving?x:v.x;m.dy=m.moving?y:v.y;}if(t<(m.dashUntil||0)){x=m.dx;y=m.dy;speed*=3;}raidMove(m,m.x+x*speed,m.y+y*speed,w.walls);
@@ -82,8 +84,8 @@ export function advanceRaidRaw(room,user,input,now,frames=[]){
  }
  supportTick(w.members,t,w.numbers,w.effects,()=>++w.serial);
  const hurt=(m,value,unavoidable=false)=>{if(m.hp<=0||m.left||(!unavoidable&&(t<m.immune||t<m.hurtReady)))return;const damage=absorbDamage(m,Math.max(1,Math.round(value)),t);m.hp=Math.max(0,m.hp-damage);if(!unavoidable)m.hurtReady=t+5;w.numbers.push({id:++w.serial,value:damage,x:m.x,y:m.y-110,kind:'incoming',start:t,end:t+9});};
- if(t>=w.nextCorruption){for(const m of alive){m.corruption=t<(m.purifiedUntil||0)?0:(m.corruption||0)+1;hurt(m,m.power.hp*(.10+m.corruption*(w.tier>=3?.05:.035)),true);}w.nextCorruption=t+(w.tier>=3?90:120);}
- if(t===w.judgmentAt){for(const m of alive)hurt(m,m.power.hp*(final?.45:w.tier>=3?.7:w.tier?.6:.3)+incomingDamage(atk,m.power.defense)*(final?1.5:w.tier>=3?2.5:2),true);}
+ if(!final&&t>=w.nextCorruption){for(const m of alive){m.corruption=t<(m.purifiedUntil||0)?0:(m.corruption||0)+1;hurt(m,m.power.hp*(.10+m.corruption*(w.tier>=3?.05:.035)),true);}w.nextCorruption=t+(w.tier>=3?90:120);}
+ if(!final&&t===w.judgmentAt){for(const m of alive)hurt(m,m.power.hp*(w.tier>=3?.7:w.tier?.6:.3)+incomingDamage(atk,m.power.defense)*(w.tier>=3?2.5:2),true);}
  for(const h of w.hazards)if(!h.warningOnly&&t===h.at){const insideOf=m=>{if(h.type==='line'){const dx=h.tx-h.x,dy=h.ty-h.y,k=Math.max(0,Math.min(1,((m.x-h.x)*dx+(m.y-h.y)*dy)/(dx*dx+dy*dy)));return Math.hypot(m.x-h.x-k*dx,m.y-h.y-k*dy)<h.width/2+25;}return dist(m,h)<h.r+25&&dist(m,h)>=h.inner;};
   // 분담: 표식 안 인원이 피해를 나눔. 아무도 없으면 전원이 전부 받음.
   if(h.share){const soak=alive.filter(insideOf),unit=m=>incomingDamage(atk,m.power.defense)*h.multiplier*h.share;if(soak.length)for(const m of soak)hurt(m,unit(m)/soak.length,true);else for(const m of alive)hurt(m,unit(m),true);continue;}
