@@ -987,6 +987,12 @@ function hunt() {
       "",
     )}</div></div><div class="panel pad"><h3>다음 목표</h3><p class="note">${state.cleared.length < D.BOSSES.length ? D.BOSSES.find((b) => !state.cleared.includes(b.id))?.name + " 처치" : "최종 장비와 잠재옵션 완성"}</p>${btn("보스 확인", "tab", "boss")}${btn("모험 수첩", "journal")}</div>${state.tutorial < 6 ? `<div class="quest"><strong>모험 안내 ${state.tutorial + 1}/6</strong><p class="note">${["시작 무기는 장착되어 있어요. 캐릭터 탭에서 확인하세요.", "레벨업 포인트는 내 직업 주스탯에 분배하세요.", "모든 사냥터에 입장할 수 있어요. 권장 레벨과 생존 가능 여부를 확인하세요.", "보스 장비는 보스를 처치해서만 얻을 수 있어요.", "장비는 잠재 3줄로 시작해요. 큐브로 원하는 옵션을 찾으세요.", "강화 실패 시 별은 유지됩니다. 비용을 확인하고 도전하세요."][state.tutorial]}</p>${btn("확인", "tutorial", "", "", true)}</div>` : ""}</aside></div>`;
 }
+function fieldPreview(stage) {
+  if (!stage.background) return "";
+  const monster = D.fieldMonster(stage.id);
+  if (!monster?.art) return "";
+  return `<span class="field-preview" style="background-image:url('${stage.background}')" aria-hidden="true"><img src="${monster.art}" alt="" loading="lazy" decoding="async"></span>`;
+}
 function regions() {
   return `${header("사냥터 선택", "WORLD MAP")}${btn("사냥으로 돌아가기", "back")}<section class="panel pad relic-card"><strong>여명의 폐허 · ${requiredLevel(200)}</strong><p class="note">멸신왕 벨제리온 이후 열리는 유적 · 일반 ${requiredLevel(200,"200레벨")} 장비</p>${disabledBtn("유적 탐사","dungeon","relic",state.level<200||!state.cleared.includes(29),"gold")}</section><div class="region-list" style="margin-top:12px">${D.REGIONS.map(
     (r) =>
@@ -994,8 +1000,10 @@ function regions() {
         (s) => s.region === r.id,
       )
         .map(
-          (s) =>
-            `<div class="stage-row${state.stage===s.id?" current-stage":""}" data-stage="${s.id}"><div><strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 입장 제한 없음<br>경험치 ${fmt(s.xp)} · ${fmt(s.gold)} G / 처치<br>${gearLevelRange(Math.max(10,s.dropLevel))} 일반 장비${state.stage===s.id?" · 현재 사냥터":""}</small></div>${disabledBtn("입장", "enterStage", s.id, false)}</div>`,
+          (s) => {
+            const preview = fieldPreview(s);
+            return `<div class="stage-row${state.stage===s.id?" current-stage":""}" data-stage="${s.id}"><div class="stage-label">${preview}<div><strong>${s.name}</strong><br><small>권장 Lv.${s.level} · 입장 제한 없음<br>경험치 ${fmt(s.xp)} · ${fmt(s.gold)} G / 처치<br>${gearLevelRange(Math.max(10,s.dropLevel))} 일반 장비${state.stage===s.id?" · 현재 사냥터":""}</small></div></div>${disabledBtn("입장", "enterStage", s.id, false)}</div>`;
+          },
         )
         .join("")}</section>`,
   ).join("")}</div>`;
