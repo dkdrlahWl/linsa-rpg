@@ -3,13 +3,14 @@
 // 같은 캐릭터 카드끼리 합성하면 별이 오른다. 전투·아레나에는 영향 없음.
 // 2026-11-02 도현: 동료 버프 — SS급 신설(픽업 전용), 아스트리아는 일반 소환 S급으로 이동, 더 좋은 S급 5종 추가.
 export const COMPANION_GRADES=['SS','S','A','B','C','D','F'];
-const CELESTIA_RATE=.002;
+const NORMAL_SS_RATE=.002;
 export const PICKUP_RATE=.005;
-export const COMPANION_GRADE_RATES={SS:CELESTIA_RATE,S:.01-CELESTIA_RATE,A:.05,B:.10,C:.20,D:.25,F:.39};
+export const COMPANION_GRADE_RATES={SS:NORMAL_SS_RATE,S:.01-NORMAL_SS_RATE,A:.05,B:.10,C:.20,D:.25,F:.39};
 export const PICKUP_GRADE_RATES={...COMPANION_GRADE_RATES,SS:PICKUP_RATE,S:.01-PICKUP_RATE};
 // id는 이미지 파일명(companions/<id>.webp)으로도 쓴다.
 export const COMPANIONS=[
  {id:'pickup-celestia',grade:'SS',name:'셀레스티아',title:'천상의 여제 셀레스티아',min:20000,max:25000,weight:1},
+ {id:'pickup-aurel',grade:'SS',name:'아우렐',title:'별의 금고지기 아우렐',min:35000,max:35000,weight:1},
  {id:'s1',grade:'S',name:'엘리시아',min:4000,max:5000,weight:35},
  {id:'s2',grade:'S',name:'카이로스',min:3500,max:4400,weight:65},
  {id:'s3',grade:'S',name:'세라피온',min:5500,max:6500,weight:20},
@@ -37,7 +38,7 @@ export const COMPANIONS=[
  {id:'f3',grade:'F',name:'줄리안',min:110,max:140,weight:20},
  {id:'f4',grade:'F',name:'에블린',min:140,max:180,weight:10},
 ];
-export const PICKUP_COMPANION={id:'pickup-aurel',grade:'SS',name:'아우렐',title:'별의 금고지기 아우렐',min:35000,max:35000,pickup:true};
+export const PICKUP_COMPANION={id:'pickup-seriene',grade:'SS',name:'세리엔',title:'달빛 항로의 세리엔',min:70000,max:70000,pickup:true};
 export const PICKUP_PITY=80;
 export const COMPANION_BY_ID=Object.fromEntries([...COMPANIONS,PICKUP_COMPANION].map(c=>[c.id,c]));
 // 패시브: 종류는 1/3씩, 수치는 등급 상관없이 같은 범위에서 랜덤(%).
@@ -93,7 +94,8 @@ export function rollCompanionCharacter(grade,random){
 export function companionSummonChance(id,banner='normal'){
  const c=COMPANION_BY_ID[id],pickup=banner==='pickup';
  if(!c)return 0;
- if(c.grade==='SS')return pickup?(c.pickup?PICKUP_RATE:0):(c.pickup?0:CELESTIA_RATE);
+ if(c.pickup)return pickup?PICKUP_RATE:0;
+ if(pickup&&c.grade==='SS')return 0;
  const rates=pickup?PICKUP_GRADE_RATES:COMPANION_GRADE_RATES;
  const total=COMPANIONS.filter(d=>d.grade===c.grade).reduce((sum,d)=>sum+d.weight,0);
  return rates[c.grade]*c.weight/total;
