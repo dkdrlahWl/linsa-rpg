@@ -2,6 +2,11 @@ import {normalizeCompanions} from './companion-model.mjs';
 import {normalizeTribe} from './tribe-model.mjs';
 // Stable campaign IDs and persisted claims keep gifts one-time per account.
 const SYSTEM_MAIL = [{
+  id:'weekend-20261116-fragments-lockstones',
+  title:'주말 보상', sender:'링구 RPG 운영팀',
+  message:'주말 보상으로 장비 파편 20,000개와 잠재 잠금석 50개를 보내드립니다.',
+  sentAt:'2026-11-15T17:05:02Z', rewards:{fragment:20000,potentialLock:50},
+}, {
   id:'all-20261110-essence-3000',
   title:'마력 정수 선물', sender:'링구 RPG 운영팀',
   message:'모든 유저에게 마력 정수 3,000개를 보내드립니다.',
