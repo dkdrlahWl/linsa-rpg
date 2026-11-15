@@ -23,6 +23,18 @@ export const CHAPTERS_310=[
   [335,'황금 모래 언덕','golden-dune','사구 전갈 기병'],[340,'잊힌 태양 신전','sun-temple','태양 가면 신관'],[345,'시간의 피라미드','time-pyramid','모래시계 파라오 세티']]},
  {id:20,chapter:8,name:'천공의 부유섬',growth:GENTLE,stages:[
   [350,'구름 다리 정원','cloud-bridge','구름갈기 그리핀'],[355,'태풍의 등대','storm-lighthouse','폭풍 등불 정령'],[360,'하늘왕의 옥좌','sky-throne','천공왕 아스테르']]},
+  {id:21,chapter:9,name:'수정 뿌리 지하림',growth:GENTLE,stages:[
+   [365,'호박빛 뿌리길','amber-root','호박뿔 왕사슴벌레'],
+   [370,'발광 균사의 동굴','spore-grotto','균사 사마귀'],
+   [375,'비취결정 성소','jade-sanctuary','비취갑 전갈']]},
+  {id:22,chapter:10,name:'망령 열차 종착역',growth:GENTLE,stages:[
+   [380,'폐열차 조차장','cinder-railyard','석탄갈기 늑대'],
+   [385,'심야 터널 승강장','midnight-platform','망령 차장'],
+   [390,'유령열차 대합실','phantom-terminal','망령 기관차 골렘']]},
+  {id:23,chapter:11,name:'거울사막의 신기루',growth:GENTLE,stages:[
+   [393,'백염의 거울평원','mirror-salt-flat','거울조각 자칼'],
+   [396,'분홍빛 소금궁','rose-salt-palace','수정비늘 뱀'],
+   [400,'부서진 해시계 광장','shattered-sundial','거울갑 스핑크스']]},
 ];
 export function extendChapters300(regions,stages,monsters){
  if(regions.some(r=>r.id===13))return;
